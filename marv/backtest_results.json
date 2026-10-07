@@ -68,5 +68,22 @@
   "takeaways": [
    "Baseball tops out near 77% even on the most confident picks; 90% is not reachable."
   ]
+ },
+ "ncaaw": {
+  "test_seasons": "2023-2025 (D1 vs D1)",
+  "pass_rate": 0.78,
+  "ml": {
+   "floor": 0.76,
+   "games": 16358,
+   "test_picks": 7076,
+   "test_acc": 0.908,
+   "test_roi": null
+  },
+  "ou_note": "Lines needed (VM backtest)",
+  "takeaways": [
+   "Huge talent gaps make 90%+ picks common: about 2,360 a season at 90.8% on unseen seasons.",
+   "Those are heavy favorites, often -1000 or shorter; run the VM backtest (it pulls ESPN's past lines) before assuming profit.",
+   "Strength-of-schedule adjusted stats made the stat formula the strongest expert (76.8% winners vs 73.2% for power ratings)."
+  ]
  }
 }
