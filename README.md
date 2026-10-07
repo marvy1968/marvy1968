@@ -12,8 +12,33 @@ NCAA women's basketball. NBA, MLB, NHL and soccer are built but switched off; en
 | WNBA | ESPN box scores (sportsdataverse) | ESPN, or The Odds API |
 | NCAA men's / women's basketball | ESPN box scores for all of Division I (sportsdataverse) | ESPN, or The Odds API |
 
-EuroLeague Women is **not supported yet**: it's run by FIBA, which has no free public data feed,
-and The Odds API doesn't list it.
+**EuroLeague Women** (run by FIBA) uses FIBA LiveStats box scores. No sportsbook feed lists it, so it
+can only produce win probabilities, not priced edges. Run `python -m marv probe-ewl` on the VM first.
+It checks FIBA's pages and saves samples to `state/probe/` if anything needs adjusting.
+
+### Equalizing college teams
+College talent varies enormously, so college football, NCAA basketball and EuroLeague use
+**strength-of-schedule adjusted stats**: every offense and defense stat is measured, game by game,
+against what that opponent normally allows (or produces), then averaged. A team that puts up 80 against
+elite defenses rates higher than one scoring 80 against weak ones. These sit alongside the raw
+stats, opponent-adjusted power ratings with blowout dampening (25+ pts college basketball, 28+ football)
+and, for football, the recruiting talent composite.
+
+### Live updates every quarter / half
+`marv-live.service` (`python -m marv live`) watches ESPN's live scoreboard every 2 minutes. At the end
+of each quarter (each half in NCAA men's basketball) it re-prices the game from Marv's pregame
+projection, the score, the clock and the game's actual pace, and sends:
+
+```
+🔄 End of 1st half — North Carolina 30 – 41 Duke
+20 min left · Marv live: Duke win 95% (fair -1749) · pregame Duke 68%
+Projected final total 145.0 (pregame 150.0)
+Total 150.5 (live line): Under 68% · edge +15% · ▶️ live play
+```
+
+Live edges need live prices (`ODDS_API_KEY`); without them it shows fair prices only. Live numbers
+are model estimates and haven't been backtested like the pregame picks. EuroLeague live updates aren't
+wired yet (ESPN doesn't carry it).
 
 Every morning the bot projects the day's games in each active sport. It simulates each game
 thousands of times, prices spreads, totals and moneylines, runs everything through the Max veto stack
