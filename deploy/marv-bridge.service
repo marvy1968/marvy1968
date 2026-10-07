@@ -1,0 +1,14 @@
+[Unit]
+Description=Marv bridge - local fair-price API for the odds alert bot
+After=network-online.target
+
+[Service]
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -115,6 +115,36 @@ sudo systemctl start marv-bot.service            # run now
 journalctl -u marv-bot.service -n 200            # logs
 ```
 
+## Working with an odds-alert bot (e.g. March_edge)
+
+Marv predicts; an odds bot watches prices. They connect through the **Marv bridge**: every Marv
+run saves its projections to `state/predictions.json`, and `marv-bridge.service` answers on
+`http://127.0.0.1:8787` (local to the VM only).
+
+Before the odds bot sends an alert, it asks Marv for the fair price, pregame or live with the
+score and clock:
+
+```bash
+python -m marv check --sport nfl --team Lions --market total --side under --line 67.5 --price -110 \
+    --home-score 29 --away-score 19 --minutes-left 17.8
+# Marv ✅ agrees: fair 69% vs price 52% (edge +17%) · live, projected final total 63.6
+curl "http://127.0.0.1:8787/check?sport=nfl&team=Lions&market=ml&side=Lions&price=360&home_score=29&away_score=19&minutes_left=14.9"
+```
+
+In the odds bot (Python), block alerts Marv disagrees with and add Marv's line to the rest:
+
+```python
+import requests
+v = requests.get("http://127.0.0.1:8787/check", params=dict(sport="nfl", team=home, other=away,
+                 market="total", side="under", line=67.5, price=-110,
+                 home_score=29, away_score=19, minutes_left=17.8), timeout=5).json()
+if v["found"] and not v["agrees"]:
+    skip_alert()          # Marv's fair chance doesn't beat the price
+```
+
+To find the odds bot on the VM and package it (secrets removed) for review:
+`sudo bash /opt/marv-bot/deploy/find_odds_bot.sh` then `sudo bash /opt/marv-bot/deploy/find_odds_bot.sh /path/to/bot`.
+
 ## Commands
 
 ```bash

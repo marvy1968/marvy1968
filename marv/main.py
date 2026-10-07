@@ -1,6 +1,7 @@
 """Command line: python -m marv {run,backtest,results,test-telegram,get-chat-id,sports}."""
 
 import argparse
+import json
 import logging
 import sys
 import traceback
@@ -11,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
+from . import bridge
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
@@ -50,6 +52,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
+    bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
     text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
     print(text + "\n")
     if not dry_run:
@@ -183,6 +186,58 @@ def cmd_stats_backtest(s: Settings, args) -> int:
     return 0
 
 
+def _check_args(src) -> dict:
+    def num(k):
+        v = src.get(k)
+        return float(v) if v not in (None, "") else None
+    return dict(sport=src["sport"], team=src["team"], market=src["market"], side=src["side"],
+                price=float(src["price"]), line=num("line"), other=src.get("other") or None,
+                home_score=num("home_score"), away_score=num("away_score"), minutes_left=num("minutes_left"))
+
+
+def cmd_check(s: Settings, args) -> int:
+    v = bridge.check(Path(s.state_dir), **_check_args(vars(args)))
+    print(v.line())
+    print(bridge.verdict_json(v))
+    return 0
+
+
+def cmd_serve(s: Settings, args) -> int:
+    """Local HTTP endpoint for the odds bot: /check?sport=nfl&team=Lions&market=total&side=under&line=67.5&price=-110..."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import parse_qs, urlparse
+
+    state = Path(s.state_dir)
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            url = urlparse(self.path)
+            q = {k: v[0] for k, v in parse_qs(url.query).items()}
+            try:
+                if url.path == "/check":
+                    body, code = bridge.verdict_json(bridge.check(state, **_check_args(q))), 200
+                elif url.path == "/predictions":
+                    path = state / "predictions.json"
+                    body, code = (path.read_text() if path.exists() else "{}"), 200
+                else:
+                    body, code = '{"error": "use /check or /predictions"}', 404
+            except (KeyError, ValueError) as exc:
+                body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
+            data = body.encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, *a):
+            pass
+
+    log.info("Marv bridge listening on http://127.0.0.1:%d", args.port)
+    ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
+    return 0
+
+
 def cmd_results(s: Settings, args) -> int:
     text = results_text(s, Store(Path(s.state_dir)), args.days)
     print(text)
@@ -239,6 +294,21 @@ def main(argv: list[str] | None = None) -> int:
     sb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (test seasons; training uses 6 prior years)")
     sb.add_argument("--val-to", type=int, help="last season used for tuning (default: first two thirds)")
 
+    ck = sub.add_parser("check", help="Marv's fair price for an odds-bot alert (pregame or live)")
+    ck.add_argument("--sport", required=True, choices=list(SPORTS))
+    ck.add_argument("--team", required=True, help="any team in the game")
+    ck.add_argument("--other", help="the other team (optional, sharpens matching)")
+    ck.add_argument("--market", required=True, choices=["total", "ml"])
+    ck.add_argument("--side", required=True, help="over / under, or the team name for ml")
+    ck.add_argument("--price", required=True, type=float, help="American odds, e.g. -110")
+    ck.add_argument("--line", type=float, help="total line (for --market total)")
+    ck.add_argument("--home-score", dest="home_score", type=float)
+    ck.add_argument("--away-score", dest="away_score", type=float)
+    ck.add_argument("--minutes-left", dest="minutes_left", type=float, help="game minutes left (innings for MLB)")
+
+    sv = sub.add_parser("serve", help="local HTTP bridge for the odds bot (127.0.0.1)")
+    sv.add_argument("--port", type=int, default=8787)
+
     res = sub.add_parser("results", help="send the graded track record")
     res.add_argument("--days", type=int, default=30)
     res.add_argument("--dry-run", action="store_true")
@@ -251,7 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:
