@@ -11,6 +11,7 @@ from .sims import baseball, basketball, football, hockey, soccer
 from .sims.base import SimResult
 
 FCS = "FCS (pooled)"
+DEFAULT_SPORTS = ["nfl", "cfb", "euroleague", "wnba", "ncaab", "ncaaw"]  # others available via SPORTS=...
 DAILY = {d: 26 for d in range(7)}  # every day, games in the next 26 hours
 
 
@@ -111,6 +112,22 @@ SPORTS: dict[str, Sport] = {s.key: s for s in [
           VetoParams(trap_spread=2.0, trap_total=3.0, spread_gap=10, total_gap=12, min_games=6),
           _basketball(basketball.WNBA), espn_paths=[("basketball/wnba", "WNBA")],
           odds_api_keys=["basketball_wnba"]),
+    Sport("ncaab", "NCAA Men's Basketball", "🏀", "espn",
+          RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
+          VetoParams(trap_spread=2.0, trap_total=3.0, spread_gap=12, total_gap=14, min_games=5),
+          _basketball(basketball.NCAAM),
+          espn_paths=[("basketball/mens-college-basketball?groups=50", "NCAAM")],
+          odds_api_keys=["basketball_ncaab"]),
+    Sport("ncaaw", "NCAA Women's Basketball", "🏀", "espn",
+          RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
+          VetoParams(trap_spread=2.0, trap_total=3.0, spread_gap=12, total_gap=14, min_games=5),
+          _basketball(basketball.NCAAW),
+          espn_paths=[("basketball/womens-college-basketball?groups=50", "NCAAW")],
+          odds_api_keys=["basketball_wncaab"]),
+    Sport("euroleague", "EuroLeague", "🇪🇺", "euroleague",
+          RatingParams(multiplicative=False, home_adv=3.0, shrink=5, half_life_days=90),
+          VetoParams(trap_spread=2.0, trap_total=3.0, spread_gap=10, total_gap=12, min_games=5),
+          _basketball(basketball.EUROLEAGUE), odds_api_keys=["basketball_euroleague"]),
     Sport("nhl", "NHL", "🏒", "espn",
           RatingParams(multiplicative=True, home_adv=1.08, shrink=8, half_life_days=90),
           VetoParams(spread_edge=0.05, total_edge=0.05, ml_edge=0.04, trap_spread=None, trap_total=0.5,

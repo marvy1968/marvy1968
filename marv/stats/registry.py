@@ -5,7 +5,8 @@ from pathlib import Path
 
 from .live import StatsRules, project_slate
 
-MODULE_NAMES = {"nfl": "nfl", "cfb": "ncaaf", "nba": "nba", "wnba": "wnba", "mlb": "mlb"}
+MODULE_NAMES = {"nfl": "nfl", "cfb": "ncaaf", "nba": "nba", "wnba": "wnba", "mlb": "mlb",
+                "ncaab": "ncaab", "ncaaw": "ncaaw", "euroleague": "euroleague"}
 MODULES = set(MODULE_NAMES)
 
 # From the walk-forward backtests: thresholds tuned on early seasons, checked on later ones
@@ -19,6 +20,10 @@ RULES: dict[str, StatsRules] = {
     "wnba": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # MLB 2023-25 test: best tier (>=70%) -> 43 picks, 76.7%; baseball never reaches 90%. No O/U history.
     "mlb": StatsRules(ml_min_prob=0.70, ou_enabled=False),
+    # NCAA basketball / EuroLeague: set from backtests (see ANALYSIS.md); no historical totals for O/U.
+    "ncaab": StatsRules(ml_min_prob=0.90, ou_enabled=False),
+    "ncaaw": StatsRules(ml_min_prob=0.90, ou_enabled=False),
+    "euroleague": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # College: not backtestable without a CFBD key; NFL-like floor until `stats-backtest --sport cfb` runs
     "cfb": StatsRules(ml_min_prob=0.85, ou_enabled=False),
 }

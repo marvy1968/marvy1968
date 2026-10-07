@@ -21,7 +21,7 @@ from .sources import load_for_run, load_games
 from .stats import registry as stats_registry
 from .sports import SPORTS, Sport
 from .state import Store
-from .telegram import format_card, get_chat_ids, send_message
+from .telegram import format_card, get_chat_ids, send_document, send_message
 
 log = logging.getLogger("marv")
 ET = ZoneInfo("America/New_York")
@@ -60,6 +60,10 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not dry_run:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
         store.log_picks(sport.key, preds)
+        if sport.key in s.pdf_sports:
+            from .reports import weekly_chart
+            pdf = weekly_chart(sport, preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
+            send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
         log.info("%s: sent %d predictions", sport.key, len(preds))
 
 
@@ -240,6 +244,31 @@ def cmd_serve(s: Settings, args) -> int:
     return 0
 
 
+def cmd_report(s: Settings, args) -> int:
+    """PDFs in the Marv templates: weekly ML / O-U chart (live run) and/or the sport backtest sheet."""
+    from .reports import sport_sheet, weekly_chart
+    sport = SPORTS[args.sport]
+    out_dir = Path(s.state_dir) / "reports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+    if args.sheet:
+        files.append(sport_sheet(sport, out_dir / f"{sport.key}_predict_max.pdf", s.simulations))
+    if args.chart:
+        now = datetime.now(timezone.utc)
+        hours = args.hours or max(sport.schedule.values())
+        history, slate, ctx = load_for_run(sport, s, now, hours)
+        projections = stats_registry.project(sport.key, slate, s, now, history=history) \
+            if s.stats_model and sport.key in stats_registry.MODULES and slate else None
+        preds = predict(sport, history, slate, now, s.simulations, ctx, veto=Settings.veto_for(sport.key),
+                        model_weight=Settings.model_weight(sport.key), projections=projections)
+        files.append(weekly_chart(sport, preds, out_dir / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode))
+    for f in files:
+        print(f)
+        if args.send:
+            send_document(s.telegram_bot_token, s.telegram_chat_id, f, f.stem.replace("_", " "))
+    return 0
+
+
 def cmd_results(s: Settings, args) -> int:
     text = results_text(s, Store(Path(s.state_dir)), args.days)
     print(text)
@@ -292,7 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     bt.add_argument("--seed", type=int, default=7)
 
     sb = sub.add_parser("stats-backtest", help="walk-forward backtest of the stats experts (tunes + reports)")
-    sb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "mlb"])
+    sb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "mlb", "ncaab", "ncaaw", "euroleague"])
     sb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (test seasons; training uses 6 prior years)")
     sb.add_argument("--val-to", type=int, help="last season used for tuning (default: first two thirds)")
 
@@ -311,6 +340,13 @@ def main(argv: list[str] | None = None) -> int:
     sv = sub.add_parser("serve", help="local HTTP bridge for the odds bot (127.0.0.1)")
     sv.add_argument("--port", type=int, default=8787)
 
+    rp = sub.add_parser("report", help="PDF weekly chart and/or sport backtest sheet (Marv templates)")
+    rp.add_argument("--sport", required=True, choices=list(SPORTS))
+    rp.add_argument("--chart", action="store_true", help="weekly ML / O-U chart from a live run")
+    rp.add_argument("--sheet", action="store_true", help="sport one-pager with backtest results")
+    rp.add_argument("--hours", type=int)
+    rp.add_argument("--send", action="store_true", help="send the PDFs to Telegram")
+
     res = sub.add_parser("results", help="send the graded track record")
     res.add_argument("--days", type=int, default=30)
     res.add_argument("--dry-run", action="store_true")
@@ -323,7 +359,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "report": cmd_report, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

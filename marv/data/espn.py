@@ -161,10 +161,13 @@ class ESPNClient:
         cache = None
         # Only cache ranges that finished more than two days ago (results are final).
         if self.cache_dir and end < datetime.now(timezone.utc) - timedelta(days=2):
-            cache = self.cache_dir / f"espn_{path.replace('/', '_')}_{dates}.json"
+            cache = self.cache_dir / f"espn_{re.sub(r'[^A-Za-z0-9]+', '_', path)}_{dates}.json"
             if cache.exists():
                 return json.loads(cache.read_text())
-        resp = self.session.get(BASE.format(path=path), params={"dates": dates, "limit": 1000}, timeout=30)
+        base_path, _, query = path.partition("?")
+        params = {"dates": dates, "limit": 1000}
+        params.update(dict(kv.split("=", 1) for kv in query.split("&") if "=" in kv))
+        resp = self.session.get(BASE.format(path=base_path), params=params, timeout=30)
         resp.raise_for_status()
         events = resp.json().get("events", [])
         if cache:

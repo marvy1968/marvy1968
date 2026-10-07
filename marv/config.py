@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from .sports import SPORTS, VetoParams
+from .sports import DEFAULT_SPORTS, SPORTS, VetoParams
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -29,9 +29,10 @@ class Settings:
     odds_api_key: str = ""
     simulations: int = 20000
     state_dir: str = str(ROOT / "state")
-    sports: list[str] = field(default_factory=lambda: list(SPORTS))
+    sports: list[str] = field(default_factory=lambda: list(DEFAULT_SPORTS))
     paper_mode: bool = True
     stats_model: bool = True  # NFL/college/NBA/WNBA/MLB use the box-score experts
+    pdf_sports: list[str] = field(default_factory=lambda: ["nfl", "cfb"])  # attach the weekly chart PDF
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -44,9 +45,10 @@ class Settings:
             odds_api_key=os.environ.get("ODDS_API_KEY", ""),
             simulations=int(os.environ.get("SIMULATIONS") or 20000),
             state_dir=os.environ.get("STATE_DIR") or str(ROOT / "state"),
-            sports=[x.strip().lower() for x in enabled.split(",") if x.strip()] or list(SPORTS),
+            sports=[x.strip().lower() for x in enabled.split(",") if x.strip()] or list(DEFAULT_SPORTS),
             paper_mode=os.environ.get("PAPER_MODE", "true").lower() not in ("0", "false", "no", "off"),
             stats_model=os.environ.get("STATS_MODEL", "true").lower() not in ("0", "false", "no", "off"),
+            pdf_sports=[x.strip().lower() for x in os.environ.get("REPORT_PDF_SPORTS", "nfl,cfb").split(",") if x.strip()],
         )
 
     @staticmethod

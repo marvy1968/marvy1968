@@ -48,6 +48,9 @@ def load_games(sport: Sport, s: Settings, start: datetime, end: datetime,
                 ctx["pace"] = pace_factors(client.season_stats(year))
             except Exception as exc:  # pace is a refinement; never fail over it
                 log.warning("CFB pace stats unavailable: %s", exc)
+    elif sport.source == "euroleague":
+        from .stats.euroleague import schedule_games
+        games = schedule_games(start, end)
     else:
         raise ValueError(f"unknown source {sport.source}")
     return games, ctx

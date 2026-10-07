@@ -20,6 +20,9 @@ class BasketballParams:
 
 NBA = BasketballParams(team_sd=11.5, rho=0.35, ot_points=11.0)
 WNBA = BasketballParams(team_sd=10.0, rho=0.30, ot_points=9.0)
+NCAAM = BasketballParams(team_sd=10.5, rho=0.30, ot_points=8.0)
+NCAAW = BasketballParams(team_sd=10.0, rho=0.25, ot_points=7.0)
+EUROLEAGUE = BasketballParams(team_sd=10.0, rho=0.30, ot_points=8.5)
 
 
 def simulate_game(home_exp: float, away_exp: float, params: BasketballParams = NBA, n: int = 20000,

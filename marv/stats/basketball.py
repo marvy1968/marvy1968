@@ -23,17 +23,22 @@ class BasketballStats(StatsModule):
 
     backfill_league = True  # missing recent games can be scraped from ESPN game pages
 
-    def load(self, cache: Path, seasons: list[int], current: int | None = None, extra_box: pd.DataFrame | None = None):
+    def read_box(self, cache: Path, seasons: list[int], current: int | None) -> list[pd.DataFrame]:
+        """Team box scores in the ESPN/sportsdataverse column layout, one frame per season."""
         frames = []
         for season in seasons:
             age = 2 if season == current else None  # current season: refresh every 2 hours
             path = fetch(BOX_URL.format(league=self.league, season=season), cache / f"{self.league}_box_{season}.parquet", age)
             if path:
                 frames.append(pd.read_parquet(path))
+        return frames
+
+    def load(self, cache: Path, seasons: list[int], current: int | None = None, extra_box: pd.DataFrame | None = None):
+        frames = self.read_box(cache, seasons, current)
         if extra_box is not None and not extra_box.empty:
             frames.append(extra_box)
         box = pd.concat(frames, ignore_index=True)
-        box["game_id"] = pd.to_numeric(box["game_id"], errors="coerce").astype("Int64").astype(str)
+        box["game_id"] = box["game_id"].astype(str).str.replace(r"\.0$", "", regex=True)
         box = box[box["season_type"].isin([2, 3])].reset_index(drop=True)  # regular season + playoffs
         box = box.drop_duplicates(["game_id", "team_id"], keep="last").reset_index(drop=True)
         box["date"] = pd.to_datetime(box["game_date"])
@@ -119,6 +124,17 @@ class WNBAStats(BasketballStats):
     league = "wnba"
 
 
+class CollegeBasketballStats(BasketballStats):
+    """NCAA Division I box scores; same ESPN columns as the pros. Season label = spring year."""
+
+    def season_of(self, date):
+        return date.year + 1 if date.month >= 9 else date.year
+
+
+def _sim_for(params):
+    return lambda h, a, n, rng: basketball.simulate_game(h, a, params, n=n, rng=rng)
+
+
 def _nba_sim(h, a, n, rng):
     return basketball.simulate_game(h, a, basketball.NBA, n=n, rng=rng)
 
@@ -135,3 +151,14 @@ WNBA = WNBAStats(key="wnba", name="WNBA", simulate=_wnba_sim,
                  rating_params=RatingParams(multiplicative=False, home_adv=2.5, shrink=5, half_life_days=60),
                  halflife=10, chunk_days=14, first_season=2010, has_lines=False,
                  experts=ExpertConfig(rf_min_leaf=25, rf_trees=150))
+
+NCAAB = CollegeBasketballStats(key="ncaab", name="NCAA Men's Basketball", simulate=_sim_for(basketball.NCAAM),
+                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
+                               halflife=8, chunk_days=14, first_season=2012, has_lines=False,
+                               experts=ExpertConfig(rf_min_leaf=40, rf_trees=120))
+NCAAB.league = "mens_college_basketball"
+NCAAW = CollegeBasketballStats(key="ncaaw", name="NCAA Women's Basketball", simulate=_sim_for(basketball.NCAAW),
+                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
+                               halflife=8, chunk_days=14, first_season=2012, has_lines=False,
+                               experts=ExpertConfig(rf_min_leaf=40, rf_trees=120))
+NCAAW.league = "womens_college_basketball"

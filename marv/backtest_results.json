@@ -1,0 +1,72 @@
+{
+ "nba": {
+  "test_seasons": "2022-2026",
+  "pass_rate": 0.94,
+  "ml": {
+   "floor": 0.86,
+   "games": 6585,
+   "test_picks": 126,
+   "test_acc": 0.905,
+   "test_roi": -0.012
+  },
+  "ou": {
+   "floor": 0.17,
+   "games": 6585,
+   "test_picks": 617,
+   "test_acc": 0.528,
+   "test_roi": 0.009
+  },
+  "takeaways": [
+   "Moneylines reached 90.5% on unseen seasons, but only on ~25 heavy favorites a season; after the vig they are about break-even.",
+   "Over/unders show a small edge (52.8%) and cannot be pushed toward 90%.",
+   "The weighted stat formula was the strongest single expert; the consensus is best calibrated."
+  ]
+ },
+ "nfl": {
+  "test_seasons": "2022-2025",
+  "pass_rate": 0.99,
+  "ml": {
+   "floor": 0.78,
+   "games": 1136,
+   "test_picks": 30,
+   "test_acc": 0.9,
+   "test_roi": 0.029
+  },
+  "ou_note": "No edge (~50%)",
+  "takeaways": [
+   "About 6 certified moneylines a season at ~90%; most weeks have none.",
+   "Totals sat at a coin flip at every edge level, so the bot does not play NFL over/unders.",
+   "Weather and rest features did not improve totals."
+  ]
+ },
+ "wnba": {
+  "test_seasons": "2022-2025",
+  "pass_rate": 0.98,
+  "ml": {
+   "floor": 0.85,
+   "games": 1079,
+   "test_picks": 26,
+   "test_acc": 0.885,
+   "test_roi": null
+  },
+  "ou_note": "No historical totals",
+  "takeaways": [
+   "Certified moneylines landed between 83% and 88% depending on the seasons tested; small samples.",
+   "No free historical totals exist, so over/unders are not played."
+  ]
+ },
+ "mlb": {
+  "test_seasons": "2023-2025",
+  "ml": {
+   "floor": 0.7,
+   "games": 7289,
+   "test_picks": 43,
+   "test_acc": 0.767,
+   "test_roi": null
+  },
+  "ou_note": "No historical totals",
+  "takeaways": [
+   "Baseball tops out near 77% even on the most confident picks; 90% is not reachable."
+  ]
+ }
+}

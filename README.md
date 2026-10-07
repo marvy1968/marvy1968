@@ -1,7 +1,21 @@
 # Marv Predict Max: multi-sport Telegram bot
 
-Every morning the bot projects the day's games in **NFL, college football, NBA, WNBA, NHL, MLB and
-soccer** (EPL, La Liga, Serie A, Bundesliga, Ligue 1, MLS, Champions League). It simulates each game
+**Active sports:** NFL · College football (top 30) · EuroLeague · WNBA · NCAA men's basketball ·
+NCAA women's basketball. NBA, MLB, NHL and soccer are built but switched off; enable any with
+`SPORTS=nfl,cfb,euroleague,wnba,ncaab,ncaaw,nba` in `.env`.
+
+| Sport | Stats source | Live odds |
+|---|---|---|
+| NFL | nflverse (every team stat, EPA) | nflverse lines, or The Odds API |
+| College football (top 30) | CFBD box scores + talent composite (needs `CFBD_API_KEY`) | CFBD lines, or The Odds API |
+| EuroLeague | official EuroLeague API (`euroleague-api` package) | **The Odds API only** (`ODDS_API_KEY`) |
+| WNBA | ESPN box scores (sportsdataverse) | ESPN, or The Odds API |
+| NCAA men's / women's basketball | ESPN box scores for all of Division I (sportsdataverse) | ESPN, or The Odds API |
+
+EuroLeague Women is **not supported yet**: it's run by FIBA, which has no free public data feed,
+and The Odds API doesn't list it.
+
+Every morning the bot projects the day's games in each active sport. It simulates each game
 thousands of times, prices spreads, totals and moneylines, runs everything through the Max veto stack
 and sends the qualifying plays to your Telegram. Every pick is logged and graded, so you build a
 real track record.

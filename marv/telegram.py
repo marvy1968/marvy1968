@@ -27,6 +27,16 @@ def send_message(token: str, chat_id: str, text: str) -> None:
         resp.raise_for_status()
 
 
+def send_document(token: str, chat_id: str, path, caption: str = "") -> None:
+    if not token or not chat_id:
+        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
+    with open(path, "rb") as fh:
+        resp = requests.post(API.format(token=token, method="sendDocument"),
+                             data={"chat_id": chat_id, "caption": caption[:1000]},
+                             files={"document": (str(path).rsplit("/", 1)[-1], fh, "application/pdf")}, timeout=60)
+    resp.raise_for_status()
+
+
 def get_chat_ids(token: str) -> list[tuple[str, str]]:
     """Chats that recently messaged the bot, as (chat_id, name)."""
     resp = requests.get(API.format(token=token, method="getUpdates"), timeout=30)
