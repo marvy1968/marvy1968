@@ -1,0 +1,11 @@
+[Unit]
+Description=Marv College Football Predict Max - weekly slate + Telegram alert
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-cfb-bot
+EnvironmentFile=/opt/marv-cfb-bot/.env
+ExecStart=/opt/marv-cfb-bot/.venv/bin/python -m cfb_bot run
