@@ -27,6 +27,8 @@ if [ -n "$SRC" ] && [ -d "$SRC/marv" ] && [ "$SRC" != "$DIR" ]; then
   mkdir -p "$DIR"
   cp -r "$SRC"/. "$DIR"/
 elif [ -d "$DIR/.git" ]; then
+  # The folder belongs to the marvbot user; tell git that's expected when root updates it.
+  git config --global --add safe.directory "$DIR" 2>/dev/null || true
   git -C "$DIR" fetch origin "$BRANCH" && git -C "$DIR" checkout -B "$BRANCH" "origin/$BRANCH"
 else
   git clone --branch "$BRANCH" "$REPO" "$DIR"
@@ -66,7 +68,11 @@ chmod 600 "$DIR/.env"
 chown -R marvbot:marvbot "$DIR"
 
 as_bot() { runuser -u marvbot -- bash -c "cd $DIR && .venv/bin/python -m marv $*"; }
-if grep -q "^TELEGRAM_BOT_TOKEN=." "$DIR/.env"; then
+if ! grep -q "^TELEGRAM_BOT_TOKEN=." "$DIR/.env"; then
+  echo ">>> No Telegram token yet. Add it with:"
+  echo "    sudo sed -i 's|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=YOUR_TOKEN|' $DIR/.env"
+  echo "    then message your bot in Telegram and run this installer again."
+else
   if ! grep -q "^TELEGRAM_CHAT_ID=." "$DIR/.env"; then
     chat="$( (as_bot get-chat-id 2>/dev/null || true) | awk -F'\t' '/^-?[0-9]+\t/ {print $1; exit}')"
     if [ -n "$chat" ]; then
@@ -77,7 +83,12 @@ if grep -q "^TELEGRAM_BOT_TOKEN=." "$DIR/.env"; then
     fi
   fi
   if grep -q "^TELEGRAM_CHAT_ID=." "$DIR/.env" && [ ! -f "$DIR/state/.connected" ]; then
-    as_bot test-telegram && touch "$DIR/state/.connected" && chown marvbot:marvbot "$DIR/state/.connected"
+    if as_bot test-telegram; then
+      touch "$DIR/state/.connected" && chown marvbot:marvbot "$DIR/state/.connected"
+      echo "Telegram connected: check your phone."
+    else
+      echo ">>> Telegram test failed: check the token (BotFather) and that you messaged the bot."
+    fi
   fi
 fi
 
