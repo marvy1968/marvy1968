@@ -22,7 +22,8 @@ RULES: dict[str, StatsRules] = {
     # MLB 2023-25 test: best tier (>=70%) -> 43 picks, 76.7%; baseball never reaches 90%. No O/U history.
     "mlb": StatsRules(ml_min_prob=0.70, ou_enabled=False),
     # NCAA basketball / EuroLeague: set from backtests (see ANALYSIS.md); no historical totals for O/U.
-    "ncaab": StatsRules(ml_min_prob=0.90, ou_enabled=False),
+    # NCAAB 2023-25 test (D1 vs D1): >=79% -> 4,260 picks, 90.3%; O/U needs historical lines (VM)
+    "ncaab": StatsRules(ml_min_prob=0.79, ou_enabled=False),
     # NCAAW 2023-25 test (D1 vs D1): >=76% -> 7,076 picks, 90.8%; O/U needs historical lines (VM)
     "ncaaw": StatsRules(ml_min_prob=0.76, ou_enabled=False),
     "euroleague": StatsRules(ml_min_prob=0.85, ou_enabled=False),

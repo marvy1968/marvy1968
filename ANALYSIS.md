@@ -100,6 +100,8 @@ the tuning never saw:
 | NFL (2022-25) | 65.8% (favorite 67.6%) | 78% | 30 | **90.0%** | +2.9% | ~49-51%, no edge |
 | WNBA (2022-25) | 66.0% | 85% | 26 | **~83-88%** | n/a (no odds data) | no totals data |
 | MLB (2023-25) | 56.4% | 70% | 43 | **76.7%** | n/a (no odds data) | no totals data |
+| NCAA men's basketball (2023-25, D1 vs D1) | 71.4% | 79% | 4,260 | **90.3%** | n/a here (VM pulls lines) | needs historical lines (VM) |
+| NCAA women's basketball (2023-25, D1 vs D1) | 76.2% | 76% | 7,076 | **90.8%** | n/a here (VM pulls lines) | needs historical lines (VM) |
 | College (top 30) | needs a CFBD key: run `python -m marv stats-backtest --sport cfb --seasons 2016-2025` on the VM | | | | | |
 
 What this means:
@@ -114,6 +116,10 @@ What this means:
   predictable major sport (even betting favorites win only ~58-60%). Claims of 90%+ MLB
   moneyline or totals accuracy, like the 2025 postseason figures in the PDFs, are not
   achievable without the backtest seeing the results.
+* **College basketball** has such large talent gaps that 90% moneylines are common (about 1,400 men's
+  and 2,400 women's picks a season), all on strong favorites. Strength-of-schedule adjusted stats made
+  the stat formula clearly better than power ratings alone (men's 73.8% vs 71.0% winners; women's 76.8%
+  vs 73.2%). Profit after the vig still has to be checked with historical lines on the VM.
 * The stat formula (every stat weighted) was the single best expert in every sport; the random
   forest alone was the weakest, but adding it to the consensus helped calibration slightly.
 
