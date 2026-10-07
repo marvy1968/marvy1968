@@ -128,5 +128,5 @@ class EuroLeagueStats(BasketballStats):
 
 EUROLEAGUE = EuroLeagueStats(key="euroleague", name="EuroLeague", simulate=_sim_for(basketball.EUROLEAGUE),
                              rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=5, half_life_days=90),
-                             halflife=8, chunk_days=14, first_season=2016, has_lines=False,
+                             halflife=8, chunk_days=14, first_season=2016, has_lines=False, adjust_schedule=True,
                              experts=ExpertConfig(rf_min_leaf=20, rf_trees=120, min_train_rows=300))

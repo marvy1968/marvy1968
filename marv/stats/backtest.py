@@ -28,7 +28,8 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
     seasons = [s for s in seasons if s >= module.first_season]
     games, tg = module.load(cache, seasons, current)
     model = build_features(tg, module.stat_columns(tg), module.halflife,
-                           extra_cols=getattr(module, "extra_cols", None))
+                           extra_cols=getattr(module, "extra_cols", None),
+                           adjust=module.adjust_schedule)
     cols = feature_columns(model)
     cols = [c for c in cols if not c.startswith(("mx_", "mxd_"))]  # sums of other columns; formula re-derives them
     if feature_filter:

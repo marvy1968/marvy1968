@@ -1,0 +1,15 @@
+[Unit]
+Description=Marv live monitor - re-price ML and O/U after every quarter/half
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv live --interval 120
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

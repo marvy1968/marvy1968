@@ -30,6 +30,9 @@ GAME = {
     "nhl": {"minutes": 60, "margin_sd": 2.4, "total_sd": 2.5},
     "mlb": {"minutes": 9, "margin_sd": 4.2, "total_sd": 4.3},  # "minutes" = innings for baseball
     "soccer": {"minutes": 90, "margin_sd": 1.6, "total_sd": 1.6},
+    "ncaab": {"minutes": 40, "margin_sd": 11.5, "total_sd": 16.0},
+    "ncaaw": {"minutes": 40, "margin_sd": 11.5, "total_sd": 15.0},
+    "euroleague": {"minutes": 40, "margin_sd": 11.5, "total_sd": 15.5},
 }
 MIN_EDGE = 0.04  # fair probability must beat the price's implied probability by this much
 
@@ -98,6 +101,33 @@ class Verdict:
                 f"(edge {self.edge:+.0%}) · {self.reason}")
 
 
+def live_state(rec: dict, sport: str, home_score: float | None = None, away_score: float | None = None,
+               minutes_left: float | None = None) -> dict:
+    """Projected final margin/total and win probability from Marv's pregame projection plus the
+    current score and time left. Scoring for the rest of the game blends the pregame rate (75%)
+    with this game's actual pace (25%); uncertainty shrinks with the square root of time left."""
+    cfg = GAME.get(sport, GAME["nfl"])
+    live = home_score is not None and away_score is not None and minutes_left is not None
+    frac = min(max(minutes_left / cfg["minutes"], 0.0), 1.0) if live else 1.0
+    cur_total = (home_score + away_score) if live else 0.0
+    cur_margin = (home_score - away_score) if live else 0.0
+    rate = rec["model_total"]
+    if live and frac < 0.9:
+        observed = cur_total / (1 - frac)
+        rate = 0.75 * rec["model_total"] + 0.25 * observed
+    exp_total = cur_total + rate * frac
+    exp_margin = cur_margin + rec["model_margin"] * frac
+    # Uncertainty shrinks a bit slower than sqrt(time): late-game variance (fouling, pace) stays high.
+    sd_t = max(cfg["total_sd"] * max(frac, 1e-6) ** 0.4, 0.5)
+    sd_m = max(cfg["margin_sd"] * max(frac, 1e-6) ** 0.4, 0.5)
+    p_home = 1 - _norm_cdf(-exp_margin / sd_m) if live else rec["home_win"]
+    return {"exp_total": exp_total, "sd_t": sd_t, "exp_margin": exp_margin, "sd_m": sd_m, "p_home": p_home}
+
+
+def p_over(state: dict, line: float) -> float:
+    return 1 - _norm_cdf((line - state["exp_total"]) / state["sd_t"])
+
+
 def check(state_dir: Path, sport: str, team: str, market: str, side: str, price: float,
           line: float | None = None, other: str | None = None, home_score: float | None = None,
           away_score: float | None = None, minutes_left: float | None = None) -> Verdict:
@@ -108,28 +138,19 @@ def check(state_dir: Path, sport: str, team: str, market: str, side: str, price:
     rec = find_game(state_dir, sport, team, other)
     if rec is None:
         return Verdict(False, reason="no Marv projection for this game (run marv first)")
-    cfg = GAME.get(sport, GAME["nfl"])
     live = home_score is not None and away_score is not None and minutes_left is not None
-    frac = min(max(minutes_left / cfg["minutes"], 0.0), 1.0) if live else 1.0
-    cur_total = (home_score + away_score) if live else 0.0
-    cur_margin = (home_score - away_score) if live else 0.0
-    rate = rec["model_total"]
-    if live and frac < 0.9:  # blend in how fast this game is actually being scored (25% weight)
-        observed = cur_total / (1 - frac)
-        rate = 0.75 * rec["model_total"] + 0.25 * observed
-    exp_total = cur_total + rate * frac
-    exp_margin = cur_margin + rec["model_margin"] * frac
-    sd_t = max(cfg["total_sd"] * math.sqrt(max(frac, 1e-6)), 0.5)
-    sd_m = max(cfg["margin_sd"] * math.sqrt(max(frac, 1e-6)), 0.5)
+    st = live_state(rec, sport, home_score if live else None, away_score if live else None,
+                    minutes_left if live else None)
+    exp_total, sd_t, exp_margin = st["exp_total"], st["sd_t"], st["exp_margin"]
 
     if market == "total":
         if line is None:
             return Verdict(False, reason="total check needs --line")
-        p_over = 1 - _norm_cdf((line - exp_total) / sd_t)
-        fair = p_over if side.lower().startswith("o") else 1 - p_over
+        po = p_over(st, line)
+        fair = po if side.lower().startswith("o") else 1 - po
         detail = f"projected final total {exp_total:.1f}"
     elif market == "ml":
-        p_home = 1 - _norm_cdf(-exp_margin / sd_m) if live else rec["home_win"]
+        p_home = st["p_home"]
         is_home = similarity(side, rec["home"]) >= similarity(side, rec["away"])
         fair = p_home if is_home else 1 - p_home
         leader = rec["home"] if exp_margin > 0 else rec["away"]

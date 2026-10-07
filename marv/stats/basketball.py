@@ -74,10 +74,50 @@ class BasketballStats(StatsModule):
         games = self.attach_odds(games, cache)
         return games, tg
 
+    espn_path: str | None = None  # ESPN scoreboard path used to recover historical lines
+
     def attach_odds(self, games: pd.DataFrame, cache: Path) -> pd.DataFrame:
         for col in ("spread", "total", "home_ml", "away_ml"):
             games[col] = np.nan
+        if not self.espn_path or games.empty:
+            return games
+        return attach_espn_odds(games, self.espn_path, self.key, cache)
+
+
+def attach_espn_odds(games: pd.DataFrame, path: str, sport: str, cache: Path) -> pd.DataFrame:
+    """Fill spread/total/moneylines from ESPN scoreboard odds for past games (same ESPN game ids).
+
+    ESPN keeps posted lines for most finished games; responses are cached once a date range is
+    final, so only the first run is slow. If ESPN is unreachable the games simply keep no lines.
+    """
+    import logging
+    from datetime import timezone
+    from ..data.espn import ESPNClient
+    log = logging.getLogger(__name__)
+    client = ESPNClient(cache_dir=cache)
+    dates = pd.to_datetime(games["date"])
+    found = {}
+    for season, d in games.assign(_d=dates).groupby("season"):
+        start = d["_d"].min().to_pydatetime().replace(tzinfo=timezone.utc)
+        end = d["_d"].max().to_pydatetime().replace(tzinfo=timezone.utc)
+        try:
+            client.scoreboard(path, start, start)  # probe once so an unreachable ESPN fails fast
+        except Exception as exc:
+            log.warning("ESPN odds history unavailable for %s: %s", sport, exc)
+            return games
+        for g in client.games(path, sport, start, end):
+            if g.odds:
+                found[str(g.id)] = g.odds
+    if not found:
         return games
+    ids = games["game_id"].astype(str)
+    hit = ids.isin(found)
+    games.loc[hit, "spread"] = [found[i].spread for i in ids[hit]]
+    games.loc[hit, "total"] = [found[i].total for i in ids[hit]]
+    games.loc[hit, "home_ml"] = [found[i].home_ml for i in ids[hit]]
+    games.loc[hit, "away_ml"] = [found[i].away_ml for i in ids[hit]]
+    log.info("%s: historical lines for %d of %d games", sport, int(hit.sum()), len(games))
+    return games
 
 
 class NBAStats(BasketballStats):
@@ -122,6 +162,7 @@ class NBAStats(BasketballStats):
 
 class WNBAStats(BasketballStats):
     league = "wnba"
+    espn_path = "basketball/wnba"
 
 
 class CollegeBasketballStats(BasketballStats):
@@ -153,12 +194,14 @@ WNBA = WNBAStats(key="wnba", name="WNBA", simulate=_wnba_sim,
                  experts=ExpertConfig(rf_min_leaf=25, rf_trees=150))
 
 NCAAB = CollegeBasketballStats(key="ncaab", name="NCAA Men's Basketball", simulate=_sim_for(basketball.NCAAM),
-                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
-                               halflife=8, chunk_days=14, first_season=2012, has_lines=False,
+                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75, mov_cap=25),
+                               halflife=8, chunk_days=14, first_season=2012, has_lines=False, adjust_schedule=True,
                                experts=ExpertConfig(rf_min_leaf=40, rf_trees=120))
 NCAAB.league = "mens_college_basketball"
 NCAAW = CollegeBasketballStats(key="ncaaw", name="NCAA Women's Basketball", simulate=_sim_for(basketball.NCAAW),
-                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75),
-                               halflife=8, chunk_days=14, first_season=2012, has_lines=False,
+                               rating_params=RatingParams(multiplicative=False, home_adv=3.0, shrink=4, half_life_days=75, mov_cap=25),
+                               halflife=8, chunk_days=14, first_season=2012, has_lines=False, adjust_schedule=True,
                                experts=ExpertConfig(rf_min_leaf=40, rf_trees=120))
 NCAAW.league = "womens_college_basketball"
+NCAAB.espn_path = "basketball/mens-college-basketball?groups=50"
+NCAAW.espn_path = "basketball/womens-college-basketball?groups=50"

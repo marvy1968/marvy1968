@@ -169,7 +169,8 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         games, tg = module.prepare_upcoming(games, tg, slate, cache, now)
     games, tg, id_map = add_upcoming(games, tg, slate)
 
-    model = build_features(tg, module.stat_columns(tg), module.halflife, extra_cols=getattr(module, "extra_cols", None))
+    model = build_features(tg, module.stat_columns(tg), module.halflife, extra_cols=getattr(module, "extra_cols", None),
+                           adjust=module.adjust_schedule)
     cols = [c for c in feature_columns(model) if not c.startswith(("mx_", "mxd_"))]
     today = pd.Timestamp(now).tz_localize(None) if pd.Timestamp(now).tzinfo else pd.Timestamp(now)
     train = model[(model["date"] < today.normalize()) & model["points"].notna()]

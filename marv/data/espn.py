@@ -144,6 +144,14 @@ def parse_event(event: dict, sport: str, league: str = "") -> Game | None:
             game.info[f"{side}_pitcher_era"] = era
     if (event.get("season") or {}).get("type") == 3:
         game.info["postseason"] = True
+    st = event.get("status") or comp.get("status") or {}
+    game.info["state"] = status.get("state")  # pre / in / post
+    game.info["status_name"] = status.get("name")  # e.g. STATUS_END_PERIOD, STATUS_HALFTIME, STATUS_FINAL
+    game.info["period"] = st.get("period")
+    game.info["clock"] = st.get("displayClock") or st.get("clock")
+    if not completed and status.get("state") == "in":
+        game.info["live_home"] = _f(home.get("score"))
+        game.info["live_away"] = _f(away.get("score"))
     status_name = str(status.get("name", ""))
     if status_name in ("STATUS_POSTPONED", "STATUS_CANCELED", "STATUS_SUSPENDED"):
         game.info["postponed"] = True

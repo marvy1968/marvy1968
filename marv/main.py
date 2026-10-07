@@ -1,6 +1,7 @@
 """Command line: python -m marv {run,backtest,results,test-telegram,get-chat-id,sports}."""
 
 import argparse
+import os
 import json
 import logging
 import sys
@@ -269,6 +270,63 @@ def cmd_report(s: Settings, args) -> int:
     return 0
 
 
+def cmd_live(s: Settings, args) -> int:
+    """In-game monitor: re-price ML and O/U at the end of every quarter / half."""
+    from .live_monitor import LiveMonitor
+
+    def send(text: str) -> None:
+        print(text + "\n")
+        if not args.dry_run:
+            send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+
+    mon = LiveMonitor(s, s.sports)
+    if args.once:
+        mon.tick(send)
+    else:
+        mon.run(send, args.interval)
+    return 0
+
+
+def cmd_probe_ewl(s: Settings, args) -> int:
+    """Check the EuroLeague Women (FIBA) sources from this machine and save samples for debugging."""
+    import requests as rq
+    from .data import fiba
+    out = Path(s.state_dir) / "probe"
+    out.mkdir(parents=True, exist_ok=True)
+    urls = [u.strip() for u in (args.url or os.environ.get("EWL_EVENT_URLS", "")).split(",") if u.strip()] or \
+        ["https://www.fiba.basketball/en/events/euroleague-women-25-26/games"]
+    ids = []
+    for url in urls:
+        try:
+            r = rq.get(url, headers=fiba.UA, timeout=30)
+            (out / "ewl_event_page.html").write_text(r.text)
+            found = fiba.match_ids(r.text)
+            print(f"{url}: HTTP {r.status_code}, {len(found)} match ids found")
+            ids += found
+        except Exception as exc:
+            print(f"{url}: FAILED {exc}")
+    mid = args.match_id or (ids[0] if ids else None)
+    if not mid:
+        print("No match id found. Open the event page in a browser, click a game's live stats link, and rerun with "
+              "--match-id <the number in the fibalivestats URL>. Send me state/probe/ewl_event_page.html.")
+        return 1
+    data = fiba.fetch_match(int(mid))
+    if not data:
+        print(f"Match {mid}: data.json not reachable")
+        return 1
+    (out / f"ewl_match_{mid}.json").write_text(json.dumps(data)[:2_000_000])
+    rows = fiba.parse_totals(data, int(mid))
+    print(f"Match {mid}: keys {sorted(data)[:15]}")
+    if rows:
+        r0 = rows[0]
+        print(f"Parsed OK: {r0['team_display_name']} {r0.get('team_score')} vs {r0['opponent_team_display_name']} "
+              f"{r0.get('opponent_team_score')}; {len(r0)} stats; final={fiba.is_final(data)}; date={fiba.match_date(data)}")
+        print("EuroLeague Women can be enabled: add euroleague_women to SPORTS and set EWL_EVENT_URLS.")
+    else:
+        print("Format differs from expected. Send me state/probe/ewl_match_*.json and I'll adapt the parser.")
+    return 0
+
+
 def cmd_results(s: Settings, args) -> int:
     text = results_text(s, Store(Path(s.state_dir)), args.days)
     print(text)
@@ -347,6 +405,15 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--hours", type=int)
     rp.add_argument("--send", action="store_true", help="send the PDFs to Telegram")
 
+    lv = sub.add_parser("live", help="in-game monitor: update ML and O/U after every quarter/half")
+    lv.add_argument("--interval", type=int, default=120, help="seconds between scoreboard checks")
+    lv.add_argument("--once", action="store_true", help="one pass, then exit")
+    lv.add_argument("--dry-run", action="store_true")
+
+    pe = sub.add_parser("probe-ewl", help="check EuroLeague Women (FIBA LiveStats) sources on this machine")
+    pe.add_argument("--url", help="FIBA event games page(s), comma-separated")
+    pe.add_argument("--match-id", type=int)
+
     res = sub.add_parser("results", help="send the graded track record")
     res.add_argument("--days", type=int, default=30)
     res.add_argument("--dry-run", action="store_true")
@@ -359,7 +426,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "report": cmd_report, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

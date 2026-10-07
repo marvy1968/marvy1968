@@ -44,6 +44,6 @@ fi
 
 cp "$DIR"/deploy/marv-*.service "$DIR"/deploy/marv-bot*.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now marv-bot.timer marv-bot-late.timer marv-bridge.service
+systemctl enable --now marv-bot.timer marv-bot-late.timer marv-bridge.service marv-live.service
 systemctl list-timers "marv-bot*" --no-pager
 echo "Installed. Test with: cd $DIR && sudo -u marvbot .venv/bin/python -m marv test-telegram"

@@ -50,6 +50,32 @@ class FeatureTest(unittest.TestCase):
         b = m2[m2.game_id == "30-0"].sort_values("team")["off_yards"].to_numpy()
         np.testing.assert_allclose(a, b)
 
+    def test_schedule_adjusted_no_leakage_and_equalizes(self):
+        games, tg = toy_league()
+        m = build_features(tg, ["yards"], halflife=5, adjust=True)
+        tg2 = tg.copy()
+        tg2.loc[tg2["game_id"] == "30-0", ["points", "yards"]] = 999
+        m2 = build_features(tg2, ["yards"], halflife=5, adjust=True)
+        a = m[m.game_id == "30-0"].sort_values("team")[["adj_off_yards", "adj_alw_yards", "opp_adj_alw_yards"]].to_numpy()
+        b = m2[m2.game_id == "30-0"].sort_values("team")[["adj_off_yards", "adj_alw_yards", "opp_adj_alw_yards"]].to_numpy()
+        np.testing.assert_allclose(a, b)
+
+        # Two teams post identical raw yards; the one facing tougher defenses must rate higher.
+        rows = []
+        for d in range(12):
+            date = pd.Timestamp("2025-01-01") + pd.Timedelta(days=d)
+            for gid, team, opp, yards, opp_yards in ((f"a{d}", "Tough", "Wall", 300, 250), (f"b{d}", "Soft", "Sieve", 300, 250)):
+                rows.append({"game_id": gid, "date": date, "season": 2025, "team": team, "opp": opp, "home": 1.0, "points": 20, "yards": yards})
+                rows.append({"game_id": gid, "date": date, "season": 2025, "team": opp, "opp": team, "home": 0.0, "points": 20, "yards": opp_yards})
+            # Wall usually allows little, Sieve allows a lot (games vs filler teams).
+            for gid, team, allowed in ((f"w{d}", "Wall", 150), (f"s{d}", "Sieve", 450)):
+                rows.append({"game_id": gid, "date": date + pd.Timedelta(hours=1), "season": 2025, "team": team, "opp": f"F{gid}", "home": 1.0, "points": 20, "yards": 300})
+                rows.append({"game_id": gid, "date": date + pd.Timedelta(hours=1), "season": 2025, "team": f"F{gid}", "opp": team, "home": 0.0, "points": 20, "yards": allowed})
+        m = build_features(pd.DataFrame(rows), ["yards"], halflife=5, adjust=True)
+        last = m.sort_values("date").groupby("team").tail(1).set_index("team")
+        self.assertAlmostEqual(last.loc["Tough", "off_yards"], last.loc["Soft", "off_yards"])
+        self.assertGreater(last.loc["Tough", "adj_off_yards"], last.loc["Soft", "adj_off_yards"] + 50)
+
     def test_opponent_profile_attached(self):
         games, tg = toy_league()
         m = build_features(tg, ["yards"], halflife=5)

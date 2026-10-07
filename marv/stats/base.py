@@ -51,6 +51,7 @@ class StatsModule:
     first_season: int
     experts: ExpertConfig = field(default_factory=ExpertConfig)
     has_lines: bool = True
+    adjust_schedule: bool = False  # add strength-of-schedule adjusted stats (college, uneven leagues)
 
     def load(self, cache: Path, seasons: list[int], current: int | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
         raise NotImplementedError

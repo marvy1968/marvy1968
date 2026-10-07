@@ -154,5 +154,5 @@ def _sim(h, a, n, rng):
 
 NCAAF = NCAAFStats(key="ncaaf", name="College Football (top 30)", simulate=_sim,
                    rating_params=RatingParams(multiplicative=False, home_adv=2.5, shrink=3, half_life_days=120, mov_cap=28),
-                   halflife=5, chunk_days=7, first_season=2014,
+                   halflife=5, chunk_days=7, first_season=2014, adjust_schedule=True,
                    experts=ExpertConfig(rf_min_leaf=30))

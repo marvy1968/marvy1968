@@ -6,7 +6,8 @@ from pathlib import Path
 from .live import StatsRules, project_slate
 
 MODULE_NAMES = {"nfl": "nfl", "cfb": "ncaaf", "nba": "nba", "wnba": "wnba", "mlb": "mlb",
-                "ncaab": "ncaab", "ncaaw": "ncaaw", "euroleague": "euroleague"}
+                "ncaab": "ncaab", "ncaaw": "ncaaw", "euroleague": "euroleague",
+                "euroleague_women": "euroleague_women"}
 MODULES = set(MODULE_NAMES)
 
 # From the walk-forward backtests: thresholds tuned on early seasons, checked on later ones
@@ -24,6 +25,7 @@ RULES: dict[str, StatsRules] = {
     "ncaab": StatsRules(ml_min_prob=0.90, ou_enabled=False),
     "ncaaw": StatsRules(ml_min_prob=0.90, ou_enabled=False),
     "euroleague": StatsRules(ml_min_prob=0.85, ou_enabled=False),
+    "euroleague_women": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # College: not backtestable without a CFBD key; NFL-like floor until `stats-backtest --sport cfb` runs
     "cfb": StatsRules(ml_min_prob=0.85, ou_enabled=False),
 }

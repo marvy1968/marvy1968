@@ -26,7 +26,7 @@ def _ewm_shifted(df: pd.DataFrame, cols: list[str], halflife: float) -> pd.DataF
 
 
 def build_features(tg: pd.DataFrame, stat_cols: list[str], halflife: float,
-                   extra_cols: list[str] | None = None) -> pd.DataFrame:
+                   extra_cols: list[str] | None = None, adjust: bool = False) -> pd.DataFrame:
     """Return one model row per team-game with pre-game features and the target `points`."""
     tg = tg.copy()
     tg["date"] = pd.to_datetime(tg["date"])
@@ -55,6 +55,9 @@ def build_features(tg: pd.DataFrame, stat_cols: list[str], halflife: float,
         columns={"team": "opp", **{c: f"opp_{c}" for c in side_cols}})
     model = feats.merge(opp_side, on=["game_id", "opp"], how="left")
 
+    if adjust:
+        model = _add_schedule_adjusted(model, tg, stat_cols, halflife)
+
     # Matchup terms the stat formula can read directly: my offense vs their defense, etc.
     matchup = {}
     for c in stat_cols:
@@ -62,6 +65,29 @@ def build_features(tg: pd.DataFrame, stat_cols: list[str], halflife: float,
         matchup[f"mxd_{c}"] = model[f"alw_{c}"] + model[f"opp_off_{c}"]
     model = pd.concat([model, pd.DataFrame(matchup)], axis=1)
     return model.sort_values(["date", "game_id", "home"], ascending=[True, True, False]).reset_index(drop=True)
+
+
+def _add_schedule_adjusted(model: pd.DataFrame, tg: pd.DataFrame, stat_cols: list[str],
+                           halflife: float) -> pd.DataFrame:
+    """Strength-of-schedule adjusted versions of every stat (equalizes very uneven leagues like college).
+
+    For each game, a team's stat is measured against what that opponent normally allows going in
+    (adj_off_*), and what it allowed against what that opponent normally produces (adj_alw_*).
+    These game-relative values are then averaged the same way as the raw stats, using only
+    earlier games. Positive adj_off = better than this schedule's defenses usually allow.
+    """
+    rel_off = pd.DataFrame({c: tg[c].values - model[f"opp_alw_{c}"].values for c in stat_cols})
+    rel_alw = pd.DataFrame({c: tg[f"o_{c}"].values - model[f"opp_off_{c}"].values for c in stat_cols})
+    team = tg[["team"]].reset_index(drop=True)
+    adj_off = _ewm_shifted(pd.concat([team, rel_off], axis=1), stat_cols, halflife).add_prefix("adj_off_")
+    adj_alw = _ewm_shifted(pd.concat([team, rel_alw], axis=1), stat_cols, halflife).add_prefix("adj_alw_")
+    model = pd.concat([model.reset_index(drop=True), adj_off, adj_alw], axis=1)
+    adj_cols = [*adj_off.columns, *adj_alw.columns]
+    opp = model[["game_id", "team", *adj_cols]].rename(columns={"team": "opp", **{c: f"opp_{c}" for c in adj_cols}})
+    model = model.merge(opp, on=["game_id", "opp"], how="left")
+    # Net matchup on the adjusted scale: my adjusted offense vs their adjusted defense.
+    net = {f"adj_mx_{c}": model[f"adj_off_{c}"] + model[f"opp_adj_alw_{c}"] for c in stat_cols}
+    return pd.concat([model, pd.DataFrame(net)], axis=1)
 
 
 def feature_columns(model: pd.DataFrame) -> list[str]:
