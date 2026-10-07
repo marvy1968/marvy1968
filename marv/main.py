@@ -15,6 +15,7 @@ from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
 from .sources import load_for_run, load_games
+from .stats import registry as stats_registry
 from .sports import SPORTS, Sport
 from .state import Store
 from .telegram import format_card, get_chat_ids, send_message
@@ -39,8 +40,12 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         log.info("%s: no games in the next %dh", sport.key, hours)
         return
     store.remember_lines(sport.key, slate)
+    projections = None
+    if s.stats_model and sport.key in stats_registry.MODULES:
+        projections = stats_registry.project(sport.key, slate, s, now)
+        log.info("%s: stats experts projected %d/%d games", sport.key, len(projections), len(slate))
     preds = predict(sport, history, slate, now, s.simulations, ctx, veto=Settings.veto_for(sport.key),
-                    model_weight=Settings.model_weight(sport.key))
+                    model_weight=Settings.model_weight(sport.key), projections=projections)
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
@@ -163,6 +168,20 @@ def cmd_backtest(s: Settings, args) -> int:
     return 0
 
 
+def cmd_stats_backtest(s: Settings, args) -> int:
+    from .stats import registry, report
+    module = registry.module_for(args.sport)
+    if args.sport == "cfb":
+        module.api_key = s.cfbd_api_key
+    first, last = (int(x) for x in args.seasons.split("-"))
+    seasons = list(range(first, last + 1))
+    val_to = args.val_to or seasons[len(seasons) * 2 // 3 - 1]
+    result = report.run(module, Path(s.state_dir) / "cache", seasons, val_to, Path(s.state_dir) / "reports",
+                        current=module.season_of(datetime.now()))
+    print(result["text"])
+    return 0
+
+
 def cmd_results(s: Settings, args) -> int:
     text = results_text(s, Store(Path(s.state_dir)), args.days)
     print(text)
@@ -213,6 +232,11 @@ def main(argv: list[str] | None = None) -> int:
     bt.add_argument("--end", required=True, help="YYYY-MM-DD")
     bt.add_argument("--seed", type=int, default=7)
 
+    sb = sub.add_parser("stats-backtest", help="walk-forward backtest of the stats experts (tunes + reports)")
+    sb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "mlb"])
+    sb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (test seasons; training uses 6 prior years)")
+    sb.add_argument("--val-to", type=int, help="last season used for tuning (default: first two thirds)")
+
     res = sub.add_parser("results", help="send the graded track record")
     res.add_argument("--days", type=int, default=30)
     res.add_argument("--dry-run", action="store_true")
@@ -225,7 +249,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

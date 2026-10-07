@@ -20,6 +20,31 @@ real, and what an honest NFL backtest of this bot showed.
 | MLB | ESPN scoreboard (+ probable pitchers) | inning-by-inning negative binomial | starter (regressed ERA) vs bullpen innings, home skips bottom 9th, extra-inning runner; **vetoes games without confirmed starters** |
 | Soccer | ESPN scoreboard | Dixon-Coles scoreline matrix | 1X2 incl. draw, Asian handicaps incl. quarter lines, totals |
 
+### Stats mode (NFL, top-30 college football, NBA, WNBA, MLB)
+
+These sports run on **every offense and defense stat** in their box scores (one stats module
+per sport in `marv/stats/`), with three experts — a weighted stat formula, a random forest and
+power ratings — whose consensus score goes through the shared Monte Carlo. A play only goes
+out when the three experts agree and confidence clears the floor that hit ~90% in backtests:
+
+| Sport | Plays | Moneyline confidence floor | Backtested accuracy (unseen seasons) |
+|---|---|---|---|
+| NBA | moneyline + totals | 86% | 90.5% ML, 52.8% O/U |
+| NFL | moneyline | 78% | 90.0% |
+| WNBA | moneyline | 85% | ~83-88% |
+| MLB | moneyline | 70% | ~77% (baseball's ceiling) |
+| College (top 30) | moneyline | 85% (re-tune on the VM) | run `stats-backtest` |
+
+Other stats-mode vetoes: experts split, fewer than 3 games of stats, and late key injuries
+(NFL starting QB; NBA/WNBA top-6-minutes players) from ESPN's injury feed. College ratings
+dampen blowout margins beyond 28 points and use the CFBD roster-talent composite.
+Set `STATS_MODEL=false` to go back to the ratings-only engine.
+
+```bash
+python -m marv stats-backtest --sport nba --seasons 2015-2026          # walk-forward + tuning report
+python -m marv stats-backtest --sport cfb --seasons 2016-2025          # needs CFBD_API_KEY
+```
+
 Shared engine (`marv/engine.py`) follows the Marv operating sequence:
 1. Opponent-adjusted offense/defense ratings with time decay and shrinkage, and a fitted home advantage.
 2. Frozen projection and simulation, with no odds involved.

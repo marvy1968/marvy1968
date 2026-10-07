@@ -81,6 +81,42 @@ paid data feeds.
 The other sports couldn't be backtested from the build environment (ESPN wasn't reachable there).
 Run `python -m marv backtest` for each sport on the VM.
 
+## Stats-expert backtests (every offense & defense stat, random forest, consensus)
+
+NFL, NBA, WNBA and MLB now run on full box scores: every offensive, defensive and special-teams
+column the free data has (131 NFL team stats incl. EPA and passer rating; NBA/WNBA box scores plus
+eFG%, TOV%, FT rate, rebound % and offensive/defensive rating per 100 possessions; MLB batting,
+pitching and fielding lines plus starting-pitcher form and park factors). Three experts (a
+ridge "stat formula", a random forest and opponent-adjusted power ratings) each project the
+score; the consensus feeds the Monte Carlo.
+
+Everything is walk-forward (features use only earlier games; models are refit monthly on the
+past). Thresholds were picked on the early seasons and then measured on later **test** seasons
+the tuning never saw:
+
+| Sport (test seasons) | Every game: winner | Moneyline floor | Test picks | **Test accuracy** | Test ROI | Over/under (test) |
+|---|---|---|---|---|---|---|
+| NBA (2022-26) | 65.4% (favorite 67.8%) | 86% | 126 | **90.5%** | -1.2% | 52.8% at 17% edge (ROI +0.9%) |
+| NFL (2022-25) | 65.8% (favorite 67.6%) | 78% | 30 | **90.0%** | +2.9% | ~49-51%, no edge |
+| WNBA (2022-25) | 66.0% | 85% | 26 | **~83-88%** | n/a (no odds data) | no totals data |
+| MLB (2023-25) | 56.4% | 70% | 43 | **76.7%** | n/a (no odds data) | no totals data |
+| College (top 30) | needs a CFBD key: run `python -m marv stats-backtest --sport cfb --seasons 2016-2025` on the VM | | | | | |
+
+What this means:
+
+* **90% moneyline accuracy is achievable in the NBA and NFL**, and held up on unseen seasons.
+  It comes from backing heavy favorites only when all three experts agree and the model is very
+  confident: about 25 NBA and 6 NFL picks a season. These are typically -400 to -1000 favorites,
+  so the 90% hit rate is roughly break-even after the vig; it is not a money machine.
+* **Over/under can't be pushed to 90%.** NFL totals sit at a coin flip at every edge; NBA totals
+  show a small edge (54% on tuning seasons, 52.8% on test). Totals are only played for the NBA.
+* **MLB tops out around 75%** even on its most confident picks. Baseball is the least
+  predictable major sport (even betting favorites win only ~58-60%). Claims of 90%+ MLB
+  moneyline or totals accuracy, like the 2025 postseason figures in the PDFs, are not
+  achievable without the backtest seeing the results.
+* The stat formula (every stat weighted) was the single best expert in every sport; the random
+  forest alone was the weakest, but adding it to the consensus helped calibration slightly.
+
 ## What was built
 
 One multi-sport engine (`marv/`) covering NFL, college football, NBA, WNBA, NHL, MLB and soccer, with

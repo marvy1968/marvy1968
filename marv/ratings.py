@@ -22,7 +22,8 @@ class RatingParams:
     shrink: float = 3.0  # pseudo-games of average performance added to every team
     half_life_days: float | None = None  # None = all games weigh the same
     home_prior_games: float = 200.0
-    iterations: int = 100
+    iterations: int = 50
+    mov_cap: float | None = None  # margins beyond this are square-root dampened (college blowouts)
 
 
 @dataclass
@@ -64,8 +65,14 @@ def fit_ratings(games: list[Game], params: RatingParams, as_of: datetime | None 
             age = max(0.0, (as_of - gm.start).total_seconds() / 86400)
             w = 0.5 ** (age / params.half_life_days)
         s = 0 if gm.neutral else 1
-        rows.append((home, away, float(gm.home_score), s, w))
-        rows.append((away, home, float(gm.away_score), -s, w))
+        hs, as_ = float(gm.home_score), float(gm.away_score)
+        if params.mov_cap is not None and abs(hs - as_) > params.mov_cap:
+            # Running up the score past the cap only counts with diminishing returns.
+            margin = math.copysign(params.mov_cap + math.sqrt(abs(hs - as_) - params.mov_cap), hs - as_)
+            total = hs + as_
+            hs, as_ = (total + margin) / 2, (total - margin) / 2
+        rows.append((home, away, hs, s, w))
+        rows.append((away, home, as_, -s, w))
         played[home] = played.get(home, 0) + 1
         played[away] = played.get(away, 0) + 1
 

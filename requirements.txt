@@ -1,2 +1,5 @@
 numpy>=1.26
 requests>=2.31
+pandas>=2.1
+pyarrow>=14
+scikit-learn>=1.4

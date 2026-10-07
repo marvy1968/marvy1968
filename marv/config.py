@@ -31,6 +31,7 @@ class Settings:
     state_dir: str = str(ROOT / "state")
     sports: list[str] = field(default_factory=lambda: list(SPORTS))
     paper_mode: bool = True
+    stats_model: bool = True  # NFL/college/NBA/WNBA/MLB use the box-score experts
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -45,6 +46,7 @@ class Settings:
             state_dir=os.environ.get("STATE_DIR") or str(ROOT / "state"),
             sports=[x.strip().lower() for x in enabled.split(",") if x.strip()] or list(SPORTS),
             paper_mode=os.environ.get("PAPER_MODE", "true").lower() not in ("0", "false", "no", "off"),
+            stats_model=os.environ.get("STATS_MODEL", "true").lower() not in ("0", "false", "no", "off"),
         )
 
     @staticmethod

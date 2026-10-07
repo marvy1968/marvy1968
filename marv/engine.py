@@ -82,6 +82,26 @@ def _ml_pick(sim: SimResult, game: Game, odds: Odds, sport: Sport) -> Pick:
     return pick
 
 
+def _stats_picks(sim: SimResult, game: Game, odds: Odds) -> list[Pick]:
+    """Stats mode plays exactly what was backtested: the model's favorite to win, and the
+    more likely side of the total. Edge/price vetoes are replaced by the stats rules."""
+    picks = []
+    if odds.home_ml and odds.away_ml:
+        m = sim.margin
+        home_fav = sim.home_win() >= 0.5
+        side, price = (game.home, odds.home_ml) if home_fav else (game.away, odds.away_ml)
+        outcome = np.where(m > 0, 1.0, -1.0) if home_fav else np.where(m < 0, 1.0, -1.0)
+        picks.append(Pick("ml", side, price, price, *evaluate(outcome, price)))
+    if odds.total is not None:
+        over = evaluate(settle(sim.total, -odds.total), odds.over_price)
+        under = evaluate(settle(-sim.total, odds.total), odds.under_price)
+        if over[0] >= under[0]:
+            picks.append(Pick("total", "Over", odds.total, odds.over_price, *over))
+        else:
+            picks.append(Pick("total", "Under", odds.total, odds.under_price, *under))
+    return picks
+
+
 def _correlation_veto(picks: list[Pick]) -> None:
     """Spread and moneyline on the same side are one bet twice: keep the stronger."""
     active = [p for p in picks if p.active and p.market in ("spread", "ml")]
@@ -125,7 +145,10 @@ def _erfinv(y: float) -> float:
 
 def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetime, simulations: int = 20000,
             ctx: dict | None = None, rng: np.random.Generator | None = None,
-            veto: VetoParams | None = None, model_weight: float | None = None) -> list[Prediction]:
+            veto: VetoParams | None = None, model_weight: float | None = None,
+            projections: dict | None = None) -> list[Prediction]:
+    """projections: optional {game_id: StatsProjection} from the stats experts; when given they
+    replace the ratings projection (and the market blend) and add their own vetoes."""
     rng = rng or np.random.default_rng()
     ctx = ctx or {}
     if veto is not None:
@@ -136,15 +159,22 @@ def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetim
     games = [g for g in slate if g.odds]
     if pool:  # college: FBS vs FBS only
         games = [g for g in games if pool(g.home) == g.home and pool(g.away) == g.away]
-    games = [g for g in games if g.home in ratings.offense and g.away in ratings.offense]
-    if sport.max_games:
+    if projections is not None:
+        games = [g for g in games if g.id in projections]
+    else:
+        games = [g for g in games if g.home in ratings.offense and g.away in ratings.offense]
+    if sport.max_games and projections is None:
         games.sort(key=lambda g: ratings.strength(g.home) + ratings.strength(g.away), reverse=True)
         games = games[: sport.max_games]
 
     out = []
     for game in games:
         # 1-6: frozen projection, no prices involved.
-        home_exp, away_exp = ratings.expected(game.home, game.away, game.neutral)
+        proj = projections.get(game.id) if projections is not None else None
+        if proj:
+            home_exp, away_exp = proj.home, proj.away
+        else:
+            home_exp, away_exp = ratings.expected(game.home, game.away, game.neutral)
         pure = sport.simulate(home_exp, away_exp, game, ctx, simulations, rng)
         pred = Prediction(game, home_exp, away_exp, model_margin=float(np.median(pure.margin)),
                           model_total=float(pure.total.mean()), home_win=pure.home_win(), draw=pure.draw())
@@ -152,7 +182,7 @@ def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetim
         # Calibration: shrink the frozen projection toward the market's implied score by the
         # walk-forward-fitted weight, so ordinary model noise isn't mistaken for an edge.
         w = sport.model_weight if model_weight is None else model_weight
-        implied = market_implied(sport, game.odds) if w < 1 else None
+        implied = market_implied(sport, game.odds) if w < 1 and not proj else None
         sim = pure
         if implied:
             h = max(0.05, w * home_exp + (1 - w) * implied[0])
@@ -165,15 +195,22 @@ def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetim
 
         # 7-9: only now look at the market, then run the veto stack.
         odds = game.odds
-        if odds.spread is not None:
-            pred.picks.append(_spread_pick(sim, game, odds, sport))
-        if odds.total is not None:
-            pred.picks.append(_total_pick(sim, odds, sport))
-        if odds.home_ml and odds.away_ml:
-            pred.picks.append(_ml_pick(sim, game, odds, sport))
-        shared = sport_vetoes(sport, game, ratings)
+        if proj:
+            pred.picks.extend(_stats_picks(sim, game, odds))
+        else:
+            if odds.spread is not None:
+                pred.picks.append(_spread_pick(sim, game, odds, sport))
+            if odds.total is not None:
+                pred.picks.append(_total_pick(sim, odds, sport))
+            if odds.home_ml and odds.away_ml:
+                pred.picks.append(_ml_pick(sim, game, odds, sport))
+        shared = sport_vetoes(sport, game, ratings) if not proj else []
+        if proj:
+            pred.notes.extend(proj.notes)
         for pick in pred.picks:
             pick.vetoes.extend(shared)
+            if proj:
+                pick.vetoes.extend(proj.vetoes_for(pick, pred))
             _stability_veto(pick, simulations)
         _correlation_veto(pred.picks)
         out.append(pred)

@@ -108,7 +108,7 @@ def format_card(sport: Sport, preds: list[Prediction], record: dict | None = Non
     else:
         blocks.append("No plays cleared the veto stack.")
 
-    vetoed = [(p, pk) for p in preds for pk in p.picks if not pk.active and pk.edge >= 0.03]
+    vetoed = [(p, pk) for p in preds for pk in p.picks if not pk.active and (pk.edge >= 0.03 or pk.prob >= 0.7)]
     if vetoed:
         rows = ["<b>🚫 Vetoed edges</b>"]
         for pred, pk in sorted(vetoed, key=lambda x: -x[1].edge)[:12]:

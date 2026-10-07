@@ -10,3 +10,5 @@ WorkingDirectory=/opt/marv-bot
 EnvironmentFile=/opt/marv-bot/.env
 ExecStart=/opt/marv-bot/.venv/bin/python -m marv run --sport all
 TimeoutStartSec=1800
+Restart=on-failure
+RestartSec=600
