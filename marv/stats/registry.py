@@ -30,8 +30,8 @@ def module_for(key: str):
     return getattr(importlib.import_module(f"marv.stats.{name}"), name.upper())
 
 
-def project(key: str, slate, settings, now: datetime) -> dict:
+def project(key: str, slate, settings, now: datetime, history=None) -> dict:
     module = module_for(key)
     if key == "cfb":
         module.api_key = settings.cfbd_api_key
-    return project_slate(module, slate, Path(settings.state_dir) / "cache", now, RULES[key])
+    return project_slate(module, slate, Path(settings.state_dir) / "cache", now, RULES[key], history=history)

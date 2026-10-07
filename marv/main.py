@@ -32,7 +32,8 @@ def _alert_failure(s: Settings, what: str) -> None:
         log.exception("could not send failure alert")
 
 
-def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int, dry_run: bool) -> None:
+def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int, dry_run: bool,
+              label: str = "") -> None:
     history, slate, ctx = load_for_run(sport, s, now, hours)
     if store.resolve(sport.key, history):
         log.info("%s: graded finished picks", sport.key)
@@ -42,14 +43,14 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     store.remember_lines(sport.key, slate)
     projections = None
     if s.stats_model and sport.key in stats_registry.MODULES:
-        projections = stats_registry.project(sport.key, slate, s, now)
+        projections = stats_registry.project(sport.key, slate, s, now, history=history)
         log.info("%s: stats experts projected %d/%d games", sport.key, len(projections), len(slate))
     preds = predict(sport, history, slate, now, s.simulations, ctx, veto=Settings.veto_for(sport.key),
                     model_weight=Settings.model_weight(sport.key), projections=projections)
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
-    text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode)
+    text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
     print(text + "\n")
     if not dry_run:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
@@ -90,13 +91,13 @@ def cmd_run(s: Settings, args) -> int:
             log.warning("cfb: CFBD_API_KEY not set, skipping")
             continue
         try:
-            run_sport(sport, s, store, now, hours, args.dry_run)
+            run_sport(sport, s, store, now, hours, args.dry_run, args.label)
         except Exception:
             failures += 1
             log.exception("%s failed", key)
             if not args.dry_run:
                 _alert_failure(s, f"{sport.name} run")
-    if args.sport == "all" and weekday == 0 and not args.dry_run:
+    if args.sport == "all" and weekday == 0 and not args.dry_run and not args.label:
         send_message(s.telegram_bot_token, s.telegram_chat_id, results_text(s, store, 7))
     return 1 if failures else 0
 
@@ -225,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--dry-run", action="store_true", help="print instead of sending")
     run.add_argument("--force", action="store_true", help="ignore the weekday schedule")
     run.add_argument("--hours", type=int, help="look this many hours ahead (overrides the schedule)")
+    run.add_argument("--label", default="", help="tag shown on the card, e.g. 'Late update'")
 
     bt = sub.add_parser("backtest", help="walk-forward backtest over a date range")
     bt.add_argument("--sport", required=True, choices=list(SPORTS))

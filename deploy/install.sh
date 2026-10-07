@@ -42,8 +42,8 @@ if systemctl list-unit-files marv-cfb-bot.timer >/dev/null 2>&1; then
   rm -f /etc/systemd/system/marv-cfb-bot.{service,timer}
 fi
 
-cp "$DIR/deploy/marv-bot.service" "$DIR/deploy/marv-bot.timer" /etc/systemd/system/
+cp "$DIR"/deploy/marv-bot*.service "$DIR"/deploy/marv-bot*.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now marv-bot.timer
-systemctl list-timers marv-bot.timer --no-pager
+systemctl enable --now marv-bot.timer marv-bot-late.timer
+systemctl list-timers "marv-bot*" --no-pager
 echo "Installed. Test with: cd $DIR && sudo -u marvbot .venv/bin/python -m marv test-telegram"

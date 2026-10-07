@@ -87,7 +87,7 @@ def _model_call(pred: Prediction) -> str:
 
 
 def format_card(sport: Sport, preds: list[Prediction], record: dict | None = None,
-                now: datetime | None = None, paper: bool = False) -> str:
+                now: datetime | None = None, paper: bool = False, label: str = "") -> str:
     plays = [(p, pk) for p in preds for pk in p.picks if pk.active]
     core = [pk for p in preds for pk in p.picks]
     passed = sum(1 for pk in core if not pk.active)
@@ -95,7 +95,8 @@ def format_card(sport: Sport, preds: list[Prediction], record: dict | None = Non
     when = (now or datetime.now(ET)).astimezone(ET)
 
     blocks = [
-        f"{sport.emoji} <b>Marv {esc(sport.name)} Predict Max</b> · {when:%a %b %d}",
+        f"{sport.emoji} <b>Marv {esc(sport.name)} Predict Max</b> · {when:%a %b %d}"
+        + (f" · <b>{esc(label)}</b> (fresh injuries &amp; stats)" if label else ""),
         f"{len(preds)} games simulated · {len(plays)} qualified plays · veto pass rate {pass_rate:.0%}",
     ]
     if paper:

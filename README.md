@@ -35,8 +35,22 @@ out when the three experts agree and confidence clears the floor that hit ~90% i
 | MLB | moneyline | 70% | ~77% (baseball's ceiling) |
 | College (top 30) | moneyline | 85% (re-tune on the VM) | run `stats-backtest` |
 
-Other stats-mode vetoes: experts split, fewer than 3 games of stats, and late key injuries
-(NFL starting QB; NBA/WNBA top-6-minutes players) from ESPN's injury feed. College ratings
+Other stats-mode vetoes: experts split, fewer than 3 games of stats, unconfirmed MLB starter,
+stale stats, and late key injuries.
+
+**Up-to-date data, checked every run:**
+
+| | Stats | Injuries (key players only) |
+|---|---|---|
+| NFL | nflverse (refreshed every 2 h) | ESPN feed + official NFL report (when it covers this week); starting QB |
+| NBA / WNBA | sportsdataverse (2 h) + missing games scraped from ESPN game pages | ESPN feed + official NBA injury-report PDF; top-6 minutes players |
+| MLB | MLB Stats API box score of every finished game | ESPN feed + MLB injured-list rosters; top-5 hitters; probable starters |
+| College | CFBD (live) | none free; college plays carry no injury check |
+
+* If a team's latest finished game isn't in the stats yet, the game is vetoed ("stats out of date").
+* If **every** injury source fails for a sport, all its games are vetoed: no betting blind.
+* A **late update** runs at 5:30 PM ET daily (and 11:45 AM ET Sundays) for games starting within
+  6 hours, with fresh injuries and stats; its card is labelled "Late update". College ratings
 dampen blowout margins beyond 28 points and use the CFBD roster-talent composite.
 Set `STATS_MODEL=false` to go back to the ratings-only engine.
 

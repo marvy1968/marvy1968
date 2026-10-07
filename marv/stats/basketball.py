@@ -21,16 +21,21 @@ ID_COLS = {"game_id", "season", "season_type", "team_id", "opponent_team_id", "t
 class BasketballStats(StatsModule):
     league: str = "nba"
 
-    def load(self, cache: Path, seasons: list[int], current: int | None = None):
+    backfill_league = True  # missing recent games can be scraped from ESPN game pages
+
+    def load(self, cache: Path, seasons: list[int], current: int | None = None, extra_box: pd.DataFrame | None = None):
         frames = []
         for season in seasons:
-            age = 6 if season == current else None
+            age = 2 if season == current else None  # current season: refresh every 2 hours
             path = fetch(BOX_URL.format(league=self.league, season=season), cache / f"{self.league}_box_{season}.parquet", age)
             if path:
                 frames.append(pd.read_parquet(path))
+        if extra_box is not None and not extra_box.empty:
+            frames.append(extra_box)
         box = pd.concat(frames, ignore_index=True)
+        box["game_id"] = pd.to_numeric(box["game_id"], errors="coerce").astype("Int64").astype(str)
         box = box[box["season_type"].isin([2, 3])].reset_index(drop=True)  # regular season + playoffs
-        box = box.drop_duplicates(["game_id", "team_id"])
+        box = box.drop_duplicates(["game_id", "team_id"], keep="last").reset_index(drop=True)
         box["date"] = pd.to_datetime(box["game_date"])
         stat_cols = [c for c in box.columns if c not in ID_COLS and pd.api.types.is_numeric_dtype(box[c])]
         # Derived four-factor style efficiency stats.

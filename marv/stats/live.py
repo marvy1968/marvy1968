@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ..data.teams import similarity
+from ..data.teams import normalize, similarity
 from ..models import Game, Pick, Prediction
 from .base import StatsModule, games_to_objects
 from .experts import ExpertPanel
@@ -43,7 +43,7 @@ class StatsProjection:
     game_vetoes: list[str] = field(default_factory=list)  # e.g. late key injuries
 
     def vetoes_for(self, pick: Pick, pred: Prediction) -> list[str]:
-        out = list(self.game_vetoes)
+        out = list(dict.fromkeys(self.game_vetoes))
         if self.min_gp < self.rules.min_games:
             out.append(f"only {self.min_gp} games of stats")
         margins = [h - a for h, a in self.experts.values()]
@@ -112,11 +112,57 @@ def _canon(name: str, known: pd.Series) -> str:
     return best if similarity(name, best) >= 0.75 else name
 
 
+def _last_stats_date(tg: pd.DataFrame, stat: str) -> dict[str, pd.Timestamp]:
+    have = tg[tg["points"].notna() & tg[stat].notna()]
+    return {normalize(t): d for t, d in have.groupby("team")["date"].max().items()}
+
+
+def freshness(module: StatsModule, tg: pd.DataFrame, history: list[Game], teams: list[str],
+              now: datetime) -> dict[str, list[str]]:
+    """Veto teams whose latest finished game (per the schedule feed) isn't in the stats yet."""
+    stat = next(c for c in module.stat_columns(tg) if c != "points")
+    last = _last_stats_date(tg, stat)
+    cutoff = pd.Timestamp(now).tz_localize(None) - pd.Timedelta(days=30) if pd.Timestamp(now).tzinfo else \
+        pd.Timestamp(now) - pd.Timedelta(days=30)
+    out = {}
+    for team in teams:
+        played = [_day(g.start) for g in history if g.completed and normalize(team) in (normalize(g.home), normalize(g.away))]
+        played = [d for d in played if d >= cutoff]
+        if not played:
+            continue
+        latest = max(played)
+        have = last.get(normalize(team))
+        if have is None or have < latest - pd.Timedelta(days=1):
+            out[team] = [f"stats out of date (missing {latest:%b %d} game)"]
+    return out
+
+
+def _day(ts) -> pd.Timestamp:
+    t = pd.Timestamp(ts)
+    return (t.tz_convert("America/New_York").tz_localize(None) if t.tzinfo else t).normalize()
+
+
+def missing_game_ids(tg: pd.DataFrame, history: list[Game], module: StatsModule, now: datetime) -> list[str]:
+    stat = next(c for c in module.stat_columns(tg) if c != "points")
+    have = set(tg.loc[tg["points"].notna() & tg[stat].notna(), "game_id"].astype(str))
+    cutoff = _day(now) - pd.Timedelta(days=30)
+    return [g.id for g in history if g.completed and _day(g.start) >= cutoff and str(g.id) not in have]
+
+
 def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: datetime,
-                  rules: StatsRules) -> dict[str, StatsProjection]:
+                  rules: StatsRules, history: list[Game] | None = None) -> dict[str, StatsProjection]:
+    history = history or []
     season = module.season_of(pd.Timestamp(now))
     seasons = [s for s in range(season - TRAIN_YEARS, season + 1) if s >= module.first_season]
     games, tg = module.load(cache, seasons, current=season)
+    if getattr(module, "backfill_league", False):
+        missing = missing_game_ids(tg, history, module, now)
+        if missing:
+            from ..data.espn_box import fetch_boxes
+            extra = fetch_boxes(module.league, missing, cache)
+            log.info("%s: scraped %d/%d missing box scores from ESPN", module.key, len(extra) // 2, len(missing))
+            if not extra.empty:
+                games, tg = module.load(cache, seasons, current=season, extra_box=extra)
     games["date"] = pd.to_datetime(games["date"])
     tg["date"] = pd.to_datetime(tg["date"])
     if hasattr(module, "prepare_upcoming"):
@@ -137,7 +183,13 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
     proj = pd.concat([targets[["game_id", "team", "home", "gp"]], panel.project(targets)], axis=1)
 
     from ..data.injuries import injury_vetoes
-    hurt = injury_vetoes(module.key, cache, season, [t for g in slate for t in (g.home, g.away)])
+    slate_teams = [t for g in slate for t in (g.home, g.away)]
+    week = None
+    if "week" in games.columns:
+        weeks = games.loc[games["game_id"].isin(set(id_map.values())), "week"].dropna()
+        week = int(weeks.min()) if not weeks.empty else None
+    hurt = injury_vetoes(module.key, cache, season, slate_teams, now=now, week=week)
+    stale = freshness(module, tg, history, slate_teams, now)
 
     out = {}
     lookup = games.set_index("game_id")
@@ -154,5 +206,14 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
                             min_gp=int(min(h["gp"], a["gp"])))
         p.notes.append(" · ".join(f"{e} {hh:.0f}-{aa:.0f}" for e, (hh, aa) in experts.items()))
         p.game_vetoes += hurt.get(g.home, []) + hurt.get(g.away, [])
+        p.game_vetoes += stale.get(g.home, []) + stale.get(g.away, [])
+        if "sp" in targets.columns:
+            sps = tg.loc[tg["game_id"] == gid, "sp"]
+            if sps.isna().any() or len(sps) < 2:
+                p.game_vetoes.append("starting pitcher unconfirmed")
+            form = targets[targets["game_id"] == gid].set_index("team")["sp_ra"]
+            if len(form) == 2:
+                p.notes.append(f"SP form (runs allowed/start): {a['team']} {form.get(a['team'], float('nan')):.1f}, "
+                               f"{h['team']} {form.get(h['team'], float('nan')):.1f}")
         out[g.id] = p
     return out

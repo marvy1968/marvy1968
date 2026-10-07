@@ -1,0 +1,10 @@
+[Unit]
+Description=Re-check injuries and stats shortly before games
+
+[Timer]
+OnCalendar=*-*-* 17:30:00 America/New_York
+OnCalendar=Sun *-*-* 11:45:00 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

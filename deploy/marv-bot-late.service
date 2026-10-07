@@ -1,0 +1,14 @@
+[Unit]
+Description=Marv Predict Max - late check with fresh injuries/stats for games starting soon
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv run --sport all --hours 6 --label "Late update"
+TimeoutStartSec=1800
+Restart=on-failure
+RestartSec=600
