@@ -69,6 +69,15 @@ def describe(pick: Pick, sport: Sport) -> str:
     return f"{esc(pick.side)} ML ({_price(pick.price)})"
 
 
+def stake(pick: Pick, fraction: float = 0.25, cap: float = 0.03) -> str:
+    """Quarter-Kelly stake as % of bankroll, capped at 3%; tells you to skip when the price has no value."""
+    b = pick.price / 100 if pick.price > 0 else 100 / -pick.price
+    kelly = (b * pick.prob - (1 - pick.prob)) / b
+    if kelly <= 0:
+        return "stake: skip (price too short for the win chance)"
+    return f"stake: {min(kelly * fraction, cap):.1%} of bankroll"
+
+
 def _model_call(pred: Prediction) -> str:
     g = pred.game
     if round(pred.model_margin) == 0:
@@ -101,6 +110,7 @@ def format_card(sport: Sport, preds: list[Prediction], record: dict | None = Non
             rows.append(
                 f"• <b>{describe(pk, sport)}</b>\n"
                 f"   {league}{esc(g.away)} @ {esc(g.home)} · {start}\n"
+                f"   {stake(pk)}\n"
                 f"   win {pk.prob:.1%} · edge {pk.edge:+.1%} · EV {pk.ev:+.1%} · "
                 f"model: {_model_call(pred)}, total {pred.model_total:.1f}{notes}"
             )
