@@ -145,6 +145,22 @@ if v["found"] and not v["agrees"]:
 To find the odds bot on the VM and package it (secrets removed) for review:
 `sudo bash /opt/marv-bot/deploy/find_odds_bot.sh` then `sudo bash /opt/marv-bot/deploy/find_odds_bot.sh /path/to/bot`.
 
+## Blueprint plugin interface + SQLite audit
+
+`marv/plugins.py` implements the blueprint's `BaseSportPlugin` contract on top of Marv, so a
+blueprint-style loop runs on real data:
+
+```python
+from marv.plugins import MarvSportPlugin, AuditDatabase
+for plugin in [MarvSportPlugin("mlb"), MarvSportPlugin("nba"), MarvSportPlugin("nfl")]:
+    for game in plugin.fetch_slate_data("today"):
+        projection, confidence = plugin.run_simulation(game)   # projected total, winner confidence
+        vetoed = plugin.apply_sport_vetos(game)                  # True unless Marv qualified a play
+```
+
+Every Marv run also writes each pick it evaluated, locked or vetoed with reasons, to
+`state/marv_bot_audit.db` (table `execution_logs`).
+
 ## Commands
 
 ```bash

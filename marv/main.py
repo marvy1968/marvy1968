@@ -16,6 +16,7 @@ from . import bridge
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
+from .plugins import AuditDatabase
 from .sources import load_for_run, load_games
 from .stats import registry as stats_registry
 from .sports import SPORTS, Sport
@@ -53,6 +54,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
     bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
+    AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
     text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
     print(text + "\n")
     if not dry_run:
