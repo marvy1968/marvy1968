@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Marv Predict Max every morning (each sport decides if it has games)
+
+[Timer]
+OnCalendar=*-*-* 10:00:00 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

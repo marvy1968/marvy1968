@@ -1,0 +1,12 @@
+[Unit]
+Description=Marv Predict Max - multi-sport predictions + Telegram alerts
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv run --sport all
+TimeoutStartSec=1800

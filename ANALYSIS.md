@@ -51,8 +51,38 @@ scores, standings and probable goalies. Odds would come from The Odds API.
 but the reported 97-100% results need to be discarded and re-tested walk-forward. MLB Stats API (free) and
 Statcast/pybaseball cover the data; odds from The Odds API.
 
+## Honest NFL backtest of this bot
+
+nflverse has every NFL game since 1999 with closing lines, so the bot was tested walk-forward: each
+week was predicted using only earlier games and graded against the real closing line.
+
+| Seasons | Spread (after veto) | Totals (after veto) | Moneyline (after veto) | Brier: model vs market |
+|---|---|---|---|---|
+| 2018-2023 (used for tuning) | 128-130, -2.9% ROI | 145-173, -10.6% ROI | 19-34, -19.4% ROI | — |
+| 2024-2025 (held out) | 41-37, +1.3% ROI | 47-42, +1.5% ROI | 10-12, +3.0% ROI | 0.2205 vs **0.2059** |
+
+What this means:
+
+* **The market beats a scores-only model.** Closing-line win probabilities are more accurate than the
+  model's (lower Brier). Across 2018-2023, weighting the model more never improved on the market alone.
+* **The veto stack works as a filter**, not as an edge generator. It passed 85-89% of the slate and cut
+  losses versus betting every model edge (spread ROI -4.1% → -2.9%; moneyline bets cut from 1,657 to 53),
+  but six seasons of results don't show a profitable edge.
+* The small 2024-2025 profit is within noise for ~80 bets per market.
+* Longshot moneylines were the biggest leak (the favorite-longshot bias), so NFL underdogs are capped
+  at +150 and other sports at +250.
+
+That's why the bot ships in **paper-trading mode**: it alerts and grades every pick, and a real edge
+has to show up in its own ledger (ideally including beating the closing line) before money goes on it.
+Edges more realistically come from information the market hasn't priced yet: early lines before they
+move, confirmed lineups, goalies and pitchers, injuries and weather. The specs list these, but they need
+paid data feeds.
+
+The other sports couldn't be backtested from the build environment (ESPN wasn't reachable there).
+Run `python -m marv backtest` for each sport on the VM.
+
 ## What was built
 
-The CFB bot in `cfb_bot/` implements the CFB Predict Max architecture with a **walk-forward backtest**
-(`python -m cfb_bot backtest --year 2025`) that only uses games played before each week. Run it on the VM
-to get the model's honest hit rate before betting on it.
+One multi-sport engine (`marv/`) covering NFL, college football, NBA, WNBA, NHL, MLB and soccer, with
+sport-specific simulators, the shared veto stack, Telegram cards, a graded pick ledger and a daily
+systemd timer for a Google Compute Engine VM. See README.md.
