@@ -1,3 +1,26 @@
 $ marv run --sport nfl --hours 12 --force --dry-run
-started 2026-10-08 13:43:00 EDT
-RUNNING...
+started 2026-10-08 13:43:00 EDT, took 102s, exit 0
+
+🏟️ <b>Marv NFL Predict Max</b> · Thu Oct 08
+
+1 games simulated · 0 qualified plays · veto pass rate 100%
+
+📝 <i>Paper trading: these picks are tracked, not bet, until the record proves an edge.</i>
+
+No plays cleared the veto stack.
+
+<b>📌 Rosters, tracked spots &amp; line moves</b> (paper, not picks)
+• Tampa Bay Buccaneers @ Dallas Cowboys (model total 47.4): roster: Dallas Cowboys 2 starters out (1.4 full-time); Tampa Bay Buccaneers 3 starters out (2.5 full-time) + QB OUT ⚠️ elimination; line move: spread Dallas Cowboys -8.5 → -9 (toward Dallas Cowboys)
+
+<i>Model output, not a guarantee. Bet responsibly.</i>
+
+
+--- stderr ---
+2026-10-08 13:43:10,220 INFO Odds API americanfootball_nfl: 92331 credits left
+2026-10-08 13:43:10,226 INFO nfl: Odds API matched 1/1 games
+2026-10-08 13:44:37,604 WARNING ESPN injuries unavailable for nfl: 403 Client Error: Forbidden for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries
+2026-10-08 13:44:37,620 INFO nfl injury sources: NFL report
+2026-10-08 13:44:38,337 INFO nfl: stats experts projected 1/1 games
+2026-10-08 13:44:43,653 INFO props: no posted prop lines yet, 0 credits used
+2026-10-08 13:44:43,663 INFO 🏈 NFL PLAYER PROPS (paper)
+No props cleared the edge filter.
