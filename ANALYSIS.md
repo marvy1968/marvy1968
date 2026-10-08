@@ -510,3 +510,32 @@ closing total), college FB 2017-26 (6,727 FBS games); Monte Carlo totals are wal
 * Caveat: ~24 rules were tested on two sports, so the best one is partly selected by luck; prices are
   assumed -110 (college juice varies). Paper-track "fade both-teams-over-trending college totals"
   before staking anything.
+
+## Continuation or reversal: market over-adjustment, scoring luck and pace
+
+Gemini's idea: an over/under trend continues when it's backed by volume and the market under-reacted,
+and reverses when the market moved the total more than the underlying efficiency justifies. Tested per
+game, pre-game only: market move = this closing total minus the average total of each team's earlier
+games (last season worth 4 games + this season's games before the last 3); yardage move = the change in
+the teams' game yardage over the last 3 x league points per yard (0.069 college, 0.063 NFL);
+over-adjustment = market move minus yardage move. Scoring luck = points beyond what the yardage usually
+produces. College 4,024 games, NFL 3,767 (needs 3+ earlier games that season).
+
+| Rule (win rate vs the closing total) | College FB | NFL |
+|---|---|---|
+| Over trend (both teams 2+ overs in last 3) -> UNDER | 54.4% (924) | 51.2% (916) |
+| Over trend + market over-adjusted (2+ pts beyond yardage) -> UNDER | **56.5% (310)** | 54.3% (234; 50.0% early, 58.6% late) |
+| Over trend + market matched -> OVER (continuation) | 46.6% (614) | 49.9% (682) |
+| Over trend from scoring luck -> UNDER | 55.0% (462) | 53.5% (458) |
+| Over trend from pace (plays up 5+) -> OVER | 42.6% (216) | 42.4% (132) |
+| Under trend (both 0-1 overs in last 3) -> OVER | 54.3% (1,120) | 48.8% (1,018) |
+| Under trend + market matched -> UNDER (continuation) | 45.3% (691) | 50.5% (792) |
+| Any game: total moved 5+ pts more than yardage justifies -> UNDER | 52.2% (737) | **55.8% (400; 55.4% / 56.1% by half)** |
+
+* "Continuation" never paid: in college football both over and under trends reverse whether or not the
+  market over-adjusted. Over-adjustment and scoring luck only make the reversal stronger.
+* Pace doesn't make a trend sticky either: over trends driven by more plays went over only 42-43% next.
+* NFL: the trend itself has no edge, but a total that rose 5+ points more than recent yardage justifies
+  went under 55.8% (p=0.024), steady in both halves of 2009-26.
+* About 30 rules were tested here; the leads worth paper-tracking are college "fade both trends" and
+  NFL "total inflated 5+ beyond yardage -> UNDER". Neither is proven.
