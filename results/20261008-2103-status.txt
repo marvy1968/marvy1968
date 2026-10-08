@@ -1,3 +1,96 @@
 $ status
-started 2026-10-08 15:18:03 EDT
-RUNNING...
+started 2026-10-08 15:18:03 EDT, took 1s, exit 0
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:30:49 EDT; 5h 47min ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Oct 08 09:30:49 instance-stockbot systemd[1]: Started marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+
+● marv-vmlink.service - Marv VM link: run jobs from the vm-link branch
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.service; static)
+     Active: activating (start) since Thu 2026-10-08 15:16:48 EDT; 1min 18s ago
+TriggeredBy: ● marv-vmlink.timer
+   Main PID: 93908 (python3)
+      Tasks: 4 (limit: 4617)
+     Memory: 90.5M
+        CPU: 47.441s
+     CGroup: /system.slice/marv-vmlink.service
+             ├─93908 /usr/bin/python3 /opt/marv-bot/deploy/vm_link.py
+             ├─95126 bash -c "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager; git -c safe.directory=/opt/marv-bot -C /opt/marv-bot log -3 --oneline; df -h /"
+             ├─95127 systemctl --no-pager status "marv-*"
+             └─95128 head -80
+
+Oct 08 15:17:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 08 15:17:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 08 15:17:57 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 08 15:17:57 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 08 15:17:57 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 08 15:17:57 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 08 15:17:58 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 08 15:17:58 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 08 15:17:58 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 08 15:17:58 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+
+● marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+     Loaded: loaded (/etc/systemd/system/marv-edges.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 15:17:59 EDT; 7s ago
+   Main PID: 95093 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 92.7M
+        CPU: 3.325s
+     CGroup: /system.slice/marv-edges.service
+             └─95093 /opt/marv-bot/.venv/bin/python -m marv edges --watch
+
+Oct 08 15:17:59 instance-stockbot systemd[1]: Started marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record).
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 15:17:59 EDT; 7s ago
+   Main PID: 95095 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 105.2M
+        CPU: 3.942s
+     CGroup: /system.slice/marv-live.service
+             └─95095 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 08 15:17:59 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+
+● marv-health.timer - Run the Marv watchdog every 30 minutes
+     Loaded: loaded (/etc/systemd/system/marv-health.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-08 15:17:22 EDT; 45s ago
+    Trigger: Thu 2026-10-08 15:47:22 EDT; 29min left
+   Triggers: ● marv-health.service
+
+Oct 08 15:17:22 instance-stockbot systemd[1]: Started marv-health.timer - Run the Marv watchdog every 30 minutes.
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 15:17:59 EDT; 7s ago
+   Main PID: 95094 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 103.0M
+        CPU: 4.433s
+     CGroup: /system.slice/marv-bridge.service
+             └─95094 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 08 15:17:59 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Wed 2026-10-07 15:55:35 EDT; 23h ago
+NEXT                        LEFT          LAST                        PASSED       UNIT                ACTIVATES
+Thu 2026-10-08 15:47:22 EDT 29min left    Thu 2026-10-08 15:17:22 EDT 45s ago      marv-health.timer   marv-health.service
+Thu 2026-10-08 17:30:00 EDT 2h 11min left Wed 2026-10-07 17:30:01 EDT 21h ago      marv-bot-late.timer marv-bot-late.service
+Fri 2026-10-09 10:00:00 EDT 18h left      Thu 2026-10-08 10:00:00 EDT 5h 18min ago marv-bot.timer      marv-bot.service
+-                           -             Thu 2026-10-08 15:16:48 EDT 1min 19s ago marv-vmlink.timer   marv-vmlink.service
+
+4 timers listed.
+Pass --all to see loaded but inactive timers, too.
+8b2a9d0 vm-link update: also run the freshly pulled local installer (raw GitHub can be stale)
+a13fec8 marv-health watchdog: Telegram alert when a service is down, the daily run failed/missed, disk or Odds API credits run low
+6ac88af Bet card: at most 2 untested (NFL) Bovado-vs-Pinnacle gaps per card
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   66G   29G  70% /
