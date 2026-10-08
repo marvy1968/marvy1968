@@ -591,3 +591,35 @@ Marv disagrees with the spread more in backup-QB games (3.4 vs 2.2 points on ave
 those games were no worse, so the flag isn't a proven improvement: it's a safety rule against betting
 into injury news the stats lag behind (e.g. Tampa Bay's Jalon Daniels, Oct 8 2026: market Dallas -8.5
 to -10, Marv Dallas by 3).
+
+## NFL simulator calibration (key numbers and spread of outcomes)
+
+Every 2016-26 game simulated at its closing spread and total, compared with real finishes:
+
+| | Old sim | Calibrated sim | Real games |
+|---|---|---|---|
+| Games decided by exactly 3 | 8.0% | ~13-14% | 14.7% |
+| Decided by exactly 7 | 6.6% | ~8.5% | 8.5% |
+| Spread of totals around the closing line (SD) | 14.2 | 13.3 | 13.2 |
+| Spread of margins around the closing spread (SD) | 13.8 | 12.7 | 12.7 |
+
+Changes (`marv/sims/football.py`, NFL only): real extra-point outcomes (7/6/8), a last-possession phase
+that plays the score (field goal when tied or down 1-3, touchdown when down 4-8), NFL overtime (57% end
+by 3, 6% tie), less game-to-game "form" swing (shape 30 -> 120), and a calibrated transfer of near-miss
+finishes onto 3 and 7.
+
+Backtest with Marv's own projections (2,815 games, 2016-26):
+
+| | Old | Calibrated |
+|---|---|---|
+| Moneyline Brier | 0.2221 | 0.2219 |
+| Push probability on spreads of 3 (real 10.2%) | 4.5% | 7.1% |
+| Push probability on spreads of 7 (real 6.4%) | 3.8% | 4.8% |
+| Against the spread, log loss (coin flip = 0.693) | 0.7048 | 0.7086 |
+| Over/under, log loss | 0.7033 | 0.7044 |
+| ATS when 55%+ sure | 51.2% (1,437) | 51.8% (1,628) |
+
+The simulator now reproduces real NFL scores and prices pushes far better, which matters for spreads on
+3 and 7, live prices and quarter bets. It does not make Marv's spread or total picks better: with
+either simulator they are worse than a coin flip in log loss, because Marv's projections disagree with
+the closing line mostly where the line is right. NFL spreads and totals stay off as picks.

@@ -78,3 +78,32 @@ class UntestedCapTests(unittest.TestCase):
                  "line": 44.5, "price": -110, "pinnacle_line": 45} for i in range(6)]
         bets = betcard.select(betcard.gap_candidates(gaps))
         self.assertEqual(len(bets), 2)
+
+
+class CLVTests(unittest.TestCase):
+    def test_clv_points_and_price(self):
+        self.assertEqual(betcard.clv({"market": "total", "side": "Under", "line": 48.5, "price": -110,
+                                      "close_line": 47.5, "close_price": -110})[0], 1.0)
+        self.assertEqual(betcard.clv({"market": "spread", "side": "Browns", "line": 2.5, "price": -110,
+                                      "close_line": 1.5, "close_price": -110})[0], 1.0)
+        pts, price = betcard.clv({"market": "ml", "side": "Lions", "line": None, "price": -150, "close_price": -170})
+        self.assertIsNone(pts)
+        self.assertGreater(price, 0)  # bet at -150, closed -170: beat the close
+
+    def test_update_close_and_report(self):
+        from unittest import mock
+        from marv.config import Settings
+        with tempfile.TemporaryDirectory() as d:
+            start = datetime.now(timezone.utc) + timedelta(hours=5)
+            g = pred("9", "Dallas Cowboys", "Tampa Bay Buccaneers", [Pick("total", "Under", 48.5, -110, 0.58, 0.1, 0.06)])
+            g.game.start = start
+            bets = betcard.select(betcard.candidates("nfl", [g]))
+            betcard.log(Path(d), bets, datetime.now(timezone.utc))
+            ev = {"id": "e", "home_team": "Dallas Cowboys", "away_team": "Tampa Bay Buccaneers",
+                  "commence_time": start.isoformat(), "bookmakers": [{"key": "bovada", "title": "Bovada", "markets": [
+                      {"key": "totals", "outcomes": [{"name": "Over", "point": 47.5, "price": -110},
+                                                     {"name": "Under", "point": 47.5, "price": -110}]}]}]}
+            with mock.patch("marv.data.oddsapi.fetch", lambda key, sport: [ev]):
+                n = betcard.update_close(Path(d), Settings(state_dir=d, odds_api_key="x"))
+            self.assertEqual(n, 1)
+            self.assertIn("beat the close 1", betcard.clv_report(Path(d)))

@@ -175,6 +175,11 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
                     send_message(settings.telegram_bot_token, settings.telegram_chat_id, "🚨 NEW EDGES\n" + board.text(new))
             except Exception:
                 log.exception("board refresh failed")
+            try:  # closing-line value: keep the latest pre-kickoff line for every open bet card pick
+                from . import betcard
+                betcard.update_close(state, settings)
+            except Exception:
+                log.exception("bet card closing lines failed")
             try:  # Bovado vs Pinnacle gaps (college/NFL): alert new ones
                 from . import sharpgap
                 gap_sports = [k for k in sports if k in sharpgap.SPORT_KEYS]

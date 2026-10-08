@@ -207,6 +207,10 @@ def grade(state: Path, sport: str, finished) -> None:
 
 
 def record(state: Path) -> str:
+    return _record(state) + "\n" + clv_report(state)
+
+
+def _record(state: Path) -> str:
     path = state / "betcard_log.json"
     book = json.loads(path.read_text()) if path.exists() else []
     lines = []
@@ -216,3 +220,83 @@ def record(state: Path) -> str:
             w = sum(b["result"] == "win" for b in g)
             lines.append(f"{tier}: {w}-{len(g) - w} ({w / len(g):.0%}), {sum(b['profit'] for b in g):+.1f}u")
     return "🃏 Bet card record: " + (" · ".join(lines) if lines else "nothing graded yet")
+
+
+# ---------- closing-line value ----------
+
+def _market_line(o, market: str, side: str, home: str):
+    """(line, price) for one side of one market from an Odds snapshot."""
+    if o is None:
+        return None, None
+    if market == "total":
+        return o.total, (o.over_price if side == "Over" else o.under_price)
+    if market == "spread":
+        if o.spread is None:
+            return None, None
+        return (o.spread, o.home_spread_price) if side == home else (-o.spread, o.away_spread_price)
+    return None, (o.home_ml if side == home else o.away_ml)
+
+
+def update_close(state: Path, settings, now: datetime | None = None) -> int:
+    """Refresh the latest pre-kickoff line for every open bet card pick (the last one stored is the close).
+    Called by the edges service every refresh; one Odds API call per sport with open picks."""
+    from .data import oddsapi
+    from .sports import SPORTS
+    path = state / "betcard_log.json"
+    if not path.exists() or not settings.odds_api_key:
+        return 0
+    now = now or datetime.now(timezone.utc)
+    book = json.loads(path.read_text())
+    open_ = [b for b in book if b["result"] is None
+             and now < datetime.fromisoformat(b["start"].replace("Z", "+00:00")) < now + timedelta(hours=48)]
+    updated = 0
+    for sport in {b["sport"] for b in open_}:
+        events = []
+        for key in SPORTS[sport].odds_api_keys:
+            try:
+                events += oddsapi.fetch(settings.odds_api_key, key)
+            except Exception:
+                continue
+        for b in [x for x in open_ if x["sport"] == sport]:
+            ev = max(events, key=lambda e: min(similarity(b["home"], e["home_team"]), similarity(b["away"], e["away_team"])),
+                     default=None)
+            if not ev or min(similarity(b["home"], ev["home_team"]), similarity(b["away"], ev["away_team"])) < 0.75:
+                continue
+            line, price = _market_line(oddsapi.consensus(ev, settings.odds_book), b["market"], b["side"], b["home"])
+            if price is None:
+                continue
+            b["close_line"], b["close_price"], b["close_at"] = line, price, now.isoformat()
+            updated += 1
+    path.write_text(json.dumps(book, indent=1))
+    return updated
+
+
+def clv(b: dict) -> tuple[float | None, float | None]:
+    """(points gained vs the close, implied-probability points gained on price) for one logged pick;
+    positive = the bet beat the closing line."""
+    if b.get("close_price") is None:
+        return None, None
+    pts = None
+    if b["market"] in ("total", "spread") and b.get("close_line") is not None and b.get("line") is not None:
+        if b["market"] == "total":
+            pts = (b["close_line"] - b["line"]) if b["side"] == "Over" else (b["line"] - b["close_line"])
+        else:
+            pts = b["line"] - b["close_line"]
+    same_line = pts is None or pts == 0
+    price = (E.implied(b["close_price"]) - E.implied(b["price"])) if same_line else None
+    return pts, price
+
+
+def clv_report(state: Path) -> str:
+    path = state / "betcard_log.json"
+    book = json.loads(path.read_text()) if path.exists() else []
+    rows = [(b, *clv(b)) for b in book]
+    rows = [r for r in rows if r[1] is not None or r[2] is not None]
+    if not rows:
+        return "📏 Closing-line value: no closed bet card picks yet."
+    beat = sum(1 for _, pts, pr in rows if (pts or 0) > 0 or (not pts and (pr or 0) > 0))
+    lost = sum(1 for _, pts, pr in rows if (pts or 0) < 0 or (not pts and (pr or 0) < 0))
+    pts = [p for _, p, _ in rows if p is not None]
+    return (f"📏 Closing-line value on {len(rows)} bet card picks: beat the close {beat}, lost to it {lost}"
+            + (f", average {sum(pts) / len(pts):+.2f} pts" if pts else "")
+            + ". Beating the close on most picks is the earliest sign of a real edge.")
