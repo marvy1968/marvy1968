@@ -1,3 +1,11 @@
 $ marv run --sport cfb --force --dry-run
-started 2026-10-08 09:33:13 EDT
-RUNNING...
+started 2026-10-08 09:33:13 EDT, took 3837s, exit 0
+
+
+--- stderr ---
+2026-10-08 09:33:23,010 WARNING cfb: CFBD_API_KEY not set, skipping
+2026-10-08 09:33:24,758 INFO cfb 2026: 888 games, 1400 team-games
+2026-10-08 09:33:37,561 INFO Odds API americanfootball_ncaaf: 92538 credits left
+2026-10-08 10:37:10,472 INFO cfb props: 0 lines priced, 0 picks, 0 credits
+2026-10-08 10:37:10,583 INFO 🏈 COLLEGE FOOTBALL PLAYER PROPS (top 30) (paper)
+No props cleared the edge filter.
