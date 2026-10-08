@@ -149,7 +149,7 @@ class LiveMonitor:
                 events += oddsapi.fetch(self.s.odds_api_key, key)
             except Exception as exc:
                 log.warning("live odds %s: %s", key, exc)
-        return oddsapi.attach(games, events) > 0
+        return oddsapi.attach(games, events, book=self.s.odds_book) > 0
 
     def tick(self, send) -> int:
         """One pass over all live games; returns the number of updates sent."""

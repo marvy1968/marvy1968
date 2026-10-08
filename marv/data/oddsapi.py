@@ -1,6 +1,7 @@
 """The Odds API (https://the-odds-api.com): consensus prices across US sportsbooks.
 
 Optional. When ODDS_API_KEY is set, these odds replace the ones from ESPN/nflverse/CFBD.
+ODDS_BOOK (default bovado) picks the owner's sportsbook; games it hasn't posted use the consensus.
 Each call costs (markets x regions) credits; this client requests 3 markets in 1 region.
 """
 
@@ -33,12 +34,17 @@ def _consensus_line(points: list[float]) -> float:
     return max(counts, key=lambda p: (counts[p], -abs(p - mid)))
 
 
-def consensus(event: dict) -> Odds:
-    """Median line across books; price is the median price among books posting that line."""
+def consensus(event: dict, book: str = "") -> Odds:
+    """Median line across books; price is the median price among books posting that line.
+
+    With `book` (an Odds API bookmaker key such as "bovado"), only that book's prices are used
+    when it has posted the game."""
     home, away = event["home_team"], event["away_team"]
     spreads, totals, mls = [], [], {"home": [], "away": [], "draw": []}
-    for book in event.get("bookmakers", []):
-        for market in book.get("markets", []):
+    books = event.get("bookmakers", [])
+    mine = [b for b in books if book and b.get("key") == book]
+    for book_data in mine or books:
+        for market in book_data.get("markets", []):
             outs = {o["name"]: o for o in market.get("outcomes", [])}
             if market["key"] == "h2h":
                 for side, name in (("home", home), ("away", away), ("draw", "Draw")):
@@ -49,7 +55,7 @@ def consensus(event: dict) -> Odds:
             elif market["key"] == "totals" and "Over" in outs and "Under" in outs:
                 totals.append((outs["Over"]["point"], outs["Over"]["price"], outs["Under"]["price"]))
 
-    odds = Odds(provider=f"consensus of {len(event.get('bookmakers', []))} books")
+    odds = Odds(provider=mine[0].get("title", book) if mine else f"consensus of {len(books)} books")
     if spreads:
         odds.spread = _consensus_line([s[0] for s in spreads])
         at = [s for s in spreads if s[0] == odds.spread]
@@ -66,7 +72,7 @@ def consensus(event: dict) -> Odds:
     return odds
 
 
-def attach(games: list[Game], events: list[dict], min_similarity: float = 0.75) -> int:
+def attach(games: list[Game], events: list[dict], min_similarity: float = 0.75, book: str = "") -> int:
     """Replace each game's odds with the best-matching Odds API event. Returns games matched."""
     matched = 0
     for game in games:
@@ -79,7 +85,7 @@ def attach(games: list[Game], events: list[dict], min_similarity: float = 0.75) 
             if score > best_score:
                 best, best_score = ev, score
         if best and best_score >= min_similarity:
-            fresh = consensus(best)
+            fresh = consensus(best, book)
             if game.odds:  # keep any opening lines the primary source had
                 fresh.spread_open, fresh.total_open = game.odds.spread_open, game.odds.total_open
             game.odds = fresh

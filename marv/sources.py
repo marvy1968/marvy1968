@@ -73,6 +73,6 @@ def load_for_run(sport: Sport, s: Settings, now: datetime, hours_ahead: int) -> 
                 events += oddsapi.fetch(s.odds_api_key, key)
             except Exception as exc:
                 log.warning("Odds API %s failed: %s", key, exc)
-        matched = oddsapi.attach(slate, events)
+        matched = oddsapi.attach(slate, events, book=s.odds_book)
         log.info("%s: Odds API matched %d/%d games", sport.key, matched, len(slate))
     return history, slate, ctx

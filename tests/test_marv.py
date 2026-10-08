@@ -213,6 +213,19 @@ class DataTest(unittest.TestCase):
         self.assertEqual(game.odds.total, 220.5)
         self.assertGreater(similarity("Manchester City FC", "Man City"), 0.9)
 
+    def test_odds_api_prefers_book(self):
+        def book(key, total):
+            return {"key": key, "title": key.title(), "markets": [{"key": "totals", "outcomes": [
+                {"name": "Over", "point": total, "price": -110}, {"name": "Under", "point": total, "price": -110}]}]}
+        ev = {"home_team": "Los Angeles Clippers", "away_team": "Boston Celtics", "commence_time": "2026-01-01T01:00:00Z",
+              "bookmakers": [book("draftkings", 220.5), book("fanduel", 220.5), book("bovado", 221.5)]}
+        game = Game("x", "nba", T0, "LA Clippers", "Boston Celtics")
+        attach([game], [ev], book="bovado")
+        self.assertEqual((game.odds.total, game.odds.provider), (221.5, "Bovado"))
+        ev["bookmakers"] = ev["bookmakers"][:2]  # Bovado hasn't posted: fall back to the consensus
+        attach([game], [ev], book="bovado")
+        self.assertEqual(game.odds.total, 220.5)
+
 
 class StateTest(unittest.TestCase):
     def test_ledger_round_trip(self):
