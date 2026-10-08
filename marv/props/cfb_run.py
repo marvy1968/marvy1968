@@ -15,7 +15,7 @@ from . import cfb as C
 from . import nfl as P
 from . import odds as O
 from .basketball_run import _team
-from .run import card, evaluate, payout, picks
+from .run import card, evaluate, payout, picks, save_priced
 
 log = logging.getLogger(__name__)
 SPORT = "americanfootball_ncaaf"
@@ -101,6 +101,7 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
         if not lr.empty:
             got.append(lr.assign(game_id=e["id"]))
     df = evaluate(pd.concat(got, ignore_index=True) if got else pd.DataFrame(), fut, models, C.MARKETS)
+    save_priced(Path(settings.state_dir), "cfb", df)
     chosen = picks(df)
     text = card(chosen, settings.paper_mode, "🏈 COLLEGE FOOTBALL PLAYER PROPS (top 30)", HOW)
     if not dry_run and not chosen.empty:

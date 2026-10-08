@@ -352,6 +352,9 @@ def cmd_serve(s: Settings, args) -> int:
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
+                elif url.path == "/prop":  # /prop?player=Josh Allen&market=pass  -> latest priced props
+                    from .props.run import lookup
+                    body, code = json.dumps(lookup(state, q["player"], q.get("market"))), 200
                 elif url.path == "/board":  # current edges (games + props) for the odds bot
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200

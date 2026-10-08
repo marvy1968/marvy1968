@@ -158,24 +158,28 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
     return entries
 
 
-def _props_entries(state: Path) -> list[dict]:
-    """Today's prop picks from the props ledgers (already priced against your book)."""
+def _props_entries(state: Path, min_edge: float = 0.04) -> list[dict]:
+    """Props from the latest priced runs (state/props_priced_<sport>.json): best side vs its price."""
     out = []
-    today = datetime.now(timezone.utc).date().isoformat()
-    for f in state.glob("props_*_picks.json"):
-        sport = f.stem.split("_")[1]
+    for f in state.glob("props_priced_*.json"):
+        sport = f.stem.split("_")[-1]
         try:
-            book = json.loads(f.read_text())
+            rows = json.loads(f.read_text())
         except json.JSONDecodeError:
             continue
-        for b in book:
-            if b.get("result") is None and b.get("date", today) >= today:
-                ev = E.edge(b["p"], b["price"])
-                out.append({"sport": sport, "game": b.get("team", ""), "start": b.get("date", ""), "market": "prop",
-                            "pick": f"{b['player']} {b['market'].replace('player_', '')} {b['side']} {b['line']:g}",
-                            "price": b["price"], "book": "Bovado", "p_marv": b["p"], "p_market": None, "p": b["p"],
-                            "edge": round(ev, 4), "stake": E.kelly(b["p"], b["price"]), "status": "paper",
-                            "note": "props: real-line backtest pending", "key": f"prop:{sport}:{b['player']}:{b['market']}:{b.get('date')}"})
+        for r in rows:
+            for side, p, price in (("Over", r["p_over"], r.get("over_price")), ("Under", 1 - r["p_over"], r.get("under_price"))):
+                if price is None or (isinstance(price, float) and math.isnan(price)):
+                    continue
+                ev = E.edge(p, price)
+                if ev < min_edge or p < 0.55:
+                    continue
+                out.append({"sport": sport, "game": r.get("game_id", ""), "start": r.get("updated", ""), "market": "prop",
+                            "pick": f"{r['player']} {r.get('label', r['market'])} {side} {r['line']:g}", "price": price,
+                            "book": r.get("book_title", ""), "p_marv": round(p, 4), "p_market": None, "p": round(p, 4),
+                            "edge": round(ev, 4), "stake": E.kelly(p, price), "status": "paper",
+                            "note": f"proj {r['proj']:.1f}; props real-line backtest pending",
+                            "key": f"prop:{sport}:{r['player']}:{r['market']}:{r['line']}:{side}"})
     return out
 
 

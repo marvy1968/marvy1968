@@ -15,7 +15,7 @@ from ..data.teams import similarity
 from . import nfl as P
 from . import ncaab as B
 from . import odds as O
-from .run import card, evaluate, payout, picks
+from .run import card, evaluate, payout, picks, save_priced
 
 log = logging.getLogger(__name__)
 ODDS_KEYS = {"ncaab": "basketball_ncaab", "ncaaw": "basketball_wncaab", "wnba": "basketball_wnba"}
@@ -96,6 +96,7 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
         if not lr.empty:
             lines.append(lr.assign(game_id=ev["id"]))
     df = evaluate(pd.concat(lines, ignore_index=True) if lines else pd.DataFrame(), fut, models, B.MARKETS)
+    save_priced(Path(settings.state_dir), sport, df)
     chosen = picks(df)
     text = card(chosen, settings.paper_mode, TITLES[sport], HOW)
     if not dry_run and not chosen.empty:

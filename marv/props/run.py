@@ -126,6 +126,33 @@ def evaluate(lines: pd.DataFrame, rows: pd.DataFrame, models: dict, markets: dic
     return df
 
 
+def save_priced(state: Path, sport: str, df: pd.DataFrame) -> None:
+    """Every priced prop from the latest run (not just picks), for /prop queries and the odds bot."""
+    if df.empty:
+        return
+    cols = ["player", "label", "market", "line", "proj", "p_over", "over_price", "under_price", "book_title", "game_id"]
+    rows = df[[c for c in cols if c in df]].copy()
+    rows["sport"] = sport
+    rows["updated"] = datetime.now(timezone.utc).isoformat()
+    (state / f"props_priced_{sport}.json").write_text(rows.to_json(orient="records"))
+
+
+def lookup(state: Path, player: str, market: str | None = None) -> list[dict]:
+    """Latest priced props for a player (any sport), best name match first."""
+    out = []
+    for f in state.glob("props_priced_*.json"):
+        try:
+            rows = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+        want = O.norm_name(player)
+        for r in rows:
+            name = O.norm_name(r["player"])
+            if (want in name or name in want) and (not market or market.lower() in (r["market"] + r.get("label", "")).lower()):
+                out.append(r)
+    return out
+
+
 def picks(df: pd.DataFrame, min_edge: float | None = None, min_p: float = 0.55) -> pd.DataFrame:
     min_edge = float(os.environ.get("PROPS_MIN_EDGE", "0.05")) if min_edge is None else min_edge
     if df.empty:
@@ -174,6 +201,7 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
         if not lr.empty:
             lines.append(lr.assign(game_id=match[ev["id"]]))
     df = evaluate(pd.concat(lines, ignore_index=True) if lines else pd.DataFrame(), rows, models)
+    save_priced(Path(settings.state_dir), "nfl", df)
     chosen = picks(df)
     text = card(chosen, settings.paper_mode)
     if not dry_run and not chosen.empty:

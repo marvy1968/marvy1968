@@ -6,6 +6,7 @@ Ask the Marv bot in Telegram:
   /check nfl Lions total under 47.5 -110      fair probability for any price (e.g. a March_edge alert)
   /check nfl Lions ml Lions +150
   /props                 today's player-prop picks
+  /prop Josh Allen pass  Marv's projection and over/under chance for a player's posted props
   /record                alerted bets: closing-line value (the best early sign of a real edge)
   /help
 Only the configured TELEGRAM_CHAT_ID gets answers. Every refresh, new RECOMMENDED entries are pushed
@@ -97,6 +98,17 @@ def answer(settings, text: str) -> str:
             price = float(parts[6] if market == "total" else parts[5])
             v = bridge.check(state, sport, team, market, side, price, line)
             return v.line() if v.found else v.reason
+        if cmd == "/prop" and len(parts) > 1:
+            from .props.run import lookup
+            words = parts[1:]
+            market = words[-1] if words[-1].lower() in ("pass", "rush", "rec", "reception", "receptions", "points",
+                                                         "rebounds", "assists", "threes") else None
+            rows = lookup(state, " ".join(words[:-1] if market else words), market)
+            if not rows:
+                return "No priced props for that player in the latest run."
+            return "\n".join(f"{r['player']} {r.get('label', r['market'])} {r['line']:g}: proj {r['proj']:.1f} · "
+                             f"over {r['p_over']:.0%} / under {1 - r['p_over']:.0%} · {r.get('book_title', '')} "
+                             f"{r.get('over_price')}/{r.get('under_price')}" for r in rows[:8])
         if cmd == "/props":
             entries = board._props_entries(state)
             return board.text(entries) if entries else "No open prop picks today."
@@ -123,11 +135,32 @@ def poll_commands(settings, offset_path: Path) -> None:
     offset_path.write_text(str(offset))
 
 
+def refresh_props(settings, sports: list[str]) -> None:
+    """Re-price player props against current lines (no Telegram card; the board and /prop read the result)."""
+    import importlib
+    runners = {"nfl": ("marv.props.run", {}), "cfb": ("marv.props.cfb_run", {}),
+               "ncaab": ("marv.props.basketball_run", {"sport": "ncaab"}),
+               "ncaaw": ("marv.props.basketball_run", {"sport": "ncaaw"}),
+               "wnba": ("marv.props.basketball_run", {"sport": "wnba"})}
+    for sport in sports:
+        if sport in runners and settings.odds_api_key:
+            mod, kw = runners[sport]
+            try:
+                log.info(importlib.import_module(mod).run_live(settings, 36, True, **kw)[:200])
+            except Exception:
+                log.exception("props refresh %s failed", sport)
+
+
 def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
-    """Rebuild the board every `refresh_minutes`, alert new recommended bets, answer queries in between."""
+    """Rebuild the board every `refresh_minutes`, alert new recommended bets, answer queries in between.
+    Player props are re-priced every PROPS_REFRESH_HOURS (default 3)."""
     state = Path(settings.state_dir)
-    last = 0.0
+    last, last_props = 0.0, 0.0
+    props_every = float(os.environ.get("PROPS_REFRESH_HOURS", "3")) * 3600
     while True:
+        if time.time() - last_props >= props_every:
+            refresh_props(settings, sports)
+            last_props = time.time()
         if time.time() - last >= refresh_minutes * 60:
             try:
                 entries = board.build(settings, sports)
