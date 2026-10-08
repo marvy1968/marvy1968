@@ -1,3 +1,8 @@
 $ marv gaps --sport nfl
-started 2026-10-08 13:44:45 EDT
-RUNNING...
+started 2026-10-08 13:44:45 EDT, took 4s, exit 0
+
+No Bovado vs Pinnacle gaps right now.
+NFL: 29 games, Bovado on 0, Pinnacle on 15, both on 0
+
+--- stderr ---
+2026-10-08 13:44:50,673 INFO Odds API nfl (bovado+pinnacle): 92319 credits left
