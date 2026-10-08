@@ -1,3 +1,8 @@
 $ marv gaps
-started 2026-10-08 11:00:05 EDT
-RUNNING...
+started 2026-10-08 11:00:05 EDT, took 28s, exit 0
+
+No Bovado vs Pinnacle gaps right now.
+
+--- stderr ---
+2026-10-08 11:00:33,259 INFO Odds API cfb (bovado+pinnacle): 92462 credits left
+2026-10-08 11:00:34,506 INFO Odds API nfl (bovado+pinnacle): 92456 credits left
