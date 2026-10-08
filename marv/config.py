@@ -34,6 +34,7 @@ class Settings:
     paper_mode: bool = True
     stats_model: bool = True  # NFL/college/NBA/WNBA/MLB use the box-score experts
     pdf_sports: list[str] = field(default_factory=lambda: ["nfl", "cfb"])  # attach the weekly chart PDF
+    send_empty_cards: bool = False  # False: a card is only sent when it has a new qualified play
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -51,6 +52,7 @@ class Settings:
             paper_mode=os.environ.get("PAPER_MODE", "true").lower() not in ("0", "false", "no", "off"),
             stats_model=os.environ.get("STATS_MODEL", "true").lower() not in ("0", "false", "no", "off"),
             pdf_sports=[x.strip().lower() for x in os.environ.get("REPORT_PDF_SPORTS", "nfl,cfb").split(",") if x.strip()],
+            send_empty_cards=os.environ.get("SEND_EMPTY_CARDS", "false").lower() in ("1", "true", "yes", "on"),
         )
 
     @staticmethod

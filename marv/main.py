@@ -83,7 +83,10 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
     text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
     print(text + "\n")
-    if not dry_run:
+    fresh = store.new_picks(sport.key, preds)
+    if not dry_run and not fresh and not s.send_empty_cards:
+        log.info("%s: no new qualified plays, nothing sent", sport.key)
+    elif not dry_run:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
         store.log_picks(sport.key, preds)
         if sport.key in s.pdf_sports:
@@ -326,6 +329,8 @@ def cmd_situational(s: Settings, args) -> int:
     text = situational.report(situational.grade(Path(s.state_dir), games))
     text += "\n\n" + ou_tags.report(ou_tags.record(Path(s.state_dir)))
     text += "\n\n" + sharpgap.report(sharpgap.record(Path(s.state_dir)))
+    from .live_monitor import live_record
+    text += "\n\n" + live_record(Path(s.state_dir))
     print(text)
     if args.send:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)

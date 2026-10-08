@@ -245,7 +245,9 @@ class StateTest(unittest.TestCase):
             store.remember_lines("nba", [g])
             self.assertEqual(g.odds.spread_open, -3)
             pred = Prediction(g, 112, 108, 4, 220, 0.6, picks=[Pick("spread", "A", -3, -110, 0.6, 0.1, 0.05)])
+            self.assertEqual(store.new_picks("nba", [pred]), 1)
             store.log_picks("nba", [pred])
+            self.assertEqual(store.new_picks("nba", [pred]), 0)  # already sent: the next run stays quiet
             done = Game("g1", "nba", g.start, "A", "B", completed=True, home_score=110, away_score=100)
             self.assertEqual(store.resolve("nba", [done]), 1)
             w, l, p, u = store.record("nba")["spread"]

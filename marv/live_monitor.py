@@ -4,8 +4,10 @@
 scoreboard for the enabled sports. When a period ends it combines Marv's pregame projection
 (state/predictions.json), the current score and clock, and this game's actual scoring pace into a
 live win probability and projected total, compares them with the current line (The Odds API live
-prices when ODDS_API_KEY is set, otherwise the pregame line) and sends one Telegram update per
-period, plus a final result.
+prices when ODDS_API_KEY is set) and sends a Telegram alert only when a NEW edge appears (a market and
+side not alerted before for that game, edge >= LIVE_EDGE vs the live price), with the win probability.
+Nothing is sent when there's no edge or no live prices. At the final whistle only wins are announced;
+every result (wins and losses) is logged to state/live_alerts.json for the weekly record.
 
 Live numbers are fair prices from a model, not backtested picks: updates say "lean" unless the
 edge is large, and nothing here changes the pregame plays.
@@ -109,6 +111,55 @@ def stat_line(sport: str, r, home: str, away: str) -> str:
             f"{r['a_oreb'] + r['a_dreb']:.0f} / {r['h_oreb'] + r['h_dreb']:.0f} · turnovers {r['a_tov']:.0f} / {r['h_tov']:.0f}")
 
 
+def live_edges(st: dict, ingame: dict | None, game, p_home: float, line_total: float | None,
+               over_price: float | None, under_price: float | None) -> list[dict]:
+    """Every market where Marv's live probability beats the live price by LIVE_EDGE or more."""
+    out = []
+    o = game.odds
+    for team, p, price in ((game.home, p_home, o.home_ml if o else None), (game.away, 1 - p_home, o.away_ml if o else None)):
+        if price:
+            edge = p - american_to_prob(price)
+            if edge >= LIVE_EDGE:
+                out.append({"market": "ml", "side": team, "line": None, "price": float(price), "p": round(p, 4),
+                            "edge": round(edge, 4)})
+    if line_total is not None:
+        po = bridge.p_over(st, line_total)
+        if ingame:
+            po = float(ingame["model"].p_over(ingame["frame"], [line_total])[0])
+        for side, p, price in (("Over", po, over_price or -110), ("Under", 1 - po, under_price or -110)):
+            edge = p - american_to_prob(price)
+            if edge >= LIVE_EDGE:
+                out.append({"market": "total", "side": side, "line": float(line_total), "price": float(price),
+                            "p": round(p, 4), "edge": round(edge, 4)})
+    return out
+
+
+def edge_line(e: dict) -> str:
+    what = f"{e['side']} ML {e['price']:+.0f}" if e["market"] == "ml" else f"{e['side']} {e['line']:g} ({e['price']:+.0f})"
+    return (f"▶️ <b>{what}</b> · {'win' if e['market'] == 'ml' else 'hit'} probability {e['p']:.0%} "
+            f"(fair {prob_to_american(e['p']):+.0f}) · edge {e['edge']:+.0%}")
+
+
+def alert_text(sport: str, game, ended_period: int, edges: list[dict], st: dict, p_home: float) -> str:
+    hs, as_ = game.info.get("live_home"), game.info.get("live_away")
+    fav, p_fav = (game.home, p_home) if p_home >= 0.5 else (game.away, 1 - p_home)
+    return "\n".join([
+        "👽 <b>Marv the Martian predicts live: EDGE</b>",
+        f"{game.away} {as_:.0f} – {hs:.0f} {game.home} · end of {period_name(sport, ended_period)}",
+        *[edge_line(e) for e in edges],
+        f"Marv live: {fav} win {p_fav:.0%} · projected total {st['exp_total']:.1f}",
+        "<i>Live model, not yet backtested against live prices: small stakes.</i>"])
+
+
+def grade_alert(e: dict, home: str, hs: float, as_: float) -> str:
+    if e["market"] == "ml":
+        return "win" if (hs > as_) == (e["side"] == home) and hs != as_ else "loss"
+    total = hs + as_
+    if total == e["line"]:
+        return "push"
+    return "win" if (total > e["line"]) == (e["side"] == "Over") else "loss"
+
+
 def martian_block(st: dict, ingame: dict | None, fav: str, p_fav: float, line_total: float | None,
                   price: float | None, live_prices: bool) -> str:
     """The owner's card format, from the same live numbers as the rest of the update:
@@ -183,6 +234,25 @@ def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, lin
     return "\n".join(lines)
 
 
+def log_alert(state_dir: Path, sport: str, game, e: dict) -> None:
+    """Every graded live alert (wins and losses) goes to state/live_alerts.json for the record."""
+    path = state_dir / "live_alerts.json"
+    book = json.loads(path.read_text()) if path.exists() else []
+    book.append({"sport": sport, "game_id": str(game.id), "home": game.home, "away": game.away,
+                 "final": [game.away_score, game.home_score], **e})
+    path.write_text(json.dumps(book, indent=1))
+
+
+def live_record(state_dir: Path) -> str:
+    path = state_dir / "live_alerts.json"
+    book = json.loads(path.read_text()) if path.exists() else []
+    w = sum(e["result"] == "win" for e in book)
+    l = sum(e["result"] == "loss" for e in book)
+    units = sum((e["price"] / 100 if e["price"] > 0 else 100 / -e["price"]) if e["result"] == "win" else
+                (-1.0 if e["result"] == "loss" else 0.0) for e in book)
+    return f"👽 Live edge alerts: {w}-{l}" + (f" ({w / (w + l):.0%}), {units:+.1f}u at the alerted prices" if w + l else "")
+
+
 class LiveMonitor:
     def __init__(self, settings, sports: list[str]):
         self.s = settings
@@ -249,7 +319,7 @@ class LiveMonitor:
                 rec_state = state.setdefault(key, {"reported": 0, "final": False})
                 rec_state["seen"] = now.isoformat()
                 if g.info.get("state") == "post" or g.completed:
-                    if rec_state["reported"] > 0 and not rec_state["final"]:
+                    if rec_state.get("alerted") and not rec_state["final"]:
                         due.append((g, rec_state["reported"], True))
                     continue
                 period = int(g.info.get("period") or 0)
@@ -274,15 +344,37 @@ class LiveMonitor:
                             ingame["model"] = self.models[sport]
                     except Exception as exc:
                         log.warning("in-game stats %s %s: %s", sport, g.id, exc)
-                text = update_text(sport, g, rec, ended, final, o.total if o else None,
-                                   o.home_ml if o else None, o.away_ml if o else None, live_prices, ingame)
-                send(text)
-                sent += 1
                 key = f"{sport}:{g.id}"
-                if final:
+                if final:  # grade what was alerted; only wins are sent, every result is logged
                     state[key]["final"] = True
-                else:
-                    state[key]["reported"] = ended
+                    hs, as_ = float(g.home_score), float(g.away_score)
+                    wins = []
+                    for e in state[key].get("alerted", []):
+                        e["result"] = grade_alert(e, g.home, hs, as_)
+                        log_alert(Path(self.s.state_dir), sport, g, e)
+                        if e["result"] == "win":
+                            wins.append(e)
+                    if wins:
+                        send("\n".join([f"✅ <b>WIN</b> · {g.away} {as_:.0f} – {hs:.0f} {g.home} (final)",
+                                         *[edge_line(e) for e in wins]]))
+                        sent += 1
+                    continue
+                state[key]["reported"] = ended
+                if not live_prices:
+                    continue  # no live prices = no measurable edge, stay quiet
+                left = minutes_left(sport, ended, g.info.get("clock"), True)
+                st = bridge.live_state(rec, sport, g.info.get("live_home"), g.info.get("live_away"), left)
+                if ingame:
+                    st = {**st, "p_home": ingame["p_home"], "exp_total": ingame["exp_total"], "exp_margin": ingame["exp_margin"]}
+                edges = live_edges(st, ingame, g, st["p_home"], o.total if o else None,
+                                   o.over_price if o else None, o.under_price if o else None)
+                seen = {(e["market"], e["side"]) for e in state[key].get("alerted", [])}
+                new = [e for e in edges if (e["market"], e["side"]) not in seen]
+                if not new:
+                    continue  # no edge, or the same edge already sent: stay quiet
+                state[key].setdefault("alerted", []).extend({**e, "period": ended} for e in new)
+                send(alert_text(sport, g, ended, new, st, st["p_home"]))
+                sent += 1
         self._save(state)
         return sent
 

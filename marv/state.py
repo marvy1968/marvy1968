@@ -55,6 +55,13 @@ class Store:
         self._save("lines.json", memory)
 
     # Pick ledger.
+    def new_picks(self, sport: str, preds: list[Prediction]) -> int:
+        """Qualified picks (market + side) that aren't in the ledger yet, i.e. not sent before."""
+        ledger = self._load("picks.json", [])
+        have = {(p["sport"], p["game_id"], p["market"], p.get("side")) for p in ledger}
+        return sum(1 for pred in preds for pick in pred.picks
+                   if pick.active and (sport, pred.game.id, pick.market, pick.side) not in have)
+
     def log_picks(self, sport: str, preds: list[Prediction]) -> None:
         ledger = self._load("picks.json", [])
         index = {(p["sport"], p["game_id"], p["market"]): p for p in ledger}
