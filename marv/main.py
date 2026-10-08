@@ -484,6 +484,28 @@ def cmd_live(s: Settings, args) -> int:
     return 0
 
 
+def cmd_injuries(s: Settings, args) -> int:
+    """Injury and roster availability report for a sport (optionally a few teams)."""
+    from .data.injuries import report_text
+    from .stats import registry
+    now = datetime.now(timezone.utc)
+    cache = Path(s.state_dir) / "cache"
+    week = None
+    season = now.year if now.month >= 3 else now.year - 1
+    if args.sport == "nfl":
+        from .data.nflverse import URL as NFL_GAMES
+        from .stats.base import fetch
+        g = pd.read_csv(fetch(NFL_GAMES, cache / "nflverse_games.csv", 3), low_memory=False)
+        up = g[(g["season"] == season) & g["result"].isna()]
+        week = int(up["week"].min()) if not up.empty else None
+    elif args.sport in ("nba", "ncaab", "ncaaw"):
+        season = registry.module_for(args.sport).season_of(pd.Timestamp(now))
+    teams = [t.strip() for t in args.team.split(",")] if args.team else None
+    text = report_text(args.sport, cache, season, teams, week, now)
+    print(text)
+    return 0
+
+
 def cmd_live_probe(s: Settings, args) -> int:
     """Check the live in-game feeds from this machine: scoreboard, statuses, and (football/basketball)
     whether the play-by-play parser reads a real ESPN game summary; EuroLeague prints the raw header."""
@@ -688,6 +710,9 @@ def main(argv: list[str] | None = None) -> int:
     lv.add_argument("--once", action="store_true", help="one pass, then exit")
     lv.add_argument("--dry-run", action="store_true")
 
+    ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
+    ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
+    ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")
     lp = sub.add_parser("live-probe", help="check the live in-game feeds (ESPN, EuroLeague) and the play parser")
     lp.add_argument("--sport", required=True, choices=["nfl", "cfb", "wnba", "nba", "ncaab", "ncaaw", "euroleague"])
     lp.add_argument("--days", type=int, default=3)
@@ -707,7 +732,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

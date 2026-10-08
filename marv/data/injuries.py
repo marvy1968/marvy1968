@@ -192,3 +192,45 @@ def injury_vetoes(sport: str, cache: Path, season: int, teams: list[str], now: d
         if hits:
             out[team] = [f"key injury: {'; '.join(hits.values())}"]
     return out
+
+
+def report_text(sport: str, cache: Path, season: int, teams: list[str] | None = None, week: int | None = None,
+                now: datetime | None = None) -> str:
+    """Readable injury / availability report: every listed player with status and source, key players
+    (the ones the veto watches) starred, and for the NFL the regular starters ruled Out/Doubtful."""
+    if sport not in PATHS:
+        return f"No injury feed for {sport} (college and EuroLeague have none): check team news before betting."
+    reports: Report = {}
+    sources = [name for name, ok in (("ESPN", espn_injuries(sport, reports)),
+                                     ("NFL report", sport == "nfl" and nfl_official(cache, season, week, reports)),
+                                     ("NBA report", sport == "nba" and nba_official(now or datetime.now(), teams or [], reports)))
+               if ok]
+    if not sources:
+        return f"{sport.upper()}: every injury source failed right now (Marv vetoes all games when this happens)."
+    key = nfl_starting_qbs(cache, season) if sport == "nfl" else basketball_key_players(cache, sport, season)
+    want = {normalize(t) for t in teams} if teams else None
+    lines = [f"{sport.upper()} injuries · sources: {', '.join(sources)} · ★ = key player Marv's veto watches"]
+    for team in sorted(reports):
+        if want and not any(w in team or team in w for w in want):
+            continue
+        keyset = {normalize(p) for p in key.get(team, set())}
+        rows = sorted({(p, st, src) for p, st, src in reports[team] if st}, key=lambda r: (normalize(r[0]) not in keyset, r[0]))
+        lines.append(f"\n{team.title()}:")
+        for p, st, src in rows[:25]:
+            star = "★ " if normalize(p) in keyset else "  "
+            lines.append(f"  {star}{p}: {st} ({src})")
+    if sport == "nfl" and week is not None:
+        try:
+            from .nfl_availability import availability
+            av = availability(cache, [season], season)
+            av = av[(av["season"] == season) & (av["week"] == week)]
+            if want:
+                av = av[av["team"].map(lambda t: any(w in normalize(NFL_TEAMS.get(t, t)) for w in want))]
+            lines.append("\nRegular starters (50%+ snaps) ruled Out/Doubtful this week:")
+            for r in av.sort_values("snaps_lost", ascending=False).itertuples():
+                lines.append(f"  {NFL_TEAMS.get(r.team, r.team)}: {r.starters_out} starters out, {r.snaps_lost:.1f} full-time "
+                             f"players' snaps lost{', QB OUT' if r.qb_out else ''}")
+            lines.append("  (Marv's NFL veto: 1.5+ full-time starters out, or the starting QB.)")
+        except Exception as exc:
+            lines.append(f"\n(roster availability unavailable: {exc})")
+    return "\n".join(lines)

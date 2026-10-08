@@ -61,3 +61,21 @@ class OUTagTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class InjuryReportTests(unittest.TestCase):
+    def test_report_stars_key_players_and_filters_teams(self):
+        from unittest import mock
+        from marv.data import injuries
+        def fake_espn(sport, reports):
+            injuries._add(reports, "Dallas Cowboys", "Dak Prescott", "Questionable", "ESPN")
+            injuries._add(reports, "Dallas Cowboys", "Backup Guy", "Out", "ESPN")
+            injuries._add(reports, "Tampa Bay Buccaneers", "Someone", "Out", "ESPN")
+            return True
+        with mock.patch.object(injuries, "espn_injuries", fake_espn), \
+                mock.patch.object(injuries, "nfl_starting_qbs", lambda c, s: {"dallas cowboys": {"Dak Prescott"}}):
+            text = injuries.report_text("nfl", Path("."), 2026, ["Cowboys"], None)
+        self.assertIn("★ Dak Prescott: questionable", text)
+        self.assertIn("Backup Guy: out", text)
+        self.assertNotIn("Tampa", text)
+        self.assertIn("no injury feed", injuries.report_text("cfb", Path("."), 2026).lower())
