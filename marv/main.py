@@ -443,11 +443,18 @@ def cmd_serve(s: Settings, args) -> int:
                 elif url.path == "/prop":  # /prop?player=Josh Allen&market=pass  -> latest priced props
                     from .props.run import lookup
                     body, code = json.dumps(lookup(state, q["player"], q.get("market"))), 200
+                elif url.path == "/grade":  # /grade?player=CeeDee Lamb&market=rec&side=over&line=71.5&price=-170&other=140
+                    from . import propgrade
+                    now = datetime.now(timezone.utc)
+                    g = propgrade.grade_prop(propgrade.load(state / "cache", now.year if now.month >= 3 else now.year - 1),
+                                             q["player"], q["market"], q["side"], float(q["line"]), float(q["price"]),
+                                             float(q["other"]) if q.get("other") else None)
+                    body, code = json.dumps(g), 200
                 elif url.path == "/board":  # current edges (games + props) for the odds bot
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /grade, /predictions or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
@@ -556,6 +563,17 @@ def cmd_live_props_probe(s: Settings, args) -> int:
             print(f"    {r['book']:11s} {r['player']:22s} {r['market'][7:]:14s} line {r['line']:g} (O {r['over']} / U {r['under']}) so far {r['so_far']}")
         live_props.log_snapshot(Path(s.state_dir), ev, quarter, score, rows)
     return 0
+
+
+def cmd_grade_prop(s: Settings, args) -> int:
+    """Marv's probability and grade for one NFL player prop (form-only second opinion)."""
+    from . import propgrade
+    now = datetime.now(timezone.utc)
+    season = now.year if now.month >= 3 else now.year - 1
+    g = propgrade.grade_prop(propgrade.load(Path(s.state_dir) / "cache", season), args.player, args.market, args.side,
+                             args.line, args.price, args.other)
+    print(propgrade.text(g))
+    return 0 if g["ok"] else 1
 
 
 def cmd_injuries(s: Settings, args) -> int:
@@ -791,6 +809,13 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
+    gp2 = sub.add_parser("grade-prop", help="Marv's probability + grade for one NFL player prop")
+    gp2.add_argument("--player", required=True)
+    gp2.add_argument("--market", required=True, help="pass, rush, rec or receptions")
+    gp2.add_argument("--side", required=True, choices=["over", "under"])
+    gp2.add_argument("--line", required=True, type=float)
+    gp2.add_argument("--price", required=True, type=float)
+    gp2.add_argument("--other", type=float, help="the other side's price (for the no-vig market probability)")
     ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
     ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
     ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")
@@ -813,7 +838,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

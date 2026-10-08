@@ -5,6 +5,7 @@ Ask the Marv bot in Telegram:
   /game Lions            Marv's projection, fair prices and best current prices for that game
   /check nfl Lions total under 47.5 -110      fair probability for any price (e.g. a March_edge alert)
   /check nfl Lions ml Lions +150
+  /grade Josh Allen pass over 245.5 -115   Marv's probability and grade for any prop (e.g. a March_edge alert)
   /props                 today's player-prop picks
   /prop Josh Allen pass  Marv's projection and over/under chance for a player's posted props
   /record                alerted bets: closing-line value (the best early sign of a real edge)
@@ -110,6 +111,13 @@ def answer(settings, text: str) -> str:
             return "\n".join(f"{r['player']} {r.get('label', r['market'])} {r['line']:g}: proj {r['proj']:.1f} · "
                              f"over {r['p_over']:.0%} / under {1 - r['p_over']:.0%} · {r.get('book_title', '')} "
                              f"{r.get('over_price')}/{r.get('under_price')}" for r in rows[:8])
+        if cmd == "/grade":
+            from . import propgrade
+            kw = propgrade.parse_command(parts[1:])
+            if not kw:
+                return "Usage: /grade Josh Allen pass over 245.5 -115 [other side's price]  (markets: pass, rush, rec, receptions)"
+            season = datetime.now(timezone.utc).year if datetime.now(timezone.utc).month >= 3 else datetime.now(timezone.utc).year - 1
+            return propgrade.text(propgrade.grade_prop(propgrade.load(state / "cache", season), **kw))
         if cmd == "/props":
             entries = board._props_entries(state)
             return board.text(entries) if entries else "No open prop picks today."
