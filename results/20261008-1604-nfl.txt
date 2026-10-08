@@ -1,3 +1,41 @@
 $ marv run --sport nfl --hours 12 --force --dry-run
-started 2026-10-08 13:47:57 EDT
-RUNNING...
+started 2026-10-08 13:47:57 EDT, took 1290s, exit 0
+
+🏟️ <b>Marv NFL Predict Max</b> · Thu Oct 08
+
+1 games simulated · 0 qualified plays · veto pass rate 100%
+
+📝 <i>Paper trading: these picks are tracked, not bet, until the record proves an edge.</i>
+
+No plays cleared the veto stack.
+
+<b>📌 Rosters, tracked spots &amp; line moves</b> (paper, not picks)
+• Tampa Bay Buccaneers @ Dallas Cowboys (model total 47.3): roster: Dallas Cowboys 2 starters out (1.4 full-time); Tampa Bay Buccaneers 3 starters out (2.5 full-time) + QB OUT ⚠️ elimination; line move: spread Dallas Cowboys -8.5 → -9 (toward Dallas Cowboys)
+
+<i>Model output, not a guarantee. Bet responsibly.</i>
+
+
+--- stderr ---
+2026-10-08 13:48:02,858 INFO Odds API americanfootball_nfl: 92310 credits left
+2026-10-08 13:48:02,866 INFO nfl: Odds API matched 1/1 games
+2026-10-08 13:51:00,351 WARNING ESPN injuries unavailable for nfl: 403 Client Error: Forbidden for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries
+2026-10-08 13:51:00,375 INFO nfl injury sources: NFL report
+2026-10-08 13:51:02,617 INFO nfl: stats experts projected 1/1 games
+2026-10-08 14:09:26,543 INFO props: 37 lines priced, 16 picks, 4 credits used
+2026-10-08 14:09:26,595 INFO 🏈 NFL PLAYER PROPS (paper)
+Javonte Williams Rushing yards Over 48.5 (+220 Bovada) | proj 59.1, 56% | edge +24.7% | stake 2.0%
+Brevyn Spann-Ford Receiving yards Over 1.5 (-115 Bovada) | proj 21.9, 78% | edge +24.6% | stake 2.0%
+KaVontae Turpin Receptions Over 0.5 (-115 Bovada) | proj 2.1, 77% | edge +23.6% | stake 2.0%
+KaVontae Turpin Receiving yards Over 1.5 (-115 Bovada) | proj 21.2, 77% | edge +23.5% | stake 2.0%
+Emeka Egbuka Receiving yards Over 24.5 (+150 Bovada) | proj 43.5, 63% | edge +23.5% | stake 2.0%
+Bucky Irving Rushing yards Over 43.5 (+155 Bovada) | proj 67.1, 62% | edge +23.0% | stake 2.0%
+Ryan Flournoy Receiving yards Over 20.5 (+155 Bovada) | proj 36.2, 61% | edge +22.2% | stake 2.0%
+Brevyn Spann-Ford Receptions Over 0.5 (-125 Bovada) | proj 2.3, 78% | edge +22.0% | stake 2.0%
+Jalon Daniels Rushing yards Over 33.5 (+165 Bovada) | proj 44.2, 58% | edge +20.2% | stake 2.0%
+Chris Godwin Receiving yards Over 22.5 (+140 Bovada) | proj 40.1, 62% | edge +19.9% | stake 2.0%
+CeeDee Lamb Receiving yards Over 64.5 (+175 Bovada) | proj 84.6, 56% | edge +19.7% | stake 2.0%
+Tez Johnson Receptions Over 1.5 (+125 Bovada) | proj 2.0, 59% | edge +15.0% | stake 2.0%
+Ted Hurst III Receiving yards Over 18.5 (-115 Bovada) | proj 37.4, 65% | edge +11.1% | stake 2.0%
+Kenny Gainwell Receiving yards Over 11.5 (-120 Bovada) | proj 22.9, 63% | edge +8.2% | stake 2.0%
+Ted Hurst III Receptions Over 1.5 (-125 Bovada) | proj 2.3, 63% | edge +7.8% | stake 2.0%
+Projection: player form + usage + opponent vs position + implied team total; Monte Carlo of past misses.
