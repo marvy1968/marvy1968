@@ -184,12 +184,32 @@ def cmd_stats_backtest(s: Settings, args) -> int:
     module = registry.module_for(args.sport)
     if args.sport == "cfb":
         module.api_key = s.cfbd_api_key
+        if not s.cfbd_api_key:  # free play-by-play stats instead of the CFBD API
+            from .stats.ncaaf import NCAAF_PBP as module
     first, last = (int(x) for x in args.seasons.split("-"))
     seasons = list(range(first, last + 1))
     val_to = args.val_to or seasons[len(seasons) * 2 // 3 - 1]
     result = report.run(module, Path(s.state_dir) / "cache", seasons, val_to, Path(s.state_dir) / "reports",
                         current=module.season_of(datetime.now()))
     print(result["text"])
+    return 0
+
+
+def cmd_h2h_backtest(s: Settings, args) -> int:
+    """Max Pick method: stat-by-stat head-to-head tally + last-3 trend + Monte Carlo, walk-forward."""
+    from .stats import h2h, registry
+    module = registry.module_for(args.sport)
+    if args.sport == "cfb":
+        from .stats.ncaaf import NCAAF_PBP as module
+    first, last = (int(x) for x in args.seasons.split("-"))
+    seasons = list(range(first, last + 1))
+    cache = Path(s.state_dir) / "cache"
+    games, tg = module.load(cache, list(range(max(first - 2, module.first_season), last + 1)),
+                            module.season_of(datetime.now()))
+    if "neutral" not in games:
+        games["neutral"] = False
+    df = h2h.walk_forward(module, games, tg, seasons)
+    print(h2h.report(df, args.held_out_from or seasons[len(seasons) // 2]))
     return 0
 
 
@@ -383,6 +403,11 @@ def main(argv: list[str] | None = None) -> int:
     sb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (test seasons; training uses 6 prior years)")
     sb.add_argument("--val-to", type=int, help="last season used for tuning (default: first two thirds)")
 
+    hb = sub.add_parser("h2h-backtest", help="backtest the head-to-head stat tally + last-3 trend + Monte Carlo")
+    hb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw", "euroleague"])
+    hb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (each season is fit on the ones before it)")
+    hb.add_argument("--held-out-from", dest="held_out_from", type=int, help="first season to report (default: middle)")
+
     ck = sub.add_parser("check", help="Marv's fair price for an odds-bot alert (pregame or live)")
     ck.add_argument("--sport", required=True, choices=list(SPORTS))
     ck.add_argument("--team", required=True, help="any team in the game")
@@ -426,7 +451,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

@@ -156,3 +156,19 @@ NCAAF = NCAAFStats(key="ncaaf", name="College Football (top 30)", simulate=_sim,
                    rating_params=RatingParams(multiplicative=False, home_adv=2.5, shrink=3, half_life_days=120, mov_cap=28),
                    halflife=5, chunk_days=7, first_season=2014, adjust_schedule=True,
                    experts=ExpertConfig(rf_min_leaf=30))
+
+
+class NCAAFPbpStats(NCAAFStats):
+    """Same model fed by free play-by-play (no CFBD key): yards per play, EPA, success rate, explosiveness,
+    third downs, red zone, field position, turnovers and more for every FBS team, plus closing lines."""
+
+    extra_cols: list = []
+
+    def load(self, cache: Path, seasons: list[int], current: int | None = None):
+        from ..data import cfb_pbp
+        return cfb_pbp.load(cache, seasons, current)
+
+
+NCAAF_PBP = NCAAFPbpStats(key="ncaaf", name="College Football (top 30, play-by-play stats)", simulate=_sim,
+                          rating_params=NCAAF.rating_params, halflife=5, chunk_days=7, first_season=2014,
+                          adjust_schedule=True, experts=ExpertConfig(rf_min_leaf=30))
