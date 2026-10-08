@@ -1,0 +1,3 @@
+$ show predictions.json
+started 2026-10-08 11:00:46 EDT
+RUNNING...
