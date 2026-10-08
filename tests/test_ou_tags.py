@@ -73,6 +73,7 @@ class InjuryReportTests(unittest.TestCase):
             injuries._add(reports, "Tampa Bay Buccaneers", "Someone", "Out", "ESPN")
             return True
         with mock.patch.object(injuries, "espn_injuries", fake_espn), \
+                mock.patch.object(injuries, "nfl_official", lambda *a: False), \
                 mock.patch.object(injuries, "nfl_starting_qbs", lambda c, s: {"dallas cowboys": {"Dak Prescott"}}):
             text = injuries.report_text("nfl", Path("."), 2026, ["Cowboys"], None)
         self.assertIn("★ Dak Prescott: questionable", text)
