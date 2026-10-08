@@ -69,3 +69,12 @@ class BetCardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class UntestedCapTests(unittest.TestCase):
+    def test_at_most_two_untested_gaps(self):
+        start = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+        gaps = [{"sport": "nfl", "market": "total", "home": f"H{i}", "away": f"A{i}", "start": start, "side": "Over",
+                 "line": 44.5, "price": -110, "pinnacle_line": 45} for i in range(6)]
+        bets = betcard.select(betcard.gap_candidates(gaps))
+        self.assertEqual(len(bets), 2)

@@ -22,7 +22,7 @@ from zoneinfo import ZoneInfo
 from . import edges as E
 from .data.teams import similarity
 
-MIN_BETS, MAX_BETS, PER_GAME = 2, 10, 2
+MIN_BETS, MAX_BETS, PER_GAME, MAX_UNTESTED = 2, 10, 2, 2
 HARD = ("backup QB", "key injury", "starters out", "snaps", "elimination", "wind", "no current injury",
         "games of stats", "stale", "unconfirmed", "trap line", "gap:", "missing")
 SIGNAL_RANK = {"OVER-FADE+MOVE": 56.7, "OVER-FADE+INFLATED": 56.5, "TOTAL-INFLATED": 55.8, "OVER-FADE": 54.9,
@@ -135,10 +135,14 @@ def select(cands: list[Bet], n_max: int = MAX_BETS) -> list[Bet]:
                 first.why += f" + {b.why.split(':')[0] if b.tier == 'SIGNAL' else 'model agrees'}"
             continue
         merged[key] = b
-    out, per_game = [], {}
+    out, per_game, untested = [], {}, 0
     for b in merged.values():
         if per_game.get(b.game, 0) >= PER_GAME:
             continue
+        if "untested" in b.why:  # NFL Bovado-vs-Pinnacle gaps have no backtest: at most 2 per card
+            if untested >= MAX_UNTESTED:
+                continue
+            untested += 1
         per_game[b.game] = per_game.get(b.game, 0) + 1
         out.append(b)
         if len(out) >= n_max:
