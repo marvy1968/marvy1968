@@ -13,6 +13,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import numpy as np
+import pandas as pd
 
 from . import bridge
 from .config import Settings
@@ -55,6 +56,16 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
+    if sport.key == "nfl":  # situational tags on the card (tracked in paper mode, never used to pick)
+        try:
+            from . import situational
+            from .data.nflverse import URL as NFL_GAMES
+            from .stats.base import fetch
+            games = pd.read_csv(fetch(NFL_GAMES, Path(s.state_dir) / "cache" / "nflverse_games.csv", 3), low_memory=False)
+            season = int(games.loc[games["result"].notna(), "season"].max())
+            situational.attach(preds, games[games["season"] == season], Path(s.state_dir))
+        except Exception:
+            log.exception("situational tags failed")
     bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
     AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
     text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
@@ -110,6 +121,12 @@ def cmd_run(s: Settings, args) -> int:
                 _alert_failure(s, f"{sport.name} run")
     if args.sport == "all" and weekday == 0 and not args.dry_run and not args.label:
         send_message(s.telegram_bot_token, s.telegram_chat_id, results_text(s, store, 7))
+        if "nfl" in keys:
+            try:
+                class _S: send = True
+                cmd_situational(s, _S)
+            except Exception:
+                log.exception("situational grading failed")
     # Keep the quarter-by-quarter models fresh (weekly retrain; the live service picks them up on restart).
     from .ingame import model as ingame
     for isport in [k for k in keys if k in ingame.SPECS]:
@@ -284,6 +301,19 @@ def cmd_props_backtest(s: Settings, args) -> int:
         print(props.backtest_real(s, seasons, args.max_credits))
     else:
         print(props.backtest_free(Path(s.state_dir) / "cache", seasons))
+    return 0
+
+
+def cmd_situational(s: Settings, args) -> int:
+    """Grade the logged NFL situational tags and print (or send) their running record."""
+    from . import situational
+    from .data.nflverse import URL as NFL_GAMES
+    from .stats.base import fetch
+    games = pd.read_csv(fetch(NFL_GAMES, Path(s.state_dir) / "cache" / "nflverse_games.csv", 3), low_memory=False)
+    text = situational.report(situational.grade(Path(s.state_dir), games))
+    print(text)
+    if args.send:
+        send_message(s.telegram_bot_token, s.telegram_chat_id, text)
     return 0
 
 
@@ -532,6 +562,9 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--real", action="store_true", help="use The Odds API historical prop lines (paid credits)")
     pb.add_argument("--max-credits", dest="max_credits", type=int, default=40000)
 
+    sit = sub.add_parser("situational", help="grade the NFL situational tags (paper tracking)")
+    sit.add_argument("--send", action="store_true")
+
     ig = sub.add_parser("ingame", help="quarter-by-quarter model: train it, or backtest it")
     ig.add_argument("action", choices=["train", "backtest"])
     ig.add_argument("--sport", required=True, choices=["nfl", "cfb", "ncaab", "ncaaw", "wnba"])
@@ -586,7 +619,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:
