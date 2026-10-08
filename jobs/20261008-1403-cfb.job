@@ -1,0 +1,2 @@
+# timeout 2700
+marv run --sport cfb --hours 14 --force --dry-run
