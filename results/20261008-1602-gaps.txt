@@ -1,3 +1,23 @@
 $ marv gaps --sport nfl
-started 2026-10-08 13:47:40 EDT
-RUNNING...
+started 2026-10-08 13:47:40 EDT, took 6s, exit 0
+
+📐 Bovado off Pinnacle (take the better number at Bovado)
+NFL Tampa Bay Buccaneers @ Dallas Cowboys (Fri 00:15 UTC): Under 48.5 -110 at Bovado · Pinnacle 48 (fair 48%) · gap 0.5 · untested in NFL (paper)
+NFL Philadelphia Eagles @ Jacksonville Jaguars (Sun 13:30 UTC): Over 42 -110 at Bovado · Pinnacle 42.5 (fair 48%) · gap 0.5 · untested in NFL (paper)
+NFL Chicago Bears @ Green Bay Packers (Sun 17:00 UTC): Over 45.5 -115 at Bovado · Pinnacle 46 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Cincinnati Bengals @ Miami Dolphins (Sun 17:00 UTC): Under 43 -115 at Bovado · Pinnacle 42.5 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Houston Texans @ Tennessee Titans (Sun 17:00 UTC): Under 38 -110 at Bovado · Pinnacle 37.5 (fair 48%) · gap 0.5 · untested in NFL (paper)
+NFL Minnesota Vikings @ New Orleans Saints (Sun 17:00 UTC): Over 41.5 -115 at Bovado · Pinnacle 42 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Baltimore Ravens @ Atlanta Falcons (Mon 00:20 UTC): Over 43.5 -115 at Bovado · Pinnacle 44 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Buffalo Bills @ Los Angeles Rams (Tue 00:15 UTC): Over 54 -115 at Bovado · Pinnacle 54.5 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Chicago Bears @ Green Bay Packers (Sun 17:00 UTC): Chicago Bears -1.5 -115 at Bovado · Pinnacle -2.5 (fair 47%) · gap 1 · untested in NFL (paper)
+NFL Cleveland Browns @ New York Jets (Sun 17:00 UTC): Cleveland Browns +2.5 -110 at Bovado · Pinnacle 1.5 (fair 48%) · gap 1 · untested in NFL (paper)
+NFL Tampa Bay Buccaneers @ Dallas Cowboys (Fri 00:15 UTC): Tampa Bay Buccaneers +9 -110 at Bovado · Pinnacle 8.5 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Cincinnati Bengals @ Miami Dolphins (Sun 17:00 UTC): Cincinnati Bengals -6.5 -115 at Bovado · Pinnacle -7 (fair 48%) · gap 0.5 · untested in NFL (paper)
+NFL Las Vegas Raiders @ New England Patriots (Sun 17:00 UTC): New England Patriots -3.5 -115 at Bovado · Pinnacle -4 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL Minnesota Vikings @ New Orleans Saints (Sun 17:00 UTC): New Orleans Saints +2.5 -110 at Bovado · Pinnacle 2 (fair 49%) · gap 0.5 · untested in NFL (paper)
+NFL New York Giants @ Washington Commanders (Sun 17:00 UTC): New York Giants +4 -110 at Bovado · Pinnacle 3.5 (fair 48%) · gap 0.5 · untested in NFL (paper)
+NFL: 29 games, Bovado on 15, Pinnacle on 15, both on 15
+
+--- stderr ---
+2026-10-08 13:47:47,869 INFO Odds API nfl (bovada+pinnacle): 92317 credits left
