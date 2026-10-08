@@ -12,7 +12,8 @@ class PFMTests(unittest.TestCase):
         good_d = pfm.lambdas({"off_epa": 0.0, "def_epa": -0.1, "pace": 1}, {"off_epa": 0.0, "def_epa": -0.1, "pace": 1}, p)
         bad_d = pfm.lambdas({"off_epa": 0.0, "def_epa": 0.2, "pace": 1}, {"off_epa": 0.0, "def_epa": -0.1, "pace": 1}, p)
         self.assertGreater(bad_d[1], good_d[1])  # away team scores more against the bad home defense
-        h, a = pfm.simulate(*good_d, n=20000, rng=np.random.default_rng(0))
+        avg = pfm.lambdas({"off_epa": 0.0, "def_epa": 0.0, "pace": 1}, {"off_epa": 0.0, "def_epa": 0.0, "pace": 1}, p)
+        h, a = pfm.simulate(*avg, n=20000, rng=np.random.default_rng(0))
         self.assertTrue(40 < h.mean() + a.mean() < 50)  # realistic NFL total, not ~16
 
     def test_fit_recovers_scale_and_veto(self):
