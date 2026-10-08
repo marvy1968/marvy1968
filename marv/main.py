@@ -517,6 +517,47 @@ def cmd_notify(s: Settings, args) -> int:
     return 0
 
 
+def cmd_live_props_probe(s: Settings, args) -> int:
+    """During a live NFL game: do the prop lines move in-game, from which books, and does the ESPN box score
+    parse? Saves a snapshot to state/live_props_log.json (stage 1 of live props: record, don't alert)."""
+    from . import live_props
+    from .data.espn import ESPNClient, parse_event
+    from .props import nfl as P, odds as O
+    if not s.odds_api_key:
+        print("Set ODDS_API_KEY first.")
+        return 1
+    now = datetime.now(timezone.utc)
+    evs = O.events(s.odds_api_key, "americanfootball_nfl")
+    live = [e for e in evs if pd.Timestamp(e["commence_time"]).to_pydatetime() <= now]
+    nxt = sorted((e for e in evs if pd.Timestamp(e["commence_time"]).to_pydatetime() > now), key=lambda e: e["commence_time"])
+    if not live:
+        print("No NFL game is live right now." + (f" Next kickoff: {nxt[0]['away_team']} @ {nxt[0]['home_team']} at {nxt[0]['commence_time']}" if nxt else ""))
+        return 0
+    client = ESPNClient()
+    games = [g for g in (parse_event(e, "nfl") for e in client.scoreboard("football/nfl", now - timedelta(days=1), now)) if g]
+    book = ",".join(args.books.split(","))
+    for ev in live:
+        g = next((g for g in games if g.home in ev["home_team"] or ev["home_team"] in g.home), None)
+        box, quarter, score = {}, "?", "?"
+        if g:
+            box = live_props.box_stats(client.summary("football/nfl", str(g.id)))
+            quarter = f"Q{g.info.get('period')} {g.info.get('clock')}"
+            score = f"{g.info.get('live_away')}-{g.info.get('live_home')}"
+        data = O.event_props(s.odds_api_key, "americanfootball_nfl", ev["id"], [m.key for m in P.MARKETS.values()], book)
+        rows = live_props.live_prop_snapshot(data, box)
+        print(f"{ev['away_team']} @ {ev['home_team']} · {quarter} · score {score} · ESPN box players parsed: {len(box)}")
+        by_book = {}
+        for r in rows:
+            by_book.setdefault(r["book"], []).append(r)
+        for b, rs in by_book.items():
+            stamps = sorted({r["updated"] for r in rs if r["updated"]})
+            print(f"  {b}: {len(rs)} prop lines; last_update range {stamps[0] if stamps else '?'} .. {stamps[-1] if stamps else '?'}")
+        for r in sorted(rows, key=lambda r: -(r["so_far"] or 0))[:12]:
+            print(f"    {r['book']:11s} {r['player']:22s} {r['market'][7:]:14s} line {r['line']:g} (O {r['over']} / U {r['under']}) so far {r['so_far']}")
+        live_props.log_snapshot(Path(s.state_dir), ev, quarter, score, rows)
+    return 0
+
+
 def cmd_injuries(s: Settings, args) -> int:
     """Injury and roster availability report for a sport (optionally a few teams)."""
     from .data.injuries import report_text
@@ -748,6 +789,8 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--file", required=True)
     nt.add_argument("--mono", action="store_true", help="keep the layout (monospace)")
     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
+    lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
+    lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
     ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
     ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
     ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")
@@ -770,7 +813,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:
