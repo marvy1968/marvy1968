@@ -20,6 +20,9 @@ veto stack (expert agreement, backtested confidence floors in `marv/stats/regist
 - `marv-live.service`: in-game alerts after every quarter/half (`python -m marv live`), only when a NEW edge
   clears 6% vs the live price (win probability + edge), wins announced at the final, all results in
   `state/live_alerts.json`. EuroLeague uses live.euroleague.net. Check feeds with `python -m marv live-probe --sport nfl`.
+- `marv-health.timer` (every 30 min, `deploy/marv-health.sh`): Telegram alert only when a service is down, the
+  daily run failed or didn't happen in 26h, disk is 90%+ full or Odds API credits are under 2,000; one more
+  message when it's fixed.
 - `marv-bridge.service`: local fair-price API on 127.0.0.1:8787 for the owner's odds-alert bot
 
 ## Backtested results (walk-forward, held-out seasons) - keep claims honest

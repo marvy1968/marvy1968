@@ -1,0 +1,6 @@
+[Unit]
+Description=Marv watchdog: Telegram alert if a service, the daily run, disk or Odds API credits need attention
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/marv-bot/deploy/marv-health.sh

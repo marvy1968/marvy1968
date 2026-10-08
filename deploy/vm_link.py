@@ -34,7 +34,7 @@ GIT_ENV = {**os.environ, "GIT_SSH_COMMAND": f"ssh -i {KEY} -o IdentitiesOnly=yes
 MARV_OK = {"run", "stats-backtest", "h2h-backtest", "props", "props-backtest", "ingame", "edges", "situational",
            "check", "report", "sports", "probe-ewl", "test-telegram", "get-chat-id", "gaps", "live-probe", "injuries"}
 MARV_FLAGS_REFUSED = {"--send", "--watch"}
-UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink"}
+UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink", "marv-health"}
 TOKEN = re.compile(r"^[A-Za-z0-9_.,:=/@+%-]+$")
 MAX_OUT = 200_000
 JOB_TIMEOUT = int(os.environ.get("VM_LINK_TIMEOUT", 45 * 60))  # per job; a "# timeout 7200" line in the job overrides
