@@ -1,3 +1,37 @@
 $ marv run --sport nfl --force --dry-run
-started 2026-10-08 10:37:16 EDT
-RUNNING...
+started 2026-10-08 10:37:16 EDT, took 1266s, exit 0
+
+🏟️ <b>Marv NFL Predict Max</b> · Thu Oct 08
+
+15 games simulated · 0 qualified plays · veto pass rate 100%
+
+📝 <i>Paper trading: these picks are tracked, not bet, until the record proves an edge.</i>
+
+No plays cleared the veto stack.
+
+<b>🚫 Vetoed edges</b>
+• Baltimore Ravens ML (+149) — Baltimore Ravens @ Atlanta Falcons: confidence 55% below 78%; market only 38% on this side
+• New York Giants ML (+160) — New York Giants @ Washington Commanders: experts split on the winner; confidence 51% below 78%; market only 36% on this side
+• Over 41.5 (-110) — New York Giants @ Washington Commanders: O/U has no proven edge in backtests
+• Over 42.5 (-110) — Cincinnati Bengals @ Miami Dolphins: O/U has no proven edge in backtests
+• Under 45 (-110) — Las Vegas Raiders @ New England Patriots: O/U has no proven edge in backtests
+• Indianapolis Colts ML (+120) — Indianapolis Colts @ Pittsburgh Steelers: experts split on the winner; confidence 53% below 78%; market only 43% on this side
+• Over 43.5 (-114) — Baltimore Ravens @ Atlanta Falcons: O/U has no proven edge in backtests
+• Cleveland Browns ML (+110) — Cleveland Browns @ New York Jets: experts split on the winner; confidence 55% below 78%; market only 45% on this side
+• Over 38 (-113) — Houston Texans @ Tennessee Titans: O/U has no proven edge in backtests
+• Under 54.5 (-110) — Detroit Lions @ Arizona Cardinals: experts split on the total; O/U has no proven edge in backtests
+• Over 42 (-110) — Philadelphia Eagles @ Jacksonville Jaguars: O/U has no proven edge in backtests
+• Over 45.5 (-110) — Chicago Bears @ Green Bay Packers: O/U has no proven edge in backtests
+
+<i>Model output, not a guarantee. Bet responsibly.</i>
+
+
+--- stderr ---
+2026-10-08 10:37:25,045 INFO Odds API americanfootball_nfl: 92521 credits left
+2026-10-08 10:37:25,071 INFO nfl: Odds API matched 15/15 games
+2026-10-08 10:40:00,912 WARNING ESPN injuries unavailable for nfl: 403 Client Error: Forbidden for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries
+2026-10-08 10:40:00,934 INFO nfl injury sources: NFL report
+2026-10-08 10:40:06,021 INFO nfl: stats experts projected 15/15 games
+2026-10-08 10:58:24,267 INFO props: 0 lines priced, 0 picks, 0 credits used
+2026-10-08 10:58:24,274 INFO 🏈 NFL PLAYER PROPS (paper)
+No props cleared the edge filter.
