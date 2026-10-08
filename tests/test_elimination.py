@@ -27,6 +27,8 @@ class EliminationTests(unittest.TestCase):
         bb = StatsRules(ml_min_prob=0.8, ml_max_missing=0.15)
         self.assertTrue(any("regular minutes" in v for v in setup(availability={"Buffalo Bills": 0.3}, rules=bb)))
         self.assertFalse(any("regular minutes" in v for v in setup(availability={"Buffalo Bills": 0.05}, rules=bb)))
+        road = StatsRules(ml_no_road_fav=True)
+        self.assertEqual(setup(rules=road), [])  # home favorite is fine
 
 
 if __name__ == "__main__":

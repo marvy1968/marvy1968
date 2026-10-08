@@ -35,6 +35,7 @@ class StatsRules:
     ml_max_snaps_lost: float = 99.0  # ...the side's regular starters ruled out sum to this many full-time players (NFL)
     ml_max_wind: float = 99.0  # ...outdoor wind is at least this many mph (NFL)
     ml_max_missing: float = 1.0  # ...this share of the side's regular minutes sat out its last game (basketball)
+    ml_no_road_fav: bool = False  # ...the side is a road favorite (neutral sites are fine)
 
 
 @dataclass
@@ -73,6 +74,8 @@ class StatsProjection:
                 out.append(f"starters out ({lost:.1f} full-time players)")
             if lost is not None and self.rules.ml_max_missing < 1.0 and lost >= self.rules.ml_max_missing:
                 out.append(f"{lost:.0%} of regular minutes sat out the last game")
+            if self.rules.ml_no_road_fav and not home_side and not pred.game.neutral:
+                out.append("road favorite")
             if self.wind is not None and self.wind >= self.rules.ml_max_wind:
                 out.append(f"wind {self.wind:.0f} mph")
         elif pick.market == "total":

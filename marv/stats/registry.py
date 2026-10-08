@@ -32,7 +32,8 @@ RULES: dict[str, StatsRules] = {
     "euroleague": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     "euroleague_women": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # College: not backtestable without a CFBD key; NFL-like floor until `stats-backtest --sport cfb` runs
-    "cfb": StatsRules(ml_min_prob=0.85, ou_enabled=False),
+    # College FB top 30: dropping road favorites took held-out 2021-25 from 91.7% to 93.3% (27 picks/season).
+    "cfb": StatsRules(ml_min_prob=0.85, ou_enabled=False, ml_no_road_fav=True),
 }
 
 
