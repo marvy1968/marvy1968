@@ -164,7 +164,7 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
     last, last_props = 0.0, 0.0
     props_every = float(os.environ.get("PROPS_REFRESH_HOURS", "3")) * 3600
     while True:
-        if time.time() - last_props >= props_every:
+        if os.environ.get("PROPS", "off").lower() in ("1", "on", "true", "yes") and time.time() - last_props >= props_every:
             refresh_props(settings, sports)
             last_props = time.time()
         if time.time() - last >= refresh_minutes * 60:

@@ -623,3 +623,20 @@ The simulator now reproduces real NFL scores and prices pushes far better, which
 3 and 7, live prices and quarter bets. It does not make Marv's spread or total picks better: with
 either simulator they are worse than a coin flip in log loss, because Marv's projections disagree with
 the closing line mostly where the line is right. NFL spreads and totals stay off as picks.
+
+## NFL player props vs real sportsbook lines (2025)
+
+`props-backtest --seasons 2025 --real --max-credits 6000`: real Bovado/DraftKings/FanDuel lines one hour
+before kickoff, 4,128 priced props (credit cap reached partway through the season).
+
+| Market | Edge 0%+ | Edge 5%+ | Edge 10%+ |
+|---|---|---|---|
+| All markets | 49.1% of 3,040, ROI -5.5% | 48.7% of 1,640, ROI -5.1% | 48.8% of 857, ROI -4.6% |
+| Passing yards | 51.7% (201) | 46.3% (95) | 48.9% (47) |
+| Receiving yards | 50.3% (1,132) | 50.3% (581) | 51.9% (289), ROI -0.9% |
+| Receptions | 46.2% (1,074) | 45.5% (525) | 41.5% (234), ROI -11.7% |
+| Rushing yards | 51.2% (633) | 50.8% (439) | 51.6% (287), ROI -2.5% |
+
+Always betting the under went 52.5%, better than the model. The 55-63% earlier came from lines built from
+averages; real books set props near the median and price in usage and matchups. Bigger model edges did
+not win more often. No prop edge: prop cards are off by default (PROPS=on to restore them).

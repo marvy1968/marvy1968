@@ -172,7 +172,9 @@ def cmd_run(s: Settings, args) -> int:
                 cmd_ingame(s, _A)
             except Exception:
                 log.exception("in-game %s training failed", isport)
-    props_on = os.environ.get("PROPS", "on").lower() not in ("0", "off", "false", "no")
+    # Off by default: the real-line backtest (2025, 3,040 bets vs Bovado/DK/FD) went 48.7-49.1%, ROI -5%,
+    # below always-under (52.5%). PROPS=on brings the prop cards back.
+    props_on = os.environ.get("PROPS", "off").lower() in ("1", "on", "true", "yes")
     for psport, window in (("nfl", 36), ("cfb", 48), ("ncaab", 30), ("ncaaw", 30), ("wnba", 30)):
         if psport in keys and s.odds_api_key and props_on:
             try:  # player props from Bovado lines (paper mode); quiet when nothing clears the filter
