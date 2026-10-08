@@ -80,3 +80,37 @@ class InjuryReportTests(unittest.TestCase):
         self.assertIn("Backup Guy: out", text)
         self.assertNotIn("Tampa", text)
         self.assertIn("no injury feed", injuries.report_text("cfb", Path("."), 2026).lower())
+
+
+class RosterNoteTests(unittest.TestCase):
+    def test_nfl_roster_line_flags_eliminations(self):
+        from marv.roster_notes import nfl_note
+        tg = pd.DataFrame({"game_id": ["g", "g"], "team": ["DAL", "TB"], "my_starters_out": [2, 3],
+                           "my_snaps_lost": [1.4, 2.5], "my_qb_out": [0, 1]})
+        note = nfl_note(tg, "g", "DAL", "Dallas Cowboys", "Tampa Bay Buccaneers")
+        self.assertIn("Dallas Cowboys 2 starters out (1.4 full-time)", note)
+        self.assertIn("Tampa Bay Buccaneers 3 starters out (2.5 full-time) + QB OUT ⚠️ elimination", note)
+        self.assertNotIn("1.4 full-time) ⚠️", note)
+
+    def test_college_qb_change_from_play_by_play(self):
+        from marv.roster_notes import cfb_note, cfb_qb_changes
+        games = pd.DataFrame({"game_id": ["1", "2", "3"], "date": pd.to_datetime(["2026-09-06", "2026-09-13", "2026-09-20"])})
+        players = pd.DataFrame({"game_id": ["1", "2", "3", "3"], "team": ["Alabama"] * 4,
+                                "player": ["Starter", "Starter", "Starter", "Backup"], "attempts": [30, 32, 4, 25]})
+        ch = cfb_qb_changes(players, games)
+        self.assertIn("Backup threw most last game, season leader Starter", ch["Alabama"])
+        self.assertIn("QB change", cfb_note(ch, "Alabama", "Georgia", "Alabama Crimson Tide", "Georgia Bulldogs"))
+
+    def test_recent_results_fill_the_trend(self):
+        hist = ou_tags.team_games(
+            pd.DataFrame({"game_id": ["1"], "date": [pd.Timestamp("2026-09-06")], "season": [2026], "total": [50.0]}),
+            pd.DataFrame({"game_id": ["1", "1"], "team": ["Alabama", "Georgia"], "opp": ["Georgia", "Alabama"],
+                          "points": [30.0, 28.0], "yards": [400.0, 380.0]}))
+        games = pd.DataFrame({"game_id": ["1"], "date": [pd.Timestamp("2026-09-06")], "season": [2026],
+                              "home": ["Alabama"], "away": ["Georgia"]})
+        g = Game("99", "cfb", datetime(2026, 10, 4, tzinfo=timezone.utc), "Alabama Crimson Tide", "Auburn Tigers",
+                 completed=True, home_score=40, away_score=21, odds=Odds(total=52.5))
+        out = ou_tags.add_recent(hist, games, [g])
+        added = out[out["game_id"] == "99"]
+        self.assertEqual(list(added["team"]), ["Alabama"])  # Auburn isn't in the tables: skipped
+        self.assertEqual(float(added["over"].iloc[0]), 1.0)  # 61 > 52.5

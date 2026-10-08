@@ -141,8 +141,8 @@ class EngineTest(unittest.TestCase):
             text = format_card(SPORTS[key], preds, {"spread": (3, 2, 0, 0.7)})
             self.assertIn("veto pass rate", text)
             if key == "nfl":
-                self.assertIn("Tracked spots", text)
-                block = text[text.index("Tracked spots"):]
+                self.assertIn("tracked spots", text)
+                block = text[text.index("tracked spots"):]
                 self.assertLess(block.index("TOTAL-INFLATED"), block.index("line move: total 44.5"))
             if key == "mlb":  # no probable pitchers in this fixture
                 self.assertTrue(all("starting pitcher unconfirmed" in pk.vetoes for p in preds for pk in p.picks))

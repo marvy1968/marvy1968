@@ -104,11 +104,37 @@ def tags_for_game(sport: str, home: dict | None, away: dict | None, total: float
     return out
 
 
-def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: dict) -> dict[str, list[tuple[str, str]]]:
-    """Tags for every slate game (keyed by the slate game id). Module team names come from `games`."""
+def add_recent(hist: pd.DataFrame, games: pd.DataFrame, recent) -> pd.DataFrame:
+    """Add finished games the stats tables don't have yet (e.g. last weekend, before the free
+    play-by-play release catches up) from the schedule feed's scores and closing totals."""
+    from .roster_notes import match_team
+    names = pd.concat([games["home"], games["away"]]).dropna().unique()
+    have = set(games["game_id"].astype(str))
+    rows = []
+    for g in recent or []:
+        if not g.completed or g.home_score is None or not g.odds or g.odds.total is None or str(g.id) in have:
+            continue
+        teams = [t for t in (match_team(g.home, names), match_team(g.away, names)) if t]
+        when = pd.Timestamp(g.start).tz_convert(None) if pd.Timestamp(g.start).tzinfo else pd.Timestamp(g.start)
+        pts = g.home_score + g.away_score
+        season = int(games.loc[games["date"] <= when, "season"].max()) if (games["date"] <= when).any() else when.year
+        for team in teams:
+            if not hist[(hist["team"] == team) & ((hist["date"] - when).abs() < pd.Timedelta(days=2))].empty:
+                continue  # already there under another id
+            rows.append({"game_id": str(g.id), "team": team, "date": when, "season": season, "total": g.odds.total,
+                         "g_pts": pts, "g_yds": np.nan, "over": float(np.sign(pts - g.odds.total))})
+    if not rows:
+        return hist
+    return pd.concat([hist, pd.DataFrame(rows)], ignore_index=True).sort_values(["date", "game_id"])
+
+
+def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: dict,
+              recent=None) -> dict[str, list[tuple[str, str]]]:
+    """Tags for every slate game (keyed by the slate game id). Module team names come from `games`;
+    `recent` (finished Game objects from the schedule feed) fills results the stats tables lack."""
     if sport not in SPORT_TAGS or "total" not in games:
         return {}
-    hist = team_games(games, tg)
+    hist = add_recent(team_games(games, tg), games.assign(date=pd.to_datetime(games["date"])), recent)
     done = hist[hist["g_yds"].notna()]
     ppy = float(done["g_pts"].sum() / done["g_yds"].sum()) if len(done) and done["g_yds"].sum() else 0.0
     lookup = games.set_index("game_id")

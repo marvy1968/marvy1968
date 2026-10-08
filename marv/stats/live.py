@@ -221,6 +221,14 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         from ..data.roster import missing_share
         missing = missing_share(cache, module.key, season, slate_teams)
 
+    qb_changes = {}
+    if module.key == "ncaaf":
+        try:
+            from ..data.cfb_pbp import player_tables
+            from ..roster_notes import cfb_qb_changes
+            qb_changes = cfb_qb_changes(player_tables(cache, season, current=True), games)
+        except Exception as exc:
+            log.warning("college QB check failed: %s", exc)
     out = {}
     lookup = games.set_index("game_id")
     for g in slate:
@@ -240,6 +248,13 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         if "my_snaps_lost" in tg.columns:  # NFL roster availability for this week
             avail = tg[tg["game_id"] == gid].set_index("team")["my_snaps_lost"]
             p.availability = {g.home: float(avail.get(home_team, 0)), g.away: float(avail.get(a["team"], 0))}
+            from ..roster_notes import nfl_note
+            note = nfl_note(tg, gid, home_team, g.home, g.away)
+            if note:
+                p.notes.append(note)
+        elif module.key == "ncaaf":  # college: QB change from play-by-play (no public injury report)
+            from ..roster_notes import cfb_note
+            p.notes.append(cfb_note(qb_changes, home_team, a["team"], g.home, g.away))
         elif missing:
             p.availability = {t: missing[t] for t in (g.home, g.away) if t in missing}
         if "wind" in tg.columns:
@@ -257,7 +272,7 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
     if out:
         try:  # over/under trend tags (cards + paper ledger, never picks)
             from .. import ou_tags
-            for gid, tags in ou_tags.tag_slate(module_key(module), games, tg, slate, id_map).items():
+            for gid, tags in ou_tags.tag_slate(module_key(module), games, tg, slate, id_map, history).items():
                 if gid in out:
                     out[gid].ou_tags = tags
                     out[gid].notes.append(ou_tags.note(tags))

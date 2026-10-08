@@ -141,14 +141,17 @@ def edge_line(e: dict) -> str:
             f"(fair {prob_to_american(e['p']):+.0f}) · edge {e['edge']:+.0%}")
 
 
-def alert_text(sport: str, game, ended_period: int, edges: list[dict], st: dict, p_home: float) -> str:
+def alert_text(sport: str, game, ended_period: int, edges: list[dict], st: dict, p_home: float,
+               rec: dict | None = None) -> str:
     hs, as_ = game.info.get("live_home"), game.info.get("live_away")
     fav, p_fav = (game.home, p_home) if p_home >= 0.5 else (game.away, 1 - p_home)
+    roster = [n for n in (rec or {}).get("notes", []) if n.startswith("roster:")]
     return "\n".join([
         "👽 <b>Marv the Martian predicts live: EDGE</b>",
         f"{game.away} {as_:.0f} – {hs:.0f} {game.home} · end of {period_name(sport, ended_period)}",
         *[edge_line(e) for e in edges],
         f"Marv live: {fav} win {p_fav:.0%} · projected total {st['exp_total']:.1f}",
+        *roster,
         "<i>Live model, not yet backtested against live prices: small stakes.</i>"])
 
 
@@ -378,7 +381,7 @@ class LiveMonitor:
                 if not new:
                     continue  # no edge, or the same edge already sent: stay quiet
                 state[key].setdefault("alerted", []).extend({**e, "period": ended} for e in new)
-                send(alert_text(sport, g, ended, new, st, st["p_home"]))
+                send(alert_text(sport, g, ended, new, st, st["p_home"], rec))
                 sent += 1
         self._save(state)
         return sent
