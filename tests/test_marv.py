@@ -135,8 +135,14 @@ class EngineTest(unittest.TestCase):
             self.assertEqual(len(preds), 4, key)
             markets = {pk.market for p in preds for pk in p.picks}
             self.assertTrue({"spread", "total"} <= markets, key)
+            if key == "nfl":
+                preds[0].notes.append("O/U spots (tracked, not picks): TOTAL-INFLATED→Under [55.8%]")
+                preds[1].notes.append("line move: total 44.5 → 47 (+2.5)")
             text = format_card(SPORTS[key], preds, {"spread": (3, 2, 0, 0.7)})
             self.assertIn("veto pass rate", text)
+            if key == "nfl":
+                self.assertIn("Tracked spots", text)
+                self.assertLess(text.index("TOTAL-INFLATED"), text.index("line move: total 44.5"))
             if key == "mlb":  # no probable pitchers in this fixture
                 self.assertTrue(all("starting pitcher unconfirmed" in pk.vetoes for p in preds for pk in p.picks))
 

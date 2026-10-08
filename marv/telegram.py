@@ -129,6 +129,17 @@ def format_card(sport: Sport, preds: list[Prediction], record: dict | None = Non
     else:
         blocks.append("No plays cleared the veto stack.")
 
+    # Paper-tracked spots and line moves for every game (shown even when nothing qualified).
+    spots = [(p, [n for n in p.notes if n.startswith(("O/U spots", "spots (tracked", "line move"))]) for p in preds]
+    spots = [(p, ns) for p, ns in spots if any(not n.startswith("line move") for n in ns)] + \
+            [(p, ns) for p, ns in spots if ns and all(n.startswith("line move") for n in ns)]
+    if spots:
+        rows = ["<b>📌 Tracked spots &amp; line moves</b> (paper, not picks)"]
+        for pred, ns in spots[:15]:
+            rows.append(f"• {esc(pred.game.away)} @ {esc(pred.game.home)} (model total {pred.model_total:.1f}): "
+                        f"{esc('; '.join(ns))}")
+        blocks.append("\n".join(rows))
+
     vetoed = [(p, pk) for p in preds for pk in p.picks if not pk.active and (pk.edge >= 0.03 or pk.prob >= 0.7)]
     if vetoed:
         rows = ["<b>🚫 Vetoed edges</b>"]
