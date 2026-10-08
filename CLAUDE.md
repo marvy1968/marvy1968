@@ -46,6 +46,11 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    the bridge (`marv/bridge.py`): block alerts Marv disagrees with, fix "edge vs open" (ignores score),
    duplicate alerts and stake sizing.
 
+5. NFL player props (`marv/props/`): `python -m marv props-backtest --seasons 2023-2025 --real` grades the
+   model against real past Bovado/DraftKings/FanDuel lines (~40 credits per game, capped by --max-credits;
+   responses cached in state/cache/props_hist). Set PROPS_SHRINK / PROPS_MIN_EDGE from its results.
+   Live: `python -m marv props --dry-run`; the daily NFL run sends props automatically when ODDS_API_KEY is set.
+
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.

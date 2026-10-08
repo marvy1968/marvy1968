@@ -190,3 +190,26 @@ edge is. Neither method beats closing totals.
 
 The college football picks hit the 90% target on unseen games. NFL is close on very few picks. Tuning
 until these specific games reach 90% would only fit the past and wouldn't carry forward.
+
+## NFL player props
+
+`marv/props/`: passing, rushing and receiving yards plus receptions. Projection = player form (weighted
+recent, season, last 3), usage (attempts, carries, targets, target and air-yards share), the opponent's
+yards allowed to that position vs the league, and the implied team total from the spread and total.
+A gradient-boosted model per market, then a Monte Carlo drawn from the model's own past misses gives
+P(over). Picks need edge >= 5% over the price's implied probability (probabilities pulled 30% toward
+50% until the real-line backtest calibrates them).
+
+Walk-forward 2022-2026 (free data, no real lines available here):
+
+| Market | Avg miss: model / season avg / recent form | vs an average-based line, edge >= 10% | always-under on that line |
+|---|---|---|---|
+| Passing yards | 65.0 / 65.8 / 66.0 | 63.0% (1,293) | 50.8% |
+| Rushing yards | 27.4 / 28.0 / 27.2 | 60.8% (1,709) | 58.1% |
+| Receiving yards | 25.7 / 27.4 / 26.3 | 65.0% (3,121) | 58.7% |
+| Receptions | 1.8 / 1.9 / 1.8 | 65.3% (3,244) | 57.6% |
+
+The model clearly beats the average-based approach of props_analyzer.py (which went 47-51%), but these
+lines are naive: averages sit above typical outputs, so "always under" already wins ~58% outside passing
+yards. Sportsbook lines are set near the median and are much sharper, so expect far lower real win rates.
+The real test is `props-backtest --real` on the VM (Odds API historical props from 2023).
