@@ -76,7 +76,7 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         return ["bash", str(BOT / "deploy/install.sh")], ""
     if cmd == "status":
         return ["bash", "-c", "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager;"
-                f" git -C {BOT} log -3 --oneline; df -h /"], ""
+                f" git -c safe.directory={BOT} -C {BOT} log -3 --oneline; df -h /"], ""
     if cmd == "logs":
         if not args or args[0] not in UNITS:
             return None, f"logs needs one of: {', '.join(sorted(UNITS))}"

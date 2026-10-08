@@ -165,7 +165,8 @@ class ESPNClient:
         self.cache_dir = cache_dir
 
     def scoreboard(self, path: str, start: datetime, end: datetime) -> list[dict]:
-        dates = f"{start:%Y%m%d}-{end:%Y%m%d}"
+        # ESPN rejects a one-day range like 20261008-20261008 (400); a single day is just the date.
+        dates = f"{start:%Y%m%d}" if f"{start:%Y%m%d}" == f"{end:%Y%m%d}" else f"{start:%Y%m%d}-{end:%Y%m%d}"
         cache = None
         # Only cache ranges that finished more than two days ago (results are final).
         if self.cache_dir and end < datetime.now(timezone.utc) - timedelta(days=2):
