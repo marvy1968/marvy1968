@@ -1,4 +1,4 @@
-"""NCAA men's basketball player props: points, rebounds, assists and made threes.
+"""Basketball player props (NCAA men, NCAA women, WNBA): points, rebounds, assists and made threes.
 
 Projection inputs (all known before tip-off):
   * the player's form: weighted recent average, season average, last 3 games, minutes and shot volume
@@ -19,7 +19,9 @@ from .nfl import Market
 
 log = logging.getLogger(__name__)
 BOX_URL = ("https://github.com/sportsdataverse/sportsdataverse-data/releases/download/"
-           "espn_mens_college_basketball_player_boxscores/player_box_{season}.parquet")
+           "espn_{league}_player_boxscores/player_box_{season}.parquet")
+LEAGUES = {"ncaab": ("mens_college_basketball", "mbb", True), "ncaaw": ("womens_college_basketball", "wbb", True),
+           "wnba": ("wnba", "wnba", False)}  # league, cache prefix, Division I filter
 
 MARKETS = {
     "points": Market("player_points", "points", (), "minutes", 20, "Points"),
@@ -33,10 +35,11 @@ FORM = ["points", "rebounds", "assists", "three_point_field_goals_made", "three_
 TARGETS = ["points", "rebounds", "assists", "three_point_field_goals_made"]
 
 
-def load_box(cache: Path, seasons: list[int], current: int | None = None) -> pd.DataFrame:
+def load_box(cache: Path, seasons: list[int], current: int | None = None, sport: str = "ncaab") -> pd.DataFrame:
+    league, prefix, _ = LEAGUES[sport]
     frames = []
     for season in seasons:
-        path = fetch(BOX_URL.format(season=season), cache / f"mbb_player_box_{season}.parquet",
+        path = fetch(BOX_URL.format(league=league, season=season), cache / f"{prefix}_player_box_{season}.parquet",
                      2 if season == current else None)
         if path:
             frames.append(pd.read_parquet(path))
@@ -73,11 +76,13 @@ def team_context(b: pd.DataFrame) -> pd.DataFrame:
     return t[["game_id", "team", "ctx_pace", "ctx_team_pts", "ctx_opp_pts"]]
 
 
-def build_rows(b: pd.DataFrame, halflife: float = 5.0) -> pd.DataFrame:
-    # Division I only: D1 teams play 20+ games a season in this data, visiting small schools appear once or twice.
-    games_per = b.groupby(["season", "team"])["game_id"].nunique()
-    d1 = set(games_per[games_per >= 20].index)
-    b = b[[(s, t) in d1 and (s, o) in d1 for s, t, o in zip(b["season"], b["team"], b["opponent_team"])]]
+def build_rows(b: pd.DataFrame, halflife: float = 5.0, sport: str = "ncaab") -> pd.DataFrame:
+    if LEAGUES[sport][2]:
+        # Division I only: D1 teams play 20+ games a season in this data, visiting small schools appear once or twice.
+        games_per = b.groupby(["season", "team"])["game_id"].nunique()
+        d1 = set(games_per[games_per >= 20].index)
+        b = b[[(s, t) in d1 and (s, o) in d1 for s, t, o in zip(b["season"], b["team"], b["opponent_team"])]]
+    b = b[~b["team"].str.contains("All-Star|Team ", regex=True, na=False)]
     p = b.sort_values(["player_id", "date"]).reset_index(drop=True)
     g = p.groupby("player_id", sort=False)
     for c in FORM:

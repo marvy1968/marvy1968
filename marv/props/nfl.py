@@ -124,10 +124,10 @@ class PropModel:
     def __init__(self, market: Market):
         self.market = market
 
-    def fit(self, train: pd.DataFrame) -> "PropModel":
+    def fit(self, train: pd.DataFrame, cols: list[str] | None = None) -> "PropModel":
         from sklearn.ensemble import HistGradientBoostingRegressor
         from sklearn.model_selection import cross_val_predict
-        self.cols = feature_cols(train)
+        self.cols = cols or feature_cols(train)
         X, y = train[self.cols].to_numpy(float), train[self.market.stat].to_numpy(float)
         self.model = HistGradientBoostingRegressor(max_iter=250, learning_rate=0.05, min_samples_leaf=40,
                                                    l2_regularization=1.0, random_state=0)
@@ -138,18 +138,26 @@ class PropModel:
         self.resid = [y[bins == b] - oof[bins == b] for b in range(10)]
         return self
 
+    def median(self, proj: np.ndarray) -> np.ndarray:
+        """Median outcome for each projection (where a sportsbook would hang its line)."""
+        bins = np.digitize(np.asarray(proj, float), self.edges)
+        return np.maximum(np.asarray(proj, float) + np.array([np.median(self.resid[int(b)]) for b in bins]), 0)
+
     def project(self, rows: pd.DataFrame) -> np.ndarray:
         return self.model.predict(rows[self.cols].to_numpy(float))
 
-    def p_over(self, proj: np.ndarray, line: np.ndarray, n: int = 2000, seed: int = 0) -> np.ndarray:
-        """Monte Carlo: outcome = projection + a past miss drawn from similar projections (floored at 0)."""
-        rng = np.random.default_rng(seed)
-        out = np.empty(len(proj))
-        for i, (mu, ln) in enumerate(zip(proj, line)):
-            r = self.resid[int(np.digitize(mu, self.edges))]
-            draws = np.maximum(mu + rng.choice(r, size=n), 0)
-            decided = draws != ln
-            out[i] = (draws[decided] > ln).mean() if decided.any() else 0.5
+    def p_over(self, proj: np.ndarray, line: np.ndarray, n: int = 0, seed: int = 0) -> np.ndarray:
+        """Monte Carlo over the model's past misses: outcome = projection + a miss from similar projections
+        (floored at 0). Computed exactly over every stored miss instead of sampling, so it's fast and
+        has no sampling noise. n and seed are accepted for compatibility."""
+        proj, line = np.asarray(proj, float), np.asarray(line, float)
+        out = np.full(len(proj), 0.5)
+        bins = np.digitize(proj, self.edges)
+        for b in np.unique(bins):
+            r = np.sort(self.resid[int(b)])
+            i = bins == b
+            need = line[i] - proj[i]  # over when projection + miss > line (line >= 0, so the floor never matters)
+            out[i] = 1 - np.searchsorted(r, need, side="right") / len(r)
         return out
 
 

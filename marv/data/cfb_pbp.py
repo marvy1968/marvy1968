@@ -124,3 +124,46 @@ def load(cache: Path, seasons: list[int], current: int | None = None) -> tuple[p
         long.append(part.drop(columns="neutral"))
     tg = pd.concat(long, ignore_index=True).merge(stats, on=["game_id", "team"], how="left")
     return games, tg
+
+
+PLAYER_COLS = ["game_id", "pos_team", "def_pos_team", "rush", "pass", "completion", "pass_attempt", "sack",
+               "passer_player_name", "receiver_player_name", "rusher_player_name", "yds_receiving", "yds_rushed",
+               "yards_gained"]
+
+
+def _player_rows(pbp: pd.DataFrame) -> pd.DataFrame:
+    """Passing, rushing and receiving lines per player per game (sacks excluded from passing)."""
+    passes = pbp[(pbp["pass_attempt"] == 1) & (pbp["sack"] != 1)]
+    yards = passes["yds_receiving"].fillna(passes["yards_gained"]).where(passes["completion"] == 1, 0)
+    qb = passes.assign(y=yards).groupby(["game_id", "pos_team", "def_pos_team", "passer_player_name"]).agg(
+        passing_yards=("y", "sum"), attempts=("pass_attempt", "sum"), completions=("completion", "sum")).reset_index() \
+        .rename(columns={"passer_player_name": "player"})
+    rec = passes.assign(y=yards).dropna(subset=["receiver_player_name"]).groupby(
+        ["game_id", "pos_team", "def_pos_team", "receiver_player_name"]).agg(
+        receiving_yards=("y", "sum"), receptions=("completion", "sum"), targets=("pass_attempt", "sum")).reset_index() \
+        .rename(columns={"receiver_player_name": "player"})
+    runs = pbp[pbp["rush"] == 1]
+    rb = runs.assign(y=runs["yds_rushed"].fillna(runs["yards_gained"])).dropna(subset=["rusher_player_name"]).groupby(
+        ["game_id", "pos_team", "def_pos_team", "rusher_player_name"]).agg(
+        rushing_yards=("y", "sum"), carries=("rush", "sum")).reset_index().rename(columns={"rusher_player_name": "player"})
+    out = qb.merge(rec, on=["game_id", "pos_team", "def_pos_team", "player"], how="outer") \
+        .merge(rb, on=["game_id", "pos_team", "def_pos_team", "player"], how="outer")
+    return out.rename(columns={"pos_team": "team", "def_pos_team": "opponent_team"})
+
+
+def player_tables(cache: Path, season: int, current: bool = False) -> pd.DataFrame | None:
+    """Player-game passing/rushing/receiving table for one season (raw play-by-play is not kept)."""
+    path = cache / f"cfb_players_{season}.parquet"
+    if path.exists() and not current:
+        return pd.read_parquet(path)
+    raw = cache / f"cfb_pbp_{season}.parquet"
+    pbp_path = fetch(PBP_URL.format(season=season), raw, 6 if current else None)
+    if not pbp_path:
+        return None
+    pbp = pd.read_parquet(pbp_path, columns=PLAYER_COLS)
+    pbp["game_id"] = pbp["game_id"].astype(str)
+    out = _player_rows(pbp)
+    out.to_parquet(path)
+    if not current:
+        raw.unlink(missing_ok=True)
+    return out

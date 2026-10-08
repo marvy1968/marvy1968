@@ -110,7 +110,7 @@ def cmd_run(s: Settings, args) -> int:
     if args.sport == "all" and weekday == 0 and not args.dry_run and not args.label:
         send_message(s.telegram_bot_token, s.telegram_chat_id, results_text(s, store, 7))
     props_on = os.environ.get("PROPS", "on").lower() not in ("0", "off", "false", "no")
-    for psport, window in (("nfl", 36), ("ncaab", 30)):
+    for psport, window in (("nfl", 36), ("cfb", 48), ("ncaab", 30), ("ncaaw", 30), ("wnba", 30)):
         if psport in keys and s.odds_api_key and props_on:
             try:  # player props from Bovado lines (paper mode); quiet when nothing clears the filter
                 props = _props_runner(psport)
@@ -223,9 +223,34 @@ def cmd_h2h_backtest(s: Settings, args) -> int:
     return 0
 
 
+PROPS_SPORTS = ["nfl", "cfb", "ncaab", "ncaaw", "wnba"]
+
+
+class _BasketballProps:
+    """Binds a basketball league to the shared basketball props runner."""
+
+    def __init__(self, sport: str):
+        from .props import basketball_run
+        self.sport, self.m = sport, basketball_run
+
+    def run_live(self, s, hours, dry_run):
+        return self.m.run_live(s, hours, dry_run, sport=self.sport)
+
+    def grade(self, s):
+        return self.m.grade(s, sport=self.sport)
+
+    def backtest_free(self, cache, seasons):
+        return self.m.backtest_free(cache, seasons, sport=self.sport)
+
+    def backtest_real(self, s, seasons, max_credits):
+        return self.m.backtest_real(s, seasons, max_credits, sport=self.sport)
+
+
 def _props_runner(sport: str):
-    if sport == "ncaab":
-        from .props import ncaab_run as runner
+    if sport in ("ncaab", "ncaaw", "wnba"):
+        return _BasketballProps(sport)
+    if sport == "cfb":
+        from .props import cfb_run as runner
     else:
         from .props import run as runner
     return runner
@@ -447,13 +472,13 @@ def main(argv: list[str] | None = None) -> int:
     hb.add_argument("--held-out-from", dest="held_out_from", type=int, help="first season to report (default: middle)")
 
     pp = sub.add_parser("props", help="player-prop picks from Bovado lines (paper mode), or --grade")
-    pp.add_argument("--sport", default="nfl", choices=["nfl", "ncaab"])
+    pp.add_argument("--sport", default="nfl", choices=PROPS_SPORTS)
     pp.add_argument("--hours", type=int, help="games starting within this many hours (default 36)")
     pp.add_argument("--dry-run", action="store_true")
     pp.add_argument("--grade", action="store_true", help="grade earlier picks and print the record")
 
     pb = sub.add_parser("props-backtest", help="player props walk-forward backtest (--real: against past Bovado lines)")
-    pb.add_argument("--sport", default="nfl", choices=["nfl", "ncaab"])
+    pb.add_argument("--sport", default="nfl", choices=PROPS_SPORTS)
     pb.add_argument("--seasons", required=True, help="e.g. 2020-2025 (real lines exist from 2023)")
     pb.add_argument("--real", action="store_true", help="use The Odds API historical prop lines (paid credits)")
     pb.add_argument("--max-credits", dest="max_credits", type=int, default=40000)
