@@ -1,0 +1,3 @@
+$ marv run --sport cfb --hours 14 --force --dry-run
+started 2026-10-08 13:31:47 EDT
+RUNNING...
