@@ -1,3 +1,106 @@
 $ marv run --sport nfl --hours 100 --force --dry-run --card
-started 2026-10-08 14:45:42 EDT
-RUNNING...
+started 2026-10-08 14:45:42 EDT, took 1405s, exit 0
+
+🏟️ <b>Marv NFL Predict Max</b> · Thu Oct 08
+
+14 games simulated · 0 qualified plays · veto pass rate 100%
+
+📝 <i>Paper trading: these picks are tracked, not bet, until the record proves an edge.</i>
+
+No plays cleared the veto stack.
+
+<b>📌 Rosters, tracked spots &amp; line moves</b> (paper, not picks)
+• Chicago Bears @ Green Bay Packers (model total 46.3): roster: Green Bay Packers no regular starters out; Chicago Bears no regular starters out; O/U spots (tracked, not picks): TOTAL-INFLATED→Under [55.8% 2009-26 (400)]
+• Cincinnati Bengals @ Miami Dolphins (model total 46.7): roster: Miami Dolphins no regular starters out; Cincinnati Bengals no regular starters out; line move: total 42.5 → 43 (+0.5); spots (tracked, not picks): HOMEDOG→Miami Dolphins [55.4% ATS 2006-26, 46.8% 2024-26]
+• Las Vegas Raiders @ New England Patriots (model total 42.2): roster: New England Patriots no regular starters out; Las Vegas Raiders no regular starters out; spots (tracked, not picks): WEST@1PM→New England Patriots [48% ATS]
+• Minnesota Vikings @ New Orleans Saints (model total 40.2): roster: New Orleans Saints no regular starters out; Minnesota Vikings no regular starters out; line move: spread New Orleans Saints +2 → +2.5 (toward Minnesota Vikings), total 42 → 41.5 (-0.5); spots (tracked, not picks): PT-LOSS→New Orleans Saints [50% ATS]
+• Cleveland Browns @ New York Jets (model total 40.9): roster: New York Jets no regular starters out; Cleveland Browns no regular starters out; line move: spread New York Jets -1.5 → -2.5 (toward New York Jets); spots (tracked, not picks): MARV4→Cleveland Browns [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]
+• Houston Texans @ Tennessee Titans (model total 41.7): roster: Tennessee Titans no regular starters out; Houston Texans no regular starters out; spots (tracked, not picks): DIVDOG→Tennessee Titans [50% ATS]
+• New York Giants @ Washington Commanders (model total 42.4): roster: Washington Commanders no regular starters out; New York Giants no regular starters out; line move: spread Washington Commanders -3.5 → -4 (toward Washington Commanders), total 41.5 → 42 (+0.5); spots (tracked, not picks): MARV4→New York Giants [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]
+• Detroit Lions @ Arizona Cardinals (model total 52.5): roster: Arizona Cardinals no regular starters out; Detroit Lions no regular starters out; O/U spots (tracked, not picks): TOTAL-INFLATED→Under [55.8% 2009-26 (400)]; spots (tracked, not picks): HOMEDOG→Arizona Cardinals [55.4% ATS 2006-26, 46.8% 2024-26]
+• San Francisco 49ers @ Seattle Seahawks (model total 52.6): roster: Seattle Seahawks no regular starters out; San Francisco 49ers no regular starters out; line move: total 46.5 → 46 (-0.5); spots (tracked, not picks): KEY3→San Francisco 49ers [dog +3: 54% ATS], MARV4→Seattle Seahawks [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]
+• Baltimore Ravens @ Atlanta Falcons (model total 53.9): roster: Atlanta Falcons no regular starters out; Baltimore Ravens no regular starters out; line move: spread Atlanta Falcons -3.5 → -3 (toward Baltimore Ravens); spots (tracked, not picks): PT-WIN→Atlanta Falcons [54.8% ATS 2006-26 (310)]
+• Tampa Bay Buccaneers @ Dallas Cowboys (model total 47.1): roster: Dallas Cowboys 2 starters out (1.4 full-time); Tampa Bay Buccaneers 3 starters out (2.5 full-time) + QB OUT ⚠️ elimination; line move: spread Dallas Cowboys -8.5 → -9 (toward Dallas Cowboys)
+• Philadelphia Eagles @ Jacksonville Jaguars (model total 45.4): roster: Jacksonville Jaguars no regular starters out; Philadelphia Eagles no regular starters out
+• Indianapolis Colts @ Pittsburgh Steelers (model total 46.1): roster: Pittsburgh Steelers no regular starters out; Indianapolis Colts no regular starters out
+• Denver Broncos @ Los Angeles Chargers (model total 41.0): roster: Los Angeles Chargers no regular starters out; Denver Broncos no regular starters out; line move: total 42 → 41.5 (-0.5)
+
+<b>🚫 Vetoed edges</b>
+• New York Giants ML (+170) — New York Giants @ Washington Commanders: backup QB: Washington Commanders Athan Kaliakmanis has 1 start; experts split on the winner; confidence 61% below 78%; market only 35% on this side
+• Over 43.5 (-115) — Baltimore Ravens @ Atlanta Falcons: O/U has no proven edge in backtests
+• Over 46 (-115) — San Francisco 49ers @ Seattle Seahawks: O/U has no proven edge in backtests
+• Indianapolis Colts ML (+130) — Indianapolis Colts @ Pittsburgh Steelers: experts split on the winner; confidence 52% below 78%; market only 42% on this side
+• Cleveland Browns ML (+115) — Cleveland Browns @ New York Jets: experts split on the winner; confidence 55% below 78%; market only 44% on this side
+• Under 45 (-110) — Las Vegas Raiders @ New England Patriots: O/U has no proven edge in backtests
+• Over 43 (-105) — Cincinnati Bengals @ Miami Dolphins: O/U has no proven edge in backtests
+• Seattle Seahawks ML (-175) — San Francisco 49ers @ Seattle Seahawks: confidence 71% below 78%; market only 62% on this side
+• Over 42 (-110) — Philadelphia Eagles @ Jacksonville Jaguars: O/U has no proven edge in backtests
+• Over 38 (-110) — Houston Texans @ Tennessee Titans: O/U has no proven edge in backtests
+• New Orleans Saints ML (+120) — Minnesota Vikings @ New Orleans Saints: experts split on the winner; confidence 50% below 78%; market only 43% on this side
+• Under 41.5 (-105) — Minnesota Vikings @ New Orleans Saints: experts split on the total; O/U has no proven edge in backtests
+
+<i>Model output, not a guarantee. Bet responsibly.</i>
+
+👽 <b>MARV PREDICT MAX — BET CARD</b> · Thu Oct 08
+
+1) <b>UNDER 54.5 (-115)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Detroit Lions @ Arizona Cardinals · Sun 3:25 PM CT
+   TOTAL-INFLATED: teams' recent over/under trend overshot by the market (55.8% in backtests) + model agrees
+2) <b>Cleveland Browns +2.5 (-110)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Cleveland Browns @ New York Jets · Sun 12:00 PM CT
+   Marv 5.5 pts off the spread (MARV4, 54.4% ATS backtest)
+3) <b>Seattle Seahawks -3 (-120)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL San Francisco 49ers @ Seattle Seahawks · Sun 3:25 PM CT
+   Marv 5.0 pts off the spread (MARV4, 54.4% ATS backtest)
+4) <b>UNDER 48.5 (-110)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Tampa Bay Buccaneers @ Dallas Cowboys · Thu 7:15 PM CT
+   Bovado 48.5 vs sharp Pinnacle 48 (untested in NFL)
+5) <b>OVER 42 (-110)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Philadelphia Eagles @ Jacksonville Jaguars · Sun 8:30 AM CT
+   Bovado 42 vs sharp Pinnacle 42.5 (untested in NFL) + model agrees
+6) <b>OVER 45.5 (-115)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Chicago Bears @ Green Bay Packers · Sun 12:00 PM CT
+   Bovado 45.5 vs sharp Pinnacle 46 (untested in NFL)
+7) <b>UNDER 43 (-115)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Cincinnati Bengals @ Miami Dolphins · Sun 12:00 PM CT
+   Bovado 43 vs sharp Pinnacle 42.5 (untested in NFL)
+8) <b>UNDER 38 (-110)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Houston Texans @ Tennessee Titans · Sun 12:00 PM CT
+   Bovado 38 vs sharp Pinnacle 37.5 (untested in NFL)
+9) <b>OVER 41.5 (-115)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Minnesota Vikings @ New Orleans Saints · Sun 12:00 PM CT
+   Bovado 41.5 vs sharp Pinnacle 42 (untested in NFL)
+10) <b>OVER 43.5 (-115)</b> · 0.5u · 📈 LEAN (backtested signal)
+   NFL Baltimore Ravens @ Atlanta Falcons · Sun 7:20 PM CT
+   Bovado 43.5 vs sharp Pinnacle 44 (untested in NFL) + model agrees
+
+Total risk: 5 units
+No high-confidence plays today: everything here is a lean, keep stakes small.
+<i>Paper-tracked and graded. Model output, not a guarantee.</i>
+
+
+--- stderr ---
+2026-10-08 14:45:59,032 INFO Odds API americanfootball_nfl: 92275 credits left
+2026-10-08 14:45:59,066 INFO nfl: Odds API matched 14/14 games
+2026-10-08 14:50:52,122 WARNING ESPN injuries unavailable for nfl: 403 Client Error: Forbidden for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries
+2026-10-08 14:50:52,849 INFO nfl injury sources: NFL report
+2026-10-08 14:50:59,145 INFO nfl: stats experts projected 14/14 games
+2026-10-08 14:51:02,098 INFO Odds API nfl (bovada+pinnacle): 92269 credits left
+2026-10-08 15:09:08,351 INFO props: 37 lines priced, 16 picks, 4 credits used
+2026-10-08 15:09:08,356 INFO 🏈 NFL PLAYER PROPS (paper)
+Javonte Williams Rushing yards Over 47.5 (+225 Bovada) | proj 59.1, 56% | edge +25.6% | stake 2.0%
+KaVontae Turpin Receiving yards Over 0.5 (-115 Bovada) | proj 21.2, 79% | edge +25.2% | stake 2.0%
+KaVontae Turpin Receptions Over 0.5 (-115 Bovada) | proj 2.1, 77% | edge +23.6% | stake 2.0%
+Brevyn Spann-Ford Receiving yards Over 2.5 (-115 Bovada) | proj 21.9, 76% | edge +22.9% | stake 2.0%
+Bucky Irving Rushing yards Over 42.5 (+150 Bovada) | proj 67.1, 63% | edge +22.9% | stake 2.0%
+Ryan Flournoy Receiving yards Over 20.5 (+155 Bovada) | proj 36.2, 61% | edge +22.2% | stake 2.0%
+Emeka Egbuka Receiving yards Over 25.5 (+150 Bovada) | proj 43.5, 62% | edge +22.2% | stake 2.0%
+Brevyn Spann-Ford Receptions Over 0.5 (-125 Bovada) | proj 2.3, 78% | edge +22.0% | stake 2.0%
+Jalon Daniels Rushing yards Over 33.5 (+165 Bovada) | proj 44.2, 58% | edge +20.2% | stake 2.0%
+Chris Godwin Receiving yards Over 23.5 (+145 Bovada) | proj 40.1, 61% | edge +20.0% | stake 2.0%
+CeeDee Lamb Receiving yards Over 64.5 (+175 Bovada) | proj 84.6, 56% | edge +19.7% | stake 2.0%
+Tez Johnson Receptions Over 1.5 (+125 Bovada) | proj 2.0, 59% | edge +15.0% | stake 2.0%
+Ted Hurst III Receiving yards Over 16.5 (-110 Bovada) | proj 37.4, 66% | edge +14.1% | stake 2.0%
+Ted Hurst III Receptions Over 1.5 (+100 Bovada) | proj 2.3, 63% | edge +13.4% | stake 2.0%
+Kenny Gainwell Receiving yards Over 12.5 (-110 Bovada) | proj 22.9, 61% | edge +9.0% | stake 2.0%
+Projection: player form + usage + opponent vs position + implied team total; Monte Carlo of past misses.
