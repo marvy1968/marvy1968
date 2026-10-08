@@ -257,3 +257,41 @@ original method and was dropped.
 * The over/under rates in the backtest output are against the *pregame* total, which is easy once the
   score is known; real live totals move with the score, and no historical live lines were available
   to test against.
+
+## Stress tests (all findings)
+
+**Player props, against a sportsbook-style line.** The "book" here is a competent baseline projection
+(player form and usage, regressed) hung at its median, which is how books set lines. As a control, a
+model trained on shuffled outcomes scores about 50% against this line. Held-out seasons, edge >= 5%:
+
+| Sport | Market | Marv win rate (bets) | 95% interval | Every season |
+|---|---|---|---|---|
+| NFL 2024-26 | pass yds / rush yds / rec yds / receptions | 59.2% / 57.1% / 57.1% / 59.5% | 55-62% | 55-62% |
+| College FB 2023-26 | pass / rush / rec / receptions | 57.9% / 57.2% / 55.1% / 57.3% | 53-60% | 53-59% |
+| WNBA 2023-26 | points / rebounds / assists | 58.8% / 58.8% / 59.1% | 57-60% | 57-61% |
+| NCAA women's 2024-26 | points / rebounds / assists | 58.8% / 59.0% / 62.8% (70k-108k bets) | 58-63% | flat |
+| NCAA men's 2024-26 | points / rebounds / assists | 58.0% / 59.4% / 62.2% (68k-116k bets) | 58-62% | flat |
+
+* **90% is never reached on a real-looking line.** The best validation slices topped out at 70-85% on a
+  few hundred bets and gave back several points on held-out seasons.
+* **Made threes looked like 97-98%. That's an artifact, not an edge**: they are unders at 0.5 for players
+  who rarely shoot threes. A book won't hang that line at -110. Live props now cap probabilities at
+  15-85%.
+* **What the numbers mean.** Marv's edge over a *simple* book is real and stable. Bovado prices with
+  more information (injuries, minutes news, sharp action), so the real win rate will be lower. Only
+  `props-backtest --real` on the VM measures that. Even 54-55% at -110 would be profitable.
+
+**Game moneyline picks (the ~90% findings).** Bootstrap intervals, season-by-season results and
+threshold sensitivity hold up for college football (91.7%, 95% interval 88-96%) and NCAA men's (90.2%,
+89-91%). NFL (28 picks) and WNBA (61) are too small to be sure: lowering the NFL cutoff from 78% to 74%
+drops it to 82%. The market's own biggest favorites, taken in the same numbers, did as well or better
+(college FB 94.5%, NFL 100%). These picks are heavy favorites the market already prices in.
+
+**Recommendation engine on real closing prices.** No game market (NFL moneyline/spread/total, college
+football spread/total, NBA moneyline/spread/total) produced a positive, statistically significant
+held-out ROI. NBA totals came closest (+9.4% on 157 bets, p = 0.11). So the board shows game markets as
+leans at most and hides the ones that lost money.
+
+**Bugs the stress tests caught and fixed:** NBA spreads before 2022-23 were unsigned in the source file
+(about a third of games had the favorite backwards), and average-based "lines" were beatable even by a
+model that knew nothing, which inflated earlier props results.
