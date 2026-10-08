@@ -109,6 +109,27 @@ def stat_line(sport: str, r, home: str, away: str) -> str:
             f"{r['a_oreb'] + r['a_dreb']:.0f} / {r['h_oreb'] + r['h_dreb']:.0f} · turnovers {r['a_tov']:.0f} / {r['h_tov']:.0f}")
 
 
+def martian_block(st: dict, ingame: dict | None, fav: str, p_fav: float, line_total: float | None,
+                  price: float | None, live_prices: bool) -> str:
+    """The owner's card format, from the same live numbers as the rest of the update:
+    👽 Marv the Martian predicts live: / ML edge / O/U confidence and edge (vs live prices, -110 on totals)."""
+    rows = ["👽 <b>Marv the Martian predicts live:</b>"]
+    src = "live line" if live_prices else "pregame line, reference only"
+    if price:
+        edge = p_fav - american_to_prob(price)
+        tag = "▶️ live play" if live_prices and edge >= LIVE_EDGE else "lean"
+        rows.append(f"ML edge {edge:+.0%} · {fav} {price:+.0f} (win {p_fav:.0%}, {src}) · {tag}")
+    if line_total is not None:
+        po = bridge.p_over(st, line_total)
+        if ingame:
+            po = float(ingame["model"].p_over(ingame["frame"], [line_total])[0])
+        side, p = ("Over", po) if po >= 0.5 else ("Under", 1 - po)
+        edge = p - american_to_prob(-110)
+        tag = "▶️ live play" if live_prices and edge >= LIVE_EDGE else "lean"
+        rows.append(f"O/U {side} {line_total:g} · confidence {p:.0%} · edge {edge:+.0%} ({src}) · {tag}")
+    return "\n".join(rows) if len(rows) > 1 else ""
+
+
 def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, line_total: float | None,
                 price_home: float | None, price_away: float | None, live_prices: bool, ingame: dict | None = None) -> str:
     hs, as_ = game.info.get("live_home"), game.info.get("live_away")
@@ -132,6 +153,9 @@ def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, lin
         lines.append(f"Marv pregame: {pre_fav} {pre_p:.0%} {'✅' if called else '❌'} · "
                      f"projected total {rec['model_total']:.1f}, actual {hs + as_:.0f}")
         return "\n".join(lines)
+    martian = martian_block(st, ingame, fav, p_fav, line_total, price_home if p_home >= 0.5 else price_away, live_prices)
+    if martian:
+        lines.append(martian)
     lines.append(f"{left:.0f} min left · Marv live: {fav} win {p_fav:.0%} (fair {prob_to_american(p_fav):+.0f}) "
                  f"· pregame {pre_fav} {pre_p:.0%}")
     lines.append(f"Projected final total {st['exp_total']:.1f} (pregame {rec['model_total']:.1f})")

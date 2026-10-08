@@ -50,6 +50,8 @@ class LiveMonitorTest(unittest.TestCase):
             self.assertIn("End of 1st half", sent[-1])
             self.assertIn("Duke Blue Devils win", sent[-1])
             self.assertIn("Total 150.5", sent[-1])
+            self.assertIn("Marv the Martian predicts live", sent[-1])
+            self.assertIn("O/U ", sent[-1])
             self.assertEqual(mon.tick(sent.append), 0)  # no repeat for the same half
             mon.client.events = [event("post", "STATUS_FINAL", 2, "0:00", 80, 71, completed=True)]
             self.assertEqual(mon.tick(sent.append), 1)
