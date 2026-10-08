@@ -1,3 +1,276 @@
 $ show predictions.json
-started 2026-10-08 11:00:46 EDT
-RUNNING...
+started 2026-10-08 11:00:46 EDT, took 0s, exit 0
+
+{
+ "nfl:2026_05_TB_DAL": {
+  "sport": "nfl",
+  "game_id": "2026_05_TB_DAL",
+  "start": "2026-10-09T00:15:00+00:00",
+  "home": "Dallas Cowboys",
+  "away": "Tampa Bay Buccaneers",
+  "home_exp": 26.36,
+  "away_exp": 23.19,
+  "model_total": 49.79,
+  "model_margin": 3.0,
+  "home_win": 0.5851,
+  "qualified": [],
+  "notes": [
+   "formula 26-22 \u00b7 forest 26-22 \u00b7 ratings 28-25",
+   "spots (tracked, not picks): MARV4\u2192Tampa Bay Buccaneers [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]"
+  ],
+  "updated": "2026-10-08T14:45:13.770150+00:00"
+ },
+ "nfl:2026_05_PHI_JAX": {
+  "sport": "nfl",
+  "game_id": "2026_05_PHI_JAX",
+  "start": "2026-10-11T13:30:00+00:00",
+  "home": "Jacksonville Jaguars",
+  "away": "Philadelphia Eagles",
+  "home_exp": 24.95,
+  "away_exp": 19.67,
+  "model_total": 44.84,
+  "model_margin": 6.0,
+  "home_win": 0.6471,
+  "qualified": [],
+  "notes": [
+   "formula 26-21 \u00b7 forest 24-20 \u00b7 ratings 24-18",
+   "spots (tracked, not picks): KEY7\u2192Philadelphia Eagles [dog +7: 49% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101401+00:00"
+ },
+ "nfl:2026_05_CHI_GB": {
+  "sport": "nfl",
+  "game_id": "2026_05_CHI_GB",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "Green Bay Packers",
+  "away": "Chicago Bears",
+  "home_exp": 22.12,
+  "away_exp": 25.82,
+  "model_total": 48.09,
+  "model_margin": -4.0,
+  "home_win": 0.3968,
+  "qualified": [],
+  "notes": [
+   "formula 22-26 \u00b7 forest 22-27 \u00b7 ratings 22-24",
+   "O/U spots (tracked, not picks): TOTAL-INFLATED\u2192Under [55.8% 2009-26 (400)]"
+  ],
+  "updated": "2026-10-08T14:40:08.101422+00:00"
+ },
+ "nfl:2026_05_CIN_MIA": {
+  "sport": "nfl",
+  "game_id": "2026_05_CIN_MIA",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "Miami Dolphins",
+  "away": "Cincinnati Bengals",
+  "home_exp": 21.33,
+  "away_exp": 25.17,
+  "model_total": 46.75,
+  "model_margin": -4.0,
+  "home_win": 0.3997,
+  "qualified": [],
+  "notes": [
+   "formula 22-25 \u00b7 forest 20-26 \u00b7 ratings 22-25",
+   "spots (tracked, not picks): HOMEDOG\u2192Miami Dolphins [55.4% ATS 2006-26, 46.8% 2024-26]"
+  ],
+  "updated": "2026-10-08T14:40:08.101442+00:00"
+ },
+ "nfl:2026_05_LV_NE": {
+  "sport": "nfl",
+  "game_id": "2026_05_LV_NE",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "New England Patriots",
+  "away": "Las Vegas Raiders",
+  "home_exp": 23.72,
+  "away_exp": 18.24,
+  "model_total": 42.09,
+  "model_margin": 6.0,
+  "home_win": 0.656,
+  "qualified": [],
+  "notes": [
+   "formula 24-18 \u00b7 forest 23-19 \u00b7 ratings 24-17",
+   "spots (tracked, not picks): WEST@1PM\u2192New England Patriots [48% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101460+00:00"
+ },
+ "nfl:2026_05_MIN_NO": {
+  "sport": "nfl",
+  "game_id": "2026_05_MIN_NO",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "New Orleans Saints",
+  "away": "Minnesota Vikings",
+  "home_exp": 20.04,
+  "away_exp": 22.29,
+  "model_total": 42.62,
+  "model_margin": -3.0,
+  "home_win": 0.435,
+  "qualified": [],
+  "notes": [
+   "formula 22-23 \u00b7 forest 21-22 \u00b7 ratings 18-22",
+   "spots (tracked, not picks): PT-LOSS\u2192New Orleans Saints [50% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101481+00:00"
+ },
+ "nfl:2026_05_CLE_NYJ": {
+  "sport": "nfl",
+  "game_id": "2026_05_CLE_NYJ",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "New York Jets",
+  "away": "Cleveland Browns",
+  "home_exp": 19.35,
+  "away_exp": 21.21,
+  "model_total": 40.91,
+  "model_margin": -3.0,
+  "home_win": 0.4527,
+  "qualified": [],
+  "notes": [
+   "formula 18-22 \u00b7 forest 20-21 \u00b7 ratings 20-20",
+   "spots (tracked, not picks): MARV4\u2192Cleveland Browns [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]"
+  ],
+  "updated": "2026-10-08T14:40:08.101501+00:00"
+ },
+ "nfl:2026_05_IND_PIT": {
+  "sport": "nfl",
+  "game_id": "2026_05_IND_PIT",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "Pittsburgh Steelers",
+  "away": "Indianapolis Colts",
+  "home_exp": 22.5,
+  "away_exp": 23.36,
+  "model_total": 45.88,
+  "model_margin": -2.0,
+  "home_win": 0.4688,
+  "qualified": [],
+  "notes": [
+   "formula 23-22 \u00b7 forest 20-24 \u00b7 ratings 24-24",
+   "spots (tracked, not picks): MARV4\u2192Indianapolis Colts [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]"
+  ],
+  "updated": "2026-10-08T14:40:08.101527+00:00"
+ },
+ "nfl:2026_05_HOU_TEN": {
+  "sport": "nfl",
+  "game_id": "2026_05_HOU_TEN",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "Tennessee Titans",
+  "away": "Houston Texans",
+  "home_exp": 18.66,
+  "away_exp": 22.82,
+  "model_total": 41.79,
+  "model_margin": -4.0,
+  "home_win": 0.3891,
+  "qualified": [],
+  "notes": [
+   "formula 19-22 \u00b7 forest 20-23 \u00b7 ratings 17-23",
+   "spots (tracked, not picks): DIVDOG\u2192Tennessee Titans [50% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101547+00:00"
+ },
+ "nfl:2026_05_NYG_WAS": {
+  "sport": "nfl",
+  "game_id": "2026_05_NYG_WAS",
+  "start": "2026-10-11T17:00:00+00:00",
+  "home": "Washington Commanders",
+  "away": "New York Giants",
+  "home_exp": 22.75,
+  "away_exp": 23.05,
+  "model_total": 45.95,
+  "model_margin": -1.0,
+  "home_win": 0.4876,
+  "qualified": [],
+  "notes": [
+   "formula 22-23 \u00b7 forest 22-23 \u00b7 ratings 23-23",
+   "spots (tracked, not picks): MARV4\u2192New York Giants [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]"
+  ],
+  "updated": "2026-10-08T14:40:08.101566+00:00"
+ },
+ "nfl:2026_05_DEN_LAC": {
+  "sport": "nfl",
+  "game_id": "2026_05_DEN_LAC",
+  "start": "2026-10-11T20:05:00+00:00",
+  "home": "Los Angeles Chargers",
+  "away": "Denver Broncos",
+  "home_exp": 19.47,
+  "away_exp": 21.24,
+  "model_total": 41.07,
+  "model_margin": -3.0,
+  "home_win": 0.4456,
+  "qualified": [],
+  "notes": [
+   "formula 19-21 \u00b7 forest 20-22 \u00b7 ratings 19-21"
+  ],
+  "updated": "2026-10-08T14:40:08.101585+00:00"
+ },
+ "nfl:2026_05_DET_ARI": {
+  "sport": "nfl",
+  "game_id": "2026_05_DET_ARI",
+  "start": "2026-10-11T20:25:00+00:00",
+  "home": "Arizona Cardinals",
+  "away": "Detroit Lions",
+  "home_exp": 23.66,
+  "away_exp": 28.65,
+  "model_total": 52.48,
+  "model_margin": -6.0,
+  "home_win": 0.3676,
+  "qualified": [],
+  "notes": [
+   "formula 22-28 \u00b7 forest 23-29 \u00b7 ratings 26-30",
+   "O/U spots (tracked, not picks): TOTAL-INFLATED\u2192Under [55.8% 2009-26 (400)]",
+   "spots (tracked, not picks): HOMEDOG\u2192Arizona Cardinals [55.4% ATS 2006-26, 46.8% 2024-26]"
+  ],
+  "updated": "2026-10-08T14:40:08.101604+00:00"
+ },
+ "nfl:2026_05_SF_SEA": {
+  "sport": "nfl",
+  "game_id": "2026_05_SF_SEA",
+  "start": "2026-10-11T20:25:00+00:00",
+  "home": "Seattle Seahawks",
+  "away": "San Francisco 49ers",
+  "home_exp": 25.31,
+  "away_exp": 22.18,
+  "model_total": 47.78,
+  "model_margin": 3.0,
+  "home_win": 0.5815,
+  "qualified": [],
+  "notes": [
+   "formula 24-22 \u00b7 forest 26-23 \u00b7 ratings 25-21",
+   "spots (tracked, not picks): KEY3\u2192San Francisco 49ers [dog +3: 54% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101624+00:00"
+ },
+ "nfl:2026_05_BAL_ATL": {
+  "sport": "nfl",
+  "game_id": "2026_05_BAL_ATL",
+  "start": "2026-10-12T00:20:00+00:00",
+  "home": "Atlanta Falcons",
+  "away": "Baltimore Ravens",
+  "home_exp": 23.01,
+  "away_exp": 25.02,
+  "model_total": 48.13,
+  "model_margin": -3.0,
+  "home_win": 0.4463,
+  "qualified": [],
+  "notes": [
+   "formula 23-24 \u00b7 forest 23-26 \u00b7 ratings 23-25",
+   "spots (tracked, not picks): PT-WIN\u2192Atlanta Falcons [54.8% ATS 2006-26 (310)], MARV4\u2192Baltimore Ravens [Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)]"
+  ],
+  "updated": "2026-10-08T14:40:08.101642+00:00"
+ },
+ "nfl:2026_05_BUF_LA": {
+  "sport": "nfl",
+  "game_id": "2026_05_BUF_LA",
+  "start": "2026-10-13T00:15:00+00:00",
+  "home": "Los Angeles Rams",
+  "away": "Buffalo Bills",
+  "home_exp": 26.96,
+  "away_exp": 25.9,
+  "model_total": 53.14,
+  "model_margin": 2.0,
+  "home_win": 0.5261,
+  "qualified": [],
+  "notes": [
+   "formula 26-26 \u00b7 forest 27-26 \u00b7 ratings 28-26",
+   "O/U spots (tracked, not picks): TOTAL-INFLATED\u2192Under [55.8% 2009-26 (400)]",
+   "spots (tracked, not picks): KEY3\u2192Buffalo Bills [dog +3: 54% ATS]"
+  ],
+  "updated": "2026-10-08T14:40:08.101668+00:00"
+ }
+}
