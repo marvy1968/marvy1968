@@ -74,6 +74,11 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    54.4%, +4.6% ROI, 2014-19). Logged to `state/sharp_gap_log.json`, graded in the daily run. Verify the
    Odds API returns Pinnacle for `bookmakers=bovado,pinnacle` (it's an EU book).
 
+10. Daily bet card (`marv/betcard.py`): the 10:00 run sends one card with the best 2-10 bets across all
+    sports: HIGH (passed every veto) > SIGNAL (backtested paper signals) > MODEL (edge 3%+, only soft vetoes),
+    max 2 per game, games with backup QB / key injury / stale data excluded. Logged to
+    `state/betcard_log.json`, graded daily, record in the Monday report. Dry run: `run --sport nfl --card --dry-run`.
+
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.

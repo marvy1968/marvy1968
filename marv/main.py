@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from . import bridge, linemove, ou_tags, sharpgap
+from . import betcard, bridge, linemove, ou_tags, sharpgap
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
@@ -39,13 +39,15 @@ def _alert_failure(s: Settings, what: str) -> None:
 
 
 def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int, dry_run: bool,
-              label: str = "") -> None:
+              label: str = ""):
+    """Run one sport; returns (predictions, projections) for the daily bet card, or None."""
     history, slate, ctx = load_for_run(sport, s, now, hours)
     if store.resolve(sport.key, history):
         log.info("%s: graded finished picks", sport.key)
     try:
         ou_tags.grade(Path(s.state_dir), sport.key, history)
         sharpgap.grade(Path(s.state_dir), sport.key, history)
+        betcard.grade(Path(s.state_dir), sport.key, history)
     except Exception:
         log.exception("over/under tag / gap grading failed")
     if not slate:
@@ -94,6 +96,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
             pdf = weekly_chart(sport, preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
             send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
         log.info("%s: sent %d predictions", sport.key, len(preds))
+    return preds, projections
 
 
 def results_text(s: Settings, store: Store, days: int) -> str:
@@ -119,6 +122,7 @@ def cmd_run(s: Settings, args) -> int:
     weekday = now.astimezone(ET).weekday()
     keys = s.sports if args.sport == "all" else [args.sport]
     failures = 0
+    card_cands = []
     for key in keys:
         sport = SPORTS[key]
         hours = args.hours or (max(sport.schedule.values()) if args.force else sport.schedule.get(weekday))
@@ -128,12 +132,28 @@ def cmd_run(s: Settings, args) -> int:
         if sport.source == "cfbd" and not s.cfbd_api_key:
             log.info("cfb: no CFBD_API_KEY, using ESPN schedules and free play-by-play stats")
         try:
-            run_sport(sport, s, store, now, hours, args.dry_run, args.label)
+            res = run_sport(sport, s, store, now, hours, args.dry_run, args.label)
+            if res:
+                card_cands += betcard.candidates(key, *res)
         except Exception:
             failures += 1
             log.exception("%s failed", key)
             if not args.dry_run:
                 _alert_failure(s, f"{sport.name} run")
+    if (args.sport == "all" or args.card) and not args.label:  # the daily pregame bet card (10:00 run)
+        try:
+            if s.odds_api_key:
+                card_cands += betcard.gap_candidates(sharpgap.scan(s, [k for k in keys if k in sharpgap.SPORT_KEYS]))
+            bets = betcard.select(card_cands)
+            text = betcard.text(bets, now.astimezone(ET))
+            print(text + "\n")
+            if not args.dry_run:
+                send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+                betcard.log(Path(s.state_dir), bets, now.astimezone(ET))
+        except Exception:
+            log.exception("bet card failed")
+            if not args.dry_run:
+                _alert_failure(s, "daily bet card")
     if args.sport == "all" and weekday == 0 and not args.dry_run and not args.label:
         send_message(s.telegram_bot_token, s.telegram_chat_id, results_text(s, store, 7))
         if "nfl" in keys:
@@ -330,6 +350,7 @@ def cmd_situational(s: Settings, args) -> int:
     text += "\n\n" + sharpgap.report(sharpgap.record(Path(s.state_dir)))
     from .live_monitor import live_record
     text += "\n\n" + live_record(Path(s.state_dir))
+    text += "\n\n" + betcard.record(Path(s.state_dir))
     print(text)
     if args.send:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
@@ -644,6 +665,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--dry-run", action="store_true", help="print instead of sending")
     run.add_argument("--force", action="store_true", help="ignore the weekday schedule")
     run.add_argument("--hours", type=int, help="look this many hours ahead (overrides the schedule)")
+    run.add_argument("--card", action="store_true", help="also build the bet card for a single-sport run")
     run.add_argument("--label", default="", help="tag shown on the card, e.g. 'Late update'")
 
     bt = sub.add_parser("backtest", help="walk-forward backtest over a date range")
