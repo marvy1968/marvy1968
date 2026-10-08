@@ -1,0 +1,3 @@
+$ logs marv-live 6
+started 2026-10-08 11:36:12 EDT
+RUNNING...
