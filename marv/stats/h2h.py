@@ -18,21 +18,31 @@ import pandas as pd
 from .base import StatsModule
 
 
-def team_features(tg: pd.DataFrame, stat_cols: list[str], trend_games: int = 3) -> pd.DataFrame:
-    """Season-to-date and last-N averages of every stat and every stat allowed, before each game."""
+def team_features(tg: pd.DataFrame, stat_cols: list[str], trend_games: int = 3, prior_games: float = 0.0) -> pd.DataFrame:
+    """Season-to-date and last-N averages of every stat and every stat allowed, before each game.
+
+    prior_games > 0 blends in last season's full average as if it were that many extra games, so
+    early weeks aren't decided by one or two results. The last-N trend runs across seasons."""
     stat_cols = [c for c in dict.fromkeys(["points", *stat_cols]) if c in tg]
     opp = tg[["game_id", "team", *stat_cols]].rename(columns={"team": "opp", **{c: f"alw_{c}" for c in stat_cols}})
     x = tg[["game_id", "date", "season", "team", "opp", "home", *stat_cols]].merge(opp, on=["game_id", "opp"], how="left")
-    x = x.sort_values(["date", "game_id"]).reset_index(drop=True)
+    x = x[x["points"].notna()].sort_values(["date", "game_id"]).reset_index(drop=True)
     cols = stat_cols + [f"alw_{c}" for c in stat_cols]
     keys = [x["team"], x["season"]]
     vals = x[cols].astype(float)
     have = vals.notna().astype(float)
     total = vals.fillna(0).groupby(keys).cumsum() - vals.fillna(0)
     count = have.groupby(keys).cumsum() - have
+    if prior_games > 0:
+        full = vals.groupby(keys).mean()
+        full.index = full.index.set_levels(full.index.levels[1] + 1, level=1)  # last season -> this season
+        prior = full.reindex(pd.MultiIndex.from_arrays(keys)).to_numpy()
+        ok = ~np.isnan(prior)
+        total = total + np.where(ok, prior * prior_games, 0)
+        count = count + np.where(ok, prior_games, 0)
     season = total / count.replace(0, np.nan)
-    shifted = vals.groupby(keys).shift()
-    last = shifted.groupby(keys).rolling(trend_games, min_periods=2).mean().reset_index(level=[0, 1], drop=True)
+    shifted = vals.groupby(x["team"]).shift()
+    last = shifted.groupby(x["team"]).rolling(trend_games, min_periods=2).mean().reset_index(level=0, drop=True)
     out = pd.concat([x[["game_id", "team", "season"]], season.add_prefix("s_"), last.sort_index().add_prefix("t_")], axis=1)
     out["n"] = x.groupby(keys).cumcount()
     return out
@@ -124,9 +134,11 @@ def _beat(values: np.ndarray, line: float) -> float:
 
 
 def walk_forward(module: StatsModule, games: pd.DataFrame, tg: pd.DataFrame, test_seasons: list[int],
-                 min_games: int = 3, n: int = 2000) -> pd.DataFrame:
+                 min_games: int = 3, n: int = 2000, prior_games: float = 0.0, trend: bool = True) -> pd.DataFrame:
     """Each test season is predicted by a model fit only on the seasons before it."""
-    feats = team_features(tg, module.stat_columns(tg))
+    feats = team_features(tg, module.stat_columns(tg), prior_games=prior_games)
+    if not trend:
+        feats[[c for c in feats if c.startswith("t_")]] = np.nan
     m = matchups(games, feats)
     m = m[(m["h_n"] >= min_games) & (m["a_n"] >= min_games)]
     out = []

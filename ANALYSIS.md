@@ -158,3 +158,35 @@ played before tip-off, and the trend weight was fit on 2012-19 only:
   playoff picks went 85.1% (40/47), the closest honest analogue to the report's claim.
 
 Verdict: keep Marv's engine. Don't adopt the tally or trend modifier.
+
+## Max Pick head-to-head method (stat-by-stat tally + last-3 trend + Monte Carlo)
+
+`python -m marv h2h-backtest --sport nfl|cfb|... --seasons 2016-2025`. Every offense stat and every
+stat allowed on defense is compared team vs team: a point to the better team (e.g. yards per play allowed
+4.4 vs 5.0). Which way is "better" is learned from earlier seasons. The same tally is repeated on each
+team's last 3 games, last season's averages carry in for early weeks, and the tally becomes a margin
+that the shared Monte Carlo turns into win, cover and over/under probabilities. College football now
+gets its stats free from play-by-play (yards per play, EPA, success rate, explosiveness, third downs,
+red zone, field position, turnovers...), so it no longer needs a CFBD key.
+
+Walk-forward, same games, Marv vs the head-to-head method (held-out seasons):
+
+| | Marv ML (all / 80%+ picks) | H2H ML (all / 80%+ picks) | Spread best | O/U best |
+|---|---|---|---|---|
+| NFL 2022-25 | 66.2% / 100% (15) | 63.7% / 75.8% (33) | ~53-55%, noisy | ~50% |
+| College FB top 30, 2021-25 | 75.6% / 90.2% (285) | 73.2% / 84.9% (351) | ~49-52% | ~50-51% |
+| WNBA 2022-26 | 68.0% / 85.2% (108) | 66.5% / 85.2% (142) | no lines | no lines |
+| NBA 2022-26 | 65.4% / 84.2% (431) | 64.0% / 83.2% (321) | n/a | ~50% |
+
+The tally is close to Marv but slightly worse everywhere: counting categories throws away how big each
+edge is. Neither method beats closing totals.
+
+**2026, last 3 finished weeks** (rules fixed on 2017-2025 first, nothing re-tuned on these games):
+
+| | Marv ML 70%+ | H2H ML 70%+ | Marv strict rule | ML every game | O/U |
+|---|---|---|---|---|---|
+| NFL weeks 2-4 (48 games) | 87.5% (7/8) | 81.8% (9/11) | 1/1 | 58.3% | 39.6% |
+| College FB top 30, weeks 4-6 (64 games) | 91.9% (34/37) | 89.5% (34/38) | 93.3% (14/15) | 81.2% | 51.6% |
+
+The college football picks hit the 90% target on unseen games. NFL is close on very few picks. Tuning
+until these specific games reach 90% would only fit the past and wouldn't carry forward.
