@@ -1,0 +1,3 @@
+$ marv gaps --sport nfl
+started 2026-10-08 13:47:40 EDT
+RUNNING...
