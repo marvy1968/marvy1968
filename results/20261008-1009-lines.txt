@@ -1,3 +1,155 @@
 $ show lines.json
-started 2026-10-08 11:00:53 EDT
-RUNNING...
+started 2026-10-08 11:00:53 EDT, took 0s, exit 0
+
+{
+ "nfl:2026_05_TB_DAL": {
+  "start": "2026-10-09T00:15:00+00:00",
+  "spread": -8.5,
+  "total": 48.5,
+  "home": "Dallas Cowboys",
+  "away": "Tampa Bay Buccaneers",
+  "spread_last": -8.5,
+  "total_last": 48.5,
+  "seen_last": "2026-10-08T14:40:11.279434+00:00"
+ },
+ "nfl:2026_05_PHI_JAX": {
+  "start": "2026-10-11T13:30:00+00:00",
+  "spread": -7.5,
+  "total": 42.0,
+  "home": "Jacksonville Jaguars",
+  "away": "Philadelphia Eagles",
+  "spread_last": -7.5,
+  "total_last": 42.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_CHI_GB": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": 1.5,
+  "total": 45.5,
+  "home": "Green Bay Packers",
+  "away": "Chicago Bears",
+  "spread_last": 1.5,
+  "total_last": 45.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_CIN_MIA": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": 6.5,
+  "total": 42.5,
+  "home": "Miami Dolphins",
+  "away": "Cincinnati Bengals",
+  "spread_last": 6.5,
+  "total_last": 42.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_LV_NE": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": -3.5,
+  "total": 45.0,
+  "home": "New England Patriots",
+  "away": "Las Vegas Raiders",
+  "spread_last": -3.5,
+  "total_last": 45.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_MIN_NO": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": 2.0,
+  "total": 42.0,
+  "home": "New Orleans Saints",
+  "away": "Minnesota Vikings",
+  "spread_last": 2.0,
+  "total_last": 42.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_CLE_NYJ": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": -1.5,
+  "total": 40.0,
+  "home": "New York Jets",
+  "away": "Cleveland Browns",
+  "spread_last": -1.5,
+  "total_last": 40.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_IND_PIT": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": -2.5,
+  "total": 44.5,
+  "home": "Pittsburgh Steelers",
+  "away": "Indianapolis Colts",
+  "spread_last": -2.5,
+  "total_last": 44.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_HOU_TEN": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": 7.5,
+  "total": 38.0,
+  "home": "Tennessee Titans",
+  "away": "Houston Texans",
+  "spread_last": 7.5,
+  "total_last": 38.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_NYG_WAS": {
+  "start": "2026-10-11T17:00:00+00:00",
+  "spread": -3.5,
+  "total": 41.5,
+  "home": "Washington Commanders",
+  "away": "New York Giants",
+  "spread_last": -3.5,
+  "total_last": 41.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_DEN_LAC": {
+  "start": "2026-10-11T20:05:00+00:00",
+  "spread": 3.5,
+  "total": 42.0,
+  "home": "Los Angeles Chargers",
+  "away": "Denver Broncos",
+  "spread_last": 3.5,
+  "total_last": 42.0,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_DET_ARI": {
+  "start": "2026-10-11T20:25:00+00:00",
+  "spread": 5.5,
+  "total": 54.5,
+  "home": "Arizona Cardinals",
+  "away": "Detroit Lions",
+  "spread_last": 5.5,
+  "total_last": 54.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_SF_SEA": {
+  "start": "2026-10-11T20:25:00+00:00",
+  "spread": -3.0,
+  "total": 46.5,
+  "home": "Seattle Seahawks",
+  "away": "San Francisco 49ers",
+  "spread_last": -3.0,
+  "total_last": 46.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_BAL_ATL": {
+  "start": "2026-10-12T00:20:00+00:00",
+  "spread": -3.5,
+  "total": 43.5,
+  "home": "Atlanta Falcons",
+  "away": "Baltimore Ravens",
+  "spread_last": -3.5,
+  "total_last": 43.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ },
+ "nfl:2026_05_BUF_LA": {
+  "start": "2026-10-13T00:15:00+00:00",
+  "spread": -3.0,
+  "total": 54.5,
+  "home": "Los Angeles Rams",
+  "away": "Buffalo Bills",
+  "spread_last": -3.0,
+  "total_last": 54.5,
+  "seen_last": "2026-10-08T14:37:25.074901+00:00"
+ }
+}
