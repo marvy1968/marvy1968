@@ -36,9 +36,11 @@ def payout(price: float) -> float:
 
 
 def shrink(p: np.ndarray) -> np.ndarray:
-    """Pull probabilities toward 50% (the walk-forward test showed overconfidence at the extremes)."""
+    """Pull probabilities toward 50% (the walk-forward test showed overconfidence at the extremes) and cap
+    them at 15-85%: near-certain unders on low-count stats (e.g. 0.5 threes for a rare shooter) won 97%+ in
+    the stress test only because a real book wouldn't offer them at a normal price."""
     k = float(os.environ.get("PROPS_SHRINK", "0.7"))
-    return 0.5 + k * (np.asarray(p, float) - 0.5)
+    return np.clip(0.5 + k * (np.asarray(p, float) - 0.5), 0.15, 0.85)
 
 
 def _data(cache: Path, current: int):
