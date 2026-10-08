@@ -539,3 +539,40 @@ produces. College 4,024 games, NFL 3,767 (needs 3+ earlier games that season).
   went under 55.8% (p=0.024), steady in both halves of 2009-26.
 * About 30 rules were tested here; the leads worth paper-tracking are college "fade both trends" and
   NFL "total inflated 5+ beyond yardage -> UNDER". Neither is proven.
+
+## Line movement, Bovado vs sharp books, and closing-line value (college football)
+
+Data: opening and closing lines from ~25 books for every FBS game (sportsdataverse cfbfastR-data,
+`marv/data/cfb_lines.py`); opening lines for 8,971 games with results 2014-25 (none in 2020), Pinnacle /
+BetCRIS closing numbers 2014-19, Bovado lines and prices throughout. Ticket and money percentages
+(betting splits) have no free history anywhere, so public-vs-sharp splits can't be backtested; line
+movement is the measurable trace of that money.
+
+| Test | Win rate (n) | Notes |
+|---|---|---|
+| Follow a 2+ pt spread move, bet at the close | 48.7% (3,136) | fading: 51.3% |
+| Favorite's number shrank 1.5+ ("money on the dog") -> dog at the close | 49.6% (2,038) | reverse-line-move proxy: no edge |
+| Total fell 1.5+ -> UNDER at the close | 52.0% (2,811) | 53.7% to 2019, 50.1% since 2021 |
+| Bet the open on the side the spread later moved toward | 55.8% (5,639) | only if you can predict the move |
+| Bet the open on the side the total later moved toward | 58.3% (4,917) | same |
+| Spread: Bovado 0.5+ pts better than Pinnacle/BetCRIS -> bet it at Bovado | 53.2% (2,429) | ROI +0.6% after Bovado's real juice |
+| Total: Bovado 0.5+ pts off Pinnacle/BetCRIS -> better side at Bovado | **54.4% (2,340)** | **ROI +4.6%** (2014-19) |
+| Same spread side graded at the sharp number (control) | 48.7% (842) | the edge is the number difference |
+| Spread moved toward the head-to-head model's side (model 3+ off the open) | 56.0% (3,161) | "closing-line value" |
+| ...but the model's side against the spread at the open / close | 50.2% / 49.4% | the CLV doesn't turn into wins |
+| Over trend (both teams 2+ overs in last 3) -> UNDER | 53.5% (1,829) | ROI +2.1% |
+| Over trend + total rose 1.5+ from the open -> UNDER | **56.7% (298)** | ROI +8.3%; 58.6% to 2019, 54.3% since |
+| Under trend -> OVER | 51.2% (2,050) | weaker with consensus closes than in the earlier test |
+
+* Moves are fully priced by the close: following or fading them at the closing number does nothing.
+  The value of a move is only available before it happens (55.8% ATS at the open).
+* The model's picks show closing-line value (lines move toward it 56% of the time) yet don't win at the
+  open. The markets move toward public stats that the model shares; the moves that matter (injuries,
+  news) aren't in its inputs. CLV alone can overstate a stats model.
+* The one usable consensus signal is line shopping against the sharp books: when Bovado's total is half a
+  point or more off Pinnacle/BetCRIS, the better side at Bovado went 54.4% (+4.6% ROI). Spreads were
+  break-even after Bovado's juice. Live Pinnacle prices are in The Odds API's "eu" region.
+* The over-trend fade gets stronger when the total has also been bid up during the week (56.7%), which
+  fits the market over-adjusting to recent shootouts. ~40 rules tested in this section: paper-track.
+* NFL: no free opening-line history; on the VM, The Odds API historical endpoint can supply open and
+  close (credits).
