@@ -362,3 +362,11 @@ Actual average 45.6; break-even at -110 is 52.4%. Problems in the original: driv
 3.2-point scoring events; subtracting the opponent's points allowed (a bad defense should add); and the
 red-zone multiplier double counts what points per drive already includes. No version beats the closing
 total: NFL totals stay a no-bet in Marv.
+
+**Normalized version (tuned 2016-21, tested 2022-26).** Every input is relative to the previous season's
+league average and combined multiplicatively, `points = league ppd x (offense/league)^a x (opponent
+allowed/league)^b x (red zone/league)^c x drives(pace)`, with a, b, c fitted. Fitted a = 0.55 (offense),
+b = 0.28 (defense); red zone and pace came out near zero (they add nothing beyond points per drive).
+Held-out: average projected total 43.6 (actual 45.0), miss 10.47 points (same as Marv; closing line 10.22),
+over/under vs closing totals 49.5% (50.2% when 4+ points off the line). Blending with the closing line
+was best at 100% market weight. Tethered to reality, but still no over/under edge.
