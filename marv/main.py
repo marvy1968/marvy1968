@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from . import bridge, linemove, ou_tags
+from . import bridge, linemove, ou_tags, sharpgap
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
@@ -45,8 +45,9 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         log.info("%s: graded finished picks", sport.key)
     try:
         ou_tags.grade(Path(s.state_dir), sport.key, history)
+        sharpgap.grade(Path(s.state_dir), sport.key, history)
     except Exception:
-        log.exception("over/under tag grading failed")
+        log.exception("over/under tag / gap grading failed")
     if not slate:
         log.info("%s: no games in the next %dh", sport.key, hours)
         return
@@ -324,6 +325,22 @@ def cmd_situational(s: Settings, args) -> int:
     games = pd.read_csv(fetch(NFL_GAMES, Path(s.state_dir) / "cache" / "nflverse_games.csv", 3), low_memory=False)
     text = situational.report(situational.grade(Path(s.state_dir), games))
     text += "\n\n" + ou_tags.report(ou_tags.record(Path(s.state_dir)))
+    text += "\n\n" + sharpgap.report(sharpgap.record(Path(s.state_dir)))
+    print(text)
+    if args.send:
+        send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+    return 0
+
+
+def cmd_gaps(s: Settings, args) -> int:
+    """Bovado vs Pinnacle: games where Bovado's college/NFL spread or total is off the sharp number."""
+    if not s.odds_api_key:
+        print("Set ODDS_API_KEY in .env first.")
+        return 1
+    sports = [args.sport] if args.sport != "all" else ["cfb", "nfl"]
+    entries = sharpgap.scan(s, sports, args.min_gap)
+    sharpgap.log_gaps(Path(s.state_dir), entries)
+    text = sharpgap.text(entries)
     print(text)
     if args.send:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
@@ -583,6 +600,10 @@ def main(argv: list[str] | None = None) -> int:
     ig.add_argument("--sport", required=True, choices=["nfl", "cfb", "ncaab", "ncaaw", "wnba"])
     ig.add_argument("--seasons", default="2020-2025", help="backtest seasons, e.g. 2020-2025")
 
+    gp = sub.add_parser("gaps", help="Bovado vs Pinnacle: college/NFL lines where Bovado is off the sharp number")
+    gp.add_argument("--sport", default="all", choices=["all", "cfb", "nfl"])
+    gp.add_argument("--min-gap", type=float, default=0.5)
+    gp.add_argument("--send", action="store_true")
     eb = sub.add_parser("edges", help="edge board vs current odds; --watch for alerts + Telegram queries")
     eb.add_argument("--watch", action="store_true")
     eb.add_argument("--refresh", type=int, default=30, help="minutes between board refreshes (--watch)")
@@ -632,7 +653,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

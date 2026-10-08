@@ -66,6 +66,11 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    `state/ou_tags_log.json` and graded by `python -m marv situational`. Check the tags appear on the next
    cfb/nfl dry run (`--sport cfb --force --dry-run`); never turn them into picks without 100+ graded games.
 
+9. Bovado vs Pinnacle gaps (`marv/sharpgap.py`, `python -m marv gaps`, Telegram `/gaps`, alerts from
+   marv-edges): the one market-based lead with a real-price backtest (college totals 0.5+ off Pinnacle:
+   54.4%, +4.6% ROI, 2014-19). Logged to `state/sharp_gap_log.json`, graded in the daily run. Verify the
+   Odds API returns Pinnacle for `bookmakers=bovado,pinnacle` (it's an EU book).
+
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.

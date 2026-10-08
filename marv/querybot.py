@@ -8,6 +8,7 @@ Ask the Marv bot in Telegram:
   /props                 today's player-prop picks
   /prop Josh Allen pass  Marv's projection and over/under chance for a player's posted props
   /record                alerted bets: closing-line value (the best early sign of a real edge)
+  /gaps                  college/NFL games where Bovado's spread or total is off Pinnacle's
   /help
 Only the configured TELEGRAM_CHAT_ID gets answers. Every refresh, new RECOMMENDED entries are pushed
 as alerts (set ALERT_LEANS=true to also alert leans with edge >= ALERT_EDGE, default 6%).
@@ -114,6 +115,11 @@ def answer(settings, text: str) -> str:
             return board.text(entries) if entries else "No open prop picks today."
         if cmd == "/record":
             return record_text(state)
+        if cmd == "/gaps":
+            from . import sharpgap
+            entries = sharpgap.scan(settings, [k for k in settings.sports if k in sharpgap.SPORT_KEYS])
+            sharpgap.log_gaps(state, entries)
+            return sharpgap.text(entries) + "\n\n" + sharpgap.report(sharpgap.record(state))
         return __doc__.split("Ask the Marv bot in Telegram:")[1].split("Only the")[0].strip()
     except Exception as exc:  # never let a bad query kill the service
         log.exception("query failed")
@@ -169,6 +175,16 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
                     send_message(settings.telegram_bot_token, settings.telegram_chat_id, "🚨 NEW EDGES\n" + board.text(new))
             except Exception:
                 log.exception("board refresh failed")
+            try:  # Bovado vs Pinnacle gaps (college/NFL): alert new ones
+                from . import sharpgap
+                gap_sports = [k for k in sports if k in sharpgap.SPORT_KEYS]
+                if gap_sports and settings.odds_api_key:
+                    fresh = sharpgap.log_gaps(state, sharpgap.scan(settings, gap_sports))
+                    alert = [e for e in fresh if e["market"] == "total" or os.environ.get("GAP_ALERT_SPREADS") == "true"]
+                    if alert:
+                        send_message(settings.telegram_bot_token, settings.telegram_chat_id, sharpgap.text(alert))
+            except Exception:
+                log.exception("sharp gap refresh failed")
             last = time.time()
         try:
             poll_commands(settings, state / ".telegram_offset")
