@@ -1,0 +1,3 @@
+$ marv injuries --sport nfl --team Cowboys,Buccaneers
+started 2026-10-08 13:37:41 EDT
+RUNNING...
