@@ -1,0 +1,15 @@
+[Unit]
+Description=Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv edges --watch
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

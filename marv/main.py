@@ -306,6 +306,19 @@ def cmd_ingame(s: Settings, args) -> int:
     return 0
 
 
+def cmd_edges(s: Settings, args) -> int:
+    """Edge board: Marv vs every current price (games and props). --watch = alerts + Telegram queries."""
+    from . import board, querybot
+    if args.watch:
+        querybot.watch(s, s.sports, args.refresh)
+        return 0
+    if args.query:
+        print(querybot.answer(s, args.query))
+        return 0
+    print(board.text(board.build(s, s.sports, args.hours), limit=40))
+    return 0
+
+
 def _check_args(src) -> dict:
     def num(k):
         v = src.get(k)
@@ -339,8 +352,11 @@ def cmd_serve(s: Settings, args) -> int:
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
+                elif url.path == "/board":  # current edges (games + props) for the odds bot
+                    path = state / "board.json"
+                    body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check or /predictions"}', 404
+                    body, code = '{"error": "use /check, /predictions or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
@@ -518,6 +534,12 @@ def main(argv: list[str] | None = None) -> int:
     ig.add_argument("--sport", required=True, choices=["nfl", "cfb", "ncaab", "ncaaw", "wnba"])
     ig.add_argument("--seasons", default="2020-2025", help="backtest seasons, e.g. 2020-2025")
 
+    eb = sub.add_parser("edges", help="edge board vs current odds; --watch for alerts + Telegram queries")
+    eb.add_argument("--watch", action="store_true")
+    eb.add_argument("--refresh", type=int, default=30, help="minutes between board refreshes (--watch)")
+    eb.add_argument("--hours", type=int, default=36)
+    eb.add_argument("--query", help='answer one Telegram-style query, e.g. "/game Lions"')
+
     ck = sub.add_parser("check", help="Marv's fair price for an odds-bot alert (pregame or live)")
     ck.add_argument("--sport", required=True, choices=list(SPORTS))
     ck.add_argument("--team", required=True, help="any team in the game")
@@ -561,7 +583,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

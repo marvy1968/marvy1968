@@ -149,11 +149,16 @@ class NBAStats(BasketballStats):
         key = pd.to_datetime(games["date"]).dt.strftime("%Y-%m-%d") + "|" + games["home"].map(normalize)
         hit = key.map(lambda k: k in odds.index)
         sub = odds.reindex(key[hit])
-        spread = pd.to_numeric(sub["Spread"].replace({"PK": 0, "pk": 0}), errors="coerce")
-        games.loc[hit, "spread"] = -spread.values  # file: positive = home favored
+        spread = pd.to_numeric(sub["Spread"].replace({"PK": 0, "pk": 0}), errors="coerce").to_numpy(float)
+        ml_h = pd.to_numeric(sub["ML_Home"], errors="coerce").to_numpy(float)
+        ml_a = pd.to_numeric(sub["ML_Away"], errors="coerce").to_numpy(float)
+        # Before 2022-23 the file stores the spread unsigned (favorite's number). Sign it from the moneyline
+        # favorite; newer seasons use positive = home favored.
+        home_fav = np.where(np.isnan(ml_h) | np.isnan(ml_a), spread > 0, ml_h < ml_a)
+        games.loc[hit, "spread"] = np.where(home_fav, -np.abs(spread), np.abs(spread))  # home line: negative = favored
         games.loc[hit, "total"] = pd.to_numeric(sub["OU"], errors="coerce").values
-        games.loc[hit, "home_ml"] = pd.to_numeric(sub["ML_Home"], errors="coerce").values
-        games.loc[hit, "away_ml"] = pd.to_numeric(sub["ML_Away"], errors="coerce").values
+        games.loc[hit, "home_ml"] = ml_h
+        games.loc[hit, "away_ml"] = ml_a
         return games
 
     def season_of(self, date):
