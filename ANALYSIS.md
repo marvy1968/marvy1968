@@ -429,3 +429,32 @@ better). In college football the heaviest weights went to points per drive, red-
 defensive rush success / yards per play allowed; turnovers were weighted near zero (too noisy).
 Against the spread, no version has an edge. `marv/stats/h2h.py` now supports `mode="weighted"` and
 `mode="magnitude"`.
+
+## Recalculating the head-to-head data points (weights, top stats, opponent strength, last-3 blends)
+
+After learning each stat's weight, the head-to-head points were recalculated several ways and re-run
+through the walk-forward backtest (each season learned from the 6 before it, same games):
+
+| Held-out | Winners NFL / CFB | 80%+ picks NFL / CFB | O/U every game NFL / CFB |
+|---|---|---|---|
+| Equal (1 point per stat) | 63.7% / 76.5% | 83.2% (101) / 88.4% (596) | |
+| Weights x size of edge (current) | **64.6%** / 77.7% | **91.8% (49)** / 88.9% (522) | 49.9% / 50.4% |
+| Top 8 weighted stats only, refit | 64.1% / 77.8% | 82.3% (113) / 89.4% (530) | |
+| Every stat adjusted for the opponents' strength | 63.3% / 77.4% | 84.6% (65) / 89.3% (561) | 50.9% / 52.1% |
+| 75% season + 25% last 3 | 64.0% / 77.8% | 88.7% (53) / 89.2% (536) | 49.9% / 49.9% |
+| 75/25, opponent-adjusted | 63.5% / 77.1% | 89.2% (65) / 90.2% (572) | 50.9% / 50.6% |
+| Last 3 only, opponent-adjusted | 60.9% / 73.5% | 83.3% (18) / 88.7% (467) | 50.5% / 50.6% |
+| Marv | 64.7% / 77.7% | 91.5% (47) / **92.2% (448)** | |
+
+* Winner differences are within the error bars (about ±1.8 NFL, ±2.2 college), except that last-3-only
+  is clearly worse and opponent adjustment costs NFL 1.25 points (95% range -2.4 to -0.3).
+* Opponent adjustment helps college calibration a little (Brier 0.163 -> 0.161, 80%+ picks up to 90%),
+  since college schedules are uneven; in the NFL it adds noise.
+* Pruning to the biggest weights doesn't help: ridge already shrinks the weak stats. NFL's top weights
+  were turnover and kicking stats that change from season to season, a sign the NFL tally is mostly noise.
+* Totals stay at 50-52% in every version, below the 52.4% needed at -110; projected totals miss by more
+  than the closing line (NFL 10.8 vs 10.5, college 12.8-13.4 vs 12.5). Against the spread: 49-52%.
+
+Verdict: keep weights x size of edge with the learned season + last-3 columns; no version passes Marv.
+`h2h.walk_forward(..., adjust=1, blend=0.25)` and `h2h.breakdown()` (each stat's weighted points for a
+game) are available for paper tracking.
