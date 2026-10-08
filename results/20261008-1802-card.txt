@@ -1,0 +1,3 @@
+$ marv run --sport nfl --hours 100 --force --dry-run --card
+started 2026-10-08 14:45:42 EDT
+RUNNING...
