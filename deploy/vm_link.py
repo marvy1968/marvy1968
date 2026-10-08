@@ -12,6 +12,8 @@ Accepted job lines:
   status                        service status, timers, bot version, disk
   logs <unit> [lines]           journalctl for a marv-* unit (default 200 lines)
   show <path>                   print a file under /opt/marv-bot/state (not .env), up to 200 KB
+  find-odds-bot                 list other bots on the VM (paths, services, cron), no code
+  read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
   marv <command> [args...]      python -m marv ... as the marvbot user; `run`/`props` need --dry-run,
                                 --send / --watch / serve / live are refused (the timers do those)
 """
@@ -75,6 +77,17 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "update":  # always the latest installer from GitHub, so a broken local copy can't block updates
         url = "https://raw.githubusercontent.com/marvy1968/marvy1968/claude/analysis-ak180w/deploy/install.sh"
         return ["bash", "-c", f"curl -fsSL {url} | bash"], ""
+    if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
+        return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
+    if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
+        if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:
+            return None, "read-odds-bot needs one absolute folder path (from find-odds-bot)"
+        script = (f"set -e; export HOME=/root; bash {BOT}/deploy/find_odds_bot.sh {args[0]} >/dev/null; d=$(mktemp -d); "
+                  "tar -xzf /root/odds-bot-redacted.tar.gz -C $d; cd $d/odds-bot; "
+                  "find . -type f \\( -name '*.py' -o -name '*.json' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' "
+                  "-o -name '*.service' -o -name '*.toml' -o -name '*.yaml' -o -name '*.yml' -o -name '*.cfg' \\) "
+                  "-size -300k | sort | while read f; do echo; echo \"===== $f\"; cat \"$f\"; done; rm -rf $d")
+        return ["bash", "-c", script], ""
     if cmd == "status":
         return ["bash", "-c", "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager;"
                 f" git -c safe.directory={BOT} -C {BOT} log -3 --oneline; df -h /"], ""
@@ -98,7 +111,7 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if args[0] in ("run", "props") and "--dry-run" not in args and "--grade" not in args:
             return None, f"marv {args[0]} needs --dry-run (the timers send the real cards)"
         return as_bot + [py, "-m", "marv", *args], ""
-    return None, f"unknown job '{cmd}' (tests, update, status, logs, show, marv)"
+    return None, f"unknown job '{cmd}' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)"
 
 
 def push(message: str) -> None:
