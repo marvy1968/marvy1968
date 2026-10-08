@@ -458,3 +458,25 @@ through the walk-forward backtest (each season learned from the 6 before it, sam
 Verdict: keep weights x size of edge with the learned season + last-3 columns; no version passes Marv.
 `h2h.walk_forward(..., adjust=1, blend=0.25)` and `h2h.breakdown()` (each stat's weighted points for a
 game) are available for paper tracking.
+
+## Recency weighting: last 25% of the season, exponential decay
+
+Gemini suggested weighting the last 25% of the season (or a compressed rolling window) into the Monte
+Carlo, especially for totals. Tested on the same held-out games, magnitude weights, raw and
+opponent-adjusted (scratch script; "last 25%" = the most recent quarter of the games a team has played
+this season, at least 2):
+
+| Held-out | Winners NFL / CFB | 80%+ picks NFL / CFB | Spread 55%+ NFL / CFB | O/U NFL / CFB |
+|---|---|---|---|---|
+| Season + last 3 (current) | **64.6%** / 77.7% | 91.8% (49) / 88.9% (522) | 50.6% / 49.2% | 49.9% / 50.4% |
+| Season + last 25% | 64.2% / 77.8% | 87.2% (47) / 88.9% (515) | 51.1% / 50.2% | 49.6% / 51.0% |
+| 75% season + 25% last quarter | 63.8% / 77.2% | 90.7% (43) / 88.4% (510) | 50.3% / 48.7% | 49.7% / 50.2% |
+| Exponential, half-life 3 games | 61.7% / 74.7% | 86.4% (22) / 88.7% (433) | 49.4% / 47.2% | 49.3% / 50.9% |
+| Season + last 25%, opponent-adjusted | 63.3% / 77.7% | 84.1% (63) / **90.9% (540)** | 50.3% / 51.2% | 49.8% / 50.7% |
+| 75/25 last quarter, opponent-adjusted | 63.7% / 77.7% | 89.1% (64) / 90.5% (535) | 50.6% / 50.2% | 50.7% / 50.8% |
+| Exponential, opponent-adjusted | 61.7% / 75.5% | 91.7% (36) / 90.0% (478) | 49.6% / 47.8% | 49.9% / 50.4% |
+
+No recency version beats the current one on winners, and none gets the spread or totals to 52.4%.
+Heavy recency (exponential decay) is clearly worse: a few games are too small a sample. Projected
+totals miss by more than the closing line in every version. Not adopted for live O/U; the one mild
+positive (college 80%+ picks at ~91% with opponent adjustment) is still below Marv's 92.2%.
