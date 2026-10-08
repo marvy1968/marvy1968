@@ -128,84 +128,93 @@ def add_score_cols(d: pd.DataFrame) -> pd.DataFrame:
 # ---------- model ----------
 
 SCORE_ONLY = ["pre_spread", "pre_total", "h_score", "a_score", "score_margin", "score_total"]
+EXTRA = ("h_turnover", "a_turnover", "h_plays", "a_plays", "pace", "h_poss", "a_poss")
 
 
 def feature_cols(d: pd.DataFrame, stats: bool = True) -> list[str]:
+    """Inputs to the correction model: the base projection plus the game's stat differences."""
+    base = ["b_margin", "b_total"]
     if not stats:
-        return SCORE_ONLY
-    extra = [c for c in d.columns if c.startswith(("h_", "a_", "d_")) and c not in ("h_score", "a_score")]
-    return SCORE_ONLY + extra + (["pace"] if "pace" in d else [])
+        return base
+    return base + [c for c in d.columns if c.startswith("d_")] + [c for c in EXTRA if c in d]
+
+
+def with_base(d: pd.DataFrame, sport: str) -> pd.DataFrame:
+    """Attach the score-and-pace projection (the live monitor's original method) as b_margin/b_total/b_home."""
+    d = d.drop(columns=[c for c in ("b_margin", "b_total", "b_home") if c in d])
+    return pd.concat([d, baseline_live(d, sport)], axis=1)
 
 
 class _Head:
-    """One target (final margin or total) at one checkpoint: boosted trees + binned past misses."""
+    """One target at one checkpoint: base projection + a ridge correction from the game's stats,
+    with the model's own out-of-sample misses kept for the Monte Carlo."""
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
-        from sklearn.ensemble import HistGradientBoostingRegressor
+    def fit(self, X: np.ndarray, base: np.ndarray, y: np.ndarray):
+        from sklearn.linear_model import RidgeCV
         from sklearn.model_selection import cross_val_predict
-        self.m = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, min_samples_leaf=30,
-                                               l2_regularization=1.0, random_state=0)
-        oof = cross_val_predict(self.m, X, y, cv=4)
-        self.m.fit(X, y)
-        self.edges = np.quantile(oof, np.linspace(0, 1, 9)[1:-1])
-        b = np.digitize(oof, self.edges)
-        self.resid = [np.sort(y[b == i] - oof[b == i]) for i in range(8)]
+        mk = lambda: RidgeCV(alphas=np.logspace(-1, 4, 20))
+        oof = cross_val_predict(mk(), X, y - base, cv=4)
+        self.m = mk().fit(X, y - base)
+        self.resid = np.sort(y - base - oof)
         return self
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        return self.m.predict(X)
+    def predict(self, X: np.ndarray, base: np.ndarray) -> np.ndarray:
+        return base + self.m.predict(X)
 
     def p_above(self, mu: np.ndarray, line: np.ndarray) -> np.ndarray:
-        """P(outcome > line) where outcome = projection + a past miss from similar projections."""
-        out = np.full(len(mu), 0.5)
-        b = np.digitize(mu, self.edges)
-        for i in np.unique(b):
-            r = self.resid[int(i)]
-            k = b == i
-            above = 1 - np.searchsorted(r, line[k] - mu[k], side="right") / len(r)
-            at = (np.searchsorted(r, line[k] - mu[k], side="right") - np.searchsorted(r, line[k] - mu[k], side="left")) / len(r)
-            out[k] = above / np.maximum(1 - at, 1e-9)  # pushes (exact ties) don't count
-        return out
+        """P(outcome > line), outcome = projection + a past miss; exact ties (pushes) excluded."""
+        need = np.asarray(line, float) - np.asarray(mu, float)
+        hi = np.searchsorted(self.resid, need, side="right")
+        lo = np.searchsorted(self.resid, need, side="left")
+        n = len(self.resid)
+        return (n - hi) / np.maximum(n - (hi - lo), 1)
 
 
 class InGameModel:
     def __init__(self, sport: str, stats: bool = True):
         self.sport, self.stats = sport, stats
 
+    def _X(self, x: pd.DataFrame) -> np.ndarray:
+        return x.reindex(columns=self.cols).fillna(0).to_numpy(float)
+
     def fit(self, d: pd.DataFrame) -> "InGameModel":
+        d = with_base(d, self.sport)
         self.cols = feature_cols(d, self.stats)
         self.heads = {}
         for k in SPECS[self.sport].checkpoints:
             x = d[d["checkpoint"] == k]
             if len(x) < 200:
                 continue
-            X = x[self.cols].to_numpy(float)
-            self.heads[k] = (_Head().fit(X, (x["final_h"] - x["final_a"]).to_numpy(float)),
-                             _Head().fit(X, (x["final_h"] + x["final_a"]).to_numpy(float)))
+            X = self._X(x)
+            self.heads[k] = (_Head().fit(X, x["b_margin"].to_numpy(float), (x["final_h"] - x["final_a"]).to_numpy(float)),
+                             _Head().fit(X, x["b_total"].to_numpy(float), (x["final_h"] + x["final_a"]).to_numpy(float)))
         return self
 
     def predict(self, d: pd.DataFrame) -> pd.DataFrame:
-        """Adds exp_margin, exp_total, p_home (ties in football settle as a coin flip in OT)."""
-        out = d.copy()
+        """Adds exp_margin, exp_total and p_home for rows at a trained checkpoint."""
+        out = with_base(d, self.sport)
         for c in ("exp_margin", "exp_total", "p_home"):
             out[c] = np.nan
         for k, (hm, ht) in self.heads.items():
             i = (out["checkpoint"] == k).to_numpy()
             if not i.any():
                 continue
-            X = out.loc[i, self.cols].to_numpy(float)
-            mu_m, mu_t = hm.predict(X), ht.predict(X)
-            out.loc[i, "exp_margin"], out.loc[i, "exp_total"] = mu_m, mu_t
+            x = out.loc[i]
+            X = self._X(x)
+            mu_m = hm.predict(X, x["b_margin"].to_numpy(float))
+            out.loc[i, "exp_margin"] = mu_m
+            out.loc[i, "exp_total"] = ht.predict(X, x["b_total"].to_numpy(float))
             out.loc[i, "p_home"] = hm.p_above(mu_m, np.zeros(i.sum()))
         return out
 
-    def p_over(self, d: pd.DataFrame, line: np.ndarray) -> np.ndarray:
+    def p_over(self, d: pd.DataFrame, line) -> np.ndarray:
+        """P(final total > line); `d` must come from predict()."""
         out = np.full(len(d), np.nan)
+        line = np.asarray(line, float)
         for k, (_, ht) in self.heads.items():
             i = (d["checkpoint"] == k).to_numpy()
             if i.any():
-                X = d.loc[i, self.cols].to_numpy(float)
-                out[i] = ht.p_above(ht.predict(X), np.asarray(line, float)[i])
+                out[i] = ht.p_above(d.loc[i, "exp_total"].to_numpy(float), line[i])
         return out
 
     def save(self, path: Path) -> None:
@@ -262,9 +271,8 @@ def backtest(cache: Path, sport: str, seasons: list[int], train_years: int = 6) 
         model = InGameModel(sport).fit(tr)
         full = model.predict(te)
         score = InGameModel(sport, stats=False).fit(tr).predict(te)
-        full["s_home"], full["s_total"], full["s_margin"] = score["p_home"], score["exp_total"], score["exp_margin"]
-        full = pd.concat([full, baseline_live(te, sport)], axis=1)
-        full["p_over_pre"] = model.p_over(te, te["pre_total"].to_numpy())
+        full["s_home"], full["s_total"], full["s_margin"] = score["p_home"].values, score["exp_total"].values, score["exp_margin"].values
+        full["p_over_pre"] = model.p_over(full, full["pre_total"].to_numpy())
         out.append(full)
     return pd.concat(out, ignore_index=True)
 
@@ -277,8 +285,8 @@ def report(df: pd.DataFrame, sport: str) -> str:
     win = (df["margin"] > 0).astype(float)
     label = {1: "End of Q1", 2: "Halftime", 3: "End of Q3"} if sport != "ncaab" else {1: "Halftime"}
     lines = [f"{sport.upper()} in-game model, seasons {sorted(df.season.unique())} (walk-forward)",
-             "checkpoint | winner: stats model / score-only / current live method | Brier (lower better) | "
-             "final-total miss: stats / score-only / current"]
+             "checkpoint | winner: with game stats / calibrated score-only / original live method | Brier (lower better) | "
+             "final-total miss: same order"]
     for k, g in df.groupby("checkpoint"):
         w = win[g.index]
         acc = lambda p: ((g[p] >= .5).astype(float) == w).mean()

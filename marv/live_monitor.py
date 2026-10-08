@@ -94,7 +94,7 @@ def ingame_state(model, sport: str, summary: dict, game, rec: dict, ended_period
     st["pre_total"] = o.total if o and o.total is not None else rec["model_total"]
     st["h_score"], st["a_score"] = float(game.info.get("live_home")), float(game.info.get("live_away"))
     from .ingame.model import add_score_cols
-    st = model.predict(add_score_cols(st))
+    st = model.predict(add_score_cols(st))  # adds the score-and-pace base, then the stats correction
     r = st.iloc[0]
     return {"p_home": float(r["p_home"]), "exp_total": float(r["exp_total"]), "exp_margin": float(r["exp_margin"]),
             "frame": st, "stats": r}
