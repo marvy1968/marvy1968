@@ -77,7 +77,8 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         return as_bot + [py, "-m", "unittest", "discover", "-s", "tests"], ""
     if cmd == "update":  # always the latest installer from GitHub, so a broken local copy can't block updates
         url = "https://raw.githubusercontent.com/marvy1968/marvy1968/claude/analysis-ak180w/deploy/install.sh"
-        return ["bash", "-c", f"curl -fsSL {url} | bash"], ""
+        # The raw GitHub copy can be minutes stale, so run the freshly pulled local installer afterwards too.
+        return ["bash", "-c", f"curl -fsSL {url} | bash && bash {BOT}/deploy/install.sh"], ""
     if cmd == "telegram":  # send a card committed to the vm-link branch (cards/<name>.txt) to the owner's chat
         if len(args) != 1 or not re.fullmatch(r"cards/[A-Za-z0-9_.-]+\.txt", args[0]):
             return None, "telegram needs one file: cards/<name>.txt"
