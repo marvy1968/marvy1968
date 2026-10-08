@@ -484,6 +484,15 @@ def cmd_live(s: Settings, args) -> int:
     return 0
 
 
+def cmd_notify(s: Settings, args) -> int:
+    """Send a text file (e.g. a bet card) to the owner's Telegram chat."""
+    from html import escape
+    text = Path(args.file).read_text()[:3800]
+    send_message(s.telegram_bot_token, s.telegram_chat_id, f"<pre>{escape(text)}</pre>" if args.mono else escape(text))
+    print("sent")
+    return 0
+
+
 def cmd_injuries(s: Settings, args) -> int:
     """Injury and roster availability report for a sport (optionally a few teams)."""
     from .data.injuries import report_text
@@ -710,6 +719,9 @@ def main(argv: list[str] | None = None) -> int:
     lv.add_argument("--once", action="store_true", help="one pass, then exit")
     lv.add_argument("--dry-run", action="store_true")
 
+    nt = sub.add_parser("notify", help="send a text file (e.g. a bet card) to Telegram")
+    nt.add_argument("--file", required=True)
+    nt.add_argument("--mono", action="store_true", help="keep the layout (monospace)")
     ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
     ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
     ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")
@@ -732,7 +744,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

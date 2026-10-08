@@ -12,6 +12,7 @@ Accepted job lines:
   status                        service status, timers, bot version, disk
   logs <unit> [lines]           journalctl for a marv-* unit (default 200 lines)
   show <path>                   print a file under /opt/marv-bot/state (not .env), up to 200 KB
+  telegram cards/<name>.txt     send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
   marv <command> [args...]      python -m marv ... as the marvbot user; `run`/`props` need --dry-run,
@@ -77,6 +78,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "update":  # always the latest installer from GitHub, so a broken local copy can't block updates
         url = "https://raw.githubusercontent.com/marvy1968/marvy1968/claude/analysis-ak180w/deploy/install.sh"
         return ["bash", "-c", f"curl -fsSL {url} | bash"], ""
+    if cmd == "telegram":  # send a card committed to the vm-link branch (cards/<name>.txt) to the owner's chat
+        if len(args) != 1 or not re.fullmatch(r"cards/[A-Za-z0-9_.-]+\.txt", args[0]):
+            return None, "telegram needs one file: cards/<name>.txt"
+        return as_bot + [py, "-m", "marv", "notify", "--mono", "--file", str(LINK / args[0])], ""
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
