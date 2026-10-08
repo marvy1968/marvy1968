@@ -343,3 +343,22 @@ half; point-in-time EPA blended with last season. Parameters fitted only on earl
 Held-out 2022-26: fixed 63.2% vs Marv 65.4%; over/under vs closing totals 48.9% (no edge); the original
 veto (injuries, weather, tight spread) lowered 70%+ accuracy (74.7% vs 78.0%). The original's
 coin-flip-or-worse result comes from the defense sign. A 50/50 blend with Marv didn't beat Marv alone.
+
+## The owner's head-to-head total engine (pace, points per drive, red zone, Poisson)
+
+On its own Cowboys–Bucs example it projects 78.7 points (line 47.5). Backtested on 2,736 NFL games
+2016-2026 with real point-in-time inputs from nflverse play-by-play:
+
+| Model | Avg projected total | Avg miss | O/U vs closing total |
+|---|---|---|---|
+| Head-to-head engine as written | 66.0 | 24.1 | 49.4% |
+| Head-to-head engine fixed | 47.4 | 11.7 | 49.2% |
+| Pro Football Max fixed | 45.8 | 10.8 | 48.3% |
+| Marv | 45.7 | 10.7 | 49.3% (51.1% when 3+ pts off the line, 570 games) |
+| Closing total itself | 45.2 | **10.4** | - |
+
+Actual average 45.6; break-even at -110 is 52.4%. Problems in the original: drives = pace / 11.5
+(~5.7 per team; real ~10-11) times a points-per-drive *rate* inflated by +1.8, then counted again as
+3.2-point scoring events; subtracting the opponent's points allowed (a bad defense should add); and the
+red-zone multiplier double counts what points per drive already includes. No version beats the closing
+total: NFL totals stay a no-bet in Marv.
