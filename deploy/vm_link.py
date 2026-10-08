@@ -72,8 +72,9 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     as_bot = ["runuser", "-u", "marvbot", "--"]
     if cmd == "tests":
         return as_bot + [py, "-m", "unittest", "discover", "-s", "tests"], ""
-    if cmd == "update":
-        return ["bash", str(BOT / "deploy/install.sh")], ""
+    if cmd == "update":  # always the latest installer from GitHub, so a broken local copy can't block updates
+        url = "https://raw.githubusercontent.com/marvy1968/marvy1968/claude/analysis-ak180w/deploy/install.sh"
+        return ["bash", "-c", f"curl -fsSL {url} | bash"], ""
     if cmd == "status":
         return ["bash", "-c", "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager;"
                 f" git -c safe.directory={BOT} -C {BOT} log -3 --oneline; df -h /"], ""

@@ -28,8 +28,10 @@ if [ -n "$SRC" ] && [ -d "$SRC/marv" ] && [ "$SRC" != "$DIR" ]; then
   cp -r "$SRC"/. "$DIR"/
 elif [ -d "$DIR/.git" ]; then
   # The folder belongs to the marvbot user; tell git that's expected when root updates it.
+  # (-c works even when root has no HOME, e.g. under systemd, where --global silently fails.)
   git config --global --add safe.directory "$DIR" 2>/dev/null || true
-  git -C "$DIR" fetch origin "$BRANCH" && git -C "$DIR" checkout -B "$BRANCH" "origin/$BRANCH"
+  git -c safe.directory="$DIR" -C "$DIR" fetch origin "$BRANCH"
+  git -c safe.directory="$DIR" -C "$DIR" checkout -f -B "$BRANCH" "origin/$BRANCH"
 else
   git clone --branch "$BRANCH" "$REPO" "$DIR"
 fi
