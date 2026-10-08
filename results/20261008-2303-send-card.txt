@@ -1,0 +1,3 @@
+$ telegram cards/20261008-tb-dal-v2.txt
+started 2026-10-08 15:52:41 EDT
+RUNNING...
