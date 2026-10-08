@@ -1,3 +1,87 @@
 $ find-odds-bot
-started 2026-10-08 19:18:10 EDT
-RUNNING...
+started 2026-10-08 19:18:10 EDT, took 223s, exit 0
+
+== Python projects that talk to Telegram (excluding Marv and virtualenvs)
+     29 /home/moonrider1968/MasterBot_Center/system_noise
+     14 /home/moonrider1968/MasterBot_Center/Trading_Oanda
+     12 /home/moonrider1968/aj-bet-bot/tests
+     12 /home/moonrider1968/MarchEdgePro/admin
+     11 /home/moonrider1968/MasterBot_Center
+      9 /home/moonrider1968/backups/aj-bet-bot-sharpapi-20261002-075300/tests
+      9 /home/moonrider1968/backups/aj-bet-bot-rapidodds-20261002-074154/tests
+      9 /home/moonrider1968/backups/aj-bet-bot-parlayapi-20261002-073744/tests
+      9 /home/moonrider1968/backups/aj-bet-bot-oddspapi-20261002-071700/tests
+      8 /home/moonrider1968/MarchEdgePro/tests
+      7 /home/moonrider1968/aj-bet-bot/ajbet
+      6 /home/moonrider1968/bots/crypto_fleet
+      6 /home/moonrider1968/bots
+      6 /home/moonrider1968/backups/aj-bet-bot-sharpapi-20261002-075300/ajbet
+      5 /home/moonrider1968/parked_projects/oanda_fifo_practice/MarchEdge
+      5 /home/moonrider1968/backups/aj-bet-bot-rapidodds-20261002-074154/ajbet
+      5 /home/moonrider1968/MarchEdgePro/marchedgepro
+      5 /home/moonrider1968
+      4 /opt/sx-swing/sxbot
+      4 /opt/sx-swing.bak-20261002-stopfix/sxbot
+
+== Of those, files mentioning odds/lines/sportsbooks
+/home/moonrider1968/MasterBot_Center/live_odds_engine.py
+/home/moonrider1968/MasterBot_Center/build_backtest_history.py
+/home/moonrider1968/MasterBot_Center/telegram_listener.py
+/home/moonrider1968/MasterBot_Center/bet_intelligence.py
+/home/moonrider1968/MasterBot_Center/aj_edge_bot.py
+/home/moonrider1968/MasterBot_Center/market_consensus.py
+/home/moonrider1968/MasterBot_Center/all_engines_live.py
+/home/moonrider1968/MasterBot_Center/build_backtest_data.py
+/home/moonrider1968/MasterBot_Center/more.py
+/home/moonrider1968/MasterBot_Center/ev.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/live_odds_engine.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/build_backtest_history.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/nfl_team_props.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/ncaaf_team_props.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/telegram_listener.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_team_props.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/basketball_team_props_engine.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/bet_intelligence.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/market_consensus.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/basketball_team_props_master.py
+
+== systemd services that look like bots
+  aj-bet-bot.service                                     loaded    active     running       AJ Bet Bot (alert-only, paper tracking; merged MarchEdgePro) + Telegram @March_betbot
+  marv-bridge.service                                    loaded    active     running       Marv bridge - local fair-price API for the odds alert bot
+  marv-edges.service                                     loaded    active     running       Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+  marv-health.service                                    loaded    inactive   dead          Marv watchdog: Telegram alert if a service, the daily run, disk or Odds API credits need attention
+  master-trade-bot.service                               loaded    active     running       Master Trade Bot Unified Telegram Command & Fleet Listener
+  oanda-c1.service                                       loaded    active     running       OANDA Practice Bot Finalist C1 (2+1 Hardened)
+  scorecard-sector-scalp-bot.service                     loaded    inactive   dead          [PAPER] sector-scalp-bot daily Telegram scorecard (send-only)
+  sector-scalp-bot-flatten@moonrider1968.service         loaded    inactive   dead          sector-scalp-bot safety net: flatten ONLY sx- positions
+  sector-scalp-bot@moonrider1968.service                 loaded    active     running       sector-scalp-bot (sx-) Alpaca PAPER intraday bot
+  stockbot_open.service                                  loaded    inactive   dead          Sector Top-Down Daily Market Open Execution (09:30:30 ET)
+  sx-swing@moonrider1968.service                         loaded    active     running       sx-swing Alpaca PAPER swing bot (overnight holds; NOT flattened at 15:50)
+-- aj-bet-bot.service
+WorkingDirectory=/home/moonrider1968/aj-bet-bot
+ExecStart=/home/moonrider1968/aj-bet-bot/.venv/bin/python -m ajbet run
+-- marv-edges.service
+WorkingDirectory=/opt/marv-bot
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv edges --watch
+
+== cron jobs
+*/5 * * * * /home/moonrider1968/bots/watchdog_c1.sh
+10 16 * * 1-5 /home/moonrider1968/bots/oanda_active/venv/bin/python /home/moonrider1968/bots/f0_stage3/run_elite20_paper_scheduler.py >> /home/moonrider1968/bots/f0_stage3/paper_logs/cron_stdout.log 2>&1
+10 16 * * 1-5 python3 /home/moonrider1968/bots/tg_valeze_report.py > /dev/null 2>&1
+15 16 * * 1-5 cd /home/moonrider1968/scalp_bot && /home/moonrider1968/scalp_bot/venv/bin/python3 live_bot.py >> /home/moonrider1968/scalp_bot/bot_log.txt 2>&1
+35 11 * * 1-5 python3 /home/moonrider1968/bots/tg_valeze_report.py > /dev/null 2>&1
+35 9 * * 1-5 python3 /home/moonrider1968/bots/tg_valeze_report.py > /dev/null 2>&1
+
+== running python processes
+    387 moonrid+ /home/moonrider1968/aj-bet-bot/.venv/bin/python -m ajbet run
+    393 moonrid+ /usr/bin/python3 /home/moonrider1968/bots/live_equities_elite20_hardened.py
+    402 moonrid+ /usr/bin/python3 /home/moonrider1968/bots/master_trade_bot.py
+    403 root     /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers
+    405 moonrid+ /home/moonrider1968/bots/alpaca_microedge/venv/bin/python3 -u /home/moonrider1968/orchestrator/rpp_unified_scanner.py
+    421 moonrid+ /opt/sector-scalp-bot/venv/bin/python -m sxbot.main --config /opt/sector-scalp-bot/config/config.yaml
+    423 moonrid+ /opt/sx-swing/venv/bin/python -m sxbot.swing_main --config /opt/sx-swing/config/swing.yaml
+    435 moonrid+ /opt/xp-test/venv/bin/python -m xp.main --config /opt/xp-test/config/config.yaml
+    479 root     /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+   1021 moonrid+ /usr/bin/python3 /home/moonrider1968/bots/oanda_practice_bot_c1.py
+
+Next: sudo bash /opt/marv-bot/deploy/find_odds_bot.sh /path/to/the/odds/bot/folder
