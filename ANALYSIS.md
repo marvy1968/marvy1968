@@ -409,3 +409,23 @@ earlier games, matchup = my offense + their defense. Ridge model refit each seas
 The stable efficiency stats don't beat Marv's full box-score set, and neither beats the market: the
 ~64% "side ceiling" is what public stats can reach; the closing line (66.5%) also prices injuries,
 weather and news. Not adopted.
+
+## Weighting each head-to-head stat
+
+Instead of 1 point per stat won, a ridge regression learns each stat's weight from the 6 seasons before
+each test season ("learned weight per stat"), or also uses how big each edge is ("weights x size of edge").
+
+| Held-out | Equal weights | Learned weights | Weights x size of edge | Marv |
+|---|---|---|---|---|
+| NFL 2016-26 (2,641) winners | 63.7% | 63.9% | **64.6%** | 64.7% |
+| NFL 80%+ picks | 83.2% (101) | 91.7% (24) | 91.8% (49) | 91.5% (47) |
+| College FB top 30, 2018-26 (1,432) winners | 76.5% | 76.9% | **77.7%** | 77.7% |
+| College FB 80%+ picks | 88.4% (596) | 87.2% (587) | 88.9% (522) | **92.2% (448)** |
+| ATS when 55%+ sure (NFL / CFB) | 50.6% / 47.2% | 51.5% / 48.4% | 50.6% / 49.2% | |
+
+Weighting by the size of each edge adds about 1 point of winner accuracy over the 1-point-per-stat tally
+and brings the head-to-head method level with Marv, not past it (Marv's confident college picks stay
+better). In college football the heaviest weights went to points per drive, red-zone TD rate and
+defensive rush success / yards per play allowed; turnovers were weighted near zero (too noisy).
+Against the spread, no version has an edge. `marv/stats/h2h.py` now supports `mode="weighted"` and
+`mode="magnitude"`.

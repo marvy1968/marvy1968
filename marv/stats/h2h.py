@@ -67,9 +67,34 @@ def categories(m: pd.DataFrame) -> list[str]:
 @dataclass
 class H2HModel:
     direction: dict  # stat -> +1 if higher is better, -1 if lower is better
-    coef: np.ndarray  # margin = coef . [home_flag, season_net, trend_net]
+    coef: np.ndarray  # margin = coef . [home_flag, season_net, trend_net]  (equal mode)
     total_coef: np.ndarray  # total = coef . [1, scoring_average_total]
     cats: list
+    mode: str = "equal"  # equal: 1 point per stat · weighted: learned weight per stat · magnitude: weighted size of each edge
+    weights: object = None  # fitted ridge model for the weighted modes
+    scale: dict = None  # per-stat spread of differences (magnitude mode)
+
+
+def category_matrix(m: pd.DataFrame, cats: list, mode: str, scale: dict | None = None) -> np.ndarray:
+    """One column per stat (season and last-3 trend) plus home: who wins it (sign) or by how much (scaled)."""
+    cols = [home_flag(m)]
+    for prefix in ("s", "t"):
+        for c in cats:
+            diff = (m[f"h_{prefix}_{c}"] - m[f"a_{prefix}_{c}"]).to_numpy(float)
+            if mode == "magnitude":
+                diff = np.clip(diff / (scale or {}).get(f"{prefix}_{c}", 1.0), -3, 3)
+            else:
+                diff = np.sign(diff)
+            cols.append(np.nan_to_num(diff))
+    return np.column_stack(cols)
+
+
+def stat_weights(model: "H2HModel") -> pd.Series:
+    """Learned weight of each stat (season columns), largest first; in points of margin per stat won."""
+    if model.weights is None:
+        return pd.Series({c: float(model.direction.get(c, 0) * model.coef[1]) for c in model.cats})
+    coef = model.weights.coef_[1:1 + len(model.cats)]
+    return pd.Series(coef, index=model.cats).sort_values(key=abs, ascending=False)
 
 
 def tallies(m: pd.DataFrame, direction: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -92,8 +117,10 @@ def home_flag(m: pd.DataFrame) -> np.ndarray:
     return np.where(m["neutral"].fillna(False).astype(bool), 0.0, 1.0)
 
 
-def fit(m: pd.DataFrame) -> H2HModel:
-    """Learn each stat's direction and the tally -> margin / total mapping from finished games."""
+def fit(m: pd.DataFrame, mode: str = "equal") -> H2HModel:
+    """Learn each stat's direction and the tally -> margin / total mapping from finished games.
+    mode="weighted" learns a weight per stat instead of 1 point each; mode="magnitude" also uses how big
+    each edge is. Both use ridge regression so weak or redundant stats shrink toward zero."""
     m = m[m["home_points"].notna()]
     margin = (m["home_points"] - m["away_points"]).to_numpy()
     direction = {}
@@ -109,7 +136,16 @@ def fit(m: pd.DataFrame) -> H2HModel:
     ok = ~np.isnan(tot)
     total_coef = np.linalg.lstsq(np.column_stack([np.ones(ok.sum()), tot[ok]]),
                                  (m["home_points"] + m["away_points"]).to_numpy()[ok], rcond=None)[0]
-    return H2HModel(direction, coef, total_coef, categories(m))
+    model = H2HModel(direction, coef, total_coef, categories(m), mode=mode)
+    if mode != "equal":
+        from sklearn.linear_model import RidgeCV
+        cats = categories(m)
+        if mode == "magnitude":
+            model.scale = {f"{p}_{c}": float(np.nanstd(m[f"h_{p}_{c}"] - m[f"a_{p}_{c}"]) or 1.0)
+                           for p in ("s", "t") for c in cats}
+        X = category_matrix(m, cats, mode, model.scale)
+        model.weights = RidgeCV(alphas=np.logspace(-1, 5, 40)).fit(X, margin)
+    return model
 
 
 def predict(m: pd.DataFrame, model: H2HModel, module: StatsModule, n: int = 2000, seed: int = 0) -> pd.DataFrame:
@@ -117,7 +153,10 @@ def predict(m: pd.DataFrame, model: H2HModel, module: StatsModule, n: int = 2000
     rng = np.random.default_rng(seed)
     m = m.copy()
     m["season_net"], m["trend_net"] = tallies(m, model.direction)
-    m["h2h_margin"] = np.column_stack([home_flag(m), m["season_net"], m["trend_net"]]) @ model.coef
+    if model.weights is not None:
+        m["h2h_margin"] = model.weights.predict(category_matrix(m, model.cats, model.mode, model.scale))
+    else:
+        m["h2h_margin"] = np.column_stack([home_flag(m), m["season_net"], m["trend_net"]]) @ model.coef
     m["h2h_total"] = model.total_coef[0] + model.total_coef[1] * scoring_total(m)
     p_home, p_cover, p_over = [], [], []
     for mg, tot, spread, line in zip(m["h2h_margin"], m["h2h_total"], m["spread"], m["total"]):
@@ -139,8 +178,10 @@ def _beat(values: np.ndarray, line: float) -> float:
 
 def walk_forward(module: StatsModule, games: pd.DataFrame, tg: pd.DataFrame, test_seasons: list[int],
                  min_games: int = 3, n: int = 2000, prior_games: float = 0.0, trend: bool = True,
-                 count_only: pd.Series | None = None) -> pd.DataFrame:
-    """Each test season is predicted by a model fit only on the seasons before it."""
+                 count_only: pd.Series | None = None, mode: str = "equal", train_years: int = 6,
+                 models: dict | None = None) -> pd.DataFrame:
+    """Each test season is predicted by a model fit only on the seasons before it (the last `train_years`).
+    Pass a dict as `models` to collect the fitted model per season."""
     feats = team_features(tg, module.stat_columns(tg), prior_games=prior_games, count_only=count_only)
     if not trend:
         feats[[c for c in feats if c.startswith("t_")]] = np.nan
@@ -148,11 +189,14 @@ def walk_forward(module: StatsModule, games: pd.DataFrame, tg: pd.DataFrame, tes
     m = m[(m["h_n"] >= min_games) & (m["a_n"] >= min_games)]
     out = []
     for season in test_seasons:
-        train = m[m["season"] < season]
+        train = m[(m["season"] < season) & (m["season"] >= season - train_years)]
         test = m[m["season"] == season]
         if train.empty or test.empty:
             continue
-        out.append(predict(test, fit(train), module, n=n, seed=season))
+        model = fit(train, mode)
+        if models is not None:
+            models[season] = model
+        out.append(predict(test, model, module, n=n, seed=season))
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 

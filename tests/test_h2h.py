@@ -54,5 +54,18 @@ class H2HTests(unittest.TestCase):
         self.assertIn("Moneyline, every game", h2h.report(df, 2021))
 
 
+class WeightedH2HTests(unittest.TestCase):
+    def test_weighted_modes_learn_which_stat_matters(self):
+        games, tg = synthetic()
+        tg["noise"] = np.random.default_rng(3).normal(0, 1, len(tg))  # a stat with no signal
+        m = h2h.matchups(games, h2h.team_features(tg, ["ypp", "turnovers", "noise"]))
+        for mode in ("weighted", "magnitude"):
+            model = h2h.fit(m, mode)
+            w = h2h.stat_weights(model)
+            self.assertGreater(abs(w["ypp"]), abs(w["noise"]))
+            out = h2h.predict(m.dropna(subset=["h_s_ypp", "a_s_ypp"]).head(50), model, WNBA, n=200)
+            self.assertTrue(out["p_home"].between(0, 1).all())
+
+
 if __name__ == "__main__":
     unittest.main()
