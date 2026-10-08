@@ -1,0 +1,17 @@
+{
+ "_about": "Edge backtest on real closing prices (scratch edge_bt.py; weight = model share of a logit blend with the no-vig market, edge = minimum expected profit). Chosen on early seasons, measured on held-out seasons. A market is RECOMMENDED only with positive held-out ROI, p < 0.10 and 100+ bets.",
+ "nfl": {
+  "ml": {"weight": 0.25, "edge": 0.02, "bets_test": 262, "win_test": 0.302, "roi_test": -0.147, "p_value": 0.82, "seasons": "tuned 2016-21, tested 2022-26"},
+  "spread": {"weight": 0.5, "edge": 0.08, "bets_test": 168, "win_test": 0.530, "roi_test": 0.020, "p_value": 0.39, "seasons": "tuned 2016-21, tested 2022-26"},
+  "total": {"weight": 0.25, "edge": 0.02, "bets_test": 110, "win_test": 0.455, "roi_test": -0.121, "p_value": 0.91, "seasons": "tuned 2016-21, tested 2022-26"}
+ },
+ "cfb": {
+  "spread": {"weight": 0.1, "edge": 0.06, "bets_test": 54, "win_test": 0.537, "roi_test": 0.025, "p_value": 0.42, "seasons": "tuned 2016-20, tested 2021-26 (prices assumed -110)"},
+  "total": {"weight": 0.75, "edge": 0.04, "bets_test": 762, "win_test": 0.496, "roi_test": -0.053, "p_value": 0.94, "seasons": "tuned 2016-20, tested 2021-26 (prices assumed -110)"}
+ },
+ "nba": {
+  "ml": {"weight": 0.25, "edge": 0.10, "bets_test": 246, "win_test": 0.256, "roi_test": 0.004, "p_value": 0.24, "seasons": "tuned 2015-20, tested 2021-26"},
+  "spread": {"weight": 0.25, "edge": 0.10, "bets_test": 99, "win_test": 0.576, "roi_test": 0.099, "p_value": 0.15, "seasons": "tuned 2015-20, tested 2021-26 (prices assumed -110)"},
+  "total": {"weight": 0.25, "edge": 0.08, "bets_test": 157, "win_test": 0.573, "roi_test": 0.094, "p_value": 0.11, "seasons": "tuned 2015-20, tested 2021-26 (prices assumed -110)"}
+ }
+}

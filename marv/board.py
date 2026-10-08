@@ -48,7 +48,9 @@ def market_status(sport: str, market: str) -> tuple[str, float, float, str]:
         return "lean", 0.25, 0.04, "not backtested on closing prices"
     ok = row.get("roi_test", -1) > 0 and row.get("p_value", 1) < 0.10 and row.get("bets_test", 0) >= 100
     note = (f"held-out {row.get('bets_test')} bets, ROI {row.get('roi_test', 0):+.1%}, p={row.get('p_value', 1):.2f}")
-    return ("recommended" if ok else "lean"), row.get("weight", 0.25), row.get("edge", 0.04), note
+    if row.get("roi_test", -1) < 0 and os.environ.get("BOARD_SHOW_LOSING", "false").lower() not in ("1", "true", "yes"):
+        return "skip", 0.0, 1.0, note  # this market lost money on held-out seasons: don't suggest it at all
+    return ("recommended" if ok else "lean"), row.get("weight", 0.25), max(row.get("edge", 0.04), 0.04), note
 
 
 def offers(event: dict, books: list[str]) -> dict:
@@ -104,6 +106,8 @@ def game_entries(sport: str, rec: dict, event: dict, books: list[str]) -> list[d
             continue
         p_fair = fair_home if side in ("home", "over") else 1 - fair_home
         status, w, threshold, note = market_status(sport, market)
+        if status == "skip":
+            continue
         p_marv = model_prob(rec, sport, market, side, point)
         p = E.blend(p_marv, p_fair, w)
         ev = E.edge(p, price)
