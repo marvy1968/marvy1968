@@ -1,3 +1,18 @@
 $ marv live-probe --sport nfl --days 4
-started 2026-10-08 13:37:57 EDT
-RUNNING...
+started 2026-10-08 13:37:57 EDT, took 4s, exit 1
+
+
+--- stderr ---
+2026-10-08 13:38:02,278 ERROR live-probe failed
+Traceback (most recent call last):
+  File "/opt/marv-bot/marv/main.py", line 737, in main
+    return handler[args.command](s, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/marv-bot/marv/main.py", line 533, in cmd_live_probe
+    events = client.scoreboard(path, now - timedelta(days=args.days), now)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/marv-bot/marv/data/espn.py", line 182, in scoreboard
+    resp.raise_for_status()
+  File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261004-20261008&limit=1000
