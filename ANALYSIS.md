@@ -390,3 +390,22 @@ Margins of exactly 3 (14.6%) and 7 (8.9%) are common, as the key-number idea say
 prices around those numbers already reflect it. With ~15 angles tried, one or two p < 0.10 results are
 what luck alone produces. Nothing here qualifies as a bet trigger; the two best (prime-time blowout
 winners, non-division home dogs 3.5+) are worth tracking in paper mode only.
+
+## Advanced play-by-play features (EPA split, early-down success, explosives, pressure, EMA)
+
+Built from nflverse play-by-play for every team-game 2009-2026, offense and defense: pass EPA per dropback,
+rush EPA per carry, early-down (1st/2nd) success rate, overall success rate, explosive rate (15+ yard
+passes, 10+ yard runs), pressure rate (QB hits + sacks per dropback, the closest nflverse has to pressure),
+EPA on pressured dropbacks. Recency-weighted with an EMA (half-life tuned on 2012-15: 6 games), only
+earlier games, matchup = my offense + their defense. Ridge model refit each season on the 6 before it.
+
+| Held-out 2016-26 (2,736 games) | Winners | Brier | 70%+ picks | 78%+ picks | ATS when 4+ pts off the spread |
+|---|---|---|---|---|---|
+| Advanced features | 63.9% | 0.2232 | 74.5% (593) | 82.1% (196) | 50.1% (587) |
+| Marv | 64.5% | 0.2214 | 78.5% (395) | 86.7% (83) | 54.4% (463, p≈0.19) |
+| 50/50 blend | 64.5% | 0.2215 | 75.7% (469) | 83.5% (115) | |
+| Closing moneyline (no-vig) | **66.5%** | **0.2108** | 79.0% (1,037) | 82.5% (469) | |
+
+The stable efficiency stats don't beat Marv's full box-score set, and neither beats the market: the
+~64% "side ceiling" is what public stats can reach; the closing line (66.5%) also prices injuries,
+weather and news. Not adopted.
