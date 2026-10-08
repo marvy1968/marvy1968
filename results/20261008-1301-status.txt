@@ -1,3 +1,95 @@
 $ status
-started 2026-10-08 13:23:07 EDT
-RUNNING...
+started 2026-10-08 13:23:07 EDT, took 1s, exit 0
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:30:49 EDT; 3h 52min ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Oct 08 09:30:49 instance-stockbot systemd[1]: Started marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+
+● marv-vmlink.service - Marv VM link: run jobs from the vm-link branch
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.service; static)
+     Active: activating (start) since Thu 2026-10-08 13:22:56 EDT; 16s ago
+TriggeredBy: ● marv-vmlink.timer
+   Main PID: 84209 (python3)
+      Tasks: 4 (limit: 4617)
+     Memory: 89.9M
+        CPU: 3.457s
+     CGroup: /system.slice/marv-vmlink.service
+             ├─84209 /usr/bin/python3 /opt/marv-bot/deploy/vm_link.py
+             ├─84271 bash -c "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager; git -c safe.directory=/opt/marv-bot -C /opt/marv-bot log -3 --oneline; df -h /"
+             ├─84272 systemctl --no-pager status "marv-*"
+             └─84273 head -80
+
+Oct 08 13:22:56 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+
+● marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+     Loaded: loaded (/etc/systemd/system/marv-edges.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 13:22:31 EDT; 40s ago
+   Main PID: 83790 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 344.5M
+        CPU: 19.834s
+     CGroup: /system.slice/marv-edges.service
+             └─83790 /opt/marv-bot/.venv/bin/python -m marv edges --watch
+
+Oct 08 13:22:31 instance-stockbot systemd[1]: Started marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record).
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 13:22:30 EDT; 41s ago
+   Main PID: 83789 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 135.7M
+        CPU: 7.965s
+     CGroup: /system.slice/marv-live.service
+             └─83789 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 08 13:22:30 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:22:48 instance-stockbot python[83789]: 2026-10-08 13:22:48,300 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 13:22:30 EDT; 41s ago
+   Main PID: 83787 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 128.3M
+        CPU: 6.525s
+     CGroup: /system.slice/marv-bridge.service
+             └─83787 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 08 13:22:30 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Oct 08 13:22:46 instance-stockbot python[83787]: 2026-10-08 13:22:46,066 INFO Marv bridge listening on http://127.0.0.1:8787
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Wed 2026-10-07 15:55:35 EDT; 21h ago
+    Trigger: Thu 2026-10-08 17:30:00 EDT; 4h 6min left
+   Triggers: ● marv-bot-late.service
+
+Oct 07 15:55:35 instance-stockbot systemd[1]: Started marv-bot-late.timer - Re-check injuries and stats shortly before games.
+
+● marv-bot.service - Marv Predict Max - multi-sport predictions + Telegram alerts
+     Loaded: loaded (/etc/systemd/system/marv-bot.service; static)
+     Active: activating (start) since Thu 2026-10-08 13:20:02 EDT; 3min 9s ago
+TriggeredBy: ● marv-bot.timer
+   Main PID: 83201 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 324.9M
+        CPU: 1min 41.414s
+     CGroup: /system.slice/marv-bot.service
+             └─83201 /opt/marv-bot/.venv/bin/python -m marv run --sport all
+NEXT                        LEFT         LAST                        PASSED       UNIT                ACTIVATES
+Thu 2026-10-08 17:30:00 EDT 4h 6min left Wed 2026-10-07 17:30:01 EDT 19h ago      marv-bot-late.timer marv-bot-late.service
+Fri 2026-10-09 10:00:00 EDT 20h left     Thu 2026-10-08 10:00:00 EDT 3h 23min ago marv-bot.timer      marv-bot.service
+-                           -            Thu 2026-10-08 13:22:55 EDT 16s ago      marv-vmlink.timer   marv-vmlink.service
+
+3 timers listed.
+Pass --all to see loaded but inactive timers, too.
+827b5e4 Roster check on every card and live alert: NFL starters out / QB out (elimination flagged), college QB changes from play-by-play; O/U trends fill missing recent results from the schedule feed
+15724b9 Injury report test: no network download
+71e848b injuries command: injury report + NFL roster availability per team (key players starred)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   66G   29G  70% /
