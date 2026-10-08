@@ -80,16 +80,28 @@ def gaps(sport: str, events: list[dict], min_gap: float = 0.5) -> list[dict]:
     return out
 
 
+COVERAGE: dict = {}  # sport -> (games, with Bovado, with Pinnacle, with both) from the last scan
+
+
 def scan(settings, sports=("cfb", "nfl"), min_gap: float = 0.5) -> list[dict]:
     found = []
     for sport in sports:
         if sport not in SPORT_KEYS:
             continue
         try:
-            found += gaps(sport, fetch(settings.odds_api_key, sport), min_gap)
+            events = fetch(settings.odds_api_key, sport)
+            books = [{b.get("key") for b in ev.get("bookmakers", [])} for ev in events]
+            COVERAGE[sport] = (len(events), sum("bovado" in b for b in books), sum("pinnacle" in b for b in books),
+                               sum({"bovado", "pinnacle"} <= b for b in books))
+            found += gaps(sport, events, min_gap)
         except Exception as exc:
             log.warning("sharp gap %s: %s", sport, exc)
     return found
+
+
+def coverage_text() -> str:
+    return "\n".join(f"{s.upper()}: {n} games, Bovado on {b}, Pinnacle on {p}, both on {both}"
+                     for s, (n, b, p, both) in COVERAGE.items())
 
 
 def log_gaps(state: Path, entries: list[dict]) -> list[dict]:

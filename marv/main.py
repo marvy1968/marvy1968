@@ -342,6 +342,7 @@ def cmd_gaps(s: Settings, args) -> int:
     sharpgap.log_gaps(Path(s.state_dir), entries)
     text = sharpgap.text(entries)
     print(text)
+    print(sharpgap.coverage_text())
     if args.send:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
     return 0
