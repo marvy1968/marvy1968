@@ -69,7 +69,7 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
     lines = {}
     try:
         for ev in oddsapi.fetch(settings.odds_api_key, SPORT):
-            lines[ev["id"]] = oddsapi.consensus(ev, getattr(settings, "odds_book", "bovado") or "bovado")
+            lines[ev["id"]] = oddsapi.consensus(ev, getattr(settings, "odds_book", "bovada") or "bovada")
     except Exception as exc:
         log.warning("ncaaf game lines: %s", exc)
     fut_games, fut_players = [], []
@@ -85,7 +85,7 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
             for r in last[(last["team"] == team) & (last["date"] >= day - pd.Timedelta(days=300))].itertuples():
                 fut_players.append({"game_id": e["id"], "team": team, "opponent_team": opp, "player": r.player,
                                     "season": season})
-    book = getattr(settings, "odds_book", "bovado") or "bovado"
+    book = getattr(settings, "odds_book", "bovada") or "bovada"
     budget = O.Budget(int(os.environ.get("PROPS_MAX_CREDITS", "200")))
     got = []
     for e, _, _ in evs:
@@ -178,7 +178,7 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
     budget = O.Budget(max_credits)
     games, players = C.load(cache, list(range(min(seasons) - 4, max(seasons) + 1)), None)
     rows = C.build_rows(games, players)
-    book = getattr(settings, "odds_book", "bovado") or "bovado"
+    book = getattr(settings, "odds_book", "bovada") or "bovada"
     graded = []
     for season in seasons:
         models = _models(rows, season, before=season)

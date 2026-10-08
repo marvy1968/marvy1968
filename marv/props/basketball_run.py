@@ -78,7 +78,7 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
            if now <= pd.Timestamp(e["commence_time"]).to_pydatetime() <= now + timedelta(hours=hours)]
     if not evs:
         return f"No {sport.upper()} games in the window."
-    book = getattr(settings, "odds_book", "bovado") or "bovado"
+    book = getattr(settings, "odds_book", "bovada") or "bovada"
     budget = O.Budget(int(os.environ.get("PROPS_MAX_CREDITS", "300")))
     lines = []
     for ev in evs:
@@ -176,7 +176,7 @@ def backtest_real(settings, seasons: list[int], max_credits: int, top: int = 50,
     budget = O.Budget(max_credits)
     box = B.load_box(cache, list(range(min(seasons) - 4, max(seasons) + 1)), None, sport)
     rows = B.build_rows(box, sport=sport)
-    book = getattr(settings, "odds_book", "bovado") or "bovado"
+    book = getattr(settings, "odds_book", "bovada") or "bovada"
     graded = []
     for season in seasons:
         models = {}

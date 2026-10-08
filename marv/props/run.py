@@ -195,8 +195,8 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
         if ev["id"] not in match:
             continue
         data = O.event_props(settings.odds_api_key, SPORT, ev["id"], [m.key for m in P.MARKETS.values()],
-                             getattr(settings, "odds_book", "bovado") or "bovado", budget)
-        lr = O.prop_rows(data, getattr(settings, "odds_book", "bovado") or "bovado")
+                             getattr(settings, "odds_book", "bovada") or "bovada", budget)
+        lr = O.prop_rows(data, getattr(settings, "odds_book", "bovada") or "bovada")
         if not lr.empty:
             lines.append(lr.assign(game_id=match[ev["id"]]))
     if not lines:
@@ -283,7 +283,7 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
     players = P.load_players(cache, list(range(min(seasons) - 7, max(seasons) + 1)), max(seasons))
     games = P.load_games(cache)
     rows = P.build_rows(players, games)
-    book = getattr(settings, "odds_book", "bovado") or "bovado"
+    book = getattr(settings, "odds_book", "bovada") or "bovada"
     graded = []
     for season in seasons:
         models = {}

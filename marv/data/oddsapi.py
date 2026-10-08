@@ -1,7 +1,7 @@
 """The Odds API (https://the-odds-api.com): consensus prices across US sportsbooks.
 
 Optional. When ODDS_API_KEY is set, these odds replace the ones from ESPN/nflverse/CFBD.
-ODDS_BOOK (default bovado) picks the owner's sportsbook; games it hasn't posted use the consensus.
+ODDS_BOOK (default bovada, the Odds API key for Bovado) picks the owner's sportsbook; games it hasn't posted use the consensus.
 Each call costs (markets x regions) credits; this client requests 3 markets in 1 region.
 """
 
@@ -37,7 +37,7 @@ def _consensus_line(points: list[float]) -> float:
 def consensus(event: dict, book: str = "") -> Odds:
     """Median line across books; price is the median price among books posting that line.
 
-    With `book` (an Odds API bookmaker key such as "bovado"), only that book's prices are used
+    With `book` (an Odds API bookmaker key such as "bovada"), only that book's prices are used
     when it has posted the game."""
     home, away = event["home_team"], event["away_team"]
     spreads, totals, mls = [], [], {"home": [], "away": [], "draw": []}

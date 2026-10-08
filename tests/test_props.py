@@ -21,10 +21,10 @@ def book(key, line, over=-110, under=-110):
 
 class PropsTests(unittest.TestCase):
     def test_prop_rows_reads_player_from_description_and_prefers_book(self):
-        df = O.prop_rows(event([book("draftkings", 250.5), book("bovado", 247.5, -120, 100)]))
+        df = O.prop_rows(event([book("draftkings", 250.5), book("bovada", 247.5, -120, 100)]))
         self.assertEqual(len(df), 1)
         r = df.iloc[0]
-        self.assertEqual((r.player, r.book, r.line, r.over_price, r.under_price), ("Josh Allen", "bovado", 247.5, -120, 100))
+        self.assertEqual((r.player, r.book, r.line, r.over_price, r.under_price), ("Josh Allen", "bovada", 247.5, -120, 100))
         self.assertEqual(O.prop_rows(event([book("draftkings", 250.5)])).iloc[0].book, "draftkings")
 
     def test_names_and_prices(self):

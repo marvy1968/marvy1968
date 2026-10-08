@@ -39,3 +39,35 @@ class EuroLeagueLiveTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ESPNRangeFallbackTests(unittest.TestCase):
+    def test_range_rejected_then_day_by_day(self):
+        import requests
+        from datetime import timedelta
+        from marv.data.espn import ESPNClient
+
+        class Resp:
+            def __init__(self, code, events=()):
+                self.status_code, self._events = code, list(events)
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise requests.HTTPError(response=self)
+            def json(self):
+                return {"events": self._events}
+
+        class Session:
+            headers = {}
+            def __init__(self):
+                self.calls = []
+            def get(self, url, params, timeout):
+                self.calls.append(params["dates"])
+                if "-" in params["dates"]:
+                    return Resp(400)
+                return Resp(200, [{"id": params["dates"]}, {"id": "dup"}])
+
+        sess = Session()
+        start = datetime(2026, 10, 8, 20, tzinfo=timezone.utc)
+        events = ESPNClient(session=sess).scoreboard("football/nfl", start, start + timedelta(hours=10))
+        self.assertEqual(sess.calls, ["20261008-20261009", "20261008", "20261009"])
+        self.assertEqual([e["id"] for e in events], ["20261008", "dup", "20261009"])

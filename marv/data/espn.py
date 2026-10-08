@@ -176,11 +176,26 @@ class ESPNClient:
             if cache.exists():
                 return json.loads(cache.read_text())
         base_path, _, query = path.partition("?")
-        params = {"dates": dates, "limit": 1000}
-        params.update(dict(kv.split("=", 1) for kv in query.split("&") if "=" in kv))
-        resp = self.session.get(BASE.format(path=base_path), params=params, timeout=30)
-        resp.raise_for_status()
-        events = resp.json().get("events", [])
+        extra = dict(kv.split("=", 1) for kv in query.split("&") if "=" in kv)
+
+        def get(d: str) -> list[dict]:
+            resp = self.session.get(BASE.format(path=base_path), params={"dates": d, "limit": 1000, **extra}, timeout=30)
+            resp.raise_for_status()
+            return resp.json().get("events", [])
+
+        try:
+            events = get(dates)
+        except requests.HTTPError as exc:
+            if "-" not in dates or exc.response is None or exc.response.status_code != 400:
+                raise
+            # Some ESPN scoreboards reject date ranges: ask one day at a time.
+            events, seen, day = [], set(), start
+            while day.date() <= end.date():
+                for ev in get(f"{day:%Y%m%d}"):
+                    if ev.get("id") not in seen:
+                        seen.add(ev.get("id"))
+                        events.append(ev)
+                day += timedelta(days=1)
         if cache:
             cache.parent.mkdir(parents=True, exist_ok=True)
             cache.write_text(json.dumps(events))

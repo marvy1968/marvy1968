@@ -16,7 +16,7 @@ def event():
                                             {"name": "Miami Dolphins", "price": sp_a, "point": 3.5}]},
             {"key": "totals", "outcomes": [{"name": "Over", "price": o, "point": total}, {"name": "Under", "price": u, "point": total}]}]}
     return {"home_team": "Buffalo Bills", "away_team": "Miami Dolphins",
-            "bookmakers": [bk("bovado", -180, 155, -110, -110, -110, -110), bk("draftkings", -175, 150, -105, -115, -108, -112),
+            "bookmakers": [bk("bovada", -180, 155, -110, -110, -110, -110), bk("draftkings", -175, 150, -105, -115, -108, -112),
                            bk("pinnacle", -170, 160, -108, -102, -105, -105)]}
 
 
@@ -38,13 +38,13 @@ class EdgeMathTests(unittest.TestCase):
         self.assertLess(E.significance(65, 100, -110), 0.05)
 
     def test_line_shopping_and_board_entries(self):
-        o = board.offers(event(), ["bovado", "draftkings"])
+        o = board.offers(event(), ["bovada", "draftkings"])
         self.assertEqual(o["best"][("ml", "home", None)][0], -175)  # DraftKings beats Bovado; Pinnacle not allowed
         self.assertAlmostEqual(o["fair"][("total", 47.5)], 0.5, places=2)
         # NFL moneylines lost money on held-out closing prices, so the board never suggests them.
         self.assertEqual(board.market_status("nfl", "ml")[0], "skip")
-        self.assertFalse([e for e in board.game_entries("nfl", {**REC, "start": "x"}, event(), ["bovado"]) if e["market"] == "ml"])
-        entries = board.game_entries("ncaab", {**REC, "start": "2026-10-11T17:00:00+00:00"}, event(), ["bovado", "draftkings"])
+        self.assertFalse([e for e in board.game_entries("nfl", {**REC, "start": "x"}, event(), ["bovada"]) if e["market"] == "ml"])
+        entries = board.game_entries("ncaab", {**REC, "start": "2026-10-11T17:00:00+00:00"}, event(), ["bovada", "draftkings"])
         picks = {e["pick"] for e in entries}
         self.assertIn("Buffalo Bills ML", picks)  # Marv 80% vs market 62%: still clears 4% after the market-anchored blend
         self.assertNotIn("Over 47.5", picks)  # Marv 63% vs market 50% shrinks below the 4% threshold

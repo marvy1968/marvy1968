@@ -14,7 +14,7 @@ def event(bov_total, pin_total, bov_spread, pin_spread, start):
             {"key": "spreads", "outcomes": [{"name": "Alabama Crimson Tide", "point": spread, "price": -110},
                                             {"name": "Georgia Bulldogs", "point": -spread, "price": -110}]}]}
     return {"id": "ev1", "commence_time": start.isoformat().replace("+00:00", "Z"), "home_team": "Alabama Crimson Tide",
-            "away_team": "Georgia Bulldogs", "bookmakers": [book("bovado", bov_total, bov_spread), book("pinnacle", pin_total, pin_spread)]}
+            "away_team": "Georgia Bulldogs", "bookmakers": [book("bovada", bov_total, bov_spread), book("pinnacle", pin_total, pin_spread)]}
 
 
 class SharpGapTests(unittest.TestCase):

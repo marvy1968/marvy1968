@@ -86,7 +86,7 @@ def historical_event_props(api_key: str, sport: str, event_id: str, date_iso: st
     return data
 
 
-def prop_rows(event: dict, prefer: str = "bovado") -> pd.DataFrame:
+def prop_rows(event: dict, prefer: str = "bovada") -> pd.DataFrame:
     """Flatten an event's props into one row per player/market/book with the Over and Under prices.
     The player is in `description`; the outcome `name` is just Over/Under."""
     rows = {}

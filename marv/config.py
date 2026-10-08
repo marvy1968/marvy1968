@@ -27,7 +27,7 @@ class Settings:
     telegram_chat_id: str = ""
     cfbd_api_key: str = ""
     odds_api_key: str = ""
-    odds_book: str = "bovado"  # Odds API bookmaker key whose prices the cards use
+    odds_book: str = "bovada"  # Odds API bookmaker key whose prices the cards use
     simulations: int = 20000
     state_dir: str = str(ROOT / "state")
     sports: list[str] = field(default_factory=lambda: list(DEFAULT_SPORTS))
@@ -45,7 +45,8 @@ class Settings:
             telegram_chat_id=os.environ.get("TELEGRAM_CHAT_ID", ""),
             cfbd_api_key=os.environ.get("CFBD_API_KEY", ""),
             odds_api_key=os.environ.get("ODDS_API_KEY", ""),
-            odds_book=os.environ.get("ODDS_BOOK", "bovado").strip().lower(),
+            # The Odds API calls the book "bovada"; older .env files said "bovado".
+            odds_book=os.environ.get("ODDS_BOOK", "bovada").strip().lower().replace("bovado", "bovada"),
             simulations=int(os.environ.get("SIMULATIONS") or 20000),
             state_dir=os.environ.get("STATE_DIR") or str(ROOT / "state"),
             sports=[x.strip().lower() for x in enabled.split(",") if x.strip()] or list(DEFAULT_SPORTS),

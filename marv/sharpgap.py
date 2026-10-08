@@ -29,9 +29,9 @@ LABEL = {("cfb", "total"): "LEAN · backtest 54.4% (2,340), +4.6% ROI",
 
 def fetch(api_key: str, sport: str) -> list[dict]:
     resp = requests.get(URL.format(sport=SPORT_KEYS[sport]), timeout=30, params={
-        "apiKey": api_key, "bookmakers": "bovado,pinnacle", "markets": "spreads,totals", "oddsFormat": "american"})
+        "apiKey": api_key, "bookmakers": "bovada,pinnacle", "markets": "spreads,totals", "oddsFormat": "american"})
     resp.raise_for_status()
-    log.info("Odds API %s (bovado+pinnacle): %s credits left", sport, resp.headers.get("x-requests-remaining"))
+    log.info("Odds API %s (bovada+pinnacle): %s credits left", sport, resp.headers.get("x-requests-remaining"))
     return resp.json()
 
 
@@ -54,7 +54,7 @@ def gaps(sport: str, events: list[dict], min_gap: float = 0.5) -> list[dict]:
     """One entry per game and market where Bovado's line differs from Pinnacle's by min_gap or more."""
     out = []
     for ev in events:
-        bov, pin = _markets(ev, "bovado"), _markets(ev, "pinnacle")
+        bov, pin = _markets(ev, "bovada"), _markets(ev, "pinnacle")
         home, away = ev["home_team"], ev["away_team"]
         for market in ("total", "spread"):
             if market not in bov or market not in pin:
@@ -91,8 +91,8 @@ def scan(settings, sports=("cfb", "nfl"), min_gap: float = 0.5) -> list[dict]:
         try:
             events = fetch(settings.odds_api_key, sport)
             books = [{b.get("key") for b in ev.get("bookmakers", [])} for ev in events]
-            COVERAGE[sport] = (len(events), sum("bovado" in b for b in books), sum("pinnacle" in b for b in books),
-                               sum({"bovado", "pinnacle"} <= b for b in books))
+            COVERAGE[sport] = (len(events), sum("bovada" in b for b in books), sum("pinnacle" in b for b in books),
+                               sum({"bovada", "pinnacle"} <= b for b in books))
             found += gaps(sport, events, min_gap)
         except Exception as exc:
             log.warning("sharp gap %s: %s", sport, exc)

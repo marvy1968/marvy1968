@@ -27,7 +27,7 @@ from .data.teams import similarity
 
 log = logging.getLogger(__name__)
 BACKTEST = Path(__file__).with_name("backtest_edges.json")
-DEFAULT_BOOKS = "bovado,draftkings,fanduel,betmgm,caesars,betrivers,espnbet,fanatics"
+DEFAULT_BOOKS = "bovada,draftkings,fanduel,betmgm,caesars,betrivers,espnbet,fanatics"
 
 
 def _phi(x: float) -> float:
@@ -134,7 +134,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
     path = state / "predictions.json"
     preds = json.loads(path.read_text()) if path.exists() else {}
     now = datetime.now(timezone.utc)
-    books = [b.strip() for b in os.environ.get("ODDS_BOOKS", DEFAULT_BOOKS).split(",") if b.strip()]
+    books = [b.strip().replace("bovado", "bovada") for b in os.environ.get("ODDS_BOOKS", DEFAULT_BOOKS).split(",") if b.strip()]
     entries = []
     for sport in sports:
         recs = [r for r in preds.values() if r["sport"] == sport
