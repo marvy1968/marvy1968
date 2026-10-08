@@ -5,6 +5,7 @@ import os
 import json
 import logging
 import sys
+import time
 import traceback
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -109,6 +110,16 @@ def cmd_run(s: Settings, args) -> int:
                 _alert_failure(s, f"{sport.name} run")
     if args.sport == "all" and weekday == 0 and not args.dry_run and not args.label:
         send_message(s.telegram_bot_token, s.telegram_chat_id, results_text(s, store, 7))
+    # Keep the quarter-by-quarter models fresh (weekly retrain; the live service picks them up on restart).
+    from .ingame import model as ingame
+    for isport in [k for k in keys if k in ingame.SPECS]:
+        path = ingame.model_path(Path(s.state_dir), isport)
+        if not args.dry_run and (not path.exists() or time.time() - path.stat().st_mtime > 7 * 86400):
+            try:
+                class _A: action, sport, seasons = "train", isport, ""
+                cmd_ingame(s, _A)
+            except Exception:
+                log.exception("in-game %s training failed", isport)
     props_on = os.environ.get("PROPS", "on").lower() not in ("0", "off", "false", "no")
     for psport, window in (("nfl", 36), ("cfb", 48), ("ncaab", 30), ("ncaaw", 30), ("wnba", 30)):
         if psport in keys and s.odds_api_key and props_on:
@@ -273,6 +284,25 @@ def cmd_props_backtest(s: Settings, args) -> int:
         print(props.backtest_real(s, seasons, args.max_credits))
     else:
         print(props.backtest_free(Path(s.state_dir) / "cache", seasons))
+    return 0
+
+
+def cmd_ingame(s: Settings, args) -> int:
+    """Train or backtest the quarter-by-quarter model (game stats at each period -> ML and O/U)."""
+    from .ingame import model as ingame
+    from .live_monitor import STRUCTURE  # noqa: F401  (sports with a live feed)
+    cache = Path(s.state_dir) / "cache"
+    if args.action == "backtest":
+        first, last = (int(x) for x in args.seasons.split("-"))
+        df = ingame.backtest(cache, args.sport, list(range(first, last + 1)))
+        print(ingame.report(df, args.sport))
+    else:
+        from .props.basketball_run import season_of as bb_season
+        now = datetime.now(timezone.utc)
+        current = bb_season(now, args.sport) if args.sport in ("ncaab", "ncaaw", "wnba") else \
+            (now.year if now.month >= 3 else now.year - 1)
+        ingame.train(Path(s.state_dir), args.sport, current)
+        print(f"in-game {args.sport} model saved to {ingame.model_path(Path(s.state_dir), args.sport)}")
     return 0
 
 
@@ -483,6 +513,11 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--real", action="store_true", help="use The Odds API historical prop lines (paid credits)")
     pb.add_argument("--max-credits", dest="max_credits", type=int, default=40000)
 
+    ig = sub.add_parser("ingame", help="quarter-by-quarter model: train it, or backtest it")
+    ig.add_argument("action", choices=["train", "backtest"])
+    ig.add_argument("--sport", required=True, choices=["nfl", "cfb", "ncaab", "ncaaw", "wnba"])
+    ig.add_argument("--seasons", default="2020-2025", help="backtest seasons, e.g. 2020-2025")
+
     ck = sub.add_parser("check", help="Marv's fair price for an odds-bot alert (pregame or live)")
     ck.add_argument("--sport", required=True, choices=list(SPORTS))
     ck.add_argument("--team", required=True, help="any team in the game")
@@ -526,7 +561,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

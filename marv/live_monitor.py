@@ -77,13 +77,49 @@ def _find_rec(preds: dict, sport: str, home: str, away: str) -> dict | None:
     return best if score >= 0.75 else None
 
 
+def ingame_state(model, sport: str, summary: dict, game, rec: dict, ended_period: int) -> dict | None:
+    """The quarter-by-quarter model's projection from the game's own stats, or None if unavailable."""
+    from .ingame import plays as PL
+    if model is None or ended_period not in getattr(model, "heads", {}):
+        return None
+    plays = (PL.espn_football if sport in ("nfl", "cfb") else PL.espn_basketball)(summary, str(game.id))
+    if plays.empty:
+        return None
+    builder = PL.football_states if sport in ("nfl", "cfb") else PL.basketball_states
+    st = builder(plays, (ended_period,))
+    if st.empty:
+        return None
+    o = game.odds
+    st["pre_spread"] = o.spread if o and o.spread is not None else -rec["model_margin"]
+    st["pre_total"] = o.total if o and o.total is not None else rec["model_total"]
+    st["h_score"], st["a_score"] = float(game.info.get("live_home")), float(game.info.get("live_away"))
+    from .ingame.model import add_score_cols
+    st = model.predict(add_score_cols(st))
+    r = st.iloc[0]
+    return {"p_home": float(r["p_home"]), "exp_total": float(r["exp_total"]), "exp_margin": float(r["exp_margin"]),
+            "frame": st, "stats": r}
+
+
+def stat_line(sport: str, r, home: str, away: str) -> str:
+    """Short in-game stat comparison for the Telegram update."""
+    if sport in ("nfl", "cfb"):
+        return (f"Stats {away} / {home}: yds/play {r['a_ypp']:.1f} / {r['h_ypp']:.1f} · success "
+                f"{r['a_success_rate']:.0%} / {r['h_success_rate']:.0%} · turnovers {r['a_turnover']:.0f} / {r['h_turnover']:.0f}")
+    return (f"Stats {away} / {home}: eFG {r['a_efg']:.0%} / {r['h_efg']:.0%} · rebounds "
+            f"{r['a_oreb'] + r['a_dreb']:.0f} / {r['h_oreb'] + r['h_dreb']:.0f} · turnovers {r['a_tov']:.0f} / {r['h_tov']:.0f}")
+
+
 def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, line_total: float | None,
-                price_home: float | None, price_away: float | None, live_prices: bool) -> str:
+                price_home: float | None, price_away: float | None, live_prices: bool, ingame: dict | None = None) -> str:
     hs, as_ = game.info.get("live_home"), game.info.get("live_away")
     if final:
         hs, as_ = game.home_score, game.away_score
     left = 0.0 if final else minutes_left(sport, ended_period, game.info.get("clock"), True)
     st = bridge.live_state(rec, sport, hs, as_, left)
+    if ingame and not final:
+        sd_t = st["sd_t"]
+        st = {**st, "p_home": ingame["p_home"], "exp_total": ingame["exp_total"], "exp_margin": ingame["exp_margin"]}
+        st["sd_t"] = sd_t
     p_home = (1.0 if hs > as_ else 0.0) if final else st["p_home"]
     fav, p_fav = (game.home, p_home) if p_home >= 0.5 else (game.away, 1 - p_home)
     head = (f"🏁 FINAL" if final else f"🔄 End of {period_name(sport, ended_period)}") + \
@@ -99,8 +135,12 @@ def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, lin
     lines.append(f"{left:.0f} min left · Marv live: {fav} win {p_fav:.0%} (fair {prob_to_american(p_fav):+.0f}) "
                  f"· pregame {pre_fav} {pre_p:.0%}")
     lines.append(f"Projected final total {st['exp_total']:.1f} (pregame {rec['model_total']:.1f})")
+    if ingame:
+        lines.append(stat_line(sport, ingame["stats"], game.home, game.away) + " · model uses the game's stats")
     if line_total is not None:
         po = bridge.p_over(st, line_total)
+        if ingame:
+            po = float(ingame["model"].p_over(ingame["frame"], [line_total])[0])
         side, p = ("Over", po) if po >= 0.5 else ("Under", 1 - po)
         edge = p - american_to_prob(-110)
         if live_prices:
@@ -125,6 +165,16 @@ class LiveMonitor:
         self.sports = [k for k in sports if k in STRUCTURE]
         self.state_path = Path(settings.state_dir) / "live_state.json"
         self.client = ESPNClient()
+        self.models, self._models_at = {}, 0.0
+        self._refresh_models()
+
+    def _refresh_models(self) -> None:
+        """(Re)load the quarter-by-quarter models; the daily run retrains them weekly."""
+        from .ingame.model import InGameModel, model_path
+        if time.time() - self._models_at < 3600:
+            return
+        self.models = {k: InGameModel.load(model_path(Path(self.s.state_dir), k)) for k in self.sports}
+        self._models_at = time.time()
 
     def _load(self) -> dict:
         try:
@@ -153,6 +203,7 @@ class LiveMonitor:
 
     def tick(self, send) -> int:
         """One pass over all live games; returns the number of updates sent."""
+        self._refresh_models()
         preds_path = Path(self.s.state_dir) / "predictions.json"
         preds = json.loads(preds_path.read_text()) if preds_path.exists() else {}
         state = self._load()
@@ -190,8 +241,17 @@ class LiveMonitor:
                 if rec is None:
                     continue  # Marv had no pregame projection for this game
                 o = g.odds
+                ingame = None
+                if not final and self.models.get(sport) is not None:
+                    try:
+                        summary = self.client.summary(STRUCTURE[sport][3], str(g.id))
+                        ingame = ingame_state(self.models[sport], sport, summary, g, rec, ended)
+                        if ingame:
+                            ingame["model"] = self.models[sport]
+                    except Exception as exc:
+                        log.warning("in-game stats %s %s: %s", sport, g.id, exc)
                 text = update_text(sport, g, rec, ended, final, o.total if o else None,
-                                   o.home_ml if o else None, o.away_ml if o else None, live_prices)
+                                   o.home_ml if o else None, o.away_ml if o else None, live_prices, ingame)
                 send(text)
                 sent += 1
                 key = f"{sport}:{g.id}"

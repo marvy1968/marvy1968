@@ -183,6 +183,14 @@ class ESPNClient:
             cache.write_text(json.dumps(events))
         return events
 
+    def summary(self, path: str, event_id: str) -> dict:
+        """Full game summary (box score, drives / plays) for one event."""
+        base_path = path.partition("?")[0]
+        resp = self.session.get(BASE.format(path=base_path).replace("/scoreboard", "/summary"),
+                                params={"event": event_id}, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
+
     def games(self, path: str, sport: str, start: datetime, end: datetime, league: str = "") -> list[Game]:
         out, seen = [], set()
         # Fixed half-month chunks (1st-15th, 16th-end) so finished chunks can be cached between runs.
