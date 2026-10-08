@@ -128,3 +128,33 @@ What this means:
 One multi-sport engine (`marv/`) covering NFL, college football, NBA, WNBA, NHL, MLB and soccer, with
 sport-specific simulators, the shared veto stack, Telegram cards, a graded pick ledger and a daily
 systemd timer for a Google Compute Engine VM. See README.md.
+
+## WNBA "Hybrid H2H Matrix & Trend Catcher" report (2026 playoffs) vs Marv
+
+The report replaces model side-picks with a winner-take-all tally across every offense, defense,
+shooting and ball-security category, adjusted by a 3-game "trend catcher" (turnover spikes and
+rebounding drops versus the season average). It claims ~78% ML/ATS and ~65% O/U, but it gives no
+sample, weights or seasons. Its "backtest" is three 2026 first-round series described after the fact.
+
+Walk-forward test on every WNBA playoff game 2012-2026 (271 games). All features use only games
+played before tip-off, and the trend weight was fit on 2012-19 only:
+
+| Playoff winner accuracy | Home team | **Marv (current)** | H2H tally | H2H + trend (report) |
+|---|---|---|---|---|
+| 2012-2026 (271) | 62.0% | **65.3%** | 61.3% | 61.6% |
+| 2020-2026 held out (133) | 63.9% | **68.4%** | 60.9% | 60.9% |
+| 2025 (24) | 62.5% | **58.3%** | 37.5% | 37.5% |
+| 2026 so far (12) | 83.3% | **75.0%** | 50.0% | 41.7% |
+
+* The category tally does worse than simply picking the home team. Counting categories throws away
+  how big each edge is and counts correlated stats (FG%, eFG%, points, offensive rating) several times.
+* The trend catcher gave no measurable lift. Larger trend weights made it worse (55-59%), and adding
+  it to Marv's margin chose a weight of zero. Three-game swings in WNBA box scores are mostly noise.
+* Totals: the possession-loop total (13.6 MAE) was no better than Marv's (13.3 MAE). 50.6% of playoff
+  games finished under Marv's number, so there's no O/U edge in either direction (historical lines
+  needed for a true O/U win rate; run on the VM). The report's 195.5-197.5 Liberty-Dream total is far
+  outside the WNBA range: both models projected ~175, and the game finished 174.
+* Marv's 85% WNBA moneyline floor produced zero playoff picks (playoff games are close). Its 70%+
+  playoff picks went 85.1% (40/47), the closest honest analogue to the report's claim.
+
+Verdict: keep Marv's engine. Don't adopt the tally or trend modifier.
