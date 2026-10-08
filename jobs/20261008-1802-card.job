@@ -1,0 +1,2 @@
+# timeout 2400
+marv run --sport nfl --hours 100 --force --dry-run --card
