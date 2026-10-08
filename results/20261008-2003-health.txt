@@ -1,0 +1,2 @@
+$ logs marv-health 20
+REFUSED: logs needs one of: marv-bot, marv-bot-late, marv-bridge, marv-edges, marv-live, marv-vmlink
