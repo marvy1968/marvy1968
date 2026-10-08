@@ -1,3 +1,14 @@
 $ marv live-probe --sport nfl --days 4
-started 2026-10-08 13:47:49 EDT
-RUNNING...
+started 2026-10-08 13:47:49 EDT, took 5s, exit 0
+
+ESPN nfl: 16 events, states {'pre': 1, 'in': 0, 'post': 15}
+  Indianapolis Colts @ Washington Commanders state=post STATUS_FINAL period=4 clock=0:00 score=None-None preseason=False
+  New England Patriots @ Buffalo Bills state=post STATUS_FINAL period=4 clock=0:00 score=None-None preseason=False
+  New York Jets @ Chicago Bears state=post STATUS_FINAL period=4 clock=0:00 score=None-None preseason=False
+  Jacksonville Jaguars @ Cincinnati Bengals state=post STATUS_FINAL period=4 clock=0:00 score=None-None preseason=False
+  Arizona Cardinals @ New York Giants state=post STATUS_FINAL period=4 clock=0:00 score=None-None preseason=False
+Play-by-play parser on Atlanta Falcons @ New Orleans Saints: 128 plays, columns ['game_id', 'period', 'side', 'down', 'distance', 'yards', 'kind', 'turnover', 'home_score', 'away_score']
+       game_id  period  side  down  distance  yards  kind  turnover  home_score  away_score
+125  401872979       4  home     1         3    3.0  pass         0          24          45
+126  401872979       4  away     1        10   -1.0  rush         0          24          45
+127  401872979       4  away     2        11   -1.0  rush         0          24          45
