@@ -1,3 +1,25 @@
 $ marv injuries --sport nfl --team Cowboys,Buccaneers
-started 2026-10-08 13:37:41 EDT
-RUNNING...
+started 2026-10-08 13:37:41 EDT, took 13s, exit 0
+
+NFL injuries · sources: NFL report · ★ = key player Marv's veto watches
+
+Dallas Cowboys:
+    Cobie Durant: out (NFL report)
+    DeMarvion Overshown: out (NFL report)
+    Drew Shelton: out (NFL report)
+    Jonathan Mingo: questionable (NFL report)
+    Tyler Smith: questionable (NFL report)
+
+Tampa Bay Buccaneers:
+    Antoine Winfield Jr.: out (NFL report)
+    Baker Mayfield: out (NFL report)
+    Benjamin Morrison: out (NFL report)
+    SirVocea Dennis: out (NFL report)
+
+Regular starters (50%+ snaps) ruled Out/Doubtful this week:
+  Tampa Bay Buccaneers: 3 starters out, 2.5 full-time players' snaps lost, QB OUT
+  Dallas Cowboys: 2 starters out, 1.4 full-time players' snaps lost
+  (Marv's NFL veto: 1.5+ full-time starters out, or the starting QB.)
+
+--- stderr ---
+2026-10-08 13:37:47,986 WARNING ESPN injuries unavailable for nfl: 403 Client Error: Forbidden for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries
