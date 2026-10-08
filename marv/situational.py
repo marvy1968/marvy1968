@@ -13,6 +13,8 @@ Tags (side = the team the angle backs):
   HOMEDOG  home underdog getting more than 3.5 (non-division: 55.4% 2006-26, 46.8% 2024-26)
   DIVDOG   divisional home underdog getting more than 3.5
   KEY3/KEY7 spread sits on 3 or 7 (backs the underdog)
+  MARV4    Marv's projected margin is 4+ points off the closing spread (backs Marv's side; 54.4% of 463 in
+           2016-26, p~0.19: the one model angle worth paper-tracking)
 """
 
 import json
@@ -27,7 +29,8 @@ TZ = {**{t: -8 for t in ("LA", "LAC", "SF", "SEA", "LV", "OAK", "SD")}, **{t: -7
       **{t: -6 for t in ("CHI", "DAL", "HOU", "KC", "MIN", "NO", "GB", "TEN", "STL")}}
 HISTORY = {"PT-WIN": "54.8% ATS 2006-26 (310)", "PT-LOSS": "50% ATS", "REST+4": "51% ATS", "WEST@1PM": "48% ATS",
            "REST+TZ": "51% ATS, inconsistent", "HOMEDOG": "55.4% ATS 2006-26, 46.8% 2024-26", "DIVDOG": "50% ATS",
-           "KEY3": "dog +3: 54% ATS", "KEY7": "dog +7: 49% ATS"}
+           "KEY3": "dog +3: 54% ATS", "KEY7": "dog +7: 49% ATS",
+           "MARV4": "Marv 4+ pts off the spread: 54.4% ATS 2016-26 (463)"}
 
 
 def tz(team: str) -> int:
@@ -121,9 +124,30 @@ def team_name(abbr: str) -> str:
     return NFL_TEAMS.get(abbr, abbr)
 
 
+def marv_tags(preds, games: pd.DataFrame) -> pd.DataFrame:
+    """MARV4: Marv's projected margin differs from the posted spread by 4+ points."""
+    rows = []
+    open_games = games[games["result"].isna()]
+    for p in preds:
+        o = p.game.odds
+        if not o or o.spread is None:
+            continue
+        diff = p.model_margin + o.spread  # > 0: Marv has the home team covering
+        if abs(diff) < 4:
+            continue
+        m = open_games[(open_games["home_team"].map(team_name) == p.game.home) & (open_games["away_team"].map(team_name) == p.game.away)]
+        if m.empty:
+            continue
+        r = m.iloc[0]
+        rows.append({"game_id": r.game_id, "season": r.season, "week": r.week, "tag": "MARV4",
+                     "side": r.home_team if diff > 0 else r.away_team, "spread_line": -o.spread,
+                     "home": r.home_team, "away": r.away_team})
+    return pd.DataFrame(rows)
+
+
 def attach(preds, games: pd.DataFrame, state: Path) -> None:
     """Add tag notes to NFL predictions (matched by full team names) and log them for grading."""
-    tags = tags_for(games)
+    tags = pd.concat([tags_for(games), marv_tags(preds, games)], ignore_index=True)
     if tags.empty:
         return
     log(state, tags)

@@ -40,5 +40,18 @@ class SituationalTests(unittest.TestCase):
             self.assertIn("PT-WIN: 1-0", S.report(rec))
 
 
+class MarvTagTests(unittest.TestCase):
+    def test_marv4(self):
+        from datetime import datetime, timezone
+        from marv.models import Game, Odds, Prediction
+        g = games()
+        pred = Prediction(Game("x", "nfl", datetime(2026, 9, 20, tzinfo=timezone.utc), "New York Jets", "Kansas City Chiefs",
+                               odds=Odds(spread=6.5)), 24, 21, 3.0, 45, 0.6)  # Marv: Jets by 3, line Jets +6.5
+        t = S.marv_tags([pred], g)
+        self.assertEqual((t.iloc[0].tag, t.iloc[0].side, t.iloc[0].spread_line), ("MARV4", "NYJ", -6.5))
+        close = Prediction(pred.game, 21, 24, -5.0, 45, 0.4)  # Marv: KC by 5 vs a 6.5 line: only 1.5 off
+        self.assertTrue(S.marv_tags([close], g).empty)
+
+
 if __name__ == "__main__":
     unittest.main()
