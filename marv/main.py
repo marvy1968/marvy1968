@@ -126,8 +126,7 @@ def cmd_run(s: Settings, args) -> int:
             log.info("%s: not scheduled today", key)
             continue
         if sport.source == "cfbd" and not s.cfbd_api_key:
-            log.warning("cfb: CFBD_API_KEY not set, skipping")
-            continue
+            log.info("cfb: no CFBD_API_KEY, using ESPN schedules and free play-by-play stats")
         try:
             run_sport(sport, s, store, now, hours, args.dry_run, args.label)
         except Exception:

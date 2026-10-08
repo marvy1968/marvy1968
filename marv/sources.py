@@ -31,6 +31,10 @@ def load_games(sport: Sport, s: Settings, start: datetime, end: datetime,
             games += client.games(path, sport.key, start, end, league)
     elif sport.source == "nflverse":
         games = [g for g in nflverse.load_games(cache) if start <= g.start <= end]
+    elif sport.source == "cfbd" and not s.cfbd_api_key:
+        # No CFBD key: FBS schedule, scores and ESPN lines from ESPN (Odds API lines replace them when set).
+        client = ESPNClient(cache_dir=cache)
+        games = client.games("football/college-football?groups=80", sport.key, start, end)
     elif sport.source == "cfbd":
         client = CFBDClient(s.cfbd_api_key)
         games = []

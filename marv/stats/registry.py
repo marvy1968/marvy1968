@@ -45,6 +45,8 @@ def module_for(key: str):
 
 def project(key: str, slate, settings, now: datetime, history=None) -> dict:
     module = module_for(key)
-    if key == "cfb":
+    if key == "cfb" and not settings.cfbd_api_key:  # free play-by-play stats instead of the CFBD API
+        from .ncaaf import NCAAF_PBP as module
+    elif key == "cfb":
         module.api_key = settings.cfbd_api_key
     return project_slate(module, slate, Path(settings.state_dir) / "cache", now, RULES[key], history=history)
