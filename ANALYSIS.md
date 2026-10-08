@@ -327,3 +327,19 @@ minutes (players who sat out the last game) won 77.9% vs 83.3%. An 80% floor wit
 
 Live: `marv/stats/registry.py` now applies the NFL eliminations (market < 70%, 1.5+ starters out, wind
 15+) and the NCAA men's 80% floor with the missing-minutes veto (`marv/data/roster.py`).
+
+## The owner's Pro Football Max formula: original vs fixed vs Marv (NFL 2016-2026)
+
+`marv/stats/pfm.py`. Fixes: scoring drives fitted from real games (~6.2, not 2.4); a team's scoring rises
+with the opponent's EPA allowed (the original subtracted it); fitted home field (+1.8 pts); ties count
+half; point-in-time EPA blended with last season. Parameters fitted only on earlier seasons.
+
+| 2,736 games | Winners | Brier | 70%+ picks | 78%+ picks | Avg projected total (miss) |
+|---|---|---|---|---|---|
+| Original formula | 45.1% | 0.264 | none | none | 16.8 (28.9 pts) |
+| Fixed formula | 63.3% | 0.226 | 77.1% (358) | 83.8% (68) | 45.8 (10.8 pts) |
+| Marv | **64.5%** | **0.221** | **78.5% (395)** | **86.7% (83)** | |
+
+Held-out 2022-26: fixed 63.2% vs Marv 65.4%; over/under vs closing totals 48.9% (no edge); the original
+veto (injuries, weather, tight spread) lowered 70%+ accuracy (74.7% vs 78.0%). The original's
+coin-flip-or-worse result comes from the defense sign. A 50/50 blend with Marv didn't beat Marv alone.
