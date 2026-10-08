@@ -1,0 +1,2 @@
+# timeout 1800
+marv run --sport nfl --hours 12 --force --dry-run
