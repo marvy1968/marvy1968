@@ -142,7 +142,8 @@ class EngineTest(unittest.TestCase):
             self.assertIn("veto pass rate", text)
             if key == "nfl":
                 self.assertIn("Tracked spots", text)
-                self.assertLess(text.index("TOTAL-INFLATED"), text.index("line move: total 44.5"))
+                block = text[text.index("Tracked spots"):]
+                self.assertLess(block.index("TOTAL-INFLATED"), block.index("line move: total 44.5"))
             if key == "mlb":  # no probable pitchers in this fixture
                 self.assertTrue(all("starting pitcher unconfirmed" in pk.vetoes for p in preds for pk in p.picks))
 
