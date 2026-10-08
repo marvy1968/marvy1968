@@ -1,3 +1,13 @@
 $ logs marv-live 10
-started 2026-10-08 14:09:31 EDT
-RUNNING...
+started 2026-10-08 14:09:31 EDT, took 2s, exit 0
+
+Oct 08 13:42:58 instance-stockbot systemd[1]: Stopped marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:42:58 instance-stockbot systemd[1]: marv-live.service: Consumed 5.227s CPU time.
+Oct 08 13:42:58 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:43:07 instance-stockbot python[86639]: 2026-10-08 13:43:07,013 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
+Oct 08 13:47:38 instance-stockbot systemd[1]: Stopping marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half...
+Oct 08 13:47:38 instance-stockbot systemd[1]: marv-live.service: Deactivated successfully.
+Oct 08 13:47:38 instance-stockbot systemd[1]: Stopped marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:47:38 instance-stockbot systemd[1]: marv-live.service: Consumed 4.796s CPU time.
+Oct 08 13:47:38 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:47:45 instance-stockbot python[87324]: 2026-10-08 13:47:45,449 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
