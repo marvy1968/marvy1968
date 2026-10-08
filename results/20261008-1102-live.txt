@@ -1,3 +1,9 @@
 $ logs marv-live 6
-started 2026-10-08 11:36:12 EDT
-RUNNING...
+started 2026-10-08 11:36:12 EDT, took 1s, exit 0
+
+Oct 08 11:32:36 instance-stockbot python[75292]: 2026-10-08 11:32:36,811 WARNING live scoreboard ncaaw: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 11:34:36 instance-stockbot python[75292]: 2026-10-08 11:34:36,863 WARNING live scoreboard nfl: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 11:34:37 instance-stockbot python[75292]: 2026-10-08 11:34:37,006 WARNING live scoreboard cfb: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261008-20261008&limit=1000&groups=80
+Oct 08 11:34:37 instance-stockbot python[75292]: 2026-10-08 11:34:37,053 WARNING live scoreboard wnba: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 11:34:37 instance-stockbot python[75292]: 2026-10-08 11:34:37,107 WARNING live scoreboard ncaab: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 11:34:37 instance-stockbot python[75292]: 2026-10-08 11:34:37,256 WARNING live scoreboard ncaaw: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
