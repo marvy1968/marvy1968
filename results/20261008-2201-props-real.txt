@@ -1,3 +1,23 @@
 $ marv props-backtest --sport nfl --seasons 2025-2025 --real --max-credits 6000
-started 2026-10-08 15:35:30 EDT
-RUNNING...
+started 2026-10-08 15:35:30 EDT, took 828s, exit 0
+
+NFL props vs real lines (bovada first), seasons [2025]: 4128 priced props, 5992 credits used
+  all markets, edge >= 0%: 49.1% of 3040 bets, ROI -5.5%
+  all markets, edge >= 5%: 48.7% of 1640 bets, ROI -5.1%
+  all markets, edge >= 10%: 48.8% of 857 bets, ROI -4.6%
+  Passing yards, edge >= 0%: 51.7% of 201 bets, ROI -1.4%
+  Passing yards, edge >= 5%: 46.3% of 95 bets, ROI -10.7%
+  Passing yards, edge >= 10%: 48.9% of 47 bets, ROI -4.8%
+  Receiving yards, edge >= 0%: 50.3% of 1132 bets, ROI -4.9%
+  Receiving yards, edge >= 5%: 50.3% of 581 bets, ROI -4.4%
+  Receiving yards, edge >= 10%: 51.9% of 289 bets, ROI -0.9%
+  Receptions, edge >= 0%: 46.2% of 1074 bets, ROI -8.4%
+  Receptions, edge >= 5%: 45.5% of 525 bets, ROI -5.8%
+  Receptions, edge >= 10%: 41.5% of 234 bets, ROI -11.7%
+  Rushing yards, edge >= 0%: 51.2% of 633 bets, ROI -3.1%
+  Rushing yards, edge >= 5%: 50.8% of 439 bets, ROI -3.9%
+  Rushing yards, edge >= 10%: 51.6% of 287 bets, ROI -2.5%
+  (always-under baseline: 52.5%)
+
+--- stderr ---
+2026-10-08 15:49:16,142 WARNING 2025: stopped early (credit cap reached); 5992 credits used
