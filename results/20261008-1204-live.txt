@@ -1,3 +1,11 @@
 $ logs marv-live 8
-started 2026-10-08 13:22:58 EDT
-RUNNING...
+started 2026-10-08 13:22:58 EDT, took 2s, exit 0
+
+Oct 08 13:22:19 instance-stockbot python[80784]: 2026-10-08 13:22:19,756 WARNING live scoreboard ncaab: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 13:22:19 instance-stockbot python[80784]: 2026-10-08 13:22:19,815 WARNING live scoreboard ncaaw: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 13:22:30 instance-stockbot systemd[1]: Stopping marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half...
+Oct 08 13:22:30 instance-stockbot systemd[1]: marv-live.service: Deactivated successfully.
+Oct 08 13:22:30 instance-stockbot systemd[1]: Stopped marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:22:30 instance-stockbot systemd[1]: marv-live.service: Consumed 10.085s CPU time.
+Oct 08 13:22:30 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 08 13:22:48 instance-stockbot python[83789]: 2026-10-08 13:22:48,300 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
