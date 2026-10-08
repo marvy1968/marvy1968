@@ -78,12 +78,6 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
            if now <= pd.Timestamp(e["commence_time"]).to_pydatetime() <= now + timedelta(hours=hours)]
     if not evs:
         return f"No {sport.upper()} games in the window."
-    box = B.load_box(cache, list(range(season - 4, season + 1)), season, sport)
-    rows = B.build_rows(box, sport=sport)
-    models = _models(rows, season, sport)
-    games = [{"id": e["id"], "home": e["home_team"], "away": e["away_team"],
-              "date": pd.Timestamp(e["commence_time"]).tz_convert(ET).tz_localize(None).normalize()} for e in evs]
-    fut = upcoming(box, games, sport)
     book = getattr(settings, "odds_book", "bovado") or "bovado"
     budget = O.Budget(int(os.environ.get("PROPS_MAX_CREDITS", "300")))
     lines = []
@@ -95,7 +89,16 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
         lr = O.prop_rows(data, book)
         if not lr.empty:
             lines.append(lr.assign(game_id=ev["id"]))
-    df = evaluate(pd.concat(lines, ignore_index=True) if lines else pd.DataFrame(), fut, models, B.MARKETS)
+    if not lines:  # nothing posted: skip the (slow) model build
+        log.info("%s props: no posted prop lines yet, %s credits", sport, budget.used)
+        return card(pd.DataFrame(), settings.paper_mode, TITLES[sport], HOW)
+    box = B.load_box(cache, list(range(season - 4, season + 1)), season, sport)
+    rows = B.build_rows(box, sport=sport)
+    models = _models(rows, season, sport)
+    games = [{"id": e["id"], "home": e["home_team"], "away": e["away_team"],
+              "date": pd.Timestamp(e["commence_time"]).tz_convert(ET).tz_localize(None).normalize()} for e in evs]
+    fut = upcoming(box, games, sport)
+    df = evaluate(pd.concat(lines, ignore_index=True), fut, models, B.MARKETS)
     save_priced(Path(settings.state_dir), sport, df)
     chosen = picks(df)
     text = card(chosen, settings.paper_mode, TITLES[sport], HOW)

@@ -85,10 +85,6 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
             for r in last[(last["team"] == team) & (last["date"] >= day - pd.Timedelta(days=300))].itertuples():
                 fut_players.append({"game_id": e["id"], "team": team, "opponent_team": opp, "player": r.player,
                                     "season": season})
-    allg = pd.concat([games, pd.DataFrame(fut_games)], ignore_index=True)
-    rows = C.build_rows(allg, pd.concat([players, pd.DataFrame(fut_players)], ignore_index=True))
-    models = _models(C.build_rows(games, players), season)  # history only: future rows carry no outcomes
-    fut = rows[rows["game_id"].isin([e["id"] for e, _, _ in evs])]
     book = getattr(settings, "odds_book", "bovado") or "bovado"
     budget = O.Budget(int(os.environ.get("PROPS_MAX_CREDITS", "200")))
     got = []
@@ -100,7 +96,14 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
         lr = O.prop_rows(data, book)
         if not lr.empty:
             got.append(lr.assign(game_id=e["id"]))
-    df = evaluate(pd.concat(got, ignore_index=True) if got else pd.DataFrame(), fut, models, C.MARKETS)
+    if not got:  # nothing posted: skip the (slow) model build
+        log.info("cfb props: no posted prop lines yet, %s credits", budget.used)
+        return card(pd.DataFrame(), settings.paper_mode, "🏈 COLLEGE FOOTBALL PLAYER PROPS (top 30)", HOW)
+    allg = pd.concat([games, pd.DataFrame(fut_games)], ignore_index=True)
+    rows = C.build_rows(allg, pd.concat([players, pd.DataFrame(fut_players)], ignore_index=True))
+    models = _models(C.build_rows(games, players), season)  # history only: future rows carry no outcomes
+    fut = rows[rows["game_id"].isin([e["id"] for e, _, _ in evs])]
+    df = evaluate(pd.concat(got, ignore_index=True), fut, models, C.MARKETS)
     save_priced(Path(settings.state_dir), "cfb", df)
     chosen = picks(df)
     text = card(chosen, settings.paper_mode, "🏈 COLLEGE FOOTBALL PLAYER PROPS (top 30)", HOW)

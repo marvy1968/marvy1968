@@ -189,12 +189,9 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
     match = _match_games(games, evs)
     if not match:
         return "No NFL games in the window."
-    hist = P.build_rows(players, games)
-    models = _models(hist[hist["season"] <= season], season)
-    rows = upcoming_rows(players, games, list(match.values()))
     budget = O.Budget(int(os.environ.get("PROPS_MAX_CREDITS", "200")))
     lines = []
-    for ev in evs:
+    for ev in evs:  # lines first: the models only get built when there's something to price
         if ev["id"] not in match:
             continue
         data = O.event_props(settings.odds_api_key, SPORT, ev["id"], [m.key for m in P.MARKETS.values()],
@@ -202,6 +199,12 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
         lr = O.prop_rows(data, getattr(settings, "odds_book", "bovado") or "bovado")
         if not lr.empty:
             lines.append(lr.assign(game_id=match[ev["id"]]))
+    if not lines:
+        log.info("props: no posted prop lines yet, %s credits used", budget.used)
+        return card(pd.DataFrame(), settings.paper_mode)
+    hist = P.build_rows(players, games)
+    models = _models(hist[hist["season"] <= season], season)
+    rows = upcoming_rows(players, games, list(match.values()))
     df = evaluate(pd.concat(lines, ignore_index=True) if lines else pd.DataFrame(), rows, models)
     save_priced(Path(settings.state_dir), "nfl", df)
     chosen = picks(df)
