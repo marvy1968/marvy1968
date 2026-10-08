@@ -1,0 +1,3 @@
+$ marv live-probe --sport cfb --days 4
+started 2026-10-08 13:38:04 EDT
+RUNNING...
