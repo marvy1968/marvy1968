@@ -93,8 +93,8 @@ def _kind_basketball(type_text: str, text: str, shooting: bool, points_attempted
 
 def espn_basketball_file(pbp: pd.DataFrame) -> pd.DataFrame:
     p = pbp[pbp["team_id"].notna()]
-    kind = [_kind_basketball(a, b, bool(c), d) for a, b, c, d in
-            zip(p["type_text"], p["text"], p["shooting_play"], p.get("points_attempted", pd.Series(None, index=p.index)))]
+    pts = p["points_attempted"] if "points_attempted" in p else pd.Series([None] * len(p), index=p.index)
+    kind = [_kind_basketball(a, b, bool(c), d) for a, b, c, d in zip(p["type_text"], p["text"], p["shooting_play"], pts)]
     return pd.DataFrame({
         "game_id": p["game_id"].astype(str), "period": p["period_number"].astype(int),
         "side": np.where(p["team_id"].astype(float) == p["home_team_id"].astype(float), "home", "away"),

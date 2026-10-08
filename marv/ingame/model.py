@@ -60,7 +60,12 @@ def _states_cached(cache: Path, sport: str, season: int, current: bool) -> pd.Da
     else:
         f = fetch(BB_PBP.format(league=BB_LEAGUE[sport], season=season), cache / f"{sport}_pbp_{season}.parquet",
                   2 if current else None)
-        plays = PL.espn_basketball_file(pd.read_parquet(f, columns=BB_PBP_COLS)) if f else None
+        if f:
+            import pyarrow.parquet as pq
+            have = set(pq.read_schema(f).names)  # older seasons lack points_attempted
+            plays = PL.espn_basketball_file(pd.read_parquet(f, columns=[c for c in BB_PBP_COLS if c in have]))
+        else:
+            plays = None
     if plays is None or plays.empty:
         return None
     st = (PL.football_states if spec.family == "football" else PL.basketball_states)(plays, spec.checkpoints)
