@@ -66,6 +66,29 @@ class WeightedH2HTests(unittest.TestCase):
             out = h2h.predict(m.dropna(subset=["h_s_ypp", "a_s_ypp"]).head(50), model, WNBA, n=200)
             self.assertTrue(out["p_home"].between(0, 1).all())
 
+    def test_breakdown_points_add_up_to_the_margin(self):
+        games, tg = synthetic()
+        m = h2h.matchups(games, h2h.team_features(tg, ["ypp", "turnovers"])).dropna(subset=["h_s_ypp", "a_s_ypp"])
+        model = h2h.fit(m, "magnitude")
+        b = h2h.breakdown(m, model, i=5, top=100)
+        margin = h2h.predict(m.iloc[[5]], model, WNBA, n=50)["h2h_margin"].iloc[0]
+        self.assertAlmostEqual(b["points"].sum() + model.weights.intercept_, margin, places=6)
+
+
+class OpponentAdjustTests(unittest.TestCase):
+    def test_adjusts_for_the_opponents_defense(self):
+        tg = pd.DataFrame({"game_id": ["1", "1", "2", "2", "3", "3"],
+                           "date": pd.to_datetime(["2021-01-01"] * 2 + ["2021-01-02"] * 2 + ["2021-01-03"] * 2),
+                           "season": 2021, "team": ["A", "B", "C", "B", "A", "C"], "opp": ["B", "A", "B", "C", "C", "A"],
+                           "home": [1.0, 0.0, 1.0, 0.0, 1.0, 0.0], "points": [20.0, 10, 30, 10, 20, 20],
+                           "ypp": [7.0, 5.0, 7.0, 5.0, 6.0, 6.0]})
+        adj = h2h.opponent_adjust(tg, ["ypp"]).set_index(["game_id", "team"])
+        # Game 3: A plays C. Before it C allowed 5.0 yards/play vs a league average of 6.0, so A's 6.0 is worth 7.0.
+        self.assertAlmostEqual(adj.loc[("3", "A"), "ypp"], 7.0)
+        # Game 1 has no earlier games and no prior season, so nothing changes.
+        self.assertAlmostEqual(adj.loc[("1", "A"), "ypp"], 7.0)
+        self.assertAlmostEqual(adj.loc[("1", "A"), "alw_ypp"], 5.0)
+
 
 if __name__ == "__main__":
     unittest.main()

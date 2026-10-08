@@ -26,9 +26,13 @@ def team_features(tg: pd.DataFrame, stat_cols: list[str], trend_games: int = 3, 
     early weeks aren't decided by one or two results. The last-N trend runs across seasons.
     count_only (bool per tg row) limits which games feed the averages, e.g. only games against top-30 teams."""
     stat_cols = [c for c in dict.fromkeys(["points", *stat_cols]) if c in tg]
-    opp = tg[["game_id", "team", *stat_cols]].rename(columns={"team": "opp", **{c: f"alw_{c}" for c in stat_cols}})
-    x = tg[["game_id", "date", "season", "team", "opp", "home", *stat_cols]].assign(
-        _use=True if count_only is None else count_only.to_numpy()).merge(opp, on=["game_id", "opp"], how="left")
+    if all(f"alw_{c}" in tg for c in stat_cols):  # allowed stats already supplied (e.g. opponent-adjusted)
+        x = tg[["game_id", "date", "season", "team", "opp", "home", *stat_cols, *[f"alw_{c}" for c in stat_cols]]].assign(
+            _use=True if count_only is None else count_only.to_numpy())
+    else:
+        opp = tg[["game_id", "team", *stat_cols]].rename(columns={"team": "opp", **{c: f"alw_{c}" for c in stat_cols}})
+        x = tg[["game_id", "date", "season", "team", "opp", "home", *stat_cols]].assign(
+            _use=True if count_only is None else count_only.to_numpy()).merge(opp, on=["game_id", "opp"], how="left")
     x = x[x["points"].notna()].sort_values(["date", "game_id"]).reset_index(drop=True)
     cols = stat_cols + [f"alw_{c}" for c in stat_cols]
     keys = [x["team"], x["season"]]
@@ -49,6 +53,45 @@ def team_features(tg: pd.DataFrame, stat_cols: list[str], trend_games: int = 3, 
     last = shifted.groupby(x["team"]).rolling(trend_games, min_periods=2).mean().reset_index(level=0, drop=True)
     out = pd.concat([x[["game_id", "team", "season"]], season.add_prefix("s_"), last.sort_index().add_prefix("t_")], axis=1)
     out["n"] = x.groupby(keys).cumcount()
+    return out
+
+
+def opponent_adjust(tg: pd.DataFrame, stat_cols: list[str], passes: int = 1, prior_games: float = 0.0) -> pd.DataFrame:
+    """Recalculate every head-to-head data point for the opponents it came against.
+
+    A team's offensive number in a game is moved by how much that opponent's defense allowed versus the
+    league (gaining 6.0 yards per play against a defense that allows 6.5 counts as 5.5 vs average), and
+    each stat allowed is moved by how good the opposing offense was. Opponent and league numbers are
+    pre-game only. passes > 1 repeats it with already-adjusted numbers (strength of schedule of the
+    opponents' opponents). Returns tg with adjusted stat columns plus alw_* columns."""
+    stat_cols = [c for c in dict.fromkeys(["points", *stat_cols]) if c in tg]
+    tg = tg.reset_index(drop=True)
+    raw_off = tg[stat_cols].astype(float)
+    raw_alw = tg[["game_id", "opp"]].merge(
+        tg[["game_id", "team", *stat_cols]].rename(columns={"team": "opp"}), on=["game_id", "opp"], how="left")[stat_cols].astype(float)
+    # League average of each stat over the season's earlier dates (last season's average before then).
+    day = tg.groupby(["season", "date"])[stat_cols].agg(["sum", "count"])
+    sums = day.xs("sum", axis=1, level=1).groupby(level=0).cumsum() - day.xs("sum", axis=1, level=1)
+    cnts = day.xs("count", axis=1, level=1).groupby(level=0).cumsum() - day.xs("count", axis=1, level=1)
+    league = sums / cnts.replace(0, np.nan)
+    season_mean = tg.groupby("season")[stat_cols].mean()
+    season_mean.index = season_mean.index + 1
+    league = league.fillna(season_mean.reindex(league.index.get_level_values(0)).set_axis(league.index))
+    lg = league.reindex(pd.MultiIndex.from_frame(tg[["season", "date"]])).to_numpy()
+    off, alw = raw_off.copy(), raw_alw.copy()
+    for _ in range(passes):
+        cur = tg[["game_id", "date", "season", "team", "opp", "home"]].copy()
+        cur[stat_cols] = off.to_numpy()
+        cur[[f"alw_{c}" for c in stat_cols]] = alw.to_numpy()
+        f = team_features(cur, stat_cols, prior_games=prior_games).set_index(["game_id", "team"])
+        o = f.reindex(list(zip(tg["game_id"], tg["opp"])))
+        opp_alw = o[[f"s_alw_{c}" for c in stat_cols]].to_numpy()
+        opp_off = o[[f"s_{c}" for c in stat_cols]].to_numpy()
+        off = raw_off - np.nan_to_num(opp_alw - lg)
+        alw = raw_alw - np.nan_to_num(opp_off - lg)
+    out = tg.copy()
+    out[stat_cols] = off.to_numpy()
+    out[[f"alw_{c}" for c in stat_cols]] = alw.to_numpy()
     return out
 
 
@@ -95,6 +138,32 @@ def stat_weights(model: "H2HModel") -> pd.Series:
         return pd.Series({c: float(model.direction.get(c, 0) * model.coef[1]) for c in model.cats})
     coef = model.weights.coef_[1:1 + len(model.cats)]
     return pd.Series(coef, index=model.cats).sort_values(key=abs, ascending=False)
+
+
+def breakdown(m: pd.DataFrame, model: "H2HModel", i: int = 0, top: int = 10) -> pd.DataFrame:
+    """The recalculated head-to-head data points for one game (row i of a matchups frame): each stat's
+    home and away numbers and the weighted points it contributes to the home margin (weight x edge),
+    largest first. In equal mode every stat won is worth the same coef."""
+    row = m.iloc[[i]]
+    rows = []
+    if model.weights is not None:
+        x = category_matrix(row, model.cats, model.mode, model.scale)[0]
+        coef = model.weights.coef_
+        rows.append({"stat": "home field", "home": None, "away": None, "points": float(coef[0] * x[0])})
+        k = 1
+        for prefix, label in (("s", "season"), ("t", "last 3")):
+            for c in model.cats:
+                rows.append({"stat": f"{c} ({label})", "home": row[f"h_{prefix}_{c}"].iloc[0],
+                             "away": row[f"a_{prefix}_{c}"].iloc[0], "points": float(coef[k] * x[k])})
+                k += 1
+    else:
+        for prefix, label, w in (("s", "season", model.coef[1]), ("t", "last 3", model.coef[2])):
+            for c, d in model.direction.items():
+                h, a = row[f"h_{prefix}_{c}"].iloc[0], row[f"a_{prefix}_{c}"].iloc[0]
+                rows.append({"stat": f"{c} ({label})", "home": h, "away": a,
+                             "points": float(w * d * np.sign(np.nan_to_num(h - a)))})
+    out = pd.DataFrame(rows)
+    return out.reindex(out["points"].abs().sort_values(ascending=False).index).head(top).reset_index(drop=True)
 
 
 def tallies(m: pd.DataFrame, direction: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -179,10 +248,14 @@ def _beat(values: np.ndarray, line: float) -> float:
 def walk_forward(module: StatsModule, games: pd.DataFrame, tg: pd.DataFrame, test_seasons: list[int],
                  min_games: int = 3, n: int = 2000, prior_games: float = 0.0, trend: bool = True,
                  count_only: pd.Series | None = None, mode: str = "equal", train_years: int = 6,
-                 models: dict | None = None) -> pd.DataFrame:
+                 models: dict | None = None, adjust: int = 0) -> pd.DataFrame:
     """Each test season is predicted by a model fit only on the seasons before it (the last `train_years`).
-    Pass a dict as `models` to collect the fitted model per season."""
-    feats = team_features(tg, module.stat_columns(tg), prior_games=prior_games, count_only=count_only)
+    Pass a dict as `models` to collect the fitted model per season. adjust > 0 first recalculates every
+    data point for opponent strength (that many passes, see opponent_adjust)."""
+    cols = module.stat_columns(tg)
+    if adjust:
+        tg = opponent_adjust(tg, cols, passes=adjust, prior_games=prior_games)
+    feats = team_features(tg, cols, prior_games=prior_games, count_only=count_only)
     if not trend:
         feats[[c for c in feats if c.startswith("t_")]] = np.nan
     m = matchups(games, feats)
