@@ -248,15 +248,20 @@ def _beat(values: np.ndarray, line: float) -> float:
 def walk_forward(module: StatsModule, games: pd.DataFrame, tg: pd.DataFrame, test_seasons: list[int],
                  min_games: int = 3, n: int = 2000, prior_games: float = 0.0, trend: bool = True,
                  count_only: pd.Series | None = None, mode: str = "equal", train_years: int = 6,
-                 models: dict | None = None, adjust: int = 0) -> pd.DataFrame:
+                 models: dict | None = None, adjust: int = 0, blend: float | None = None) -> pd.DataFrame:
     """Each test season is predicted by a model fit only on the seasons before it (the last `train_years`).
     Pass a dict as `models` to collect the fitted model per season. adjust > 0 first recalculates every
-    data point for opponent strength (that many passes, see opponent_adjust)."""
+    data point for opponent strength (that many passes, see opponent_adjust). blend=0.25 replaces the
+    separate season and last-3 stats with one fixed mix: 75% season + 25% last 3 games."""
     cols = module.stat_columns(tg)
     if adjust:
         tg = opponent_adjust(tg, cols, passes=adjust, prior_games=prior_games)
     feats = team_features(tg, cols, prior_games=prior_games, count_only=count_only)
-    if not trend:
+    if blend is not None:
+        for c in [c for c in feats if c.startswith("s_")]:
+            t = feats[f"t_{c[2:]}"]
+            feats[c] = np.where(t.notna(), (1 - blend) * feats[c] + blend * t, feats[c])
+    if not trend or blend is not None:
         feats[[c for c in feats if c.startswith("t_")]] = np.nan
     m = matchups(games, feats)
     m = m[(m["h_n"] >= min_games) & (m["a_n"] >= min_games)]
