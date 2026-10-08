@@ -370,3 +370,23 @@ b = 0.28 (defense); red zone and pace came out near zero (they add nothing beyon
 Held-out: average projected total 43.6 (actual 45.0), miss 10.47 points (same as Marv; closing line 10.22),
 over/under vs closing totals 49.5% (50.2% when 4+ points off the line). Blending with the closing line
 was best at 100% market weight. Tethered to reality, but still no over/under edge.
+
+## Situational spots (prime-time overreaction, rest/travel, key numbers, divisional dogs)
+
+Tested against closing spreads and real spread prices: 2006-15 (discovery) vs 2016-26 (confirmation).
+
+| Angle | 2006-15 | 2016-26 | Verdict |
+|---|---|---|---|
+| Fade last week's prime-time blowout winner | 44.2% (156) | 46.1% (154) | Backwards: backing them went 54.8% of 310 (p=0.19) |
+| Back last week's prime-time blowout loser | 48.8% | 50.4% | No edge |
+| Rested team, 4+ day rest edge | 50.5% | 51.6% | No edge |
+| Home team vs West Coast visitor, 1:00 PM ET | 52.1% (94) | 44.0% (125) | Flipped; no edge |
+| 4+ day rest edge + 2 time zones of travel | 48.3% (87) | 54.3% (94) | Inconsistent |
+| Divisional home dog +3.5 or more | 48.6% | 50.5% | No edge |
+| Non-division home dog +3.5 or more | 56.8% (229) | 54.3% (258) | 55.4% of 487 (p=0.09), but 46.8% in 2024-26 |
+| Dogs at +3 / +7 / +2.5 / +7.5 | 55.9 / 48.9 / 52.1 / 53.8% | 51.9 / 49.0 / 52.1 / 53.8% | No stable key-number edge |
+
+Margins of exactly 3 (14.6%) and 7 (8.9%) are common, as the key-number idea says, but the closing
+prices around those numbers already reflect it. With ~15 angles tried, one or two p < 0.10 results are
+what luck alone produces. Nothing here qualifies as a bet trigger; the two best (prime-time blowout
+winners, non-division home dogs 3.5+) are worth tracking in paper mode only.
