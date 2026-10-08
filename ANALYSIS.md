@@ -234,3 +234,26 @@ Walk-forward 2022-2026 (285,559 player-games per market; no real lines available
 leaning under). Real sportsbook lines are sharper than these average-based lines; the real test is
 `props-backtest --sport ncaab --real` on the VM, limited to games involving a top-50 team (a full D1
 season of props would cost ~200k credits).
+
+## Quarter-by-quarter in-game model (walk-forward, held-out seasons)
+
+At the end of each quarter (half in NCAA men's), the model projects the final margin and total from the
+pregame line, the score, and the game's own stats so far. It's a ridge correction on top of the original
+score-and-pace method; a model trained from scratch on game stats (boosted trees) did worse than the
+original method and was dropped.
+
+| Sport (games per checkpoint) | Checkpoint | Winner: stats model / original | Brier: stats / original | Final-total miss (pts): stats / original |
+|---|---|---|---|---|
+| NFL 2020-26 (1,752) | Q1 / Half / Q3 | 69.3 / 69.2 · 77.1 / 77.3 · 82.2 / 82.0% | 0.196 / 0.196 · 0.156 / 0.157 · 0.126 / 0.126 | 9.6 / 10.5 · 7.8 / 7.9 · 6.2 / 6.4 |
+| College FB 2020-26 (3,774) | Q1 / Half / Q3 | 77.3 / 77.4 · 81.5 / 81.4 · 86.3 / 86.4% | 0.153 / 0.153 · 0.127 / 0.126 · 0.096 / 0.097 | 11.1 / 12.0 · 8.8 / 9.0 · 6.9 / 6.9 |
+| WNBA 2021-26 (1,626) | Q1 / Half / Q3 | 71.2 / 70.0 · 76.6 / 77.3 · 82.8 / 82.5% | 0.187 / 0.192 · 0.153 / 0.154 · 0.117 / 0.118 | 11.9 / 12.3 · 9.9 / 10.0 · 7.3 / 7.3 |
+| NCAA men's 2022-26 (29,944) | Half | **80.3 / 78.8%** | **0.135 / 0.142** | **9.4 / 10.3** |
+| NCAA women's 2022-26 (27,795) | Q1 / Half / Q3 | 78.8 / 77.9 · 82.8 / 82.5 · 87.6 / 87.3% | 0.143 / 0.149 · 0.117 / 0.120 · 0.086 / 0.087 | 11.2 / 11.6 · 9.0 / 9.5 · 6.7 / 6.8 |
+
+* **College basketball is where game stats help**: shooting, rebounding, turnovers and pace at halftime
+  add 1.5 points of winner accuracy and nearly a point off the total projection on ~30,000 games.
+* **Football gains come from recalibration, not stats**: a score-only version of the same correction
+  does as well, so yards per play and turnovers add nothing beyond the score.
+* The over/under rates in the backtest output are against the *pregame* total, which is easy once the
+  score is known; real live totals move with the score, and no historical live lines were available
+  to test against.
