@@ -107,13 +107,14 @@ def build_rows(players: pd.DataFrame, games: pd.DataFrame, halflife: float = 4.0
 
 
 def feature_cols(rows: pd.DataFrame) -> list[str]:
-    base = [c for c in rows.columns if c.startswith(("ewm_", "l3_", "szn_", "def_"))]
-    return base + ["implied_pts", "total_line", "is_home", "indoors", "wind", "games_before"]
+    base = [c for c in rows.columns if c.startswith(("ewm_", "l3_", "szn_", "def_", "ctx_"))]
+    return base + [c for c in ("implied_pts", "total_line", "is_home", "indoors", "wind", "games_before") if c in rows]
 
 
 def eligible(rows: pd.DataFrame, market: Market) -> pd.DataFrame:
     """Regular players at the market's positions (the ones books post lines for)."""
-    m = rows["position"].isin(market.positions) & (rows[f"ewm_{market.usage}"] >= market.min_usage) & (rows["games_before"] >= 2)
+    m = (rows["position"].isin(market.positions) if market.positions else True) \
+        & (rows[f"ewm_{market.usage}"] >= market.min_usage) & (rows["games_before"] >= 2)
     return rows[m & rows[market.stat].notna()]
 
 
@@ -163,8 +164,9 @@ def walk_forward(rows: pd.DataFrame, market: Market, test_seasons: list[int],
         if len(train) < 500 or test.empty:
             continue
         model = models[season] = PropModel(market).fit(train)
-        t = test[["player_id", "player_display_name", "position", "team", "opponent_team", "season", "week",
-                  "game_id", market.stat, f"ewm_{market.stat}", f"szn_{market.stat}", f"l3_{market.stat}"]].copy()
+        keep = ["player_id", "player_display_name", "position", "team", "opponent_team", "season", "week", "date",
+                "game_id", market.stat, f"ewm_{market.stat}", f"szn_{market.stat}", f"l3_{market.stat}"]
+        t = test[[c for c in keep if c in test]].copy()
         t["proj"] = model.project(test)
         t["market"] = market.key
         out.append(t)

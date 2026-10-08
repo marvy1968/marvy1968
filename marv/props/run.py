@@ -90,18 +90,20 @@ def _match_games(games: pd.DataFrame, evs: list[dict]) -> dict:
     return out
 
 
-def evaluate(lines: pd.DataFrame, rows: pd.DataFrame, models: dict) -> pd.DataFrame:
+def evaluate(lines: pd.DataFrame, rows: pd.DataFrame, models: dict, markets: dict | None = None) -> pd.DataFrame:
     """Join posted lines to projections and price both sides."""
+    markets = markets or P.MARKETS
     if lines.empty or rows.empty:
         return pd.DataFrame()
     rows = rows.assign(_name=rows["player_display_name"].map(O.norm_name))
-    lines = lines.assign(_name=lines["player"].map(O.norm_name), mkey=lines["market"].map(MARKET_BY_KEY))
+    lines = lines.assign(_name=lines["player"].map(O.norm_name),
+                         mkey=lines["market"].map({m.key: k for k, m in markets.items()}))
     out = []
     for key, part in lines.dropna(subset=["mkey"]).groupby("mkey"):
         if key not in models:
             continue
-        mk = P.MARKETS[key]
-        cand = rows[rows["position"].isin(mk.positions)]
+        mk = markets[key]
+        cand = rows[rows["position"].isin(mk.positions)] if mk.positions else rows
         j = part.merge(cand, on=["_name", "game_id"], how="inner")
         if j.empty:
             continue
@@ -131,8 +133,9 @@ def picks(df: pd.DataFrame, min_edge: float | None = None, min_p: float = 0.55) 
     return df[(df["edge"] >= min_edge) & (df["p_side"] >= min_p)].sort_values("edge", ascending=False)
 
 
-def card(p: pd.DataFrame, paper: bool) -> str:
-    head = "🏈 NFL PLAYER PROPS" + (" (paper)" if paper else "")
+def card(p: pd.DataFrame, paper: bool, title: str = "🏈 NFL PLAYER PROPS",
+         how: str = "player form + usage + opponent vs position + implied team total") -> str:
+    head = title + (" (paper)" if paper else "")
     if p.empty:
         return head + "\nNo props cleared the edge filter."
     lines = [head]
@@ -140,7 +143,7 @@ def card(p: pd.DataFrame, paper: bool) -> str:
         k = max(r.p_side - (1 - r.p_side) / payout(r.price), 0) / 4  # quarter Kelly
         lines.append(f"{r.player} {r.label} {r.side} {r.line:g} ({int(r.price):+d} {r.book_title}) | "
                      f"proj {r.proj:.1f}, {r.p_side:.0%} | edge {r.edge:+.1%} | stake {min(k, 0.02):.1%}")
-    lines.append("Projection: player form + usage + opponent vs position + implied team total; Monte Carlo of past misses.")
+    lines.append(f"Projection: {how}; Monte Carlo of past misses.")
     return "\n".join(lines)
 
 

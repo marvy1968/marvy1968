@@ -50,6 +50,7 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    model against real past Bovado/DraftKings/FanDuel lines (~40 credits per game, capped by --max-credits;
    responses cached in state/cache/props_hist). Set PROPS_SHRINK / PROPS_MIN_EDGE from its results.
    Live: `python -m marv props --dry-run`; the daily NFL run sends props automatically when ODDS_API_KEY is set.
+   NCAAB props: same commands with `--sport ncaab` (`--real` only fetches games with a top-50 team).
 
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.

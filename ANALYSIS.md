@@ -213,3 +213,24 @@ The model clearly beats the average-based approach of props_analyzer.py (which w
 lines are naive: averages sit above typical outputs, so "always under" already wins ~58% outside passing
 yards. Sportsbook lines are set near the median and are much sharper, so expect far lower real win rates.
 The real test is `props-backtest --real` on the VM (Odds API historical props from 2023).
+
+## NCAA men's basketball player props
+
+`marv/props/ncaab.py`: points, rebounds, assists and made threes for Division I players (20+ minutes).
+Projection = player form (weighted recent, season, last 3), minutes, shot volume and starter rate, the
+opponent's output allowed to that position group vs the league, both teams' pace and scoring, home/away.
+Same gradient-boosted model and Monte Carlo of past misses as the NFL props.
+
+Walk-forward 2022-2026 (285,559 player-games per market; no real lines available here):
+
+| Market | Avg miss: model / season avg / recent form | vs average-based line, edge >= 10% | always-under | props_analyzer rule |
+|---|---|---|---|---|
+| Points | 4.63 / 4.73 / 4.72 | 62.6% | 52.3% | 50.2% |
+| Rebounds | 1.90 / 1.95 / 1.93 | 63.6% | 53.6% | 52.8% |
+| Assists | 1.21 / 1.24 / 1.23 | 65.2% | 54.8% | 55.4% |
+| Made threes | 0.85 / 0.87 / 0.86 | 72.7% | 62.6% | 62.2% |
+
+2025-26 season alone, points at a 10% edge: 62.8%. Points is the most believable signal (only ~52% from
+leaning under). Real sportsbook lines are sharper than these average-based lines; the real test is
+`props-backtest --sport ncaab --real` on the VM, limited to games involving a top-50 team (a full D1
+season of props would cost ~200k credits).
