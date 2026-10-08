@@ -17,6 +17,7 @@ from .experts import ExpertPanel
 from .features import build_features, feature_columns
 
 log = logging.getLogger(__name__)
+BACKUP_QB_STARTS = 3  # NFL: a QB with fewer starts (this + last season) vetoes every bet on the game
 TRAIN_YEARS = 6
 
 
@@ -221,6 +222,13 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         from ..data.roster import missing_share
         missing = missing_share(cache, module.key, season, slate_teams)
 
+    qb_starts = {}
+    if module.key == "nfl":
+        try:
+            from ..data.injuries import nfl_qb_starts
+            qb_starts = nfl_qb_starts(cache, season)
+        except Exception as exc:
+            log.warning("NFL QB starts check failed: %s", exc)
     qb_changes = {}
     if module.key == "ncaaf":
         try:
@@ -245,6 +253,15 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         p.notes.append(" · ".join(f"{e} {hh:.0f}-{aa:.0f}" for e, (hh, aa) in experts.items()))
         p.game_vetoes += hurt.get(g.home, []) + hurt.get(g.away, [])
         p.game_vetoes += stale.get(g.home, []) + stale.get(g.away, [])
+        if module.key == "nfl":  # backup QB: the market prices these from news Marv's stats lag behind
+            for team_name, row_team in ((g.home, home_team), (g.away, a["team"])):
+                qb_out = "my_qb_out" in tg.columns and float(tg.loc[(tg["game_id"] == gid) & (tg["team"] == row_team),
+                                                                    "my_qb_out"].fillna(0).max() or 0) > 0
+                qb, starts = qb_starts.get(normalize(team_name), (None, 99))
+                if qb_out:
+                    p.game_vetoes.append(f"backup QB: {team_name} starting QB ruled out")
+                elif starts < BACKUP_QB_STARTS:
+                    p.game_vetoes.append(f"backup QB: {team_name} {qb} has {starts} start{'s' if starts != 1 else ''}")
         if "my_snaps_lost" in tg.columns:  # NFL roster availability for this week
             avail = tg[tg["game_id"] == gid].set_index("team")["my_snaps_lost"]
             p.availability = {g.home: float(avail.get(home_team, 0)), g.away: float(avail.get(a["team"], 0))}

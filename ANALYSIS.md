@@ -576,3 +576,18 @@ movement is the measurable trace of that money.
   fits the market over-adjusting to recent shootouts. ~40 rules tested in this section: paper-track.
 * NFL: no free opening-line history; on the VM, The Odds API historical endpoint can supply open and
   close (credits).
+
+## Backup-QB flag (NFL)
+
+Every NFL game where either team's latest starting QB has fewer than 3 starts (this and last season, any
+team) or its starting QB is ruled out is now skipped for every bet. Backtest 2016-26 (nflverse starters):
+
+| | Games | Winners | 78%+ picks | Marv 4+ pts off the spread, ATS |
+|---|---|---|---|---|
+| Normal starters | 2,308 | 64.2% | 87.1% (62) | 54.3% (302) |
+| Backup QB in the game | 507 | 65.9% | 85.7% (21) | 54.4% (169) |
+
+Marv disagrees with the spread more in backup-QB games (3.4 vs 2.2 points on average), but its results in
+those games were no worse, so the flag isn't a proven improvement: it's a safety rule against betting
+into injury news the stats lag behind (e.g. Tampa Bay's Jalon Daniels, Oct 8 2026: market Dallas -8.5
+to -10, Marv Dallas by 3).

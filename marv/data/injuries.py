@@ -114,6 +114,28 @@ def nfl_starting_qbs(cache: Path, season: int) -> dict[str, set[str]]:
     return {normalize(NFL_TEAMS.get(t, t)): {n} for t, n in zip(latest["team"], latest["player_display_name"])}
 
 
+def nfl_qb_starts(cache: Path, season: int) -> dict[str, tuple[str, int]]:
+    """{team: (latest starting QB, his starts over this and last season, any team)}. A start is a game
+    where he threw the most passes for his team; a veteran on a new team keeps his starts."""
+    frames = []
+    for yr, age in ((season, 2), (season - 1, None)):
+        path = fetch(NFL_PLAYERS.format(season=yr), cache / f"nfl_players_week_{yr}.csv", max_age_hours=age)
+        if path:
+            df = pd.read_csv(path, low_memory=False, usecols=["player_display_name", "position", "team", "week", "attempts"])
+            frames.append(df.assign(season=yr))
+    if not frames:
+        return {}
+    df = pd.concat(frames)
+    qbs = df[(df["position"] == "QB") & (df["attempts"].fillna(0) > 0)]
+    starters = qbs.sort_values("attempts").groupby(["season", "week", "team"]).tail(1)
+    starts = starters["player_display_name"].value_counts()
+    out = {}
+    for team, d in starters.sort_values(["season", "week"]).groupby("team"):
+        qb = d["player_display_name"].iloc[-1]
+        out[normalize(NFL_TEAMS.get(team, team))] = (qb, int(starts.get(qb, 0)))
+    return out
+
+
 def basketball_key_players(cache: Path, league: str, season: int) -> dict[str, set[str]]:
     path = fetch(BOX_PLAYERS.format(league=league, season=season), cache / f"{league}_player_box_{season}.parquet",
                  max_age_hours=2)

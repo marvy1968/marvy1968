@@ -114,3 +114,21 @@ class RosterNoteTests(unittest.TestCase):
         added = out[out["game_id"] == "99"]
         self.assertEqual(list(added["team"]), ["Alabama"])  # Auburn isn't in the tables: skipped
         self.assertEqual(float(added["over"].iloc[0]), 1.0)  # 61 > 52.5
+
+
+class BackupQBTests(unittest.TestCase):
+    def test_qb_starts_counts_any_team_and_latest_starter(self):
+        import tempfile
+        from unittest import mock
+        from marv.data import injuries
+        rows = [("Vet", "QB", "MIN", 1, 30), ("Vet", "QB", "MIN", 2, 31), ("Kid", "QB", "TB", 1, 5),
+                ("Star", "QB", "TB", 1, 35), ("Star", "QB", "TB", 2, 33), ("Kid", "QB", "TB", 3, 28)]
+        last = [("Vet", "QB", "ARI", w, 30) for w in range(1, 6)]
+        with tempfile.TemporaryDirectory() as d:
+            for yr, data in ((2026, rows), (2025, last)):
+                pd.DataFrame(data, columns=["player_display_name", "position", "team", "week", "attempts"]) \
+                    .to_csv(Path(d) / f"nfl_players_week_{yr}.csv", index=False)
+            with mock.patch.object(injuries, "fetch", lambda url, path, max_age_hours=None: path):
+                out = injuries.nfl_qb_starts(Path(d), 2026)
+        self.assertEqual(out["tampa bay buccaneers"], ("Kid", 1))  # backup started the latest game
+        self.assertEqual(out["minnesota vikings"], ("Vet", 7))  # veteran on a new team keeps his starts
