@@ -1,0 +1,2 @@
+# timeout 14400
+marv props-backtest --sport nfl --seasons 2025-2025 --real --max-credits 6000
