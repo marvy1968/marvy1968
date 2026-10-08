@@ -1,3 +1,14 @@
 $ marv run --sport cfb --hours 14 --force --dry-run
-started 2026-10-08 13:31:47 EDT
-RUNNING...
+started 2026-10-08 13:31:47 EDT, took 351s, exit 0
+
+
+--- stderr ---
+2026-10-08 13:31:57,122 INFO Odds API americanfootball_ncaaf: 92337 credits left
+2026-10-08 13:31:57,131 INFO cfb: Odds API matched 4/4 games
+2026-10-08 13:37:31,261 INFO cfb: stats experts projected 0/4 games
+2026-10-08 13:37:31,431 INFO cfb: 4 games found but none had odds and rated teams
+2026-10-08 13:37:32,538 INFO cfb 2026: 888 games, 1400 team-games
+2026-10-08 13:37:37,443 INFO Odds API americanfootball_ncaaf: 92334 credits left
+2026-10-08 13:37:39,426 INFO cfb props: no posted prop lines yet, 0 credits
+2026-10-08 13:37:39,428 INFO 🏈 COLLEGE FOOTBALL PLAYER PROPS (top 30) (paper)
+No props cleared the edge filter.
