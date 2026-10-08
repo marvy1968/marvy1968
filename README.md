@@ -36,8 +36,15 @@ Projected final total 145.0 (pregame 150.0)
 Total 150.5 (live line): Under 68% · edge +15% · ▶️ live play
 ```
 
-Live edges need live prices (`ODDS_API_KEY`); without them it shows fair prices only. Live numbers
-are model estimates and haven't been backtested like the pregame picks. EuroLeague live updates aren't
+Live edges need live prices (`ODDS_API_KEY`); without them it shows fair prices only.
+
+**Quarter-by-quarter model.** Once trained (`python -m marv ingame train --sport nfl`; the daily run
+retrains weekly), each update also reads the game's own stats from ESPN's live play-by-play: yards per
+play, success rate, explosive plays, turnovers, sacks and third downs in football; eFG%, threes, free
+throws, rebounds, turnovers, fouls and pace in basketball. A boosted-tree model per quarter projects
+the final margin and total, and a Monte Carlo of its own past misses at that point of the game prices
+the moneyline and over/under. Backtest it with `python -m marv ingame backtest --sport nfl --seasons 2020-2025`
+(compares the stats model with a score-only model and with the score-and-pace method). EuroLeague live updates aren't
 wired yet (ESPN doesn't carry it).
 
 Every morning the bot projects the day's games in each active sport. It simulates each game
@@ -181,6 +188,28 @@ if v["found"] and not v["agrees"]:
     skip_alert()          # Marv's fair chance doesn't beat the price
 ```
 
+### Edge board, Telegram queries and alerts
+
+`marv-edges.service` (`python -m marv edges --watch`) refreshes every 30 minutes. It compares Marv
+with every current price from your books (`ODDS_BOOKS`, Bovado first, with line shopping) for
+moneylines, spreads, totals and player props, and alerts new entries. Message the Marv bot:
+
+```
+/board                 edge board (✅ recommended, · lean, 📝 paper props)
+/game Lions            Marv's projection, fair price and best current prices
+/check nfl Lions total under 47.5 -110     fair probability for any price (e.g. a March_edge alert)
+/props                 today's player-prop picks
+/record                closing-line value of alerted bets
+```
+
+The odds bot can read the same board at `http://127.0.0.1:8787/board`.
+
+An entry is **recommended** only when its sport/market showed a positive, statistically significant
+(p < 0.10, 100+ bets) held-out result on real closing prices (`marv/backtest_edges.json`). Markets
+that lost money there are hidden; the rest are leans. So far no game market has qualified (see
+ANALYSIS.md and BOOKS.md), so expect leans and paper props until the props real-line backtest on
+the VM says otherwise.
+
 To find the odds bot on the VM and package it (secrets removed) for review:
 `sudo bash /opt/marv-bot/deploy/find_odds_bot.sh` then `sudo bash /opt/marv-bot/deploy/find_odds_bot.sh /path/to/bot`.
 
@@ -210,6 +239,13 @@ python -m marv backtest --sport nba --start 2025-11-01 --end 2026-04-12
 python -m marv results --days 30                         # graded record → Telegram
 python -m marv test-telegram
 python -m marv get-chat-id
+python -m marv edges                                     # edge board now (games + props)
+python -m marv edges --query "/game Lions"               # any Telegram query from the shell
+python -m marv props --sport nfl --dry-run               # player props: nfl, cfb, ncaab, ncaaw, wnba
+python -m marv props-backtest --sport nfl --seasons 2023-2025 --real   # vs real past Bovado lines (credits)
+python -m marv ingame train --sport nfl                  # quarter-by-quarter model
+python -m marv ingame backtest --sport nfl --seasons 2020-2025
+python -m marv h2h-backtest --sport cfb --seasons 2016-2025
 ```
 
 **Backtest every sport on the VM before trusting it.** The NFL backtest uses real closing lines from

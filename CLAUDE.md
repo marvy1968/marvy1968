@@ -52,6 +52,14 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    Live: `python -m marv props --dry-run`; the daily NFL run sends props automatically when ODDS_API_KEY is set.
    NCAAB props: same commands with `--sport ncaab` (`--real` only fetches games with a top-50 team).
 
+6. Edge board + Telegram queries (`marv/board.py`, `marv/querybot.py`, `marv-edges.service`): verify
+   `python -m marv edges` against live Odds API data and `/board` in Telegram. RECOMMENDED status comes
+   only from `marv/backtest_edges.json` (closing-price backtests); update it if new backtests qualify.
+7. Quarter-by-quarter model (`marv/ingame/`): `python -m marv ingame train --sport nfl` (and cfb, ncaab,
+   ncaaw, wnba). The live ESPN summary parsers (`ingame/plays.py: espn_football, espn_basketball`) were
+   written from ESPN's documented JSON without network access: check them against a real
+   `/summary?event=` response during the first live game and fix field names if needed.
+
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.
