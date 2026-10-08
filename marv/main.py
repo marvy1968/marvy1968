@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from . import bridge
+from . import bridge, linemove, ou_tags
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
@@ -43,6 +43,10 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     history, slate, ctx = load_for_run(sport, s, now, hours)
     if store.resolve(sport.key, history):
         log.info("%s: graded finished picks", sport.key)
+    try:
+        ou_tags.grade(Path(s.state_dir), sport.key, history)
+    except Exception:
+        log.exception("over/under tag grading failed")
     if not slate:
         log.info("%s: no games in the next %dh", sport.key, hours)
         return
@@ -56,6 +60,14 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return
+    for pred in preds:
+        moved = linemove.note(pred.game)
+        if moved:
+            pred.notes.append(moved)
+    if projections:
+        tagged = {gid: p.ou_tags for gid, p in projections.items() if p.ou_tags}
+        if tagged and not dry_run:
+            ou_tags.log(Path(s.state_dir), sport.key, slate, tagged)
     if sport.key == "nfl":  # situational tags on the card (tracked in paper mode, never used to pick)
         try:
             from . import situational
@@ -311,6 +323,7 @@ def cmd_situational(s: Settings, args) -> int:
     from .stats.base import fetch
     games = pd.read_csv(fetch(NFL_GAMES, Path(s.state_dir) / "cache" / "nflverse_games.csv", 3), low_memory=False)
     text = situational.report(situational.grade(Path(s.state_dir), games))
+    text += "\n\n" + ou_tags.report(ou_tags.record(Path(s.state_dir)))
     print(text)
     if args.send:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
@@ -562,7 +575,7 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--real", action="store_true", help="use The Odds API historical prop lines (paid credits)")
     pb.add_argument("--max-credits", dest="max_credits", type=int, default=40000)
 
-    sit = sub.add_parser("situational", help="grade the NFL situational tags (paper tracking)")
+    sit = sub.add_parser("situational", help="grade the NFL situational and over/under trend tags (paper tracking)")
     sit.add_argument("--send", action="store_true")
 
     ig = sub.add_parser("ingame", help="quarter-by-quarter model: train it, or backtest it")

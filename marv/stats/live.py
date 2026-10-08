@@ -49,6 +49,7 @@ class StatsProjection:
     game_vetoes: list[str] = field(default_factory=list)  # e.g. late key injuries
     availability: dict[str, float] = field(default_factory=dict)  # team -> starters lost (NFL) or minutes share missing
     wind: float | None = None
+    ou_tags: list = field(default_factory=list)  # [(tag, side)] over/under trend tags, paper tracking only
 
     def vetoes_for(self, pick: Pick, pred: Prediction) -> list[str]:
         out = list(dict.fromkeys(self.game_vetoes))
@@ -253,4 +254,18 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
                 p.notes.append(f"SP form (runs allowed/start): {a['team']} {form.get(a['team'], float('nan')):.1f}, "
                                f"{h['team']} {form.get(h['team'], float('nan')):.1f}")
         out[g.id] = p
+    if out:
+        try:  # over/under trend tags (cards + paper ledger, never picks)
+            from .. import ou_tags
+            for gid, tags in ou_tags.tag_slate(module_key(module), games, tg, slate, id_map).items():
+                if gid in out:
+                    out[gid].ou_tags = tags
+                    out[gid].notes.append(ou_tags.note(tags))
+        except Exception:
+            log.exception("%s: over/under tags failed", module.key)
     return out
+
+
+def module_key(module: StatsModule) -> str:
+    """Bot sport key for a stats module (the college football module's key is "ncaaf")."""
+    return {"ncaaf": "cfb"}.get(module.key, module.key)

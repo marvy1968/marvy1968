@@ -60,6 +60,12 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
    written from ESPN's documented JSON without network access: check them against a real
    `/summary?event=` response during the first live game and fix field names if needed.
 
+8. Line movement + O/U trend tags (paper only): every card shows "line move: open → now"; `state/lines.json`
+   keeps open and last-before-kickoff lines for a year. College cards tag OVER-FADE / OVER-FADE+MOVE /
+   OVER-FADE+INFLATED / UNDER-FADE and NFL cards TOTAL-INFLATED (`marv/ou_tags.py`), logged to
+   `state/ou_tags_log.json` and graded by `python -m marv situational`. Check the tags appear on the next
+   cfb/nfl dry run (`--sport cfb --force --dry-run`); never turn them into picks without 100+ graded games.
+
 ## Rules
 - Run `python -m unittest discover -s tests` before restarting services.
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.

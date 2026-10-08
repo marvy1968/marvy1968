@@ -26,17 +26,28 @@ class Store:
         tmp.write_text(json.dumps(data, indent=1, default=str))
         tmp.replace(self.root / name)
 
-    # Opening lines: sources without an "open" value get the first line we saw.
+    # Opening lines: sources without an "open" value get the first line we saw. Each run also stores the
+    # latest line, so lines.json keeps open -> last-before-kickoff (≈ close) for a year of games.
     def remember_lines(self, sport: str, games: list[Game]) -> None:
         memory = self._load("lines.json", {})
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=400)).isoformat()
         memory = {k: v for k, v in memory.items() if v.get("start", "") >= cutoff}
+        now = datetime.now(timezone.utc)
         for game in games:
             if not game.odds:
                 continue
             key = f"{sport}:{game.id}"
             first = memory.setdefault(key, {"start": game.start.isoformat(),
                                              "spread": game.odds.spread, "total": game.odds.total})
+            first.setdefault("home", game.home)
+            first.setdefault("away", game.away)
+            if game.odds.spread_open is not None:
+                first["spread_open_src"] = game.odds.spread_open
+            if game.odds.total_open is not None:
+                first["total_open_src"] = game.odds.total_open
+            if game.start > now:  # last line seen before kickoff
+                first["spread_last"], first["total_last"] = game.odds.spread, game.odds.total
+                first["seen_last"] = now.isoformat()
             if game.odds.spread_open is None:
                 game.odds.spread_open = first.get("spread")
             if game.odds.total_open is None:
