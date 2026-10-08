@@ -480,3 +480,33 @@ No recency version beats the current one on winners, and none gets the spread or
 Heavy recency (exponential decay) is clearly worse: a few games are too small a sample. Projected
 totals miss by more than the closing line in every version. Not adopted for live O/U; the one mild
 positive (college 80%+ picks at ~91% with opponent adjustment) is still below Marv's 92.2%.
+
+## Team over/under trends and the trend Monte Carlo vs closing totals
+
+Does a team's recent over/under record, or the head-to-head Monte Carlo total built from recent-form
+stats, predict the next game's result against the closing total? NFL 2010-26 (4,382 games with a
+closing total), college FB 2017-26 (6,727 FBS games); Monte Carlo totals are walk-forward predictions.
+
+| Rule (win rate vs the closing total, -110) | College FB | NFL |
+|---|---|---|
+| Both teams over in 2+ of their last 3 -> bet OVER | 45.1% (994) | 49.7% (849) |
+| Same games -> bet UNDER (fade the trend) | **54.9% (994, p=0.002)** | 50.3% |
+| Same, games with a top-30 team | **56.6% (325)** | |
+| Both teams' last 3 beat the total by 14+ combined -> UNDER | 54.6% (683) | 51.2% (422) |
+| Both teams' season over rate 60%+ -> OVER | 42.7% (314) | 45.8% (297) |
+| Monte Carlo total (season + last 3), 55%+ sure | 51.5% (3,369) | 48.8% (1,450) |
+| Monte Carlo total (last 3, opponent-adjusted), 55%+ sure | 50.4% (3,780) | 50.4% (1,663) |
+| Monte Carlo agrees with the team trend | 44.7% (1,039) | 49.5% (610) |
+| Monte Carlo disagrees with the trend -> follow Monte Carlo | 52.6% (821) | 52.3% (501) |
+
+* Following a team's over/under trend loses. In college football the opposite works: the more overs
+  both teams had in their last 3 combined, the more often the next game went under (0/6 overs: 40%
+  under, 3/6: 51%, 5/6: 57%, 6/6: 63%). The closing total seems to over-adjust to recent high-scoring
+  games. The fade beat 52.4% in 8 of 9 full seasons (2024 was 48.5%), and same-week random games went
+  under only 50.9% (p=0.008).
+* The NFL shows no such pattern; its totals are sharper.
+* The trend Monte Carlo has no totals edge by itself, and when it agrees with a team's streak it loses,
+  because it is chasing the same recent scoring the line already priced.
+* Caveat: ~24 rules were tested on two sports, so the best one is partly selected by luck; prices are
+  assumed -110 (college juice varies). Paper-track "fade both-teams-over-trending college totals"
+  before staking anything.
