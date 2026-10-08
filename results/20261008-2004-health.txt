@@ -1,3 +1,4 @@
 $ logs marv-health 20
-started 2026-10-08 15:15:03 EDT
-RUNNING...
+started 2026-10-08 15:15:03 EDT, took 2s, exit 0
+
+-- No entries --
