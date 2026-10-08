@@ -80,12 +80,35 @@ class NFLStats(StatsModule):
             long.append(part.drop(columns="neutral"))
         tg = pd.concat(long, ignore_index=True).merge(st, on=["game_id", "team"], how="left")
         tg = tg.merge(ctx, on="game_id", how="left")
+        # Roster availability: regular starters ruled Out/Doubtful on that week's injury report.
+        try:
+            from ..data.nfl_availability import availability
+            av = availability(cache, seasons, current)
+        except Exception as exc:  # the model still runs without it
+            av = pd.DataFrame()
+            import logging
+            logging.getLogger(__name__).warning("NFL availability unavailable: %s", exc)
+        wk = games.set_index("game_id")["week"]
+        tg["week"] = tg["game_id"].map(wk)
+        if not av.empty:
+            av = av.assign(team=av["team"].map(lambda t: NFL_TEAMS.get(t, t)))
+            cols = ["qb_out", "starters_out", "snaps_lost"]
+            mine = av.rename(columns={c: f"my_{c}" for c in cols})
+            theirs = av.rename(columns={"team": "opp", **{c: f"their_{c}" for c in cols}})
+            tg = tg.merge(mine, on=["season", "week", "team"], how="left").merge(theirs, on=["season", "week", "opp"], how="left")
+        for side in ("my", "their"):
+            for c in ("qb_out", "starters_out", "snaps_lost"):
+                if f"{side}_{c}" not in tg:
+                    tg[f"{side}_{c}"] = 0.0
+                tg[f"{side}_{c}"] = tg[f"{side}_{c}"].fillna(0.0)
+        tg = tg.drop(columns="week")
         tg["my_rest"] = np.where(tg["home"] == 0, tg["away_rest"], tg["home_rest"])
         tg["their_rest"] = np.where(tg["home"] == 0, tg["home_rest"], tg["away_rest"])
         tg = tg.drop(columns=["home_rest", "away_rest"])
         return games, tg
 
-    extra_cols = ["wind", "temp", "indoors", "div_game", "my_rest", "their_rest", "playoff"]
+    extra_cols = ["wind", "temp", "indoors", "div_game", "my_rest", "their_rest", "playoff",
+                  "my_qb_out", "my_starters_out", "my_snaps_lost", "their_qb_out", "their_starters_out", "their_snaps_lost"]
 
     def stat_columns(self, tg):
         return [c for c in super().stat_columns(tg) if c not in self.extra_cols]

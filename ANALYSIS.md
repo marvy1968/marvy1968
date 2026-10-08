@@ -295,3 +295,35 @@ leans at most and hides the ones that lost money.
 **Bugs the stress tests caught and fixed:** NBA spreads before 2022-23 were unsigned in the source file
 (about a third of games had the favorite backwards), and average-based "lines" were beatable even by a
 model that knew nothing, which inflated earlier props results.
+
+## Elimination filters, injuries/roster, weather and home advantage
+
+"Eliminate a pick if the favorite doesn't meet expectations" (the Gemini idea) and every other filter was
+chosen on early seasons and measured on later ones the filters never saw.
+
+**NFL** (picks chosen on 2016-21, tested on 2022-26; ROI at real closing moneylines):
+
+| Rule | Held-out accuracy | Picks/season | ROI |
+|---|---|---|---|
+| Marv 70%+ | 75.4% | 35 | -8.4% |
+| + drop if 1.5+ full-time starters out, wind 15+ mph, or market under 70% | **78.4%** | 23 | -7.0% |
+| Marv agrees with the market and market 85%+ | **93.4%** | 15 | +3.5% (avg price -950) |
+| best rules that hit 90% on 2016-21 | 85-87% | 6-8 | -3% to -4% |
+
+* Starters out (snap-weighted, from injury reports) and the QB being out are real effects: those
+  favorites won 67-72% instead of ~81%. Adding them as model features didn't help (65.1% -> 64.5% overall);
+  as *eliminations* they add about 3 points.
+* Favorites that "missed expectations" over their last 3 games (Gemini's rule) won 89% in validation, about
+  the same as everyone else, so that filter removes good picks; it's not used for the NFL.
+* Weather (wind, temperature, roof), rest and home-field advantage were already model inputs.
+* The only way to 90%+ is agreeing with a heavy market favorite, priced around -950: break-even.
+
+**NCAA men's basketball** (chosen on 2021-23, tested on 2024-26): favorites missing 15%+ of their regular
+minutes (players who sat out the last game) won 77.9% vs 83.3%. An 80% floor with the experts agreeing held
+**90.8% on 3,907 held-out picks (~1,300 a season)**; the roster filter is applied live as well.
+
+**WNBA**: ~13 picks a season, too few to tune; dropping favorites in a slump went 89.6% vs 86.5% held-out
+(48 picks), not enough to adopt.
+
+Live: `marv/stats/registry.py` now applies the NFL eliminations (market < 70%, 1.5+ starters out, wind
+15+) and the NCAA men's 80% floor with the missing-minutes veto (`marv/data/roster.py`).

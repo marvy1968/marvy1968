@@ -30,6 +30,11 @@ class StatsRules:
     ou_enabled: bool = True  # False when backtests showed no over/under edge for this sport
     min_games: int = 3  # games of stats each team needs this season
     spread_enabled: bool = False  # tuned for moneyline and over/under only
+    # Elimination filters (backtested in ANALYSIS.md, "Elimination filters"): drop a moneyline pick when...
+    ml_market_min: float = 0.0  # ...the no-vig market gives the side less than this
+    ml_max_snaps_lost: float = 99.0  # ...the side's regular starters ruled out sum to this many full-time players (NFL)
+    ml_max_wind: float = 99.0  # ...outdoor wind is at least this many mph (NFL)
+    ml_max_missing: float = 1.0  # ...this share of the side's regular minutes sat out its last game (basketball)
 
 
 @dataclass
@@ -41,6 +46,8 @@ class StatsProjection:
     min_gp: int
     notes: list[str] = field(default_factory=list)
     game_vetoes: list[str] = field(default_factory=list)  # e.g. late key injuries
+    availability: dict[str, float] = field(default_factory=dict)  # team -> starters lost (NFL) or minutes share missing
+    wind: float | None = None
 
     def vetoes_for(self, pick: Pick, pred: Prediction) -> list[str]:
         out = list(dict.fromkeys(self.game_vetoes))
@@ -54,6 +61,20 @@ class StatsProjection:
                 out.append("experts split on the winner")
             if pick.prob < self.rules.ml_min_prob:
                 out.append(f"confidence {pick.prob:.0%} below {self.rules.ml_min_prob:.0%}")
+            o = pred.game.odds
+            if self.rules.ml_market_min > 0 and o and o.home_ml and o.away_ml:
+                from ..edges import devig
+                fair_home = devig([o.home_ml, o.away_ml])[0]
+                fair = fair_home if home_side else 1 - fair_home
+                if fair < self.rules.ml_market_min:
+                    out.append(f"market only {fair:.0%} on this side")
+            lost = self.availability.get(pick.side)
+            if lost is not None and lost >= self.rules.ml_max_snaps_lost:
+                out.append(f"starters out ({lost:.1f} full-time players)")
+            if lost is not None and self.rules.ml_max_missing < 1.0 and lost >= self.rules.ml_max_missing:
+                out.append(f"{lost:.0%} of regular minutes sat out the last game")
+            if self.wind is not None and self.wind >= self.rules.ml_max_wind:
+                out.append(f"wind {self.wind:.0f} mph")
         elif pick.market == "total":
             over = pick.side == "Over"
             if self.rules.ou_agree and not all((t > pick.line) == over for t in totals):
@@ -191,6 +212,10 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         week = int(weeks.min()) if not weeks.empty else None
     hurt = injury_vetoes(module.key, cache, season, slate_teams, now=now, week=week)
     stale = freshness(module, tg, history, slate_teams, now)
+    missing = {}
+    if rules.ml_max_missing < 1.0 and module.key in ("ncaab", "ncaaw", "wnba"):
+        from ..data.roster import missing_share
+        missing = missing_share(cache, module.key, season, slate_teams)
 
     out = {}
     lookup = games.set_index("game_id")
@@ -208,6 +233,14 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         p.notes.append(" · ".join(f"{e} {hh:.0f}-{aa:.0f}" for e, (hh, aa) in experts.items()))
         p.game_vetoes += hurt.get(g.home, []) + hurt.get(g.away, [])
         p.game_vetoes += stale.get(g.home, []) + stale.get(g.away, [])
+        if "my_snaps_lost" in tg.columns:  # NFL roster availability for this week
+            avail = tg[tg["game_id"] == gid].set_index("team")["my_snaps_lost"]
+            p.availability = {g.home: float(avail.get(home_team, 0)), g.away: float(avail.get(a["team"], 0))}
+        elif missing:
+            p.availability = {t: missing[t] for t in (g.home, g.away) if t in missing}
+        if "wind" in tg.columns:
+            w = tg.loc[tg["game_id"] == gid, "wind"]
+            p.wind = float(w.iloc[0]) if len(w) and pd.notna(w.iloc[0]) and float(w.iloc[0]) > 0 else None
         if "sp" in targets.columns:
             sps = tg.loc[tg["game_id"] == gid, "sp"]
             if sps.isna().any() or len(sps) < 2:

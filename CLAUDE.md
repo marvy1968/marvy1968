@@ -22,8 +22,8 @@ veto stack (expert agreement, backtested confidence floors in `marv/stats/regist
 ## Backtested results (walk-forward, held-out seasons) - keep claims honest
 | Sport | ML floor | Held-out ML accuracy |
 |---|---|---|
-| NFL | 78% | 90.0% (30 picks, 2022-25) |
-| NCAA men's | 79% | 90.3% (4,260 picks, 2023-25 D1) |
+| NFL | 78% + eliminations (market<70%, starters out, wind) | 86.7-93% on 30-76 picks, ~break-even ROI |
+| NCAA men's | 80% + experts agree + roster veto | 90.8% (3,907 picks, 2024-26 D1) |
 | NCAA women's | 76% | 90.8% (7,076 picks, 2023-25 D1) |
 | WNBA | 85% | ~83-88% |
 | NBA (off) | 86% | 90.5%; O/U 52.8% |
