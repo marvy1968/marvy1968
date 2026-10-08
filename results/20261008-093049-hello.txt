@@ -1,3 +1,98 @@
 $ status
-started 2026-10-08 09:30:52 EDT
-RUNNING...
+started 2026-10-08 09:30:52 EDT, took 2s, exit 0
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:30:49 EDT; 6s ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Oct 08 09:30:49 instance-stockbot systemd[1]: Started marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+
+● marv-vmlink.service - Marv VM link: run jobs from the vm-link branch
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.service; static)
+     Active: activating (start) since Thu 2026-10-08 09:30:49 EDT; 8s ago
+TriggeredBy: ● marv-vmlink.timer
+   Main PID: 70058 (python3)
+      Tasks: 4 (limit: 4617)
+     Memory: 33.2M
+        CPU: 2.569s
+     CGroup: /system.slice/marv-vmlink.service
+             ├─70058 /usr/bin/python3 /opt/marv-bot/deploy/vm_link.py
+             ├─70085 bash -c "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager; git -C /opt/marv-bot log -3 --oneline; df -h /"
+             ├─70086 systemctl --no-pager status "marv-*"
+             └─70087 head -80
+
+Oct 08 09:30:49 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+
+● marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+     Loaded: loaded (/etc/systemd/system/marv-edges.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:14:55 EDT; 16min ago
+   Main PID: 68890 (python)
+      Tasks: 14 (limit: 4617)
+     Memory: 608.9M
+        CPU: 15min 44.736s
+     CGroup: /system.slice/marv-edges.service
+             └─68890 /opt/marv-bot/.venv/bin/python -m marv edges --watch
+
+Oct 08 09:14:55 instance-stockbot systemd[1]: Started marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record).
+Oct 08 09:23:52 instance-stockbot python[68890]: 2026-10-08 09:23:52,433 INFO props: 0 lines priced, 0 picks, 0 credits used
+Oct 08 09:23:52 instance-stockbot python[68890]: 2026-10-08 09:23:52,438 INFO 🏈 NFL PLAYER PROPS (paper)
+Oct 08 09:23:52 instance-stockbot python[68890]: No props cleared the edge filter.
+Oct 08 09:23:53 instance-stockbot python[68890]: 2026-10-08 09:23:53,310 INFO cfb 2026: 888 games, 1400 team-games
+Oct 08 09:24:00 instance-stockbot python[68890]: 2026-10-08 09:24:00,183 INFO Odds API americanfootball_ncaaf: 92545 credits left
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:14:55 EDT; 16min ago
+   Main PID: 68893 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 131.9M
+        CPU: 4.350s
+     CGroup: /system.slice/marv-live.service
+             └─68893 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 08 09:27:06 instance-stockbot python[68893]: 2026-10-08 09:27:06,239 WARNING live scoreboard nfl: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 09:27:06 instance-stockbot python[68893]: 2026-10-08 09:27:06,288 WARNING live scoreboard cfb: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261008-20261008&limit=1000&groups=80
+Oct 08 09:27:06 instance-stockbot python[68893]: 2026-10-08 09:27:06,336 WARNING live scoreboard wnba: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 09:27:06 instance-stockbot python[68893]: 2026-10-08 09:27:06,488 WARNING live scoreboard ncaab: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 09:27:06 instance-stockbot python[68893]: 2026-10-08 09:27:06,551 WARNING live scoreboard ncaaw: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 09:29:06 instance-stockbot python[68893]: 2026-10-08 09:29:06,607 WARNING live scoreboard nfl: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 09:29:06 instance-stockbot python[68893]: 2026-10-08 09:29:06,789 WARNING live scoreboard cfb: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261008-20261008&limit=1000&groups=80
+Oct 08 09:29:06 instance-stockbot python[68893]: 2026-10-08 09:29:06,838 WARNING live scoreboard wnba: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=20261008-20261008&limit=1000
+Oct 08 09:29:06 instance-stockbot python[68893]: 2026-10-08 09:29:06,988 WARNING live scoreboard ncaab: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+Oct 08 09:29:07 instance-stockbot python[68893]: 2026-10-08 09:29:07,238 WARNING live scoreboard ncaaw: 400 Client Error: Bad Request for url: https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?dates=20261008-20261008&limit=1000&groups=50
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-08 09:14:55 EDT; 16min ago
+   Main PID: 68895 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 130.0M
+        CPU: 4.264s
+     CGroup: /system.slice/marv-bridge.service
+             └─68895 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 08 09:14:55 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Oct 08 09:15:03 instance-stockbot python[68895]: 2026-10-08 09:15:03,625 INFO Marv bridge listening on http://127.0.0.1:8787
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Wed 2026-10-07 15:55:35 EDT; 17h ago
+    Trigger: Thu 2026-10-08 17:30:00 EDT; 7h left
+   Triggers: ● marv-bot-late.service
+NEXT                        LEFT       LAST                        PASSED  UNIT                ACTIVATES
+Thu 2026-10-08 10:00:00 EDT 29min left -                           -       marv-bot.timer      marv-bot.service
+Thu 2026-10-08 17:30:00 EDT 7h left    Wed 2026-10-07 17:30:01 EDT 16h ago marv-bot-late.timer marv-bot-late.service
+-                           -          Thu 2026-10-08 09:30:49 EDT 8s ago  marv-vmlink.timer   marv-vmlink.service
+
+3 timers listed.
+Pass --all to see loaded but inactive timers, too.
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   65G   30G  69% /
+
+--- stderr ---
+fatal: detected dubious ownership in repository at '/opt/marv-bot'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /opt/marv-bot
