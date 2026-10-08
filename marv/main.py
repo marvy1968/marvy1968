@@ -33,7 +33,7 @@ ET = ZoneInfo("America/New_York")
 def _alert_failure(s: Settings, what: str) -> None:
     try:
         tb = traceback.format_exc()[-1500:].replace("&", "&amp;").replace("<", "&lt;")
-        send_message(s.telegram_bot_token, s.telegram_chat_id, f"⚠️ Marv bot: {what} failed\n<pre>{tb}</pre>")
+        send_message(s.telegram_bot_token, s.telegram_chat_id, f"⚠️ Marv bot: {what} failed\n<pre>{tb}</pre>", mirror=False)
     except Exception:
         log.exception("could not send failure alert")
 
@@ -511,7 +511,8 @@ def cmd_notify(s: Settings, args) -> int:
     """Send a text file (e.g. a bet card) to the owner's Telegram chat."""
     from html import escape
     text = Path(args.file).read_text()[:3800]
-    send_message(s.telegram_bot_token, s.telegram_chat_id, f"<pre>{escape(text)}</pre>" if args.mono else escape(text))
+    send_message(s.telegram_bot_token, s.telegram_chat_id, f"<pre>{escape(text)}</pre>" if args.mono else escape(text),
+                 mirror=args.mirror)
     print("sent")
     return 0
 
@@ -746,6 +747,7 @@ def main(argv: list[str] | None = None) -> int:
     nt = sub.add_parser("notify", help="send a text file (e.g. a bet card) to Telegram")
     nt.add_argument("--file", required=True)
     nt.add_argument("--mono", action="store_true", help="keep the layout (monospace)")
+    nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
     ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
     ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
     ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")

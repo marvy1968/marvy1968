@@ -1,6 +1,8 @@
 """Telegram alerts via the Bot API."""
 
 import html
+import logging
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -9,15 +11,17 @@ import requests
 from .models import Pick, Prediction
 from .sports import Sport
 
+log = logging.getLogger(__name__)
 API = "https://api.telegram.org/bot{token}/{method}"
 MAX_LEN = 4000  # Telegram's hard limit is 4096 characters per message
 ET = ZoneInfo("America/New_York")
 esc = html.escape
 
 
-def send_message(token: str, chat_id: str, text: str) -> None:
-    if not token or not chat_id:
-        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
+LABEL = "👽 <b>MARV</b>"  # first line of every Marv message, so it's never confused with another bot's alerts
+
+
+def _post(token: str, chat_id: str, text: str) -> None:
     for chunk in split_message(text):
         resp = requests.post(
             API.format(token=token, method="sendMessage"),
@@ -25,6 +29,26 @@ def send_message(token: str, chat_id: str, text: str) -> None:
             timeout=30,
         )
         resp.raise_for_status()
+
+
+def send_message(token: str, chat_id: str, text: str, mirror: bool = True) -> None:
+    """Send a Marv message, labelled "👽 MARV". With MIRROR_BOT_TOKEN (and optionally MIRROR_CHAT_ID) set in
+    Marv's .env by the owner (their other alert chat, e.g. March_edge's) it is also delivered there; mirror=False keeps a message in the
+    Marv chat only (command replies, failure alerts, the watchdog). A mirror failure never blocks the
+    original message."""
+    if not token or not chat_id:
+        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
+    text = f"{LABEL}\n{text}"
+    _post(token, chat_id, text)
+    # A private chat's id is the user's own Telegram id, so one account's two bot chats share it: when only
+    # MIRROR_BOT_TOKEN is set, the mirror chat is the same id as the Marv chat.
+    m_token = os.environ.get("MIRROR_BOT_TOKEN", "")
+    m_chat = os.environ.get("MIRROR_CHAT_ID", "") or chat_id
+    if mirror and m_token and (m_token, m_chat) != (token, chat_id):
+        try:
+            _post(m_token, m_chat, text)
+        except Exception as exc:
+            log.warning("telegram mirror failed: %s", exc)
 
 
 def send_document(token: str, chat_id: str, path, caption: str = "") -> None:

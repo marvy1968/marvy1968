@@ -137,7 +137,7 @@ def poll_commands(settings, offset_path: Path) -> None:
         msg = upd.get("message") or {}
         if str(msg.get("chat", {}).get("id")) != str(settings.telegram_chat_id) or not msg.get("text", "").startswith("/"):
             continue
-        send_message(settings.telegram_bot_token, settings.telegram_chat_id, answer(settings, msg["text"]))
+        send_message(settings.telegram_bot_token, settings.telegram_chat_id, answer(settings, msg["text"]), mirror=False)
     offset_path.write_text(str(offset))
 
 
