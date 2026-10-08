@@ -132,3 +132,32 @@ class BackupQBTests(unittest.TestCase):
                 out = injuries.nfl_qb_starts(Path(d), 2026)
         self.assertEqual(out["tampa bay buccaneers"], ("Kid", 1))  # backup started the latest game
         self.assertEqual(out["minnesota vikings"], ("Vet", 7))  # veteran on a new team keeps his starts
+
+
+class InjuryTrendTests(unittest.TestCase):
+    def test_qb_change_trend_scales_the_projection(self):
+        from marv import regime as R
+        starters = pd.DataFrame({"team": ["TB"] * 4, "game_id": ["1", "2", "3", "4"],
+                                 "date": pd.to_datetime(["2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28"]),
+                                 "player": ["Star", "Star", "Star", "Backup"], "attempts": [30, 30, 30, 27]})
+        regs = R.qb_regimes(R.starters_from_passes(starters))
+        self.assertEqual((regs["TB"].who, regs["TB"].games), ("Backup", ["4"]))
+        pts = pd.DataFrame({"team": ["TB"] * 4, "game_id": ["1", "2", "3", "4"], "points": [27, 19, 16, 14]})
+        f, note = R.trend_factor(pts, regs["TB"])
+        self.assertAlmostEqual(f, 1 + (1 / 3) * (14 / 20.666666 - 1), places=3)
+        self.assertIn("Backup starting at QB: 14.0 pts/game in 1 game vs 20.7 before", note)
+        h, a, notes = R.adjust(26.4, 23.2, "DAL", "TB", {"TB": [regs["TB"]]}, pts)
+        self.assertEqual(h, 26.4)
+        self.assertLess(a, 23.2)
+
+    def test_wr1_out_and_cap(self):
+        from marv import regime as R
+        rec = pd.DataFrame({"team": ["PHI"] * 4, "game_id": ["1", "1", "2", "3"],
+                            "date": pd.to_datetime(["2026-09-07", "2026-09-07", "2026-09-14", "2026-09-21"]),
+                            "player": ["WR1", "TE", "TE", "TE"], "targets": [25, 5, 6, 7]})
+        regs = R.wr1_regimes(rec, set())
+        self.assertEqual(regs["PHI"].games, ["2", "3"])  # missed the last two games
+        pts = pd.DataFrame({"team": ["PHI"] * 3, "game_id": ["1", "2", "3"], "points": [8, 40, 40]})
+        self.assertEqual(R.trend_factor(pts, regs["PHI"])[0], 1.25)  # capped
+        none = R.wr1_regimes(rec.replace({"TE": "WR1"}), set())
+        self.assertEqual(none, {})

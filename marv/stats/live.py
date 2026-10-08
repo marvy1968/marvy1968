@@ -237,6 +237,11 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
             qb_changes = cfb_qb_changes(player_tables(cache, season, current=True), games)
         except Exception as exc:
             log.warning("college QB check failed: %s", exc)
+    regimes, season_points = {}, pd.DataFrame()
+    try:  # injury trends: new starting QB / WR1 out -> the team's scoring since the change
+        regimes, season_points = injury_regimes(module, cache, season, games, tg)
+    except Exception as exc:
+        log.warning("%s injury trends failed: %s", module.key, exc)
     out = {}
     lookup = games.set_index("game_id")
     for g in slate:
@@ -251,6 +256,10 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         p = StatsProjection(home=float(h["consensus"]), away=float(a["consensus"]), experts=experts, rules=rules,
                             min_gp=int(min(h["gp"], a["gp"])))
         p.notes.append(" · ".join(f"{e} {hh:.0f}-{aa:.0f}" for e, (hh, aa) in experts.items()))
+        if regimes:
+            from ..regime import adjust
+            p.home, p.away, trend_notes = adjust(p.home, p.away, home_team, a["team"], regimes, season_points)
+            p.notes += trend_notes
         p.game_vetoes += hurt.get(g.home, []) + hurt.get(g.away, [])
         p.game_vetoes += stale.get(g.home, []) + stale.get(g.away, [])
         if module.key == "nfl":  # backup QB: the market prices these from news Marv's stats lag behind
@@ -296,6 +305,47 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         except Exception:
             log.exception("%s: over/under tags failed", module.key)
     return out
+
+
+def injury_regimes(module: StatsModule, cache: Path, season: int, games: pd.DataFrame, tg: pd.DataFrame):
+    """({team: [Regime]}, this season's team points) in the module's own team names."""
+    from .. import regime as R
+    played = tg[(tg["season"] == season) & tg["points"].notna()][["game_id", "team", "points"]]
+    dates = games[["game_id", "date"]]
+    found: dict[str, list] = {}
+    if module.key == "nfl":
+        from ..data.injuries import NFL_INJURIES, NFL_PLAYERS
+        from ..data.nfl_availability import _team as _abbr
+        from ..data.teams import NFL_TEAMS
+        from .base import fetch
+        _team = lambda t: NFL_TEAMS.get(_abbr(t), _abbr(t))  # noqa: E731  stats tables use full names
+        wk = pd.read_csv(fetch(NFL_PLAYERS.format(season=season), cache / f"nfl_players_week_{season}.csv", 2),
+                         low_memory=False, usecols=["player_display_name", "position", "team", "week", "attempts", "targets"])
+        wk["team"] = wk["team"].map(_team)
+        ids = pd.concat([games[["game_id", "season", "week", "home"]].rename(columns={"home": "team"}),
+                         games[["game_id", "season", "week", "away"]].rename(columns={"away": "team"})])
+        wk = wk.merge(ids[ids["season"] == season][["game_id", "week", "team"]], on=["week", "team"]).merge(dates, on="game_id")
+        wk = wk.rename(columns={"player_display_name": "player"})
+        for t, r in R.qb_regimes(R.starters_from_passes(wk[wk["position"] == "QB"])).items():
+            found.setdefault(t, []).append(r)
+        inj_path = fetch(NFL_INJURIES.format(season=season), cache / f"nfl_injuries_{season}.csv", 2)
+        ruled_out = set()
+        if inj_path:
+            inj = pd.read_csv(inj_path, low_memory=False)
+            cur = inj[inj["week"] == inj["week"].max()]
+            ruled_out = {(_team(t), n) for t, n, st in zip(cur["team"], cur["full_name"], cur["report_status"])
+                         if st in ("Out", "Doubtful")}
+        rec = wk[wk["position"].isin(["WR", "TE", "RB"]) & wk["game_id"].isin(set(played["game_id"]))]
+        for t, r in R.wr1_regimes(rec, ruled_out).items():
+            found.setdefault(t, []).append(r)
+    elif module.key == "ncaaf":
+        from ..data.cfb_pbp import player_tables
+        pt = player_tables(cache, season, current=True)
+        if pt is not None and not pt.empty:
+            pt = pt.astype({"game_id": str}).merge(dates.astype({"game_id": str}), on="game_id")
+            for t, r in R.qb_regimes(R.starters_from_passes(pt)).items():
+                found.setdefault(t, []).append(r)
+    return found, played
 
 
 def module_key(module: StatsModule) -> str:
