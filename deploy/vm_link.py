@@ -34,7 +34,7 @@ MARV_FLAGS_REFUSED = {"--send", "--watch"}
 UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink"}
 TOKEN = re.compile(r"^[A-Za-z0-9_.,:=/@+%-]+$")
 MAX_OUT = 200_000
-JOB_TIMEOUT = int(os.environ.get("VM_LINK_TIMEOUT", 6 * 3600))
+JOB_TIMEOUT = int(os.environ.get("VM_LINK_TIMEOUT", 45 * 60))  # per job; a "# timeout 7200" line in the job overrides
 
 
 def git(*args, check=True):
@@ -121,7 +121,9 @@ def main() -> int:
         out = LINK / "results" / f"{job.stem}.txt"
         if out.exists():
             continue
-        line = next((l.strip() for l in job.read_text().splitlines() if l.strip() and not l.startswith("#")), "")
+        text = job.read_text().splitlines()
+        line = next((l.strip() for l in text if l.strip() and not l.startswith("#")), "")
+        limit = next((int(l.split()[2]) for l in text if l.startswith("# timeout ") and l.split()[2].isdigit()), JOB_TIMEOUT)
         argv, err = parse(line)
         started = time.strftime("%Y-%m-%d %H:%M:%S %Z")
         if argv is None:
@@ -132,10 +134,10 @@ def main() -> int:
         push(f"vm-link: running {job.stem}")
         t0 = time.time()
         try:
-            proc = subprocess.run(argv, cwd=str(BOT), capture_output=True, text=True, timeout=JOB_TIMEOUT)
+            proc = subprocess.run(argv, cwd=str(BOT), capture_output=True, text=True, timeout=limit)
             body, code = proc.stdout + ("\n--- stderr ---\n" + proc.stderr if proc.stderr.strip() else ""), proc.returncode
         except subprocess.TimeoutExpired as exc:
-            body, code = f"{exc.stdout or ''}\nTIMED OUT after {JOB_TIMEOUT}s", "timeout"
+            body, code = f"{exc.stdout or ''}\nTIMED OUT after {limit}s", "timeout"
         body = redact(body)
         if len(body) > MAX_OUT:
             body = "...(trimmed, last 200 KB)...\n" + body[-MAX_OUT:]
