@@ -484,6 +484,52 @@ def cmd_live(s: Settings, args) -> int:
     return 0
 
 
+def cmd_live_probe(s: Settings, args) -> int:
+    """Check the live in-game feeds from this machine: scoreboard, statuses, and (football/basketball)
+    whether the play-by-play parser reads a real ESPN game summary; EuroLeague prints the raw header."""
+    from .live_monitor import STRUCTURE
+    now = datetime.now(timezone.utc)
+    path = STRUCTURE[args.sport][3]
+    if path is None:
+        from .data import euroleague_live as EL
+        from .stats.euroleague import schedule_games
+        games = schedule_games(now - timedelta(days=args.days), now + timedelta(hours=12))
+        print(f"EuroLeague schedule: {len(games)} games in the window")
+        for g in games[-6:]:
+            season, code = g.id[1:].split("-")
+            try:
+                h = EL.header(int(season), int(code))
+                EL.apply_header(g, h)
+                keys = {k: h.get(k) for k in ("Live", "ScoreA", "ScoreB", "Quarter", "RemainingPartialTime", "TeamA", "TeamB")}
+                print(f"{g.away} @ {g.home} {g.start:%Y-%m-%d}: parsed state={g.info.get('state')} period={g.info.get('period')} "
+                      f"clock={g.info.get('clock')!r} score={g.info.get('live_away')}-{g.info.get('live_home')} | raw {keys}")
+            except Exception as exc:
+                print(f"{g.id}: header failed: {exc}")
+        return 0
+    from .data.espn import ESPNClient, parse_event
+    client = ESPNClient()
+    events = client.scoreboard(path, now - timedelta(days=args.days), now)
+    games = [g for g in (parse_event(e, args.sport) for e in events) if g]
+    print(f"ESPN {args.sport}: {len(events)} events, states " +
+          str({st: sum(g.info.get('state') == st for g in games) for st in ('pre', 'in', 'post')}))
+    for g in games[:5]:
+        print(f"  {g.away} @ {g.home} state={g.info.get('state')} {g.info.get('status_name')} period={g.info.get('period')} "
+              f"clock={g.info.get('clock')} score={g.info.get('live_away')}-{g.info.get('live_home')} preseason={g.info.get('preseason', False)}")
+    done = [g for g in games if g.info.get("state") in ("post", "in")]
+    if done:
+        from .ingame import plays as PL
+        g = done[-1]
+        summary = client.summary(path, g.id)
+        parse = PL.espn_football if args.sport in ("nfl", "cfb") else PL.espn_basketball
+        plays = parse(summary, str(g.id))
+        print(f"Play-by-play parser on {g.away} @ {g.home}: {len(plays)} plays, columns {list(plays.columns)[:14]}")
+        if not plays.empty:
+            print(plays.tail(3).to_string()[:1500])
+        else:
+            print(f"summary keys: {list(summary)[:20]}")
+    return 0
+
+
 def cmd_probe_ewl(s: Settings, args) -> int:
     """Check the EuroLeague Women (FIBA) sources from this machine and save samples for debugging."""
     import requests as rq
@@ -642,6 +688,9 @@ def main(argv: list[str] | None = None) -> int:
     lv.add_argument("--once", action="store_true", help="one pass, then exit")
     lv.add_argument("--dry-run", action="store_true")
 
+    lp = sub.add_parser("live-probe", help="check the live in-game feeds (ESPN, EuroLeague) and the play parser")
+    lp.add_argument("--sport", required=True, choices=["nfl", "cfb", "wnba", "nba", "ncaab", "ncaaw", "euroleague"])
+    lp.add_argument("--days", type=int, default=3)
     pe = sub.add_parser("probe-ewl", help="check EuroLeague Women (FIBA LiveStats) sources on this machine")
     pe.add_argument("--url", help="FIBA event games page(s), comma-separated")
     pe.add_argument("--match-id", type=int)
@@ -658,7 +707,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

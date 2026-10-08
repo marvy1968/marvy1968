@@ -35,6 +35,7 @@ STRUCTURE = {
     "nba": (4, 12, "Q", "basketball/nba"),
     "ncaab": (2, 20, "H", "basketball/mens-college-basketball?groups=50"),
     "ncaaw": (4, 10, "Q", "basketball/womens-college-basketball?groups=50"),
+    "euroleague": (4, 10, "Q", None),  # live.euroleague.net, not ESPN
 }
 LIVE_EDGE = 0.06  # fair probability must beat the price by this much to call it a live play
 
@@ -306,12 +307,16 @@ class LiveMonitor:
         for sport in self.sports:
             path = STRUCTURE[sport][3]
             try:
-                events = self.client.scoreboard(path, now - timedelta(hours=12), now)
+                if path is None:
+                    from .data.euroleague_live import live_games
+                    games = live_games(now)
+                else:
+                    from .data.espn import parse_event
+                    events = self.client.scoreboard(path, now - timedelta(hours=12), now)
+                    games = [g for g in (parse_event(e, sport) for e in events) if g and not g.info.get("preseason")]
             except Exception as exc:
                 log.warning("live scoreboard %s: %s", sport, exc)
                 continue
-            from .data.espn import parse_event
-            games = [g for g in (parse_event(e, sport) for e in events) if g]
             active = [g for g in games if g.info.get("state") in ("in", "post")]
             due = []
             for g in active:

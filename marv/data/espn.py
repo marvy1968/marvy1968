@@ -144,6 +144,8 @@ def parse_event(event: dict, sport: str, league: str = "") -> Game | None:
             game.info[f"{side}_pitcher_era"] = era
     if (event.get("season") or {}).get("type") == 3:
         game.info["postseason"] = True
+    if (event.get("season") or {}).get("type") == 1:  # exhibition / preseason: never rated, carded or alerted
+        game.info["preseason"] = True
     st = event.get("status") or comp.get("status") or {}
     game.info["state"] = status.get("state")  # pre / in / post
     game.info["status_name"] = status.get("name")  # e.g. STATUS_END_PERIOD, STATUS_HALFTIME, STATUS_FINAL
@@ -205,7 +207,7 @@ class ESPNClient:
                 try:
                     for ev in self.scoreboard(path, cursor, chunk_end):
                         gm = parse_event(ev, sport, league)
-                        if gm and gm.id not in seen and start <= gm.start <= end:
+                        if gm and gm.id not in seen and start <= gm.start <= end and not gm.info.get("preseason"):
                             seen.add(gm.id)
                             out.append(gm)
                 except requests.RequestException as exc:

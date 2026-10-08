@@ -29,7 +29,7 @@ BRANCH = os.environ.get("VM_LINK_BRANCH", "vm-link")
 KEY = "/root/.ssh/marv_link"
 GIT_ENV = {**os.environ, "GIT_SSH_COMMAND": f"ssh -i {KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"}
 MARV_OK = {"run", "stats-backtest", "h2h-backtest", "props", "props-backtest", "ingame", "edges", "situational",
-           "check", "report", "sports", "probe-ewl", "test-telegram", "get-chat-id", "gaps"}
+           "check", "report", "sports", "probe-ewl", "test-telegram", "get-chat-id", "gaps", "live-probe"}
 MARV_FLAGS_REFUSED = {"--send", "--watch"}
 UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink"}
 TOKEN = re.compile(r"^[A-Za-z0-9_.,:=/@+%-]+$")

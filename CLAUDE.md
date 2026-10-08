@@ -5,8 +5,9 @@ You are running on the owner's Google Compute Engine VM. The bot lives in `/opt/
 
 ## What it is
 Multi-sport betting-prediction bot that sends Telegram cards. Active sports (`DEFAULT_SPORTS` in
-`marv/sports.py`): NFL, college football top 30 (`cfb`), EuroLeague, WNBA, NCAA men's (`ncaab`) and women's
-(`ncaaw`) basketball. NBA/MLB/NHL/soccer exist but are off (NBA off until later in its season).
+`marv/sports.py`): NFL, college football top 30 (`cfb`, free ESPN + play-by-play data when there's no
+CFBD key), EuroLeague, WNBA, NBA (preseason games skipped), NCAA men's (`ncaab`) and women's (`ncaaw`)
+basketball. MLB/NHL/soccer exist but are off.
 
 Pipeline (`marv/main.py run`): load schedule + odds (`marv/sources.py`) → stats experts project each game
 (`marv/stats/`: every team offense/defense stat, strength-of-schedule adjusted for college/EuroLeague;
@@ -16,7 +17,9 @@ veto stack (expert agreement, backtested confidence floors in `marv/stats/regist
 
 ## Services (systemd)
 - `marv-bot.timer` 10:00 ET daily, `marv-bot-late.timer` 17:30 ET (+11:45 Sun): `python -m marv run`
-- `marv-live.service`: in-game updates after every quarter/half (`python -m marv live`)
+- `marv-live.service`: in-game alerts after every quarter/half (`python -m marv live`), only when a NEW edge
+  clears 6% vs the live price (win probability + edge), wins announced at the final, all results in
+  `state/live_alerts.json`. EuroLeague uses live.euroleague.net. Check feeds with `python -m marv live-probe --sport nfl`.
 - `marv-bridge.service`: local fair-price API on 127.0.0.1:8787 for the owner's odds-alert bot
 
 ## Backtested results (walk-forward, held-out seasons) - keep claims honest

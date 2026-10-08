@@ -11,7 +11,7 @@ from .sims import baseball, basketball, football, hockey, soccer
 from .sims.base import SimResult
 
 FCS = "FCS (pooled)"
-DEFAULT_SPORTS = ["nfl", "cfb", "euroleague", "wnba", "ncaab", "ncaaw"]  # others available via SPORTS=...
+DEFAULT_SPORTS = ["nfl", "cfb", "euroleague", "wnba", "nba", "ncaab", "ncaaw"]  # others available via SPORTS=...
 DAILY = {d: 26 for d in range(7)}  # every day, games in the next 26 hours
 
 
