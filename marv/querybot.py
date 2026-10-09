@@ -12,6 +12,7 @@ Ask the Marv bot in Telegram:
   /record                alerted bets: closing-line value (the best early sign of a real edge)
   /gaps                  college/NFL games where Bovado's spread or total is off Pinnacle's
   /upset                 the most likely upset: heavy favourite whose metrics fall furthest short of the price
+  /parlay                best 2- and 3-leg NFL/CFB parlays (upset score, H2H, proven O/U legs) at Bovada prices
   /help
 Only the configured TELEGRAM_CHAT_ID gets answers. Every refresh, new RECOMMENDED entries are pushed
 as alerts (set ALERT_LEANS=true to also alert leans with edge >= ALERT_EDGE, default 6%).
@@ -185,6 +186,9 @@ def answer(settings, text: str) -> str:
             from . import upset
             return upset.best_text(state, [k for k in settings.sports if k in upset.SPORTS] or upset.SPORTS,
                                    settings.paper_mode)
+        if cmd == "/parlay":
+            from . import parlay
+            return parlay.answer(settings)
         if cmd == "/gaps":
             from . import sharpgap
             entries = sharpgap.scan(settings, [k for k in settings.sports if k in sharpgap.SPORT_KEYS])
