@@ -15,6 +15,7 @@ edge is large, and nothing here changes the pregame plays.
 
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -327,7 +328,8 @@ class LiveMonitor:
                 rec_state = state.setdefault(key, {"reported": 0, "final": False})
                 rec_state["seen"] = now.isoformat()
                 if g.info.get("state") == "post" or g.completed:
-                    if rec_state.get("alerted") and not rec_state["final"]:
+                    if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state["reported"] > 0) \
+                            and not rec_state["final"]:
                         due.append((g, rec_state["reported"], True))
                     continue
                 period = int(g.info.get("period") or 0)
@@ -337,6 +339,21 @@ class LiveMonitor:
                     due.append((g, ended, False))
             if not due:
                 continue
+            if sport == "nfl" and self.s.odds_api_key and os.environ.get("LIVE_PROPS_LOG", "on").lower() != "off":
+                from . import live_props  # record live prop lines + box scores (no alerts: nothing is proven yet)
+                for g, ended, final in due:
+                    done = state[f"{sport}:{g.id}"].setdefault("props_recorded", [])
+                    tag = "final" if final else ended
+                    if tag in done:  # each period (and the final) is recorded once per game
+                        continue
+                    done.append(tag)
+                    try:
+                        if final:
+                            live_props.record_final(self.s, g, self.client)
+                        else:
+                            live_props.record_period(self.s, g, ended, self.client)
+                    except Exception as exc:
+                        log.warning("live props record %s: %s", g.id, exc)
             live_prices = self._live_odds(sport, [g for g, _, _ in due])
             for g, ended, final in due:
                 rec = _find_rec(preds, sport, g.home, g.away)

@@ -71,3 +71,37 @@ def log_snapshot(state: Path, event: dict, quarter: str, score: str, rows: list[
                  "game": f"{event.get('away_team')} @ {event.get('home_team')}", "period": quarter,
                  "score": score, "props": rows})
     path.write_text(json.dumps(book[-400:]))  # keep the most recent snapshots only
+
+
+def _event_for(events: list[dict], home: str, away: str) -> dict | None:
+    from .data.teams import similarity
+    best = max(events, key=lambda e: min(similarity(home, e["home_team"]), similarity(away, e["away_team"])), default=None)
+    if best and min(similarity(home, best["home_team"]), similarity(away, best["away_team"])) >= 0.75:
+        return best
+    return None
+
+
+def record_period(settings, game, ended: int, client, books: str = "bovada,draftkings,fanduel,betmgm") -> int:
+    """At the end of a period: save every live prop line next to each player's box-score total so far.
+    Four credits per call; this builds the dataset live props need before any alert can be trusted."""
+    from .props import nfl as P, odds as O
+    sport = "americanfootball_nfl"
+    ev = _event_for(O.events(settings.odds_api_key, sport), game.home, game.away)
+    if not ev:
+        return 0
+    box = box_stats(client.summary("football/nfl", str(game.id)))
+    data = O.event_props(settings.odds_api_key, sport, ev["id"], [m.key for m in P.MARKETS.values()], books)
+    rows = live_prop_snapshot(data, box)
+    log_snapshot(Path(settings.state_dir), ev, f"end of period {ended}",
+                 f"{game.info.get('live_away')}-{game.info.get('live_home')}", rows)
+    return len(rows)
+
+
+def record_final(settings, game, client) -> None:
+    """At the final whistle: every player's final box-score line, to grade the snapshots against."""
+    path = Path(settings.state_dir) / "live_props_log.json"
+    book = json.loads(path.read_text()) if path.exists() else []
+    box = box_stats(client.summary("football/nfl", str(game.id)))
+    book.append({"at": datetime.now(timezone.utc).isoformat(), "final": True, "game": f"{game.away} @ {game.home}",
+                 "score": f"{game.away_score}-{game.home_score}", "box": box})
+    path.write_text(json.dumps(book[-400:]))

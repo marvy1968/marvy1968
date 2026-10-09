@@ -73,5 +73,26 @@ class LiveMonitorTest(unittest.TestCase):
             self.assertEqual(mon.tick(sent.append), 0)
             self.assertEqual(sent, [])
 
+class LivePropsRecordingTest(unittest.TestCase):
+    def test_each_period_and_the_final_are_recorded_once(self):
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            mon = LiveMonitor(Settings(state_dir=d, odds_api_key="x"), ["nfl"])
+            mon.client = FakeClient()
+            mon._live_odds = lambda sport, games: False
+            calls = []
+            with mock.patch("marv.live_props.record_period", lambda s, g, ended, c: calls.append(("p", ended))), \
+                    mock.patch("marv.live_props.record_final", lambda s, g, c: calls.append(("final",))):
+                mon.client.events = [event("in", "STATUS_END_PERIOD", 1, "0:00", 7, 0)]
+                mon.tick(lambda m: None)
+                mon.tick(lambda m: None)  # same quarter again: no second record
+                mon.client.events = [event("in", "STATUS_HALFTIME", 2, "0:00", 14, 7)]
+                mon.tick(lambda m: None)
+                mon.client.events = [event("post", "STATUS_FINAL", 4, "0:00", 24, 20, completed=True)]
+                mon.tick(lambda m: None)
+                mon.tick(lambda m: None)
+            self.assertEqual(calls, [("p", 1), ("p", 2), ("final",)])
+
+
 if __name__ == "__main__":
     unittest.main()
