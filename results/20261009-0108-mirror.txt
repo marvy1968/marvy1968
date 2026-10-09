@@ -1,0 +1,2 @@
+$ marv mirror-status
+REFUSED: marv command must be one of: check, edges, gaps, get-chat-id, grade-prop, h2h-backtest, ingame, injuries, live-probe, live-props-probe, probe-ewl, props, props-backtest, report, run, situational, sports, stats-backtest, test-telegram
