@@ -187,6 +187,30 @@ def text(bets: list[Bet], when: datetime) -> str:
     return "\n".join(lines)
 
 
+def already_sent(state: Path, when: datetime) -> dict | None:
+    """The bet card sent for this ET date, if any (one card per day max)."""
+    path = state / "betcard_sent.json"
+    try:
+        sent = json.loads(path.read_text()) if path.exists() else {}
+    except ValueError:
+        sent = {}
+    return sent.get(when.date().isoformat())
+
+
+def mark_sent(state: Path, bets: list[Bet], when: datetime) -> None:
+    """Remember that today's card went out (date, sports and game set), so retries and reruns don't resend it."""
+    path = state / "betcard_sent.json"
+    try:
+        sent = json.loads(path.read_text()) if path.exists() else {}
+    except ValueError:
+        sent = {}
+    day = when.date().isoformat()
+    sent[day] = {"sent_at": when.isoformat(), "sports": sorted({b.sport for b in bets}),
+                 "games": sorted({f"{b.sport}|{b.game}" for b in bets})}
+    keep = sorted(sent)[-30:]
+    path.write_text(json.dumps({k: sent[k] for k in keep}, indent=1))
+
+
 def log(state: Path, bets: list[Bet], when: datetime) -> None:
     path = state / "betcard_log.json"
     book = json.loads(path.read_text()) if path.exists() else []

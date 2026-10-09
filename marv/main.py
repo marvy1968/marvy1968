@@ -155,8 +155,13 @@ def cmd_run(s: Settings, args) -> int:
             text = betcard.text(bets, now.astimezone(ET))
             print(text + "\n")
             if not args.dry_run:
-                send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-                betcard.log(Path(s.state_dir), bets, now.astimezone(ET))
+                prev = betcard.already_sent(Path(s.state_dir), now.astimezone(ET))
+                if prev and os.environ.get("BETCARD_RESEND", "").lower() not in ("1", "true", "yes", "on"):
+                    log.info("bet card already sent today at %s; not resending", prev.get("sent_at"))
+                else:
+                    betcard.mark_sent(Path(s.state_dir), bets, now.astimezone(ET))
+                    send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+                    betcard.log(Path(s.state_dir), bets, now.astimezone(ET))
         except Exception:
             log.exception("bet card failed")
             if not args.dry_run:

@@ -197,7 +197,8 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
                 if gap_sports and settings.odds_api_key:
                     fresh = sharpgap.log_gaps(state, sharpgap.scan(settings, gap_sports))
                     alert = [e for e in fresh if e["market"] == "total" or os.environ.get("GAP_ALERT_SPREADS") == "true"]
-                    if alert:
+                    # Gaps already feed the daily bet card and /gaps; separate Telegram gap alerts are off unless GAP_ALERTS=true.
+                    if alert and os.environ.get("GAP_ALERTS", "false").lower() in ("1", "true", "yes", "on"):
                         send_message(settings.telegram_bot_token, settings.telegram_chat_id, sharpgap.text(alert))
             except Exception:
                 log.exception("sharp gap refresh failed")

@@ -121,3 +121,14 @@ class TagOnlyTests(unittest.TestCase):
         self.assertEqual(len(chosen), 1)  # both tags are one bet
         self.assertEqual((chosen[0].label, chosen[0].tier), ("UNDER 58.5 (-112)", "SIGNAL"))
         self.assertIn("OVER-FADE", chosen[0].why)
+
+
+class BetCardOncePerDayTests(unittest.TestCase):
+    def test_one_card_per_day(self):
+        with tempfile.TemporaryDirectory() as d:
+            state = Path(d)
+            day = datetime(2026, 10, 9, 10, 7)
+            self.assertIsNone(betcard.already_sent(state, day))
+            betcard.mark_sent(state, [], day)
+            self.assertIsNotNone(betcard.already_sent(state, datetime(2026, 10, 9, 11, 21)))
+            self.assertIsNone(betcard.already_sent(state, datetime(2026, 10, 10, 10, 0)))
