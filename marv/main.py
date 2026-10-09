@@ -449,6 +449,8 @@ def cmd_serve(s: Settings, args) -> int:
     from urllib.parse import parse_qs, urlparse
 
     state = Path(s.state_dir)
+    from . import defense
+    defense.warm(state)  # pre-load defense tables so the first /overlay stays inside March_edge's 1.5 s timeout
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):

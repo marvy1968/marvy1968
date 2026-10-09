@@ -45,8 +45,9 @@ class InsightTest(unittest.TestCase):
 
     def test_ml_favourite_good(self):
         o = bridge.overlay(self.state, "nfl", "h2h", "Dallas Cowboys", price=-400)
-        self.assertEqual(o.verdict, "good")
-        self.assertIn("👍 good", o.line())
+        # heavy favourite gate: Bovada vs Pinnacle leans Bucs -> capped at mixed, weak metric named first
+        self.assertEqual(o.verdict, "mixed")
+        self.assertIn("➖ mixed — heavy fav (ML -400) but Bovada vs Pinnacle", o.line())
         self.assertNotIn("70%", o.line())
 
     def test_total_under_good_but_nfl_unproven(self):
@@ -57,7 +58,7 @@ class InsightTest(unittest.TestCase):
     def test_game_level_one_line(self):
         o = bridge.game_h2h(self.state, "nfl", "Cowboys")
         line = o.line()
-        self.assertTrue(line.startswith("🧠 Marv H2H: Dallas Cowboys 👍 good"))
+        self.assertTrue(line.startswith("🧠 Marv H2H: Dallas Cowboys ➖ mixed"))  # heavy fav, Pinnacle gap against
         self.assertIn("O/U: Under 49", line)
         self.assertNotIn("%", line.replace("no %", ""))
 

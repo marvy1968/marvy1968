@@ -9,6 +9,11 @@ read from files Marv already writes (no network, so the 1.5 s overlay timeout is
   * line history (state/lines.json): Bovada open -> latest spread and total
   * Bovada vs Pinnacle gaps (state/sharp_gap_log.json)
   * O/U trend tag log (state/ou_tags_log.json)
+  * defense quality + recent defensive trend (marv/defense.py: points / yards allowed last 3 vs season, from the
+    cached nflverse / CFBD box scores)
+Heavy-favourite gate: when the side is a heavy favourite (ML -200 or shorter, spread / Marv margin large) and ANY
+metric is off (bad or fading defense, or any AGAINST factor), the read is capped at mixed, and at bad when the
+defense is both bad and fading or a defense flag comes with another AGAINST factor -- even if ratings/spread favour it.
 Each metric becomes a Factor that is FOR or AGAINST the bet (or the game's H2H pick), with a small weight.
 The verdict is the weighted net: >= +2 good, <= -2 bad, otherwise mixed. None of this is a probability;
 marv/proven.py still decides whether any % may print (only rules that passed the walk-forward bar).
@@ -31,12 +36,14 @@ class Factor:
     label: str
     side: int  # +1 for the bet, -1 against, 0 info only
     w: int = 1
+    key: bool = False  # shown first in the why (heavy-favourite gate reason)
 
 
 @dataclass
 class Insight:
     factors: list = field(default_factory=list)
     signal: str | None = None  # proven-registry rule name (marv/proven.py), if one applies
+    cap: str | None = None  # "not" / "mixed": heavy-favourite gate overrides a better weighted verdict
 
     @property
     def net(self) -> int:
@@ -48,13 +55,22 @@ class Insight:
 
     @property
     def verdict(self) -> str:  # good | not | mixed (bridge.Overlay codes)
-        return "good" if self.net >= GOOD_AT else "not" if self.net <= -GOOD_AT else "mixed"
+        v = "good" if self.net >= GOOD_AT else "not" if self.net <= -GOOD_AT else "mixed"
+        if self.cap == "not":
+            return "not"
+        if self.cap == "mixed" and v == "good":
+            return "mixed"
+        return v
 
     def why(self, n_for: int = 4, n_against: int = 3) -> str:
-        pro = sorted((f for f in self.factors if f.side > 0), key=lambda f: -f.w)
-        con = sorted((f for f in self.factors if f.side < 0), key=lambda f: -f.w)
+        pro = sorted((f for f in self.factors if f.side > 0), key=lambda f: (not f.key, -f.w))
+        con = sorted((f for f in self.factors if f.side < 0), key=lambda f: (not f.key, -f.w))
         info = [f for f in self.factors if f.side == 0]
         parts = []
+        if any(f.key for f in con):  # heavy-favourite gate: lead with the weak metric
+            k = [f for f in con if f.key]
+            con = [f for f in con if not f.key]
+            parts.append(" + ".join(f.label for f in k))
         if pro:
             parts.append("for: " + ", ".join(f.label for f in pro[:n_for]))
         if con:
@@ -218,6 +234,7 @@ def side_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, t: s
     for lbl, w in qb["away" if t == "home" else "home"]:
         ins.factors.append(Factor(f"{short(opp)} {lbl}", 1, w))
     if live:
+        _defense(ins, state_dir, sport, rec, t, name, opp, short, None, None, False, margin, live=True)
         return ins
     mv_ = moves(state_dir, sport, rec, card)
     ln = mv_.get("now")
@@ -241,7 +258,58 @@ def side_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, t: s
         ok = similarity(g.get("side", ""), name) >= similarity(g.get("side", ""), opp)
         ins.factors.append(Factor(f"Bovada vs Pinnacle {g['line']:+g}/{g['pinnacle_line']:+g} favours "
                                   f"{short(name if ok else opp)}", 1 if ok else -1))
+    _defense(ins, state_dir, sport, rec, t, name, opp, short, line, price, spread, margin, ln=ln)
     return ins
+
+
+def heavy_fav(state_dir: Path, sport: str, rec: dict, t: str, line: float | None, price: float | None, spread: bool,
+              margin: float, ln: dict | None = None, live: bool = False) -> str | None:
+    """Why team t counts as a heavy favourite ('ML -250', 'spread -9.5', 'Marv by 11'), else None.
+    Pregame Bovada spread (lines.json) first; the bet's own line/price only pregame (live prices move in-game)."""
+    from . import defense as DF
+    sgn = 1 if t == "home" else -1
+    ln = ln or lines(state_dir, sport, rec.get("game_id"), rec["home"], rec["away"])
+    if not live and price is not None and price <= DF.HEAVY_ML:
+        return f"ML {price:+g}"
+    if not live and spread and line is not None and -line >= DF.HEAVY.get(sport, 99):
+        return f"spread {line:+g}"
+    if ln and ln.get("spread_last") is not None and -sgn * ln["spread_last"] >= DF.HEAVY.get(sport, 99):
+        return f"spread {sgn * ln['spread_last']:+g}"
+    if sgn * (margin or 0) >= DF.HEAVY_MARGIN.get(sport, 99):
+        return f"Marv by {sgn * margin:.0f}"
+    return None
+
+
+def _defense(ins: Insight, state_dir: Path, sport: str, rec: dict, t: str, name: str, opp: str, short, line, price,
+             spread: bool, margin: float, ln: dict | None = None, live: bool = False) -> None:
+    """Defense quality / trend factors + the heavy-favourite gate (never raises)."""
+    from . import defense as DF
+    try:
+        mine, theirs = DF.profile(state_dir, sport, name), DF.profile(state_dir, sport, opp)
+        fav = heavy_fav(state_dir, sport, rec, t, line, price, spread, margin, ln, live)
+        opp_fav = heavy_fav(state_dir, sport, rec, "away" if t == "home" else "home", None, None, False, margin, ln, True)
+    except Exception:  # noqa: BLE001 - the overlay must never fail on this
+        return
+    flags = 0
+    if mine and (mine.get("bad") or mine.get("fading")):
+        flags = int(bool(mine["bad"])) + int(bool(mine["fading"]))
+        ins.factors.append(Factor(DF.describe(mine, short(name)) + (" — fade the favorite" if fav else ""), -1,
+                                  2 if flags == 2 else 1, key=bool(fav)))
+    if theirs and (theirs.get("bad") or theirs.get("fading")):
+        ins.factors.append(Factor(DF.describe(theirs, short(opp)) + (" — fade the favorite" if opp_fav else ""), 1,
+                                  2 if opp_fav else 1))
+    if not fav:
+        return
+    off = [f for f in ins.factors if f.side < 0 and not f.key]
+    if flags == 0 and not off:
+        return
+    if flags == 0:  # heavy favourite with some other metric off: name it first, never a clean good
+        for f in off:
+            f.key = True
+        off[0].label = f"heavy fav ({fav}) but {off[0].label}"
+        ins.cap = "mixed" if len(off) == 1 else "not" if sum(f.w for f in off) >= 3 else "mixed"
+    else:
+        ins.cap = "not" if flags == 2 or off else "mixed"
 
 
 def total_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, over: bool, line: float) -> Insight:
