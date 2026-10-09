@@ -178,7 +178,10 @@ def verdict_json(v: Verdict) -> str:
 LEAGUE_TO_SPORT = {"ncaaf": "cfb", "cfb": "cfb", "americanfootball_ncaaf": "cfb", "nfl": "nfl",
                    "americanfootball_nfl": "nfl", "nba": "nba", "wnba": "wnba", "ncaab": "ncaab", "ncaaw": "ncaaw",
                    "mens-college-basketball": "ncaab", "womens-college-basketball": "ncaaw", "euroleague": "euroleague"}
-H2H_DIR = "marv_predict"  # state/marv_predict/h2h_<sport>.json, written by tools/cfb_card.py (ratings-only card)
+H2H_DIR = "marv_predict"  # state/marv_predict/h2h_<sport>.json, written by tools/cfb_card.py / tools/nfl_card.py
+CLOSE_MARGIN = 3.0  # |ratings margin| < 3 = close (~50/50) game: H2H pick shown, never a %
+CLOSE_TEXT = "close game ~50/50 — no %"
+STAR_KEYS = {"nfl": "QB/RB/WR/K"}
 
 
 def _market_kind(market: str) -> str:
@@ -244,9 +247,13 @@ class Overlay:
     prob: str = ""  # proven backtest text, or proven.UNPROVEN
     game: str = ""
 
+    pick: str = ""  # game-level H2H pick (game_h2h) / close-game pick note
+
     def line(self) -> str:
         if not self.found:
             return ""
+        if self.verdict == "pick":
+            return f"🧠 Marv H2H: {self.pick} — {self.why} · {self.prob}"
         icon = {"good": "👍 looks good", "not": "👎 doesn't look good", "mixed": "➖ mixed", "n/a": "➖ no H2H read"}[self.verdict]
         return f"🧠 Marv H2H: {icon} — {self.why} · {self.prob}"
 
@@ -307,7 +314,7 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         m = margin if t == "home" else -margin  # projected margin for the bet's team
         if kind == "ml" or line is None or live:  # live lines move with the score: team-quality read only
             ok = m > 0
-            why.append(f"{name if ok else opp} by {abs(m):.0f} ({src})")
+            why.append(f"{name if ok else opp} by {_pts(m)} ({src})")
         else:
             ok = m + line > 0
             why.append(f"{name} projected {'to win by' if m > 0 else 'to lose by'} {abs(m):.0f} vs {line:+g} ({src})")
@@ -329,7 +336,7 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
                 a, b = (st[0], st[1]) if t == "home" else (st[1], st[0])
                 if a != b:
                     yes, no = (yes + 1, no) if a > b else (yes, no + 1)
-                why.append(f"stars QB/RB/WR {a}-{b}")
+                why.append(f"stars {STAR_KEYS.get(sport, 'QB/RB/WR')} {a}-{b}")
     elif kind == "total" and live:
         why.append(f"live total: no pregame comparison; pregame projection {total:.0f} ({src})")
         return Overlay(True, "n/a", why[0], proven.UNPROVEN, game)
@@ -358,8 +365,90 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         return Overlay(False)
 
     verdict = "good" if yes > no else "not" if no > yes else "mixed"
+    if kind in ("ml", "spread") and abs(margin) < CLOSE_MARGIN:
+        # Close (~50/50) game: say who the H2H tie-break picks, never print a % (no honest edge on a coin flip).
+        hp = _h2h_pick(card, rec, margin)
+        why.append(f"close game: H2H pick {hp[0]} ({hp[1]})")
+        return Overlay(True, verdict, ", ".join(why) + tail, CLOSE_TEXT, game, hp[0])
+    if kind == "ml" and not live and verdict == "good":
+        signal = _ml_signal(card, rec, margin, t)
     ev = proven.evidence(sport, kind, signal) if verdict == "good" and not live else None
     return Overlay(True, verdict, ", ".join(why) + tail, ev.label() if ev else proven.UNPROVEN, game)
+
+
+def _pts(m: float) -> str:
+    return f"{abs(m):.1f}" if abs(m) < CLOSE_MARGIN else f"{abs(m):.0f}"
+
+
+def _h2h_pick(card: dict | None, rec: dict, margin: float) -> tuple[str, str]:
+    """(team, method): the card's H2H pick (sweep / star tie-break / margin), else the ratings margin side."""
+    if card and card.get("pick"):
+        return card["pick"], card.get("method") or "H2H"
+    return (rec["home"] if margin > 0 else rec["away"]), "ratings margin"
+
+
+def _ml_signal(card: dict | None, rec: dict, margin: float, side: str | None) -> str | None:
+    """Named ML rule for the proven registry (marv/proven.py), or None. Only rules listed there can print a %."""
+    if not card or side is None:
+        return None
+    team = rec["home"] if side == "home" else rec["away"]
+    if similarity(card.get("pick", ""), team) < 0.75:
+        return None
+    m = card.get("method", "")
+    return "H2H-SWEEP" if "sweep" in m else "H2H-STAR" if "star" in m else "H2H-MARGIN"
+
+
+def game_h2h(state_dir: Path, sport: str, team: str | None = None, other: str | None = None,
+             text: str | None = None) -> Overlay:
+    """Game-level H2H read for queries (/game, /board, March_edge /game): Marv's H2H pick + why.
+    A % only if that pick rule passed the proven bar; close games never get a %."""
+    from . import proven
+    sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
+    rec = find_game(state_dir, sport, team, other) if team else None
+    if rec is None and text:
+        rec = find_game_in_text(state_dir, sport, text)
+    cards = _h2h_cards(state_dir, sport)
+    best, score = None, 0.0
+    for c in cards:
+        if rec is not None:
+            sc = min(max(similarity(c["home"], rec["home"]), similarity(c["home"], rec["away"])),
+                     max(similarity(c["away"], rec["home"]), similarity(c["away"], rec["away"])))
+        elif text:
+            sc = min(_in_text(c["home"], text), _in_text(c["away"], text))
+        elif team:
+            sc = max(similarity(team, c["home"]), similarity(team, c["away"]))
+            if other:
+                sc = min(sc, max(similarity(other, c["home"]), similarity(other, c["away"])))
+        else:
+            sc = 0.0
+        if sc > score:
+            best, score = c, sc
+    card = best if score >= 0.75 else None
+    if rec is None and card is None:
+        return Overlay(False)
+    if rec is None:
+        rec = {"home": card["home"], "away": card["away"], "model_margin": card.get("margin") or 0.0,
+               "model_total": card.get("rating_total") or 0.0}
+    margin = card["margin"] if card and card.get("margin") is not None else rec["model_margin"]
+    total = card["rating_total"] if card and card.get("rating_total") is not None else rec["model_total"]
+    src = "ratings" if card else "Marv model"
+    pick, method = _h2h_pick(card, rec, margin)
+    side = "home" if similarity(pick, rec["home"]) >= similarity(pick, rec["away"]) else "away"
+    why = [method, f"{rec['home'] if margin > 0 else rec['away']} by {_pts(margin)} ({src})"]
+    if card:
+        if card.get("cat_home") is not None:
+            why.append(f"O/D {card['cat_home']}-{card['cat_away']} (home-away)")
+        if card.get("stars_home") is not None:
+            why.append(f"stars {STAR_KEYS.get(sport, 'QB/RB/WR')} {card['stars_home']}-{card['stars_away']} (home-away)")
+        if card.get("total_line"):
+            why.append(f"total {total:.0f} vs {card['total_line']:g}" + (f", trend fade {card['fade']}" if card.get("fade") else ""))
+    close = abs(margin) < CLOSE_MARGIN
+    if close:
+        prob = CLOSE_TEXT
+    else:
+        ev = proven.evidence(sport, "ml", _ml_signal(card, rec, margin, side))
+        prob = ev.label() if ev else proven.UNPROVEN
+    return Overlay(True, "pick", ", ".join(why), prob, f"{rec['away']} @ {rec['home']}", pick)
 
 
 def overlay_json(o: Overlay) -> str:

@@ -184,18 +184,27 @@ def _props_entries(state: Path, min_edge: float = 0.04) -> list[dict]:
     return out
 
 
-def text(entries: list[dict], limit: int = 12) -> str:
+def text(entries: list[dict], limit: int = 12, h2h=None) -> str:
+    """h2h: optional callable(entry) -> Marv H2H line; printed once per game under its first entry."""
     if not entries:
         return "📋 MARV EDGE BOARD\nNo edges right now (or no projections / odds yet)."
     rec = [e for e in entries if e["status"] == "recommended"]
     lines = ["📋 MARV EDGE BOARD", f"{len(rec)} recommended · {len(entries) - len(rec)} leans/paper"]
+    seen = set()
     for e in entries[:limit]:
         tag = {"recommended": "✅", "lean": "·", "paper": "📝"}[e["status"]]
-        if proven.gated(e["sport"]):
+        qg = proven.query_gated(e["sport"]) if h2h is not None else proven.gated(e["sport"])
+        if qg:
             lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {proven.UNPROVEN}")
-            continue
-        lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {e['p_marv']:.0%}"
-                     + (f" / market {e['p_market']:.0%}" if e.get("p_market") else "")
-                     + f" · edge {e['edge']:+.1%} · stake {e['stake']:.1%}")
+        else:
+            lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {e['p_marv']:.0%}"
+                         + (f" / market {e['p_market']:.0%}" if e.get("p_market") else "")
+                         + f" · edge {e['edge']:+.1%} · stake {e['stake']:.1%}")
+        gk = (e["sport"], e.get("game"))
+        if h2h is not None and gk not in seen:
+            seen.add(gk)
+            hl = h2h(e)
+            if hl:
+                lines.append("   " + hl)
     lines.append("✅ = backtested profitable market · · = lean, no proven edge · 📝 = paper (props)")
     return "\n".join(lines)

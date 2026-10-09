@@ -54,6 +54,11 @@ PROVEN: dict[tuple[str, str, str], Evidence] = {
                                             "ANALYSIS.md line-movement table; cfb_power_bt 2021-26"),
     # Bovado total 0.5+ pts off Pinnacle/BetCRIS -> the better side at Bovado (Bovado's real juice), 2014-19.
     ("cfb", "total", "GAP"): Evidence(0.544, 2340, 0.046, "at Bovado juice", "ANALYSIS.md sharp-book table, 2014-19"),
+    # NFL (walk-forward 2016-26, Bovada pregame 2022-26; proven-logic.md NFL section): NOTHING meets the bar.
+    #   H2H pick (sweep/star/margin) 61.7% of 1,188 at Bovada, ROI -5.3%; close games (|margin|<3) 53.4% of 481,
+    #   ROI -6.3%; model Brier 0.2235 vs Bovada no-vig 0.2109; ATS 48.5%; every O/U rule <= break-even except
+    #   "under-fade + rating OVER" (+3.8% on 173 at Bovada) which the larger 2016-26 close-line test contradicts
+    #   (50.6% of 391, -2.2%). So NFL H2H lines print "unproven — no %" and close games print no %.
 }
 # Refinements nested inside a proven rule print the parent's (lower) number, not their own smaller-sample one.
 PARENT = {"OVER-FADE+MOVE": "OVER-FADE", "OVER-FADE+INFLATED": "OVER-FADE"}
@@ -79,6 +84,17 @@ def evidence(sport: str | None, market: str, signal: str | None = None) -> Evide
     sig = PARENT.get(signal, signal)
     ev = PROVEN.get(((sport or "").lower(), market, sig))
     return ev if ev and ev.meets_bar() else None
+
+
+def query_gated(sport: str | None) -> bool:
+    """Telegram queries (/game, /check, /board, /h2h): sports where only proven numbers may print.
+    PROVEN_GATE_QUERY_SPORTS (default "cfb,nfl") on top of PROVEN_GATE_SPORTS. Sport cards / live alerts unchanged."""
+    if gated(sport):
+        return True
+    raw = os.environ.get("PROVEN_GATE_QUERY_SPORTS", "cfb,nfl").strip().lower()
+    if raw in ("all", "*"):
+        return True
+    return (sport or "").lower() in {s.strip() for s in raw.split(",") if s.strip()}
 
 
 def show_prob(sport: str | None, market: str, signal: str | None = None) -> bool:

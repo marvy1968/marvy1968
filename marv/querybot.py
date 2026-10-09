@@ -5,6 +5,7 @@ Ask the Marv bot in Telegram:
   /game Lions            Marv's projection, fair prices and best current prices for that game
   /check nfl Lions total under 47.5 -110      fair probability for any price (e.g. a March_edge alert)
   /check nfl Lions ml Lions +150
+  /h2h nfl Lions         Marv's head-to-head pick + why (a % only when proven; close games never get one)
   /grade Josh Allen pass over 245.5 -115   Marv's probability and grade for any prop (e.g. a March_edge alert)
   /props                 today's player-prop picks
   /prop Josh Allen pass  Marv's projection and over/under chance for a player's posted props
@@ -72,6 +73,20 @@ def record_text(state: Path) -> str:
             f"beat the close {beat}/{len(rows)}\n(Positive CLV over 100+ bets is the strongest early evidence of an edge.)")
 
 
+def _board_h2h(state: Path, e: dict) -> str:
+    """Game-level Marv H2H line for one board entry ('' when Marv has no H2H read)."""
+    try:
+        preds = json.loads((state / "predictions.json").read_text()) if (state / "predictions.json").exists() else {}
+        rec = preds.get(f"{e['sport']}:{e['game']}")
+        if rec:
+            o = bridge.game_h2h(state, e["sport"], rec["home"], rec["away"])
+        else:
+            o = bridge.game_h2h(state, e["sport"], text=str(e.get("game", "")))
+        return o.line() if o.found else ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def answer(settings, text: str) -> str:
     state = Path(settings.state_dir)
     parts = text.strip().split()
@@ -79,28 +94,40 @@ def answer(settings, text: str) -> str:
     try:
         if cmd in ("/board", "/edges"):
             data = json.loads((state / "board.json").read_text()) if (state / "board.json").exists() else {"entries": []}
-            return board.text(data["entries"]) + f"\n(built {data.get('built', 'never')[:16]} UTC)"
+            return board.text(data["entries"], h2h=lambda e: _board_h2h(state, e)) + f"\n(built {data.get('built', 'never')[:16]} UTC)"
         if cmd == "/game" and len(parts) > 1:
             team = " ".join(parts[1:])
             preds = json.loads((state / "predictions.json").read_text()) if (state / "predictions.json").exists() else {}
             rec = max(preds.values(), key=lambda r: max(bridge.similarity(team, r["home"]), bridge.similarity(team, r["away"])),
                       default=None)
-            if not rec:
+            if not rec or max(bridge.similarity(team, rec["home"]), bridge.similarity(team, rec["away"])) < 0.6:
+                for sp in ("nfl", "cfb"):  # not in the engine slate: the ratings-only H2H card may still have it
+                    o = bridge.game_h2h(state, sp, team)
+                    if o.found:
+                        return f"{o.game} ({sp.upper()})\n{o.line()}"
                 return "No projection for that team yet."
             fav = rec["home"] if rec["home_win"] >= .5 else rec["away"]
             p = max(rec["home_win"], 1 - rec["home_win"])
-            prob = f"{p:.0%} (fair {E.to_american(p):+.0f})" if proven.show_prob(rec["sport"], "ml") else f"({proven.UNPROVEN})"
+            qg = proven.query_gated(rec["sport"])
+            prob = f"{p:.0%} (fair {E.to_american(p):+.0f})" if not qg else f"({proven.UNPROVEN})"
             lines = [f"{rec['away']} @ {rec['home']} ({rec['sport'].upper()}, {rec['start'][:16]} UTC)",
                      f"Marv: {fav} {prob} · projected {rec['away_exp']:.1f}-{rec['home_exp']:.1f}, "
                      f"total {rec['model_total']:.1f}"]
+            o = bridge.game_h2h(state, rec["sport"], rec["home"], rec["away"])
+            if o.found:
+                lines.append(o.line())
             data = json.loads((state / "board.json").read_text()) if (state / "board.json").exists() else {"entries": []}
             for e in data["entries"]:
-                if e["game"] == f"{rec['away']} @ {rec['home']}":
+                if e["game"] in (f"{rec['away']} @ {rec['home']}", rec.get("game_id")):
                     lines.append(f"{e['status']}: {e['pick']} {int(e['price']):+d} {e['book']} · "
-                                 + (f"edge {e['edge']:+.1%}" if proven.show_prob(rec["sport"], e["market"]) else proven.UNPROVEN))
+                                 + (f"edge {e['edge']:+.1%}" if not qg else proven.UNPROVEN))
             return "\n".join(lines)
-        if cmd == "/h2h" and len(parts) >= 4:  # /h2h cfb ml Ohio State   |   /h2h cfb total Under 56 Ohio State
+        if cmd == "/h2h" and len(parts) >= 3:
+            # /h2h nfl Cowboys (game read) | /h2h cfb ml Ohio State | /h2h cfb total Under 56 Ohio State | /h2h nfl spread Cowboys -3.5
             sport, market = parts[1].lower(), parts[2].lower()
+            if market not in ("ml", "h2h", "moneyline", "total", "totals", "spread", "spreads"):
+                o = bridge.game_h2h(state, sport, " ".join(parts[2:]))
+                return (f"{o.game}\n{o.line()}" if o.found else "No Marv H2H read for that game.")
             if market in ("total", "totals"):
                 side, line, team = parts[3], float(parts[4]), " ".join(parts[5:]) or None
             elif market in ("spread", "spreads"):
@@ -109,13 +136,27 @@ def answer(settings, text: str) -> str:
             else:
                 side, line, team = " ".join(parts[3:]), None, " ".join(parts[3:])
             o = bridge.overlay(state, sport, market, side, line, team)
-            return o.line() or "No Marv H2H read for that game."
+            g = bridge.game_h2h(state, sport, team) if team else bridge.Overlay(False)
+            return "\n".join(x for x in (o.line(), g.line() if g.found and g.line() != o.line() else "") if x) \
+                or "No Marv H2H read for that game."
         if cmd == "/check" and len(parts) >= 6:
             sport, team, market, side = parts[1].lower(), parts[2], parts[3].lower(), parts[4]
             line = float(parts[5]) if market == "total" else None
             price = float(parts[6] if market == "total" else parts[5])
             v = bridge.check(state, sport, team, market, side, price, line)
-            return v.line() if v.found else v.reason
+            if not v.found:
+                return v.reason
+            if proven.query_gated(bridge.LEAGUE_TO_SPORT.get(sport, sport)):
+                out = [f"Marv check: {'✅ model agrees' if v.agrees else '🚫 model disagrees'} ({proven.UNPROVEN}) · {v.reason}"]
+            else:
+                out = [v.line()]
+            o = bridge.overlay(state, sport, market, side, line, team, price=price)
+            if o.found:
+                out.append(o.line())
+            g = bridge.game_h2h(state, sport, team)
+            if g.found:
+                out.append(g.line())
+            return "\n".join(out)
         if cmd == "/prop" and len(parts) > 1:
             from .props.run import lookup
             words = parts[1:]

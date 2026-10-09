@@ -464,6 +464,10 @@ def cmd_serve(s: Settings, args) -> int:
                                        float(q["price"]) if q.get("price") not in (None, "") else None,
                                        q.get("live", "").lower() in ("1", "true", "yes"))
                     body, code = bridge.overlay_json(o), 200
+                elif url.path == "/h2h":  # game-level H2H pick for queries (/game in March_edge): no Telegram, read-only
+                    o = bridge.game_h2h(state, q.get("sport", ""), q.get("team") or None, q.get("other") or None,
+                                        q.get("text") or None)
+                    body, code = bridge.overlay_json(o), 200
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
@@ -481,7 +485,7 @@ def cmd_serve(s: Settings, args) -> int:
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /overlay, /grade, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /overlay, /h2h, /grade, /predictions or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
