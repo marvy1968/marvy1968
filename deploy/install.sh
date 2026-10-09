@@ -30,6 +30,12 @@ elif [ -d "$DIR/.git" ]; then
   # The folder belongs to the marvbot user; tell git that's expected when root updates it.
   # (-c works even when root has no HOME, e.g. under systemd, where --global silently fails.)
   git config --global --add safe.directory "$DIR" 2>/dev/null || true
+  # Private repo: fetch over SSH with the vm-link deploy key when it exists (vm-link.sh creates it).
+  KEY=/root/.ssh/marv_link
+  if [ -f "$KEY" ]; then
+    export GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+    git -c safe.directory="$DIR" -C "$DIR" remote set-url origin git@github.com:marvy1968/marvy1968.git
+  fi
   git -c safe.directory="$DIR" -C "$DIR" fetch origin "$BRANCH"
   git -c safe.directory="$DIR" -C "$DIR" checkout -f -B "$BRANCH" "origin/$BRANCH"
 else
