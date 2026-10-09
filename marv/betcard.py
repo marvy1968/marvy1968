@@ -20,6 +20,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import edges as E
+from . import proven
 from .data.teams import similarity
 
 MIN_BETS, MAX_BETS, PER_GAME, MAX_UNTESTED = 2, 10, 2, 2
@@ -64,6 +65,14 @@ def _game_blocked(pred) -> bool:
                for pk in pred.picks)
 
 
+def _tag_why(sport: str, tag: str) -> str:
+    """Reason text for an O/U trend tag; in a gated sport the % is the proven backtest or nothing."""
+    head = f"{tag}: teams' recent over/under trend overshot by the market"
+    if proven.gated(sport):
+        return f"{head} ({proven.pct(sport, 'total', signal=tag)})"
+    return f"{head} ({SIGNAL_RANK.get(tag, 52.5):.1f}% in backtests)"
+
+
 def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
     out = []
     for pred in preds:
@@ -74,6 +83,13 @@ def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
         blocked = _game_blocked(pred)
         for pk in pred.picks:
             if pk.market not in ("ml", "spread", "total"):
+                continue
+            if proven.gated(sport) and (pk.active or (not blocked and not _hard(pk.vetoes) and pk.edge >= 0.03)):
+                # Marv's own game picks in a gated sport have no proven backtest: lean only, no %, no Kelly stake.
+                out.append(Bet(**base, market=pk.market, side=pk.side, line=pk.line, price=pk.price, tier="MODEL",
+                               score=pk.edge, units=0.5,
+                               why=f"Marv model pick ({proven.UNPROVEN})"
+                                   + ("; passed every check" if pk.active else f"; held back by: {'; '.join(pk.vetoes)[:90]}")))
                 continue
             if pk.active:
                 b = (pk.price / 100) if pk.price > 0 else 100 / -pk.price
@@ -94,9 +110,7 @@ def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
                 continue
             price = o.under_price if side == "Under" else o.over_price
             out.append(Bet(**base, market="total", side=side, line=o.total, price=price or -110, tier="SIGNAL",
-                           score=SIGNAL_RANK.get(tag, 52.5), units=0.5,
-                           why=f"{tag}: teams' recent over/under trend overshot by the market "
-                               f"({SIGNAL_RANK.get(tag, 52.5):.1f}% in backtests)"))
+                           score=SIGNAL_RANK.get(tag, 52.5), units=0.5, why=_tag_why(sport, tag)))
         for note in pred.notes:
             if note.startswith("spots (tracked") and "MARV4" in note and o.spread is not None:
                 team = note.split("MARV4→")[1].split(" [")[0]
@@ -119,9 +133,7 @@ def tag_candidates(sport: str, slate, tags: dict) -> list[Bet]:
             price = o.under_price if side == "Under" else o.over_price
             out.append(Bet(sport=sport, game=f"{g.away} @ {g.home}", start=g.start.isoformat(), home=g.home, away=g.away,
                            market="total", side=side, line=o.total, price=price or -110, tier="SIGNAL",
-                           score=SIGNAL_RANK.get(tag, 52.5), units=0.5,
-                           why=f"{tag}: teams' recent over/under trend overshot by the market "
-                               f"({SIGNAL_RANK.get(tag, 52.5):.1f}% in backtests)"))
+                           score=SIGNAL_RANK.get(tag, 52.5), units=0.5, why=_tag_why(sport, tag)))
     return out
 
 
@@ -136,7 +148,8 @@ def gap_candidates(gaps: list[dict]) -> list[Bet]:
                        away=e["away"], market="total", side=e["side"], line=e["line"], price=e["price"], tier="SIGNAL",
                        score=SIGNAL_RANK["GAP"] if tested else 52.0, units=0.5,
                        why=f"Bovado {e['line']:g} vs sharp Pinnacle {e['pinnacle_line']:g}"
-                           + (" (54.4%, +4.6% ROI backtest)" if tested else " (untested in NFL)")))
+                           + ((f" ({proven.pct(e['sport'], 'total', signal='GAP')})" if proven.gated(e["sport"])
+                               else " (54.4%, +4.6% ROI backtest)") if tested else " (untested in NFL)")))
     return out
 
 

@@ -21,7 +21,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import bridge
+from . import bridge, proven
 from .data.espn import ESPNClient
 from .data.teams import similarity
 from .markets import american_to_prob, prob_to_american
@@ -136,8 +136,10 @@ def live_edges(st: dict, ingame: dict | None, game, p_home: float, line_total: f
     return out
 
 
-def edge_line(e: dict) -> str:
+def edge_line(e: dict, sport: str | None = None) -> str:
     what = f"{e['side']} ML {e['price']:+.0f}" if e["market"] == "ml" else f"{e['side']} {e['line']:g} ({e['price']:+.0f})"
+    if not proven.show_prob(sport, "live_" + e["market"]):  # in-game model never tested against live prices
+        return f"▶️ <b>{what}</b> · {proven.UNPROVEN}"
     return (f"▶️ <b>{what}</b> · {'win' if e['market'] == 'ml' else 'hit'} probability {e['p']:.0%} "
             f"(fair {prob_to_american(e['p']):+.0f}) · edge {e['edge']:+.0%}")
 
@@ -150,8 +152,9 @@ def alert_text(sport: str, game, ended_period: int, edges: list[dict], st: dict,
     return "\n".join([
         "👽 <b>Marv the Martian predicts live: EDGE</b>",
         f"{game.away} {as_:.0f} – {hs:.0f} {game.home} · end of {period_name(sport, ended_period)}",
-        *[edge_line(e) for e in edges],
-        f"Marv live: {fav} win {p_fav:.0%} · projected total {st['exp_total']:.1f}",
+        *[edge_line(e, sport) for e in edges],
+        (f"Marv live: {fav} win {p_fav:.0%} · projected total {st['exp_total']:.1f}" if proven.show_prob(sport, "live_ml")
+         else f"Marv live: {fav} leads the projection ({proven.UNPROVEN}) · projected total {st['exp_total']:.1f}"),
         *roster,
         "<i>Live model, not yet backtested against live prices: small stakes.</i>"])
 
@@ -355,6 +358,9 @@ class LiveMonitor:
                     except Exception as exc:
                         log.warning("live props record %s: %s", g.id, exc)
             live_prices = self._live_odds(sport, [g for g, _, _ in due])
+            # Proven-logic gate: live ML/O/U edges are untested against live prices, so in a gated sport they are
+            # logged and graded silently unless PROVEN_GATE_LIVE_SEND=on (then sent without a %).
+            gate_quiet = proven.gated(sport) and os.environ.get("PROVEN_GATE_LIVE_SEND", "off").lower() not in ("1", "on", "true", "yes")
             for g, ended, final in due:
                 rec = _find_rec(preds, sport, g.home, g.away)
                 if rec is None:
@@ -379,9 +385,11 @@ class LiveMonitor:
                         log_alert(Path(self.s.state_dir), sport, g, e)
                         if e["result"] == "win":
                             wins.append(e)
+                    if wins and gate_quiet:  # gated sport: graded in the paper ledger, not announced
+                        wins = []
                     if wins:
                         send("\n".join([f"✅ <b>WIN</b> · {g.away} {as_:.0f} – {hs:.0f} {g.home} (final)",
-                                         *[edge_line(e) for e in wins]]))
+                                         *[edge_line(e, sport) for e in wins]]))
                         sent += 1
                     continue
                 state[key]["reported"] = ended
@@ -397,7 +405,10 @@ class LiveMonitor:
                 new = [e for e in edges if (e["market"], e["side"]) not in seen]
                 if not new:
                     continue  # no edge, or the same edge already sent: stay quiet
-                state[key].setdefault("alerted", []).extend({**e, "period": ended} for e in new)
+                state[key].setdefault("alerted", []).extend({**e, "period": ended, **({"paper_only": True} if gate_quiet else {})}
+                                                            for e in new)
+                if gate_quiet:
+                    continue  # unproven live edge in a gated sport: paper ledger only, no Telegram
                 send(alert_text(sport, g, ended, new, st, st["p_home"], rec))
                 sent += 1
         self._save(state)

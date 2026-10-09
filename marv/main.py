@@ -435,6 +435,14 @@ def cmd_check(s: Settings, args) -> int:
     return 0
 
 
+def cmd_overlay(s: Settings, args) -> int:
+    o = bridge.overlay(Path(s.state_dir), args.sport, args.market, args.side, args.line, args.team, args.other,
+                       args.text, args.price, args.live)
+    print(o.line() or "Marv: no H2H read for this game")
+    print(bridge.overlay_json(o))
+    return 0
+
+
 def cmd_serve(s: Settings, args) -> int:
     """Local HTTP endpoint for the odds bot: /check?sport=nfl&team=Lions&market=total&side=under&line=67.5&price=-110..."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -449,6 +457,13 @@ def cmd_serve(s: Settings, args) -> int:
             try:
                 if url.path == "/check":
                     body, code = bridge.verdict_json(bridge.check(state, **_check_args(q))), 200
+                elif url.path == "/overlay":  # H2H overlay line for a March_edge alert (no Telegram, read-only)
+                    o = bridge.overlay(state, q.get("sport", ""), q.get("market", ""), q.get("side", ""),
+                                       float(q["line"]) if q.get("line") not in (None, "") else None,
+                                       q.get("team") or None, q.get("other") or None, q.get("text") or None,
+                                       float(q["price"]) if q.get("price") not in (None, "") else None,
+                                       q.get("live", "").lower() in ("1", "true", "yes"))
+                    body, code = bridge.overlay_json(o), 200
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
@@ -466,7 +481,7 @@ def cmd_serve(s: Settings, args) -> int:
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /grade, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /overlay, /grade, /predictions or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
@@ -823,6 +838,17 @@ def main(argv: list[str] | None = None) -> int:
     ck.add_argument("--away-score", dest="away_score", type=float)
     ck.add_argument("--minutes-left", dest="minutes_left", type=float, help="game minutes left (innings for MLB)")
 
+    ov = sub.add_parser("overlay", help="Marv H2H overlay (good / not + why) for a March_edge alert")
+    ov.add_argument("--sport", required=True, help="cfb/nfl/... or a March_edge league key (ncaaf)")
+    ov.add_argument("--market", required=True, help="h2h/ml, spreads, totals, player_*")
+    ov.add_argument("--side", required=True, help="team name, Over/Under")
+    ov.add_argument("--line", type=float)
+    ov.add_argument("--team")
+    ov.add_argument("--other")
+    ov.add_argument("--text", help="the alert text (used to find the game)")
+    ov.add_argument("--price", type=float)
+    ov.add_argument("--live", action="store_true")
+
     sv = sub.add_parser("serve", help="local HTTP bridge for the odds bot (127.0.0.1)")
     sv.add_argument("--port", type=int, default=8787)
 
@@ -874,7 +900,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:

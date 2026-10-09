@@ -24,7 +24,7 @@ from pathlib import Path
 
 import requests
 
-from . import board, bridge
+from . import board, bridge, proven
 from . import edges as E
 from . import alertday
 from .telegram import API, send_message
@@ -89,14 +89,27 @@ def answer(settings, text: str) -> str:
                 return "No projection for that team yet."
             fav = rec["home"] if rec["home_win"] >= .5 else rec["away"]
             p = max(rec["home_win"], 1 - rec["home_win"])
+            prob = f"{p:.0%} (fair {E.to_american(p):+.0f})" if proven.show_prob(rec["sport"], "ml") else f"({proven.UNPROVEN})"
             lines = [f"{rec['away']} @ {rec['home']} ({rec['sport'].upper()}, {rec['start'][:16]} UTC)",
-                     f"Marv: {fav} {p:.0%} (fair {E.to_american(p):+.0f}) · projected {rec['away_exp']:.1f}-{rec['home_exp']:.1f}, "
+                     f"Marv: {fav} {prob} · projected {rec['away_exp']:.1f}-{rec['home_exp']:.1f}, "
                      f"total {rec['model_total']:.1f}"]
             data = json.loads((state / "board.json").read_text()) if (state / "board.json").exists() else {"entries": []}
             for e in data["entries"]:
                 if e["game"] == f"{rec['away']} @ {rec['home']}":
-                    lines.append(f"{e['status']}: {e['pick']} {int(e['price']):+d} {e['book']} · edge {e['edge']:+.1%}")
+                    lines.append(f"{e['status']}: {e['pick']} {int(e['price']):+d} {e['book']} · "
+                                 + (f"edge {e['edge']:+.1%}" if proven.show_prob(rec["sport"], e["market"]) else proven.UNPROVEN))
             return "\n".join(lines)
+        if cmd == "/h2h" and len(parts) >= 4:  # /h2h cfb ml Ohio State   |   /h2h cfb total Under 56 Ohio State
+            sport, market = parts[1].lower(), parts[2].lower()
+            if market in ("total", "totals"):
+                side, line, team = parts[3], float(parts[4]), " ".join(parts[5:]) or None
+            elif market in ("spread", "spreads"):
+                line, team = float(parts[-1]), " ".join(parts[3:-1])
+                side = team
+            else:
+                side, line, team = " ".join(parts[3:]), None, " ".join(parts[3:])
+            o = bridge.overlay(state, sport, market, side, line, team)
+            return o.line() or "No Marv H2H read for that game."
         if cmd == "/check" and len(parts) >= 6:
             sport, team, market, side = parts[1].lower(), parts[2], parts[3].lower(), parts[4]
             line = float(parts[5]) if market == "total" else None

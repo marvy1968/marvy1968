@@ -167,3 +167,175 @@ def check(state_dir: Path, sport: str, team: str, market: str, side: str, price:
 
 def verdict_json(v: Verdict) -> str:
     return json.dumps(asdict(v))
+
+
+# ---------------------------------------------------------------- H2H overlay for March_edge alerts
+# March_edge finds the bets; Marv only adds one line per alert: does the team head-to-head read (ratings
+# margin, offense/defense category points, star matchup, O/U trend) back this bet? yes / no / mixed + why.
+# A probability is printed only when the logic behind it passed the proven bar (marv/proven.py); otherwise
+# the line says "unproven — no %". Marv never sends anything itself from here.
+
+LEAGUE_TO_SPORT = {"ncaaf": "cfb", "cfb": "cfb", "americanfootball_ncaaf": "cfb", "nfl": "nfl",
+                   "americanfootball_nfl": "nfl", "nba": "nba", "wnba": "wnba", "ncaab": "ncaab", "ncaaw": "ncaaw",
+                   "mens-college-basketball": "ncaab", "womens-college-basketball": "ncaaw", "euroleague": "euroleague"}
+H2H_DIR = "marv_predict"  # state/marv_predict/h2h_<sport>.json, written by tools/cfb_card.py (ratings-only card)
+
+
+def _market_kind(market: str) -> str:
+    m = (market or "").lower()
+    if m in ("h2h", "ml", "moneyline"):
+        return "ml"
+    if m in ("spreads", "spread", "alternate_spreads"):
+        return "spread"
+    if m in ("totals", "total", "alternate_totals"):
+        return "total"
+    if "team_total" in m:
+        return "team_total"
+    if m.startswith(("player_", "batter_", "pitcher_")) or m == "prop":
+        return "prop"
+    return "other"
+
+
+def _h2h_cards(state_dir: Path, sport: str) -> list[dict]:
+    path = state_dir / H2H_DIR / f"h2h_{sport}.json"
+    try:
+        return list(json.loads(path.read_text()).get("games", [])) if path.exists() else []
+    except (ValueError, OSError):
+        return []
+
+
+def _in_text(name: str, text: str) -> float:
+    """How well a team name shows up in free text (best match over word windows of the name's length)."""
+    words = text.replace("@", " ").replace("|", " ").split()
+    n = max(len(name.split()), 1)
+    best = 0.0
+    for k in (n, n + 1, n + 2):
+        for i in range(len(words) - k + 1):
+            best = max(best, similarity(name, " ".join(words[i:i + k])))
+    return best
+
+
+def find_game_in_text(state_dir: Path, sport: str, text: str) -> dict | None:
+    """The Marv projection whose two teams both appear in an alert's text."""
+    path = state_dir / "predictions.json"
+    if not path.exists() or not text:
+        return None
+    best, score = None, 0.0
+    for rec in json.loads(path.read_text()).values():
+        if rec["sport"] != sport:
+            continue
+        s = min(_in_text(rec["home"], text), _in_text(rec["away"], text))
+        if s > score:
+            best, score = rec, s
+    return best if score >= 0.75 else None
+
+
+@dataclass
+class Overlay:
+    found: bool
+    verdict: str = ""  # good | not | mixed | n/a
+    why: str = ""
+    prob: str = ""  # proven backtest text, or proven.UNPROVEN
+    game: str = ""
+
+    def line(self) -> str:
+        if not self.found:
+            return ""
+        icon = {"good": "👍 looks good", "not": "👎 doesn't look good", "mixed": "➖ mixed", "n/a": "➖ no H2H read"}[self.verdict]
+        return f"🧠 Marv H2H: {icon} — {self.why} · {self.prob}"
+
+
+def _team_side(side: str, rec: dict) -> str | None:
+    hs, as_ = similarity(side, rec["home"]), similarity(side, rec["away"])
+    if max(hs, as_) < 0.5:
+        return None
+    return "home" if hs >= as_ else "away"
+
+
+def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
+            other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
+    """Team H2H read on one March_edge alert. sport may be a March_edge league key (ncaaf, nfl, ...)."""
+    from . import proven
+    sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
+    kind = _market_kind(market)
+    rec = None
+    if team:
+        rec = find_game(state_dir, sport, team, other)
+    if rec is None and text:
+        rec = find_game_in_text(state_dir, sport, text)
+    if rec is None and kind in ("ml", "spread") and side:
+        rec = find_game(state_dir, sport, side)
+    if rec is None:
+        return Overlay(False)
+    game = f"{rec['away']} @ {rec['home']}"
+    card = next((c for c in _h2h_cards(state_dir, sport)
+                 if min(max(similarity(c["home"], rec["home"]), similarity(c["home"], rec["away"])),
+                        max(similarity(c["away"], rec["home"]), similarity(c["away"], rec["away"]))) >= 0.75), None)
+    margin = card["margin"] if card and card.get("margin") is not None else rec["model_margin"]  # home view
+    total = card["rating_total"] if card and card.get("rating_total") is not None else rec["model_total"]
+    src = "ratings" if card else "Marv model"
+    yes, no, why, signal = 0, 0, [], None
+    tail = " (live: pregame matchup read only)" if live else ""
+
+    if kind in ("ml", "spread"):
+        t = _team_side(side, rec)
+        if t is None:
+            return Overlay(False)
+        name, opp = (rec["home"], rec["away"]) if t == "home" else (rec["away"], rec["home"])
+        m = margin if t == "home" else -margin  # projected margin for the bet's team
+        if kind == "ml" or line is None:
+            ok = m > 0
+            why.append(f"{name if ok else opp} by {abs(m):.0f} ({src})")
+        else:
+            ok = m + line > 0
+            why.append(f"projected {name} {m:+.0f} vs line {line:+g} ({src})")
+        cover_gap = None if (kind == "ml" or line is None) else m + line
+        w = 3 if cover_gap is not None and abs(cover_gap) >= 3 else 1  # spreads: the cover check decides unless close
+        yes, no = (yes + w, no) if ok else (yes, no + w)
+        if card:
+            cat = card.get("cat_home"), card.get("cat_away")
+            mine = cat[0] if t == "home" else cat[1]
+            if mine is not None:
+                if mine == 2:
+                    yes += 1; why.append("better O and D ratings (2-0)")
+                elif mine == 0:
+                    no += 1; why.append(f"{opp} better O and D (0-2)")
+                else:
+                    why.append("O/D split 1-1")
+            st = card.get("stars_home"), card.get("stars_away")
+            if st[0] is not None and st[1] is not None:
+                a, b = (st[0], st[1]) if t == "home" else (st[1], st[0])
+                if a != b:
+                    yes, no = (yes + 1, no) if a > b else (yes, no + 1)
+                why.append(f"stars QB/RB/WR {a}-{b}")
+    elif kind == "total":
+        if line is None:
+            return Overlay(False)
+        over = side.lower().startswith("o")
+        proj_over = total > line
+        why.append(f"projected total {total:.1f} vs {line:g} ({src})")
+        yes, no = (yes + 1, no) if proj_over == over else (yes, no + 1)
+        tags = [n for n in rec.get("notes", []) if n.startswith("O/U spots")]
+        fade = (card or {}).get("fade")  # "UNDER" / "OVER" / ""
+        if not fade and tags:
+            fade = "UNDER" if "→Under" in tags[0] else "OVER" if "→Over" in tags[0] else ""
+        if fade:
+            agree = (fade == "OVER") == over
+            yes, no = (yes + 1, no) if agree else (yes, no + 1)
+            why.append(f"trend fade says {fade}")
+            if agree and fade == "UNDER":
+                signal = "OVER-FADE"
+    elif kind in ("prop", "team_total"):
+        fav = rec["home"] if margin > 0 else rec["away"]
+        why.append(f"no proven prop logic; game read: {fav} by {abs(margin):.0f}, total {total:.0f} ({src})")
+        return Overlay(True, "n/a", why[0] + tail, proven.UNPROVEN, game)
+    else:
+        return Overlay(False)
+
+    verdict = "good" if yes > no else "not" if no > yes else "mixed"
+    ev = proven.evidence(sport, kind, signal) if verdict == "good" and not live else None
+    return Overlay(True, verdict, ", ".join(why) + tail, ev.label() if ev else proven.UNPROVEN, game)
+
+
+def overlay_json(o: Overlay) -> str:
+    return json.dumps({**asdict(o), "line": o.line()})

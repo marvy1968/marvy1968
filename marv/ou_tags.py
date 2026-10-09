@@ -156,8 +156,13 @@ def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: 
     return out
 
 
-def note(tags: list[tuple[str, str]]) -> str:
-    return "O/U spots (tracked, not picks): " + ", ".join(f"{t}→{side} [{HISTORY[t]}]" for t, side in tags)
+def note(tags: list[tuple[str, str]], sport: str | None = None) -> str:
+    from . import proven
+
+    def hist(t):
+        sp = sport or ("cfb" if t in SPORT_TAGS["cfb"] else "nfl")
+        return proven.pct(sp, "total", signal=t) if proven.gated(sp) else HISTORY[t]
+    return "O/U spots (tracked, not picks): " + ", ".join(f"{t}→{side} [{hist(t)}]" for t, side in tags)
 
 
 def log(state: Path, sport: str, slate, tags: dict) -> None:

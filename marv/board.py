@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from . import edges as E
+from . import proven
 from .bridge import GAME, find_game  # noqa: F401  (find_game re-exported for the query bot)
 from .data.teams import similarity
 
@@ -190,6 +191,9 @@ def text(entries: list[dict], limit: int = 12) -> str:
     lines = ["📋 MARV EDGE BOARD", f"{len(rec)} recommended · {len(entries) - len(rec)} leans/paper"]
     for e in entries[:limit]:
         tag = {"recommended": "✅", "lean": "·", "paper": "📝"}[e["status"]]
+        if proven.gated(e["sport"]):
+            lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {proven.UNPROVEN}")
+            continue
         lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {e['p_marv']:.0%}"
                      + (f" / market {e['p_market']:.0%}" if e.get("p_market") else "")
                      + f" · edge {e['edge']:+.1%} · stake {e['stake']:.1%}")
