@@ -1,3 +1,63 @@
 $ logs marv-vmlink 60
-started 2026-10-09 13:09:23 EDT
-RUNNING...
+started 2026-10-09 13:09:23 EDT, took 0s, exit 0
+
+Oct 09 09:38:48 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:38:48 instance-stockbot systemd[1]: marv-vmlink.service: Deactivated successfully.
+Oct 09 09:38:48 instance-stockbot systemd[1]: Finished marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 09:39:58 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:39:58 instance-stockbot systemd[1]: marv-vmlink.service: Deactivated successfully.
+Oct 09 09:39:58 instance-stockbot systemd[1]: Finished marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 09:41:03 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:41:04 instance-stockbot systemd[1]: marv-vmlink.service: Deactivated successfully.
+Oct 09 09:41:04 instance-stockbot systemd[1]: Finished marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 09:42:08 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:42:08 instance-stockbot systemd[1]: marv-vmlink.service: Deactivated successfully.
+Oct 09 09:42:08 instance-stockbot systemd[1]: Finished marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 09:43:28 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:43:28 instance-stockbot systemd[1]: marv-vmlink.service: Deactivated successfully.
+Oct 09 09:43:28 instance-stockbot systemd[1]: Finished marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 09:44:38 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 09:44:49 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 09:44:53 instance-stockbot runuser[173649]: pam_unix(runuser:session): session opened for user marvbot(uid=999) by (uid=0)
+Oct 09 09:45:17 instance-stockbot runuser[173701]: pam_unix(runuser:session): session opened for user marvbot(uid=999) by (uid=0)
+Oct 09 11:06:47 instance-stockbot systemd[1]: marv-vmlink.service: A process of this unit has been killed by the OOM killer.
+Oct 09 11:06:47 instance-stockbot systemd[1]: marv-vmlink.service: Main process exited, code=killed, status=15/TERM
+Oct 09 11:06:47 instance-stockbot systemd[1]: marv-vmlink.service: Failed with result 'oom-kill'.
+Oct 09 11:06:47 instance-stockbot systemd[1]: Failed to start marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 11:06:47 instance-stockbot systemd[1]: marv-vmlink.service: Consumed 1h 43min 47.112s CPU time.
+Oct 09 11:07:47 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 11:07:54 instance-stockbot runuser[177882]: pam_unix(runuser:session): session opened for user marvbot(uid=999) by (uid=0)
+Oct 09 13:08:04 instance-stockbot python3[177861]: Traceback (most recent call last):
+Oct 09 13:08:04 instance-stockbot python3[177861]:   File "/opt/marv-bot/deploy/vm_link.py", line 170, in <module>
+Oct 09 13:08:04 instance-stockbot python3[177861]:     sys.exit(main())
+Oct 09 13:08:04 instance-stockbot python3[177861]:              ^^^^^^
+Oct 09 13:08:04 instance-stockbot python3[177861]:   File "/opt/marv-bot/deploy/vm_link.py", line 144, in main
+Oct 09 13:08:04 instance-stockbot python3[177861]:     text = job.read_text().splitlines()
+Oct 09 13:08:04 instance-stockbot python3[177861]:            ^^^^^^^^^^^^^^^
+Oct 09 13:08:04 instance-stockbot python3[177861]:   File "/usr/lib/python3.11/pathlib.py", line 1059, in read_text
+Oct 09 13:08:04 instance-stockbot python3[177861]:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+Oct 09 13:08:04 instance-stockbot python3[177861]:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 09 13:08:04 instance-stockbot python3[177861]:   File "/usr/lib/python3.11/pathlib.py", line 1045, in open
+Oct 09 13:08:04 instance-stockbot python3[177861]:     return io.open(self, mode, buffering, encoding, errors, newline)
+Oct 09 13:08:04 instance-stockbot python3[177861]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 09 13:08:04 instance-stockbot python3[177861]: FileNotFoundError: [Errno 2] No such file or directory: '/opt/marv-link/jobs/run5-wnba.job'
+Oct 09 13:08:04 instance-stockbot systemd[1]: marv-vmlink.service: Main process exited, code=exited, status=1/FAILURE
+Oct 09 13:08:05 instance-stockbot systemd[1]: marv-vmlink.service: Failed with result 'exit-code'.
+Oct 09 13:08:05 instance-stockbot systemd[1]: Failed to start marv-vmlink.service - Marv VM link: run jobs from the vm-link branch.
+Oct 09 13:08:05 instance-stockbot systemd[1]: marv-vmlink.service: Consumed 2h 38min 15.008s CPU time.
+Oct 09 13:09:05 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+Oct 09 13:09:20 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 09 13:09:20 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 09 13:09:20 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 13:09:20 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 13:09:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -i
+Oct 09 13:09:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: /root/.ssh/marv_link
+Oct 09 13:09:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
+Oct 09 13:09:21 instance-stockbot systemd[1]: /etc/systemd/system/marv-vmlink.service:7: Invalid environment assignment, ignoring: -o
