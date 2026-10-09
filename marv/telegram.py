@@ -3,7 +3,6 @@
 import html
 import logging
 import os
-import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -28,8 +27,10 @@ def mirror_token() -> str:
     raw = os.environ.get("MIRROR_BOT_TOKEN", "")
     raw = "".join(raw.split()).strip("\"'")
     raw = raw.split("=")[-1].strip("\"'")
-    found = re.search(r"[0-9]{8,10}:[A-Za-z0-9_-]{35}", raw)  # a token pasted twice in a row: keep the first copy
-    return found.group(0) if found else raw
+    half = len(raw) // 2
+    if len(raw) % 2 == 0 and half and raw[:half] == raw[half:]:  # pasted twice in a row: keep one copy
+        raw = raw[:half]
+    return raw
 
 
 def token_shape(token: str) -> str:
