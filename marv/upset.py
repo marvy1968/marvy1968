@@ -3,7 +3,8 @@
 Heavy favourite = ML -200 or shorter, spread >= defense.HEAVY (NFL 4.5 / CFB 6.5) or Marv margin >= HEAVY_MARGIN
 (marv/insight.heavy_fav). For that favourite EVERY metric Marv has is weighed into one UPSET SCORE:
   ratings margin / Marv model (scaled by size), O+D category ratings, star H2H (QB/RB/WR[/K]), QB out / backup QB / starters out,
-  defense quality + last-3 trend (both teams), line move, Bovada vs Pinnacle gap, O/U trend fade (Under = fewer
+  defense quality + last-3 trend (both teams), hybrid category matrix + trend-catcher modifier (marv/hybrid.py:
+  a heavy fav that loses the winner-take-all categories or has a last-3 turnover spike / ypp-margin drop), line move, Bovada vs Pinnacle gap, O/U trend fade (Under = fewer
   possessions = live dog, Over = favourite's side), and Marv's margin vs the spread
   support = weighted FOR minus AGAINST the favourite (market-favourite tautology excluded: it IS the price)
   need    = what the price asks for: implied-probability edge over a coin flip x10 (ML) or spread / unit, cap 4
@@ -345,7 +346,7 @@ def from_overlay(settings, sport: str, market: str, side: str, price: float | No
     rec = bridge.find_game(state, sport, team, other) if team else None
     if rec is None and text_:
         rec = bridge.find_game_in_text(state, sport, text_)
-    if rec is None and side:
+    if rec is None and side and not (team and other):
         rec = bridge.find_game(state, sport, side)
     if rec is None:
         return False

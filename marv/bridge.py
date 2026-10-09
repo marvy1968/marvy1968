@@ -296,7 +296,8 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         rec = find_game(state_dir, sport, team, other)
     if rec is None and text:
         rec = find_game_in_text(state_dir, sport, text)
-    if rec is None and kind in ("ml", "spread") and side:
+    if rec is None and kind in ("ml", "spread") and side and not (team and other):
+        # side-only fuzzy lookup only when the alert didn't name both teams ("Florida State" ~ "Ohio State" otherwise)
         rec = find_game(state_dir, sport, side)
     rec = _engine(rec)
     if rec is None:  # not in Marv's engine slate: fall back to the ratings-only H2H card
@@ -437,6 +438,13 @@ def game_h2h(state_dir: Path, sport: str, team: str | None = None, other: str | 
             why += (f" · O/U: {'Over' if over else 'Under'} {tl:g} ({u.tally[0]}-{u.tally[1]}: "
                     f"{', '.join(f.label for f in u.factors if f.side > 0)[:120]})"
                     + (f" {ev.label()}" if ev else ""))
+    try:
+        from . import hybrid as HY
+        hr = I.hybrid_read(state_dir, sport, rec, total=tl)
+        if hr:
+            why += " · " + HY.text(hr, rec["home"], rec["away"], sport) + " (paper, no %)"
+    except Exception:  # noqa: BLE001 - the hybrid line is optional
+        pass
     return Overlay(True, "pick", why, prob, f"{rec['away']} @ {rec['home']}", pick)
 
 

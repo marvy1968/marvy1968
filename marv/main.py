@@ -450,6 +450,9 @@ def cmd_serve(s: Settings, args) -> int:
 
     state = Path(s.state_dir)
     from . import defense
+    import threading
+    from . import hybrid as _hy
+    threading.Thread(target=lambda: [_hy.league(state, s_) for s_ in ("nfl", "cfb")], daemon=True).start()
     defense.warm(state)  # pre-load defense tables so the first /overlay stays inside March_edge's 1.5 s timeout
 
     class Handler(BaseHTTPRequestHandler):

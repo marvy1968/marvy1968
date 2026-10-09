@@ -11,6 +11,9 @@ read from files Marv already writes (no network, so the 1.5 s overlay timeout is
   * O/U trend tag log (state/ou_tags_log.json)
   * defense quality + recent defensive trend (marv/defense.py: points / yards allowed last 3 vs season, from the
     cached nflverse / CFBD box scores)
+  * hybrid engine (marv/hybrid.py): trend-catcher modifier (last-3 turnover spike / ypp-margin drop), full-spectrum
+    winner-take-all category matrix (off/def rating, net EPA, ypp, success, TO rate, explosive, ypp margin, pace) and
+    its ATS side; totals get the restricted Monte Carlo median / p25 / p75
 Heavy-favourite gate: when the side is a heavy favourite (ML -200 or shorter, spread / Marv margin large) and ANY
 metric is off (bad or fading defense, or any AGAINST factor), the read is capped at mixed, and at bad when the
 defense is both bad and fading or a defense flag comes with another AGAINST factor -- even if ratings/spread favour it.
@@ -234,6 +237,7 @@ def side_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, t: s
     for lbl, w in qb["away" if t == "home" else "home"]:
         ins.factors.append(Factor(f"{short(opp)} {lbl}", 1, w))
     if live:
+        _hybrid(ins, state_dir, sport, rec, t, name, opp, short, None, False, True)
         _defense(ins, state_dir, sport, rec, t, name, opp, short, None, None, False, margin, live=True)
         return ins
     mv_ = moves(state_dir, sport, rec, card)
@@ -258,8 +262,55 @@ def side_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, t: s
         ok = similarity(g.get("side", ""), name) >= similarity(g.get("side", ""), opp)
         ins.factors.append(Factor(f"Bovada vs Pinnacle {g['line']:+g}/{g['pinnacle_line']:+g} favours "
                                   f"{short(name if ok else opp)}", 1 if ok else -1))
+    _hybrid(ins, state_dir, sport, rec, t, name, opp, short, line, spread, False, ln)
     _defense(ins, state_dir, sport, rec, t, name, opp, short, line, price, spread, margin, ln=ln)
     return ins
+
+
+def hybrid_read(state_dir: Path, sport: str, rec: dict, ln: dict | None = None, home_spread: float | None = None,
+                total: float | None = None) -> dict | None:
+    """marv/hybrid.py read for this game with the latest Bovada spread / total (None when data is missing)."""
+    from . import hybrid as HY
+    if sport not in ("cfb", "nfl"):
+        return None
+    try:
+        ln = ln if ln is not None else lines(state_dir, sport, rec.get("game_id"), rec["home"], rec["away"])
+        if home_spread is None and ln and ln.get("spread_last") is not None:
+            home_spread = float(ln["spread_last"])
+        if total is None and ln and ln.get("total_last") is not None:
+            total = float(ln["total_last"])
+        return HY.game(state_dir, sport, rec["home"], rec["away"], home_spread, total, bool(rec.get("neutral")))
+    except Exception:  # noqa: BLE001 - never break the overlay
+        return None
+
+
+def _hybrid(ins: Insight, state_dir: Path, sport: str, rec: dict, t: str, name: str, opp: str, short, line,
+            spread: bool, live: bool, ln: dict | None = None) -> None:
+    """Hybrid engine factors: category matrix side, trend-catcher modifiers (both teams), ATS side on spread bets."""
+    from . import hybrid as HY
+    hs = None
+    if spread and line is not None and not live:
+        hs = float(line) if t == "home" else -float(line)
+    r = hybrid_read(state_dir, sport, rec, ln, hs)
+    if not r:
+        return
+    o = "away" if t == "home" else "home"
+    mine, theirs = r[f"{t}_pts"], r[f"{o}_pts"]
+    if mine != theirs:
+        ok = mine > theirs
+        lbl = (f"hybrid categories {mine:g}-{theirs:g}" if ok else f"{short(opp)} wins hybrid categories {theirs:g}-{mine:g}")
+        top = [HY.LABEL[c] for c in r["won"][t if ok else o][:3]]
+        ins.factors.append(Factor(lbl + (f" ({', '.join(top)})" if top else ""), 1 if ok else -1,
+                                  2 if abs(mine - theirs) >= 3 else 1))
+    for who, nm, sd in ((t, name, -1), (o, opp, 1)):
+        mod = r[f"mod_{who}"]
+        if mod <= HY.WEAK_MOD:
+            why = "; ".join(r[f"why_{who}"]) or "last 3 down"
+            ins.factors.append(Factor(f"{short(nm)} trend catcher x{mod:.2f} ({why})", sd))
+    if spread and not live and r.get("ats"):
+        ok = r["ats"] == t
+        ins.factors.append(Factor(f"hybrid ATS {'backs' if ok else 'fades'} {short(name)} (proj {short(rec['home'])} "
+                                  f"{r['proj_margin']:+.1f} vs {r['spread']:+g})", 1 if ok else -1))
 
 
 def heavy_fav(state_dir: Path, sport: str, rec: dict, t: str, line: float | None, price: float | None, spread: bool,
@@ -350,6 +401,12 @@ def total_insight(state_dir: Path, sport: str, rec: dict, card: dict | None, ove
     qb = qb_issues(rec.get("notes", []), home, away)
     if any(w >= 2 for lbl, w in qb["home"] + qb["away"]):
         ins.factors.append(Factor("QB out → lean Under", -d))
+    r = hybrid_read(state_dir, sport, rec, total=float(line))
+    if r:  # restricted Monte Carlo (pace + scoring variance only): median vs the line; inside +/-3 is info only
+        mc = r["mc"]
+        gap = mc["median"] - float(line)
+        ins.factors.append(Factor(f"hybrid MC total {mc['median']:.0f} (p25 {mc['p25']:.0f}–p75 {mc['p75']:.0f})",
+                                  (d if gap > 0 else -d) if abs(gap) >= 3 else 0))
     return ins
 
 
