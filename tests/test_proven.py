@@ -70,8 +70,9 @@ class OverlayTest(unittest.TestCase):
                            text="🏈 Maryland Terrapins @ Ohio State Buckeyes · Under 56")
         self.assertEqual(o.verdict, "good")
         self.assertIn("53.5%", o.prob)
-        live = bridge.overlay(self.state, "ncaaf", "totals", "Under", line=56.0, team="Ohio State", live=True)
+        live = bridge.overlay(self.state, "ncaaf", "totals", "Under", line=111.5, team="Ohio State", live=True)
         self.assertEqual(live.prob, proven.UNPROVEN)
+        self.assertEqual(live.verdict, "n/a")
 
     def test_prop_no_read(self):
         o = bridge.overlay(self.state, "ncaaf", "player_reception_yds", "Over", line=60.5, team="Ohio State")

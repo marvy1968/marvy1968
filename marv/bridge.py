@@ -305,13 +305,13 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
             return Overlay(False)
         name, opp = (rec["home"], rec["away"]) if t == "home" else (rec["away"], rec["home"])
         m = margin if t == "home" else -margin  # projected margin for the bet's team
-        if kind == "ml" or line is None:
+        if kind == "ml" or line is None or live:  # live lines move with the score: team-quality read only
             ok = m > 0
             why.append(f"{name if ok else opp} by {abs(m):.0f} ({src})")
         else:
             ok = m + line > 0
-            why.append(f"projected {name} {m:+.0f} vs line {line:+g} ({src})")
-        cover_gap = None if (kind == "ml" or line is None) else m + line
+            why.append(f"{name} projected {'to win by' if m > 0 else 'to lose by'} {abs(m):.0f} vs {line:+g} ({src})")
+        cover_gap = None if (kind == "ml" or line is None or live) else m + line
         w = 3 if cover_gap is not None and abs(cover_gap) >= 3 else 1  # spreads: the cover check decides unless close
         yes, no = (yes + w, no) if ok else (yes, no + w)
         if card:
@@ -330,6 +330,9 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
                 if a != b:
                     yes, no = (yes + 1, no) if a > b else (yes, no + 1)
                 why.append(f"stars QB/RB/WR {a}-{b}")
+    elif kind == "total" and live:
+        why.append(f"live total: no pregame comparison; pregame projection {total:.0f} ({src})")
+        return Overlay(True, "n/a", why[0], proven.UNPROVEN, game)
     elif kind == "total":
         if line is None:
             return Overlay(False)
