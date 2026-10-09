@@ -1,3 +1,4 @@
 $ marv mirror-status
-started 2026-10-08 21:08:08 EDT
-RUNNING...
+started 2026-10-08 21:08:08 EDT, took 3s, exit 0
+
+Mirror: ON, alerts also go to @March_betbot (chat same as Marv chat).
