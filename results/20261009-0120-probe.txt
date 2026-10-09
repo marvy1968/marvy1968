@@ -1,3 +1,10 @@
 $ marv live-probe --sport nfl --days 1
-started 2026-10-08 21:26:48 EDT
-RUNNING...
+started 2026-10-08 21:26:48 EDT, took 3s, exit 0
+
+ESPN nfl: 1 events, states {'pre': 0, 'in': 1, 'post': 0}
+  Tampa Bay Buccaneers @ Dallas Cowboys state=in STATUS_IN_PROGRESS period=2 clock=2:14 score=7.0-7.0 preseason=False
+Play-by-play parser on Tampa Bay Buccaneers @ Dallas Cowboys: 52 plays, columns ['game_id', 'period', 'side', 'down', 'distance', 'yards', 'kind', 'turnover', 'home_score', 'away_score']
+      game_id  period  side  down  distance  yards  kind  turnover  home_score  away_score
+49  401872980       2  away     2         9    0.0  pass         0           7           7
+50  401872980       2  away     1        20   11.0  rush         0           7           7
+51  401872980       2  away     2         9    0.0  pass         0           7           7
