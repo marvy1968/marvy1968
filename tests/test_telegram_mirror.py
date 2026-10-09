@@ -41,7 +41,7 @@ if __name__ == "__main__":
 class TokenCleanupTests(unittest.TestCase):
     def test_copy_paste_slips_are_forgiven(self):
         good = "1234567890:AAEexampleexampleexampleexample12345"
-        for raw in (good, f" {good}\r", f'"{good}"', f"MIRROR_BOT_TOKEN={good}", f"{good} "):
+        for raw in (good, f" {good}\r", f'"{good}"', f"MIRROR_BOT_TOKEN={good}", f"{good} ", good + good):
             with mock.patch.dict(os.environ, {"MIRROR_BOT_TOKEN": raw}):
                 self.assertEqual(telegram.mirror_token(), good)
         self.assertIn("10 digits before the colon", telegram.token_shape(good))

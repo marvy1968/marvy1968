@@ -3,6 +3,7 @@
 import html
 import logging
 import os
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -23,10 +24,12 @@ LABEL = "👽 <b>MARV</b>"  # first line of every Marv message, so it's never co
 
 def mirror_token() -> str:
     """MIRROR_BOT_TOKEN from the environment, forgiving copy-paste slips: spaces, quotes, a Windows line ending, or
-    the variable name pasted twice (MIRROR_BOT_TOKEN=MIRROR_BOT_TOKEN=123:abc)."""
+    the variable name pasted twice (MIRROR_BOT_TOKEN=MIRROR_BOT_TOKEN=123:abc), or the token pasted twice in a row."""
     raw = os.environ.get("MIRROR_BOT_TOKEN", "")
     raw = "".join(raw.split()).strip("\"'")
-    return raw.split("=")[-1].strip("\"'")
+    raw = raw.split("=")[-1].strip("\"'")
+    found = re.search(r"[0-9]{8,10}:[A-Za-z0-9_-]{35}", raw)  # a token pasted twice in a row: keep the first copy
+    return found.group(0) if found else raw
 
 
 def token_shape(token: str) -> str:
