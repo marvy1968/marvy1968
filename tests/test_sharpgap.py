@@ -18,6 +18,13 @@ def event(bov_total, pin_total, bov_spread, pin_spread, start):
 
 
 class SharpGapTests(unittest.TestCase):
+    def setUp(self):  # these tests use arbitrary start times; the day-of rule has its own tests
+        import os
+        from unittest import mock
+        patcher = mock.patch.dict(os.environ, {"ALERT_DAY_ONLY": "false"})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_takes_the_better_number_at_bovado(self):
         start = datetime.now(timezone.utc) + timedelta(days=2)
         out = {e["market"]: e for e in sharpgap.gaps("cfb", [event(51.5, 52.5, -2.5, -3.5, start)])}

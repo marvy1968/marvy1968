@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from . import betcard, bridge, linemove, ou_tags, sharpgap
+from . import alertday, betcard, bridge, linemove, ou_tags, sharpgap
 from .config import Settings
 from .engine import grade, predict
 from .markets import no_vig
@@ -39,7 +39,7 @@ def _alert_failure(s: Settings, what: str) -> None:
 
 
 def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int, dry_run: bool,
-              label: str = ""):
+              label: str = "", day_only: bool = False):
     """Run one sport; returns (predictions, projections) for the daily bet card, or None."""
     history, slate, ctx = load_for_run(sport, s, now, hours)
     if store.resolve(sport.key, history):
@@ -83,17 +83,20 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
             log.exception("situational tags failed")
     bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
     AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
-    text = format_card(sport, preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
+    # Projections for every upcoming game stay available for queries (/game, /board); the card that gets
+    # sent only covers games starting today.
+    card_preds = [p for p in preds if alertday.is_today(p.game.start, now)] if day_only else preds
+    text = format_card(sport, card_preds, store.record(sport.key), now, paper=s.paper_mode, label=label)
     print(text + "\n")
-    fresh = store.new_picks(sport.key, preds)
+    fresh = store.new_picks(sport.key, card_preds)
     if not dry_run and not fresh and not s.send_empty_cards:
         log.info("%s: no new qualified plays, nothing sent", sport.key)
     elif not dry_run:
         send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-        store.log_picks(sport.key, preds)
-        if sport.key in s.pdf_sports:
+        store.log_picks(sport.key, card_preds)
+        if sport.key in s.pdf_sports and card_preds:
             from .reports import weekly_chart
-            pdf = weekly_chart(sport, preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
+            pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
             send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
         log.info("%s: sent %d predictions", sport.key, len(preds))
     return preds, projections
@@ -132,7 +135,9 @@ def cmd_run(s: Settings, args) -> int:
         if sport.source == "cfbd" and not s.cfbd_api_key:
             log.info("cfb: no CFBD_API_KEY, using ESPN schedules and free play-by-play stats")
         try:
-            res = run_sport(sport, s, store, now, hours, args.dry_run, args.label)
+            # Day-of alerts: manual runs (--force / --hours) show everything in the window.
+            res = run_sport(sport, s, store, now, hours, args.dry_run, args.label,
+                            day_only=alertday.day_only() and not args.force and not args.hours)
             if res:
                 card_cands += betcard.candidates(key, *res)
         except Exception:
@@ -144,6 +149,8 @@ def cmd_run(s: Settings, args) -> int:
         try:
             if s.odds_api_key:
                 card_cands += betcard.gap_candidates(sharpgap.scan(s, [k for k in keys if k in sharpgap.SPORT_KEYS]))
+            if alertday.day_only() and not args.force and not args.hours:
+                card_cands = [b for b in card_cands if alertday.is_today(b.start, now)]
             bets = betcard.select(card_cands)
             text = betcard.text(bets, now.astimezone(ET))
             print(text + "\n")

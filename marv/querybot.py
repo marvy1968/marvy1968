@@ -26,6 +26,7 @@ import requests
 
 from . import board, bridge
 from . import edges as E
+from . import alertday
 from .telegram import API, send_message
 
 log = logging.getLogger(__name__)
@@ -50,6 +51,8 @@ def track(state: Path, entries: list[dict]) -> list[dict]:
                 book[e["key"]]["close_p_market"] = e["p_market"]
                 book[e["key"]]["close_price"] = e["price"]
             continue
+        if e.get("start") and not alertday.is_today(e["start"], now):
+            continue  # alert on the day of the game (it stays on the board for queries)
         if e["status"] == "recommended" or (alert_leans and e["status"] == "lean" and e["edge"] >= min_edge):
             book[e["key"]] = {**e, "alerted": now.isoformat(), "close_p_market": e.get("p_market")}
             new.append(e)

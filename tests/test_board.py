@@ -54,6 +54,13 @@ class EdgeMathTests(unittest.TestCase):
 
 
 class QueryTests(unittest.TestCase):
+    def setUp(self):  # these tests use arbitrary start times; the day-of rule has its own tests
+        import os
+        from unittest import mock
+        patcher = mock.patch.dict(os.environ, {"ALERT_DAY_ONLY": "false"})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_check_board_and_clv(self):
         with tempfile.TemporaryDirectory() as tmp:
             state = Path(tmp)

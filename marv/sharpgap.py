@@ -16,6 +16,7 @@ from pathlib import Path
 
 import requests
 
+from . import alertday
 from . import edges as E
 from .data.oddsapi import URL
 from .data.teams import similarity
@@ -111,8 +112,8 @@ def log_gaps(state: Path, entries: list[dict]) -> list[dict]:
     now = datetime.now(timezone.utc)
     new = []
     for e in entries:
-        if datetime.fromisoformat(e["start"].replace("Z", "+00:00")) <= now:
-            continue
+        if datetime.fromisoformat(e["start"].replace("Z", "+00:00")) <= now or not alertday.is_today(e["start"], now):
+            continue  # only today's games are logged and alerted; /gaps still lists every game
         old = book.get(e["key"])
         if old is None:
             new.append(e)
