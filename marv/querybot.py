@@ -11,6 +11,7 @@ Ask the Marv bot in Telegram:
   /prop Josh Allen pass  Marv's projection and over/under chance for a player's posted props
   /record                alerted bets: closing-line value (the best early sign of a real edge)
   /gaps                  college/NFL games where Bovado's spread or total is off Pinnacle's
+  /upset                 the most likely upset: heavy favourite whose metrics fall furthest short of the price
   /help
 Only the configured TELEGRAM_CHAT_ID gets answers. Every refresh, new RECOMMENDED entries are pushed
 as alerts (set ALERT_LEANS=true to also alert leans with edge >= ALERT_EDGE, default 6%).
@@ -180,6 +181,10 @@ def answer(settings, text: str) -> str:
             return board.text(entries) if entries else "No open prop picks today."
         if cmd == "/record":
             return record_text(state)
+        if cmd == "/upset":
+            from . import upset
+            return upset.best_text(state, [k for k in settings.sports if k in upset.SPORTS] or upset.SPORTS,
+                                   settings.paper_mode)
         if cmd == "/gaps":
             from . import sharpgap
             entries = sharpgap.scan(settings, [k for k in settings.sports if k in sharpgap.SPORT_KEYS])
@@ -240,11 +245,11 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
                     send_message(settings.telegram_bot_token, settings.telegram_chat_id, "🚨 NEW EDGES\n" + board.text(new))
             except Exception:
                 log.exception("board refresh failed")
-            try:  # UPSET WATCH: heavy favourite with off metrics on today's NFL/CFB slate (one alert per game/day)
+            try:  # UPSET ALERT: heavy favourite with off metrics on today's NFL/CFB slate (one alert per game/day)
                 from . import upset
                 upset.scan(settings, sports)
             except Exception:
-                log.exception("upset watch scan failed")
+                log.exception("upset alert scan failed")
             try:  # closing-line value: keep the latest pre-kickoff line for every open bet card pick
                 from . import betcard
                 betcard.update_close(state, settings)

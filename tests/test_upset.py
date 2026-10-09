@@ -15,8 +15,8 @@ U = {"sport": "nfl", "game_id": "2026_05_TB_DAL", "start": "2026-10-09T00:15:00+
 class UpsetTest(unittest.TestCase):
     def test_text(self):
         t = upset.text(U, paper=True)
-        self.assertTrue(t.startswith("🚨 UPSET WATCH — Cowboys -450 · Cowboys D bad (29th yds allowed) — fade the favorite"))
-        self.assertIn("paper upset watch", t)
+        self.assertTrue(t.startswith("🚨 UPSET ALERT — Cowboys -450 · Cowboys D bad (29th yds allowed) — fade the favorite"))
+        self.assertIn("paper upset alert", t)
         self.assertIn("Tampa Bay Buccaneers @ Dallas Cowboys", t)
 
     def test_defense_short(self):
@@ -36,7 +36,7 @@ class UpsetTest(unittest.TestCase):
             self.assertEqual(len(sent), 1)
             log = json.loads((Path(d) / upset.LOG).read_text())
             (rec,) = log.values()
-            self.assertEqual(rec["mode"], "paper upset watch")
+            self.assertEqual(rec["mode"], "paper upset alert")
             self.assertTrue(rec["paper"] and rec["sent"])
             self.assertIsNone(rec["result"])
 
@@ -49,6 +49,23 @@ class UpsetTest(unittest.TestCase):
             self.assertFalse(upset.notify(s, U, "scan", boom))
             (rec,) = json.loads((Path(d) / upset.LOG).read_text()).values()
             self.assertFalse(rec["sent"])
+
+    def test_need_scales_with_price(self):
+        self.assertAlmostEqual(upset._need("nfl", -200, None, "ML -200"), 1.7)
+        self.assertGreater(upset._need("nfl", -450, None, "ML -450"), upset._need("nfl", -200, None, "ML -200"))
+        self.assertAlmostEqual(upset._need("nfl", None, -7.0, "spread -7"), 2.0)
+        self.assertAlmostEqual(upset._need("cfb", None, None, "Marv by 15"), 3.0)
+        self.assertEqual(upset._need("cfb", -10000, None, "ML -10000"), upset.NEED_CAP)
+
+    def test_text_score_line(self):
+        u = {**U, "score": 3.2, "need": 3.2, "support": 0, "for_w": 2, "against_w": 2}
+        t = upset.text(u, paper=True)
+        self.assertIn("upset score +3.2", t)
+        self.assertIn("price needs 3.2, metrics give +0.0 (2 for / 2 against)", t)
+
+    def test_best_text_empty(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIn("No heavy favourites", upset.best_text(Path(d)))
 
     def test_disabled(self):
         import os

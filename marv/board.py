@@ -172,7 +172,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
                 ml = ml_consensus(ev)
                 if ml:
                     ml_prices[f"{sport}:{rec['game_id']}"] = {**ml, "at": now.isoformat()}
-    if ml_prices:  # median moneyline per game (UPSET WATCH uses it to name the favourite's price)
+    if ml_prices:  # median moneyline per game (UPSET ALERT uses it to name the favourite's price)
         try:
             (state / "ml_prices.json").write_text(json.dumps(ml_prices, indent=1))
         except OSError:

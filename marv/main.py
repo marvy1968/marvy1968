@@ -467,7 +467,7 @@ def cmd_serve(s: Settings, args) -> int:
                                        q.get("live", "").lower() in ("1", "true", "yes"))
                     body, code = bridge.overlay_json(o), 200
                     if o.found and o.verdict in ("not", "mixed") and not q.get("live", "").lower() in ("1", "true", "yes"):
-                        # heavy favourite with off metrics -> standalone UPSET WATCH (own thread, deduped per game/day);
+                        # heavy favourite with off metrics -> standalone UPSET ALERT (own thread, deduped per game/day);
                         # the March_edge response above is unchanged
                         import threading
                         from . import upset
