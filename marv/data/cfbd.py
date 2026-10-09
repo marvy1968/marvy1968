@@ -1,5 +1,6 @@
 """CollegeFootballData.com API client (https://api.collegefootballdata.com) and converters."""
 
+import time
 from datetime import datetime, timezone
 
 import requests
@@ -17,9 +18,19 @@ class CFBDClient:
         self.session.headers.update({"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
 
     def _get(self, path: str, **params):
-        resp = self.session.get(f"{BASE_URL}{path}", params={k: v for k, v in params.items() if v is not None}, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
+        params = {k: v for k, v in params.items() if v is not None}
+        for attempt in range(3):  # the API is slow at times: retry timeouts and 5xx before giving up
+            try:
+                resp = self.session.get(f"{BASE_URL}{path}", params=params, timeout=60)
+                if resp.status_code < 500:
+                    resp.raise_for_status()
+                    return resp.json()
+                err = requests.HTTPError(f"{resp.status_code} from CFBD {path}")
+            except (requests.Timeout, requests.ConnectionError) as exc:
+                err = exc
+            if attempt == 2:
+                raise err
+            time.sleep(3 * (attempt + 1))
 
     def calendar(self, year: int) -> list[dict]:
         return self._get("/calendar", year=year)

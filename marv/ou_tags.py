@@ -143,6 +143,8 @@ def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: 
         gid = id_map.get(g.id)
         if gid is None or gid not in lookup.index or not g.odds or g.odds.total is None:
             continue
+        if g.info.get("home_fbs") is False or g.info.get("away_fbs") is False:
+            continue  # the trend backtests are FBS only (CFBD lists FCS and lower games too)
         row = lookup.loc[gid]
         when = pd.Timestamp(row["date"])
         season = int(row["season"])

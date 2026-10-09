@@ -14,6 +14,26 @@ from .sports import Sport
 log = logging.getLogger(__name__)
 
 
+def _cfbd_games(s: Settings, start: datetime, end: datetime, lines_from: datetime, ctx: dict) -> list[Game]:
+    client = CFBDClient(s.cfbd_api_key)
+    games: list[Game] = []
+    for year in range(start.year if start.month >= 7 else start.year - 1, end.year + 1):
+        for season_type in ("regular", "postseason"):
+            raw = client.games(year, season_type=season_type)
+            weeks = sorted({(gm.get("week")) for gm in raw if gm.get("week") is not None})
+            lines = []
+            for week in weeks:
+                week_games = to_games([gm for gm in raw if gm.get("week") == week])
+                if any(lines_from <= g.start <= end for g in week_games):
+                    lines += client.lines(year, week, season_type)
+            games += [g for g in to_games(raw, lines) if start <= g.start <= end]
+        try:
+            ctx["pace"] = pace_factors(client.season_stats(year))
+        except Exception as exc:  # pace is a refinement; never fail over it
+            log.warning("CFB pace stats unavailable: %s", exc)
+    return games
+
+
 def load_games(sport: Sport, s: Settings, start: datetime, end: datetime,
                lines_from: datetime | None = None) -> tuple[list[Game], dict]:
     """All games (finished and scheduled) between start and end, plus sport context.
@@ -36,22 +56,11 @@ def load_games(sport: Sport, s: Settings, start: datetime, end: datetime,
         client = ESPNClient(cache_dir=cache)
         games = client.games("football/college-football?groups=80", sport.key, start, end)
     elif sport.source == "cfbd":
-        client = CFBDClient(s.cfbd_api_key)
-        games = []
-        for year in range(start.year if start.month >= 7 else start.year - 1, end.year + 1):
-            for season_type in ("regular", "postseason"):
-                raw = client.games(year, season_type=season_type)
-                weeks = sorted({(gm.get("week")) for gm in raw if gm.get("week") is not None})
-                lines = []
-                for week in weeks:
-                    week_games = to_games([gm for gm in raw if gm.get("week") == week])
-                    if any(lines_from <= g.start <= end for g in week_games):
-                        lines += client.lines(year, week, season_type)
-                games += [g for g in to_games(raw, lines) if start <= g.start <= end]
-            try:
-                ctx["pace"] = pace_factors(client.season_stats(year))
-            except Exception as exc:  # pace is a refinement; never fail over it
-                log.warning("CFB pace stats unavailable: %s", exc)
+        try:
+            games = _cfbd_games(s, start, end, lines_from, ctx)
+        except Exception as exc:  # CFBD down or slow: the free ESPN FBS schedule and lines keep the run alive
+            log.warning("CFBD unavailable (%s); using ESPN schedule and lines", exc)
+            games = ESPNClient(cache_dir=cache).games("football/college-football?groups=80", sport.key, start, end)
     elif sport.source == "euroleague":
         from .stats.euroleague import schedule_games
         games = schedule_games(start, end)

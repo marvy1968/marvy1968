@@ -113,7 +113,7 @@ def tag_candidates(sport: str, slate, tags: dict) -> list[Bet]:
     out = []
     for g in slate:
         o = g.odds
-        if not o or o.total is None:
+        if not o or o.total is None or g.info.get("home_fbs") is False or g.info.get("away_fbs") is False:
             continue
         for tag, side in tags.get(g.id, []):
             price = o.under_price if side == "Under" else o.over_price
