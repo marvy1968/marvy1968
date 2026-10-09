@@ -17,7 +17,8 @@ RULES: dict[str, StatsRules] = {
     "nba": StatsRules(ml_min_prob=0.86, ou_min_edge=0.17, ou_enabled=True),
     # NFL 2022-25 test: >=78% -> 30 picks, 90.0%; O/U ~49-51% at every edge
     # NFL eliminations: market under 70%, 1.5+ full-time starters out, wind 15+ mph (+3 pts held-out).
-    "nfl": StatsRules(ml_min_prob=0.78, ou_enabled=False, ml_market_min=0.70, ml_max_snaps_lost=1.5, ml_max_wind=15),
+    # Confidence is 20% model + 80% no-vig market (walk-forward 2018-25: >=85% -> 88.6-90.5%, ~2x the picks of the model alone).
+    "nfl": StatsRules(ml_min_prob=0.85, ml_model_weight=0.2, ou_enabled=False, ml_market_min=0.70, ml_max_snaps_lost=1.5, ml_max_wind=15),
     # WNBA 2022-25 test: >=85% -> ~83-88% depending on seasons; no historical totals to test O/U
     "wnba": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # MLB 2023-25 test: best tier (>=70%) -> 43 picks, 76.7%; baseball never reaches 90%. No O/U history.
@@ -33,7 +34,8 @@ RULES: dict[str, StatsRules] = {
     "euroleague_women": StatsRules(ml_min_prob=0.85, ou_enabled=False),
     # College: not backtestable without a CFBD key; NFL-like floor until `stats-backtest --sport cfb` runs
     # College FB top 30: dropping road favorites took held-out 2021-25 from 91.7% to 93.3% (27 picks/season).
-    "cfb": StatsRules(ml_min_prob=0.85, ou_enabled=False, ml_no_road_fav=True),
+    # Market-anchored confidence (20% model): >=85% held out 2018-25 93.4% over 900 games vs 91.5% for the model alone.
+    "cfb": StatsRules(ml_min_prob=0.85, ml_model_weight=0.2, ou_enabled=False, ml_no_road_fav=True),
 }
 
 

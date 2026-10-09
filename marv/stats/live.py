@@ -37,6 +37,7 @@ class StatsRules:
     ml_max_wind: float = 99.0  # ...outdoor wind is at least this many mph (NFL)
     ml_max_missing: float = 1.0  # ...this share of the side's regular minutes sat out its last game (basketball)
     ml_no_road_fav: bool = False  # ...the side is a road favorite (neutral sites are fine)
+    ml_model_weight: float = 1.0  # confidence = w * model + (1 - w) * no-vig market; 1.0 = model only (ANALYSIS.md, "Market-anchored confidence")
 
 
 @dataclass
@@ -62,9 +63,14 @@ class StatsProjection:
             home_side = pick.side == pred.game.home
             if self.rules.ml_agree and not all((m > 0) == home_side for m in margins):
                 out.append("experts split on the winner")
-            if pick.prob < self.rules.ml_min_prob:
-                out.append(f"confidence {pick.prob:.0%} below {self.rules.ml_min_prob:.0%}")
             o = pred.game.odds
+            conf = pick.prob
+            if self.rules.ml_model_weight < 1.0 and o and o.home_ml and o.away_ml:
+                from ..edges import devig
+                fair_home = devig([o.home_ml, o.away_ml])[0]
+                conf = self.rules.ml_model_weight * pick.prob + (1 - self.rules.ml_model_weight) * (fair_home if home_side else 1 - fair_home)
+            if conf < self.rules.ml_min_prob:
+                out.append(f"confidence {conf:.0%} below {self.rules.ml_min_prob:.0%}")
             if self.rules.ml_market_min > 0 and o and o.home_ml and o.away_ml:
                 from ..edges import devig
                 fair_home = devig([o.home_ml, o.away_ml])[0]

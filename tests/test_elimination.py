@@ -18,7 +18,7 @@ def setup(odds=None, availability=None, wind=None, rules=None):
 
 class EliminationTests(unittest.TestCase):
     def test_clean_pick_passes(self):
-        self.assertEqual(setup(Odds(home_ml=-500, away_ml=380), {"Buffalo Bills": 0.4}, wind=8), [])
+        self.assertEqual(setup(Odds(home_ml=-700, away_ml=500), {"Buffalo Bills": 0.4}, wind=8), [])
 
     def test_each_elimination(self):
         self.assertTrue(any("market only" in v for v in setup(Odds(home_ml=-150, away_ml=130))))
@@ -29,6 +29,13 @@ class EliminationTests(unittest.TestCase):
         self.assertFalse(any("regular minutes" in v for v in setup(availability={"Buffalo Bills": 0.05}, rules=bb)))
         road = StatsRules(ml_no_road_fav=True)
         self.assertEqual(setup(rules=road), [])  # home favorite is fine
+
+    def test_market_anchored_confidence(self):
+        # model says 85% but the market only 72% (-257): blended 20/80 = 74.6%, below the 85% floor
+        v = setup(Odds(home_ml=-257, away_ml=215), {"Buffalo Bills": 0.4}, wind=8)
+        self.assertTrue(any("confidence" in x and "below 85%" in x for x in v))
+        # market 90% (-900): blended = 89%, clears the floor
+        self.assertFalse(any("confidence" in x for x in setup(Odds(home_ml=-900, away_ml=600), {"Buffalo Bills": 0.4}, wind=8)))
 
 
 if __name__ == "__main__":

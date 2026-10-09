@@ -640,3 +640,24 @@ before kickoff, 4,128 priced props (credit cap reached partway through the seaso
 Always betting the under went 52.5%, better than the model. The 55-63% earlier came from lines built from
 averages; real books set props near the median and price in usage and matchups. Bigger model edges did
 not win more often. No prop edge: prop cards are off by default (PROPS=on to restore them).
+
+## Market-anchored confidence and where the pick engine can (and can't) improve
+
+Walk-forward, expanding window, held-out seasons (NFL 2018-25 n=2,219; college top-30 2018-25 n=2,336;
+logistic fits on earlier seasons only). Script: scratchpad `stack.py`, `stack2.py`, `stack3.py`.
+
+| Question | Result |
+|---|---|
+| Does the model add information beyond the closing spread? (stacked logistic) | **No.** NFL model coefficient 0.00-0.01 vs market 0.14; CFB 0.00 vs 0.12. Brier: market 0.2108, stack 0.2109, model alone 0.2204 |
+| Does it add to the total? (actual total − line regressed on model total − line) | **No.** NFL weight −0.20, CFB −0.02; top-20% edge picks hit 50.2% / 50.4%. NBA lines in the file are unreliable so NBA was not judged |
+| Moneyline accuracy at equal volume (NFL, top 400 by confidence) | model alone 76.5% (ROI −6.6%), market 84.3% (−0.4%), 20% model + 80% market 84.8% (+0.2%) |
+| Same, ≥85% confidence | NFL 88.6-90.5%, CFB 93.4% (900 games) vs 88.6% / 91.5% for the model alone |
+
+What changed: stats-mode moneyline confidence is now `0.2 × model + 0.8 × no-vig market`
+(`StatsRules.ml_model_weight`, NFL and college football; floors 0.85). Accuracy at a given volume goes up because the
+engine stops treating model noise as confidence on games the market already prices at 70-90%.
+
+What did not and cannot change: this is not new skill. It's the market's information, so ROI stays
+break-even (−2% to +0.2%), and over/unders have no edge from the model (50%). Gains that can still be tested:
+college basketball and WNBA (need the VM's line history to run the same stack), injury/lineup news the
+market hasn't priced, and the paper-tracked trend tags (college O/U fades, Bovado-vs-Pinnacle totals).
