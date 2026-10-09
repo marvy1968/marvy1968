@@ -87,6 +87,21 @@ def offers(event: dict, books: list[str]) -> dict:
     return {"best": best, "fair": fair}
 
 
+def ml_consensus(event: dict) -> dict:
+    """{'home': median ML, 'away': median ML} across every book quoting the game, or {}."""
+    home, away = event["home_team"], event["away_team"]
+    hs, as_ = [], []
+    for b in event.get("bookmakers", []):
+        for m in b.get("markets", []):
+            outs = {o["name"]: o for o in m.get("outcomes", [])}
+            if m["key"] == "h2h" and home in outs and away in outs:
+                hs.append(outs[home]["price"])
+                as_.append(outs[away]["price"])
+    if not hs:
+        return {}
+    return {"home": sorted(hs)[len(hs) // 2], "away": sorted(as_)[len(as_) // 2]}
+
+
 def model_prob(rec: dict, sport: str, market: str, side: str, point) -> float:
     cfg = GAME.get(sport, GAME["nfl"])
     if market == "ml":
@@ -137,6 +152,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
     now = datetime.now(timezone.utc)
     books = [b.strip().replace("bovado", "bovada") for b in os.environ.get("ODDS_BOOKS", DEFAULT_BOOKS).split(",") if b.strip()]
     entries = []
+    ml_prices = {}
     for sport in sports:
         recs = [r for r in preds.values() if r["sport"] == sport
                 and now <= datetime.fromisoformat(r["start"]) <= now + timedelta(hours=hours)]
@@ -153,6 +169,14 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
                      default=None)
             if ev and min(similarity(rec["home"], ev["home_team"]), similarity(rec["away"], ev["away_team"])) >= 0.75:
                 entries += game_entries(sport, rec, ev, books)
+                ml = ml_consensus(ev)
+                if ml:
+                    ml_prices[f"{sport}:{rec['game_id']}"] = {**ml, "at": now.isoformat()}
+    if ml_prices:  # median moneyline per game (UPSET WATCH uses it to name the favourite's price)
+        try:
+            (state / "ml_prices.json").write_text(json.dumps(ml_prices, indent=1))
+        except OSError:
+            pass
     entries += _props_entries(state)
     entries.sort(key=lambda e: (e["status"] != "recommended", -e["edge"]))
     (state / "board.json").write_text(json.dumps({"built": now.isoformat(), "entries": entries}, indent=1))

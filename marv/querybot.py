@@ -240,6 +240,11 @@ def watch(settings, sports: list[str], refresh_minutes: int = 30) -> None:
                     send_message(settings.telegram_bot_token, settings.telegram_chat_id, "🚨 NEW EDGES\n" + board.text(new))
             except Exception:
                 log.exception("board refresh failed")
+            try:  # UPSET WATCH: heavy favourite with off metrics on today's NFL/CFB slate (one alert per game/day)
+                from . import upset
+                upset.scan(settings, sports)
+            except Exception:
+                log.exception("upset watch scan failed")
             try:  # closing-line value: keep the latest pre-kickoff line for every open bet card pick
                 from . import betcard
                 betcard.update_close(state, settings)

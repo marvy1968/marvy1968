@@ -466,6 +466,16 @@ def cmd_serve(s: Settings, args) -> int:
                                        float(q["price"]) if q.get("price") not in (None, "") else None,
                                        q.get("live", "").lower() in ("1", "true", "yes"))
                     body, code = bridge.overlay_json(o), 200
+                    if o.found and o.verdict in ("not", "mixed") and not q.get("live", "").lower() in ("1", "true", "yes"):
+                        # heavy favourite with off metrics -> standalone UPSET WATCH (own thread, deduped per game/day);
+                        # the March_edge response above is unchanged
+                        import threading
+                        from . import upset
+                        threading.Thread(target=upset.from_overlay, daemon=True, args=(
+                            s, q.get("sport", ""), q.get("market", ""), q.get("side", ""),
+                            float(q["price"]) if q.get("price") not in (None, "") else None,
+                            float(q["line"]) if q.get("line") not in (None, "") else None,
+                            q.get("team") or None, q.get("other") or None, q.get("text") or None)).start()
                 elif url.path == "/h2h":  # game-level H2H pick for queries (/game in March_edge): no Telegram, read-only
                     o = bridge.game_h2h(state, q.get("sport", ""), q.get("team") or None, q.get("other") or None,
                                         q.get("text") or None)
