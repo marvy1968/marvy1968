@@ -1,0 +1,3 @@
+Test: Marv is now connected to this chat.
+Marv's edge alerts and the daily bet card will appear here,
+each starting with 👽 MARV. March_edge keeps its own alerts.
