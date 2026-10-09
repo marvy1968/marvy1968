@@ -21,6 +21,24 @@ esc = html.escape
 LABEL = "👽 <b>MARV</b>"  # first line of every Marv message, so it's never confused with another bot's alerts
 
 
+def mirror_token() -> str:
+    """MIRROR_BOT_TOKEN from the environment, forgiving copy-paste slips: spaces, quotes, a Windows line ending, or
+    the variable name pasted twice (MIRROR_BOT_TOKEN=MIRROR_BOT_TOKEN=123:abc)."""
+    raw = os.environ.get("MIRROR_BOT_TOKEN", "")
+    raw = "".join(raw.split()).strip("\"'")
+    return raw.split("=")[-1].strip("\"'")
+
+
+def token_shape(token: str) -> str:
+    """Describe a token without revealing it (length, parts, bot id digits)."""
+    if not token:
+        return "empty"
+    left, _, right = token.partition(":")
+    return (f"length {len(token)}, {len(left)} digits before the colon" if left.isdigit() else "no digits-then-colon start") + \
+        (f", {len(right)} characters after it" if right else ", nothing after the colon") + \
+        " (a real token is about 8-10 digits, a colon, then 35 characters)"
+
+
 def _post(token: str, chat_id: str, text: str) -> None:
     for chunk in split_message(text):
         resp = requests.post(
@@ -42,7 +60,7 @@ def send_message(token: str, chat_id: str, text: str, mirror: bool = True) -> No
     _post(token, chat_id, text)
     # A private chat's id is the user's own Telegram id, so one account's two bot chats share it: when only
     # MIRROR_BOT_TOKEN is set, the mirror chat is the same id as the Marv chat.
-    m_token = os.environ.get("MIRROR_BOT_TOKEN", "")
+    m_token = mirror_token()
     m_chat = os.environ.get("MIRROR_CHAT_ID", "") or chat_id
     if mirror and m_token and (m_token, m_chat) != (token, chat_id):
         try:

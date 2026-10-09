@@ -586,7 +586,8 @@ def cmd_grade_prop(s: Settings, args) -> int:
 def cmd_mirror_status(s: Settings, args) -> int:
     """Is Marv mirroring its alerts into another bot's chat? Prints that bot's username, never the token."""
     import requests as rq
-    token = os.environ.get("MIRROR_BOT_TOKEN", "")
+    from .telegram import mirror_token, token_shape
+    token = mirror_token()
     if not token:
         print("Mirror: NOT set up (no MIRROR_BOT_TOKEN in Marv's .env). Marv's alerts only go to the Marv chat.")
         return 0
@@ -596,7 +597,9 @@ def cmd_mirror_status(s: Settings, args) -> int:
         print(f"Mirror: token present but Telegram couldn't be reached: {exc}")
         return 1
     if not me.get("ok"):
-        print("Mirror: a token is set but Telegram rejects it (wrong or revoked). Paste it again.")
+        print("Mirror: a token is set but Telegram rejects it (wrong, cut off, or revoked). Paste it again.")
+        print(f"  What's saved: {token_shape(token)}")
+        print(f"  Same as Marv's own bot token: {'YES (that is the wrong bot)' if token == s.telegram_bot_token else 'no'}")
         return 1
     chat = os.environ.get("MIRROR_CHAT_ID") or s.telegram_chat_id
     print(f"Mirror: ON, alerts also go to @{me['result'].get('username')} (chat {'same as Marv chat' if chat == s.telegram_chat_id else chat}).")
