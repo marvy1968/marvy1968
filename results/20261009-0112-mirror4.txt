@@ -1,3 +1,6 @@
 $ marv mirror-status
-started 2026-10-08 21:05:02 EDT
-RUNNING...
+started 2026-10-08 21:05:02 EDT, took 3s, exit 1
+
+Mirror: a token is set but Telegram rejects it (wrong, cut off, or revoked). Paste it again.
+  What's saved: length 92, 10 digits before the colon, 81 characters after it (a real token is about 8-10 digits, a colon, then 35 characters)
+  Same as Marv's own bot token: no
