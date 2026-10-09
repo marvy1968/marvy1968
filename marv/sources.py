@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def _cfbd_games(s: Settings, start: datetime, end: datetime, lines_from: datetime, ctx: dict) -> list[Game]:
-    client = CFBDClient(s.cfbd_api_key)
+    client = CFBDClient(s.cfbd_api_key, cache_dir=Path(s.state_dir) / "cache" / "cfbd_api")
     games: list[Game] = []
     for year in range(start.year if start.month >= 7 else start.year - 1, end.year + 1):
         for season_type in ("regular", "postseason"):

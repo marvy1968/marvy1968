@@ -1,6 +1,8 @@
 """CollegeFootballData.com API client (https://api.collegefootballdata.com) and converters."""
 
+import json
 import time
+from pathlib import Path
 from datetime import datetime, timezone
 
 import requests
@@ -11,20 +13,31 @@ BASE_URL = "https://api.collegefootballdata.com"
 
 
 class CFBDClient:
-    def __init__(self, api_key: str, session: requests.Session | None = None):
+    def __init__(self, api_key: str, session: requests.Session | None = None, cache_dir=None, ttl_hours: float = 3.0):
         if not api_key:
             raise ValueError("CFBD_API_KEY is not set (get a free key at collegefootballdata.com/key)")
+        self.cache_dir, self.ttl = cache_dir, ttl_hours * 3600  # free tier has a monthly call cap: reuse recent answers
         self.session = session or requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {api_key}", "Accept": "application/json"})
 
     def _get(self, path: str, **params):
         params = {k: v for k, v in params.items() if v is not None}
+        cached = None
+        if self.cache_dir:
+            key = path.strip("/").replace("/", "_") + "_" + "_".join(f"{k}{v}" for k, v in sorted(params.items()))
+            cached = Path(self.cache_dir) / f"{key}.json"
+            if cached.exists() and time.time() - cached.stat().st_mtime < self.ttl:
+                return json.loads(cached.read_text())
         for attempt in range(3):  # the API is slow at times: retry timeouts and 5xx before giving up
             try:
                 resp = self.session.get(f"{BASE_URL}{path}", params=params, timeout=60)
                 if resp.status_code < 500:
                     resp.raise_for_status()
-                    return resp.json()
+                    data = resp.json()
+                    if cached is not None:
+                        cached.parent.mkdir(parents=True, exist_ok=True)
+                        cached.write_text(json.dumps(data))
+                    return data
                 err = requests.HTTPError(f"{resp.status_code} from CFBD {path}")
             except (requests.Timeout, requests.ConnectionError) as exc:
                 err = exc

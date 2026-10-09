@@ -46,3 +46,14 @@ class CFBDResilience(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CFBDCache(unittest.TestCase):
+    def test_second_call_uses_cache(self):
+        import tempfile
+        sess = mock.Mock(headers={})
+        sess.get.return_value = Resp(200, [{"id": 7}])
+        with tempfile.TemporaryDirectory() as d:
+            c = CFBDClient("k", sess, cache_dir=d)
+            self.assertEqual(c.games(2026), c.games(2026))
+            self.assertEqual(sess.get.call_count, 1)
