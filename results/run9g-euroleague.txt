@@ -1,3 +1,5 @@
 $ marv stats-backtest --sport euroleague --seasons 2018-2025
-started 2026-10-09 15:44:59 EDT
-RUNNING...
+started 2026-10-09 15:44:59 EDT, took 5400s, exit timeout
+
+
+TIMED OUT after 5400s
