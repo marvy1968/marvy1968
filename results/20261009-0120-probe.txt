@@ -1,0 +1,3 @@
+$ marv live-probe --sport nfl --days 1
+started 2026-10-08 21:26:48 EDT
+RUNNING...
