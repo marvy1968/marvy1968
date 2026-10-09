@@ -583,6 +583,26 @@ def cmd_grade_prop(s: Settings, args) -> int:
     return 0 if g["ok"] else 1
 
 
+def cmd_mirror_status(s: Settings, args) -> int:
+    """Is Marv mirroring its alerts into another bot's chat? Prints that bot's username, never the token."""
+    import requests as rq
+    token = os.environ.get("MIRROR_BOT_TOKEN", "")
+    if not token:
+        print("Mirror: NOT set up (no MIRROR_BOT_TOKEN in Marv's .env). Marv's alerts only go to the Marv chat.")
+        return 0
+    try:
+        me = rq.get(f"https://api.telegram.org/bot{token}/getMe", timeout=20).json()
+    except Exception as exc:
+        print(f"Mirror: token present but Telegram couldn't be reached: {exc}")
+        return 1
+    if not me.get("ok"):
+        print("Mirror: a token is set but Telegram rejects it (wrong or revoked). Paste it again.")
+        return 1
+    chat = os.environ.get("MIRROR_CHAT_ID") or s.telegram_chat_id
+    print(f"Mirror: ON, alerts also go to @{me['result'].get('username')} (chat {'same as Marv chat' if chat == s.telegram_chat_id else chat}).")
+    return 0
+
+
 def cmd_injuries(s: Settings, args) -> int:
     """Injury and roster availability report for a sport (optionally a few teams)."""
     from .data.injuries import report_text
@@ -823,6 +843,7 @@ def main(argv: list[str] | None = None) -> int:
     gp2.add_argument("--line", required=True, type=float)
     gp2.add_argument("--price", required=True, type=float)
     gp2.add_argument("--other", type=float, help="the other side's price (for the no-vig market probability)")
+    sub.add_parser("mirror-status", help="is Marv mirroring its alerts into another bot's chat?")
     ij = sub.add_parser("injuries", help="injury report + roster availability (key players starred)")
     ij.add_argument("--sport", required=True, choices=["nfl", "nba", "wnba", "cfb", "ncaab", "ncaaw", "euroleague"])
     ij.add_argument("--team", help="comma-separated team names, e.g. Cowboys,Buccaneers")
@@ -845,7 +866,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:
