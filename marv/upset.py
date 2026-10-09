@@ -1,6 +1,6 @@
 """UPSET ALERT: a standalone Telegram alert when a heavy favourite's metrics don't support the heavy price.
 
-Heavy favourite = ML -200 or shorter, spread >= defense.HEAVY (NFL 4.5 / CFB 6.5) or Marv margin >= HEAVY_MARGIN
+Heavy favourite = ML -200 or shorter, spread >= defense.HEAVY (NFL 4.5 / CFB 6.5 / NBA, WNBA, EuroLeague 7.5 / NCAAB 10.5 / NCAAW 12.5) or Marv margin >= HEAVY_MARGIN
 (marv/insight.heavy_fav). For that favourite EVERY metric Marv has is weighed into one UPSET SCORE:
   ratings margin / Marv model (scaled by size), O+D category ratings, star H2H (QB/RB/WR[/K]), QB out / backup QB / starters out,
   defense quality + last-3 trend (both teams), hybrid category matrix + trend-catcher modifier (marv/hybrid.py:
@@ -14,7 +14,9 @@ metric is against the favourite (a line move / book gap alone is the market, nev
 One message per game per Eastern day (state/upset_alerts.json, file-locked: the edge loop and the bridge both call
 this). Every alert is logged as a paper upset alert (PAPER_MODE) with the favourite's price so it can be graded;
 it is still SENT, to Marvin's chat + the mirror if configured. Descriptive only: no % (marv/proven.py gates that).
-Sources: marv-edges loop scans today's NFL/CFB slate every board refresh (scan); the bridge fires it when a
+Sports: NFL, CFB and basketball (NBA, WNBA, NCAAB, NCAAW, EuroLeague; basketball has no defense/star cards, so its
+support comes from the Marv model, hybrid matrix + trend catcher, line moves and gaps).
+Sources: marv-edges loop scans today's slate every board refresh (scan); the bridge fires it when a
 March_edge alert's /overlay hits the gate (from_overlay); Telegram /upset returns the single most likely upset
 on the upcoming slate (best(), read-only, no alert/log).
 """
@@ -30,12 +32,12 @@ from zoneinfo import ZoneInfo
 
 log = logging.getLogger(__name__)
 ET = ZoneInfo("America/New_York")
-SPORTS = ("nfl", "cfb")
+SPORTS = ("nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw", "euroleague")
 LOG = "upset_alerts.json"
 MARKET = ("line moved", "Bovada")  # market-only reasons: listed, never the sole trigger
 MISMATCH = 0.5  # Marv margin under half the favourite's spread = "metrics don't warrant the price"
 FIRE_SCORE = float(os.environ.get("UPSET_SCORE_MIN", "1.0"))  # need - support at/above this fires an alert
-SPREAD_UNIT = {"nfl": 3.5, "cfb": 5.0}  # points of spread / margin per factor unit
+SPREAD_UNIT = {"nfl": 3.5, "cfb": 5.0, "nba": 3.5, "wnba": 3.5, "ncaab": 4.5, "ncaaw": 5.5, "euroleague": 3.5}  # points of spread / margin per factor unit
 NEED_CAP = 4.0  # a -10000 price can't ask for more than the metrics can ever give
 
 
@@ -249,7 +251,7 @@ def _ml(state_dir: Path, sport: str, gid) -> dict:
 
 def candidates(state_dir: Path, sports=SPORTS, now: datetime | None = None, days: int | None = None,
                force: bool = False) -> list[dict]:
-    """Upset reads for not-yet-started NFL/CFB games in Marv's slate: today's (Eastern) by default, or the next
+    """Upset reads for not-yet-started games in Marv's slate: today's (Eastern) by default, or the next
     `days` days; force=True keeps every heavy favourite's scored read (for ranking), not just the ones that fire."""
     from . import alertday
     from . import bridge
@@ -299,7 +301,7 @@ def best_text(state_dir: Path, sports=SPORTS, paper: bool = True, now: datetime 
     """Telegram /upset: the single most likely upset (highest upset score) + the next two on the board."""
     rows = best(state_dir, sports, now)
     if not rows:
-        return "No heavy favourites (ML -200 / big spread) on the upcoming NFL/CFB slate right now."
+        return "No heavy favourites (ML -200 / big spread) on the upcoming slate right now."
     top = rows[0]
     if top["fires"]:
         note = ""

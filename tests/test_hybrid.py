@@ -66,5 +66,74 @@ class HybridTest(unittest.TestCase):
         self.assertEqual(f[0].side, 1)
 
 
+def _box_rows(gid, date, home, away, hs, as_, season=2026):
+    base = {"season": season, "season_type": 2, "game_date": date, "field_goals_made": 30, "field_goals_attempted": 70,
+            "three_point_field_goals_made": 8, "free_throws_attempted": 20, "offensive_rebounds": 10,
+            "defensive_rebounds": 25, "total_rebounds": 35, "total_turnovers": 14}
+    return [{**base, "game_id": gid, "team_display_name": home, "opponent_team_display_name": away,
+             "team_home_away": "home", "team_score": hs},
+            {**base, "game_id": gid, "team_display_name": away, "opponent_team_display_name": home,
+             "team_home_away": "away", "team_score": as_, "total_turnovers": 18, "total_rebounds": 30}]
+
+
+class HybridBasketballTest(unittest.TestCase):
+    def test_bb_team_games_categories(self):
+        import tempfile
+        import pandas as pd
+        with tempfile.TemporaryDirectory() as d:
+            rows = []
+            for i in range(5):
+                rows += _box_rows(f"{i}", f"2026-06-0{i + 1}", "Las Vegas Aces", "Seattle Storm", 90, 80)
+            with mock.patch.object(H, "bb_box", return_value=pd.DataFrame(rows)):  # no parquet engine in tests
+                tg = H.bb_team_games(Path(d), "wnba", [2026])
+            self.assertEqual(len(tg), 10)
+            aces = tg[tg.team == "Las Vegas Aces"].iloc[0]
+            poss = 70 + 0.44 * 20 - 10 + 14
+            self.assertAlmostEqual(aces["off"], 90 / poss)
+            self.assertAlmostEqual(aces["ypp"], (30 + 4) / 70)          # eFG%
+            self.assertAlmostEqual(aces["succ"], 90 / (2 * (70 + 8.8)))  # TS%
+            self.assertAlmostEqual(aces["tov"], 14 / poss)
+            self.assertAlmostEqual(aces["yppm"], 5)                      # rebound margin
+            self.assertAlmostEqual(aces["expl"], 10 / 35)                # OREB%
+
+    def test_bb_live_profile_and_text(self):
+        import tempfile
+        import pandas as pd
+        from datetime import datetime, timezone
+        with tempfile.TemporaryDirectory() as d:
+            cache = Path(d) / "cache"
+            cache.mkdir()
+            rows = []
+            for i in range(5):
+                rows += _box_rows(f"{i}", f"2026-06-0{i + 1}", "Las Vegas Aces", "Seattle Storm", 90, 80)
+            H._CACHE.clear()
+            with mock.patch.object(H, "bb_box", return_value=pd.DataFrame(rows)):
+                r = H.game(Path(d), "wnba", "Las Vegas Aces", "Seattle Storm", -6.5, 160.5,
+                           as_of=datetime(2026, 7, 1, tzinfo=timezone.utc))
+            self.assertIsNotNone(r)
+            self.assertEqual(r["ml"], "home")
+            self.assertGreater(r["home_pts"], r["away_pts"])
+            self.assertIn("tov", r["won"]["home"])
+            self.assertTrue(r["mc"]["p25"] < r["mc"]["median"] < r["mc"]["p75"])
+            self.assertIn("MC total", H.text(r, "Las Vegas Aces", "Seattle Storm", "wnba"))
+            self.assertIn(H.label("wnba", "ypp"), ("eFG%",))
+
+    def test_bb_trend_modifier(self):
+        p = prof(tov=0.12, tov3=0.16, yppm=3.0, yppm3=-2.0)
+        m, why = H.trend_catcher_modifier(p, "nba")  # 1 - 1.5*0.04 - 0.01*5 = 0.89
+        self.assertAlmostEqual(m, 0.89)
+        self.assertTrue(any("TOV rate" in w for w in why) and any("reb margin" in w for w in why), why)
+
+    def test_all_sports_wired(self):
+        from marv import defense, parlay, upset
+        for sp in ("nba", "wnba", "ncaab", "ncaaw", "euroleague"):
+            self.assertIn(sp, H.SPORTS)
+            self.assertIn(sp, upset.SPORTS)
+            self.assertIn(sp, parlay.SPORTS)
+            self.assertIn(sp, parlay.ODDS_KEYS)
+            self.assertIn(sp, defense.HEAVY)
+        self.assertIsNone(I.hybrid_read(Path("/nonexistent"), "mlb", {"home": "A", "away": "B"}))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -452,7 +452,15 @@ def cmd_serve(s: Settings, args) -> int:
     from . import defense
     import threading
     from . import hybrid as _hy
-    threading.Thread(target=lambda: [_hy.league(state, s_) for s_ in ("nfl", "cfb")], daemon=True).start()
+    def _warm_hybrid():
+        if "euroleague" in s.sports:
+            try:
+                _hy.refresh_euroleague(state)  # EuroLeague box + names (network, background only)
+            except Exception:  # noqa: BLE001
+                logging.getLogger(__name__).warning("hybrid EuroLeague refresh failed", exc_info=True)
+        for s_ in _hy.SPORTS:
+            _hy.league(state, s_)
+    threading.Thread(target=_warm_hybrid, daemon=True).start()
     defense.warm(state)  # pre-load defense tables so the first /overlay stays inside March_edge's 1.5 s timeout
 
     class Handler(BaseHTTPRequestHandler):

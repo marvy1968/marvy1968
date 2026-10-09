@@ -1,4 +1,5 @@
-"""Telegram /parlay: the best 2-leg and 3-leg parlays from Marv's current NFL + college football board.
+"""Telegram /parlay: the best 2-leg and 3-leg parlays from Marv's current board (NFL, CFB, NBA, WNBA, NCAAB, NCAAW,
+EuroLeague).
 
 Only three kinds of leg are allowed (nothing new is modelled; each reuses an existing Marv read):
   * UPSET  - the underdog ML where marv/upset.py's upset score fires (heavy favourite whose metrics fall short of
@@ -29,9 +30,11 @@ from .data.teams import similarity
 
 log = logging.getLogger(__name__)
 ET = ZoneInfo("America/New_York")
-SPORTS = ("nfl", "cfb")
+SPORTS = ("nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw", "euroleague")
 PRICES = "bovada_prices.json"
-ODDS_KEYS = {"nfl": "americanfootball_nfl", "cfb": "americanfootball_ncaaf"}
+ODDS_KEYS = {"nfl": "americanfootball_nfl", "cfb": "americanfootball_ncaaf", "nba": "basketball_nba",
+             "wnba": "basketball_wnba", "ncaab": "basketball_ncaab", "ncaaw": "basketball_wncaab",
+             "euroleague": "basketball_euroleague"}
 MAX_FAV = float(os.environ.get("PARLAY_MAX_FAV", "-500"))
 MAX_AGE_MIN = float(os.environ.get("PARLAY_BOVADA_MAX_AGE_MIN", "90"))
 DAYS = int(os.environ.get("PARLAY_DAYS", "7"))
@@ -161,7 +164,7 @@ def _ml_price(state_dir: Path, sport: str, rec: dict, t: str, bov: dict | None) 
 
 
 def _games(state_dir: Path, sports, prices: dict, now: datetime, days: int):
-    """(sport, rec, card, start, bovada) for every upcoming NFL/CFB game in Marv's slate or on a fresh H2H card."""
+    """(sport, rec, card, start, bovada) for every upcoming game in Marv's slate or on a fresh H2H card."""
     from . import bridge
     from . import insight as I
     try:
@@ -366,9 +369,9 @@ def _when(start) -> str:
 
 def text(parlays: dict[int, dict], paper: bool = True, n_legs: int = 0) -> str:
     if not parlays:
-        return ("🎰 MARV PARLAYS — NFL+CFB\nNot enough qualifying legs right now (need 2+ games with a firing upset score, "
+        return ("🎰 MARV PARLAYS\nNot enough qualifying legs right now (need 2+ games with a firing upset score, "
                 f"a 👍 H2H read or a proven O/U; found {n_legs}).")
-    lines = ["🎰 MARV PARLAYS — NFL+CFB" + (" · 📝 PAPER" if paper else "")]
+    lines = ["🎰 MARV PARLAYS" + (" · 📝 PAPER" if paper else "")]
     icon = {"upset": "🚨", "h2h": "🧠", "ou": "📐"}
     for n in sorted(parlays):
         p = parlays[n]
@@ -387,10 +390,27 @@ def text(parlays: dict[int, dict], paper: bool = True, n_legs: int = 0) -> str:
     return html.escape("\n".join(lines))
 
 
+def active_sports(state_dir: Path, sports, now: datetime | None = None, days: int = DAYS) -> list[str]:
+    """Sports with an upcoming game in Marv's slate (NFL/CFB also count when their H2H card exists)."""
+    from . import bridge
+    now = now or datetime.now(timezone.utc)
+    try:
+        preds = json.loads((Path(state_dir) / "predictions.json").read_text())
+    except (OSError, ValueError):
+        preds = {}
+    live = set()
+    for rec in preds.values():
+        st = _start(rec.get("start"))
+        if st and now < st <= now + timedelta(days=days):
+            live.add(rec.get("sport"))
+    return [s for s in sports if s in live or (s in ("nfl", "cfb") and bridge._h2h_cards(Path(state_dir), s))]
+
+
 def answer(settings, sports=None, now: datetime | None = None, fetch=None) -> str:
     """Telegram /parlay (read-only)."""
     state = Path(settings.state_dir)
     sports = [s for s in (sports or getattr(settings, "sports", SPORTS)) if s in SPORTS] or list(SPORTS)
+    sports = active_sports(state, sports, now)  # no Bovada refetch (Odds API credits) for a sport with no slate
     prices = load_prices(settings, state, sports, now, fetch)
     legs = all_legs(state, sports, prices, now)
     return text(best_parlays(legs), getattr(settings, "paper_mode", True), len(legs))

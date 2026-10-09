@@ -1,4 +1,7 @@
-"""Hybrid engine for Marv Predict (NFL + college football): trend catcher -> full-spectrum H2H matrix -> MC totals.
+"""Hybrid engine for Marv Predict (every active sport): trend catcher -> full-spectrum H2H matrix -> MC totals.
+
+Sports: NFL, CFB, NBA, WNBA, NCAAB, NCAAW, EuroLeague (SPORTS). MLB / NHL / soccer are off in Marv (not in
+DEFAULT_SPORTS) and have no hybrid mapping.
 
 Built from a basketball design and mapped onto football data Marv already caches (no network, overlay-safe):
   CFB: state/cache/cfb_teamgames_<season>.parquet (CFBD/ESPN box + play-by-play: drives, plays, EPA, success,
@@ -17,6 +20,14 @@ Basketball -> football mapping (one row per category, winner-take-all):
   reb margin     -> yards-per-play margin (ypp gained minus ypp allowed)         higher wins (possession battle)
   pace           -> plays per game; direction learned from earlier seasons (0 = no point) -- totals use it either way
 
+Basketball (NBA / WNBA / NCAAB / NCAAW / EuroLeague) is the native design, mapped onto the ESPN / sportsdataverse team
+box (state/cache/<league>_box_<season>.parquet) and the cached EuroLeague per-game totals (state/cache/euroleague/):
+  off rating = points / possession, def rating = opp points / opp possession, net rating = off - def,
+  eFG% = (FGM + 0.5 3PM) / FGA, TS% = PTS / (2 (FGA + 0.44 FTA)), TOV rate = TOV / possession,
+  OREB% = OREB / (OREB + opp DREB), reb margin = total rebounds - opp total rebounds, pace = possessions
+  (possessions = FGA + 0.44 FTA - OREB + TOV). Trend catcher: TOV-rate spike + rebound-margin drop, floor 0.80.
+  MC totals: game possessions x points per possession (no side Monte Carlo).
+
 1) trend_catcher_modifier: last 3 games vs season-to-date. A turnover spike (TOV rate up) and a "rebound-margin"
    drop (ypp margin down) each shave the team's ratings; modifier = 1 - TOV_K*spike - REB_K*drop, floor 0.80.
    Scaled: off rating x mod, def rating (allowed) / mod, and every category the team wins is worth mod points.
@@ -30,7 +41,13 @@ proven bar. CFB 2019-26: ML pick 67.3% vs market favourite 73.9%; ATS 50.2% of 5
 MC O/U 51.0% of 5,565 (-2.7%); MC p25-p75 band holds 49% of totals (well calibrated). Upset rule (heavy fav spread
 -6.5+ that loses the matrix or has trend mod <= 0.90): outright upsets 20.1% of 567 vs 16.9% for all heavy favs,
 dog ATS 51.2% (-2.3%). NFL 2021-26: ML 62.1% vs market 67.4%; ATS 48.3%; edge 7+ 53.3% of 122 (+1.7%) but only
-2 of 5 seasons above break-even; O/U 49.1%. So it prints no %, ever, until a rule clears the bar.
+2 of 5 seasons above break-even; O/U 49.1%.
+Basketball (same tool, Oct 9 2026): NBA 2020-26 (closing lines from the NBA odds sqlite) ML 61.2% vs market favourite
+67.6%; ATS 49.0% of 7,509 (-6.4%), edge 7+ 49.2%; MC O/U 49.6% of 7,505, gap 7+ 51.1% of 1,647 (-2.4%, 2 of 7 seasons);
+upset rule (fav -7.5+ losing the matrix / mod <= 0.90) upsets 24.4% of 307 vs 20.7% base, dog ATS 50.8% (-3.0%).
+WNBA / NCAAB / NCAAW / EuroLeague: no historical lines in Marv's caches (ESPN scoreboards carry no odds for finished
+games), so only ML hit rate is measured (WNBA 65.0% of 1,830; NCAAB 65.1% of 34,379; NCAAW 70.6% of 32,265; EuroLeague
+60.6% of 2,060) and nothing can pass the bar. So it prints no %, ever, until a rule clears the bar.
 Descriptive unless the walk-forward backtest (tools/hybrid_bt.py) clears marv/proven.py's bar; the overlay /
 Upset Alert only add FOR/AGAINST factors. Never raises into callers.
 """
@@ -41,20 +58,47 @@ from pathlib import Path
 
 import numpy as np
 
-TOV_K = {"cfb": 0.5, "nfl": 0.02}   # per +1 turnover/drive (CFB) or per +1 TO/100 plays (NFL)
-REB_K = 0.05                         # per -1.0 yard-per-play margin
+BASKETBALL = ("nba", "wnba", "ncaab", "ncaaw", "euroleague")
+SPORTS = ("nfl", "cfb", *BASKETBALL)
+BOX_LEAGUE = {"nba": "nba", "wnba": "wnba", "ncaab": "mens_college_basketball", "ncaaw": "womens_college_basketball"}
+# per +1 turnover/drive (CFB), per +1 TO/100 plays (NFL), per +1.0 of TOV rate (basketball: +0.03 rate -> -0.045)
+TOV_K = {"cfb": 0.5, "nfl": 0.02, **{s: 1.5 for s in BASKETBALL}}
+# per -1.0 yard-per-play margin (football) / per -1 rebound of margin (basketball)
+REB_K = {"cfb": 0.05, "nfl": 0.05, **{s: 0.01 for s in BASKETBALL}}
 MOD_FLOOR = 0.80
 MIN_GAMES = 3
 # category points -> margin and pace direction for live reads: the latest walk-forward fit in tools/hybrid_bt.py
 # (CFB fit on 2018-25: K 1.77, HFA 3.5, faster pace wins 5.2% more often; NFL fit on 2020-25: K 0.92, HFA 2.0)
-DEFAULT_K = {"cfb": 1.77, "nfl": 0.92}
-DEFAULT_HFA = {"cfb": 3.5, "nfl": 2.0}
-PACE_DIR = {"cfb": 1, "nfl": 1}      # +1 = more plays per game wins the pace category; 0 = no side point
+# basketball: walk-forward fits from tools/hybrid_bt.py (see the backtest note above), HFA in points
+# (Oct 9 2026 fits on all earlier seasons: NBA 2019-25 K 1.04 HFA 2.2, faster pace loses 4.4% more often; WNBA 2018-25
+#  K 1.17 HFA 1.8, faster pace loses 3.9%; NCAAB K 1.30 HFA 4.1; NCAAW K 1.89 HFA 3.4; EuroLeague 2016-23 K 0.89 HFA 4.0)
+DEFAULT_K = {"cfb": 1.77, "nfl": 0.92, "nba": 1.04, "wnba": 1.17, "ncaab": 1.30, "ncaaw": 1.89, "euroleague": 0.89}
+DEFAULT_HFA = {"cfb": 3.5, "nfl": 2.0, "nba": 2.2, "wnba": 1.8, "ncaab": 4.1, "ncaaw": 3.4, "euroleague": 4.0}
+PACE_DIR = {"cfb": 1, "nfl": 1, "nba": -1, "wnba": -1, "ncaab": 0, "ncaaw": 0, "euroleague": 0}  # +1 = more plays wins
 WEAK_MOD = 0.90                      # trend modifier at/below this = "trending down" factor
 CATS = ("off", "def", "net_epa", "ypp", "succ", "tov", "expl", "yppm", "pace")
 LOWER_BETTER = {"def", "tov"}
 LABEL = {"off": "off rating", "def": "def rating", "net_epa": "net EPA", "ypp": "yds/play", "succ": "success rate",
          "tov": "TO rate", "expl": "explosive rate", "yppm": "ypp margin", "pace": "pace"}
+LABEL_BB = {"off": "off rating", "def": "def rating", "net_epa": "net rating", "ypp": "eFG%", "succ": "TS%",
+            "tov": "TOV rate", "expl": "OREB%", "yppm": "reb margin", "pace": "pace"}
+
+
+def label(sport: str, c: str) -> str:
+    return (LABEL_BB if sport in BASKETBALL else LABEL).get(c, c)
+
+
+def season_for(sport: str, d) -> int:
+    """Season label Marv's caches use: NBA / college = spring year, EuroLeague = autumn year, others calendar."""
+    if sport in ("nba", "ncaab", "ncaaw"):
+        return d.year + 1 if d.month >= 9 else d.year
+    if sport == "euroleague":
+        return d.year if d.month >= 8 else d.year - 1
+    if sport == "cfb":
+        return d.year if d.month >= 7 else d.year - 1
+    if sport == "nfl":
+        return d.year if d.month >= 8 else d.year - 1
+    return d.year
 _CACHE: dict = {}
 _TTL = 1800
 
@@ -150,6 +194,134 @@ def nfl_team_games(cache: Path, seasons) -> "pd.DataFrame":
     return x
 
 
+BB_COLS = ["game_id", "season", "season_type", "game_date", "team_display_name", "opponent_team_display_name",
+           "team_home_away", "team_score", "field_goals_made", "field_goals_attempted", "three_point_field_goals_made",
+           "free_throws_attempted", "offensive_rebounds", "defensive_rebounds", "total_rebounds", "total_turnovers"]
+
+
+def refresh_euroleague(state_dir: Path, season: int | None = None) -> int:
+    """Network step (background / CLI only, never the overlay): save the season's schedule names + dates
+    (state/cache/euroleague/meta_E<season>.json) and cache every finished game's team totals. Returns games cached."""
+    import json
+    from datetime import datetime, timezone
+    from .stats import euroleague as EL
+    cache = Path(state_dir) / "cache"
+    season = season or season_for("euroleague", datetime.now(timezone.utc))
+    meta = EL.season_meta(season)
+    out, n = {}, 0
+    for r in meta.itertuples():
+        d = r.date_parsed
+        out[str(int(r.gameCode))] = {"home": str(r.hometeam), "away": str(r.awayteam),
+                                     "date": None if d is None or d != d else str(d)[:10]}
+        if bool(r.played) and EL.game_totals(season, int(r.gameCode), cache) is not None:
+            n += 1
+    (cache / "euroleague").mkdir(parents=True, exist_ok=True)
+    (cache / "euroleague" / f"meta_E{season}.json").write_text(json.dumps(out))
+    return n
+
+
+def _euroleague_box(cache: Path, seasons) -> "pd.DataFrame":
+    """Cached EuroLeague per-game team totals (written by marv/stats/euroleague.py / refresh_euroleague). Team names
+    and dates come from meta_E<season>.json when saved (else box codes and game-code order); offline only."""
+    import json
+    import pandas as pd
+    rows = []
+    for s in seasons:
+        try:
+            meta = json.loads((cache / "euroleague" / f"meta_E{s}.json").read_text())
+        except (OSError, ValueError):
+            meta = {}
+        for f in sorted((cache / "euroleague").glob(f"E{s}_*.parquet")):
+            try:
+                t = pd.read_parquet(f)
+            except Exception:  # noqa: BLE001
+                continue
+            if len(t) != 2 or "team_display_name" not in t:
+                continue
+            code = int(f.stem.split("_")[1])
+            t = t.copy()
+            m = meta.get(str(code))
+            if m:
+                t["team_display_name"] = [m["home"] if ha == "home" else m["away"] for ha in t.team_home_away]
+            names = list(t.team_display_name)
+            t["opponent_team_display_name"] = names[::-1]
+            t["team_score"] = pd.to_numeric(t.team_score, errors="coerce")
+            t["game_id"] = f"E{s}-{code}"
+            t["season"] = s
+            t["season_type"] = 2
+            t["game_date"] = pd.Timestamp(m["date"]) if m and m.get("date") else pd.Timestamp(f"{s}-09-01") + pd.Timedelta(days=code)
+            rows.append(t)
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
+def bb_box(cache: Path, sport: str, seasons) -> "pd.DataFrame":
+    import pandas as pd
+    if sport == "euroleague":
+        return _euroleague_box(cache, seasons)
+    out = []
+    for s in seasons:
+        f = cache / f"{BOX_LEAGUE[sport]}_box_{s}.parquet"
+        if not f.exists():
+            continue
+        try:
+            b = pd.read_parquet(f, columns=BB_COLS)
+        except Exception:  # noqa: BLE001 - older files may miss a column
+            b = pd.read_parquet(f)
+            b = b[[c for c in BB_COLS if c in b]]
+        out.append(b)
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
+
+
+def bb_team_games(cache: Path, sport: str, seasons) -> "pd.DataFrame":
+    """One row per team-game with the basketball categories (see the module docstring)."""
+    import pandas as pd
+    b = bb_box(cache, sport, seasons)
+    if b.empty:
+        return pd.DataFrame()
+    b = b[b.season_type.isin([2, 3])] if "season_type" in b else b
+    b = b.assign(game_id=b.game_id.astype(str).str.replace(r"\.0$", "", regex=True))
+    if "total_rebounds" not in b or b.total_rebounds.isna().all():
+        b = b.assign(total_rebounds=b.offensive_rebounds + b.defensive_rebounds)
+    b = b.drop_duplicates(["game_id", "team_display_name"], keep="last")
+    num = ["team_score", "field_goals_made", "field_goals_attempted", "three_point_field_goals_made",
+           "free_throws_attempted", "offensive_rebounds", "defensive_rebounds", "total_rebounds", "total_turnovers"]
+    b[num] = b[num].apply(pd.to_numeric, errors="coerce")
+    b = b.dropna(subset=["team_score", "field_goals_attempted", "total_turnovers"])
+    b = b[b.field_goals_attempted > 0]
+    b["poss_t"] = b.field_goals_attempted + 0.44 * b.free_throws_attempted - b.offensive_rebounds + b.total_turnovers
+    o = b[["game_id", "team_display_name", "team_score", "poss_t", "defensive_rebounds", "total_rebounds"]].rename(
+        columns={"team_display_name": "opponent_team_display_name", "team_score": "pa", "poss_t": "o_poss",
+                 "defensive_rebounds": "o_dreb", "total_rebounds": "o_reb"})
+    x = b.merge(o, on=["game_id", "opponent_team_display_name"])
+    x = x[(x.poss_t > 20) & (x.o_poss > 20)]
+    fga = x.field_goals_attempted
+    x = pd.DataFrame({
+        "game_id": x.game_id, "team": x.team_display_name, "opp": x.opponent_team_display_name,
+        "pts": x.team_score, "pa": x.pa, "date": pd.to_datetime(x.game_date, utc=True).dt.tz_convert(None).dt.normalize(),
+        "is_home": (x.team_home_away == "home").astype(int), "season": x.season.astype(int),
+        "off": x.team_score / x.poss_t, "def": x.pa / x.o_poss,
+        "ypp": (x.field_goals_made + 0.5 * x.three_point_field_goals_made) / fga,
+        "succ": x.team_score / (2 * (fga + 0.44 * x.free_throws_attempted)),
+        "tov": x.total_turnovers / x.poss_t,
+        "expl": x.offensive_rebounds / (x.offensive_rebounds + x.o_dreb).clip(lower=1),
+        "yppm": x.total_rebounds - x.o_reb,
+        "pace": x.poss_t, "poss": x.poss_t + x.o_poss,
+    })
+    x["net_epa"] = x["off"] - x["def"]
+    return x.reset_index(drop=True)
+
+
+def team_games(cache: Path, sport: str, seasons) -> "pd.DataFrame":
+    if sport == "cfb":
+        return cfb_team_games(cache, seasons)
+    if sport == "nfl":
+        return nfl_team_games(cache, seasons)
+    if sport in BASKETBALL:
+        return bb_team_games(cache, sport, seasons)
+    import pandas as pd
+    return pd.DataFrame()
+
+
 # ------------------------------------------------------------------ point-in-time team profiles
 def profile_from_rows(rows) -> dict | None:
     """Season-to-date + last-3 profile from one team's completed games (a DataFrame sorted by date)."""
@@ -168,16 +340,21 @@ def profile_from_rows(rows) -> dict | None:
 
 
 def trend_catcher_modifier(p: dict, sport: str) -> tuple[float, list[str]]:
-    """(modifier in [0.80, 1.0], reasons). Last-3 TOV spike + ypp-margin ('rebound margin') drop vs season."""
+    """(modifier in [0.80, 1.0], reasons). Last-3 TOV spike + rebound-margin drop (football: ypp margin) vs season."""
     spike = max(0.0, p["tov3"] - p["tov"])
     drop = max(0.0, p["yppm"] - p["yppm3"])
-    mod = max(MOD_FLOOR, 1.0 - TOV_K.get(sport, 0.5) * spike - REB_K * drop)
+    rk = REB_K.get(sport, 0.05)
+    mod = max(MOD_FLOOR, 1.0 - TOV_K.get(sport, 0.5) * spike - rk * drop)
     why = []
-    unit = "/drive" if sport == "cfb" else "/100 plays"
     if TOV_K.get(sport, 0.5) * spike >= 0.03:
-        why.append(f"TO spike {p['tov3']:.2f} vs {p['tov']:.2f}{unit} last 3")
-    if REB_K * drop >= 0.03:
-        why.append(f"ypp margin {p['yppm3']:+.1f} last 3 vs {p['yppm']:+.1f}")
+        if sport in BASKETBALL:
+            why.append(f"TOV rate {p['tov3']:.1%} last 3 vs {p['tov']:.1%}")
+        else:
+            unit = "/drive" if sport == "cfb" else "/100 plays"
+            why.append(f"TO spike {p['tov3']:.2f} vs {p['tov']:.2f}{unit} last 3")
+    if rk * drop >= 0.03:
+        what = "reb margin" if sport in BASKETBALL else "ypp margin"
+        why.append(f"{what} {p['yppm3']:+.1f} last 3 vs {p['yppm']:+.1f}")
     return round(mod, 3), why
 
 
@@ -264,19 +441,16 @@ def league(state_dir: Path, sport: str, as_of=None) -> dict:
     if hit and time.time() - hit[0] < _TTL:
         return hit[1]
     cache = Path(state_dir) / "cache"
+    if sport == "euroleague":
+        _maybe_refresh_euroleague(Path(state_dir), season_for(sport, as_of))
     prof = {}
     try:
-        if sport == "cfb":
-            season = as_of.year if as_of.month >= 7 else as_of.year - 1
-            tg = cfb_team_games(cache, [season])
-        elif sport == "nfl":
-            season = as_of.year if as_of.month >= 8 else as_of.year - 1
-            tg = nfl_team_games(cache, [season])
-        else:
-            tg = None
+        tg = team_games(cache, sport, [season_for(sport, as_of)]) if sport in SPORTS else None
         if tg is not None and not tg.empty:
             cut = as_of.replace(tzinfo=None) if as_of.tzinfo else as_of
-            tg = tg[tg.date < cut.strftime("%Y-%m-%d")].sort_values("date")
+            if sport != "euroleague":  # EuroLeague cache holds finished games only (code-ordered pseudo dates)
+                tg = tg[tg.date < cut.strftime("%Y-%m-%d")]
+            tg = tg.sort_values("date")
             for t, rows in tg.groupby("team"):
                 p = profile_from_rows(rows)
                 if p:
@@ -285,6 +459,33 @@ def league(state_dir: Path, sport: str, as_of=None) -> dict:
         prof = {}
     _CACHE[key] = (time.time(), prof)
     return prof
+
+
+_EL_REFRESH: dict = {}
+EL_REFRESH_H = 6
+
+
+def _maybe_refresh_euroleague(state_dir: Path, season: int) -> None:
+    """Kick off a background EuroLeague refresh when the saved meta is older than EL_REFRESH_H (never blocks)."""
+    import threading
+    f = state_dir / "cache" / "euroleague" / f"meta_E{season}.json"
+    try:
+        fresh = f.exists() and time.time() - f.stat().st_mtime < EL_REFRESH_H * 3600
+    except OSError:
+        fresh = False
+    last = _EL_REFRESH.get(season, 0)
+    if fresh or time.time() - last < 1800 or not (state_dir / "cache").is_dir():
+        return
+    _EL_REFRESH[season] = time.time()
+
+    def run():
+        try:
+            refresh_euroleague(state_dir, season)
+            for k in [k for k in _CACHE if k[1] == "euroleague"]:
+                _CACHE.pop(k, None)
+        except Exception:  # noqa: BLE001 - offline / API down: keep whatever is cached
+            pass
+    threading.Thread(target=run, daemon=True).start()
 
 
 def team_profile(state_dir: Path, sport: str, team: str, as_of=None) -> dict | None:

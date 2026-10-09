@@ -16,9 +16,9 @@ import time
 from pathlib import Path
 
 # heavy favourite: ML -200 or shorter, or favoured by this many points on the spread / Marv margin (~-200 equivalent)
-HEAVY = {"nfl": 4.5, "cfb": 6.5}
+HEAVY = {"nfl": 4.5, "cfb": 6.5, "nba": 7.5, "wnba": 7.5, "ncaab": 10.5, "ncaaw": 12.5, "euroleague": 7.5}
 HEAVY_ML = -200
-HEAVY_MARGIN = {"nfl": 7.0, "cfb": 10.0}  # Marv / ratings margin counted as "large"
+HEAVY_MARGIN = {"nfl": 7.0, "cfb": 10.0, "nba": 9.0, "wnba": 9.0, "ncaab": 12.0, "ncaaw": 15.0, "euroleague": 9.0}  # Marv / ratings margin counted as "large"
 FADE_PTS = {"nfl": 3.0, "cfb": 5.0}
 FADE_YDS = {"nfl": 30.0, "cfb": 40.0}
 MIN_GAMES = 3

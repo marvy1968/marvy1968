@@ -13,7 +13,9 @@ read from files Marv already writes (no network, so the 1.5 s overlay timeout is
     cached nflverse / CFBD box scores)
   * hybrid engine (marv/hybrid.py): trend-catcher modifier (last-3 turnover spike / ypp-margin drop), full-spectrum
     winner-take-all category matrix (off/def rating, net EPA, ypp, success, TO rate, explosive, ypp margin, pace) and
-    its ATS side; totals get the restricted Monte Carlo median / p25 / p75
+    its ATS side; totals get the restricted Monte Carlo median / p25 / p75. All Marv sports: football categories as
+    above, basketball (NBA/WNBA/NCAAB/NCAAW/EuroLeague) off/def rating, net rating, eFG%, TS%, TOV rate, OREB%, reb
+    margin, pace from the ESPN / EuroLeague box
 Heavy-favourite gate: when the side is a heavy favourite (ML -200 or shorter, spread / Marv margin large) and ANY
 metric is off (bad or fading defense, or any AGAINST factor), the read is capped at mixed, and at bad when the
 defense is both bad and fading or a defense flag comes with another AGAINST factor -- even if ratings/spread favour it.
@@ -271,7 +273,7 @@ def hybrid_read(state_dir: Path, sport: str, rec: dict, ln: dict | None = None, 
                 total: float | None = None) -> dict | None:
     """marv/hybrid.py read for this game with the latest Bovada spread / total (None when data is missing)."""
     from . import hybrid as HY
-    if sport not in ("cfb", "nfl"):
+    if sport not in HY.SPORTS:
         return None
     try:
         ln = ln if ln is not None else lines(state_dir, sport, rec.get("game_id"), rec["home"], rec["away"])
@@ -299,7 +301,7 @@ def _hybrid(ins: Insight, state_dir: Path, sport: str, rec: dict, t: str, name: 
     if mine != theirs:
         ok = mine > theirs
         lbl = (f"hybrid categories {mine:g}-{theirs:g}" if ok else f"{short(opp)} wins hybrid categories {theirs:g}-{mine:g}")
-        top = [HY.LABEL[c] for c in r["won"][t if ok else o][:3]]
+        top = [HY.label(sport, c) for c in r["won"][t if ok else o][:3]]
         ins.factors.append(Factor(lbl + (f" ({', '.join(top)})" if top else ""), 1 if ok else -1,
                                   2 if abs(mine - theirs) >= 3 else 1))
     for who, nm, sd in ((t, name, -1), (o, opp, 1)):

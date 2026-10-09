@@ -1,10 +1,13 @@
 """Walk-forward backtest of the hybrid engine (marv/hybrid.py): trend catcher + full-spectrum H2H matrix + restricted
-Monte Carlo totals, NFL and college football, at closing lines (-110; no historical ML prices in the cache).
+Monte Carlo totals, every Marv sport with box scores (NFL, CFB, NBA, WNBA, NCAAB, NCAAW, EuroLeague), at closing
+lines (-110). Basketball lines: ESPN scoreboard odds (cached; WNBA/NCAAB/NCAAW) and the NBA odds sqlite; EuroLeague has
+no historical lines, so only its ML hit rate is graded (it can never pass the bar).
 
 Point-in-time: every game sees only its teams' earlier games THAT season (>= 3). Pace direction and the
 category-points -> margin mapping (K, HFA) are fit on earlier seasons only. Nothing is tuned on the test season.
 Proven bar (marv/proven.py): n >= 100, ROI > 0 after -110 vig, and above 52.4% in most test seasons.
-Usage: nice /opt/marv-bot/.venv/bin/python tools/hybrid_bt.py [cfb|nfl|all] [OUTDIR]
+Usage: nice /opt/marv-bot/.venv/bin/python tools/hybrid_bt.py [cfb|nfl|nba|wnba|ncaab|ncaaw|euroleague|all|bb] [OUTDIR]
+Results merge into OUTDIR/hybrid_backtest.json (one key per sport).
 """
 import json
 import sys
@@ -18,7 +21,35 @@ from marv import hybrid as H  # noqa: E402
 
 CACHE = Path("/opt/marv-bot/state/cache")
 BE = 0.5238
-HEAVY = {"cfb": -6.5, "nfl": -4.5}
+HEAVY = {"cfb": -6.5, "nfl": -4.5, "nba": -7.5, "wnba": -7.5, "ncaab": -10.5, "ncaaw": -12.5, "euroleague": -7.5}
+BB_SEASONS = {"nba": range(2019, 2027), "wnba": range(2018, 2027), "ncaab": range(2019, 2027),
+              "ncaaw": range(2019, 2027), "euroleague": range(2016, 2026)}
+
+
+def bb_games(sport: str):
+    """(team-game table, games with home spread / total) for a basketball league."""
+    import logging
+    logging.basicConfig(level=logging.WARNING)
+    seasons = list(BB_SEASONS[sport])
+    if sport == "nba":  # the NBA box is downloaded on first use (sportsdataverse, cached forever once final)
+        from marv.stats.basketball import NBA
+        NBA.read_box(CACHE, seasons, None)
+    tg = H.bb_team_games(CACHE, sport, seasons)
+    h = tg[tg.is_home == 1]
+    a = tg[tg.is_home == 0][["game_id", "team", "pts"]].rename(columns={"team": "away", "pts": "away_points"})
+    gm = h[["game_id", "season", "date", "team", "pts"]].rename(columns={"team": "home", "pts": "home_points"}) \
+        .merge(a, on="game_id")
+    gm["neutral"] = False
+    for c in ("spread", "total", "home_ml", "away_ml"):
+        gm[c] = np.nan
+    if sport == "nba":
+        from marv.stats.basketball import NBA
+        gm = NBA.attach_odds(gm, CACHE)
+    elif sport in ("wnba", "ncaab", "ncaaw"):
+        from marv.stats.basketball import NCAAB, NCAAW, WNBA, attach_espn_odds
+        mod = {"wnba": WNBA, "ncaab": NCAAB, "ncaaw": NCAAW}[sport]
+        gm = attach_espn_odds(gm, mod.espn_path, sport, CACHE)
+    return tg, gm
 
 
 def features(tg: pd.DataFrame) -> pd.DataFrame:
@@ -38,7 +69,10 @@ def features(tg: pd.DataFrame) -> pd.DataFrame:
 
 
 def games(sport: str) -> pd.DataFrame:
-    if sport == "cfb":
+    if sport in H.BASKETBALL:
+        tg, gm = bb_games(sport)
+        gm = gm[["game_id", "season", "home", "away", "neutral", "home_points", "away_points", "spread", "total"]]
+    elif sport == "cfb":
         seasons = list(range(2018, 2027))
         tg = H.cfb_team_games(CACHE, seasons)
         gm = pd.concat([pd.read_parquet(CACHE / f"cfb_games_{s}.parquet") for s in seasons])
@@ -127,6 +161,9 @@ def grade(df: pd.DataFrame, sport: str) -> dict:
     r["market_fav_ml"] = {"n": int((dec & has & (df.spread != 0)).sum()),
                           "hit": round(float(fav_ok[dec & has & (df.spread != 0)].mean()), 4)}
     r["ml_same_games"] = round(float(ml_ok[dec & has & (df.spread != 0)].mean()), 4)
+    if not has.any():  # no historical lines (EuroLeague): ML hit rate only
+        r["note"] = "no historical lines: ATS / O/U / upset rule not gradable"
+        return r
     ats_res = df.margin + df.spread
     df = df.assign(ats_ok=((df.ats == "home") == (ats_res > 0)), ats_push=(ats_res == 0))
     edge = (df.proj + df.spread).abs()
@@ -175,11 +212,16 @@ if __name__ == "__main__":
     which = sys.argv[1] if len(sys.argv) > 1 else "all"
     out = Path(sys.argv[2] if len(sys.argv) > 2 else "/opt/marv-bot/state/reports")
     out.mkdir(parents=True, exist_ok=True)
-    rep = {}
-    for sp in (["cfb", "nfl"] if which == "all" else [which]):
+    path = out / "hybrid_backtest.json"
+    try:
+        rep = json.loads(path.read_text())
+    except (OSError, ValueError):
+        rep = {}
+    sports = {"all": ["cfb", "nfl", *H.BASKETBALL], "bb": list(H.BASKETBALL), "football": ["cfb", "nfl"]}.get(which, [which])
+    for sp in sports:
         g = run(sp, out)
         g["proven"] = {k: passes(v) for k, v in g.items() if k.startswith(("ats_", "ou_")) or k == "upset_rule"
                        for v in [v if k != "upset_rule" else v["dog_ats"] | {"seasons": v["seasons"]}]}
         rep[sp] = g
-    (out / "hybrid_backtest.json").write_text(json.dumps(rep, indent=1, default=str))
-    print(json.dumps(rep, indent=1, default=str))
+        path.write_text(json.dumps(rep, indent=1, default=str))  # save after each sport (long runs)
+        print(sp, json.dumps(g, default=str), flush=True)

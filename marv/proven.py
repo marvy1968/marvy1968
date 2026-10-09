@@ -26,6 +26,7 @@ import os
 from dataclasses import dataclass
 
 UNPROVEN = "unproven — no %"
+QUERY_GATE_DEFAULT = "cfb,nfl,nba,wnba,ncaab,ncaaw,euroleague"
 MIN_N = 100
 
 
@@ -59,6 +60,9 @@ PROVEN: dict[tuple[str, str, str], Evidence] = {
     #   ROI -6.3%; model Brier 0.2235 vs Bovada no-vig 0.2109; ATS 48.5%; every O/U rule <= break-even except
     #   "under-fade + rating OVER" (+3.8% on 173 at Bovada) which the larger 2016-26 close-line test contradicts
     #   (50.6% of 391, -2.2%). So NFL H2H lines print "unproven — no %" and close games print no %.
+    # Hybrid engine (marv/hybrid.py, tools/hybrid_bt.py, state/reports/hybrid_backtest.json), every sport: NOTHING
+    #   meets the bar. NBA ATS 49.0% / O/U 49.6% / upset-rule dog ATS 50.8% (all ROI < 0); NFL/CFB as in hybrid.py;
+    #   WNBA, NCAAB, NCAAW, EuroLeague have no historical lines to grade. Hybrid lines never print a %.
 }
 # Refinements nested inside a proven rule print the parent's (lower) number, not their own smaller-sample one.
 PARENT = {"OVER-FADE+MOVE": "OVER-FADE", "OVER-FADE+INFLATED": "OVER-FADE"}
@@ -88,10 +92,12 @@ def evidence(sport: str | None, market: str, signal: str | None = None) -> Evide
 
 def query_gated(sport: str | None) -> bool:
     """Telegram queries (/game, /check, /board, /h2h): sports where only proven numbers may print.
-    PROVEN_GATE_QUERY_SPORTS (default "cfb,nfl") on top of PROVEN_GATE_SPORTS. Sport cards / live alerts unchanged."""
+    PROVEN_GATE_QUERY_SPORTS (default: every hybrid-engine sport -- nfl, cfb, nba, wnba, ncaab, ncaaw, euroleague;
+    Oct 9 2026, nothing in those sports' hybrid backtest passed the bar) on top of PROVEN_GATE_SPORTS.
+    Sport cards / live alerts unchanged."""
     if gated(sport):
         return True
-    raw = os.environ.get("PROVEN_GATE_QUERY_SPORTS", "cfb,nfl").strip().lower()
+    raw = os.environ.get("PROVEN_GATE_QUERY_SPORTS", QUERY_GATE_DEFAULT).strip().lower()
     if raw in ("all", "*"):
         return True
     return (sport or "").lower() in {s.strip() for s in raw.split(",") if s.strip()}

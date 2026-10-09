@@ -164,7 +164,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
                 events += oddsapi.fetch(settings.odds_api_key, key)
             except Exception as exc:
                 log.warning("board odds %s: %s", key, exc)
-        if sport in ("nfl", "cfb") and events:  # /parlay reads Bovada's real prices from here (no extra credits)
+        if events:  # /parlay reads Bovada's real prices from here (no extra credits)
             try:
                 from . import parlay
                 parlay.save_prices(state, sport, events, now)
