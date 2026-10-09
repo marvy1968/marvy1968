@@ -1,0 +1,3 @@
+$ marv live-props-probe
+started 2026-10-08 20:35:59 EDT
+RUNNING...
