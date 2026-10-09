@@ -661,3 +661,20 @@ What did not and cannot change: this is not new skill. It's the market's informa
 break-even (−2% to +0.2%), and over/unders have no edge from the model (50%). Gains that can still be tested:
 college basketball and WNBA (need the VM's line history to run the same stack), injury/lineup news the
 market hasn't priced, and the paper-tracked trend tags (college O/U fades, Bovado-vs-Pinnacle totals).
+
+## Injury-trend adjustment backtest (NFL 2018-2025, 2,761 games)
+
+Point-in-time test of `marv/regime.py` (new starting QB or WR1 out: scale the team's projected points by its
+scoring in the new situation, shrunk n/(n+2), capped 25%). Only games before each game were used; the
+affected games were 464 (765 QB-change and 322 WR1-out team-games).
+
+| | Base projection | With trend adjustment | Market |
+|---|---|---|---|
+| Total MAE, all games | 10.69 | 10.77 | 10.44 |
+| Total MAE, affected games | 10.80 | **11.27** | 10.50 |
+| Margin MAE, affected games | 9.87 | **10.36** | 9.43 |
+| Over/under direction, affected | 48.8% | 48.8% | |
+| Following the adjustment vs the line (moved 2+ pts, n=294) | 50.7% | | |
+
+Result: the adjustment makes projections worse and has no betting value, so it is now shown as an info note and
+**not applied** unless `REGIME_ADJUST=on`. The backup-QB veto (fewer than 3 starts) is unchanged.

@@ -3,6 +3,7 @@ three experts on everything finished, project each upcoming game, then hand the 
 the shared engine (Monte Carlo + market + veto)."""
 
 import logging
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -280,7 +281,11 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         p.notes.append(" · ".join(f"{e} {hh:.0f}-{aa:.0f}" for e, (hh, aa) in experts.items()))
         if regimes:
             from ..regime import adjust
-            p.home, p.away, trend_notes = adjust(p.home, p.away, home_team, a["team"], regimes, season_points)
+            adj_home, adj_away, trend_notes = adjust(p.home, p.away, home_team, a["team"], regimes, season_points)
+            if os.environ.get("REGIME_ADJUST", "").lower() in ("on", "true", "1"):
+                p.home, p.away = adj_home, adj_away
+            else:  # NFL 2018-25 backtest: the scaling made projections worse (ANALYSIS.md), so it is shown, not applied
+                trend_notes = [n.split(" → ")[0] + " (info only, not applied)" for n in trend_notes]
             p.notes += trend_notes
         p.game_vetoes += hurt.get(g.home, []) + hurt.get(g.away, [])
         p.game_vetoes += stale.get(g.home, []) + stale.get(g.away, [])
