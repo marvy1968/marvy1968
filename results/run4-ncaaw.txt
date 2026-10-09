@@ -1,3 +1,5 @@
 $ marv stats-backtest --sport ncaaw --seasons 2019-2025
-started 2026-10-09 11:07:50 EDT
-RUNNING...
+started 2026-10-09 11:07:50 EDT, took 7201s, exit timeout
+
+
+TIMED OUT after 7200s
