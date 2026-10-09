@@ -175,6 +175,16 @@ def missing_game_ids(tg: pd.DataFrame, history: list[Game], module: StatsModule,
     return [g.id for g in history if g.completed and _day(g.start) >= cutoff and str(g.id) not in have]
 
 
+class Projections(dict):
+    """{slate game id: StatsProjection} plus `.tags`: {slate game id: [(tag, side)]} over/under trend tags for
+    EVERY slate game with a total (college: all FBS games, not just the top-30 teams Marv rates)."""
+    tags: dict = {}
+
+    def __init__(self, *a, tags=None, **kw):
+        super().__init__(*a, **kw)
+        self.tags = tags or {}
+
+
 def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: datetime,
                   rules: StatsRules, history: list[Game] | None = None) -> dict[str, StatsProjection]:
     history = history or []
@@ -194,6 +204,12 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
     if hasattr(module, "prepare_upcoming"):
         games, tg = module.prepare_upcoming(games, tg, slate, cache, now)
     games, tg, id_map = add_upcoming(games, tg, slate)
+    all_tags: dict = {}
+    try:  # over/under trend tags for every slate game (cards + paper ledger, never picks)
+        from .. import ou_tags
+        all_tags = ou_tags.tag_slate(module_key(module), games, tg, slate, id_map, history)
+    except Exception:
+        log.exception("%s: over/under tags failed", module.key)
 
     model = build_features(tg, module.stat_columns(tg), module.halflife, extra_cols=getattr(module, "extra_cols", None),
                            adjust=module.adjust_schedule)
@@ -206,7 +222,7 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
     targets = model[model["game_id"].isin(set(id_map.values()))]
     targets = module.focus(targets, panel)
     if targets.empty:
-        return {}
+        return Projections(tags=all_tags)
     proj = pd.concat([targets[["game_id", "team", "home", "gp"]], panel.project(targets)], axis=1)
 
     from ..data.injuries import injury_vetoes
@@ -242,7 +258,7 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
         regimes, season_points = injury_regimes(module, cache, season, games, tg)
     except Exception as exc:
         log.warning("%s injury trends failed: %s", module.key, exc)
-    out = {}
+    out = Projections(tags=all_tags)
     lookup = games.set_index("game_id")
     for g in slate:
         gid = id_map.get(g.id)
@@ -295,15 +311,12 @@ def project_slate(module: StatsModule, slate: list[Game], cache: Path, now: date
                 p.notes.append(f"SP form (runs allowed/start): {a['team']} {form.get(a['team'], float('nan')):.1f}, "
                                f"{h['team']} {form.get(h['team'], float('nan')):.1f}")
         out[g.id] = p
-    if out:
-        try:  # over/under trend tags (cards + paper ledger, never picks)
-            from .. import ou_tags
-            for gid, tags in ou_tags.tag_slate(module_key(module), games, tg, slate, id_map, history).items():
-                if gid in out:
-                    out[gid].ou_tags = tags
-                    out[gid].notes.append(ou_tags.note(tags))
-        except Exception:
-            log.exception("%s: over/under tags failed", module.key)
+    if all_tags:
+        from .. import ou_tags
+        for gid, tags in all_tags.items():
+            if gid in out:
+                out[gid].ou_tags = tags
+                out[gid].notes.append(ou_tags.note(tags))
     return out
 
 

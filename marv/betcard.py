@@ -108,6 +108,23 @@ def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
     return out
 
 
+def tag_candidates(sport: str, slate, tags: dict) -> list[Bet]:
+    """Over/under trend bets for slate games that Marv doesn't project (college: any FBS game with a total)."""
+    out = []
+    for g in slate:
+        o = g.odds
+        if not o or o.total is None:
+            continue
+        for tag, side in tags.get(g.id, []):
+            price = o.under_price if side == "Under" else o.over_price
+            out.append(Bet(sport=sport, game=f"{g.away} @ {g.home}", start=g.start.isoformat(), home=g.home, away=g.away,
+                           market="total", side=side, line=o.total, price=price or -110, tier="SIGNAL",
+                           score=SIGNAL_RANK.get(tag, 52.5), units=0.5,
+                           why=f"{tag}: teams' recent over/under trend overshot by the market "
+                               f"({SIGNAL_RANK.get(tag, 52.5):.1f}% in backtests)"))
+    return out
+
+
 def gap_candidates(gaps: list[dict]) -> list[Bet]:
     """Bovado vs Pinnacle total gaps (college backtested; NFL untested, ranked lower)."""
     out = []

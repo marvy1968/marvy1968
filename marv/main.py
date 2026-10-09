@@ -62,15 +62,13 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
                     model_weight=Settings.model_weight(sport.key), projections=projections)
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
-        return
+        return [], projections, slate  # trend tags can still cover them (bet card)
     for pred in preds:
         moved = linemove.note(pred.game)
         if moved:
             pred.notes.append(moved)
-    if projections:
-        tagged = {gid: p.ou_tags for gid, p in projections.items() if p.ou_tags}
-        if tagged and not dry_run:
-            ou_tags.log(Path(s.state_dir), sport.key, slate, tagged)
+    if projections is not None and getattr(projections, "tags", None) and not dry_run:
+        ou_tags.log(Path(s.state_dir), sport.key, slate, projections.tags)
     if sport.key == "nfl":  # situational tags on the card (tracked in paper mode, never used to pick)
         try:
             from . import situational
@@ -99,7 +97,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
             pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
             send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
         log.info("%s: sent %d predictions", sport.key, len(preds))
-    return preds, projections
+    return preds, projections, slate
 
 
 def results_text(s: Settings, store: Store, days: int) -> str:
@@ -139,7 +137,9 @@ def cmd_run(s: Settings, args) -> int:
             res = run_sport(sport, s, store, now, hours, args.dry_run, args.label,
                             day_only=alertday.day_only() and not args.force and not args.hours)
             if res:
-                card_cands += betcard.candidates(key, *res)
+                preds_, projections_, slate_ = res
+                card_cands += betcard.candidates(key, preds_, projections_)
+                card_cands += betcard.tag_candidates(key, slate_, getattr(projections_, "tags", {}) or {})
         except Exception:
             failures += 1
             log.exception("%s failed", key)
