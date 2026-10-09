@@ -1,3 +1,20 @@
 $ marv live-props-probe
-started 2026-10-08 20:35:59 EDT
-RUNNING...
+started 2026-10-08 20:35:59 EDT, took 6s, exit 0
+
+Tampa Bay Buccaneers @ Dallas Cowboys · Q1 3:52 · score 0.0-7.0 · ESPN box players parsed: 27
+  draftkings: 37 prop lines; last_update range 2026-10-09T00:35:51Z .. 2026-10-09T00:35:51Z
+  fanduel: 9 prop lines; last_update range 2026-10-09T00:35:57Z .. 2026-10-09T00:35:57Z
+  betmgm: 8 prop lines; last_update range 2026-10-09T00:33:59Z .. 2026-10-09T00:35:13Z
+  bovada: 33 prop lines; last_update range 2026-10-09T00:34:41Z .. 2026-10-09T00:34:41Z
+    draftkings  Dak Prescott           pass_yds       line 248.5 (O -120 / U -115) so far 37.0
+    fanduel     Dak Prescott           pass_yds       line 248.5 (O -114 / U -114) so far 37.0
+    betmgm      Dak Prescott           pass_yds       line 251.5 (O -115 / U -115) so far 37.0
+    bovada      Dak Prescott           pass_yds       line 253.5 (O -115 / U -115) so far 37.0
+    draftkings  George Pickens         reception_yds  line 81.5 (O -120 / U -115) so far 29.0
+    fanduel     George Pickens         reception_yds  line 83.5 (O -114 / U -114) so far 29.0
+    betmgm      George Pickens         reception_yds  line 77.5 (O -115 / U -115) so far 29.0
+    bovada      George Pickens         reception_yds  line 79.5 (O -120 / U -110) so far 29.0
+    draftkings  Javonte Williams       rush_yds       line 79.5 (O -115 / U -115) so far 26.0
+    fanduel     Javonte Williams       rush_yds       line 78.5 (O -112 / U -118) so far 26.0
+    betmgm      Javonte Williams       rush_yds       line 77.5 (O -120 / U -111) so far 26.0
+    bovada      Javonte Williams       rush_yds       line 80.5 (O -110 / U -120) so far 26.0
