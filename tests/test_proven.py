@@ -78,6 +78,17 @@ class OverlayTest(unittest.TestCase):
         self.assertEqual(o.verdict, "n/a")
         self.assertEqual(o.prob, proven.UNPROVEN)
 
+    def test_card_only_game(self):
+        (self.state / "marv_predict" / "h2h_cfb.json").write_text(json.dumps({"games": [{
+            "home": "Missouri", "away": "Texas A&M", "margin": 5.8, "rating_total": 49.3, "cat_home": 2, "cat_away": 0,
+            "stars_home": 3, "stars_away": 0, "fade": "OVER"}]}))
+        o = bridge.overlay(self.state, "ncaaf", "h2h", "Texas A&M Aggies", text="Texas A&M Aggies @ Missouri Tigers ML +150")
+        self.assertTrue(o.found)
+        self.assertEqual(o.verdict, "not")
+        o = bridge.overlay(self.state, "ncaaf", "totals", "Over", line=48.5, text="Texas A&M Aggies @ Missouri Tigers Over 48.5")
+        self.assertEqual(o.verdict, "good")
+        self.assertEqual(o.prob, proven.UNPROVEN)  # under-trend fade -> OVER is not proven
+
     def test_unknown_game_silent(self):
         o = bridge.overlay(self.state, "ncaaf", "h2h", "Rice Owls", text="Rice Owls @ Navy")
         self.assertFalse(o.found)

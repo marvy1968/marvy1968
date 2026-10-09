@@ -199,7 +199,13 @@ def _market_kind(market: str) -> str:
 def _h2h_cards(state_dir: Path, sport: str) -> list[dict]:
     path = state_dir / H2H_DIR / f"h2h_{sport}.json"
     try:
-        return list(json.loads(path.read_text()).get("games", [])) if path.exists() else []
+        if not path.exists():
+            return []
+        data = json.loads(path.read_text())
+        day = data.get("card_day")
+        if day and (datetime.now(timezone.utc).date() - datetime.fromisoformat(day).date()).days > 1:
+            return []  # stale card (last week's slate): no H2H read rather than a wrong one
+        return list(data.get("games", []))
     except (ValueError, OSError):
         return []
 
@@ -265,6 +271,22 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         rec = find_game_in_text(state_dir, sport, text)
     if rec is None and kind in ("ml", "spread") and side:
         rec = find_game(state_dir, sport, side)
+    if rec is None:  # not in Marv's engine slate: fall back to the ratings-only H2H card (top-30 CFB)
+        cards = _h2h_cards(state_dir, sport)
+        names = [n for n in (team, other, side if kind in ("ml", "spread") else None) if n]
+        best, score = None, 0.0
+        for c in cards:
+            if text:
+                sc = min(_in_text(c["home"], text), _in_text(c["away"], text))
+            elif names:
+                sc = max(max(similarity(n, c["home"]), similarity(n, c["away"])) for n in names)
+            else:
+                sc = 0.0
+            if sc > score:
+                best, score = c, sc
+        if best is not None and score >= 0.75:
+            rec = {"home": best["home"], "away": best["away"], "model_margin": best.get("margin") or 0.0,
+                   "model_total": best.get("rating_total") or 0.0, "notes": []}
     if rec is None:
         return Overlay(False)
     game = f"{rec['away']} @ {rec['home']}"
