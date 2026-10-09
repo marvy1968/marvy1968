@@ -1,3 +1,4 @@
 $ marv mirror-status
-started 2026-10-08 21:01:59 EDT
-RUNNING...
+started 2026-10-08 21:01:59 EDT, took 5s, exit 1
+
+Mirror: a token is set but Telegram rejects it (wrong or revoked). Paste it again.
