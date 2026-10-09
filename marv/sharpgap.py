@@ -110,6 +110,9 @@ def log_gaps(state: Path, entries: list[dict]) -> list[dict]:
     path = state / "sharp_gap_log.json"
     book = json.loads(path.read_text()) if path.exists() else {}
     now = datetime.now(timezone.utc)
+    if alertday.day_only():  # advance entries logged before the day-of rule: forget them so they alert on game day
+        book = {k: v for k, v in book.items() if v["result"] is not None
+                or datetime.fromisoformat(v["start"].replace("Z", "+00:00")) <= now or alertday.is_today(v["start"], now)}
     new = []
     for e in entries:
         if datetime.fromisoformat(e["start"].replace("Z", "+00:00")) <= now or not alertday.is_today(e["start"], now):

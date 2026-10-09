@@ -41,3 +41,20 @@ class AlertDayTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GapLeftoverTests(unittest.TestCase):
+    def test_advance_entries_alert_again_on_game_day(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            far = datetime.now(timezone.utc) + timedelta(days=2)
+            entry = {"key": "cfb:e:total:Under", "sport": "cfb", "event": "e", "start": far.isoformat(), "home": "H",
+                     "away": "A", "market": "total", "side": "Under", "line": 53.5, "price": -110, "pinnacle_line": 52.5,
+                     "pinnacle_fair": 0.5, "gap": 1.0, "pick": "Under 53.5", "label": ""}
+            (Path(d) / "sharp_gap_log.json").write_text(json.dumps({entry["key"]: {**entry, "first_seen": "x", "result": None}}))
+            self.assertEqual(sharpgap.log_gaps(Path(d), []), [])  # not game day: forgotten, not announced
+            self.assertEqual(json.loads((Path(d) / "sharp_gap_log.json").read_text()), {})
+            # game day: the same gap now alerts
+            day = datetime.now(timezone.utc) + timedelta(minutes=5)
+            if alertday.is_today(day):
+                self.assertEqual(len(sharpgap.log_gaps(Path(d), [{**entry, "start": day.isoformat()}])), 1)
