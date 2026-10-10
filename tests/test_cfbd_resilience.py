@@ -57,3 +57,13 @@ class CFBDCache(unittest.TestCase):
             c = CFBDClient("k", sess, cache_dir=d)
             self.assertEqual(c.games(2026), c.games(2026))
             self.assertEqual(sess.get.call_count, 1)
+
+
+class TalentDump(unittest.TestCase):
+    def test_rows_and_failed_year(self):
+        from marv.main import talent_rows
+        client = mock.Mock()
+        client._get.side_effect = [[{"team": "Georgia", "talent": "950.5"}], RuntimeError("boom")]
+        rows = talent_rows(client, [2024, 2025])
+        self.assertEqual(rows[0], "2024,Georgia,950.5")
+        self.assertTrue(rows[1].startswith("# 2025 failed"))

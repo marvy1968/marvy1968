@@ -371,6 +371,28 @@ def cmd_situational(s: Settings, args) -> int:
     return 0
 
 
+def talent_rows(client, seasons: list[int]) -> list[str]:
+    """CSV lines season,team,talent from CFBD /talent (247Sports composite: blue-chip depth)."""
+    out = []
+    for year in seasons:
+        try:
+            data = client._get("/talent", year=year)
+        except Exception as exc:  # one bad year must not lose the rest
+            out.append(f"# {year} failed: {exc}")
+            continue
+        out += [f"{year},{t.get('team', t.get('school'))},{t.get('talent')}" for t in data]
+    return out
+
+
+def cmd_talent_dump(s: Settings, args) -> int:
+    from .data.cfbd import CFBDClient
+    first, last = (int(x) for x in args.seasons.split("-"))
+    client = CFBDClient(s.cfbd_api_key, cache_dir=Path(s.state_dir) / "cache" / "cfbd_api")
+    print("season,team,talent")
+    print("\n".join(talent_rows(client, list(range(first, last + 1)))))
+    return 0
+
+
 def cmd_gaps(s: Settings, args) -> int:
     """Bovado vs Pinnacle: games where Bovado's college/NFL spread or total is off the sharp number."""
     if not s.odds_api_key:
@@ -843,6 +865,8 @@ def main(argv: list[str] | None = None) -> int:
     ig.add_argument("--sport", required=True, choices=["nfl", "cfb", "ncaab", "ncaaw", "wnba"])
     ig.add_argument("--seasons", default="2020-2025", help="backtest seasons, e.g. 2020-2025")
 
+    td = sub.add_parser("talent-dump", help="print CFBD 247Sports talent composite per team and season (CSV)")
+    td.add_argument("--seasons", default="2015-2026")
     gp = sub.add_parser("gaps", help="Bovado vs Pinnacle: college/NFL lines where Bovado is off the sharp number")
     gp.add_argument("--sport", default="all", choices=["all", "cfb", "nfl"])
     gp.add_argument("--min-gap", type=float, default=0.5)
@@ -927,7 +951,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
     try:
         return handler[args.command](s, args)
     except Exception:
