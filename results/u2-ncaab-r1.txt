@@ -1,3 +1,4 @@
 $ marv stats-backtest --sport ncaab --seasons 2019-2025 --budget-min 70
-started 2026-10-10 17:27:06 EDT
-RUNNING...
+started 2026-10-10 17:27:06 EDT, took 4253s, exit 0
+
+PARTIAL: time budget used up (9 chunks saved at /opt/marv-bot/state/reports/ckpt_ncaab_2019-2025.pkl; rerun to resume). Run the same command again to continue.
