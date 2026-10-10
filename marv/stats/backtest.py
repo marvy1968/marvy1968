@@ -36,6 +36,7 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
     import time
     t0 = time.time()
     done = pickle.loads(ckpt.read_bytes()) if ckpt and ckpt.exists() else {}
+    stage = {"chunks": 0, "chunk_s": 0.0}
     seasons = list(range(min(test_seasons) - train_years, max(test_seasons) + 1))
     seasons = [s for s in seasons if s >= module.first_season]
     games, tg = module.load(cache, seasons, current)
@@ -46,6 +47,7 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
     cols = [c for c in cols if not c.startswith(("mx_", "mxd_"))]  # sums of other columns; formula re-derives them
     if feature_filter:
         cols = [c for c in cols if feature_filter(c)]
+    prep_s = time.time() - t0   # data load (incl. any ESPN odds scrape) + feature build
     game_objs = games_to_objects(games, module.key)
     games = games.set_index("game_id")
 
@@ -69,8 +71,11 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
                 c0 = c1
                 continue
             if budget_s is not None and time.time() - t0 > budget_s:
-                raise BudgetExhausted(f"{len(done)} chunks saved at {ckpt}; rerun to resume")
+                n = max(stage["chunks"], 1)
+                raise BudgetExhausted(f"{len(done)} chunks saved at {ckpt}; this run: {prep_s:.0f}s loading+features, "
+                                      f"{stage['chunks']} chunks in {stage['chunk_s']:.0f}s ({stage['chunk_s'] / n:.0f}s each); rerun to resume")
             if not chunk.empty:
+                t_chunk = time.time()
                 train = model[(model["date"] < c0) & (model["season"] >= season - train_years)]
                 history = [g for g in game_objs if g.start < c0.to_pydatetime()
                            and (c0.to_pydatetime() - g.start).days < 400]
@@ -86,6 +91,8 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
                     proj = panel.project(chunk)
                     rows.append(pd.concat([chunk[["game_id", "date", "season", "team", "home", "points", "gp"]], proj], axis=1))
                     done[key] = rows[-1]
+                    stage["chunks"] += 1
+                    stage["chunk_s"] += time.time() - t_chunk
                     if ckpt:
                         ckpt.parent.mkdir(parents=True, exist_ok=True)
                         ckpt.write_bytes(pickle.dumps(done))
