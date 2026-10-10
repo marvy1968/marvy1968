@@ -810,3 +810,23 @@ fit 2021-25 -> test 2026 to Oct 4), closing line @-110, same games as the plain 
   market 78.2%), Brier 0.1874 vs 0.1890; ATS when steam moved 60.7% of 56 (2025: 48.6% of 360 -> noise).
 - Following steam alone at the close: 46.6% of 416. BCR guard favourite ATS 61.8% of 34 (tiny).
 Verdict: no proven edge; nothing passes marv/proven.py, so it prints no %, paper only. INSTITUTIONAL_CFB=0 reverts.
+
+## Institutional simulation, NFL (Oct 10 2026, PAPER)
+`marv/nfl_institutional.py` (`nfl_institutional_simulation`) now runs on the NFL pick-engine path (March_edge overlay /
+`/check`): pick-engine blend + O-line health (expected starting five = top-5 T/G/C by snap share over the last 4 games;
+lost = usual share of starters Out/Doubtful (1.0), Questionable (0.25) or absent last game and not on the report) +
+steam (Bovada open -> current, velocity-decayed move / (1 + |move| / 3)) + skew-normal Monte Carlo (10,000 draws, margin
+shape fitted on earlier seasons and rescaled to mean 0 / std 13.5, total skewnorm fitted). Openers for the backtest: first
+Bovada snapshot listing the game in `state/cache/bovada_nfl_hist/` (median ~6 days before kickoff); live: lines.json.
+O-line flag vs who actually sat (2024 check): correlation 0.54, so the input is real. Backtest
+`tools/nfl_institutional_bt.py` -> `state/reports/nfl_institutional_backtest.json`, walk-forward 2023-26 (each season fit on
+earlier seasons only, from 2022 wk 4), closing line @-110, same 710 games as the plain pick engine:
+- ATS 48.5% (engine 48.7%), ROI -7.5%; O/U 51.4% (same as engine), -1.9%; lean 10%+ ATS 51.8% of 195 (-1.1%).
+- ML 63.9% (engine 62.6%, market favourite 67.6%); Brier 0.2212 vs engine 0.2225 vs market spread 0.2090.
+- O-line side term fitted the WRONG sign in every training window (healthier line did worse vs the blend), so it is
+  sign-constrained to 0; O-line only adds a small totals cut (OT -0.07 pts per lost starter, latest fit). Healthier line
+  ATS 49.1% of 161; both lines banged up -> Under 43.4% of 76.
+- Steam: S 1.61 / ST 1.46 per decayed point. Following the Bovada spread move alone at the close: 55.5% of 292 (+5.9%),
+  by season 51.2% / 56.5% / 60.2% (2023-25) -> the one lead worth paper-tracking; not proven (no paper record yet).
+- Margin std 13.5 (owner setting) vs 12.65 measured: slightly wider than the residuals, so leans are conservative.
+Verdict: no proven edge; nothing passes marv/proven.py, so it prints no %, paper only. INSTITUTIONAL_NFL=0 reverts.

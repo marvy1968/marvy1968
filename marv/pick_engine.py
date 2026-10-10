@@ -32,6 +32,9 @@ SIMS = 10000
 # % (marv/proven.py); env INSTITUTIONAL_CFB=0 falls back to the plain normal Monte Carlo.
 import os as _os
 INSTITUTIONAL_CFB = _os.environ.get("INSTITUTIONAL_CFB", "1").lower() not in ("0", "false", "off", "no")
+# NFL path: marv/nfl_institutional.py (O-line health + steam + skew-normal MC, margin std 13.5). PAPER, no %;
+# env INSTITUTIONAL_NFL=0 falls back to the plain normal Monte Carlo.
+INSTITUTIONAL_NFL = _os.environ.get("INSTITUTIONAL_NFL", "1").lower() not in ("0", "false", "off", "no")
 # Walk-forward blend fits (tools/pick_engine_bt.py, latest = fit on every completed season before the current one).
 # Overwritten by the backtest's latest fit; these are the defaults used when the report is missing.
 BLEND = {
@@ -287,6 +290,8 @@ def game(state_dir: Path, sport: str, home: str, away: str, spread: float | None
         inst = None
         if sport == "cfb" and INSTITUTIONAL_CFB:
             inst = _institutional(state_dir, home, away, m, t, spread, line, as_of)
+        elif sport == "nfl" and INSTITUTIONAL_NFL:
+            inst = _nfl_institutional(state_dir, home, away, m, t, spread, line, as_of)
         if inst:  # NCAAF: tiered BCR + steam (velocity-decayed) + skew-normal MC replace the normal MC (paper)
             m, t, sim = inst["margin"], inst["total"], inst["sim"]
         else:
@@ -321,6 +326,21 @@ def _institutional(state_dir: Path, home: str, away: str, m: float, t: float, sp
         return None
 
 
+def _nfl_institutional(state_dir: Path, home: str, away: str, m: float, t: float, spread, line,
+                       as_of) -> dict | None:
+    """marv/nfl_institutional.py read on top of the blend (NFL). None on failure -> plain MC. Never raises."""
+    from . import nfl_institutional as NI
+    try:
+        p = NI.load(state_dir)
+        lh, la = NI.ol_for_game(state_dir, home, away, as_of)
+        so, to = NI.opener(state_dir, home, away)
+        r = NI.nfl_institutional_simulation(m, t, lh, la, spread, line, so, to, p)
+        r["tiers"] = (None, None)
+        return r
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def text(r: dict, sport: str) -> str:
     """One line, no %: 'Pick engine: ML Texas (power +6.1 / trend +4.0 / blend +5.3, 3/3 agree) · best: Under 51.5 (lean)'."""
     sh = (lambda s: s.split()[-1] if sport == "nfl" and len(s.split()) > 1 else s)
@@ -340,7 +360,10 @@ def text(r: dict, sport: str) -> str:
         out += f" · best: {'ATS' if r['best'] == 'spread' else 'O/U'}"
     inst = r.get("institutional")
     if inst:
-        bits = [f"BCR tiers {inst['tiers'][0]}/{inst['tiers'][1]}"] if None not in inst["tiers"] else []
+        bits = [f"BCR tiers {inst['tiers'][0]}/{inst['tiers'][1]}"] if None not in inst.get("tiers", (None,)) else []
+        ol = inst.get("ol_lost")
+        if ol and max(ol) >= 0.5:
+            bits.append(f"OL starters out {sh(home)} {ol[0]:.1f} / {sh(away)} {ol[1]:.1f}")
         if inst.get("steam_pts"):
             bits.append(f"steam {sg * inst['steam_pts']:+.1f}")
         out += " · institutional skew-MC" + (f" ({', '.join(bits)})" if bits else "")
