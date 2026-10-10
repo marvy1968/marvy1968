@@ -482,6 +482,11 @@ def cmd_serve(s: Settings, args) -> int:
                 logging.getLogger(__name__).warning("hybrid EuroLeague refresh failed", exc_info=True)
         for s_ in _hy.SPORTS:
             _hy.league(state, s_)
+        try:
+            from . import pick_engine as _pe
+            _pe.warm(state)  # power ratings for the pick engine (CFB / NFL / WNBA overlays)
+        except Exception:  # noqa: BLE001
+            logging.getLogger(__name__).warning("pick engine warm failed", exc_info=True)
     threading.Thread(target=_warm_hybrid, daemon=True).start()
     defense.warm(state)  # pre-load defense tables so the first /overlay stays inside March_edge's 1.5 s timeout
 
