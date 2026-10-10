@@ -1,3 +1,38 @@
 $ marv run --sport cfb --force --dry-run
-started 2026-10-10 11:45:30 EDT
-RUNNING...
+started 2026-10-10 11:45:30 EDT, took 588s, exit 0
+
+🏈 <b>Marv College Football Predict Max</b> · Sat Oct 10
+
+7 games simulated · 0 qualified plays · veto pass rate 100%
+
+📝 <i>Paper trading: these picks are tracked, not bet, until the record proves an edge.</i>
+
+No plays cleared the veto stack.
+
+<b>📌 Rosters, tracked spots &amp; line moves</b> (paper, not picks)
+• Stanford @ Notre Dame (model total 51.8): roster: same starting QBs as their season leaders (no college injury feed: check team news); O/U spots (tracked, not picks): OVER-FADE→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)], OVER-FADE+MOVE→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)], OVER-FADE+INFLATED→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)]; line move: spread Notre Dame -38.5 → -39.5 (toward Notre Dame), total 53.5 → 55 (+1.5)
+• Maryland @ Ohio State (model total 53.5): roster: same starting QBs as their season leaders (no college injury feed: check team news); O/U spots (tracked, not picks): OVER-FADE→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)]; line move: spread Ohio State -34.5 → -32.5 (toward Maryland)
+• North Dakota State @ UNLV (model total 50.3): roster: same starting QBs as their season leaders (no college injury feed: check team news); O/U spots (tracked, not picks): UNDER-FADE→Over [unproven — no %]; line move: spread UNLV +3 → +2.5 (toward UNLV)
+• James Madison @ Georgia Southern (model total 57.7): roster: same starting QBs as their season leaders (no college injury feed: check team news); O/U spots (tracked, not picks): OVER-FADE→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)]; line move: total 54.5 → 51.5 (-3)
+• Georgia @ Alabama (model total 58.5): roster: Georgia: QB change? Huddle-Shotgun #14 G.Stockton threw most last game, season leader Shotgun #14 G.Stockton (no college injury feed: check team news); O/U spots (tracked, not picks): OVER-FADE→Under [53.5% hit (backtest n=1,829, ROI +2.1% @-110)]; line move: spread Alabama +3 → -2.5 (toward Alabama), total 50.5 → 51.5 (+1)
+• Indiana @ Nebraska (model total 53.4): roster: same starting QBs as their season leaders (no college injury feed: check team news); line move: spread Nebraska +9.5 → +8.5 (toward Nebraska), total 50.5 → 48 (-2.5)
+• Kansas @ Utah (model total 55.8): roster: same starting QBs as their season leaders (no college injury feed: check team news); line move: spread Utah -16 → -15.5 (toward Kansas), total 51.5 → 49.5 (-2)
+
+<b>🚫 Vetoed edges</b>
+• North Dakota State ML (-135) — North Dakota State @ UNLV: confidence 59% below 85%; road favorite
+• Over 51.5 (-110) — Georgia @ Alabama: O/U has no proven edge in backtests
+• Over 49.5 (-110) — Kansas @ Utah: O/U has no proven edge in backtests
+• Over 51.5 (-110) — James Madison @ Georgia Southern: O/U has no proven edge in backtests
+• Under 55 (-105) — Stanford @ Notre Dame: experts split on the total; O/U has no proven edge in backtests
+• Over 48 (-115) — Indiana @ Nebraska: O/U has no proven edge in backtests
+• Under 56.5 (-105) — Maryland @ Ohio State: experts split on the total; O/U has no proven edge in backtests
+• James Madison ML (-310) — James Madison @ Georgia Southern: confidence 75% below 85%; road favorite
+• Utah ML (-750) — Kansas @ Utah: simulation instability
+
+<i>Model output, not a guarantee. Bet responsibly.</i>
+
+
+--- stderr ---
+2026-10-10 11:45:40,688 INFO Odds API americanfootball_ncaaf: 71153 credits left
+2026-10-10 11:45:41,807 INFO cfb: Odds API matched 47/264 games
+2026-10-10 11:55:18,198 INFO cfb: stats experts projected 21/264 games
