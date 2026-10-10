@@ -722,3 +722,22 @@ The 2025-26 "top matchups go Under about 60%" did not replicate: on 2018-2024 it
 random 10-game weekly sets. By season the Under rate was 50.9, 58.8, 53.5, 55.9, 45.5, 50.0, 52.6%. The grade-gap and top-10
 moneyline/spread results stay at or below the market favorite and 50% covers. The scoring-grade Under lead (56% on the 2018-2024
 overlap, 55.7% on the true 2022-25 holdout) is the only survivor and remains a paper-tracked lean.
+
+## Hybrid H2H + Trend Catcher with dynamic velocity decay (pasted formula) stress test, college football 2015-2026
+
+Formula as pasted: HPR = (base_net_eff + 1.2 x off_delta x decay - 0.8 x def_delta) x talent multiplier, decay = min(1, 1/(1+|off_delta|)),
+margin = HPR_home - HPR_away. EPA/play was scaled x70 to points per game so the pasted weights make sense; base = season-to-date net EPA (prior
+season carry), deltas = last 3 games minus baseline; margin = a + b x HPR difference fitted on 2015-22 and tested on 2023-26 (6,295 FBS games with
+lines). The talent multiplier is 1.0 (CFBD talent not available here). The pasted script's total is 51.5 + 0.10 x (power gap): nearly constant, so over/under was not testable.
+
+| Variant | Test corr | Test margin MAE (market 12.04) | ATS on edges of 2+ / 4+ pts |
+|---|---|---|---|
+| Base net efficiency only | 0.519 | **13.31** | 48.8% / 48.0% |
+| Trend, no decay (1.2/0.8) | 0.407 | 14.14 | 50.4% / 50.7% |
+| Trend + velocity decay (1.2/0.8) | 0.448 | 13.92 | 50.1% / 49.9% |
+| Decay, weights 0.3/0.3 | 0.506 | 13.43 | 49.0% / 48.9% |
+| Decay, weights 2.0/1.5 | 0.354 | 14.56 | 49.8% / 50.0% |
+
+* The decay cap helps relative to the raw trend (14.14 -> 13.92) but every trend variant is worse than the season baseline (13.31) and far worse than the market (12.04): short-term momentum is mostly noise.
+* Random search over 300 trend-weight pairs: only 4.0% beat the baseline on the test years; the train-best pair gave 13.30 vs 13.31 (no gain).
+* No variant produces an ATS edge (48-51%, n up to 1,650). Not adopted.
