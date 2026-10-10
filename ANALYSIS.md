@@ -678,3 +678,30 @@ affected games were 464 (765 QB-change and 322 WR1-out team-games).
 
 Result: the adjustment makes projections worse and has no betting value, so it is now shown as an info note and
 **not applied** unless `REGIME_ADJUST=on`. The backup-QB veto (fewer than 3 starts) is unchanged.
+
+## Power grades (0-100) and matchup gaps: college football FBS vs FBS, 2018-2025 (4,507 games)
+
+Method: every team-game box stat (EPA, success, explosiveness, stuff, sacks, turnovers, points per drive, red zone and more; offense = own
+stats, defense = what opponents did against the team) is averaged to date with a prior-season carryover, z-scored per season,
+and a ridge model trained on earlier seasons only turns them into an offense power and a defense power. Teams are graded 0-100 by
+percentile within the season. Not included: the depth x blue-chip multiplier (needs CFBD /talent, not available here; to do on the VM).
+
+| Higher-grade team, gap in grade points | Wins outright | Covers | Market favorite wins (same games) |
+|---|---|---|---|
+| 0-5 | 53.4% | 50.9% | 62.3% |
+| 10-15 | 67.3% | 54.6% | 66.3% |
+| 20-30 | 70.6% | 48.7% | 73.2% |
+| 40-60 | 81.8% | 49.0% | 82.9% |
+| 60-100 | 89.2% | 48.7% | 89.5% |
+
+* The grade gap predicts winners cleanly, but the market favorite wins as often or more (73.0% vs 69.9% overall). Covers sit at about 50%
+  in every bucket, including 90+ vs 70-80 (n=179: wins 72.1% vs the market favorite's 77.7%, covers 48.9%). No moneyline or spread edge.
+* **One lead: totals.** Define a scoring grade = average of both offense grades and the inverse of both defense grades. Games at 59 or
+  higher (top 20%) went **Under 56.5% in training (2018-21, n=398), 55.7% on the held-out 2022-25 (n=436), 55.9% in 2024-25 (n=222)**
+  against a 52.4% break-even at -110 (about +6% ROI). By season the top-quintile Over rate was 46.6, 47.3, 46.4, 36.7, 44.5, 45.8, 51.3, 35.7%.
+* Monte Carlo: shuffling the Over/Under labels 3,000 times, a quintile this lopsided shows up by chance p = 0.0013 (5 quintiles tested).
+  Replacing the grade with random numbers and repeating the discover-on-train, test-on-holdout pipeline 1,000 times, the real holdout
+  (55.7%) beat 98.9% of the random runs (random mean 49.4%, sd 2.5%).
+* Caveats: the holdout 95% interval (about 51-60%) still touches break-even; it is the same family as the existing OVER-FADE tags (the
+  market overprices scoring), so it is probably the same edge, not an additional one; closing totals only, no Bovada prices.
+  Treat as a paper-tracked lean until 100+ graded live bets stay above 52.4%.
