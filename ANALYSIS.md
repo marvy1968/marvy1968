@@ -705,3 +705,20 @@ percentile within the season. Not included: the depth x blue-chip multiplier (ne
 * Caveats: the holdout 95% interval (about 51-60%) still touches break-even; it is the same family as the existing OVER-FADE tags (the
   market overprices scoring), so it is probably the same edge, not an additional one; closing totals only, no Bovada prices.
   Treat as a paper-tracked lean until 100+ graded live bets stay above 52.4%.
+
+### Top-10 games per week by combined grade (CFB FBS vs FBS)
+
+Rule fixed before testing on earlier years: each Monday-Sunday week, the 10 games with the highest combined grade (higher + lower team's grade).
+
+| Sample | Games | Higher-grade team wins | Market favorite wins | Covers | Under |
+|---|---|---|---|---|---|
+| Newest 105 (Nov 2025-Oct 2026) | 105 | 62.9% | 68.6% | 49.5% | 60.0% |
+| All 2025-26 weeks | 175 | 65.7% | 70.9% | 54.4% | 56.6% |
+| **2018-2024 (95 weeks)** | 851 | 67.8% | 73.0% | 51.0% | **52.5%** |
+| 2018-2024 scoring grade 59+ | 140 | 66.4% | 72.9% | 47.1% | 56.0% (n=134, overlaps the 2018-21 discovery years) |
+| 2018-2024 all other games | 3,010 | 70.4% | 73.1% | 49.6% | 49.8% |
+
+The 2025-26 "top matchups go Under about 60%" did not replicate: on 2018-2024 it is 52.5% (+0.2% ROI at -110), above only 87% of
+random 10-game weekly sets. By season the Under rate was 50.9, 58.8, 53.5, 55.9, 45.5, 50.0, 52.6%. The grade-gap and top-10
+moneyline/spread results stay at or below the market favorite and 50% covers. The scoring-grade Under lead (56% on the 2018-2024
+overlap, 55.7% on the true 2022-25 holdout) is the only survivor and remains a paper-tracked lean.
