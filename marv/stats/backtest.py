@@ -22,8 +22,20 @@ from .features import build_features, feature_columns
 log = logging.getLogger(__name__)
 
 
+class BudgetExhausted(Exception):
+    """Raised after the checkpoint is saved when the time budget runs out; rerun the same command to resume."""
+
+
 def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], train_years: int = 6,
-                 current: int | None = None, feature_filter=None) -> pd.DataFrame:
+                 current: int | None = None, feature_filter=None, ckpt: Path | None = None,
+                 budget_s: float | None = None) -> pd.DataFrame:
+    """ckpt: pickle path; finished chunks are saved there and skipped on a rerun. budget_s: stop (after saving) once exceeded.
+    A resumed run refits the experts at its first unfinished chunk, so its projections can differ slightly from a straight run
+    (still walk-forward: every fit uses only earlier games)."""
+    import pickle
+    import time
+    t0 = time.time()
+    done = pickle.loads(ckpt.read_bytes()) if ckpt and ckpt.exists() else {}
     seasons = list(range(min(test_seasons) - train_years, max(test_seasons) + 1))
     seasons = [s for s in seasons if s >= module.first_season]
     games, tg = module.load(cache, seasons, current)
@@ -50,6 +62,14 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
         while c0 <= end:
             c1 = c0 + pd.Timedelta(days=module.chunk_days)
             chunk = sm[(sm["date"] >= c0) & (sm["date"] < c1)]
+            key = c0.isoformat()
+            if key in done:
+                if done[key] is not None:
+                    rows.append(done[key])
+                c0 = c1
+                continue
+            if budget_s is not None and time.time() - t0 > budget_s:
+                raise BudgetExhausted(f"{len(done)} chunks saved at {ckpt}; rerun to resume")
             if not chunk.empty:
                 train = model[(model["date"] < c0) & (model["season"] >= season - train_years)]
                 history = [g for g in game_objs if g.start < c0.to_pydatetime()
@@ -65,6 +85,10 @@ def walk_forward(module: StatsModule, cache: Path, test_seasons: list[int], trai
                         continue
                     proj = panel.project(chunk)
                     rows.append(pd.concat([chunk[["game_id", "date", "season", "team", "home", "points", "gp"]], proj], axis=1))
+                    done[key] = rows[-1]
+                    if ckpt:
+                        ckpt.parent.mkdir(parents=True, exist_ok=True)
+                        ckpt.write_bytes(pickle.dumps(done))
             c0 = c1
         log.info("%s season %s projected", module.key, season)
 

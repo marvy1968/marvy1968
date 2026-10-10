@@ -70,8 +70,10 @@ def tune_and_report(module, df: pd.DataFrame, val_to: int, weights=(2, 1, 2), ta
     return out
 
 
-def run(module, cache: Path, seasons: list[int], val_to: int, out_dir: Path, current: int | None = None) -> dict:
-    df = B.walk_forward(module, cache, seasons, current=current)
+def run(module, cache: Path, seasons: list[int], val_to: int, out_dir: Path, current: int | None = None,
+        resume: bool = False, budget_s: float | None = None) -> dict:
+    ckpt = out_dir / f"ckpt_{module.key}_{seasons[0]}-{seasons[-1]}.pkl" if resume else None
+    df = B.walk_forward(module, cache, seasons, current=current, ckpt=ckpt, budget_s=budget_s)
     out_dir.mkdir(parents=True, exist_ok=True)
     df.to_pickle(out_dir / f"{module.key}_walkforward.pkl")
     result = tune_and_report(module, df, val_to)

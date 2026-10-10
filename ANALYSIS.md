@@ -887,3 +887,17 @@ Walk-forward 2023-26 (tools/wnba_institutional_bt.py, graded at the ESPN close @
 Brier: std 7.5 0.2108 vs the fitted std (12.5) 0.2051 vs market 0.1968 - 7.5 is overconfident (the real residual std is
 ~12.5), so the 7.5 setting makes the simulated probabilities worse even though it barely moves the side picks. Nothing
 clears 52.4% on the full sample except the depth rule, which is a post-hoc single-feature cut -> paper, no %.
+
+## NFL O-line index (snap-weighted, from snap counts + the weekly injury report), 2017-2026
+
+`marv/data/nfl_oline.py`: the five linemen with the most offensive snaps over the previous 4 games, each weighted by his usual snap share;
+Out/Doubtful costs his share, Questionable 25% of it. `oline_loss` = starters lost (0-5), `oline_index` = 1 - 0.08 x loss (clipped 0.6-1.0).
+Test (2,558 games): regress (final margin - closing line) on (away loss - home loss). Coefficient +0.12 points per lineman (t = +0.23); +0.70 in
+2017-21, -0.47 in 2022-26. Totals: +0.16 per lineman (t = +0.31). Rules: away line hurt by 1+ -> home covers 52.1% (n=73); home line hurt by 1+ -> away covers 60.0% (n=60, +/-12 points, not significant). The market already prices O-line losses; the
+index is kept as an info feature, not a pick signal.
+
+## Making the long backtests finish (VM)
+
+`stats-backtest --resume` saves each finished week-sized chunk to `state/reports/ckpt_<sport>_<first>-<last>.pkl`; `--budget-min N` stops cleanly after N minutes
+and prints PARTIAL, so the job can simply be repeated until it prints the report. Resumed runs refit the experts at the first unfinished chunk (still no look-ahead).
+The ESPN historical-odds scrape for the college basketball training seasons is also cached per half-month, so killed runs keep their finished chunks.

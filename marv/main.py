@@ -276,8 +276,14 @@ def cmd_stats_backtest(s: Settings, args) -> int:
     first, last = (int(x) for x in args.seasons.split("-"))
     seasons = list(range(first, last + 1))
     val_to = args.val_to or seasons[len(seasons) * 2 // 3 - 1]
-    result = report.run(module, Path(s.state_dir) / "cache", seasons, val_to, Path(s.state_dir) / "reports",
-                        current=module.season_of(datetime.now()))
+    from .stats.backtest import BudgetExhausted
+    try:
+        result = report.run(module, Path(s.state_dir) / "cache", seasons, val_to, Path(s.state_dir) / "reports",
+                            current=module.season_of(datetime.now()), resume=args.resume or bool(args.budget_min),
+                            budget_s=args.budget_min * 60 if args.budget_min else None)
+    except BudgetExhausted as exc:
+        print(f"PARTIAL: time budget used up ({exc}). Run the same command again to continue.")
+        return 0
     print(result["text"])
     return 0
 
@@ -844,6 +850,8 @@ def main(argv: list[str] | None = None) -> int:
     sb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "mlb", "ncaab", "ncaaw", "euroleague"])
     sb.add_argument("--seasons", required=True, help="e.g. 2016-2025 (test seasons; training uses 6 prior years)")
     sb.add_argument("--val-to", type=int, help="last season used for tuning (default: first two thirds)")
+    sb.add_argument("--resume", action="store_true", help="save finished chunks to state/reports/ckpt_*.pkl and skip them on a rerun")
+    sb.add_argument("--budget-min", type=float, help="stop cleanly after this many minutes (implies --resume); rerun to continue")
 
     hb = sub.add_parser("h2h-backtest", help="backtest the head-to-head stat tally + last-3 trend + Monte Carlo")
     hb.add_argument("--sport", required=True, choices=["nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw", "euroleague"])
