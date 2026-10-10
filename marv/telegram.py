@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+from . import proven
 from .models import Pick, Prediction
 from .sports import Sport
 
@@ -164,6 +165,14 @@ def format_card(sport: Sport, preds: list[Prediction], record: dict | None = Non
             start = g.start.astimezone(ET).strftime("%a %-I:%M%p ET")
             notes = f" · {esc('; '.join(pred.notes))}" if pred.notes else ""
             league = f"{esc(g.league)} · " if sport.key == "soccer" and g.league else ""
+            if proven.gated(sport.key):  # Marv's own game picks have no proven backtest: no %, fair price or Kelly
+                rows.append(
+                    f"• <b>{describe(pk, sport)}</b>\n"
+                    f"   {league}{esc(g.away)} @ {esc(g.home)} · {start}\n"
+                    f"   {proven.UNPROVEN} · paper only\n"
+                    f"   model: {_model_call(pred)}, total {pred.model_total:.1f}{notes}"
+                )
+                continue
             rows.append(
                 f"• <b>{describe(pk, sport)}</b>\n"
                 f"   {league}{esc(g.away)} @ {esc(g.home)} · {start}\n"

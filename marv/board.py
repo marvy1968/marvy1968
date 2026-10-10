@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from . import edges as E
+from . import proven
 from .bridge import GAME, find_game  # noqa: F401  (find_game re-exported for the query bot)
 from .data.teams import similarity
 
@@ -86,6 +87,21 @@ def offers(event: dict, books: list[str]) -> dict:
     return {"best": best, "fair": fair}
 
 
+def ml_consensus(event: dict) -> dict:
+    """{'home': median ML, 'away': median ML} across every book quoting the game, or {}."""
+    home, away = event["home_team"], event["away_team"]
+    hs, as_ = [], []
+    for b in event.get("bookmakers", []):
+        for m in b.get("markets", []):
+            outs = {o["name"]: o for o in m.get("outcomes", [])}
+            if m["key"] == "h2h" and home in outs and away in outs:
+                hs.append(outs[home]["price"])
+                as_.append(outs[away]["price"])
+    if not hs:
+        return {}
+    return {"home": sorted(hs)[len(hs) // 2], "away": sorted(as_)[len(as_) // 2]}
+
+
 def model_prob(rec: dict, sport: str, market: str, side: str, point) -> float:
     cfg = GAME.get(sport, GAME["nfl"])
     if market == "ml":
@@ -136,6 +152,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
     now = datetime.now(timezone.utc)
     books = [b.strip().replace("bovado", "bovada") for b in os.environ.get("ODDS_BOOKS", DEFAULT_BOOKS).split(",") if b.strip()]
     entries = []
+    ml_prices = {}
     for sport in sports:
         recs = [r for r in preds.values() if r["sport"] == sport
                 and now <= datetime.fromisoformat(r["start"]) <= now + timedelta(hours=hours)]
@@ -147,11 +164,25 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
                 events += oddsapi.fetch(settings.odds_api_key, key)
             except Exception as exc:
                 log.warning("board odds %s: %s", key, exc)
+        if events:  # /parlay reads Bovada's real prices from here (no extra credits)
+            try:
+                from . import parlay
+                parlay.save_prices(state, sport, events, now)
+            except Exception:  # noqa: BLE001
+                log.exception("bovada price save failed")
         for rec in recs:
             ev = max(events, key=lambda e: min(similarity(rec["home"], e["home_team"]), similarity(rec["away"], e["away_team"])),
                      default=None)
             if ev and min(similarity(rec["home"], ev["home_team"]), similarity(rec["away"], ev["away_team"])) >= 0.75:
                 entries += game_entries(sport, rec, ev, books)
+                ml = ml_consensus(ev)
+                if ml:
+                    ml_prices[f"{sport}:{rec['game_id']}"] = {**ml, "at": now.isoformat()}
+    if ml_prices:  # median moneyline per game (UPSET ALERT uses it to name the favourite's price)
+        try:
+            (state / "ml_prices.json").write_text(json.dumps(ml_prices, indent=1))
+        except OSError:
+            pass
     entries += _props_entries(state)
     entries.sort(key=lambda e: (e["status"] != "recommended", -e["edge"]))
     (state / "board.json").write_text(json.dumps({"built": now.isoformat(), "entries": entries}, indent=1))
@@ -183,15 +214,27 @@ def _props_entries(state: Path, min_edge: float = 0.04) -> list[dict]:
     return out
 
 
-def text(entries: list[dict], limit: int = 12) -> str:
+def text(entries: list[dict], limit: int = 12, h2h=None) -> str:
+    """h2h: optional callable(entry) -> Marv H2H line; printed once per game under its first entry."""
     if not entries:
         return "📋 MARV EDGE BOARD\nNo edges right now (or no projections / odds yet)."
     rec = [e for e in entries if e["status"] == "recommended"]
     lines = ["📋 MARV EDGE BOARD", f"{len(rec)} recommended · {len(entries) - len(rec)} leans/paper"]
+    seen = set()
     for e in entries[:limit]:
         tag = {"recommended": "✅", "lean": "·", "paper": "📝"}[e["status"]]
-        lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {e['p_marv']:.0%}"
-                     + (f" / market {e['p_market']:.0%}" if e.get("p_market") else "")
-                     + f" · edge {e['edge']:+.1%} · stake {e['stake']:.1%}")
+        qg = proven.query_gated(e["sport"]) if h2h is not None else proven.gated(e["sport"])
+        if qg:
+            lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {proven.UNPROVEN}")
+        else:
+            lines.append(f"{tag} {e['sport'].upper()} {e['pick']} {int(e['price']):+d} ({e['book']}) · Marv {e['p_marv']:.0%}"
+                         + (f" / market {e['p_market']:.0%}" if e.get("p_market") else "")
+                         + f" · edge {e['edge']:+.1%} · stake {e['stake']:.1%}")
+        gk = (e["sport"], e.get("game"))
+        if h2h is not None and gk not in seen:
+            seen.add(gk)
+            hl = h2h(e)
+            if hl:
+                lines.append("   " + hl)
     lines.append("✅ = backtested profitable market · · = lean, no proven edge · 📝 = paper (props)")
     return "\n".join(lines)

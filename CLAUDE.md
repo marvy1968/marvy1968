@@ -92,3 +92,10 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
 - Keep PAPER_MODE on unless the owner explicitly turns it off; picks are graded in `state/picks.json`.
 - Don't print or commit secrets from `.env`. Git remote: github.com/marvy1968/marvy1968, branch
   `claude/analysis-ak180w`.
+
+12. Hybrid engine (`marv/hybrid.py`, backtest `tools/hybrid_bt.py` -> state/reports/hybrid_backtest.json): trend-catcher
+    modifier (last-3 turnover spike / ypp-margin drop, floor 0.80) -> full-spectrum winner-take-all category matrix
+    (pts/drive O+D, net EPA, ypp, success, TO rate, explosive, ypp margin, pace) for the ML/ATS side -> Monte Carlo on
+    pace + scoring variance ONLY for the total (median/p25/p75). Wired into the H2H overlay, /game and Upset Alert as
+    FOR/AGAINST factors. Walk-forward Oct 9 2026: nothing passes the proven bar (CFB ATS 50.2%, O/U 51.0%; NFL ATS
+    48.3%), so no %. Re-run the backtest each offseason before adding anything to marv/proven.py.

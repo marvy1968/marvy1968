@@ -21,6 +21,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from . import proven
 from .models import Pick, Prediction
 from .sports import Sport
 
@@ -50,19 +51,24 @@ def _row_for(pred: Prediction, rank: int) -> list:
     active = [pk for pk in pred.picks if pk.active]
     if active:
         status = "CERTIFIED PLAY"
-        pred_txt = "<br/>".join(_pick_text(pk) for pk in active)
+        pred_txt = "<br/>".join(_pick_text(pk, g.sport) for pk in active)
     else:
         reasons = sorted({v for pk in pred.picks for v in pk.vetoes}, key=len)
         status = "VETOED"
         fav = g.home if pred.home_win >= 0.5 else g.away
         conf = max(pred.home_win, 1 - pred.home_win)
-        pred_txt = f"Lean {_short(fav)} {conf:.0%}, total {pred.model_total:.1f} · no play"
+        conf_txt = f"{conf:.0%}" if proven.show_prob(g.sport, "ml") else f"({proven.UNPROVEN})"
+        pred_txt = f"Lean {_short(fav)} {conf_txt}, total {pred.model_total:.1f} · no play"
         if reasons:
             status += f"<br/><font size=7>{reasons[0][:48]}</font>"
     return [str(rank), f"{_short(g.away)} @ {_short(g.home)}", ml, ou, status, pred_txt]
 
 
-def _pick_text(pk: Pick) -> str:
+def _pick_text(pk: Pick, sport: str | None = None) -> str:
+    if not proven.show_prob(sport, pk.market):
+        what = (f"{pk.side} ML" if pk.market == "ml" else f"{pk.side} {pk.line:g}" if pk.market == "total"
+                else f"{pk.side} {pk.line:+g}")
+        return f"<b>{what}</b> ({proven.UNPROVEN})"
     if pk.market == "ml":
         return f"<b>{pk.side} ML</b> ({pk.prob:.0%})"
     if pk.market == "total":
@@ -107,7 +113,10 @@ def weekly_chart(sport: Sport, preds: list[Prediction], out: Path, now: datetime
     res = sport_results(sport.key)
     note = ("<b>Integrity note:</b> Only CERTIFIED rows passed every veto (expert agreement, confidence floor, "
             "injuries, stale data). Everything else is a lean, not a pick.")
-    if res and res.get("ml"):
+    if proven.gated(sport.key):
+        note += (" No % is shown: no game-pick logic for this sport has passed the proven bar (walk-forward, 100+ bets, "
+                 "positive ROI after the vig). High win rates come from heavy favorites and lost money at Bovada.")
+    elif res and res.get("ml"):
         ml = res["ml"]
         note += (f" Backtested accuracy of certified moneylines on unseen seasons: {ml['test_acc']:.1%} "
                  f"over {ml['test_picks']} picks; heavy favorites, so accuracy is not profit.")
