@@ -741,3 +741,18 @@ lines). The talent multiplier is 1.0 (CFBD talent not available here). The paste
 * The decay cap helps relative to the raw trend (14.14 -> 13.92) but every trend variant is worse than the season baseline (13.31) and far worse than the market (12.04): short-term momentum is mostly noise.
 * Random search over 300 trend-weight pairs: only 4.0% beat the baseline on the test years; the train-best pair gave 13.30 vs 13.31 (no gain).
 * No variant produces an ATS edge (48-51%, n up to 1,650). Not adopted.
+
+### Talent / depth multiplier (CFBD 247Sports talent composite, 2015-2026) added to the HPR formula
+
+Talent z-scored per season; multiplier TM = 1 + c x z on each team's HPR. Same split (fit 2015-22, test 2023-26, 2,013 games with talent and lines).
+
+| Variant | Margin MAE (market 12.07) | ATS on 4+ pt edges |
+|---|---|---|
+| Base net efficiency | 13.30 | 48.3% |
+| Base x talent multiplier (c = 0.10) | 13.26 | 49.3% |
+| Trend + decay (pasted weights) | 13.95 | 49.9% |
+| Trend + decay x talent multiplier (c = 0.10) | 13.91 | 49.7% |
+| Talent difference alone | 15.43 | n/a |
+
+Talent adds almost nothing (0.04 pts of margin error) and nothing against the spread. Correlation between the talent gap and how far the
+final margin missed the market line is -0.008, so the market already prices roster talent. The multiplier is not adopted.
