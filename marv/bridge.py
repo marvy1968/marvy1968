@@ -281,6 +281,36 @@ def _from_card(c: dict) -> dict:
             "model_total": c.get("rating_total") or 0.0, "notes": []}
 
 
+def _pick_engine(state_dir: Path, sport: str, rec: dict, kind: str | None = None, t: str | None = None,
+                 line: float | None = None, over: bool | None = None, live: bool = False) -> str:
+    """' · Pick engine ...' (power rating + trend analyzer + Monte Carlo, marv/pick_engine.py) for CFB / NFL / WNBA,
+    with agree / disagree vs the alert's bet. Never a % (the backtest has not passed marv/proven.py). '' if no read."""
+    from . import pick_engine as PE
+    from . import insight as I
+    if sport not in PE.SPORTS or live:
+        return ""
+    try:
+        ln = I.lines(state_dir, sport, rec.get("game_id"), rec["home"], rec["away"]) or {}
+        hs = float(ln["spread_last"]) if ln.get("spread_last") is not None else None
+        tl = float(ln["total_last"]) if ln.get("total_last") is not None else None
+        if kind == "spread" and line is not None and t:
+            hs = float(line) if t == "home" else -float(line)
+        if kind == "total" and line is not None:
+            tl = float(line)
+        r = PE.game(state_dir, sport, rec["home"], rec["away"], hs, tl, bool(rec.get("neutral")), block=False)
+        if not r:
+            return ""
+        tag = ""
+        if kind in ("ml", "spread") and t:
+            mk = "spread" if kind == "spread" and "spread" in r["picks"] else "ml"
+            tag = " agrees" if r["picks"][mk] == t else " disagrees"
+        elif kind == "total" and over is not None and "total" in r["picks"]:
+            tag = " agrees" if (r["picks"]["total"] == "over") == over else " disagrees"
+        return " · " + PE.text(r, sport).replace("Pick engine:", f"Pick engine{tag}:", 1) + " (paper, no %)"
+    except Exception:  # noqa: BLE001 - the engine line is optional
+        return ""
+
+
 def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
             other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
     """Marv Predict read on one March_edge alert: every metric Marv has on the game (ratings margin, O/D category
@@ -346,6 +376,8 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         return Overlay(False)
 
     verdict, why = ins.verdict, ins.why()
+    why += _pick_engine(state_dir, sport, rec, kind, t if kind in ("ml", "spread") else None, line,
+                        side.lower().startswith("o") if kind == "total" else None, live)
     if kind in ("ml", "spread") and abs(margin) < CLOSE_MARGIN:
         # Close (~50/50) game: say who the H2H tie-break picks, never print a % (no honest edge on a coin flip).
         hp = _h2h_pick(card, rec, margin)
@@ -445,6 +477,7 @@ def game_h2h(state_dir: Path, sport: str, team: str | None = None, other: str | 
             why += " · " + HY.text(hr, rec["home"], rec["away"], sport) + " (paper, no %)"
     except Exception:  # noqa: BLE001 - the hybrid line is optional
         pass
+    why += _pick_engine(state_dir, sport, rec)
     return Overlay(True, "pick", why, prob, f"{rec['away']} @ {rec['home']}", pick)
 
 

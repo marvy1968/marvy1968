@@ -63,6 +63,12 @@ PROVEN: dict[tuple[str, str, str], Evidence] = {
     # Hybrid engine (marv/hybrid.py, tools/hybrid_bt.py, state/reports/hybrid_backtest.json), every sport: NOTHING
     #   meets the bar. NBA ATS 49.0% / O/U 49.6% / upset-rule dog ATS 50.8% (all ROI < 0); NFL/CFB as in hybrid.py;
     #   WNBA, NCAAB, NCAAW, EuroLeague have no historical lines to grade. Hybrid lines never print a %.
+    # Refined hybrid (Oct 10 2026: velocity decay + shrinkage + efficiency term + calibrated restricted MC, tools/
+    #   hybrid_refine_bt.py; WNBA now graded on ESPN consensus closing lines 2019-26): fixed-threshold ATS/O/U all lose
+    #   (NFL 49.4/49.6%, CFB 49.2/50.5%, WNBA 49.5/49.0%). Nested top-20% NFL ATS 149 @ 56.4% (+7.6%) and WNBA ATS 243 @
+    #   53.1%, O/U 135 @ 53.3% meet n/ROI/seasons, but a shuffled-outcome placebo passes some rule of the 30 tested 78%
+    #   of the time (best per-rule p 0.048) -> not proven. Soft-favourite dog ATS (NFL 54.9% of 237, WNBA 56.5% of 230)
+    #   is within p ~0.1 of random heavy-favourite dogs; CFB HPR upset rule 50.4% of 617 (-3.8%). Nothing added.
 }
 # Refinements nested inside a proven rule print the parent's (lower) number, not their own smaller-sample one.
 PARENT = {"OVER-FADE+MOVE": "OVER-FADE", "OVER-FADE+INFLATED": "OVER-FADE"}

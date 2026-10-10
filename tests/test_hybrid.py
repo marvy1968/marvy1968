@@ -137,3 +137,36 @@ class HybridBasketballTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+LG = {**{c: (prof()[c], 0.5) for c in H.CATS}, "poss": (24.0, 3.0), "tov": (0.12, 0.08), "yppm": (0.5, 1.5),
+      "off": (2.0, 0.8), "def": (2.0, 0.8)}
+
+
+class RefinedHybridTest(unittest.TestCase):
+    def test_velocity_decay_saturates(self):
+        self.assertEqual(H.velocity_decay(0.0, 1.0, 1.0, 1.0), 0.0)
+        small, big = H.velocity_decay(0.1, 1.0, 1.0, 1.0), H.velocity_decay(10.0, 1.0, 1.0, 1.0)
+        self.assertAlmostEqual(small, 0.1 / 1.1)
+        self.assertLess(big, 1.0)                      # 10 / 11: a huge swing barely counts more than one sd
+        self.assertEqual(H.velocity_decay(5.0, 1.0, 0.0, 1.0), 0.0)
+
+    def test_refined_analyze_keys_and_soft_favourite(self):
+        r = H.analyze(prof(), prof(), "nfl", spread=-10.0, total=44.0, lg=LG)
+        self.assertEqual(r["engine"], "refined")
+        for k in ("proj_margin", "ats", "mc", "ou", "mod_home", "home_pts", "won", "soft_fav"):
+            self.assertIn(k, r)
+        self.assertEqual(r["soft_fav"]["fav"], "home")  # equal teams: model ~HFA 2, market -10 -> soft
+        self.assertIsNone(H.analyze(prof(), prof(), "nfl", spread=-2.0, lg=LG)["soft_fav"])  # not heavy
+        self.assertNotIn("engine", H.analyze(prof(), prof(), "nfl", spread=-3.0))            # no league stats -> old
+
+    def test_bcr_guard_and_hpr(self):
+        self.assertEqual(H.bcr_guard(-14.0, ((0.80, 1.1), (0.30, 0.9)))["fav"], "home")
+        self.assertIsNone(H.bcr_guard(-14.0, ((0.60, 1.1), (0.30, 0.9))))
+        self.assertIsNone(H.bcr_guard(-3.0, ((0.80, 1.1), (0.30, 0.9))))
+        r = H.analyze(prof(off=3.0), prof(), "cfb", spread=-21.0, total=55.0, lg=LG, bcr=((0.85, 1.2), (0.2, 0.8)))
+        self.assertIsNotNone(r["bcr_guard"])
+        self.assertGreater(r["hpr"]["margin"], 0)
+        txt = H.text(r, "Georgia", "Kent State", "cfb")
+        self.assertIn("BCR guard", txt)
+        self.assertNotIn("%", txt)                      # nothing proven -> never a percentage

@@ -104,3 +104,8 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     59.1+ (two strong offenses vs two weak defenses, from the grade pipeline in `research/grade_backtest/`) -> UNDER lean. 55.7% of 436
     held-out 2022-25 games, same family as OVER-FADE; logged to `state/ou_tags_log.json` and graded by the usual tag grading. It is not in
     `marv/proven.py` (no live graded sample yet). Needs 100+ graded live bets above 52.4% before it is more than a lean.
+
+13. Refined hybrid (Oct 10 2026, `marv/hybrid.py` REFINED / `refined_analyze`, NFL/CFB/WNBA): velocity decay + shrinkage +
+    efficiency term + calibrated restricted MC; CFB adds Marvin's HPR (BCR/depth from `state/cache/cfb_bcr.csv`, `tools/cfb_bcr.py`)
+    and a BCR guard (fav BCR > 0.70 vs dog < 0.45 = never an upset fade). Soft-favourite tag (NFL/WNBA) is paper only. Backtests:
+    `tools/hybrid_refine_bt.py`, `tools/cfb_upset_bt.py`, WNBA lines `tools/wnba_lines.py`. Nothing passed bar + placebo -> no %.
