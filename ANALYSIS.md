@@ -766,6 +766,25 @@ final margin missed the market line is -0.008, so the market already prices rost
   With the top team in a severe slump (off delta about -1.2, def delta about +0.6) it favors the mid-tier team in 25/50 with the decay cap and 40/50 without: the cap halves the "upset signals" but does not remove them.
   Whether those signals are false depends on whether slumps are noise; the real-data test (above) says short-term trends are mostly noise, so lighter trend weights (0.3/0.3) beat the pasted 1.2/0.8.
 
+## Upset model: market probability plus extra features (NFL 2019-25, college football 2016-19), walk-forward
+
+Question: does anything beat the market price when betting underdogs? Target = the dog wins outright (NFL, closing consensus moneylines from nflverse,
+not Pinnacle's own) or the dog covers (college football, Bovada's real spread odds, 2014-19: no historical college moneylines exist here).
+Baseline = the market's no-vig probability, recalibrated on earlier seasons. Extras: Marv margin vs market, rest difference, wind, temperature,
+dome, division game, dog at home (NFL); Marv margin vs close, line move from the open, Bovada vs sharp gap, spread size, dog at home (college).
+
+| | NFL dog ML (1,954 games) | College dog +points at Bovada (2,682 games) |
+|---|---|---|
+| Log-loss: market / market + features | 0.6086 / 0.6101 (worse) | 0.6924 / 0.6931 (worse) |
+| Flat bet every dog | ROI -4.7% | cover 51.6% |
+| Model edge >= 3% / 4% | 115 bets, 40.9% hit, ROI -8.4% [-29%, +12%] | 215 bets, 55.8% cover, ROI +6.5% [-6%, +20%] |
+| Model edge >= 5% / 6% | 20 bets, ROI -33.7% | 61 bets, 63.9% cover, ROI +21.6% [0%, +43%] |
+| Rule: Bovada gives the dog 0.5+ more points than sharp | n/a | 241 bets, 49.8%, ROI -3.5% |
+
+* No feature improves out-of-sample log-loss in either sport; the market coefficient is 1.12 (about calibrated) and every extra coefficient is about 0. Shuffling the features (100 times) gave a better NFL ROI than the real features 97% of the time.
+* The college ROI at high edge thresholds is positive but is the winner's curse: the thresholds were looked at after the fact, n shrinks to 61, intervals include zero, and the model that selects those bets scores worse than the market overall.
+* Not tested: opening lines in the NFL (none here), Pinnacle's own moneylines, travel, and late injury news at kickoff time. No upset edge found in the data we have.
+
 ## Refined hybrid (H2H + Trend Catcher + Dynamic Velocity Decay + Restricted MC totals) and Marvin's CFB HPR / BCR, Oct 10 2026
 
 Walk-forward optimizer `tools/hybrid_refine_bt.py` (every hyper-parameter chosen on earlier seasons, graded on the next season at
@@ -830,3 +849,19 @@ earlier seasons only, from 2022 wk 4), closing line @-110, same 710 games as the
   by season 51.2% / 56.5% / 60.2% (2023-25) -> the one lead worth paper-tracking; not proven (no paper record yet).
 - Margin std 13.5 (owner setting) vs 12.65 measured: slightly wider than the residuals, so leans are conservative.
 Verdict: no proven edge; nothing passes marv/proven.py, so it prints no %, paper only. INSTITUTIONAL_NFL=0 reverts.
+
+### "Institutional" hybrid script (skew-normal, log MOV, market-timing decay): check on 100 real games
+
+* Same sign bug as the earlier pasted script (`24.0 - (hpr_b - hpr_a) * 0.55`): team A's margin is +3.4 whoever it is (Texas v Oklahoma, swapped, or v a very weak team), totals run 55-106 depending on listing order.
+* The listed upgrades are not in the code: no logarithmic MOV transform exists; the market-timing "steam adjustment" is only subtracted from the printed margin; `skewnorm(loc=mean)` is not centered (a team's mean score comes out 34.5 instead of 27.5).
+* 100 most recent FBS games with lines (Sep 26-Oct 4, 2026): pasted version margin correlation +0.10, total range 17-105, total correlation -0.015. With the sign fixed and the skew centered: margin correlation +0.45 (margin error 17.3 vs the market's 12.8), but every projected total is 51 (the formula has no pace/scoring term), so no over/under. Seed-to-seed noise 0.23 pts (stable).
+* Not ported to the NFL. The repo's own refined hybrid (`marv/hybrid.py`, CLAUDE.md item 13) is the maintained version.
+
+### Pasted NFL "institutional" script (skew-normal, O-line index, line decay): check
+
+* Code: the sign bug is fixed here (team B's mean now falls as A's rises) but team A carries a built-in +2.5 (22.5 vs 20.0 base), the skew-normal is not centered (a team's score averages 31.8 instead of 22.5; median total 58.1 vs the intended 42.5), the total does not respond to team quality (identical for the Ravens against a terrible team), the line-decay is only subtracted from the printed margin, no logarithmic cap exists, and the cover test uses `margin > market_open` with open = -3.0 for the favorite (reads 70.2%; the correct test, margin > +3, reads 55.6%).
+* Real NFL games 2017-2026 (2,077; EPA/play from nflverse play-by-play, season-to-date with prior-season carry; no O-line data, index = 1.0):
+  pasted formula margin correlation +0.28, margin error 10.71 (market 9.83), ATS 50.2% on edges of 1.5+ pts (n=1,539), 51.2% on 3+ (n=1,120);
+  base net efficiency alone: correlation +0.38, ATS 50.9% / 50.6%; fitted-scale version tested 2023-26: ATS 50.7% / 51.6%.
+  The 2026 games available (16) show 76.9% on 13 bets, which is what a handful of games looks like by chance; the claimed 57.8% ATS / 56.5% O/U on "Weeks 2-4 marquee games" is not reproducible from any sample of size.
+* Totals cannot be evaluated: the formula's total is constant. Not adopted.
