@@ -1,3 +1,8 @@
 $ marv stats-backtest --sport ncaaw --seasons 2019-2025 --budget-min 70
-started 2026-10-10 18:38:06 EDT
-RUNNING...
+started 2026-10-10 18:38:06 EDT, took 4370s, exit 0
+
+PARTIAL: time budget used up (22 chunks saved at /opt/marv-bot/state/reports/ckpt_ncaaw_2019-2025.pkl; rerun to resume). Run the same command again to continue.
+
+--- stderr ---
+2026-10-10 19:11:18,359 INFO ncaaw season 2019 projected
+2026-10-10 19:44:05,391 INFO ncaaw season 2020 projected
