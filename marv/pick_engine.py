@@ -35,6 +35,9 @@ INSTITUTIONAL_CFB = _os.environ.get("INSTITUTIONAL_CFB", "1").lower() not in ("0
 # NFL path: marv/nfl_institutional.py (O-line health + steam + skew-normal MC, margin std 13.5). PAPER, no %;
 # env INSTITUTIONAL_NFL=0 falls back to the plain normal Monte Carlo.
 INSTITUTIONAL_NFL = _os.environ.get("INSTITUTIONAL_NFL", "1").lower() not in ("0", "false", "off", "no")
+# WNBA path: marv/wnba_institutional.py (net rating + rolling TS / def TS + rotation depth + steam + skew-normal MC,
+# margin std 7.5). PAPER, no %; env INSTITUTIONAL_WNBA=0 falls back to the plain normal Monte Carlo.
+INSTITUTIONAL_WNBA = _os.environ.get("INSTITUTIONAL_WNBA", "1").lower() not in ("0", "false", "off", "no")
 # Walk-forward blend fits (tools/pick_engine_bt.py, latest = fit on every completed season before the current one).
 # Overwritten by the backtest's latest fit; these are the defaults used when the report is missing.
 BLEND = {
@@ -292,6 +295,8 @@ def game(state_dir: Path, sport: str, home: str, away: str, spread: float | None
             inst = _institutional(state_dir, home, away, m, t, spread, line, as_of)
         elif sport == "nfl" and INSTITUTIONAL_NFL:
             inst = _nfl_institutional(state_dir, home, away, m, t, spread, line, as_of)
+        elif sport == "wnba" and INSTITUTIONAL_WNBA:
+            inst = _wnba_institutional(state_dir, home, away, m, t, spread, line, as_of)
         if inst:  # NCAAF: tiered BCR + steam (velocity-decayed) + skew-normal MC replace the normal MC (paper)
             m, t, sim = inst["margin"], inst["total"], inst["sim"]
         else:
@@ -341,6 +346,21 @@ def _nfl_institutional(state_dir: Path, home: str, away: str, m: float, t: float
         return None
 
 
+def _wnba_institutional(state_dir: Path, home: str, away: str, m: float, t: float, spread, line,
+                        as_of) -> dict | None:
+    """marv/wnba_institutional.py read on top of the blend (WNBA). None on failure -> plain MC. Never raises."""
+    from . import wnba_institutional as WI
+    try:
+        p = WI.load(state_dir)
+        f = WI.live_features(state_dir, home, away, as_of)
+        so, to = WI.opener(state_dir, home, away)
+        r = WI.wnba_institutional_simulation(m, t, f, spread, line, so, to, p)
+        r["tiers"] = (None, None)
+        return r
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def text(r: dict, sport: str) -> str:
     """One line, no %: 'Pick engine: ML Texas (power +6.1 / trend +4.0 / blend +5.3, 3/3 agree) · best: Under 51.5 (lean)'."""
     sh = (lambda s: s.split()[-1] if sport == "nfl" and len(s.split()) > 1 else s)
@@ -364,6 +384,11 @@ def text(r: dict, sport: str) -> str:
         ol = inst.get("ol_lost")
         if ol and max(ol) >= 0.5:
             bits.append(f"OL starters out {sh(home)} {ol[0]:.1f} / {sh(away)} {ol[1]:.1f}")
+        f = inst.get("features") or {}
+        if sport == "wnba" and f.get("net_d") is not None:
+            bits.append(f"net rtg {sg * f['net_d']:+.1f}/100")
+        if sport == "wnba" and f.get("miss_d") is not None and abs(f["miss_d"]) >= 0.5:
+            bits.append(f"rotation mins out {sg * -f['miss_d']:+.1f} starters")
         if inst.get("steam_pts"):
             bits.append(f"steam {sg * inst['steam_pts']:+.1f}")
         out += " · institutional skew-MC" + (f" ({', '.join(bits)})" if bits else "")

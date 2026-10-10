@@ -865,3 +865,25 @@ Verdict: no proven edge; nothing passes marv/proven.py, so it prints no %, paper
   base net efficiency alone: correlation +0.38, ATS 50.9% / 50.6%; fitted-scale version tested 2023-26: ATS 50.7% / 51.6%.
   The 2026 games available (16) show 76.9% on 13 bets, which is what a handful of games looks like by chance; the claimed 57.8% ATS / 56.5% O/U on "Weeks 2-4 marquee games" is not reproducible from any sample of size.
 * Totals cannot be evaluated: the formula's total is constant. Not adopted.
+
+## WNBA institutional simulation (marv/wnba_institutional.py), paper
+
+On top of the WNBA pick-engine blend: EWM net rating (pts/100 poss made - allowed), rolling TS made vs TS allowed,
+rotation depth (players >= 12 mpg over the last 5 games) and missing rotation minutes (>= 15 mpg players absent from the
+last game), velocity-decayed steam (ESPN pregame books' own open -> close, tools/wnba_open_lines.py; openers exist only
+for 2024-26) and a skew-normal Monte Carlo with the margin std fixed at 7.5 (owner setting). Coefficients fit on earlier
+seasons only (2022+ rows, the seasons with player minutes); steam terms stay 0 until 150+ training games have openers.
+Walk-forward 2023-26 (tools/wnba_institutional_bt.py, graded at the ESPN close @-110):
+
+| | n | hit |
+|---|---|---|
+| Institutional ATS | 1,085 | 51.2% (engine 50.1%) |
+| Institutional O/U | 1,088 | 52.1% (engine 49.7%) |
+| ATS / O/U at a 5-pt lean | 850 / 640 | 51.8% / 53.3% |
+| Straight-up winner | 1,094 | 68.0% (engine 67.1%, market favourite 70.0%) |
+| Steam-follow ATS / O/U | 561 / 588 | 49.6% / 51.2% |
+| Deeper rotation ATS (2+ more rotation players) | 289 | 56.8% (only lead; 2025 63.6%, 2026 54.3%) |
+
+Brier: std 7.5 0.2108 vs the fitted std (12.5) 0.2051 vs market 0.1968 - 7.5 is overconfident (the real residual std is
+~12.5), so the 7.5 setting makes the simulated probabilities worse even though it barely moves the side picks. Nothing
+clears 52.4% on the full sample except the depth rule, which is a post-hoc single-feature cut -> paper, no %.
