@@ -27,7 +27,7 @@ MIN_BETS, MAX_BETS, PER_GAME, MAX_UNTESTED = 2, 10, 2, 2
 HARD = ("backup QB", "key injury", "starters out", "snaps", "elimination", "wind", "no current injury",
         "games of stats", "stale", "unconfirmed", "trap line", "gap:", "missing")
 SIGNAL_RANK = {"OVER-FADE+MOVE": 56.7, "OVER-FADE+INFLATED": 56.5, "TOTAL-INFLATED": 55.8, "OVER-FADE": 54.9,
-               "GAP": 54.4, "MARV4": 54.4, "UNDER-FADE": 52.5}
+               "GAP": 54.4, "MARV4": 54.4, "UNDER-FADE": 52.5, "SCORE-GRADE": 55.0}
 
 
 @dataclass

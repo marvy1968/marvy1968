@@ -9,6 +9,8 @@ tags back the other side. "Over trend" = both teams went over the closing total 
   OVER-FADE+INFLATED  college: over trend and the total sits 2+ pts above what the teams' recent yardage
                       justifies -> UNDER (56.5% of 310)
   UNDER-FADE          college: both teams under in 2+ of their last 3 -> OVER (51-54% depending on the line source)
+  SCORE-GRADE         college: scoring grade 59.1+ (two strong offenses vs two weak defenses, marv/scoregrade.py) -> UNDER
+                      (55.7% of 436 held-out 2022-25 games; same family as OVER-FADE)
   TOTAL-INFLATED      NFL: the total sits 5+ pts above what recent yardage justifies -> UNDER (55.8% of 400)
 
 None is a proven edge (about 70 rules were tested to find these); `python -m marv situational` grades
@@ -16,19 +18,22 @@ them weekly against the last total logged before kickoff (52.4% needed at -110).
 """
 
 import json
+import logging
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+log = logging.getLogger(__name__)
 HISTORY = {
     "OVER-FADE": "54.9% 2017-26 (994)",
     "OVER-FADE+MOVE": "56.7% 2014-25 (298)",
     "OVER-FADE+INFLATED": "56.5% 2017-26 (310)",
     "UNDER-FADE": "51-54% 2014-26",
     "TOTAL-INFLATED": "55.8% 2009-26 (400)",
+    "SCORE-GRADE": "55.7% 2022-25 holdout (436)",
 }
-SPORT_TAGS = {"cfb": ("OVER-FADE", "OVER-FADE+MOVE", "OVER-FADE+INFLATED", "UNDER-FADE"), "nfl": ("TOTAL-INFLATED",)}
+SPORT_TAGS = {"cfb": ("OVER-FADE", "OVER-FADE+MOVE", "OVER-FADE+INFLATED", "UNDER-FADE", "SCORE-GRADE"), "nfl": ("TOTAL-INFLATED",)}
 PRIOR_GAMES = 4.0  # last season's average counts as this many games in the baseline
 
 
@@ -138,6 +143,13 @@ def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: 
     done = hist[hist["g_yds"].notna()]
     ppy = float(done["g_pts"].sum() / done["g_yds"].sum()) if len(done) and done["g_yds"].sum() else 0.0
     lookup = games.set_index("game_id")
+    grades: dict = {}
+    if sport == "cfb":
+        try:
+            from . import scoregrade
+            grades = scoregrade.game_grades(games, tg)
+        except Exception:
+            log.exception("scoring grade failed")
     out = {}
     for g in slate:
         gid = id_map.get(g.id)
@@ -151,6 +163,9 @@ def tag_slate(sport: str, games: pd.DataFrame, tg: pd.DataFrame, slate, id_map: 
         h = team_form(hist, row["home"], season, when)
         a = team_form(hist, row["away"], season, when)
         tags = tags_for_game(sport, h, a, g.odds.total, g.odds.total_open, ppy)
+        sg = grades.get(gid)
+        if sg is not None and sg >= 59.1:
+            tags.append(("SCORE-GRADE", "Under"))
         if tags:
             out[g.id] = tags
     return out

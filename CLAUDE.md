@@ -99,3 +99,8 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     pace + scoring variance ONLY for the total (median/p25/p75). Wired into the H2H overlay, /game and Upset Alert as
     FOR/AGAINST factors. Walk-forward Oct 9 2026: nothing passes the proven bar (CFB ATS 50.2%, O/U 51.0%; NFL ATS
     48.3%), so no %. Re-run the backtest each offseason before adding anything to marv/proven.py.
+
+13. Scoring-grade tag (`marv/scoregrade.py`, tag `SCORE-GRADE` in `marv/ou_tags.py`, college football only, paper): scoring grade
+    59.1+ (two strong offenses vs two weak defenses, from the grade pipeline in `research/grade_backtest/`) -> UNDER lean. 55.7% of 436
+    held-out 2022-25 games, same family as OVER-FADE; logged to `state/ou_tags_log.json` and graded by the usual tag grading. It is not in
+    `marv/proven.py` (no live graded sample yet). Needs 100+ graded live bets above 52.4% before it is more than a lean.
