@@ -821,3 +821,12 @@ calibrated `a + b x MC`.
 * The listed upgrades are not in the code: no logarithmic MOV transform exists; the market-timing "steam adjustment" is only subtracted from the printed margin; `skewnorm(loc=mean)` is not centered (a team's mean score comes out 34.5 instead of 27.5).
 * 100 most recent FBS games with lines (Sep 26-Oct 4, 2026): pasted version margin correlation +0.10, total range 17-105, total correlation -0.015. With the sign fixed and the skew centered: margin correlation +0.45 (margin error 17.3 vs the market's 12.8), but every projected total is 51 (the formula has no pace/scoring term), so no over/under. Seed-to-seed noise 0.23 pts (stable).
 * Not ported to the NFL. The repo's own refined hybrid (`marv/hybrid.py`, CLAUDE.md item 13) is the maintained version.
+
+### Pasted NFL "institutional" script (skew-normal, O-line index, line decay): check
+
+* Code: the sign bug is fixed here (team B's mean now falls as A's rises) but team A carries a built-in +2.5 (22.5 vs 20.0 base), the skew-normal is not centered (a team's score averages 31.8 instead of 22.5; median total 58.1 vs the intended 42.5), the total does not respond to team quality (identical for the Ravens against a terrible team), the line-decay is only subtracted from the printed margin, no logarithmic cap exists, and the cover test uses `margin > market_open` with open = -3.0 for the favorite (reads 70.2%; the correct test, margin > +3, reads 55.6%).
+* Real NFL games 2017-2026 (2,077; EPA/play from nflverse play-by-play, season-to-date with prior-season carry; no O-line data, index = 1.0):
+  pasted formula margin correlation +0.28, margin error 10.71 (market 9.83), ATS 50.2% on edges of 1.5+ pts (n=1,539), 51.2% on 3+ (n=1,120);
+  base net efficiency alone: correlation +0.38, ATS 50.9% / 50.6%; fitted-scale version tested 2023-26: ATS 50.7% / 51.6%.
+  The 2026 games available (16) show 76.9% on 13 bets, which is what a handful of games looks like by chance; the claimed 57.8% ATS / 56.5% O/U on "Weeks 2-4 marquee games" is not reproducible from any sample of size.
+* Totals cannot be evaluated: the formula's total is constant. Not adopted.
