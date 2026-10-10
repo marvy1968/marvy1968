@@ -814,3 +814,10 @@ calibrated `a + b x MC`.
 * BCR stress test (BCR = 4/5-star share of the last 4 high-school classes, `tools/cfb_bcr.py`): favourite BCR > 0.70 vs dog < 0.45 ->
   0 upsets in 41 soft spots, 6 of 146 heavy favourites (4.1% vs 17.8% otherwise), dog ATS 44.8%. Those "upsets" are false alarms;
   the BCR guard now blocks fading them on Upset Alert / the overlay.
+
+### "Institutional" hybrid script (skew-normal, log MOV, market-timing decay): check on 100 real games
+
+* Same sign bug as the earlier pasted script (`24.0 - (hpr_b - hpr_a) * 0.55`): team A's margin is +3.4 whoever it is (Texas v Oklahoma, swapped, or v a very weak team), totals run 55-106 depending on listing order.
+* The listed upgrades are not in the code: no logarithmic MOV transform exists; the market-timing "steam adjustment" is only subtracted from the printed margin; `skewnorm(loc=mean)` is not centered (a team's mean score comes out 34.5 instead of 27.5).
+* 100 most recent FBS games with lines (Sep 26-Oct 4, 2026): pasted version margin correlation +0.10, total range 17-105, total correlation -0.015. With the sign fixed and the skew centered: margin correlation +0.45 (margin error 17.3 vs the market's 12.8), but every projected total is 51 (the formula has no pace/scoring term), so no over/under. Seed-to-seed noise 0.23 pts (stable).
+* Not ported to the NFL. The repo's own refined hybrid (`marv/hybrid.py`, CLAUDE.md item 13) is the maintained version.
