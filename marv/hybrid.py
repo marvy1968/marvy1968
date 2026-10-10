@@ -414,8 +414,11 @@ def ats_margin(diff: float, sport: str, neutral: bool = False, k: float | None =
 
 def analyze(h: dict, a: dict, sport: str, spread: float | None = None, total: float | None = None,
             neutral: bool = False, k: float | None = None, hfa: float | None = None, pace_dir: int | None = None,
-            mc_n: int = 4000, seed: int = 0) -> dict:
-    """Full hybrid read for one matchup (h/a = profiles). spread = HOME spread (negative = home favoured)."""
+            mc_n: int = 4000, seed: int = 0, lg: dict | None = None, bcr: tuple | None = None) -> dict:
+    """Full hybrid read for one matchup (h/a = profiles). spread = HOME spread (negative = home favoured).
+    With league stats (lg) for a REFINED sport (NFL / CFB / WNBA) the refined engine is used (see refined_analyze)."""
+    if lg and sport in REFINED and k is None:
+        return refined_analyze(h, a, sport, lg, spread, total, neutral, mc_n, seed, bcr)
     mh, wh = trend_catcher_modifier(h, sport)
     ma, wa = trend_catcher_modifier(a, sport)
     mx = full_spectrum_h2h_matrix(h, a, sport, mh, ma, pace_dir)
@@ -429,6 +432,209 @@ def analyze(h: dict, a: dict, sport: str, spread: float | None = None, total: fl
         ou = "over" if mc["median"] > total else "under"
     return {"mod_home": mh, "mod_away": ma, "why_home": wh, "why_away": wa, **mx, "proj_margin": round(proj, 1),
             "ats": ats, "spread": spread, "mc": mc, "total": total, "ou": ou}
+
+
+# ------------------------------------------------------------------ refined engine (Oct 10 2026, PAPER)
+# Hybrid H2H + Trend Catcher + Dynamic Velocity Decay + Restricted MC totals, optimized walk-forward
+# (tools/hybrid_refine_bt.py -> state/reports/hybrid_refine_backtest.json; every hyper-parameter picked on earlier
+# seasons only, graded on the next season at closing lines, -110):
+#   velocity decay  level_c = season_c + A * d / (1 + |d| / (V0 * sd_c)), d = last3_c - season_c (sd_c = league per-game
+#                   sd): small swings pass through, big swings saturate (Marvin's 1/(1+|delta|), scale-free)
+#   shrinkage       level -> (n * level + N0 * league mean) / (n + N0)
+#   trend catcher   TOV spike / reb (ypp) margin drop, both velocity-decayed, floor 0.80
+#   H2H side        margin = HFA + K * category-point diff + E * efficiency margin (pace/2 x points-per-poss gap)
+#   restricted MC   pace x points-per-possession only, calibrated total = a + b * MC (fit on earlier seasons)
+# Walk-forward result (Oct 10 2026): straight-up accuracy improves (NFL 63.7% vs 62.1% old engine, market favourite
+# 67.4%; CFB 69.5% vs 67.3%, market 73.9%; WNBA 66.4% vs 65.0%, market 69.5%) but every ATS / O/U rule is at or
+# below break-even at fixed thresholds (NFL ATS 49.4%, O/U 49.6%; CFB ATS 49.2%, O/U 50.5%; WNBA ATS 49.5%, O/U 49.0%).
+# The decay weight A the optimizer picks is 0-0.25 (momentum is mostly noise). A few nested top-20% rules pass the
+# n/ROI/season bar (NFL ATS 149 @ 56.4%; WNBA ATS 243 @ 53.1%, O/U 135 @ 53.3%) but under shuffled-outcome placebo some
+# rule out of the 30 tested passes 78% of the time, so none is proven -> no % is printed.
+REFINED = {
+    "nfl": {"side": {"A": 0.25, "V0": 0.5, "N0": 8.0, "HFA": 2.05, "K": 0.363, "E": 1.534},
+            "tot": {"A": 0.25, "V0": 0.5, "N0": 2.0, "M": 0, "a": 10.72, "b": 0.763}, "pace_dir": 1},
+    "cfb": {"side": {"A": 0.25, "V0": 0.5, "N0": 4.0, "HFA": 3.55, "K": 0.317, "E": 1.803},
+            "tot": {"A": 0.0, "V0": 0.5, "N0": 4.0, "M": 0, "a": -23.98, "b": 1.41}, "pace_dir": 1},
+    "wnba": {"side": {"A": 0.0, "V0": 0.5, "N0": 2.0, "HFA": 1.87, "K": 0.433, "E": 0.985},
+             "tot": {"A": 0.25, "V0": 0.5, "N0": 8.0, "M": 0, "a": -91.37, "b": 1.56}, "pace_dir": -1},
+}
+# Soft heavy favourite -> underdog ATS (paper tag, NOT proven): refined model has the favourite >= SOFT_T points under
+# the market spread. Walk-forward dog ATS: NFL (fav -4.5+) T3 237 @ 54.9%, T5 130 @ 53.1%, T7 53 @ 56.6%; WNBA
+# (fav -7.5+) T3 421 @ 54.2%, T5 230 @ 56.5%, T7 109 @ 53.2%. But heavy-favourite dogs alone cover 51.2% (NFL) /
+# 52.1% (WNBA), the soft flag does NOT raise outright upsets (NFL 20.6% vs 23.3% base, WNBA 18.2% vs 18.6%), and against
+# random heavy-fav subsets p ~0.09-0.13 -> unproven. CFB: fails (dog ATS 49.6-50.6%), so no CFB soft tag.
+SOFT_T = {"nfl": 3.0, "wnba": 5.0}
+HEAVY_SPREAD = {"nfl": 4.5, "wnba": 7.5, "cfb": 6.5}
+# Marvin's CFB HPR (cfb_hybrid_simulation), walk-forward tools/cfb_upset_bt.py (2020-26, 3,262 heavy favourites):
+#   HPR = (z_off - z_def + WO * d_off * decay - WD * d_def) * bcr_mult * 10, decay = min(1, 1/(1 + KD |d_off|)),
+#   bcr_mult = 1 + max(0, BCR - 0.40) * KB * depth (BCR = 4/5-star share of last 4 HS classes, depth = 247 talent /
+#   FBS median); margin = HFA + C * HPR gap; P(win) = MC 10,000 sims, each score sd 11.5.
+#   Accuracy fit (latest): WO 0.6, WD 0, KD 1.0, KB 0.8. ML 69.2% vs market favourite 73.9%; margin MAE 13.6 vs 12.06.
+#   Upset rule (fav model margin >= T under the spread, grid tuned toward dog ATS on earlier seasons): 617 bets dog ATS
+#   50.4% (ROI -3.8%), outright upsets 11.4% vs 17.2% for all heavy favourites -> no upset edge.
+#   BCR stress test: favourite BCR > 0.70 vs dog BCR < 0.45 -> 0 upsets in 41 soft spots, 6 in 146 heavy favourites
+#   (4.1%), dog ATS 44.8%: talent mismatches are false upsets, so the guard below never fades them.
+HPR = {"WO": 0.6, "WD": 0.0, "KD": 1.0, "KB": 0.8, "B0": 0.40, "HFA": 3.51, "C": 0.4722, "SD": 11.5, "SIMS": 10000}
+BCR_FAV, BCR_DOG = 0.70, 0.45
+
+
+def velocity_decay(d: float, sd: float, a: float, v0: float) -> float:
+    """Trend contribution a * d / (1 + |d| / (v0 * sd)): linear for small swings, saturating for big ones."""
+    if not d or d != d:
+        return 0.0
+    return a * d / (1 + abs(d) / (v0 * max(sd, 1e-9)))
+
+
+def refined_levels(p: dict, lg: dict, A: float, V0: float, N0: float) -> dict:
+    n = p.get("n", MIN_GAMES)
+    out = {}
+    for c in CATS:
+        mu, sd = lg[c]
+        lv = p[c] + velocity_decay(p[c + "3"] - p[c], sd, A, V0)
+        out[c] = (n * lv + N0 * mu) / (n + N0) if N0 else lv
+    out["poss"] = (n * p["poss"] + N0 * lg["poss"][0]) / (n + N0) if N0 else p["poss"]
+    return out
+
+
+def refined_trend_mod(p: dict, lg: dict, sport: str, V0: float) -> tuple[float, list[str]]:
+    spike, drop = max(0.0, p["tov3"] - p["tov"]), max(0.0, p["yppm"] - p["yppm3"])
+    spike /= 1 + spike / (V0 * max(lg["tov"][1], 1e-9))
+    drop /= 1 + drop / (V0 * max(lg["yppm"][1], 1e-9))
+    mod = max(MOD_FLOOR, 1.0 - TOV_K.get(sport, 0.5) * spike - REB_K.get(sport, 0.05) * drop)
+    _, why = trend_catcher_modifier(p, sport)
+    return round(mod, 3), why
+
+
+def soft_favorite(sport: str, proj: float, spread: float | None) -> dict | None:
+    """Heavy favourite the refined model has >= SOFT_T points under the spread (paper tag, unproven)."""
+    t, hv = SOFT_T.get(sport), HEAVY_SPREAD.get(sport)
+    if t is None or spread is None or spread != spread or abs(spread) < hv:
+        return None
+    fav = "home" if spread < 0 else "away"
+    fav_model, fav_mkt = (proj, -spread) if fav == "home" else (-proj, spread)
+    gap = fav_mkt - fav_model
+    return {"fav": fav, "gap": round(gap, 1)} if gap >= t else None
+
+
+def bcr_guard(spread: float | None, bcr: tuple | None) -> dict | None:
+    """CFB: heavy favourite with BCR > 0.70 vs an underdog under 0.45 -> never an upset fade."""
+    if not bcr or spread is None or spread != spread or abs(spread) < HEAVY_SPREAD["cfb"]:
+        return None
+    (bh, _), (ba, _) = bcr
+    fav = "home" if spread < 0 else "away"
+    fb, db = (bh, ba) if fav == "home" else (ba, bh)
+    if fb is not None and db is not None and fb > BCR_FAV and db < BCR_DOG:
+        return {"fav": fav, "fav_bcr": round(fb, 2), "dog_bcr": round(db, 2)}
+    return None
+
+
+def hpr_read(h: dict, a: dict, lg: dict, bcr: tuple, neutral: bool = False, seed: int = 0) -> dict:
+    """Marvin's CFB HPR with the walk-forward accuracy fit; MC 10,000 sims (score sd 11.5). Descriptive only.
+    z-scores use the spread of team season-to-date levels (lg["_lvl"], as in the backtest), else per-game."""
+    P = HPR
+    (mo, so), (md, sd) = lg.get("_lvl", {}).get("off", lg["off"]), lg.get("_lvl", {}).get("def", lg["def"])
+
+    def one(p, b):
+        bc, dep = b if b else (None, None)
+        zo, zd = (p["off"] - mo) / so, (p["def"] - md) / sd
+        do, dd = (p["off3"] - p["off"]) / so, (p["def3"] - p["def"]) / sd
+        decay = min(1.0, 1.0 / (1.0 + P["KD"] * abs(do)))
+        mult = 1 + max(0.0, (bc or 0.0) - P["B0"]) * P["KB"] * (dep or 0.85)
+        return (zo - zd + P["WO"] * do * decay - P["WD"] * dd) * mult * 10
+    hh, ha = one(h, bcr[0] if bcr else None), one(a, bcr[1] if bcr else None)
+    margin = (0.0 if neutral else P["HFA"]) + P["C"] * (hh - ha)
+    rng = np.random.default_rng(seed)
+    sims = rng.normal(margin, P["SD"], P["SIMS"]) - rng.normal(0.0, P["SD"], P["SIMS"])
+    return {"hpr_home": round(hh, 1), "hpr_away": round(ha, 1), "margin": round(margin, 1),
+            "p_home": round(float((sims > 0).mean()), 3)}
+
+
+def refined_analyze(h: dict, a: dict, sport: str, lg: dict, spread: float | None = None, total: float | None = None,
+                    neutral: bool = False, mc_n: int = 4000, seed: int = 0, bcr: tuple | None = None) -> dict:
+    cfg = REFINED[sport]
+    S, T = cfg["side"], cfg["tot"]
+    mh, wh = refined_trend_mod(h, lg, sport, S["V0"])
+    ma, wa = refined_trend_mod(a, lg, sport, S["V0"])
+    hl, al = refined_levels(h, lg, S["A"], S["V0"], S["N0"]), refined_levels(a, lg, S["A"], S["V0"], S["N0"])
+    mx = full_spectrum_h2h_matrix(hl, al, sport, mh, ma, cfg["pace_dir"])
+    pace = (hl["poss"] + al["poss"]) / 2
+    effm = pace / 2 * ((hl["off"] * mh + al["def"] / ma) / 2 - (al["off"] * ma + hl["def"] / mh) / 2)
+    proj = (0.0 if neutral else S["HFA"]) + S["K"] * mx["diff"] + S["E"] * effm
+    ats = None
+    if spread is not None and spread == spread and proj + spread != 0:
+        ats = "home" if proj + spread > 0 else "away"
+    mht, _ = refined_trend_mod(h, lg, sport, T["V0"])
+    mat, _ = refined_trend_mod(a, lg, sport, T["V0"])
+    ht, at = refined_levels(h, lg, T["A"], T["V0"], T["N0"]), refined_levels(a, lg, T["A"], T["V0"], T["N0"])
+    ht.update(poss_sd=h["poss_sd"], off_sd=h["off_sd"], def_sd=h["def_sd"])
+    at.update(poss_sd=a["poss_sd"], off_sd=a["off_sd"], def_sd=a["def_sd"])
+    raw = restricted_monte_carlo_totals(ht, at, sport, mht, mat, n=mc_n, seed=seed)
+    med = round(T["a"] + T["b"] * raw["median"], 1)  # calibrate the centre; keep the MC's own spread (IQR ~49% coverage)
+    mc = {"median": med, "p25": round(med - (raw["median"] - raw["p25"]), 1), "p75": round(med + (raw["p75"] - raw["median"]), 1),
+          "pace": raw["pace"], "raw_median": raw["median"]}
+    ou = None
+    if total is not None and total == total and mc["median"] != total:
+        ou = "over" if mc["median"] > total else "under"
+    out = {"engine": "refined", "mod_home": mh, "mod_away": ma, "why_home": wh, "why_away": wa, **mx,
+           "ml": "home" if proj > 0 else "away", "proj_margin": round(proj, 1), "ats": ats, "spread": spread, "mc": mc,
+           "total": total, "ou": ou, "soft_fav": soft_favorite(sport, proj, spread)}
+    if sport == "cfb":
+        out["bcr_guard"] = bcr_guard(spread, bcr)
+        try:
+            out["hpr"] = hpr_read(h, a, lg, bcr, neutral, seed)
+        except Exception:  # noqa: BLE001
+            out["hpr"] = None
+    return out
+
+
+_LG: dict = {}
+
+
+def league_stats(state_dir: Path, sport: str, as_of=None) -> dict | None:
+    """{category: (mean, per-game sd)} from last season + this season to date (cached 30 min). None if no data."""
+    from datetime import datetime, timezone
+    as_of = as_of or datetime.now(timezone.utc)
+    key = (str(state_dir), sport, as_of.strftime("%Y-%m-%d"))
+    hit = _LG.get(key)
+    if hit and time.time() - hit[0] < _TTL:
+        return hit[1]
+    lg = None
+    try:
+        s = season_for(sport, as_of)
+        tg = team_games(Path(state_dir) / "cache", sport, [s - 1, s])
+        if tg is not None and not tg.empty:
+            tg = tg[tg.date < (as_of.replace(tzinfo=None) if as_of.tzinfo else as_of).strftime("%Y-%m-%d")]
+            lg = {c: (float(tg[c].mean()), float(tg[c].std())) for c in [*CATS, "poss"]}
+    except Exception:  # noqa: BLE001
+        lg = None
+    _LG[key] = (time.time(), lg)
+    return lg
+
+
+_BCR: dict = {}
+
+
+def cfb_bcr(state_dir: Path, team: str, season: int) -> tuple | None:
+    """(BCR, depth) for a CFB team-season from state/cache/cfb_bcr.csv (tools/cfb_bcr.py), else None."""
+    f = Path(state_dir) / "cache" / "cfb_bcr.csv"
+    if str(f) not in _BCR:
+        tab = {}
+        try:
+            import csv
+            for r in csv.DictReader(f.open()):
+                tab[(int(r["season"]), r["team"])] = (float(r["bcr"]), float(r["depth"]) if r.get("depth") else None)
+        except (OSError, ValueError, KeyError):
+            tab = {}
+        _BCR[str(f)] = tab
+    tab = _BCR[str(f)]
+    if (season, team) in tab:
+        return tab[(season, team)]
+    from .data.teams import similarity
+    names = [t for (s, t) in tab if s == season]
+    if not names:
+        return None
+    best = max(names, key=lambda t: similarity(t, team))
+    return tab[(season, best)] if similarity(best, team) >= 0.85 else None
 
 
 # ------------------------------------------------------------------ live (overlay / Upset Alert)
@@ -506,7 +712,19 @@ def game(state_dir: Path, sport: str, home: str, away: str, spread: float | None
         h, a = team_profile(state_dir, sport, home, as_of), team_profile(state_dir, sport, away, as_of)
         if not h or not a:
             return None
-        return analyze(h, a, sport, spread, total, neutral)
+        lg = league_stats(state_dir, sport, as_of) if sport in REFINED else None
+        if lg is not None:
+            prof = league(state_dir, sport, as_of)
+            if len(prof) >= 10:
+                lv = {c: (float(np.mean([p[c] for p in prof.values()])), float(np.std([p[c] for p in prof.values()], ddof=1)))
+                      for c in ("off", "def")}
+                lg = {**lg, "_lvl": lv}
+        bcr = None
+        if sport == "cfb":
+            from datetime import datetime, timezone
+            s = season_for(sport, as_of or datetime.now(timezone.utc))
+            bcr = (cfb_bcr(state_dir, home, s), cfb_bcr(state_dir, away, s))
+        return analyze(h, a, sport, spread, total, neutral, lg=lg, bcr=bcr)
     except Exception:  # noqa: BLE001
         return None
 
@@ -523,4 +741,13 @@ def text(r: dict, home: str, away: str, sport: str) -> str:
         out += f" · ATS {sh(home if r['ats'] == 'home' else away)} (proj {sh(home)} {r['proj_margin']:+.1f} vs {r['spread']:+g})"
     mc = r["mc"]
     out += f" · MC total {mc['median']:.0f} (p25 {mc['p25']:.0f}–p75 {mc['p75']:.0f})"
+    if r.get("hpr"):
+        hp_ = r["hpr"]
+        out += f" · HPR {sh(home)} {hp_['margin']:+.1f}"
+    sf = r.get("soft_fav")
+    if sf:
+        out += f" · soft fav {sh(home if sf['fav'] == 'home' else away)} ({sf['gap']:.1f} under spread; paper tag, unproven)"
+    g = r.get("bcr_guard")
+    if g:
+        out += f" · BCR guard {sh(home if g['fav'] == 'home' else away)} {g['fav_bcr']:.2f} vs {g['dog_bcr']:.2f}: no upset fade"
     return out

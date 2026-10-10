@@ -313,6 +313,16 @@ def _hybrid(ins: Insight, state_dir: Path, sport: str, rec: dict, t: str, name: 
         ok = r["ats"] == t
         ins.factors.append(Factor(f"hybrid ATS {'backs' if ok else 'fades'} {short(name)} (proj {short(rec['home'])} "
                                   f"{r['proj_margin']:+.1f} vs {r['spread']:+g})", 1 if ok else -1))
+    sf = r.get("soft_fav")  # refined engine: heavy favourite the model has well under the spread (paper tag, unproven)
+    if sf and not live:
+        fav_nm = name if sf["fav"] == t else opp
+        ins.factors.append(Factor(f"soft favourite {short(fav_nm)}: hybrid {sf['gap']:.1f} pts under the spread "
+                                  f"(paper tag, unproven)", -1 if sf["fav"] == t else 1))
+    g = r.get("bcr_guard")  # CFB: blue-chip favourite vs low-BCR dog -> upsets were false alarms (0 of 41 soft spots)
+    if g and not live:
+        fav_nm = name if g["fav"] == t else opp
+        ins.factors.append(Factor(f"BCR guard: {short(fav_nm)} blue-chip ratio {g['fav_bcr']:.2f} vs {g['dog_bcr']:.2f} "
+                                  f"(no upset fade)", 1 if g["fav"] == t else -1, 2))
 
 
 def heavy_fav(state_dir: Path, sport: str, rec: dict, t: str, line: float | None, price: float | None, spread: bool,

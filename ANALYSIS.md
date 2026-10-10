@@ -765,3 +765,33 @@ final margin missed the market line is -0.008, so the market already prices rost
 * 50 simulated matchups (top tier BCR 0.70-0.92 vs mid tier 0.15-0.44, random 3-game deltas), sign fixed: the model favors the mid-tier team in 0/50 with the decay cap and 2/50 without.
   With the top team in a severe slump (off delta about -1.2, def delta about +0.6) it favors the mid-tier team in 25/50 with the decay cap and 40/50 without: the cap halves the "upset signals" but does not remove them.
   Whether those signals are false depends on whether slumps are noise; the real-data test (above) says short-term trends are mostly noise, so lighter trend weights (0.3/0.3) beat the pasted 1.2/0.8.
+
+## Refined hybrid (H2H + Trend Catcher + Dynamic Velocity Decay + Restricted MC totals) and Marvin's CFB HPR / BCR, Oct 10 2026
+
+Walk-forward optimizer `tools/hybrid_refine_bt.py` (every hyper-parameter chosen on earlier seasons, graded on the next season at
+closing lines, -110). WNBA is now gradable: `tools/wnba_lines.py` pulls ESPN core-odds consensus closes for 2,219 of 2,225 games
+(2018-26). Refinements: velocity decay `level = season + A*d/(1+|d|/(V0*sd))`, early-season shrinkage N0, trend catcher with decayed
+TO spike / margin drop, side margin = HFA + K x category diff + E x efficiency margin, restricted MC (pace x pts/possession only)
+calibrated `a + b x MC`.
+
+| Sport | ML refined / old / market fav | Margin MAE model / market | Total MAE model / market | ATS all | O/U all |
+|---|---|---|---|---|---|
+| NFL 2021-26 | 63.7% / 62.1% / 67.4% | 10.29 / 9.70 | 10.72 / 10.25 | 49.4% (1,171) | 49.6% (1,188) |
+| CFB 2019-26 | 69.5% / 67.3% / 73.9% | 13.59 / 12.09 | 13.27 / 12.80 | 49.2% (5,694) | 50.5% (5,621) |
+| WNBA 2019-26 | 66.4% / 65.0% / 69.5% | 10.13 / 9.52 | 13.86 / 13.23 | 49.5% (1,801) | 49.0% (1,817) |
+
+* The optimizer keeps the velocity-decay trend weight at A = 0-0.25: momentum adds almost nothing; shrinkage (N0 2-8) and the
+  efficiency term carry the accuracy gain.
+* Edge 3+/7+ rules all lose. Nested top-20% rules that meet the n/ROI/season bar: NFL ATS 149 @ 56.4% (+7.6%, 4/4 seasons), WNBA ATS
+  243 @ 53.1% (+1.4%), WNBA O/U 135 @ 53.3%. Placebo (random sides, same bets, 2,000 runs): some rule of the 30 passes the bar 78% of
+  the time; NFL ATS per-rule p = 0.048. Not proven, no %.
+* Soft heavy favourite (model >= T under the spread) -> dog ATS: NFL T3/5/7 54.9% (237) / 53.1% (130) / 56.6% (53); WNBA 54.2% (421) /
+  56.5% (230) / 53.2% (109). Heavy-fav dogs alone cover 51.2% / 52.1%, soft favourites are NOT upset more often (NFL 20.6% vs 23.3%,
+  WNBA 18.2% vs 18.6%), p ~0.09-0.13 vs random heavy-fav subsets. Shown as a paper "soft favourite" factor, no %.
+* CFB HPR (Marvin's script: z off/def, rolling delta x decay min(1,1/(1+KD|d|)), BCR multiplier 1+max(0,BCR-0.40) x KB x depth, MC
+  10,000 sims sd 11.5), `tools/cfb_upset_bt.py`, 2020-26, grid tuned toward underdog ATS on earlier seasons: soft-favourite dog ATS
+  50.4% of 617 (-3.8%); outright upsets 11.4% vs 17.2% for all 3,262 heavy favourites (the flag finds FEWER upsets). ML 69.2% vs market
+  73.9%.
+* BCR stress test (BCR = 4/5-star share of the last 4 high-school classes, `tools/cfb_bcr.py`): favourite BCR > 0.70 vs dog < 0.45 ->
+  0 upsets in 41 soft spots, 6 of 146 heavy favourites (4.1% vs 17.8% otherwise), dog ATS 44.8%. Those "upsets" are false alarms;
+  the BCR guard now blocks fading them on Upset Alert / the overlay.
