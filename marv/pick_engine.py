@@ -28,6 +28,10 @@ MOV_CAP = {"cfb": 28.0}
 SHRINK = {"cfb": 3.0, "nfl": 3.0, "wnba": 4.0}         # pseudo-games of an average team (ridge)
 HFA_PRIOR = {"cfb": 3.0, "nfl": 2.0, "wnba": 2.0}
 SIMS = 10000
+# NCAAF path: institutional hybrid simulation (marv/institutional.py) on top of the blend. PAPER: picks are leans with no
+# % (marv/proven.py); env INSTITUTIONAL_CFB=0 falls back to the plain normal Monte Carlo.
+import os as _os
+INSTITUTIONAL_CFB = _os.environ.get("INSTITUTIONAL_CFB", "1").lower() not in ("0", "false", "off", "no")
 # Walk-forward blend fits (tools/pick_engine_bt.py, latest = fit on every completed season before the current one).
 # Overwritten by the backtest's latest fit; these are the defaults used when the report is missing.
 BLEND = {
@@ -280,7 +284,13 @@ def game(state_dir: Path, sport: str, home: str, away: str, spread: float | None
         trend_t = hy["mc"]["median"]
         m, t = blend(sport, pr[0], hy["proj_margin"], pr[1], trend_t, neutral)
         c = BLEND[sport]
-        sim = simulate(m, t, c["sd_m"], c["sd_t"], c.get("rho", 0.0), spread, line)
+        inst = None
+        if sport == "cfb" and INSTITUTIONAL_CFB:
+            inst = _institutional(state_dir, home, away, m, t, spread, line, as_of)
+        if inst:  # NCAAF: tiered BCR + steam (velocity-decayed) + skew-normal MC replace the normal MC (paper)
+            m, t, sim = inst["margin"], inst["total"], inst["sim"]
+        else:
+            sim = simulate(m, t, c["sd_m"], c["sd_t"], c.get("rho", 0.0), spread, line)
         d = decide(sim, m, t, spread, line)
         agree = {"power": pr[0] > 0, "trend": hy["proj_margin"] > 0, "mc": sim["p_home"] >= 0.5}
         ats_agree = None
@@ -290,7 +300,23 @@ def game(state_dir: Path, sport: str, home: str, away: str, spread: float | None
         return {"home": home, "away": away, "power_margin": round(pr[0], 1), "power_total": round(pr[1], 1),
                 "trend_margin": hy["proj_margin"], "trend_total": trend_t, "mod_home": hy["mod_home"],
                 "mod_away": hy["mod_away"], "margin": round(m, 1), "total": round(t, 1), "spread": spread,
-                "line": line, "sim": sim, **d, "ml_agree": agree, "ats_agree": ats_agree}
+                "line": line, "sim": sim, **d, "ml_agree": agree, "ats_agree": ats_agree, "institutional": inst}
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _institutional(state_dir: Path, home: str, away: str, m: float, t: float, spread, line, as_of) -> dict | None:
+    """marv/institutional.py read on top of the blend (CFB). None on any missing piece -> plain MC. Never raises."""
+    from datetime import datetime, timezone
+    from . import hybrid as HY
+    from . import institutional as IN
+    try:
+        IN.load(state_dir)
+        s = HY.season_for("cfb", as_of or datetime.now(timezone.utc))
+        bh, ba = HY.cfb_bcr(state_dir, home, s), HY.cfb_bcr(state_dir, away, s)
+        so, to = IN.opener(state_dir, home, away)
+        return IN.institutional_hybrid_simulation(m, t, bh[0] if bh else None, ba[0] if ba else None, spread, line,
+                                                  so, to)
     except Exception:  # noqa: BLE001
         return None
 
@@ -312,4 +338,12 @@ def text(r: dict, sport: str) -> str:
         out += f" · {r['picks']['total'].title()} {r['line']:g} (blend total {r['total']:.0f}, {tier(r['strength']['total'])})"
     if r["best"] != "ml":
         out += f" · best: {'ATS' if r['best'] == 'spread' else 'O/U'}"
+    inst = r.get("institutional")
+    if inst:
+        bits = [f"BCR tiers {inst['tiers'][0]}/{inst['tiers'][1]}"] if None not in inst["tiers"] else []
+        if inst.get("steam_pts"):
+            bits.append(f"steam {sg * inst['steam_pts']:+.1f}")
+        out += " · institutional skew-MC" + (f" ({', '.join(bits)})" if bits else "")
+        if inst.get("bcr_guard"):
+            out += f" · BCR guard {sh(home if inst['bcr_guard'] == 'home' else away)}: no upset fade"
     return out

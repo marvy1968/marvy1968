@@ -795,3 +795,18 @@ calibrated `a + b x MC`.
 * BCR stress test (BCR = 4/5-star share of the last 4 high-school classes, `tools/cfb_bcr.py`): favourite BCR > 0.70 vs dog < 0.45 ->
   0 upsets in 41 soft spots, 6 of 146 heavy favourites (4.1% vs 17.8% otherwise), dog ATS 44.8%. Those "upsets" are false alarms;
   the BCR guard now blocks fading them on Upset Alert / the overlay.
+
+## Institutional hybrid simulation, NCAAF (Oct 10 2026, PAPER)
+`marv/institutional.py` (`institutional_hybrid_simulation`) now runs on the CFB pick-engine path (March_edge overlay /
+`/check`): pick-engine blend (power + velocity-decayed trend) + tiered BCR (tiers <0.20 / 0.20-0.45 / 0.45-0.70 / 0.70+,
+B pts per tier gap; elite fav vs tier 0-1 dog = BCR guard) + steam (CFBD Bovada open -> close, velocity-decayed
+move / (1 + |move| / 3)) + skew-normal Monte Carlo (10,000 draws, skewnorm fits on earlier-season residuals).
+Openers: `tools/cfb_open_lines.py` -> `state/cache/cfb_lines_oc.csv` (no openers in 2020). Backtest
+`tools/institutional_bt.py` -> `state/reports/institutional_backtest.json`, walk-forward (fit 2021-24 -> test 2025,
+fit 2021-25 -> test 2026 to Oct 4), closing line @-110, same games as the plain pick engine:
+- 2025 (n=1,145): ATS 50.4% (engine 51.4%), O/U 51.8% (engine 51.8%), ML 71.8% (engine 71.5%, market fav 75.1%),
+  Brier 0.1786 vs 0.1776 (worse); lean 10%+ ATS 48.4% of 376.
+- 2026 wks 3-6 (n=110): ATS 54.5% (same as engine), O/U 57.7% of 111 (engine 56.8%), ML 72.7% (engine 75.5%,
+  market 78.2%), Brier 0.1874 vs 0.1890; ATS when steam moved 60.7% of 56 (2025: 48.6% of 360 -> noise).
+- Following steam alone at the close: 46.6% of 416. BCR guard favourite ATS 61.8% of 34 (tiny).
+Verdict: no proven edge; nothing passes marv/proven.py, so it prints no %, paper only. INSTITUTIONAL_CFB=0 reverts.
