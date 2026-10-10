@@ -756,3 +756,12 @@ Talent z-scored per season; multiplier TM = 1 + c x z on each team's HPR. Same s
 
 Talent adds almost nothing (0.04 pts of margin error) and nothing against the spread. Correlation between the talent gap and how far the
 final margin missed the market line is -0.008, so the market already prices roster talent. The multiplier is not adopted.
+
+### Pasted CFB Hybrid simulation script: bug and the 50-matchup decay test
+
+* Bug in the pasted script: `mean_score_b = 24.0 - (hpr_b - hpr_a) * 0.55` has the sign backwards, so both teams' means rise together. Team A's projected margin is always +3.45
+  (win probability 58.5%) whatever the teams are, and the total swings from 41 to 84 points. Swapping the teams or playing Georgia against a far weaker team does not change the margin.
+  With the sign fixed (`24.0 - (hpr_a - hpr_b) * 0.55`) the margin tracks the rating gap.
+* 50 simulated matchups (top tier BCR 0.70-0.92 vs mid tier 0.15-0.44, random 3-game deltas), sign fixed: the model favors the mid-tier team in 0/50 with the decay cap and 2/50 without.
+  With the top team in a severe slump (off delta about -1.2, def delta about +0.6) it favors the mid-tier team in 25/50 with the decay cap and 40/50 without: the cap halves the "upset signals" but does not remove them.
+  Whether those signals are false depends on whether slumps are noise; the real-data test (above) says short-term trends are mostly noise, so lighter trend weights (0.3/0.3) beat the pasted 1.2/0.8.
