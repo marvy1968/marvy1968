@@ -1,0 +1,2 @@
+# timeout 5100
+marv stats-backtest --sport euroleague --seasons 2018-2025 --budget-min 70

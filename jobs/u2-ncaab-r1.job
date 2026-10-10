@@ -1,0 +1,2 @@
+# timeout 5100
+marv stats-backtest --sport ncaab --seasons 2019-2025 --budget-min 70
