@@ -1,0 +1,3 @@
+$ marv stats-backtest --sport ncaaw --seasons 2019-2025 --budget-min 70
+started 2026-10-10 18:38:06 EDT
+RUNNING...
