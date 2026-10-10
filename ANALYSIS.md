@@ -765,3 +765,22 @@ final margin missed the market line is -0.008, so the market already prices rost
 * 50 simulated matchups (top tier BCR 0.70-0.92 vs mid tier 0.15-0.44, random 3-game deltas), sign fixed: the model favors the mid-tier team in 0/50 with the decay cap and 2/50 without.
   With the top team in a severe slump (off delta about -1.2, def delta about +0.6) it favors the mid-tier team in 25/50 with the decay cap and 40/50 without: the cap halves the "upset signals" but does not remove them.
   Whether those signals are false depends on whether slumps are noise; the real-data test (above) says short-term trends are mostly noise, so lighter trend weights (0.3/0.3) beat the pasted 1.2/0.8.
+
+## Upset model: market probability plus extra features (NFL 2019-25, college football 2016-19), walk-forward
+
+Question: does anything beat the market price when betting underdogs? Target = the dog wins outright (NFL, closing consensus moneylines from nflverse,
+not Pinnacle's own) or the dog covers (college football, Bovada's real spread odds, 2014-19: no historical college moneylines exist here).
+Baseline = the market's no-vig probability, recalibrated on earlier seasons. Extras: Marv margin vs market, rest difference, wind, temperature,
+dome, division game, dog at home (NFL); Marv margin vs close, line move from the open, Bovada vs sharp gap, spread size, dog at home (college).
+
+| | NFL dog ML (1,954 games) | College dog +points at Bovada (2,682 games) |
+|---|---|---|
+| Log-loss: market / market + features | 0.6086 / 0.6101 (worse) | 0.6924 / 0.6931 (worse) |
+| Flat bet every dog | ROI -4.7% | cover 51.6% |
+| Model edge >= 3% / 4% | 115 bets, 40.9% hit, ROI -8.4% [-29%, +12%] | 215 bets, 55.8% cover, ROI +6.5% [-6%, +20%] |
+| Model edge >= 5% / 6% | 20 bets, ROI -33.7% | 61 bets, 63.9% cover, ROI +21.6% [0%, +43%] |
+| Rule: Bovada gives the dog 0.5+ more points than sharp | n/a | 241 bets, 49.8%, ROI -3.5% |
+
+* No feature improves out-of-sample log-loss in either sport; the market coefficient is 1.12 (about calibrated) and every extra coefficient is about 0. Shuffling the features (100 times) gave a better NFL ROI than the real features 97% of the time.
+* The college ROI at high edge thresholds is positive but is the winner's curse: the thresholds were looked at after the fact, n shrinks to 61, intervals include zero, and the model that selects those bets scores worse than the market overall.
+* Not tested: opening lines in the NFL (none here), Pinnacle's own moneylines, travel, and late injury news at kickoff time. No upset edge found in the data we have.
