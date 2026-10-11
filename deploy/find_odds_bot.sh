@@ -4,6 +4,27 @@
 #   sudo bash find_odds_bot.sh /path/dir  -> writes ~/odds-bot-redacted.tar.gz (no keys/tokens)
 set -uo pipefail
 
+if [ "${1:-}" = "--reports" ]; then
+  # Results only: tail of each log, head of markdown/text reports, head+tail of csv results. Secrets are scrubbed on the way out.
+  DIR="$(realpath "${2:?folder}")"
+  redact() { sed -E \
+    -e 's/[0-9]{8,10}:[A-Za-z0-9_-]{30,}/REDACTED_TELEGRAM_TOKEN/g' \
+    -e 's/\b(PK|AK|CK)[A-Z0-9]{16,}\b/REDACTED_BROKER_KEY/g' \
+    -e 's/((API|api|APCA|apca|ALPACA|alpaca)[-_A-Za-z]*(KEY|key|SECRET|secret|TOKEN|token)[-_A-Za-z]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"']?)[A-Za-z0-9\/+_-]{8,}/\1REDACTED/g' \
+    -e 's/\b[A-Za-z0-9\/+]{40}\b/REDACTED40/g'; }
+  find "$DIR" -type f \( -name '*.log' -o -name '*.md' -o -name '*.txt' -o -name '*.csv' -o -name '*report*.json' -o -name '*result*.json' \) \
+       -not -path '*/venv/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' -not -path '*/archive/*' -not -name 'requirements*.txt' \
+       -size +0 -mtime -400 2>/dev/null | sort | head -80 | while read -r f; do
+    echo; echo "===== $f ($(wc -l < "$f") lines, $(stat -c %y "$f" | cut -c1-10))"
+    case "$f" in
+      *.log) tail -n 45 "$f" | cut -c1-220 | redact ;;
+      *.csv) head -n 4 "$f" | cut -c1-220 | redact; echo "..."; tail -n 3 "$f" | cut -c1-220 | redact ;;
+      *) head -n 70 "$f" | cut -c1-220 | redact ;;
+    esac
+  done
+  exit 0
+fi
+
 if [ "${1:-}" = "--trading" ]; then
   echo "== Python/JS/shell files mentioning Alpaca or other brokers (paths only, no code)"
   grep -rlIis --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.ipynb' \

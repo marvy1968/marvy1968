@@ -14,6 +14,7 @@ Accepted job lines:
   show <path>                   print a file under /opt/marv-bot/state (not .env), up to 200 KB
   telegram cards/<name>.txt [mirror]  send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
+  read-bot-reports /abs/folder  tails of that bot's logs + heads of reports/csv (secrets scrubbed)
   find-trading-bot              same, for Alpaca / broker bots (paths only)
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
@@ -91,6 +92,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if not args or args[0] not in ("download", "backtest"):
             return None, "alpaca needs download or backtest [options]"
         return as_bot + [py, "-m", "alpacabot", *args], ""
+    if cmd == "read-bot-reports":  # logs/reports/csv heads of a bot folder, secrets scrubbed (find_odds_bot.sh --reports)
+        if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:
+            return None, "read-bot-reports needs one absolute folder path"
+        return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--reports", args[0]], ""
     if cmd == "find-trading-bot":  # where an Alpaca / broker bot lives on the VM (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--trading"], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
