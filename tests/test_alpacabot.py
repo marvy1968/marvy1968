@@ -182,3 +182,152 @@ class EndToEndTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------------------------------------------------------------- execution layer
+from datetime import datetime, timedelta  # noqa: E402
+
+from alpacabot import execution as X  # noqa: E402
+
+
+class FakeBroker:
+    def __init__(self, equity=100_000.0, bid=99.98, ask=100.00):
+        self._equity, self.bid, self.ask, self.calls = equity, bid, ask, []
+
+    def equity(self):
+        return self._equity
+
+    def quote(self, sym):
+        return self.bid, self.ask
+
+    def submit_bracket(self, sym, qty, stop, target):
+        self.calls.append(("bracket", sym, qty, stop, target))
+
+    def close(self, sym):
+        self.calls.append(("close", sym))
+
+    def flatten_all(self):
+        self.calls.append(("flatten",))
+
+
+def et(h, m, day=(2026, 10, 12)):
+    return datetime(*day, h, m)
+
+
+class ExecutionTests(unittest.TestCase):
+    def test_spread_check_stocks_and_crypto(self):
+        self.assertTrue(X.spread_ok(99.98, 100.00, max_abs=0.05))
+        self.assertFalse(X.spread_ok(99.90, 100.00, max_abs=0.05))
+        self.assertFalse(X.spread_ok(0, 100.0))
+        self.assertTrue(X.spread_ok(60000, 60020, max_pct=0.0005))          # 0.033%
+        self.assertFalse(X.spread_ok(60000, 60060, max_pct=0.0005))         # 0.1%
+
+    def test_volatility_normalized_size(self):
+        calm, wild = X.position_size(100_000, 0.005, 100, 5.0), X.position_size(100_000, 0.005, 100, 20.0)
+        self.assertEqual((calm, wild), (100, 25))                            # a 4x wider stop gets 4x fewer shares: $500 at risk either way
+        self.assertEqual(X.position_size(100_000, 0.005, 100, 0.5), 250)     # ...until the 25% notional cap binds
+        self.assertEqual(X.position_size(100_000, 0.005, 100, 0.0), 0)
+
+    def test_entry_window(self):
+        w = X.EntryWindow()
+        self.assertFalse(w.entries_allowed(et(9, 40)))                       # opening minutes
+        self.assertTrue(w.entries_allowed(et(9, 45)))
+        self.assertFalse(w.entries_allowed(et(15, 45)))
+        self.assertFalse(w.entries_allowed(et(10, 0, (2026, 10, 10))))       # Saturday
+        self.assertTrue(w.must_flatten(et(15, 55)))
+
+    def test_circuit_breaker_trips_locks_24h_and_resets_next_day_only_after_lock(self):
+        b = X.CircuitBreaker(limit=0.02)
+        self.assertFalse(b.update(100_000, et(10, 0)))
+        self.assertFalse(b.update(98_500, et(11, 0)))
+        self.assertTrue(b.update(97_900, et(12, 0)))                         # -2.1% on the day
+        self.assertFalse(b.entries_allowed(et(13, 0)))
+        self.assertFalse(b.entries_allowed(et(9, 0, (2026, 10, 13))))        # next morning, still inside 24h
+        self.assertTrue(b.entries_allowed(et(12, 1, (2026, 10, 13))))
+
+    def test_stale_positions(self):
+        held = {"A": et(10, 0), "B": et(10, 40)}
+        self.assertEqual(X.stale_positions(held, et(10, 50), 45), ["A"])
+
+    def test_retry_backs_off_then_succeeds_and_gives_up_cleanly(self):
+        class E429(Exception):
+            status_code = 429
+        calls, waits = {"n": 0}, []
+
+        def flaky():
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise E429()
+            return "ok"
+        self.assertEqual(X.retry_call(flaky, sleep=waits.append), "ok")
+        self.assertEqual(len(waits), 2)
+        self.assertGreater(waits[1], waits[0] * 1.2)                          # exponential
+        with self.assertRaises(E429):
+            X.retry_call(lambda: (_ for _ in ()).throw(E429()), retries=2, sleep=lambda s: None)
+
+        class E400(Exception):
+            status_code = 400
+        n = {"c": 0}
+
+        def bad():
+            n["c"] += 1
+            raise E400()
+        with self.assertRaises(E400):
+            X.retry_call(bad, sleep=lambda s: None)
+        self.assertEqual(n["c"], 1)                                           # a client error is not retried
+
+    def test_rotating_log_is_size_capped(self):
+        import logging.handlers
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            lg = X.setup_logging(Path(d) / "bot.log", max_bytes=2000, backups=2)
+            for i in range(300):
+                lg.warning("line %d %s", i, "x" * 50)
+            files = list(Path(d).glob("bot.log*"))
+            self.assertLessEqual(len(files), 3)
+            self.assertLessEqual(sum(f.stat().st_size for f in files), 3 * 2200)
+            for h in list(lg.handlers):
+                if isinstance(h, logging.handlers.RotatingFileHandler):
+                    h.close()
+                    lg.removeHandler(h)
+
+    def test_live_decision_matches_backtest_signal(self):
+        df = make_day(seed=3, vol=0.0012)
+        strat = VwapReversion(z_entry=1.0, max_trades=50)
+        sigs = strat.signals(df)
+        self.assertTrue(sigs)
+        k = sigs[0].i
+        got = X.live_decision(strat, df.iloc[: k + 1])
+        self.assertIsNotNone(got)
+        self.assertEqual((got.i, round(got.stop_dist, 6)), (k, round(sigs[0].stop_dist, 6)))
+        self.assertIsNone(X.live_decision(strat, df.iloc[:k]))                # one bar earlier: nothing yet
+
+    def test_executor_orders_with_checks_and_halts_on_wide_spread(self):
+        b = FakeBroker()
+        ex = X.Executor(b, sleep=lambda s: None)
+        sig = Signal(100, 1, 0.5, 2.0)
+        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(9, 40)), "outside entry window")
+        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 0)), "ordered")
+        self.assertEqual(b.calls[-1], ("bracket", "AAPL", 250, 99.5, 101.0))   # 25% notional cap binds: 250 shares at $100
+        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 1)), "position limit")
+        b.bid, b.ask = 99.80, 100.00
+        self.assertTrue(ex.try_enter("MSFT", sig, 100.0, et(10, 2)).startswith("spread too wide"))
+        ex.kill_switch = True
+        self.assertEqual(ex.try_enter("NVDA", sig, 100.0, et(10, 3)), "kill switch")
+
+    def test_executor_housekeeping_flattens_on_breaker_close_and_stale(self):
+        b = FakeBroker()
+        ex = X.Executor(b, sleep=lambda s: None, stale_minutes=45)
+        ex.on_tick(et(10, 0))
+        ex.try_enter("AAPL", Signal(1, 1, 0.5, 2.0), 100.0, et(10, 0))
+        self.assertEqual(ex.on_tick(et(10, 50)), ["stale exit AAPL"])
+        self.assertIn(("close", "AAPL"), b.calls)
+        ex.try_enter("AAPL", Signal(1, 1, 0.5, 2.0), 100.0, et(11, 0))
+        b._equity = 97_000.0
+        self.assertEqual(ex.on_tick(et(11, 5)), ["breaker: flattened"])
+        self.assertEqual(b.calls[-1], ("flatten",))
+        self.assertEqual(ex.try_enter("MSFT", Signal(1, 1, 0.5, 2.0), 100.0, et(11, 6)), "breaker lock")
+        b2 = FakeBroker(); e2 = X.Executor(b2, sleep=lambda s: None)
+        e2.try_enter("AAPL", Signal(1, 1, 0.5, 2.0), 100.0, et(10, 0))
+        self.assertEqual(e2.on_tick(et(15, 55)), ["flattened for the close"])

@@ -75,6 +75,7 @@ class OpeningRangeBreak:
     target_r: float = 2.0
     end: str = "11:30"         # no new entries after this time
     require_vwap: bool = True
+    max_bars: int = 0          # time stop in minutes after entry (0 = hold to the close)
     name: str = "opening_range_break"
 
     def signals(self, df: pd.DataFrame) -> list[Signal]:
@@ -97,7 +98,7 @@ class OpeningRangeBreak:
             sd = entry - lo if self.stop == "range_low" else self.stop_atr * float(a.iloc[i])
             if sd <= 0:
                 return []
-            return [Signal(int(i), 1, float(sd), self.target_r, 0, "orb")]
+            return [Signal(int(i), 1, float(sd), self.target_r, self.max_bars, "orb")]
         return []
 
     def placebo(self, df: pd.DataFrame, n: int, rng: np.random.Generator) -> list[Signal]:
@@ -109,7 +110,7 @@ class OpeningRangeBreak:
         i = int(rng.choice(idx))
         lo = float(df["low"].iloc[: self.range_minutes].min())
         sd = float(df["close"].iloc[i] - lo) if self.stop == "range_low" else float(self.stop_atr * a.iloc[i])
-        return [Signal(i, 1, max(sd, 0.01), self.target_r, 0, "placebo")] if sd > 0 else []
+        return [Signal(i, 1, max(sd, 0.01), self.target_r, self.max_bars, "placebo")] if sd > 0 else []
 
 
 @dataclass

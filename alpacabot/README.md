@@ -35,5 +35,10 @@ Put paper-account **data** keys in `/opt/marv-bot/.env` yourself (never in chat 
 
 Results land in `state/reports/alpaca_<family>.json`. Through the vm-link: `alpaca download ...` / `alpaca backtest --family ...`.
 
+## Execution safety layer (`execution.py`, paper only, tested offline with a fake broker)
+Spread check before market orders, daily drawdown circuit breaker (flatten + 24h entry lock), stale-position time exits (default 45 min), ATR-normalized sizing,
+no entries in the first 15 minutes or after 15:30 and flat by 15:55, retry with exponential backoff on 429/5xx/network errors, size-capped rotating logs,
+and `live_decision()` which feeds today's bars to the *same* strategy object the backtest uses. The Alpaca adapter always builds a paper client; there is no live switch.
+
 ## Expectations
 Most retail scalping and day trading loses after costs, and the free feed adds noise. The swing families are the most likely to survive. If the tests print `NO EDGE FOUND`, believe them.

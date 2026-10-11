@@ -20,7 +20,7 @@ from .strategies import Breakout, OpeningRangeBreak, RsiPullback, VwapReversion
 
 GRIDS = {
     "scalp": (VwapReversion, {"z_entry": [1.5, 2.0, 2.5], "target": ["vwap", "r"], "max_bars": [15, 30]}),
-    "day": (OpeningRangeBreak, {"range_minutes": [15, 30], "target_r": [1.5, 2.0, 3.0]}),
+    "day": (OpeningRangeBreak, {"range_minutes": [15, 30], "target_r": [1.5, 2.0, 3.0], "max_bars": [0, 90]}),
     "swing_rsi": (RsiPullback, {"rsi_entry": [5, 10, 15], "exit_sma": [5, 10], "stop_atr": [2.0, 3.0]}),
     "swing_breakout": (Breakout, {"lookback": [20, 55], "exit_lookback": [10, 20]}),
 }
