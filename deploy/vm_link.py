@@ -14,6 +14,7 @@ Accepted job lines:
   show <path>                   print a file under /opt/marv-bot/state (not .env), up to 200 KB
   telegram cards/<name>.txt [mirror]  send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
+  find-trading-bot              same, for Alpaca / broker bots (paths only)
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
   marv <command> [args...]      python -m marv ... as the marvbot user; `run`/`props` need --dry-run,
                                 --send / --watch / serve / live are refused (the timers do those)
@@ -85,6 +86,8 @@ def parse(line: str) -> tuple[list[str] | None, str]:
                          "--file", str(LINK / args[0])], ""
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
+    if cmd == "find-trading-bot":  # where an Alpaca / broker bot lives on the VM (paths only, no code)
+        return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--trading"], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
         if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:
             return None, "read-odds-bot needs one absolute folder path (from find-odds-bot)"

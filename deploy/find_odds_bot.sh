@@ -4,6 +4,26 @@
 #   sudo bash find_odds_bot.sh /path/dir  -> writes ~/odds-bot-redacted.tar.gz (no keys/tokens)
 set -uo pipefail
 
+if [ "${1:-}" = "--trading" ]; then
+  echo "== Python/JS/shell files mentioning Alpaca or other brokers (paths only, no code)"
+  grep -rlIis --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.ipynb' \
+       -e 'alpaca' -e 'APCA-API' -e 'APCA_API' -e 'alpaca_trade_api' -e 'alpaca-py' -e 'ib_insync' \
+       /home /opt /root /srv 2>/dev/null \
+    | grep -v -e '/opt/marv-bot' -e '/opt/marv-link' -e 'site-packages' -e '/venv/' -e '/.venv/' -e '/node_modules/' | head -40
+  echo
+  echo "== Folders (file count) containing them"
+  grep -rlIis --include='*.py' -e 'alpaca' -e 'APCA' /home /opt /root /srv 2>/dev/null \
+    | grep -v -e '/opt/marv-bot' -e '/opt/marv-link' -e 'site-packages' -e '/venv/' -e '/.venv/' | xargs -r -n1 dirname | sort | uniq -c | sort -rn | head -10
+  echo
+  echo "== systemd services / cron / processes that look like trading bots"
+  systemctl list-units --type=service --all --no-pager 2>/dev/null | grep -iE 'alpaca|trade|trader|scalp|swing|algo|stock' | grep -v marv
+  (crontab -l 2>/dev/null; for u in $(cut -d: -f1 /etc/passwd); do crontab -u "$u" -l 2>/dev/null; done) | grep -v '^#' | grep -iE 'alpaca|trade|scalp|swing|algo' | sort -u
+  ps -eo pid,user,args | grep -iE '[a]lpaca|[t]rader|[s]calp' | grep -v marv
+  echo
+  echo "Next: read the folder with the read-odds-bot job (secrets are stripped)."
+  exit 0
+fi
+
 if [ $# -eq 0 ]; then
   echo "== Python projects that talk to Telegram (excluding Marv and virtualenvs)"
   grep -rlIs --include='*.py' -e 'api.telegram.org' -e 'telegram' -e 'TELEGRAM' \
@@ -50,6 +70,9 @@ find "$WORK/odds-bot" -type f -size -2M | while read -r f; do
     -e 's/(["'"'"'])(sk|pk|rk)_[A-Za-z0-9]{16,}(["'"'"'])/\1REDACTED\3/g' \
     -e 's/((api|API)[_-]?(key|KEY)|token|TOKEN|secret|SECRET|password|PASSWORD|chat_id|CHAT_ID)([A-Za-z_]*)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{6,}["'"'"']/\1\4 = "REDACTED"/g' \
     -e 's/(apiKey=)[A-Za-z0-9]{16,}/\1REDACTED/g' \
+    -e 's/\b(PK|AK|CK)[A-Z0-9]{16,}\b/REDACTED_BROKER_KEY/g' \
+    -e 's/((API|api|APCA|apca)[-_A-Za-z]*(KEY|key|SECRET|secret|TOKEN|token)[-_A-Za-z]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'])[^"'"'"']{6,}(["'"'"'])/\1REDACTED\4/g' \
+    -e 's/(["'"'"'])[A-Za-z0-9\/+]{40}(["'"'"'])/\1REDACTED40\2/g' \
     "$f"
 done
 tar -C "$WORK" -czf "$OUT" odds-bot
