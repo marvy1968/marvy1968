@@ -555,3 +555,18 @@ class PaperRunnerTests(unittest.TestCase):
             r.on_bar_close(datetime(2026, 10, 12, 10, 30, tzinfo=paper.ET))  # no bars -> no orders, no crash
             self.assertIn("paper-api.alpaca.markets", paper.TRADE_URL)
             self.assertNotIn("api.alpaca.markets/v2/orders", paper.TRADE_URL.replace("paper-api", ""))
+
+    def test_report_card_and_gate(self):
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / "trades.jsonl").write_text("\n".join(json.dumps({"date": "2026-10-12", "symbol": "SPY", "qty": 10, "entry": 100, "exit": 101, "pnl": 10, "r": 0.5, "reason": "target"}) if i % 2 == 0
+                                                         else json.dumps({"date": "2026-10-12", "symbol": "AMD", "qty": 10, "entry": 100, "exit": 99, "pnl": -10, "r": -0.5, "reason": "stop"}) for i in range(4)))
+            (d / "equity.jsonl").write_text(json.dumps({"date": "2026-10-11", "equity": 100000, "spy": 500}) + "\n" + json.dumps({"date": "2026-10-12", "equity": 100500, "spy": 501}) + "\n")
+            t = paper.report_card(d, date(2026, 10, 12))
+            self.assertIn("2W/2L", t)
+            self.assertIn("+0.50%", t)
+            self.assertIn("GATE NOT MET", t)                     # 2 days and 4 trades cannot pass
+            self.assertIn("PAPER account only", t)
+        self.assertIn("No equity snapshots", paper.report_card(tempfile.mkdtemp(), date(2026, 10, 12)))

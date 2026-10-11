@@ -8,7 +8,7 @@ appended to state/alpaca_paper/journal.jsonl so the forward record can be compar
 import json
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -98,6 +98,7 @@ class PaperRunner:
         self.exec.opened = self.exits.opened_at()
         self.last_bar: dict[str, object] = {}
         self.entries_today = 0
+        self.reported = None
 
     def journal(self, kind: str, **kw):
         with open(self.dir / "journal.jsonl", "a") as f:
@@ -116,10 +117,17 @@ class PaperRunner:
         """Virtual stop / trail / take-profit, run every ~15 s on live quotes."""
         for sym in list(self.exits.positions):
             bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
+            pos = self.exits.positions.get(sym)
+            entry, qty, opened = (pos["state"].entry, pos["qty"], pos["opened"]) if pos else (0, 0, "")
             reason = self.exits.on_quote(sym, bid, ask)
             if reason:
                 self.exec.opened.pop(sym, None)
                 self.journal("exit", symbol=sym, reason=reason, bid=bid)
+                risk = pos["state"].atr * pos["state"].trail * qty if pos else 0
+                pnl = (bid - entry) * qty
+                with open(self.dir / "trades.jsonl", "a") as f:
+                    f.write(json.dumps({"date": now_et.date().isoformat(), "symbol": sym, "qty": qty, "entry": entry, "exit": bid, "pnl": round(pnl, 2),
+                                        "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason, "opened": opened}) + "\n")
 
     def on_bar_close(self, now_et: datetime):
         """Once per new 5-minute bar: ask the Brain about each symbol and enter on a fresh signal."""
@@ -150,6 +158,19 @@ class PaperRunner:
                 self.store.save(self.exits.positions)
         self.poll_exits(now_et)
 
+    def end_of_day(self, now_et: datetime):
+        """Snapshot equity and SPY, then send the daily report card (Telegram when configured, always saved to disk)."""
+        try:
+            bid, ask = self.broker.quote("SPY")
+            snap = {"date": now_et.date().isoformat(), "equity": self.broker.equity(), "spy": round((bid + ask) / 2, 2)}
+            with open(self.dir / "equity.jsonl", "a") as f:
+                f.write(json.dumps(snap) + "\n")
+            text = report_card(self.dir, now_et.date())
+            (self.dir / "report_card.txt").write_text(text)
+            send_telegram(text)
+        except Exception:
+            log.exception("end-of-day report failed (continuing)")
+
     def run(self):
         log.info("paper runner started: %s", self.symbols)
         self.reconcile()
@@ -161,6 +182,9 @@ class PaperRunner:
                     self.sleep(60)
                     continue
                 self.tick(now)
+                if now.time() >= dtime(16, 5) and self.reported != now.date():
+                    self.reported = now.date()
+                    self.end_of_day(now)
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot
@@ -170,16 +194,73 @@ class PaperRunner:
             self.sleep(15)
 
 
-def report(state_dir="state/alpaca_paper") -> str:
-    p = Path(state_dir) / "journal.jsonl"
-    rows = [json.loads(x) for x in p.read_text().splitlines()] if p.exists() else []
-    sig = [r for r in rows if r["kind"] == "signal"]
-    ex = [r for r in rows if r["kind"] == "exit"]
+GATE = {"days": 30, "trades": 100, "profit_factor": 1.3, "max_dd": 0.10}
+
+
+def _jl(path: Path) -> list[dict]:
+    return [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+
+
+def report_card(state_dir, day=None) -> str:
+    """Win/loss, ROI, drawdown, SPY comparison and the go-live gate, from the trade ledger and the daily equity snapshots."""
+    d = Path(state_dir)
+    trades, eq = _jl(d / "trades.jsonl"), _jl(d / "equity.jsonl")
+    day = (day or datetime.now(ET).date()).isoformat()
+    today = [t for t in trades if t["date"] == day]
+    def stats(ts):
+        w = [t for t in ts if t["pnl"] > 0]
+        gl = -sum(t["pnl"] for t in ts if t["pnl"] <= 0)
+        return len(ts), len(w), len(ts) - len(w), (len(w) / len(ts) if ts else 0.0), (sum(t["pnl"] for t in w) / gl if gl else float("inf") if w else 0.0), (sum(t["r"] for t in ts) / len(ts) if ts else 0.0)
+    n, w, l, wr, pf, ar = stats(today)
+    N, W, L, WR, PF, AR = stats(trades)
+    lines = ["ALPACA PAPER REPORT CARD " + day, "PAPER account only. Nothing here is a live result.", ""]
+    lines.append(f"Today: {n} trades, {w}W/{l}L ({wr:.0%}), P&L ${sum(t['pnl'] for t in today):+,.0f}")
+    days = len(eq)
+    gate = []
+    if len(eq) >= 1:
+        start, cur = eq[0]["equity"], eq[-1]["equity"]
+        roi = cur / start - 1
+        dayret = (eq[-1]["equity"] / eq[-2]["equity"] - 1) if len(eq) > 1 else 0.0
+        peak, dd = start, 0.0
+        for e in eq:
+            peak = max(peak, e["equity"])
+            dd = max(dd, 1 - e["equity"] / peak)
+        spy = eq[-1]["spy"] / eq[0]["spy"] - 1 if eq[0].get("spy") else 0.0
+        avg_daily = ((cur / start) ** (1 / max(days - 1, 1)) - 1) if days > 1 else 0.0
+        lines += [f"Equity ${cur:,.0f}  day {dayret:+.2%}",
+                  f"ROI since start ({eq[0]['date']}): {roi:+.2%} over {days} days   SPY {spy:+.2%}   avg daily {avg_daily:+.2%} (goal 0.75-1.0%)",
+                  f"Max drawdown {dd:.1%}"]
+        gate = [("30+ trading days", days >= GATE["days"], f"{days}"), ("100+ trades", N >= GATE["trades"], f"{N}"),
+                ("net ROI > 0", roi > 0, f"{roi:+.2%}"), ("profit factor >= 1.3", PF >= GATE["profit_factor"], f"{PF:.2f}"),
+                ("max drawdown <= 10%", dd <= GATE["max_dd"], f"{dd:.1%}"), ("beats SPY", roi > spy, f"{roi:+.2%} vs {spy:+.2%}"),
+                ("avg daily >= 0.75%", avg_daily >= 0.0075, f"{avg_daily:+.2%}")]
+    lines += ["", f"All trades: {N}, {W}W/{L}L ({WR:.0%}), profit factor {PF:.2f}, avg R {AR:+.2f}"]
     by = {}
-    for r in ex:
-        by[r["reason"]] = by.get(r["reason"], 0) + 1
-    return (f"paper journal: {len(sig)} signals ({sum(r['result'] == 'ordered' for r in sig)} ordered), {len(ex)} exits {by}\n"
-            "P&L: see the Alpaca paper dashboard (account equity); this journal records decisions, not marks.")
+    for t in trades:
+        by.setdefault(t["symbol"], 0.0)
+        by[t["symbol"]] += t["pnl"]
+    if by:
+        best = sorted(by.items(), key=lambda x: -x[1])
+        lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in best[:3] + best[-2:]))
+    if gate:
+        lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
+        lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")
+    else:
+        lines.append("No equity snapshots yet; the first appears after today's close.")
+    return "\n".join(lines)
+
+
+def send_telegram(text: str) -> bool:
+    import os
+    tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not tok or not chat:
+        return False
+    r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage", data={"chat_id": chat, "text": text[:4000]}, timeout=20)
+    return r.ok
+
+
+def report(state_dir="state/alpaca_paper") -> str:
+    return report_card(state_dir)
 
 
 def main(a) -> int:
