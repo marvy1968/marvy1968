@@ -1,3 +1,349 @@
 $ read-bot-reports /home/moonrider1968/MasterBot_Center/Trading_Alpaca
-started 2026-10-11 08:07:47 EDT
-RUNNING...
+started 2026-10-11 08:07:47 EDT, took 1s, exit 0
+
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/crypto.log (2 lines, 2026-04-12)
+nohup: ignoring input
+2026-04-12 23:14:33,237 | 🛡️ CRYPTO BEAST | Auth Failed: unauthorized.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/bot_run.log (72 lines, 2026-04-15)
+
+[Thu Apr  9 09:03:02 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 527, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Fri Apr 10 09:03:01 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 527, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Mon Apr 13 09:03:01 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 527, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Tue Apr 14 09:03:02 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 527, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Wed Apr 15 09:03:01 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 527, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/cron.log (59 lines, 2026-04-15)
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+--- GROWTH MODE INITIATED ---
+Current Portfolio: 8,171
+Waiting 3 minutes for the NY Opening Range to form...
+Time remaining until hunt: 180 seconds[0K
+Time remaining until hunt: 179 seconds[0K
+Time remaining until hunt: 178 seconds[0K
+Time remaining until hunt: 177 seconds[0K
+Time remaining until hunt: 176 seconds[0K
+Time 
+You can safely close this terminal and head to your patients.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/march_final.log (33714 lines, 2026-04-03)
+
+[Tue Mar 31 22:02:21 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 514, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Wed Apr  1 09:03:02 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 514, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Thu Apr  2 09:03:02 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 514, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Thu Apr  2 10:56:20 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 514, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+[Fri Apr  3 09:03:01 EDT 2026] 3-Minute Buffer Complete. Launching Hybrid Monster...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 514, in <module>
+    VelezMasterSniper().run()
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 146, in __init__
+    raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+RuntimeError: Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/master_sniper.log (41 lines, 2026-03-03)
+2026-03-02 14:44:57,830 | INFO | ✅ MASTER SNIPER READY (paper=True) symbols=['NVDA'] equity=100273.79
+2026-03-02 14:44:57,830 | INFO | 🚀 Running loop (paper=True) window=09:35-15:55 sleep=20s
+2026-03-02 14:44:58,103 | ERROR | ❌ Loop error: {"message":"subscription does not permit querying recent SIP data"}
+
+2026-03-02 14:45:08,188 | ERROR | ❌ Loop error: {"message":"subscription does not permit querying recent SIP data"}
+
+2026-03-02 14:50:16,505 | INFO | ✅ MASTER READY paper=True feed=iex symbols=['NVDA'] equity=100273.79
+2026-03-02 14:50:16,505 | INFO | 🚀 Running loop window=09:35-15:55 ET sleep=20s score_min=0.6
+2026-03-02 14:50:16,859 | INFO | 🟩 ENTRY NVDA LONG qty=31623 ref=182.79 stop=182.76 risk=1.00% score=0.60 | trend=1,vwap=1,squeeze=1,elephant=0,rvol=0
+2026-03-02 14:50:16,896 | ERROR | ❌ Loop error: {"buying_power":"401095.16","code":40310000,"cost_basis":"5779103.25","message":"insufficient buying power"}
+2026-03-02 14:50:27,000 | INFO | 🟩 ENTRY NVDA LONG qty=31623 ref=182.79 stop=182.76 risk=1.00% score=0.60 | trend=1,vwap=1,squeeze=1,elephant=0,rvol=0
+2026-03-02 14:50:27,037 | ERROR | ❌ Loop error: {"buying_power":"401095.16","code":40310000,"cost_basis":"5778787.02","message":"insufficient buying power"}
+2026-03-02 14:50:37,155 | INFO | 🟩 ENTRY NVDA LONG qty=31623 ref=182.79 stop=182.76 risk=1.00% score=0.60 | trend=1,vwap=1,squeeze=1,elephant=0,rvol=0
+2026-03-02 14:50:37,189 | ERROR | ❌ Loop error: {"buying_power":"401095.16","code":40310000,"cost_basis":"5778787.02","message":"insufficient buying power"}
+2026-03-02 14:55:02,939 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=100273.79
+2026-03-02 14:55:02,940 | INFO | 🚀 Running window=09:35-15:55 ET sleep=20s score_min=0.6 max_notional=25%
+2026-03-02 14:55:03,253 | INFO | … NVDA no entry: elephant=0 | trend=0 vwap=1 squeeze=1 rvol=0 (0.73)
+2026-03-02 14:55:23,383 | INFO | … NVDA no entry: elephant=0 | trend=0 vwap=1 squeeze=1 rvol=0 (0.73)
+2026-03-02 14:57:34,685 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=100273.79
+2026-03-02 14:57:34,685 | INFO | 🚀 Running window=09:35-15:55 ET sleep=20s score_min=0.6 max_notional=25%
+2026-03-02 14:57:35,055 | INFO | … NVDA no entry: elephant=0 | trend=1 vwap=1 squeeze=1 rvol=0 (0.75)
+2026-03-02 14:57:55,225 | INFO | … NVDA no entry: elephant=0 | trend=1 vwap=1 squeeze=1 rvol=0 (0.75)
+2026-03-02 15:04:28,654 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=100273.79
+2026-03-02 15:04:28,656 | INFO | 🚀 Running window=09:35-15:55 ET sleep=20s score_min=0.6 max_notional=25%
+2026-03-02 15:04:28,941 | INFO | … NVDA no entry: elephant=0 | trend=1 vwap=1 squeeze=1 rvol=0 (0.76)
+2026-03-02 15:04:49,115 | INFO | … NVDA no entry: elephant=0 | trend=1 vwap=1 squeeze=1 rvol=0 (0.76)
+2026-03-02 15:13:38,820 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=100273.79
+2026-03-02 15:13:38,821 | INFO | 🚀 Running window=09:35-15:55 (ET strings) sleep=20s score_min=0.6 max_notional=25%
+2026-03-02 15:13:38,821 | INFO | REQ: trend=True vwap=False squeeze=False elephant=False rvol=False
+2026-03-02 15:15:28,341 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=100273.79
+2026-03-02 15:15:28,341 | INFO | 🚀 Running window=09:35-15:55 (ET strings) sleep=20s score_min=0.6 max_notional=25%
+2026-03-02 15:15:28,341 | INFO | REQ: trend=True vwap=False squeeze=False elephant=False rvol=False
+2026-03-02 15:15:28,697 | INFO | 🟩 ENTRY NVDA LONG qty=137 px=182.96 stop=182.93 score=0.80 | trend=1,vwap=1,squeeze=1,elephant=0,rvol=1
+2026-03-02 23:50:47,635 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=99991.57
+2026-03-02 23:50:47,636 | INFO | 🚀 Running window=09:35-15:55 (clock-gated) sleep=20s score_min=0.6 max_notional=25% max_qty=500
+2026-03-02 23:50:47,636 | INFO | REQ: trend=True elephant_required=True squeeze_dist=0.003 squeeze_bars=4 ele_mult=1.8 ele_vol_mult=1.2 rvol_min=1.05
+2026-03-02 23:51:49,336 | INFO | 👋 Stopped by user (Ctrl+C).
+2026-03-03 18:53:18,935 | INFO | ✅ MASTER READY paper=True feed=iex delay=20m symbols=['NVDA'] equity=99973.76
+2026-03-03 18:53:18,935 | INFO | 🚀 Running window=09:35-15:55 (clock-gated) sleep=20s score_min=0.6 max_notional=25% max_qty=500
+2026-03-03 18:53:18,935 | INFO | REQ: trend=True elephant_required=True squeeze_dist=0.003 squeeze_bars=4 ele_mult=1.8 ele_vol_mult=1.2 rvol_min=1.05
+2026-03-03 18:53:48,297 | INFO | 👋 stopped by user
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/trail_run.log (7 lines, 2026-04-02)
+nohup: ignoring input
+nohup: ignoring input
+--- STEALTH VIRTUAL TRAIL ACTIVE (0.5%) | Live: False ---
+Monitoring open positions...
+nohup: ignoring input
+--- STEALTH VIRTUAL TRAIL ACTIVE (0.5%) | Live: False ---
+Monitoring open positions...
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/logs/velez_master_sniper.log (432415 lines, 2026-04-15)
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/trading/client.py", line 474, in get_account
+    response = self.get("/account")
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 225, in get
+    return self._request("GET", path, data, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 131, in _request
+    return self._one_request(method, url, opts, retry)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 207, in _one_request
+    raise APIError(error, http_error)
+alpaca.common.exceptions.APIError: {"message": "unauthorized."}
+
+
+2026-04-15 15:50:57,113 | ERROR | ❌ Loop error: APIError('{"message": "unauthorized."}\n')
+2026-04-15 15:50:57,115 | ERROR | Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 198, in _one_request
+    response.raise_for_status()
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://paper-api.alpaca.markets/v2/account
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 452, in run
+    buying_power = self.get_buying_power()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/velez_master_sniper_all.py", line 221, in get_buying_power
+    acct = self.trading.get_account()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/trading/client.py", line 474, in get_account
+    response = self.get("/account")
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 225, in get
+    return self._request("GET", path, data, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 131, in _request
+    return self._one_request(method, url, opts, retry)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/alpaca_velez_sniper/venv/lib/python3.11/site-packages/alpaca/common/rest.py", line 207, in _one_request
+    raise APIError(error, http_error)
+alpaca.common.exceptions.APIError: {"message": "unauthorized."}
+
+
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/sniper.log (852 lines, 2026-04-13)
+2026-04-13 08:01:00,040 | 🛡️ ETH/USD Heartbeat: 2185.86
+2026-04-13 08:01:00,040 | 🛡️ BTC/USD Heartbeat: 70901.232
+2026-04-13 08:02:00,031 | 🛡️ BTC/USD Heartbeat: 70853.9
+2026-04-13 08:02:00,031 | 🛡️ ETH/USD Heartbeat: 2185.06
+2026-04-13 08:03:00,039 | 🛡️ BTC/USD Heartbeat: 70874.091
+2026-04-13 08:03:00,039 | 🛡️ ETH/USD Heartbeat: 2185.74
+2026-04-13 08:04:00,025 | 🛡️ ETH/USD Heartbeat: 2186.785
+2026-04-13 08:04:00,025 | 🛡️ BTC/USD Heartbeat: 70908.6155
+2026-04-13 08:05:00,046 | 🛡️ BTC/USD Heartbeat: 70870.5365
+2026-04-13 08:05:00,047 | 🛡️ ETH/USD Heartbeat: 2184.92
+2026-04-13 08:06:00,039 | 🛡️ ETH/USD Heartbeat: 2184.8995
+2026-04-13 08:06:00,039 | 🛡️ BTC/USD Heartbeat: 70908.15
+2026-04-13 08:07:00,026 | 🛡️ BTC/USD Heartbeat: 70936.35
+2026-04-13 08:08:00,035 | 🛡️ ETH/USD Heartbeat: 2185.685
+2026-04-13 08:08:00,036 | 🛡️ BTC/USD Heartbeat: 70966.23
+2026-04-13 08:09:00,036 | 🛡️ BTC/USD Heartbeat: 71024.85
+2026-04-13 08:09:00,037 | 🛡️ ETH/USD Heartbeat: 2188.236
+2026-04-13 08:10:00,022 | 🛡️ BTC/USD Heartbeat: 71025.2085
+2026-04-13 08:11:00,024 | 🛡️ BTC/USD Heartbeat: 71029.946
+2026-04-13 08:12:00,020 | 🛡️ ETH/USD Heartbeat: 2188.1
+2026-04-13 08:12:00,020 | 🛡️ BTC/USD Heartbeat: 71030.805
+2026-04-13 08:13:00,025 | 🛡️ ETH/USD Heartbeat: 2188.1985
+2026-04-13 08:13:00,026 | 🛡️ BTC/USD Heartbeat: 71022.378
+2026-04-13 08:14:00,023 | 🛡️ BTC/USD Heartbeat: 70993.0
+2026-04-13 08:14:00,023 | 🛡️ ETH/USD Heartbeat: 2187.59
+2026-04-13 08:15:00,039 | 🛡️ BTC/USD Heartbeat: 70990.689
+2026-04-13 08:16:00,024 | 🛡️ ETH/USD Heartbeat: 2187.4515
+2026-04-13 08:16:00,024 | 🛡️ BTC/USD Heartbeat: 70995.08
+2026-04-13 08:17:00,026 | 🛡️ ETH/USD Heartbeat: 2185.75
+2026-04-13 08:17:00,027 | 🛡️ BTC/USD Heartbeat: 70981.1
+2026-04-13 08:18:00,024 | 🛡️ BTC/USD Heartbeat: 70981.103
+2026-04-13 08:19:00,055 | 🛡️ BTC/USD Heartbeat: 70957.04
+2026-04-13 08:20:00,032 | 🛡️ BTC/USD Heartbeat: 70950.805
+2026-04-13 08:21:00,019 | 🛡️ ETH/USD Heartbeat: 2183.765
+2026-04-13 08:21:00,020 | 🛡️ BTC/USD Heartbeat: 70932.162
+2026-04-13 08:22:00,021 | 🛡️ BTC/USD Heartbeat: 70938.748
+2026-04-13 08:22:00,021 | 🛡️ ETH/USD Heartbeat: 2185.1
+2026-04-13 08:23:00,052 | 🛡️ BTC/USD Heartbeat: 70958.8
+2026-04-13 08:24:00,043 | 🛡️ BTC/USD Heartbeat: 70964.9395
+2026-04-13 08:25:00,043 | 🛡️ BTC/USD Heartbeat: 70909.35
+2026-04-13 08:25:00,044 | 🛡️ ETH/USD Heartbeat: 2183.618
+2026-04-13 08:26:00,030 | 🛡️ BTC/USD Heartbeat: 70923.425
+2026-04-13 08:26:00,030 | 🛡️ ETH/USD Heartbeat: 2182.6
+2026-04-13 08:27:00,027 | 🛡️ BTC/USD Heartbeat: 70920.1
+2026-04-13 08:28:00,021 | 🛡️ BTC/USD Heartbeat: 70929.17
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Alpaca/trades.csv (42 lines, 2026-03-31)
+2026-03-02T20:15:28.697855,NVDA,ENTRY,137,182.9600,182.9300,"score 0.80 | trend=1,vwap=1,squeeze=1,elephant=0,rvol=1"
+2026-03-31T09:35:05.577908-04:00,META,ENTRY,106,555.5050,553.5663,559.2062,score=0.55
+2026-03-31T09:35:21.137563-04:00,META,ENTRY,79,555.5050,553.5663,559.2062,score=0.55
+2026-03-31T09:38:09.050767-04:00,MSFT,ENTRY,91,367.1650,366.3076,368.8018,score=0.60
+...
+2026-03-31T13:07:08.517357-04:00,NVDA,STOP,341,172.9950,173.0950,173.8967,STOP
+2026-03-31T13:10:13.223480-04:00,AMD,STOP,219,201.9600,202.0338,203.7100,STOP
+2026-03-31T13:15:22.196556-04:00,AMD,ENTRY,11,202.2700,201.7873,203.1915,score=0.55
