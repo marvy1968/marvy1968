@@ -15,6 +15,7 @@ Accepted job lines:
   telegram cards/<name>.txt [mirror]  send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   find-trading-bot              same, for Alpaca / broker bots (paths only)
+  alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
   marv <command> [args...]      python -m marv ... as the marvbot user; `run`/`props` need --dry-run,
                                 --send / --watch / serve / live are refused (the timers do those)
@@ -86,6 +87,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
                          "--file", str(LINK / args[0])], ""
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
+    if cmd == "alpaca":  # backtests / data download for alpacabot (never live trading: that has no job here)
+        if not args or args[0] not in ("download", "backtest"):
+            return None, "alpaca needs download or backtest [options]"
+        return as_bot + [py, "-m", "alpacabot", *args], ""
     if cmd == "find-trading-bot":  # where an Alpaca / broker bot lives on the VM (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--trading"], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
