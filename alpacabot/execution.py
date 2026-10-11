@@ -146,6 +146,7 @@ class Executor:
     sleep: object = time.sleep
     opened: dict = field(default_factory=dict)      # symbol -> entry time
     kill_switch: bool = False
+    sent_ids: set = field(default_factory=set)      # client order ids already sent (a restart or a repeated tick cannot double-enter)
 
     def on_tick(self, now_et: datetime) -> list[str]:
         """Housekeeping: breaker, flatten at the close, stale exits. Returns what it did."""
@@ -173,6 +174,9 @@ class Executor:
             return "breaker lock"
         if not self.window.entries_allowed(now_et):
             return "outside entry window"
+        coid = f"ab-{symbol}-{now_et:%Y%m%d}-{signal.i}"
+        if coid in self.sent_ids:
+            return "duplicate order id"
         if symbol in self.opened or len(self.opened) >= self.max_positions:
             return "position limit"
         bid, ask = retry_call(self.broker.quote, symbol, sleep=self.sleep)
@@ -184,7 +188,8 @@ class Executor:
             return "size < 1 share"
         stop = round(entry_ref - signal.stop_dist, 2)
         target = round(entry_ref + signal.target_r * signal.stop_dist, 2) if signal.target_r > 0 else None
-        retry_call(self.broker.submit_bracket, symbol, qty, stop, target, sleep=self.sleep)
+        self.sent_ids.add(coid)
+        retry_call(self.broker.submit_bracket, symbol, qty, stop, target, coid, sleep=self.sleep)
         self.opened[symbol] = now_et
         log.info("ordered %s x%d stop %.2f target %s", symbol, qty, stop, target)
         return "ordered"
@@ -207,10 +212,10 @@ class AlpacaBroker:
         q = self.data.get_stock_latest_quote(StockLatestQuoteRequest(symbol_or_symbols=symbol))[symbol]
         return float(q.bid_price), float(q.ask_price)
 
-    def submit_bracket(self, symbol: str, qty: int, stop: float, target: float | None):
+    def submit_bracket(self, symbol: str, qty: int, stop: float, target: float | None, client_order_id: str | None = None):
         from alpaca.trading.enums import OrderClass, OrderSide, TimeInForce
         from alpaca.trading.requests import MarketOrderRequest, StopLossRequest, TakeProfitRequest
-        req = MarketOrderRequest(symbol=symbol, qty=qty, side=OrderSide.BUY, time_in_force=TimeInForce.DAY,
+        req = MarketOrderRequest(symbol=symbol, qty=qty, side=OrderSide.BUY, time_in_force=TimeInForce.DAY, client_order_id=client_order_id,
                                  order_class=OrderClass.BRACKET if target else OrderClass.OTO,
                                  stop_loss=StopLossRequest(stop_price=stop),
                                  **({"take_profit": TakeProfitRequest(limit_price=target)} if target else {}))

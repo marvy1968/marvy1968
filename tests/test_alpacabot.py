@@ -200,8 +200,9 @@ class FakeBroker:
     def quote(self, sym):
         return self.bid, self.ask
 
-    def submit_bracket(self, sym, qty, stop, target):
+    def submit_bracket(self, sym, qty, stop, target, coid=None):
         self.calls.append(("bracket", sym, qty, stop, target))
+        self.coids = getattr(self, "coids", []) + [coid]
 
     def close(self, sym):
         self.calls.append(("close", sym))
@@ -310,7 +311,10 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(9, 40)), "outside entry window")
         self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 0)), "ordered")
         self.assertEqual(b.calls[-1], ("bracket", "AAPL", 250, 99.5, 101.0))   # 25% notional cap binds: 250 shares at $100
-        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 1)), "position limit")
+        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 0)), "duplicate order id")        # same signal replayed after a restart
+        self.assertEqual(b.coids, ["ab-AAPL-20261012-100"])
+        self.assertEqual(ex.try_enter("AAPL", sig, 100.0, et(10, 1)), "duplicate order id")       # same decision bar, same id
+        self.assertEqual(ex.try_enter("AAPL", Signal(101, 1, 0.5, 2.0), 100.0, et(10, 1)), "position limit")
         b.bid, b.ask = 99.80, 100.00
         self.assertTrue(ex.try_enter("MSFT", sig, 100.0, et(10, 2)).startswith("spread too wide"))
         ex.kill_switch = True
