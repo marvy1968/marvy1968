@@ -97,6 +97,9 @@ def main(argv=None) -> int:
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
     ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "scalp"])
     ra.add_argument("--slip-bps", type=float, default=2.0)
+    pp = sub.add_parser("paper", help="run the PAPER trading loop (Alpaca paper account only)")
+    pp.add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
     bt.add_argument("--train-end", type=_d, default=date(2021, 12, 31))
     bt.add_argument("--slip-bps", type=float, default=2.0)
@@ -104,6 +107,13 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "paper":
+        from .paper import main as paper_main
+        return paper_main(a)
+    if a.cmd == "paper-report":
+        from .paper import report
+        print(report(a.state))
+        return 0
     if a.cmd == "run-all":
         return run_all(a)
     cache = Path(a.cache)

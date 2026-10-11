@@ -51,3 +51,10 @@ and `live_decision()` which feeds today's bars to the *same* strategy object the
 
 ## Expectations
 Most retail scalping and day trading loses after costs, and the free feed adds noise. The swing families are the most likely to survive. If the tests print `NO EDGE FOUND`, believe them.
+
+## Paper trading (forward test)
+`python -m alpacabot paper` runs the Brain on live 5-minute bars of the 10 symbols and trades the **Alpaca paper account only** (1% risk per
+trade, spread guard, entry window 09:45-15:30, flat by 15:55, 2% day circuit breaker, virtual stop/trail/target polled every 15 s, restart-safe).
+Decisions go to `state/alpaca_paper/journal.jsonl`; `python -m alpacabot paper-report` summarises them; the paper dashboard shows P&L.
+Install: `sudo cp deploy/marv-alpaca-paper.service /etc/systemd/system/ && sudo systemctl enable --now marv-alpaca-paper`.
+The Brain is not yet validated, so this is a forward test, not evidence of an edge.

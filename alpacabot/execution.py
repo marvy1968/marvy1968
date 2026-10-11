@@ -146,7 +146,14 @@ class Executor:
     sleep: object = time.sleep
     opened: dict = field(default_factory=dict)      # symbol -> entry time
     kill_switch: bool = False
+    last_qty: int = 0
     sent_ids: set = field(default_factory=set)      # client order ids already sent (a restart or a repeated tick cannot double-enter)
+
+    def submit(self, symbol, qty, stop, target, coid):
+        """Brackets when the broker supports them; plain market orders (virtual exits) otherwise."""
+        if hasattr(self.broker, "submit_bracket"):
+            return self.broker.submit_bracket(symbol, qty, stop, target, coid)
+        return self.broker.submit_market(symbol, qty, coid)
 
     def on_tick(self, now_et: datetime) -> list[str]:
         """Housekeeping: breaker, flatten at the close, stale exits. Returns what it did."""
@@ -189,8 +196,9 @@ class Executor:
         stop = round(entry_ref - signal.stop_dist, 2)
         target = round(entry_ref + signal.target_r * signal.stop_dist, 2) if signal.target_r > 0 else None
         self.sent_ids.add(coid)
-        retry_call(self.broker.submit_bracket, symbol, qty, stop, target, coid, sleep=self.sleep)
+        retry_call(self.submit, symbol, qty, stop, target, coid, sleep=self.sleep)
         self.opened[symbol] = now_et
+        self.last_qty = qty
         log.info("ordered %s x%d stop %.2f target %s", symbol, qty, stop, target)
         return "ordered"
 

@@ -531,3 +531,27 @@ class CredentialTests(unittest.TestCase):
                 os.environ.pop(n, None)
                 if saved[n] is not None:
                     os.environ[n] = saved[n]
+
+
+class PaperRunnerTests(unittest.TestCase):
+    def test_runner_paper_only_and_reconciles(self):
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 100000.0
+            def quote(self, s): return (100.0, 100.02)
+            def submit_market(self, s, q, c=None): return {}
+            def close(self, s): pass
+            def flatten_all(self): pass
+            def clock_open(self): return True
+
+        with tempfile.TemporaryDirectory() as d:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None, fetch=lambda *a, **k: pd.DataFrame(columns=["open", "high", "low", "close", "volume"]))
+            r.exits.positions["SPY"] = {"state": ExitState.open(100, 1, 20), "qty": 10, "opened": "2026-10-09T10:00:00-04:00"}
+            r.reconcile()
+            self.assertEqual(r.exits.positions, {})                       # broker holds nothing -> dropped
+            r.on_bar_close(datetime(2026, 10, 12, 10, 30, tzinfo=paper.ET))  # no bars -> no orders, no crash
+            self.assertIn("paper-api.alpaca.markets", paper.TRADE_URL)
+            self.assertNotIn("api.alpaca.markets/v2/orders", paper.TRADE_URL.replace("paper-api", ""))
