@@ -89,8 +89,8 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
     if cmd == "alpaca":  # backtests / data download for alpacabot (never live trading: that has no job here)
-        if not args or args[0] not in ("download", "backtest"):
-            return None, "alpaca needs download or backtest [options]"
+        if not args or args[0] not in ("download", "backtest", "run-all"):
+            return None, "alpaca needs download, backtest or run-all [options]"
         return as_bot + [py, "-m", "alpacabot", *args], ""
     if cmd == "read-bot-reports":  # logs/reports/csv heads of a bot folder, secrets scrubbed (find_odds_bot.sh --reports)
         if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:

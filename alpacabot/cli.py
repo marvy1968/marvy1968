@@ -29,6 +29,56 @@ def load_env():
                     os.environ.setdefault(k.strip(), v.split(" #")[0].strip().strip('"').strip("'"))
 
 
+def run_all(a) -> int:
+    if not (os.environ.get("ALPACA_DATA_KEY_ID") and os.environ.get("ALPACA_DATA_SECRET_KEY")):
+        print("WAITING FOR KEYS: add ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY to /opt/marv-bot/.env")
+        return 2
+    cache, out = Path(a.cache), Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    start = date(2016, 1, 4)
+    if a.phase == "validate":
+        train, test, end = (start, date(2020, 12, 31)), (date(2021, 1, 1), date(2022, 12, 31)), date(2022, 12, 31)
+    else:
+        train, test, end = (start, date(2022, 12, 31)), (date(2023, 1, 1), date.today()), date.today()
+    costs, lines = Costs(slip_bps=a.slip_bps), [f"# Alpaca bot {a.phase} run: train {train[0]}..{train[1]}, test {test[0]}..{test[1]}\n"]
+    for sym in SWING:
+        load(sym, "1Day", start, end, cache)
+    spy = load("SPY", "1Day", start, end, cache)
+    print("daily data ready", flush=True)
+    intraday_syms = INTRADAY
+    minute = {}
+    for fam in a.families:
+        try:
+            if fam in ("swing_rsi", "swing_breakout"):
+                data = {s: load(s, "1Day", start, end, cache) for s in SWING}
+                res = walk_forward(fam, data, train, test, costs, Portfolio(risk_pct=0.01), spy_daily=spy)
+            else:
+                if not minute:
+                    minute = {s: load(s, "1Min", start, end, cache) for s in intraday_syms}
+                if fam == "brain":
+                    days = split_days(minute, minutes=5, feature_fn=features_all)
+                    res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+                elif fam == "regime":
+                    days = split_days(minute, minutes=5, feature_fn=DualRegime.features)
+                    res = walk_forward(fam, days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+                else:
+                    days = split_days(minute)
+                    res = walk_forward(fam, days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+            res.setdefault("verdict", verdict(res))
+        except Exception as exc:  # one family failing must not lose the others
+            res = {"family": fam, "verdict": f"ERROR {exc!r}"}
+        (out / f"alpaca_{a.phase}_{fam}.json").write_text(json.dumps(res, indent=1, default=str))
+        m = res.get("test_metrics") or {}
+        daily = m.get("daily_ret_pct_mean")
+        lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
+                     f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
+                     f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        (out / f"alpaca_{a.phase}_summary.md").write_text("\n".join(lines))
+        print(lines[-1], flush=True)
+    print("ALL DONE")
+    return 0
+
+
 def main(argv=None) -> int:
     load_env()
     ap = argparse.ArgumentParser(prog="alpacabot")
@@ -40,6 +90,13 @@ def main(argv=None) -> int:
         p.add_argument("--end", type=_d, default=date.today())
         p.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
         p.add_argument("--symbols", nargs="*")
+    ra = sub.add_parser("run-all", help="download data, then run every family on the VALIDATION split (train 2016-2020, validate 2021-2022); writes a summary")
+    ra.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
+    ra.add_argument("--out", default="state/reports")
+    ra.add_argument("--phase", choices=["validate", "final"], default="validate",
+                    help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
+    ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "scalp"])
+    ra.add_argument("--slip-bps", type=float, default=2.0)
     bt = sub.choices["backtest"]
     bt.add_argument("--train-end", type=_d, default=date(2021, 12, 31))
     bt.add_argument("--slip-bps", type=float, default=2.0)
@@ -47,6 +104,8 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "run-all":
+        return run_all(a)
     cache = Path(a.cache)
     if a.cmd == "download":
         for sym in a.symbols or SWING:
