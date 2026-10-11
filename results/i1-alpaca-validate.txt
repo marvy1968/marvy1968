@@ -1,3 +1,4 @@
 $ alpaca run-all --phase validate
-started 2026-10-11 09:28:38 EDT
-RUNNING...
+started 2026-10-11 09:28:38 EDT, took 2s, exit 2
+
+WAITING FOR KEYS: add ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY to /opt/marv-bot/.env
