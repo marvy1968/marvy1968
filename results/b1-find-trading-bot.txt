@@ -1,3 +1,74 @@
 $ find-trading-bot
-started 2026-10-11 07:56:04 EDT
-RUNNING...
+started 2026-10-11 07:56:04 EDT, took 136s, exit 0
+
+== Python/JS/shell files mentioning Alpaca or other brokers (paths only, no code)
+/home/moonrider1968/test_youtube_6mo.py
+/home/moonrider1968/install_panda_s31_practice_exit_guard.sh
+/home/moonrider1968/test_calibrated_trend.py
+/home/moonrider1968/run_adaptive_auto_short_backtest.py
+/home/moonrider1968/unified_trading_bot.py
+/home/moonrider1968/stock_daemon_v3_2_production.py
+/home/moonrider1968/backtest_hybrid_mtf.py
+/home/moonrider1968/alpaca_master_alliance/run_part2i.py
+/home/moonrider1968/alpaca_master_alliance/part2j_report.py
+/home/moonrider1968/alpaca_master_alliance/test_foundation.py
+/home/moonrider1968/alpaca_master_alliance/test_rvol.py
+/home/moonrider1968/alpaca_master_alliance/test_connection.py
+/home/moonrider1968/alpaca_master_alliance/part2j/regime_engine.py
+/home/moonrider1968/alpaca_master_alliance/part2j/trade_manager.py
+/home/moonrider1968/alpaca_master_alliance/run_part2h.py
+/home/moonrider1968/alpaca_master_alliance/test_part2a.py
+/home/moonrider1968/alpaca_master_alliance/replay/part2g_report.py
+/home/moonrider1968/alpaca_master_alliance/replay/part2f_report.py
+/home/moonrider1968/alpaca_master_alliance/replay/data_loader.py
+/home/moonrider1968/alpaca_master_alliance/replay/part2d_report.py
+/home/moonrider1968/alpaca_master_alliance/run_replay.py
+/home/moonrider1968/alpaca_master_alliance/broker/alpaca_client.py
+/home/moonrider1968/alpaca_master_alliance/run_part2j.py
+/home/moonrider1968/alpaca_master_alliance/test_part2b.py
+/home/moonrider1968/install_alpaca_part1b.sh
+/home/moonrider1968/stock_universe_55.py
+/home/moonrider1968/alpaca_stock_weinstein_hybrid_v3.2.py
+/home/moonrider1968/compare_stop_strategies.py
+/home/moonrider1968/crypto_bot.py
+/home/moonrider1968/master_trade_ai_quick_audit.py
+/home/moonrider1968/staircase_module.py
+/home/moonrider1968/run_stock_backtest_all_green_final.py
+/home/moonrider1968/velez-bot/velez_modular_bot.py
+/home/moonrider1968/velez-bot/velez-bot/velez_modular_bot.py
+/home/moonrider1968/velez-bot/velez-bot/sector_analysis.py
+/home/moonrider1968/alpaca_swing_velez_weinstein.py
+/home/moonrider1968/run_full_hybrid_test.py
+/home/moonrider1968/stock_universe_daemon.py
+/home/moonrider1968/scalp_bot/execute_trades.py
+/home/moonrider1968/scalp_bot/zone_filter.py
+
+== Folders (file count) containing them
+    236 /home/moonrider1968/bots/killer_beast_sniper/archive
+    159 /home/moonrider1968/bots
+    107 /home/moonrider1968
+     82 /home/moonrider1968/bots/killer_beast_sniper
+     23 /home/moonrider1968/backups/alpaca_paper_guard_20260817T211242Z/bots/killer_beast_sniper
+     21 /home/moonrider1968/MasterBot_Center
+     16 /home/moonrider1968/scalp_bot
+     12 /home/moonrider1968/bots/oanda_active
+     11 /home/moonrider1968/MasterBot_Center/Trading_Alpaca
+     10 /home/moonrider1968/alpaca_master_alliance
+
+== systemd services / cron / processes that look like trading bots
+  alpaca-stock-expert.service                            loaded    inactive   dead          Alpaca H1 Institutional Stock Trend Expert Daemon
+  haveged.service                                        loaded    active     running       Entropy Daemon based on the HAVEGE algorithm
+  master-trade-bot.service                               loaded    active     running       Master Trade Bot Unified Telegram Command & Fleet Listener
+  scorecard-sector-scalp-bot.service                     loaded    inactive   dead          [PAPER] sector-scalp-bot daily Telegram scorecard (send-only)
+  scorecard-sx-swing.service                             loaded    inactive   dead          [PAPER] sx-swing daily Telegram scorecard (send-only)
+  sector-scalp-bot-flatten@moonrider1968.service         loaded    inactive   dead          sector-scalp-bot safety net: flatten ONLY sx- positions
+  sector-scalp-bot@moonrider1968.service                 loaded    active     running       sector-scalp-bot (sx-) Alpaca PAPER intraday bot
+  stockbot_open.service                                  loaded    inactive   dead          Sector Top-Down Daily Market Open Execution (09:30:30 ET)
+  sx-swing@moonrider1968.service                         loaded    active     running       sx-swing Alpaca PAPER swing bot (overnight holds; NOT flattened at 15:50)
+  xp-combo.service                                       loaded    active     running       xp-combo Alpaca PAPER expert combo (xc- prefixes, hard 1% stop/TP)
+  xp-test.service                                        loaded    active     running       xp-test Alpaca PAPER expert-systems forward test (xp- prefixes)
+15 16 * * 1-5 cd /home/moonrider1968/scalp_bot && /home/moonrider1968/scalp_bot/venv/bin/python3 live_bot.py >> /home/moonrider1968/scalp_bot/bot_log.txt 2>&1
+    405 moonrid+ /home/moonrider1968/bots/alpaca_microedge/venv/bin/python3 -u /home/moonrider1968/orchestrator/rpp_unified_scanner.py
+ 192464 moonrid+ /opt/sector-scalp-bot/venv/bin/python -m sxbot.main --config /opt/sector-scalp-bot/config/config.yaml
+
+Next: read the folder with the read-odds-bot job (secrets are stripped).
