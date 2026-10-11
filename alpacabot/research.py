@@ -16,11 +16,12 @@ import numpy as np
 import pandas as pd
 
 from .engine import Costs, Portfolio, metrics, raw_intraday, simulate_swing, size_intraday, size_swing, split_days
-from .strategies import Breakout, OpeningRangeBreak, RsiPullback, VwapReversion
+from .strategies import Breakout, DualRegime, OpeningRangeBreak, RsiPullback, VwapReversion
 
 GRIDS = {
     "scalp": (VwapReversion, {"z_entry": [1.5, 2.0, 2.5], "target": ["vwap", "r"], "max_bars": [15, 30]}),
     "day": (OpeningRangeBreak, {"range_minutes": [15, 30], "target_r": [1.5, 2.0, 3.0], "max_bars": [0, 90]}),
+    "regime": (DualRegime, {"adx_split": [20.0, 25.0, 30.0], "trail": [1.0, 1.5, 2.0], "tp_scale": [0.75, 1.0, 1.25]}),
     "swing_rsi": (RsiPullback, {"rsi_entry": [5, 10, 15], "exit_sma": [5, 10], "stop_atr": [2.0, 3.0]}),
     "swing_breakout": (Breakout, {"lookback": [20, 55], "exit_lookback": [10, 20]}),
 }
@@ -58,7 +59,7 @@ def walk_forward(family: str, data, train: tuple[date, date], test: tuple[date, 
                  min_trades: int = 100, placebo_runs: int = 20, spy_daily: pd.DataFrame | None = None) -> dict:
     """data: for intraday families the dict from split_days(); for swing families symbol -> daily frame."""
     cls, grid = GRIDS[family]
-    intraday = family in ("scalp", "day")
+    intraday = family in ("scalp", "day", "regime")
     run = (lambda s, c, a, b, **k: run_intraday(s, data, c, pf, a, b, **k)) if intraday else (lambda s, c, a, b, **k: run_swing(s, data, c, pf, a, b))
     table = []
     for params in grid_points(grid):

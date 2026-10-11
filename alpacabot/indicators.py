@@ -36,3 +36,58 @@ def session_vwap(df: pd.DataFrame) -> pd.Series:
     pv = (tp * df["volume"]).groupby(day).cumsum()
     v = df["volume"].groupby(day).cumsum()
     return pv / v.replace(0, np.nan)
+
+
+def adx(df: pd.DataFrame, n: int = 14) -> pd.Series:
+    """Wilder's ADX (trend strength, direction-less)."""
+    up, dn = df["high"].diff(), -df["low"].diff()
+    plus = ((up > dn) & (up > 0)) * up
+    minus = ((dn > up) & (dn > 0)) * dn
+    a = atr(df, n)
+    pdi = 100 * plus.ewm(alpha=1.0 / n, adjust=False, min_periods=n).mean() / a
+    mdi = 100 * minus.ewm(alpha=1.0 / n, adjust=False, min_periods=n).mean() / a
+    dx = 100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan)
+    return dx.ewm(alpha=1.0 / n, adjust=False, min_periods=n).mean()
+
+
+def macd_hist(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> pd.Series:
+    line = ema(close, fast) - ema(close, slow)
+    return line - line.ewm(span=signal, adjust=False, min_periods=signal).mean()
+
+
+def stoch_fast(df: pd.DataFrame, k: int = 8, d: int = 3) -> pd.Series:
+    """Fast stochastic %K(k) smoothed over d bars."""
+    lo, hi = df["low"].rolling(k, min_periods=k).min(), df["high"].rolling(k, min_periods=k).max()
+    raw = 100 * (df["close"] - lo) / (hi - lo).replace(0, np.nan)
+    return raw.rolling(d, min_periods=d).mean()
+
+
+def bollinger(close: pd.Series, n: int = 20, k: float = 2.0):
+    mid, sd = close.rolling(n, min_periods=n).mean(), close.rolling(n, min_periods=n).std()
+    return mid - k * sd, mid, mid + k * sd
+
+
+def psar_below_price(df: pd.DataFrame, step: float = 0.02, max_step: float = 0.2) -> pd.Series:
+    """Parabolic SAR bullish flag (True while the SAR sits below price). Iterative, causal."""
+    h, l = df["high"].to_numpy(float), df["low"].to_numpy(float)
+    n = len(df)
+    out = np.zeros(n, dtype=bool)
+    if n < 3:
+        return pd.Series(out, index=df.index)
+    bull, sar, ep, af = True, l[0], h[0], step
+    for i in range(1, n):
+        sar = sar + af * (ep - sar)
+        if bull:
+            sar = min(sar, l[i - 1], l[i - 2] if i > 1 else l[i - 1])
+            if l[i] < sar:
+                bull, sar, ep, af = False, ep, l[i], step
+            elif h[i] > ep:
+                ep, af = h[i], min(af + step, max_step)
+        else:
+            sar = max(sar, h[i - 1], h[i - 2] if i > 1 else h[i - 1])
+            if h[i] > sar:
+                bull, sar, ep, af = True, ep, h[i], step
+            elif l[i] < ep:
+                ep, af = l[i], min(af + step, max_step)
+        out[i] = bull
+    return pd.Series(out, index=df.index)

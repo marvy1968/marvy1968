@@ -9,6 +9,7 @@ from pathlib import Path
 from .data import load
 from .engine import Costs, Portfolio, split_days
 from .research import GRIDS, verdict, walk_forward
+from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
 SWING = INTRADAY + ["DIA", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "GLD", "TLT"]
@@ -53,11 +54,13 @@ def main(argv=None) -> int:
                 load(sym, "1Min", a.start, a.end, cache)
             print("ok", sym, flush=True)
         return 0
-    intraday = a.family in ("scalp", "day")
+    intraday = a.family in ("scalp", "day", "regime")
     syms = a.symbols or (INTRADAY if intraday else SWING)
     spy = load("SPY", "1Day", a.start, a.end, cache)
     if intraday:
-        data = split_days({s: load(s, "1Min", a.start, a.end, cache) for s in syms})
+        regime = a.family == "regime"
+        data = split_days({s: load(s, "1Min", a.start, a.end, cache) for s in syms}, minutes=5 if regime else 1,
+                           feature_fn=DualRegime.features if regime else None)
     else:
         data = {s: load(s, "1Day", a.start, a.end, cache) for s in syms}
     res = walk_forward(a.family, data, (a.start, a.train_end), (date.fromordinal(a.train_end.toordinal() + 1), a.end),

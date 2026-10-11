@@ -331,3 +331,100 @@ class ExecutionTests(unittest.TestCase):
         b2 = FakeBroker(); e2 = X.Executor(b2, sleep=lambda s: None)
         e2.try_enter("AAPL", Signal(1, 1, 0.5, 2.0), 100.0, et(10, 0))
         self.assertEqual(e2.on_tick(et(15, 55)), ["flattened for the close"])
+
+
+# ---------------------------------------------------------------- dual regime + virtual exits
+import json  # noqa: E402
+import tempfile  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from alpacabot.exits import ExitState, StateStore, tp_multiple  # noqa: E402
+from alpacabot.strategies import DualRegime  # noqa: E402
+
+
+class ExitStateTests(unittest.TestCase):
+    def test_regime_scaled_targets(self):
+        self.assertEqual([tp_multiple(a) for a in (10, 24.9, 25, 34.9, 35, 60)], [1.8, 1.8, 3.0, 3.0, 4.5, 4.5])
+
+    def test_break_even_lock_then_trailing_stop(self):
+        st = ExitState.open(100.0, 1.0, adx=30)                 # stop 98.5, target 103.0
+        self.assertAlmostEqual((st.stop, st.tp), (98.5, 103.0))
+        st.ratchet(100.9)
+        self.assertAlmostEqual(st.stop, 99.4)                   # trailing: 100.9 - 1.5 is above the old stop but break-even not yet reached
+        self.assertFalse(st.be_done)
+        st.ratchet(101.0)                                       # +1.0 ATR: stop to entry + 0.1 ATR
+        self.assertTrue(st.be_done)
+        self.assertAlmostEqual(st.stop, 100.1)
+        st.ratchet(102.5)                                       # high-water mark 102.5: trail 1.5 behind = 101.0
+        self.assertAlmostEqual(st.stop, 101.0)
+        st.ratchet(101.5)                                       # a lower high never loosens the stop
+        self.assertAlmostEqual(st.stop, 101.0)
+
+    def test_stop_beats_target_and_gaps_fill_at_the_open(self):
+        st = ExitState.open(100.0, 1.0, adx=30)
+        self.assertEqual(st.check(100.0, 104.0, 98.0)[0], "stop")
+        self.assertEqual(st.check(95.0, 96.0, 94.0), ("stop", 95.0))        # gap down through the stop
+        self.assertEqual(st.check(104.0, 105.0, 103.5), ("target", 104.0))   # gap up through the target
+        self.assertIsNone(st.check(100.0, 101.0, 99.5))
+
+    def test_levels_set_before_a_bar_are_used_for_that_bar(self):
+        st = ExitState.open(100.0, 1.0, adx=30)
+        # one bar that spikes to 103 (target) then collapses: the target level existed before the bar, so it exits at the target
+        self.assertEqual(st.check(100.0, 103.2, 99.9), ("target", 103.0))
+
+    def test_json_round_trip_and_atomic_corruption_recovery(self):
+        with tempfile.TemporaryDirectory() as d:
+            store = StateStore(Path(d) / "state.json")
+            pos = {"AAPL": {"state": ExitState.open(100, 1, 40), "qty": 25, "opened": "2026-10-12T10:00:00"}}
+            store.save(pos)
+            back = store.load()
+            self.assertEqual(back["AAPL"]["state"], pos["AAPL"]["state"])
+            self.assertEqual(back["AAPL"]["qty"], 25)
+            (Path(d) / "state.json").write_text("{not json")
+            self.assertEqual(store.load(), {})                                       # corrupt file: start clean, keep the evidence
+            self.assertTrue((Path(d) / "state.corrupt").exists())
+
+
+class VirtualManagerTests(unittest.TestCase):
+    def test_polling_ratchets_exits_and_survives_a_restart(self):
+        with tempfile.TemporaryDirectory() as d:
+            broker = FakeBroker()
+            store = StateStore(Path(d) / "s.json")
+            m = X.VirtualExitManager(store, broker, sleep=lambda s: None)
+            m.open("AAPL", 10, 100.0, 1.0, 30, et(10, 0))
+            self.assertIsNone(m.on_quote("AAPL", 101.2, 101.3))                      # +1.2 ATR: break-even lock engages
+            self.assertAlmostEqual(m.positions["AAPL"]["state"].stop, 100.1)
+            m2 = X.VirtualExitManager(StateStore(Path(d) / "s.json"), broker, sleep=lambda s: None)   # "reboot"
+            self.assertAlmostEqual(m2.positions["AAPL"]["state"].stop, 100.1)
+            self.assertEqual(m2.on_quote("AAPL", 100.0, 100.05), "stop")             # price falls back through the locked stop
+            self.assertIn(("close", "AAPL"), broker.calls)
+            self.assertNotIn("AAPL", m2.positions)
+            self.assertEqual(json.loads((Path(d) / "s.json").read_text()), {})
+
+
+class ManagedBacktestTests(unittest.TestCase):
+    def test_managed_exit_locks_break_even_in_the_engine(self):
+        df = flat_day()
+        # bars 102.. rise to +1.3 ATR then fall back below entry: the break-even lock should exit near entry, not at the original stop
+        o = df["open"].to_numpy().copy(); h = df["high"].to_numpy().copy(); l = df["low"].to_numpy().copy(); c = df["close"].to_numpy().copy()
+        for j in (103, 104):                       # price jumps to +1.3 ATR and holds there: the lock engages
+            o[j], h[j], l[j], c[j] = 101.2, 101.4, 101.1, 101.3
+        o[105], h[105], l[105], c[105] = 101.0, 101.1, 99.0, 99.2      # then it collapses through the locked stop
+        df = df.assign(open=o, high=h, low=l, close=c)
+        sig = Signal(100, 1, 1.5, 0.0, 0, "t", True, 1.0, 30.0, 1.5, 1.0)
+        t = simulate_day("X", df, [sig], Costs(0, 0))[0]
+        self.assertEqual(t.reason, "stop")
+        self.assertAlmostEqual(t.exit_px, 100.1)                     # break-even + 0.1 ATR, not the original -1.5 ATR stop at 98.5
+
+    def test_dual_regime_signals_are_causal_and_fire_on_transitions_only(self):
+        for seed in range(4):
+            raw = make_day(seed=seed, vol=0.0015, n=390)
+            full = raw.join(DualRegime.features(raw))
+            strat = DualRegime(max_trades=50)
+            idx = [s.i for s in strat.signals(full)]
+            for cut in (150, 250, 330):
+                part = [s.i for s in strat.signals(full.iloc[:cut])]
+                self.assertEqual(part, [i for i in idx if i < cut][: len(part)])
+            self.assertEqual(len(idx), len(set(idx)))
+            for s in strat.signals(full):
+                self.assertTrue(s.managed and s.atr > 0 and s.stop_dist > 0)

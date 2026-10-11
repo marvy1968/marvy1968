@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from .indicators import atr, ema, rsi, session_vwap, sma
+from .indicators import adx, atr, bollinger, ema, macd_hist, psar_below_price, rsi, session_vwap, sma, stoch_fast
 
 
 @dataclass
@@ -26,6 +26,11 @@ class Signal:
     target_r: float = 0.0   # take-profit in multiples of stop_dist (0 = none)
     max_bars: int = 0       # time stop in bars after entry (0 = hold to the end of the day)
     tag: str = ""
+    managed: bool = False   # use the virtual exit manager (exits.ExitState) instead of a fixed stop/target
+    atr: float = 0.0        # ATR at the decision bar (managed exits)
+    adx: float = 0.0        # ADX at the decision bar (regime-scaled target)
+    trail: float = 1.5      # ATR multiple for the initial stop and the trailing stop
+    tp_scale: float = 1.0   # research knob on the regime-scaled take-profit
 
 
 @dataclass
@@ -159,3 +164,71 @@ class Breakout:
 
     def stop_dist(self, f, i):
         return float(self.stop_atr * f["atr"].iloc[i])
+
+
+@dataclass
+class DualRegime:
+    """Dual-Regime Consensus Engine: an ADX router sends each bar to a trend panel or a reversion panel; a long needs 2 of 3 votes.
+
+    TREND  (ADX >= adx_split): EMA 9 > EMA 21 | MACD histogram > 0 and rising | Parabolic SAR below price
+    RANGE  (ADX <  adx_split): RSI(7) < 30 and RSI(14) < 40 | low touches the lower Bollinger band(20,2) | fast stochastic (8,3) < 20
+    A signal fires on the bar where the panel first reaches 2 of 3 (it was below 2 on the previous bar), so it does not re-enter every bar.
+    Exits are the virtual manager's (break-even lock, ATR trail, ADX-scaled target); see exits.py.
+    Works on any bar size; research uses 5-minute bars. Long only.
+    """
+    adx_split: float = 25.0
+    trail: float = 1.5
+    tp_scale: float = 1.0
+    max_bars: int = 0
+    start: str = "09:45"
+    end: str = "15:30"
+    max_trades: int = 3
+    needs: int = 2
+    name: str = "dual_regime"
+
+    @staticmethod
+    def features(df: pd.DataFrame) -> pd.DataFrame:
+        """Causal indicator columns on the continuous bar series (overnight included, so the indicators are warm at the open)."""
+        f = pd.DataFrame(index=df.index)
+        f["f_adx"], f["f_atr"] = adx(df, 14), atr(df, 14)
+        f["f_ema_ok"] = ema(df["close"], 9) > ema(df["close"], 21)
+        h = macd_hist(df["close"])
+        f["f_macd_ok"] = (h > 0) & (h > h.shift(1))
+        f["f_psar_ok"] = psar_below_price(df)
+        f["f_rsi_ok"] = (rsi(df["close"], 7) < 30) & (rsi(df["close"], 14) < 40)
+        lo, _, _ = bollinger(df["close"])
+        f["f_bb_ok"] = df["low"] <= lo
+        f["f_stoch_ok"] = stoch_fast(df, 8, 3) < 20
+        return f
+
+    def _votes(self, d: pd.DataFrame):
+        trend = d["f_adx"] >= self.adx_split
+        tv = d["f_ema_ok"].astype(int) + d["f_macd_ok"].astype(int) + d["f_psar_ok"].astype(int)
+        rv = d["f_rsi_ok"].astype(int) + d["f_bb_ok"].astype(int) + d["f_stoch_ok"].astype(int)
+        votes = tv.where(trend, rv)
+        return trend, votes
+
+    def signals(self, df: pd.DataFrame) -> list[Signal]:
+        if "f_adx" not in df:
+            raise ValueError("DualRegime needs the feature columns: build the frames with split_days(..., feature_fn=DualRegime.features)")
+        trend, votes = self._votes(df)
+        fresh = (votes >= self.needs) & ~((votes.shift(1) >= self.needs) & (trend.shift(1) == trend))
+        t = df.index.strftime("%H:%M")
+        ok = fresh & (t >= self.start) & (t <= self.end) & df["f_atr"].notna() & df["f_adx"].notna()
+        out = []
+        for i in np.flatnonzero(ok.to_numpy())[: self.max_trades]:
+            a = float(df["f_atr"].iloc[i])
+            out.append(Signal(int(i), 1, self.trail * a, 0.0, self.max_bars, "regime_trend" if trend.iloc[i] else "regime_range",
+                              True, a, float(df["f_adx"].iloc[i]), self.trail, self.tp_scale))
+        return out
+
+    def placebo(self, df: pd.DataFrame, n: int, rng: np.random.Generator) -> list[Signal]:
+        t = df.index.strftime("%H:%M")
+        idx = np.flatnonzero(((t >= self.start) & (t <= self.end) & df["f_atr"].notna() & df["f_adx"].notna()).to_numpy())
+        if len(idx) == 0 or n == 0:
+            return []
+        out = []
+        for i in sorted(rng.choice(idx, size=min(n, len(idx)), replace=False)):
+            a = float(df["f_atr"].iloc[i])
+            out.append(Signal(int(i), 1, self.trail * a, 0.0, self.max_bars, "placebo", True, a, float(df["f_adx"].iloc[i]), self.trail, self.tp_scale))
+        return out

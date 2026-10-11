@@ -8,6 +8,7 @@ until a strategy shows a positive out-of-sample result *and* the owner says so.
 |---|---|---|---|
 | scalp | `VwapReversion` | 1-min price stretched k sigma below session VWAP and the bar closes up: long back to VWAP, ATR stop, time stop | minutes |
 | day | `OpeningRangeBreak` | first close above the 15/30-min opening range with price above VWAP, range-low stop, 1.5-3R target, flat by the close | hours |
+| day (5-min) | `DualRegime` | ADX router: trend panel (EMA 9/21, MACD histogram, Parabolic SAR) when ADX >= 25, reversion panel (RSI 7/14, Bollinger touch, fast stochastic 8,3) below; 2 of 3 votes; virtual break-even / ATR-trail / ADX-scaled exits | minutes-hours |
 | swing | `RsiPullback` | price above 200-day SMA and RSI(2) washed out: buy next open, sell on the first bounce, ATR stop | days |
 | swing | `Breakout` | close above the 20/55-day high in an uptrend, exit on a 10/20-day low | weeks |
 
@@ -31,6 +32,7 @@ Put paper-account **data** keys in `/opt/marv-bot/.env` yourself (never in chat 
     python -m alpacabot backtest --family swing_rsi
     python -m alpacabot backtest --family swing_breakout
     python -m alpacabot backtest --family day
+    python -m alpacabot backtest --family regime
     python -m alpacabot backtest --family scalp
 
 Results land in `state/reports/alpaca_<family>.json`. Through the vm-link: `alpaca download ...` / `alpaca backtest --family ...`.

@@ -10,6 +10,7 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
+from .exits import ExitState
 from .strategies import Signal
 
 
@@ -52,6 +53,21 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
         fill = o[j0] * (1 + slip)
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
+        if s.managed:
+            st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale)
+            for j in range(j0, n):
+                hit = st.check(o[j], h[j], l[j])
+                if hit:
+                    px, why = hit[1] * (1 - slip), hit[0]          # virtual exit = market close after the cross: adverse slippage
+                elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
+                    px, why = c[j] * (1 - slip), "time" if j < n - 1 else "eod"
+                else:
+                    st.ratchet(h[j])
+                    continue
+                trades.append(Trade(symbol, df.index[j0], df.index[j], fill, px, s.stop_dist, why, j - j0 + 1, s.tag))
+                busy = j
+                break
+            continue
         for j in range(j0, n):
             if l[j] <= stop:
                 px, why = min(stop, o[j]) * (1 - slip), "stop"
@@ -67,9 +83,25 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
     return trades
 
 
-def split_days(bars: dict[str, pd.DataFrame]) -> dict[str, list[pd.DataFrame]]:
-    """symbol -> list of one-session frames (sessions with fewer than 60 bars dropped)."""
-    return {sym: [d for _, d in df.groupby(df.index.date) if len(d) >= 60] for sym, df in bars.items()}
+def resample_bars(df: pd.DataFrame, minutes: int) -> pd.DataFrame:
+    if minutes <= 1 or df.empty:
+        return df
+    r = df.resample(f"{minutes}min", label="left", closed="left", origin="start_day")
+    out = pd.DataFrame({"open": r["open"].first(), "high": r["high"].max(), "low": r["low"].min(), "close": r["close"].last(), "volume": r["volume"].sum()})
+    return out.dropna(subset=["open"])
+
+
+def split_days(bars: dict[str, pd.DataFrame], minutes: int = 1, feature_fn=None, min_bars: int | None = None) -> dict[str, list[pd.DataFrame]]:
+    """symbol -> list of one-session frames. minutes: aggregate to that bar size first. feature_fn: causal indicator columns computed once on the
+    continuous series (so the first bar of a day already has warm indicators)."""
+    need = min_bars if min_bars is not None else max(60 // minutes, 12)
+    out = {}
+    for sym, df in bars.items():
+        df = resample_bars(df, minutes)
+        if feature_fn is not None and len(df):
+            df = df.join(feature_fn(df))
+        out[sym] = [d for _, d in df.groupby(df.index.date) if len(d) >= need]
+    return out
 
 
 def raw_intraday(strategy, days: dict[str, list[pd.DataFrame]], costs: Costs, placebo_seed: int | None = None, max_trades: int = 3,

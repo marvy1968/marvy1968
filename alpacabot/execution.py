@@ -216,9 +216,52 @@ class AlpacaBroker:
                                  **({"take_profit": TakeProfitRequest(limit_price=target)} if target else {}))
         return self.trading.submit_order(order_data=req)
 
+    def submit_market(self, symbol: str, qty: int):
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        from alpaca.trading.requests import MarketOrderRequest
+        return self.trading.submit_order(order_data=MarketOrderRequest(symbol=symbol, qty=qty, side=OrderSide.BUY, time_in_force=TimeInForce.DAY))
+
     def close(self, symbol: str):
         return self.trading.close_position(symbol)
 
     def flatten_all(self):
         self.trading.cancel_orders()
         return self.trading.close_all_positions(cancel_orders=True)
+
+
+# ------------------------------------------------------------------ virtual exits (live twin of the backtest's managed exit)
+class VirtualExitManager:
+    """Tracks stop/target/high-water mark in memory AND on disk. Entries are plain market orders; nothing rests at the exchange, so a bracket
+    rejection (HTTP 422 on a fast tape) cannot happen. poll() is meant to run every ~15 seconds with the live quote."""
+
+    def __init__(self, store, broker=None, sleep=time.sleep):
+        self.store, self.broker, self.sleep = store, broker, sleep
+        self.positions = store.load()          # restart-safe: open-trade parameters survive a reboot
+
+    def open(self, symbol: str, qty: int, entry: float, atr: float, adx: float, now: datetime, trail: float = 1.5, tp_scale: float = 1.0):
+        from .exits import ExitState
+        self.positions[symbol] = {"state": ExitState.open(entry, atr, adx, trail, tp_scale), "qty": qty, "opened": now.isoformat()}
+        self.store.save(self.positions)
+
+    def on_quote(self, symbol: str, bid: float, ask: float) -> str | None:
+        """Feed one quote. Longs exit at the bid. Returns the exit reason when a level was crossed (and sends the market close)."""
+        pos = self.positions.get(symbol)
+        if not pos or not bid or bid <= 0:
+            return None
+        st = pos["state"]
+        hit = st.check(bid, bid, bid)
+        if hit:
+            if self.broker is not None:
+                retry_call(self.broker.close, symbol, sleep=self.sleep)
+            self.positions.pop(symbol)
+            self.store.save(self.positions)
+            log.info("virtual %s exit %s at %.2f (level crossed)", hit[0], symbol, bid)
+            return hit[0]
+        before = (st.stop, st.hwm)
+        st.ratchet(bid)
+        if (st.stop, st.hwm) != before:
+            self.store.save(self.positions)
+        return None
+
+    def opened_at(self) -> dict[str, datetime]:
+        return {s: datetime.fromisoformat(p["opened"]) for s, p in self.positions.items()}
