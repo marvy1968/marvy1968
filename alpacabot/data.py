@@ -17,10 +17,20 @@ NY = "America/New_York"
 FRAME = {"1Min": "1m", "5Min": "5m", "1Day": "1d"}
 
 
+KEY_NAMES = ("ALPACA_DATA_KEY_ID", "ALPACA_API_KEY", "ALPACA_KEY_ID", "APCA_API_KEY_ID")
+SECRET_NAMES = ("ALPACA_DATA_SECRET_KEY", "ALPACA_SECRET_KEY", "ALPACA_API_SECRET", "ALPACA_SECRET", "APCA_API_SECRET_KEY")
+
+
+def credentials() -> tuple[str, str]:
+    """(key id, secret) from the environment under any of the common Alpaca variable names. Values are never logged or printed."""
+    first = lambda names: next((os.environ[n].strip() for n in names if os.environ.get(n, "").strip()), "")  # noqa: E731
+    return first(KEY_NAMES), first(SECRET_NAMES)
+
+
 def _headers() -> dict:
-    key, secret = os.environ.get("ALPACA_DATA_KEY_ID", ""), os.environ.get("ALPACA_DATA_SECRET_KEY", "")
+    key, secret = credentials()
     if not key or not secret:
-        raise RuntimeError("set ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY in the bot's .env (data access only)")
+        raise RuntimeError("no Alpaca keys in the environment: set ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY (or ALPACA_API_KEY and ALPACA_SECRET_KEY) in /opt/marv-bot/.env")
     return {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret}
 
 

@@ -6,7 +6,7 @@ import os
 from datetime import date
 from pathlib import Path
 
-from .data import load
+from .data import credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all
 from .research import GRIDS, brain_walk_forward, verdict, walk_forward
@@ -30,8 +30,8 @@ def load_env():
 
 
 def run_all(a) -> int:
-    if not (os.environ.get("ALPACA_DATA_KEY_ID") and os.environ.get("ALPACA_DATA_SECRET_KEY")):
-        print("WAITING FOR KEYS: add ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY to /opt/marv-bot/.env")
+    if not all(credentials()):
+        print("WAITING FOR KEYS: add ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY (or ALPACA_API_KEY and ALPACA_SECRET_KEY) to /opt/marv-bot/.env")
         return 2
     cache, out = Path(a.cache), Path(a.out)
     out.mkdir(parents=True, exist_ok=True)

@@ -511,3 +511,23 @@ class IndicatorExitTests(unittest.TestCase):
         sigs = [Signal(100, 1, 1.0, 2.0), Signal(106, 1, 1.0, 2.0)]
         self.assertEqual(len(simulate_day("X", df, sigs, Costs(0, 0), cooldown=0)), 2)
         self.assertEqual(len(simulate_day("X", df, sigs, Costs(0, 0), cooldown=3)), 1)
+
+
+class CredentialTests(unittest.TestCase):
+    def test_any_common_variable_name_works_and_nothing_is_printed(self):
+        import os
+        from alpacabot.data import credentials
+        names = ["ALPACA_DATA_KEY_ID", "ALPACA_API_KEY", "ALPACA_KEY_ID", "APCA_API_KEY_ID", "ALPACA_DATA_SECRET_KEY", "ALPACA_SECRET_KEY",
+                 "ALPACA_API_SECRET", "ALPACA_SECRET", "APCA_API_SECRET_KEY"]
+        saved = {n: os.environ.pop(n, None) for n in names}
+        try:
+            self.assertEqual(credentials(), ("", ""))
+            os.environ["ALPACA_API_KEY"], os.environ["ALPACA_API_SECRET"] = " k1 ", "s1"
+            self.assertEqual(credentials(), ("k1", "s1"))
+            os.environ["ALPACA_DATA_KEY_ID"] = "k0"
+            self.assertEqual(credentials()[0], "k0")                       # the dedicated name wins
+        finally:
+            for n in names:
+                os.environ.pop(n, None)
+                if saved[n] is not None:
+                    os.environ[n] = saved[n]
