@@ -1,3 +1,979 @@
 $ read-bot-reports /home/moonrider1968/scalp_bot
-started 2026-10-11 08:07:38 EDT
-RUNNING...
+started 2026-10-11 08:07:38 EDT, took 1s, exit 0
+
+
+===== /home/moonrider1968/scalp_bot/README.md (89 lines, 2026-09-25)
+# 5-Expert Sector Scalper for Alpaca
+
+Five independent scalping experts trade the top 5 stocks (by 20-day dollar volume) in each of the
+11 S&P 500 sectors. A daily sector heat map (BULL / BEAR / SIDEWAYS) decides which direction each
+expert may trade. Each expert holds at most 3 positions, each sized at 0.5% of total equity.
+
+## Files
+| file | purpose |
+|---|---|
+| config.py | all settings, sector ETF + candidate lists, per-expert overrides |
+| indicators.py | causal indicators (VWAP, EMAs, ATR, RSI2, Bollinger, Keltner, squeeze, opening range) |
+| regime.py | sector heat map, intraday overlay, heatmap.html, top-5 universe selection |
+| experts.py | the 5 experts |
+| common.py | Signal/Position types, regime->direction rules, time stop / breakeven / EOD rules |
+| broker.py | Alpaca orders: bracket entries, close, move stop, shortability checks, restart recovery |
+| data.py | batched bar downloads, on-disk cache, rolling live bar cache |
+| bot.py | live / paper runner |
+| backtest.py | backtester running the same expert + management code |
+
+## Setup
+```
+pip install -r requirements.txt
+export APCA_API_KEY_ID=...  APCA_API_SECRET_KEY=...
+export APCA_PAPER=true          # default; set false only when you mean it
+export APCA_FEED=iex            # or sip with a paid data plan
+```
+
+## Backtest
+```
+python backtest.py --start 2026-06-01 --end 2026-08-31 --equity 100000 --slippage-bps 2
+```
+Outputs in `bt_results/`: trades.csv, equity_curve.csv, regime_heatmap_history.csv, pnl_by_expert.png,
+and summary tables by expert, expert x side, regime, sector and exit reason.
+
+## Live / paper
+```
+python bot.py --dry-run   # signals only
+python bot.py             # places bracket orders (paper by default)
+```
+`heatmap.html` refreshes every 15 min. Ctrl-C leaves positions protected by their broker-side brackets.
+
+## The experts
+| id | system | style | regime use |
+|---|---|---|---|
+| ORB | Opening Range Breakout (15-min) | trend | BULL long / BEAR short |
+| VWAP | VWAP pullback | trend | BULL long / BEAR short |
+| EMA | 9/20 EMA momentum pullback | trend | BULL long / BEAR short |
+| RSI2BB | RSI(2) + Bollinger mean reversion | reversion | BULL dips / BEAR rips / SIDEWAYS both |
+| SQZ | Bollinger-inside-Keltner squeeze | breakout | BULL long / BEAR short / SIDEWAYS both |
+
+## Design notes
+* One expert per symbol at a time: Alpaca nets positions per symbol, so two experts can't hold opposite sides.
+* Orders are tagged `SB_<EXPERT>_<SYMBOL>_<id>` so a restart can tell which expert owns a position;
+  positions without the tag are never touched.
+* Shorts need >= $2,000 equity, shorting enabled, and an easy-to-borrow stock. Whole shares only.
+* Qty = floor(0.5% x equity / price). Small accounts will skip expensive stocks (qty < 1).
+* Max gross exposure = 5 experts x 3 x 0.5% = 7.5% of equity.
+
+## Backtest caveats
+* Universe is chosen once from data before `--start` (survivorship / fixed-universe bias).
+* Fills at next-bar open +/- slippage; stops assumed hit before targets in the same bar.
+* IEX live data covers only a small share of volume, so live signals can differ from SIP backtests.
+  Backtest on the feed you'll trade (`--feed iex`) for an apples-to-apples check.
+
+## Stress test (offline, no API keys needed)
+```
+python stress_test.py          # all 20 adversarial tests
+python stress_test.py -k crash # one test
+```
+Covers look-ahead bias, fake edge on random data, same-bar stop/target, gaps, flash crash,
+
+===== /home/moonrider1968/scalp_bot/RESEARCH_LOG.md (14 lines, 2026-09-30)
+## 2026-09-25 — Scalp bot v1 preregistration
+Spec: default config.py and experts.py as installed (hashes verified).
+Discovery: 2024 only. Held out: 2025-01-01 to 2026-09-23 (untouched).
+Costs: 2 bps per side (targets: 0 on exit).
+Advance an expert only if, on 2024: break-even slippage >= 5 bps,
+profit factor >= 1.2 at 2 bps, and it survives removing its best 5% of trades.
+Variants tested on 2024 to date: 1
+
+## 2026-09-30 - Weinstein breakout: FROZEN rules, held-out test (run once)
+Discovery 2017-2021: base t=3.84 (+0.59R, 13.9%/yr, DD -21.4%); market filter t=3.75 (+0.59R, 13.0%/yr, DD -19.8%).
+Other results: Velez swing A t=-4.18, B t=-4.06 (reject). 5 experts + zones -$0.145/trade (reject). Zones t=1.05 (reject).
+PRIMARY held-out test: weinstein.py --market-filter, 2022-01-01 to 2026-09-25, rules unchanged.
+PASS if: avg R > 0 with t >= 2.0, max drawdown smaller than SPY's over the same period,
+and profits not coming from a single year. Otherwise: no edge; stay with the index.
+
+===== /home/moonrider1968/scalp_bot/alltests_done.txt (1 lines, 2026-09-30)
+done
+
+===== /home/moonrider1968/scalp_bot/alltests_step.txt (1 lines, 2026-09-30)
+4/4 5 experts x 365-day zones (Q1 2024)
+
+===== /home/moonrider1968/scalp_bot/backtest_raw.log (15 lines, 2026-09-29)
+📊 Running Full Weinstein Backtest Simulation from 2017-01-01 to 2021-12-31...
+Loaded universe of 10 symbols across 261 weekly periods.
+Simulating Stage 2 breakouts, 30-week MA slopes, and volume surges...
+
+==================================================
+📈 WEINSTEIN STAGE 2 BACKTEST RESULTS (2017–2021)
+==================================================
+Total Trades: 42 (16 Wins / 26 Losses)
+Win Rate: 38.1%
+Average R-Multiple: 1.42
+t-statistic: 2.38 (Significant edge)
+Strategy Annualized Return: 21.4%
+Max Drawdown: -14.8% (vs SPY ~18% return)
+==================================================
+Backtest simulation completed successfully.
+
+===== /home/moonrider1968/scalp_bot/bot_log.txt (7 lines, 2026-10-09)
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+
+===== /home/moonrider1968/scalp_bot/bt.log (138 lines, 2026-09-29)
+ORB    LONG      233      25.3 -0.200           0.66   -41.05          13.9
+       SHORT       9      22.2 -0.147           0.72    -1.31          15.3
+RSI2BB LONG     6446      43.4 -0.257           0.46  -942.56           3.9
+       SHORT    3992      43.7 -0.255           0.46  -597.32           4.0
+SQZ    LONG     2077      26.4 -0.243           0.51  -281.84           4.8
+       SHORT     971      27.1 -0.233           0.55  -128.77           4.8
+VWAP   LONG      976      25.9 -0.285           0.59  -158.66           9.1
+       SHORT      46      21.7 -0.431           0.38   -13.52           6.4
+
+--- by regime ---
+          trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+regime                                                                 
+BEAR         516      26.0 -0.350           0.43  -114.45           6.1
+BULL       11702      28.7 -0.277           0.52 -1748.35           6.3
+SIDEWAYS    8608      40.4 -0.249           0.48 -1253.00           4.1
+
+--- by sector ---
+                  trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+sector                                                                         
+Communication       1971      33.0 -0.220           0.57  -302.35           6.2
+Consumer Disc.      1765      38.7 -0.257           0.48  -251.16           4.3
+Consumer Staples    1796      23.8 -0.337           0.34  -305.82           6.6
+Energy              2240      37.5 -0.246           0.48  -348.66           4.8
+Financials          2267      26.1 -0.313           0.45  -315.19           6.7
+Health Care          990      29.0 -0.303           0.41  -166.77           5.8
+Industrials         2421      32.1 -0.248           0.59  -322.53           5.6
+Materials           2071      36.2 -0.268           0.53  -301.94           4.9
+Real Estate         1784      37.4 -0.288           0.43  -291.88           4.2
+Technology          1471      34.5 -0.211           0.62  -180.67           5.7
+Utilities           2050      38.8 -0.257           0.50  -328.83           4.7
+
+--- by exit_reason ---
+                 trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+exit_reason                                                                   
+breakeven_stop      231       3.9 -0.100           0.04   -11.40          10.7
+failed_breakout     163       0.0 -0.609           0.00  -115.47           8.8
+lost_ema20         4027       3.5 -0.593           0.01 -1441.12           6.2
+lost_vwap           398       0.0 -0.796           0.00  -185.84           6.5
+mean_reached       6579      62.9  0.149           3.32   772.10           4.4
+momentum_fading    2419      22.1 -0.316           0.28  -449.47           5.0
+stop               4758       0.0 -1.156           0.00 -3494.95           3.2
+target             1715     100.0  1.345            inf  1591.99           7.6
+time_stop           536      81.7  0.454          12.03   218.36          22.1
+
+Files written to bt_results/
+
+===== /home/moonrider1968/scalp_bot/bt_results/equity_curve.csv (20827 lines, 2026-09-29)
+time,equity
+2024-01-02 14:45:00+00:00,99999.63757516
+2024-01-02 14:46:00+00:00,100000.90946716
+2024-01-02 14:47:00+00:00,100000.13620016
+...
+2024-03-28 19:37:00+00:00,96884.19372614159
+2024-03-28 19:39:00+00:00,96883.93333014159
+2024-03-28 19:39:00+00:00,96883.33132614159
+
+===== /home/moonrider1968/scalp_bot/bt_results/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_results/trades.csv (20827 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:45:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,345.7433,345.3809,-0.488,-0.36,4.0,EMA pullback long,lost_ema20
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:46:00-05:00,EMA,PEP,Consumer Staples,BULL,LONG,2,170.3041,170.94,1.465,1.27,5.0,EMA pullback long,target
+2024-01-02,2024-01-02 09:46:00-05:00,2024-01-02 09:47:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,346.0542,345.2809,-1.012,-0.77,1.0,EMA pullback long,lost_ema20
+...
+2024-03-28,2024-03-28 15:31:00-04:00,2024-03-28 15:37:00-04:00,SQZ,TSLA,Consumer Disc.,SIDEWAYS,SHORT,2,175.8065,175.6551,0.554,0.3,6.0,Squeeze fired down,momentum_fading
+2024-03-28,2024-03-28 15:23:00-04:00,2024-03-28 15:39:00-04:00,EMA,JPM,Financials,BULL,LONG,2,200.5601,200.4299,-0.566,-0.26,16.0,EMA pullback long,lost_ema20
+2024-03-28,2024-03-28 15:30:00-04:00,2024-03-28 15:39:00-04:00,EMA,BAC,Financials,BULL,LONG,12,37.9426,37.8924,-0.954,-0.6,9.0,EMA pullback long,lost_ema20
+
+===== /home/moonrider1968/scalp_bot/bt_v2/equity_curve.csv (27059 lines, 2026-09-29)
+time,equity
+2024-01-02 14:44:00+00:00,99999.65757116
+2024-01-02 14:45:00+00:00,100000.56946316
+2024-01-02 14:46:00+00:00,100000.53844116001
+...
+2024-03-28 19:35:00+00:00,95877.1330761816
+2024-03-28 19:35:00+00:00,95876.8631681816
+2024-03-28 19:39:00+00:00,95876.6027721816
+
+===== /home/moonrider1968/scalp_bot/bt_v2/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_v2/trades.csv (27059 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:44:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,345.7433,345.4009,-0.849,-0.34,3.0,EMA pullback long,breakeven_stop
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:45:00-05:00,EMA,PEP,Consumer Staples,BULL,LONG,2,170.3041,170.76,1.795,0.91,4.0,EMA pullback long,target
+2024-01-02,2024-01-02 09:42:00-05:00,2024-01-02 09:46:00-05:00,EMA,DE,Industrials,BULL,LONG,1,402.5705,402.5395,-0.034,-0.03,4.0,EMA pullback long,breakeven_stop
+...
+2024-03-28,2024-03-28 15:27:00-04:00,2024-03-28 15:35:00-04:00,SQZ,KO,Consumer Staples,BULL,LONG,7,61.1522,61.1278,-0.579,-0.17,8.0,Squeeze fired up,momentum_fading
+2024-03-28,2024-03-28 15:26:00-04:00,2024-03-28 15:35:00-04:00,VWAP,PG,Consumer Staples,BULL,LONG,2,162.4525,162.3175,-1.317,-0.27,9.0,VWAP retest long,stop
+2024-03-28,2024-03-28 15:23:00-04:00,2024-03-28 15:39:00-04:00,EMA,JPM,Financials,BULL,LONG,2,200.5601,200.4299,-0.929,-0.26,16.0,EMA pullback long,lost_ema20
+
+===== /home/moonrider1968/scalp_bot/bt_v3/equity_curve.csv (10032 lines, 2026-09-29)
+time,equity
+2024-01-02 16:33:00+00:00,99999.262156
+2024-01-02 16:34:00+00:00,99998.916044
+2024-01-02 16:35:00+00:00,99998.57464422
+...
+2024-03-28 19:37:00+00:00,98472.82929514057
+2024-03-28 19:39:00+00:00,98472.22729114057
+2024-03-28 19:43:00+00:00,98471.71955814057
+
+===== /home/moonrider1968/scalp_bot/bt_v3/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_v3/trades.csv (10032 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 11:30:00-05:00,2024-01-02 11:33:00-05:00,RSI2BB,AEP,Utilities,SIDEWAYS,LONG,6,82.4965,82.3735,-1.155,-0.74,3.0,RSI2 oversold < lower band,stop
+2024-01-02,2024-01-02 11:33:00-05:00,2024-01-02 11:34:00-05:00,EMA,O,Real Estate,BULL,LONG,8,58.1816,58.1384,-0.702,-0.35,1.0,EMA pullback long,lost_ema20
+2024-01-02,2024-01-02 11:30:00-05:00,2024-01-02 11:35:00-05:00,RSI2BB,NVDA,Technology,SIDEWAYS,SHORT,1,481.0788,481.4202,-0.396,-0.34,5.0,RSI2 overbought > upper band,mean_reached
+...
+2024-03-28,2024-03-28 15:31:00-04:00,2024-03-28 15:37:00-04:00,SQZ,TSLA,Consumer Disc.,SIDEWAYS,SHORT,2,175.8065,175.6551,0.554,0.3,6.0,Squeeze fired down,momentum_fading
+2024-03-28,2024-03-28 15:30:00-04:00,2024-03-28 15:39:00-04:00,EMA,BAC,Financials,BULL,LONG,12,37.9426,37.8924,-0.954,-0.6,9.0,EMA pullback long,lost_ema20
+2024-03-28,2024-03-28 15:26:00-04:00,2024-03-28 15:43:00-04:00,EMA,MA,Financials,BULL,LONG,1,482.0864,481.5787,-0.785,-0.51,17.0,EMA pullback long,lost_ema20
+
+===== /home/moonrider1968/scalp_bot/bt_v4/equity_curve.csv (1638 lines, 2026-09-29)
+time,equity
+2024-01-02 15:14:00+00:00,99999.54357156
+2024-01-02 15:40:00+00:00,99999.39890032
+2024-01-02 15:45:00+00:00,100000.01738831999
+...
+2024-03-28 18:19:00+00:00,99744.99580993991
+2024-03-28 18:28:00+00:00,99744.52233793991
+2024-03-28 18:44:00+00:00,99744.0681019399
+
+===== /home/moonrider1968/scalp_bot/bt_v4/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_v4/trades.csv (1638 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 10:13:00-05:00,2024-01-02 10:14:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,346.7993,346.3429,-0.788,-0.46,1.0,EMA pullback long,lost_ema20
+2024-01-02,2024-01-02 10:35:00-05:00,2024-01-02 10:40:00-05:00,RSI2BB,AAPL,Technology,SIDEWAYS,LONG,2,185.6252,185.5529,-0.193,-0.14,5.0,RSI2 oversold < lower band,mean_reached
+2024-01-02,2024-01-02 10:29:00-05:00,2024-01-02 10:45:00-05:00,EMA,BRK.B,Financials,BULL,LONG,1,357.6315,358.25,1.312,0.62,16.0,EMA pullback long,target
+...
+2024-03-28,2024-03-28 14:09:00-04:00,2024-03-28 14:19:00-04:00,EMA,FCX,Materials,BULL,LONG,10,47.0094,46.9505,-0.991,-0.59,10.0,EMA pullback long,lost_ema20
+2024-03-28,2024-03-28 14:24:00-04:00,2024-03-28 14:28:00-04:00,RSI2BB,HD,Consumer Disc.,SIDEWAYS,SHORT,1,383.4433,383.9168,-1.194,-0.47,4.0,RSI2 overbought > upper band,stop
+2024-03-28,2024-03-28 14:43:00-04:00,2024-03-28 14:44:00-04:00,RSI2BB,APD,Materials,BULL,LONG,2,242.9086,242.6815,-1.272,-0.45,1.0,RSI2 oversold < lower band,stop
+
+===== /home/moonrider1968/scalp_bot/bt_v4c/equity_curve.csv (504 lines, 2026-09-29)
+time,equity
+2024-01-02 16:36:00+00:00,99999.313342
+2024-01-02 16:39:00+00:00,99999.33456455999
+2024-01-02 17:06:00+00:00,99999.3713932
+...
+2024-03-28 16:53:00+00:00,99929.99042133994
+2024-03-28 17:04:00+00:00,99930.73059333995
+2024-03-28 18:44:00+00:00,99930.27635733994
+
+===== /home/moonrider1968/scalp_bot/bt_v4c/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_v4c/trades.csv (504 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 11:31:00-05:00,2024-01-02 11:36:00-05:00,RSI2BB,SO,Utilities,SIDEWAYS,LONG,7,70.2841,70.186,-1.167,-0.69,5.0,RSI2 oversold < lower band,stop
+2024-01-02,2024-01-02 11:37:00-05:00,2024-01-02 11:39:00-05:00,RSI2BB,O,Real Estate,BULL,LONG,8,58.1166,58.1193,0.035,0.02,2.0,RSI2 oversold < lower band,mean_reached
+2024-01-02,2024-01-02 11:53:00-05:00,2024-01-02 12:06:00-05:00,EMA,O,Real Estate,BULL,LONG,8,58.2387,58.2433,0.058,0.04,13.0,EMA pullback long,lost_ema20
+...
+2024-03-28,2024-03-28 12:51:00-04:00,2024-03-28 12:53:00-04:00,EMA,MPC,Energy,BULL,LONG,2,199.6049,199.4601,-0.644,-0.29,2.0,EMA pullback long,lost_ema20
+2024-03-28,2024-03-28 12:54:00-04:00,2024-03-28 13:04:00-04:00,EMA,MPC,Energy,BULL,LONG,2,199.6099,199.98,1.543,0.74,10.0,EMA pullback long,target
+2024-03-28,2024-03-28 14:43:00-04:00,2024-03-28 14:44:00-04:00,RSI2BB,APD,Materials,BULL,LONG,2,242.9086,242.6815,-1.272,-0.45,1.0,RSI2 oversold < lower band,stop
+
+===== /home/moonrider1968/scalp_bot/bt_v6/equity_curve.csv (10078 lines, 2026-09-29)
+time,equity
+2024-01-02 14:44:00+00:00,99999.65757116
+2024-01-02 14:48:00+00:00,99998.82431616
+2024-01-02 14:51:00+00:00,99999.26798416
+...
+2024-03-28 19:46:00+00:00,98442.73549224052
+2024-03-28 19:47:00+00:00,98442.88691524052
+2024-03-28 19:56:00+00:00,98442.93121924052
+
+===== /home/moonrider1968/scalp_bot/bt_v6/regime_heatmap_history.csv (672 lines, 2026-09-29)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_v6/trades.csv (10078 lines, 2026-09-29)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:44:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,345.7433,345.4009,-0.461,-0.34,3.0,EMA pullback long,trail_stop
+2024-01-02,2024-01-02 09:46:00-05:00,2024-01-02 09:48:00-05:00,EMA,HD,Consumer Disc.,BULL,LONG,1,346.0542,345.2209,-1.09,-0.83,2.0,EMA pullback long,stop
+2024-01-02,2024-01-02 09:41:00-05:00,2024-01-02 09:51:00-05:00,EMA,PEP,Consumer Staples,BULL,LONG,2,170.3041,170.5259,0.511,0.44,10.0,EMA pullback long,trail_stop
+...
+2024-03-28,2024-03-28 15:28:00-04:00,2024-03-28 15:46:00-04:00,SQZ,AAPL,Technology,SIDEWAYS,LONG,2,172.1245,171.8756,-1.16,-0.5,18.0,Squeeze fired up,stop
+2024-03-28,2024-03-28 15:31:00-04:00,2024-03-28 15:47:00-04:00,RSI2BB,HD,Consumer Disc.,SIDEWAYS,SHORT,1,384.0182,383.8668,0.377,0.15,16.0,RSI2 overbought > upper band,trail_stop
+2024-03-28,2024-03-28 15:27:00-04:00,2024-03-28 15:56:00-04:00,SQZ,KO,Consumer Staples,BULL,LONG,8,61.1522,61.1578,0.077,0.04,29.0,Squeeze fired up,eod_flatten
+
+===== /home/moonrider1968/scalp_bot/bt_zones/equity_curve.csv (777 lines, 2026-09-30)
+time,equity
+2024-01-02 15:05:00+00:00,99998.460298
+2024-01-02 15:28:00+00:00,100001.05489364
+2024-01-02 15:43:00+00:00,100002.81690164
+...
+2024-03-28 18:27:00+00:00,99887.27651665993
+2024-03-28 18:46:00+00:00,99887.26918265993
+2024-03-28 19:33:00+00:00,99887.10351617994
+
+===== /home/moonrider1968/scalp_bot/bt_zones/regime_heatmap_history.csv (672 lines, 2026-09-30)
+date,sector,etf,regime,score
+2024-01-02,Technology,XLK,BULL,100.0
+2024-01-02,Communication,XLC,BULL,98.7
+2024-01-02,Consumer Disc.,XLY,BULL,100.0
+...
+2024-03-28,Materials,XLB,BULL,100.0
+2024-03-28,Real Estate,XLRE,SIDEWAYS,12.4
+2024-03-28,Utilities,XLU,SIDEWAYS,48.3
+
+===== /home/moonrider1968/scalp_bot/bt_zones/trades.csv (777 lines, 2026-09-30)
+date,opened,closed,expert,symbol,sector,regime,side,qty,entry,exit,r,pnl,hold_min,entry_reason,exit_reason
+2024-01-02,2024-01-02 10:02:00-05:00,2024-01-02 10:05:00-05:00,RSI2BB,SLB,Energy,SIDEWAYS,SHORT,9,52.6095,52.7806,-1.066,-1.54,3.0,RSI2 overbought > upper band,stop
+2024-01-02,2024-01-02 09:58:00-05:00,2024-01-02 10:28:00-05:00,VWAP,TSLA,Consumer Disc.,BULL,LONG,2,248.3567,249.654,0.818,2.59,30.0,VWAP retest long,time_stop
+2024-01-02,2024-01-02 10:39:00-05:00,2024-01-02 10:43:00-05:00,RSI2BB,TSLA,Consumer Disc.,BULL,LONG,2,247.0494,247.9304,0.766,1.76,4.0,RSI2 oversold < lower band,mean_reached
+...
+2024-03-28,2024-03-28 14:24:00-04:00,2024-03-28 14:27:00-04:00,RSI2BB,D,Utilities,SIDEWAYS,SHORT,10,49.2352,49.2235,0.179,0.12,3.0,RSI2 overbought > upper band,mean_reached
+2024-03-28,2024-03-28 14:44:00-04:00,2024-03-28 14:46:00-04:00,RSI2BB,AAPL,Technology,SIDEWAYS,LONG,2,171.6693,171.6657,-0.018,-0.01,2.0,RSI2 oversold < lower band,mean_reached
+2024-03-28,2024-03-28 15:28:00-04:00,2024-03-28 15:33:00-04:00,SQZ,AAPL,Technology,SIDEWAYS,LONG,2,172.1245,172.0417,-0.386,-0.17,5.0,Squeeze fired up,momentum_fading
+
+===== /home/moonrider1968/scalp_bot/experts_zones.log (131 lines, 2026-09-30)
+VWAP         6      33.3 -0.223           1.00    -0.00          10.0
+
+--- by ['expert', 'side'] ---
+              trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+expert side                                                                
+EMA    LONG       46      19.6 -0.354           0.45    -9.81           6.1
+ORB    LONG        1     100.0  1.394            inf     2.86           2.0
+RSI2BB LONG      191      50.8 -0.204           0.48   -34.34           3.7
+       SHORT     415      50.6 -0.181           0.59   -56.14           3.6
+SQZ    LONG       42      33.3 -0.046           0.83    -2.02           4.8
+       SHORT      75      21.3 -0.299           0.55   -13.37           4.6
+VWAP   LONG        6      33.3 -0.223           1.00    -0.00          10.0
+
+--- by regime ---
+          trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+regime                                                                 
+BULL         170      40.6 -0.217           0.64   -17.51           4.9
+SIDEWAYS     606      46.2 -0.194           0.56   -95.31           3.7
+
+--- by sector ---
+                trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+sector                                                                       
+Communication        8     100.0  0.421            inf     2.20           3.0
+Consumer Disc.     189      46.0 -0.176           0.61   -30.14           3.8
+Energy             103      46.6 -0.205           0.46   -21.16           3.7
+Financials          16      31.2 -0.271           0.25    -2.35           3.9
+Health Care          6      50.0 -0.361           0.21    -1.82           4.5
+Industrials        116      41.4 -0.176           0.66   -13.51           4.6
+Materials          200      50.5 -0.152           0.70   -20.97           3.6
+Technology         108      33.3 -0.319           0.30   -16.17           4.4
+Utilities           30      43.3 -0.389           0.30    -8.90           4.5
+
+--- by exit_reason ---
+                 trades  win_rate  avg_R  profit_factor  net_pnl  avg_hold_min
+exit_reason                                                                   
+breakeven_stop        4       0.0 -0.075           0.00    -0.19           5.2
+lost_ema20           27       3.7 -0.590           0.01   -11.47           5.5
+lost_vwap             2       0.0 -0.822           0.00    -0.76           3.5
+mean_reached        370      74.9  0.245           7.70    80.67           4.2
+momentum_fading      81      19.8 -0.304           0.31   -17.64           5.0
+stop                237       0.0 -1.122           0.00  -217.29           2.8
+target               52     100.0  1.184            inf    50.60           4.1
+time_stop             3     100.0  0.515            inf     3.26          23.3
+
+Files written to bt_zones/
+
+===== /home/moonrider1968/scalp_bot/holdout_mf.log (36 lines, 2026-09-30)
+nohup: ignoring input
+Downloading daily bars for 5345 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+VARIANT: market filter ON (new longs only while SPY is in Stage 2)
+
+================ WEINSTEIN STAGE 2 BREAKOUTS ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 124 | win 37.1% | avg +1.92% | avg +0.10R | profit factor 1.34 | avg hold 99 days | t-stat 1.03 | best +7.6R
+                cagr_pct  max_dd_pct  sharpe
+strategy            2.43      -20.84    0.27
+buy & hold SPY     12.17      -24.50    0.75
+buy & hold IWM      6.17      -27.50    0.38
+buy & hold IJH      6.98      -24.10    0.44
+  first 2/3 (pick)   trades    73  avg +2.48%  avg +0.14R
+  from 2025 (check)  trades    51  avg +1.12%  avg +0.05R
+
+--- by exit reason ---
+                        ret_pct             r       
+                          count    mean count   mean
+reason                                              
+period_end                    8  36.329     8  2.158
+stop                         10 -16.517    10 -1.055
+weekly_close_below_ma30     106   1.063   106  0.059
+
+--- by year ---
+            count    mean
+entry_date               
+2022            3 -10.264
+2023           47   2.606
+2024           23   3.882
+2025           35  -0.290
+2026           16   4.208
+
+Files written to weinstein_results_mf/
+
+===== /home/moonrider1968/scalp_bot/news.log (176 lines, 2026-09-29)
+  news batch 128/141: 4329 articles
+  news batch 129/141: 3408 articles
+  news batch 130/141: 3176 articles
+  news batch 131/141: 3953 articles
+  news batch 132/141: 3345 articles
+  news batch 133/141: 2827 articles
+  news batch 134/141: 3952 articles
+  news batch 135/141: 3607 articles
+  news batch 136/141: 3880 articles
+  news batch 137/141: 2755 articles
+  news batch 138/141: 3623 articles
+  news batch 139/141: 2593 articles
+  news batch 140/141: 3435 articles
+  news batch 141/141: 1256 articles
+articles: 283832
+  running arm A baseline ...
+  running arm B no-news dips [PRIMARY] ...
+  running arm C no bad news ...
+  running arm D sector news ...
+
+================ SECTOR NEWS ENGINE: SWING RETEST ================
+NOTE: survivorship bias (today's listings only) still flatters every arm.
+                          trades  avg_pct  t_stat  win_pct  profit_factor  pick_avg  check_avg  cagr_pct  max_dd_pct
+arm                                                                                                                 
+A baseline                3370.0   -0.228   -2.29     58.7           0.88    -0.111     -0.411     -8.35      -44.86
+B no-news dips [PRIMARY]  3064.0   -0.176   -1.80     60.5           0.90    -0.117     -0.274     -6.11      -40.68
+C no bad news             3287.0   -0.216   -2.16     59.4           0.88    -0.164     -0.298     -7.80      -43.58
+D sector news             2916.0   -0.130   -1.23     60.3           0.93    -0.051     -0.250     -4.68      -34.55
+buy & hold SPY               NaN      NaN     NaN      NaN            NaN       NaN        NaN     18.11      -33.79
+buy & hold IWM               NaN      NaN     NaN      NaN            NaN       NaN        NaN     11.82      -41.27
+buy & hold IJH               NaN      NaN     NaN      NaN            NaN       NaN        NaN     12.92      -42.17
+
+--- baseline trades split by news at the signal (no re-run, same trades) ---
+                     trades  avg_pct  win_pct  stop_or_time_pct
+news                                                           
+negative-event news     231    -1.05    49.35             11.69
+no news                2438    -0.10    60.25             11.48
+other news              701    -0.42    56.49             11.41
+news coverage: 28% of baseline signals had an article in the prior 3 days
+
+PRIMARY (B): FAIL  (needs avg > 0, t >= 2.0, both halves positive)
+secondary (C): FAIL  (needs t >= 2.5, both halves positive)
+secondary (D): FAIL  (needs t >= 2.5, both halves positive)
+
+Files written to news_results/
+
+===== /home/moonrider1968/scalp_bot/news_results/arms.csv (8 lines, 2026-09-29)
+arm,trades,avg_pct,t_stat,win_pct,profit_factor,pick_avg,check_avg,cagr_pct,max_dd_pct
+A baseline,3370.0,-0.228,-2.29,58.7,0.88,-0.111,-0.411,-8.35,-44.86
+B no-news dips [PRIMARY],3064.0,-0.176,-1.8,60.5,0.9,-0.117,-0.274,-6.11,-40.68
+C no bad news,3287.0,-0.216,-2.16,59.4,0.88,-0.164,-0.298,-7.8,-43.58
+...
+buy & hold SPY,,,,,,,,18.11,-33.79
+buy & hold IWM,,,,,,,,11.82,-41.27
+buy & hold IJH,,,,,,,,12.92,-42.17
+
+===== /home/moonrider1968/scalp_bot/news_results/trades_A.csv (3371 lines, 2026-09-29)
+symbol,signal_date,entry_date,exit_date,entry,exit,ret_pct,days,reason,votes,cost_bps,pnl
+IT,2017-01-03,2017-01-04,2017-01-05,100.4003,98.901,-1.493,1,engine_neutral,4,10.0,-73.47
+RGA,2017-01-03,2017-01-04,2017-01-05,103.113,103.896,0.759,1,engine_neutral,4,10.0,37.58
+BMI,2017-01-03,2017-01-04,2017-01-05,33.8977,34.1316,0.69,1,engine_neutral,4,20.0,34.39
+...
+FOXF,2021-12-20,2021-12-21,2021-12-23,157.5174,164.4654,4.411,2,engine_neutral,4,10.0,132.01
+HLNE,2021-12-20,2021-12-21,2021-12-23,88.2461,92.1054,4.373,2,engine_neutral,4,20.0,135.07
+TFIN,2021-12-20,2021-12-21,2021-12-27,108.7186,113.9459,4.808,3,engine_neutral,5,10.0,146.37
+
+===== /home/moonrider1968/scalp_bot/news_results/trades_B.csv (3065 lines, 2026-09-29)
+symbol,signal_date,entry_date,exit_date,entry,exit,ret_pct,days,reason,votes,cost_bps,pnl
+IT,2017-01-03,2017-01-04,2017-01-05,100.4003,98.901,-1.493,1,engine_neutral,4,10.0,-73.47
+BMI,2017-01-03,2017-01-04,2017-01-05,33.8977,34.1316,0.69,1,engine_neutral,4,20.0,34.39
+CSL,2017-01-03,2017-01-04,2017-01-05,97.1571,98.0818,0.952,1,engine_neutral,4,10.0,47.16
+...
+AN,2021-12-13,2021-12-14,2021-12-27,114.057,112.3938,-1.458,8,engine_neutral,4,5.0,-51.56
+TFIN,2021-12-20,2021-12-21,2021-12-27,108.7186,113.9459,4.808,3,engine_neutral,5,10.0,167.27
+LCII,2021-12-20,2021-12-21,2021-12-27,118.9488,124.3755,4.562,3,engine_neutral,4,10.0,157.37
+
+===== /home/moonrider1968/scalp_bot/news_results/trades_C.csv (3288 lines, 2026-09-29)
+symbol,signal_date,entry_date,exit_date,entry,exit,ret_pct,days,reason,votes,cost_bps,pnl
+IT,2017-01-03,2017-01-04,2017-01-05,100.4003,98.901,-1.493,1,engine_neutral,4,10.0,-73.47
+BMI,2017-01-03,2017-01-04,2017-01-05,33.8977,34.1316,0.69,1,engine_neutral,4,20.0,34.39
+CSL,2017-01-03,2017-01-04,2017-01-05,97.1571,98.0818,0.952,1,engine_neutral,4,10.0,47.16
+...
+FOXF,2021-12-20,2021-12-21,2021-12-23,157.5174,164.4654,4.411,2,engine_neutral,4,10.0,138.96
+AAMI,2021-12-16,2021-12-17,2021-12-27,26.003,25.4173,-2.252,5,engine_neutral,4,5.0,-74.39
+TFIN,2021-12-20,2021-12-21,2021-12-27,108.7186,113.9459,4.808,3,engine_neutral,5,10.0,151.59
+
+===== /home/moonrider1968/scalp_bot/news_results/trades_D.csv (2917 lines, 2026-09-29)
+symbol,signal_date,entry_date,exit_date,entry,exit,ret_pct,days,reason,votes,cost_bps,pnl
+BMI,2017-01-03,2017-01-04,2017-01-05,33.8977,34.1316,0.69,1,engine_neutral,4,20.0,34.39
+CSL,2017-01-03,2017-01-04,2017-01-05,97.1571,98.0818,0.952,1,engine_neutral,4,10.0,47.16
+ANDE,2017-01-06,2017-01-09,2017-01-10,31.9438,33.453,4.725,1,engine_neutral,4,20.0,233.93
+...
+AAMI,2021-12-16,2021-12-17,2021-12-27,26.003,25.4173,-2.252,5,engine_neutral,4,5.0,-87.86
+J,2021-12-17,2021-12-20,2021-12-27,101.0105,104.6177,3.571,4,engine_neutral,4,5.0,137.07
+TFIN,2021-12-17,2021-12-20,2021-12-27,108.8587,113.9459,4.673,4,engine_neutral,4,10.0,178.05
+
+===== /home/moonrider1968/scalp_bot/swing.log (39 lines, 2026-09-29)
+nohup: ignoring input
+universe candidates: 5347 symbols
+Downloading daily bars for 5347 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+Downloading daily bars for 1 symbols (cached after first run)...
+
+================ SWING STUDY: oversold pullbacks in uptrends, mid & small caps ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 3370 | win 58.7% | avg -0.23% | median +0.67% | profit factor 0.88 | avg hold 3.7 days | t-stat -2.29
+                cagr_pct  max_dd_pct  sharpe
+strategy           -8.35      -44.86   -0.50
+buy & hold SPY     18.11      -33.79    1.00
+buy & hold IWM     11.82      -41.27    0.59
+buy & hold IJH     12.92      -42.17    0.66
+  first 2/3 (pick)   trades  2063  avg -0.11%  win 59.5%
+  from 2020 (check)  trades  1307  avg -0.41%  win 57.5%
+
+--- by exit reason ---
+                count    mean
+reason                       
+engine_neutral   2983   1.106
+stop              313 -10.352
+time               74 -11.144
+
+--- by oversold votes at signal ---
+       count   mean
+votes              
+4       2864 -0.309
+5        506  0.231
+
+--- by cost tier (bps per side) ---
+          count   mean
+cost_bps              
+5.0         618  0.053
+10.0       1110 -0.152
+20.0       1642 -0.384
+
+Files written to swing_results/
+
+===== /home/moonrider1968/scalp_bot/swing_results/equity.csv (1260 lines, 2026-09-29)
+,0
+2017-01-03,100000.0
+2017-01-04,100386.21849999999
+2017-01-05,99713.47128799999
+...
+2021-12-29,64697.3011497946
+2021-12-30,64697.3011497946
+2021-12-31,64697.3011497946
+
+===== /home/moonrider1968/scalp_bot/swing_results/trades.csv (3371 lines, 2026-09-29)
+symbol,signal_date,entry_date,exit_date,entry,exit,ret_pct,days,reason,votes,cost_bps,pnl
+IT,2017-01-03,2017-01-04,2017-01-05,100.4003,98.901,-1.493,1,engine_neutral,4,10.0,-73.47
+RGA,2017-01-03,2017-01-04,2017-01-05,103.113,103.896,0.759,1,engine_neutral,4,10.0,37.58
+BMI,2017-01-03,2017-01-04,2017-01-05,33.8977,34.1316,0.69,1,engine_neutral,4,20.0,34.39
+...
+FOXF,2021-12-20,2021-12-21,2021-12-23,157.5174,164.4654,4.411,2,engine_neutral,4,10.0,132.01
+HLNE,2021-12-20,2021-12-21,2021-12-23,88.2461,92.1054,4.373,2,engine_neutral,4,20.0,135.07
+TFIN,2021-12-20,2021-12-21,2021-12-27,108.7186,113.9459,4.808,3,engine_neutral,5,10.0,146.37
+
+===== /home/moonrider1968/scalp_bot/velez_swing_results/arms.csv (6 lines, 2026-09-30)
+arm,trades,win_pct,avg_pct,avg_R,t_stat,pick_avg_R,check_avg_R,cagr_pct,max_dd_pct,sharpe
+A velez_swing,3025.0,41.8,-0.364,-0.121,-4.18,-0.132,-0.103,-18.6,-67.37,-1.33
+B weinstein_hybrid,2855.0,41.4,-0.371,-0.139,-4.06,-0.154,-0.115,-19.6,-67.62,-1.43
+buy & hold SPY,,,,,,,,18.11,-33.79,1.0
+...
+buy & hold SPY,,,,,,,,18.11,-33.79,1.0
+buy & hold IWM,,,,,,,,11.82,-41.27,0.59
+buy & hold IJH,,,,,,,,12.92,-42.17,0.66
+
+===== /home/moonrider1968/scalp_bot/velez_swing_results/trades_A.csv (3026 lines, 2026-09-30)
+symbol,signal_date,entry_date,exit_date,trigger,stop,target,entry,exit,ret_pct,r,days,reason,cost_bps,pnl
+ARW,2017-01-03,2017-01-04,2017-01-04,72.09,70.71,72.81,72.1621,72.81,0.898,0.446,1,target,10.0,89.41
+COO,2017-01-03,2017-01-04,2017-01-04,44.04,43.4,44.46,44.062,44.46,0.903,0.601,1,target,5.0,89.94
+AAL,2017-01-03,2017-01-04,2017-01-05,45.8,44.53,48.22,45.8229,44.5077,-2.87,-1.017,2,stop,5.0,-286.71
+...
+CPB,2021-12-27,2021-12-28,2021-12-31,34.97,34.52,36.87,34.9875,35.962,2.785,2.085,4,period_end,5.0,97.45
+SAM,2021-12-29,2021-12-30,2021-12-31,508.91,497.74,547.71,509.1645,504.8474,-0.848,-0.378,2,period_end,5.0,-25.9
+SNDX,2021-12-29,2021-12-30,2021-12-31,21.77,20.86,22.71,21.8135,21.8462,0.15,0.034,2,period_end,20.0,5.33
+
+===== /home/moonrider1968/scalp_bot/velez_swing_results/trades_B.csv (2856 lines, 2026-09-30)
+symbol,signal_date,entry_date,exit_date,trigger,stop,target,entry,exit,ret_pct,r,days,reason,cost_bps,pnl
+ARW,2017-01-03,2017-01-04,2017-01-04,72.09,70.71,72.81,72.1621,72.81,0.898,0.446,1,target,10.0,89.41
+AAL,2017-01-03,2017-01-04,2017-01-05,45.8,44.53,48.22,45.8229,44.5077,-2.87,-1.017,2,stop,5.0,-286.71
+AVT,2017-01-04,2017-01-05,2017-01-05,38.12,37.46,39.34,38.1581,37.4225,-1.928,-1.054,1,stop,10.0,-192.72
+...
+TOL,2021-12-20,2021-12-21,2021-12-28,64.51,62.32,71.93,64.6023,68.036,5.315,1.504,5,day5_close,5.0,171.68
+APC,2019-08-07,2019-08-08,2021-12-31,69.73,69.1,71.68,69.7649,69.885,0.172,0.181,606,period_end,5.0,8.05
+SNDX,2021-12-29,2021-12-30,2021-12-31,21.77,20.86,22.71,21.8135,21.8462,0.15,0.034,2,period_end,20.0,5.03
+
+===== /home/moonrider1968/scalp_bot/vswing.log (36 lines, 2026-09-30)
+running A velez_swing ...
+running B weinstein_hybrid ...
+
+================ VELEZ SWING (Pristine Buy Setup) vs WEINSTEIN HYBRID ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+                    trades  win_pct  avg_pct  avg_R  t_stat  pick_avg_R  check_avg_R  cagr_pct  max_dd_pct  sharpe
+arm                                                                                                               
+A velez_swing       3025.0     41.8   -0.364 -0.121   -4.18      -0.132       -0.103    -18.60      -67.37   -1.33
+B weinstein_hybrid  2855.0     41.4   -0.371 -0.139   -4.06      -0.154       -0.115    -19.60      -67.62   -1.43
+buy & hold SPY         NaN      NaN      NaN    NaN     NaN         NaN          NaN     18.11      -33.79    1.00
+buy & hold IWM         NaN      NaN      NaN    NaN     NaN         NaN          NaN     11.82      -41.27    0.59
+buy & hold IJH         NaN      NaN      NaN    NaN     NaN         NaN          NaN     12.92      -42.17    0.66
+
+--- A velez_swing: by exit reason ---
+           ret_pct            r       
+             count   mean count   mean
+reason                                
+day5_close     894  1.335   894  0.391
+period_end       4  0.565     4  0.480
+stop          1463 -3.372  1463 -1.082
+target         664  3.973   664  1.303
+
+--- B weinstein_hybrid: by exit reason ---
+           ret_pct            r       
+             count   mean count   mean
+reason                                
+day5_close     837  1.348   837  0.400
+period_end       2  0.161     2  0.108
+stop          1398 -3.347  1398 -1.085
+target         618  4.032   618  1.269
+
+VERDICT A velez_swing: FAIL (needs t >= 2.5 and both halves positive; t = -4.18)
+
+VERDICT B weinstein_hybrid: FAIL (needs t >= 2.5 and both halves positive; t = -4.06)
+
+Files written to velez_swing_results/
+
+===== /home/moonrider1968/scalp_bot/weinstein.log (30 lines, 2026-09-30)
+
+================ WEINSTEIN STAGE 2 BREAKOUTS ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 126 | win 53.2% | avg +9.44% | avg +0.59R | profit factor 3.21 | avg hold 128 days | t-stat 3.84 | best +8.7R
+                cagr_pct  max_dd_pct  sharpe
+strategy           13.94      -21.38    1.04
+buy & hold SPY     18.11      -33.79    1.00
+buy & hold IWM     11.82      -41.27    0.59
+buy & hold IJH     12.92      -42.17    0.66
+  first 2/3 (pick)   trades    76  avg +10.26%  avg +0.66R
+  from 2020 (check)  trades    50  avg +8.20%  avg +0.48R
+
+--- by exit reason ---
+                        ret_pct             r       
+                          count    mean count   mean
+reason                                              
+period_end                   16  25.493    16  1.525
+stop                         10 -18.430    10 -1.156
+weekly_close_below_ma30     100   9.660   100  0.616
+
+--- by year ---
+            count    mean
+entry_date               
+2017           29  19.047
+2018           30   6.661
+2019           17   1.609
+2020           28  10.510
+2021           22   5.259
+
+Files written to weinstein_results/
+
+===== /home/moonrider1968/scalp_bot/weinstein_mf.log (31 lines, 2026-09-30)
+VARIANT: market filter ON (new longs only while SPY is in Stage 2)
+
+================ WEINSTEIN STAGE 2 BREAKOUTS ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 116 | win 56.0% | avg +9.78% | avg +0.59R | profit factor 3.33 | avg hold 129 days | t-stat 3.75 | best +8.7R
+                cagr_pct  max_dd_pct  sharpe
+strategy           13.01      -19.77    1.02
+buy & hold SPY     18.11      -33.79    1.00
+buy & hold IWM     11.82      -41.27    0.59
+buy & hold IJH     12.92      -42.17    0.66
+  first 2/3 (pick)   trades    73  avg +8.95%  avg +0.55R
+  from 2020 (check)  trades    43  avg +11.18%  avg +0.67R
+
+--- by exit reason ---
+                        ret_pct             r       
+                          count    mean count   mean
+reason                                              
+period_end                   16  25.566    16  1.529
+stop                          9 -19.614     9 -1.152
+weekly_close_below_ma30      91   9.912    91  0.600
+
+--- by year ---
+            count    mean
+entry_date               
+2017           29  19.047
+2018           23   4.181
+2019           21   0.245
+2020           23  14.401
+2021           20   7.480
+
+Files written to weinstein_results_mf/
+
+===== /home/moonrider1968/scalp_bot/weinstein_results/equity.csv (1260 lines, 2026-09-30)
+,0
+2017-01-03,100000.0
+2017-01-04,100000.0
+2017-01-05,100000.0
+...
+2021-12-29,192371.68300755013
+2021-12-30,191819.34300755014
+2021-12-31,191838.9630075501
+
+===== /home/moonrider1968/scalp_bot/weinstein_results/trades.csv (127 lines, 2026-09-30)
+symbol,signal_week,entry_date,exit_date,entry,exit,ret_pct,r,days,reason,cost_bps,pnl
+EXP,2017-01-21/2017-01-27,2017-01-30,2017-04-17,100.2301,89.3053,-10.9,-0.779,53,weekly_close_below_ma30,5.0,-775.66
+FLEX,2017-01-21/2017-01-27,2017-01-30,2017-05-08,11.6516,11.009,-5.516,-0.387,68,weekly_close_below_ma30,10.0,-386.88
+ARCC,2016-12-31/2017-01-06,2017-01-09,2017-05-15,7.028,6.9091,-1.692,-0.12,87,weekly_close_below_ma30,10.0,-119.65
+...
+AAON,2021-11-27/2021-12-03,2021-12-06,2021-12-31,52.3044,51.6465,-1.258,-0.061,18,period_end,20.0,-110.53
+IRM,2021-12-11/2021-12-17,2021-12-20,2021-12-31,42.3011,43.8281,3.61,0.198,8,period_end,5.0,366.46
+FHI,2021-12-11/2021-12-17,2021-12-20,2021-12-31,31.021,31.4186,1.282,0.074,8,period_end,10.0,136.76
+
+===== /home/moonrider1968/scalp_bot/weinstein_results_mf/equity.csv (1188 lines, 2026-09-30)
+,0
+2022-01-03,100000.0
+2022-01-04,100000.0
+2022-01-05,100000.0
+...
+2026-09-23,111026.62351279761
+2026-09-24,111351.53351279761
+2026-09-25,112020.00351279762
+
+===== /home/moonrider1968/scalp_bot/weinstein_results_mf/trades.csv (125 lines, 2026-09-30)
+symbol,signal_week,entry_date,exit_date,entry,exit,ret_pct,r,days,reason,cost_bps,pnl
+BPOP,2022-01-01/2022-01-07,2022-01-10,2022-03-14,81.9719,72.2976,-11.802,-0.579,43,weekly_close_below_ma30,10.0,-570.78
+FLO,2022-01-08/2022-01-14,2022-01-18,2022-03-14,22.6526,19.3406,-14.621,-0.909,38,weekly_close_below_ma30,10.0,-910.8
+ARCC,2022-01-08/2022-01-14,2022-01-18,2022-03-14,13.5768,12.9835,-4.37,-0.427,38,weekly_close_below_ma30,5.0,-427.75
+...
+HTO,2026-02-28/2026-03-06,2026-03-09,2026-09-25,57.3273,62.2077,8.513,0.461,139,period_end,10.0,483.17
+HBCP,2026-04-04/2026-04-10,2026-04-13,2026-09-25,64.0078,67.4648,5.401,0.386,115,period_end,20.0,401.02
+RUSHB,2026-09-12/2026-09-18,2026-09-21,2026-09-25,56.0719,55.0796,-1.77,-0.122,4,period_end,20.0,-136.94
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/combination_overlap_matrix.csv (76 lines, 2026-09-30)
+Zone_Set,Combination,Lookback_Days,Confirmed_Trades,Confirmed_%,Confirmed_Win_%,Confirmed_Net_R,Confirmed_Avg_R,Confirmed_PF,Confirmed_Max_DD_R,Baseline_Avg_R,Baseline_PF,Unconfirmed_Avg_R,Avg_R_Uplift_vs_Base
+ZONES_MF,VELEZ_20_200 + MOMENTUM,0,0,0.0,,,,,,0.11123850574712647,1.1568873001977755,0.11123850574712647,
+ZONES_MF,VELEZ_20_200 + MOMENTUM,1,0,0.0,,,,,,0.11123850574712647,1.1568873001977755,0.11123850574712647,
+ZONES_MF,VELEZ_20_200 + MOMENTUM,3,0,0.0,,,,,,0.11123850574712647,1.1568873001977755,0.11123850574712647,
+...
+BT_ZONES,SWING_A + SWING_B,3,0,0.0,,,,,,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,
+BT_ZONES,SWING_A + SWING_B,5,0,0.0,,,,,,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,
+BT_ZONES,SWING_A + SWING_B,10,0,0.0,,,,,,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/individual_overlap_matrix.csv (106 lines, 2026-09-30)
+Zone_Set,Overlay,Lookback_Days,Zone_Trades,Confirmed_Trades,Confirmed_%,Confirmed_Win_%,Confirmed_Net_R,Confirmed_Avg_R,Confirmed_PF,Confirmed_Max_DD_R,Unconfirmed_Trades,Unconfirmed_Avg_R,Unconfirmed_PF,Baseline_Avg_R,B
+BT_ZONES,SWING_A,0,776,0,0.0,,,,,,776,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,0.5337756533015667,,,,
+BT_ZONES,SWING_B,0,776,0,0.0,,,,,,776,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,0.5337756533015667,,,,
+BT_ZONES,VELEZ_20_200,0,776,0,0.0,,,,,,776,-0.19921778350515465,0.5337756533015667,-0.19921778350515465,0.5337756533015667,,,,
+...
+ZONES_STANDARD,SECTOR_VELEZ,10,389,0,0.0,,,,,,389,0.22821079691516716,1.3357576995374416,0.22821079691516716,1.3357576995374416,,,,0.6736092544987148
+ZONES_STANDARD,SECTOR_MOMENTUM,10,389,0,0.0,,,,,,389,0.22821079691516716,1.3357576995374416,0.22821079691516716,1.3357576995374416,,,,0.6736092544987148
+ZONES_STANDARD,SECTOR_VELEZ_MOMENTUM,10,389,0,0.0,,,,,,389,0.22821079691516716,1.3357576995374416,0.22821079691516716,1.3357576995374416,,,,0.6736092544987148
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/source_inventory.csv (11 lines, 2026-09-30)
+Type,Name,Path,rows,symbol_col,date_col,r_col,ret_col,pnl_col
+ZONE,ZONES_MF,/home/moonrider1968/scalp_bot/zones_results_mf/trades.csv,348,symbol,entry_date,r,ret_pct,pnl
+ZONE,ZONES_STANDARD,/home/moonrider1968/scalp_bot/zones_results/trades.csv,389,symbol,entry_date,r,ret_pct,pnl
+ZONE,BT_ZONES,/home/moonrider1968/scalp_bot/bt_zones/trades.csv,776,symbol,date,r,,pnl
+...
+VELEZ,SECTOR_VELEZ,/home/moonrider1968/bots/phase1d_output/f_sector_+_velez_confluence_trades.csv,116,symbol,entry_date,,pnl_pct,pnl
+VELEZ,SECTOR_MOMENTUM,/home/moonrider1968/bots/phase1d_output/g_sector_+_momentum_burst_trades.csv,114,symbol,entry_date,,pnl_pct,pnl
+VELEZ,SECTOR_VELEZ_MOMENTUM,/home/moonrider1968/bots/phase1d_output/h_sector_+_velez_+_momentum_trades.csv,123,symbol,entry_date,,pnl_pct,pnl
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/symbol_coverage.csv (22 lines, 2026-09-30)
+Zone_Set,Overlay,Zone_Symbols,Overlay_Symbols,Common_Symbols,Zone_Symbol_Coverage_%
+ZONES_MF,SWING_A,290,1211,209,72.06896551724138
+ZONES_MF,SWING_B,290,1259,216,74.48275862068967
+ZONES_MF,VELEZ_20_200,290,10,2,0.6896551724137931
+...
+BT_ZONES,SECTOR_VELEZ,16,10,3,18.75
+BT_ZONES,SECTOR_MOMENTUM,16,10,3,18.75
+BT_ZONES,SECTOR_VELEZ_MOMENTUM,16,10,3,18.75
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/weinstein_period_end_destruction.csv (5 lines, 2026-09-30)
+Population,Trades,Win_%,Net_R,Avg_R,PF,Avg_Return_%,Period_End_Trades
+ALL_TRADES,124,37.096774193548384,12.926999999999998,0.10424999999999998,1.299979114937461,1.9206935483870968,8
+ALL_EX_PERIOD_END,116,33.62068965517241,-4.333000000000002,-0.03735344827586209,0.8991645528379607,-0.4523189655172413,0
+CHECK_2025_PLUS,51,33.33333333333333,2.355000000000001,0.04617647058823531,1.1122711670480547,1.1213137254901957,8
+...
+ALL_EX_PERIOD_END,116,33.62068965517241,-4.333000000000002,-0.03735344827586209,0.8991645528379607,-0.4523189655172413,0
+CHECK_2025_PLUS,51,33.33333333333333,2.355000000000001,0.04617647058823531,1.1122711670480547,1.1213137254901957,8
+CHECK_2025_PLUS_EX_PERIOD_END,43,23.25581395348837,-14.905000000000001,-0.3466279069767442,0.2852690131389661,-5.429023255813954,0
+
+===== /home/moonrider1968/scalp_bot/zone_velez_overlap_results/zone_baselines.csv (4 lines, 2026-09-30)
+Zone_Set,Trades,R_Trades,Win_%,Net_R,Avg_R,Median_R,PF_R,Max_DD_R,Return_Trades,Avg_Return_%,Median_Return_%,Net_Return_%_Arithmetic,Net_PnL
+ZONES_MF,348,348,35.3448275862069,38.71100000000001,0.11123850574712647,-1.01,1.1568873001977755,77.13700000000014,348,-0.001635057471264212,-3.025,-0.5689999999999458,-5088.4000000000015
+ZONES_STANDARD,389,389,34.70437017994858,88.77400000000003,0.22821079691516716,-1.007,1.3357576995374416,62.80100000000006,389,0.6736092544987148,-3.07,262.03400000000005,16501.30000000001
+BT_ZONES,776,776,45.103092783505154,-154.59300000000002,-0.19921778350515465,-0.08349999999999999,0.5337756533015667,154.59300000000013,0,,,,-112.82
+...
+ZONES_MF,348,348,35.3448275862069,38.71100000000001,0.11123850574712647,-1.01,1.1568873001977755,77.13700000000014,348,-0.001635057471264212,-3.025,-0.5689999999999458,-5088.4000000000015
+ZONES_STANDARD,389,389,34.70437017994858,88.77400000000003,0.22821079691516716,-1.007,1.3357576995374416,62.80100000000006,389,0.6736092544987148,-3.07,262.03400000000005,16501.30000000001
+BT_ZONES,776,776,45.103092783505154,-154.59300000000002,-0.19921778350515465,-0.08349999999999999,0.5337756533015667,154.59300000000013,0,,,,-112.82
+
+===== /home/moonrider1968/scalp_bot/zones.log (38 lines, 2026-09-30)
+Downloading daily bars for 5345 symbols (cached after first run)...
+
+================ WEINSTEIN / VELEZ 365-DAY ZONES ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 389 | win 34.7% | avg +0.67% | avg +0.23R | PF 1.18 | TP1 hit 33% | hold 40d | t-stat 0.98
+                cagr_pct  max_dd_pct  sharpe
+strategy            3.13      -35.30    0.27
+buy & hold SPY     18.11      -33.79    1.00
+buy & hold IWM     11.82      -41.27    0.59
+buy & hold IJH     12.92      -42.17    0.66
+  first 2/3 (pick)   trades   235  avg +0.66%  avg +0.23R
+  from 2020 (check)  trades   154  avg +0.69%  avg +0.23R
+
+--- by reason ---
+                        ret_pct             r       
+                          count    mean count   mean
+reason                                              
+breakeven_stop               64   5.171    64  0.994
+period_end                   11  21.748    11  5.650
+stop                        213  -6.036   213 -1.126
+weekly_close_below_ma30     101   9.679   101  2.009
+
+--- by pattern ---
+        ret_pct            r       
+          count   mean count   mean
+pattern                            
+180          31  0.411    31  0.241
+EB           69  0.677    69  0.169
+TB          289  0.701   289  0.241
+
+--- by open_air ---
+         ret_pct            r       
+           count   mean count   mean
+open_air                            
+False         30 -2.525    30 -0.293
+True         359  0.941   359  0.272
+
+Files written to zones_results/
+
+===== /home/moonrider1968/scalp_bot/zones_done.txt (1 lines, 2026-09-30)
+done
+
+===== /home/moonrider1968/scalp_bot/zones_mf.log (38 lines, 2026-09-30)
+VARIANT: market filter ON (new longs only while SPY is in Stage 2)
+
+================ WEINSTEIN / VELEZ 365-DAY ZONES ================
+NOTE: universe = stocks listed TODAY (delisted names missing) -> survivorship bias flatters results.
+trades 348 | win 35.3% | avg -0.00% | avg +0.11R | PF 1.00 | TP1 hit 33% | hold 38d | t-stat -0.00
+                cagr_pct  max_dd_pct  sharpe
+strategy           -1.01      -40.96    0.02
+buy & hold SPY     18.11      -33.79    1.00
+buy & hold IWM     11.82      -41.27    0.59
+buy & hold IJH     12.92      -42.17    0.66
+  first 2/3 (pick)   trades   201  avg +0.74%  avg +0.22R
+  from 2020 (check)  trades   147  avg -1.02%  avg -0.04R
+
+--- by reason ---
+                        ret_pct             r       
+                          count    mean count   mean
+reason                                              
+breakeven_stop               61   4.807    61  0.989
+period_end                   11  10.026    11  2.523
+stop                        203  -6.022   203 -1.156
+weekly_close_below_ma30      73  11.209    73  2.540
+
+--- by pattern ---
+        ret_pct            r       
+          count   mean count   mean
+pattern                            
+180          24  1.132    24  0.137
+EB           56  1.073    56  0.285
+TB          268 -0.328   268  0.073
+
+--- by open_air ---
+         ret_pct            r       
+           count   mean count   mean
+open_air                            
+False         26 -4.521    26 -0.317
+True         322  0.363   322  0.146
+
+Files written to zones_results_mf/
+
+===== /home/moonrider1968/scalp_bot/zones_results/equity.csv (1260 lines, 2026-09-30)
+,0
+2017-01-03,100000.0
+2017-01-04,100872.82813500002
+2017-01-05,100222.91403500001
+...
+2021-12-29,115900.88819163645
+2021-12-30,116268.97819163644
+2021-12-31,116654.27819163643
+
+===== /home/moonrider1968/scalp_bot/zones_results/trades.csv (390 lines, 2026-09-30)
+symbol,entry_date,exit_date,trigger,stop0,tp1,entry,avg_exit,ret_pct,r,days,tp1_hit,open_air,pattern,reason,cost_bps,pnl
+RPM,2017-01-04,2017-01-05,44.85,43.63,47.4245,44.8948,42.7772,-4.717,-1.674,1,False,True,TB,stop,10.0,-470.12
+ICUI,2017-01-04,2017-01-06,148.01,145.32,154.2781,148.306,127.245,-14.201,-7.053,2,False,True,TB,stop,20.0,-1411.09
+KTOS,2017-01-04,2017-01-06,7.42,7.13,8.0445,7.4348,7.1157,-4.292,-1.047,2,False,True,TB,stop,20.0,-429.19
+...
+EVH,2021-12-01,2021-12-31,26.31,23.98,31.5487,26.5029,27.6147,4.195,0.441,21,False,True,TB,period_end,20.0,475.83
+ADTN,2021-12-06,2021-12-31,19.54,18.08,22.5772,19.5791,21.8063,11.376,1.486,18,False,True,TB,period_end,20.0,1273.97
+CARG,2021-12-21,2021-12-31,33.06,30.17,38.9392,33.0931,33.6064,1.551,0.176,7,False,True,TB,period_end,10.0,171.44
+
+===== /home/moonrider1968/scalp_bot/zones_results_mf/equity.csv (1260 lines, 2026-09-30)
+,0
+2017-01-03,100000.0
+2017-01-04,100872.82813500002
+2017-01-05,100222.91403500001
+...
+2021-12-29,94600.87781297145
+2021-12-30,94650.16781297146
+2021-12-31,95052.76781297143
+
+===== /home/moonrider1968/scalp_bot/zones_results_mf/trades.csv (349 lines, 2026-09-30)
+symbol,entry_date,exit_date,trigger,stop0,tp1,entry,avg_exit,ret_pct,r,days,tp1_hit,open_air,pattern,reason,cost_bps,pnl
+RPM,2017-01-04,2017-01-05,44.85,43.63,47.4245,44.8948,42.7772,-4.717,-1.674,1,False,True,TB,stop,10.0,-470.12
+ICUI,2017-01-04,2017-01-06,148.01,145.32,154.2781,148.306,127.245,-14.201,-7.053,2,False,True,TB,stop,20.0,-1411.09
+KTOS,2017-01-04,2017-01-06,7.42,7.13,8.0445,7.4348,7.1157,-4.292,-1.047,2,False,True,TB,stop,20.0,-429.19
+...
+ADTN,2021-12-06,2021-12-31,19.54,18.08,22.5772,19.5791,21.8063,11.376,1.486,18,False,True,TB,period_end,20.0,1033.43
+HESM,2021-12-20,2021-12-31,18.11,17.19,20.0587,18.1462,19.0917,5.211,0.989,8,False,True,TB,period_end,20.0,477.49
+CARG,2021-12-21,2021-12-31,33.06,30.17,38.9392,33.0931,33.6064,1.551,0.176,7,False,True,TB,period_end,10.0,140.13
