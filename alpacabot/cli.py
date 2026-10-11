@@ -8,7 +8,8 @@ from pathlib import Path
 
 from .data import load
 from .engine import Costs, Portfolio, split_days
-from .research import GRIDS, verdict, walk_forward
+from .experts import features_all
+from .research import GRIDS, brain_walk_forward, verdict, walk_forward
 from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
@@ -34,7 +35,7 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("download", "backtest"):
         p = sub.add_parser(name)
-        p.add_argument("--family", choices=list(GRIDS), required=name == "backtest")
+        p.add_argument("--family", choices=list(GRIDS) + ["brain"], required=name == "backtest")
         p.add_argument("--start", type=_d, default=date(2016, 1, 1))
         p.add_argument("--end", type=_d, default=date.today())
         p.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
@@ -53,6 +54,16 @@ def main(argv=None) -> int:
             if sym in INTRADAY:
                 load(sym, "1Min", a.start, a.end, cache)
             print("ok", sym, flush=True)
+        return 0
+    if a.family == "brain":
+        syms = a.symbols or INTRADAY
+        spy = load("SPY", "1Day", a.start, a.end, cache)
+        data = split_days({s: load(s, "1Min", a.start, a.end, cache) for s in syms}, minutes=5, feature_fn=features_all)
+        res = brain_walk_forward(data, (a.start, a.train_end), (date.fromordinal(a.train_end.toordinal() + 1), a.end), Costs(slip_bps=a.slip_bps),
+                                 Portfolio(equity=a.equity, risk_pct=0.01, max_positions=6), placebo_runs=a.placebo, spy_daily=spy)
+        Path(a.out).mkdir(parents=True, exist_ok=True)
+        (Path(a.out) / "alpaca_brain.json").write_text(json.dumps(res, indent=1, default=str))
+        print(json.dumps(res, indent=1, default=str))
         return 0
     intraday = a.family in ("scalp", "day", "regime")
     syms = a.symbols or (INTRADAY if intraday else SWING)

@@ -39,7 +39,7 @@ class Trade:
 
 
 # ---------------------------------------------------------------- intraday
-def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3) -> list[Trade]:
+def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0) -> list[Trade]:
     o, h, l, c = (df[k].to_numpy(float) for k in ("open", "high", "low", "close"))
     n, slip, trades, busy = len(df), costs.slip_bps / 1e4, [], -1
     for s in sorted(sigs, key=lambda s: s.i):
@@ -48,7 +48,7 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
         j0 = s.i + 1
         if s.side != 1:
             raise NotImplementedError("long only")
-        if j0 >= n or s.i < busy or s.stop_dist <= 0:
+        if j0 >= n or s.i < busy + (cooldown if busy >= 0 else 0) or s.stop_dist <= 0:
             continue
         fill = o[j0] * (1 + slip)
         stop = fill - s.stop_dist
@@ -75,6 +75,8 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                 px, why = max(tgt, o[j]), "target"
             elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
                 px, why = c[j] * (1 - slip), "time" if j < n - 1 else "eod"
+            elif s.exit_col and bool(df[s.exit_col].iloc[j]) and j + 1 < n:      # the expert says "sell": decided at this close, filled at the next open
+                j, px, why = j + 1, o[j + 1] * (1 - slip), "signal"
             else:
                 continue
             trades.append(Trade(symbol, df.index[j0], df.index[j], fill, px, s.stop_dist, why, j - j0 + 1, s.tag))
@@ -117,7 +119,7 @@ def raw_intraday(strategy, days: dict[str, list[pd.DataFrame]], costs: Costs, pl
             sigs = strategy.signals(day)
             if rng is not None:
                 sigs = strategy.placebo(day, len(sigs), rng) if sigs else []
-            out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades))
+            out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades), cooldown=getattr(strategy, "cooldown", 0))
     return sorted(out, key=lambda t: t.entry_time)
 
 
@@ -250,4 +252,7 @@ def metrics(fills: pd.DataFrame, curve: pd.Series | None = None, start_equity: f
         years = max(len(curve) / 252, 1e-9)
         out["cagr"] = float((curve.iloc[-1] / start_equity) ** (1 / years) - 1)
         out["max_drawdown"] = float((curve / curve.cummax() - 1).min())
+        out["daily_ret_pct_mean"] = float(ret.mean() * 100)
+        out["daily_ret_pct_median"] = float(ret.median() * 100)
+        out["pct_days_up"] = float((ret > 0).mean())
     return out

@@ -31,6 +31,7 @@ class Signal:
     adx: float = 0.0        # ADX at the decision bar (regime-scaled target)
     trail: float = 1.5      # ATR multiple for the initial stop and the trailing stop
     tp_scale: float = 1.0   # research knob on the regime-scaled take-profit
+    exit_col: str = ""      # optional boolean column of the bar frame: when true at a bar's close, sell at the next open
 
 
 @dataclass

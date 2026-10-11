@@ -16,6 +16,8 @@ import numpy as np
 import pandas as pd
 
 from .engine import Costs, Portfolio, metrics, raw_intraday, simulate_swing, size_intraday, size_swing, split_days
+from .brain import Brain
+from .experts import ALL_EXPERTS
 from .strategies import Breakout, DualRegime, OpeningRangeBreak, RsiPullback, VwapReversion
 
 GRIDS = {
@@ -97,3 +99,55 @@ def verdict(r: dict) -> str:
     if ok and (plc is None or plc >= 0.9):
         return "PROMISING (paper trade next; not proof)"
     return "NO EDGE FOUND"
+
+
+TARGET_DAILY_PCT = (0.75, 1.0)
+
+
+def brain_walk_forward(data, train, test, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), min_trades: int = 50,
+                       placebo_runs: int = 20, spy_daily=None) -> dict:
+    """data: split_days(..., minutes=5, feature_fn=features_all). Select experts and tune the brain on TRAIN only; test once."""
+    base = dict(route=False, mtf=False, consensus=1)
+    solo = {}
+    for name in ALL_EXPERTS:
+        m = run_intraday(Brain(experts=[name], **base), data, costs, pf, *train)["metrics"]
+        solo[name] = {k: m.get(k) for k in ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe")}
+    keep = [n for n, m in solo.items() if (m["trades"] or 0) >= min_trades and (m["expectancy_pct_notional"] or 0) > 0 and (m["profit_factor"] or 0) > 1.05]
+    keep.sort(key=lambda n: -(solo[n]["expectancy_pct_notional"] or 0))
+    out = {"family": "brain", "train": [str(x) for x in train], "test": [str(x) for x in test], "solo_train": solo, "selected_experts": keep}
+    if not keep:
+        out["note"] = "no expert had positive expectancy, profit factor > 1.05 and enough trades on the train years: the brain stays flat"
+        out["verdict"] = "NO EDGE FOUND"
+        return out
+    table = []
+    for route, mtf, cons in itertools.product([True, False], [True, False], [1, 2] if len(keep) > 1 else [1]):
+        b = Brain(experts=keep, priority=keep, route=route, mtf=mtf, consensus=cons)
+        m = run_intraday(b, data, costs, pf, *train)["metrics"]
+        table.append({"route": route, "mtf": mtf, "consensus": cons, **{k: m.get(k) for k in ("trades", "expectancy_pct_notional", "profit_factor", "sharpe", "daily_ret_pct_mean")}})
+    ranked = sorted([t for t in table if (t["trades"] or 0) >= min_trades and t["sharpe"] is not None], key=lambda t: -t["sharpe"])
+    out["brain_grid_train"] = table
+    if not ranked:
+        out["note"] = "the selected experts together produced too few trades on the train years"
+        out["verdict"] = "NO RESULT"
+        return out
+    pick = {k: ranked[0][k] for k in ("route", "mtf", "consensus")}
+    best = Brain(experts=keep, priority=keep, **pick)
+    out["chosen"] = {"experts": keep, **pick}
+    res = run_intraday(best, data, costs, pf, *test)
+    out["test_metrics"] = res["metrics"]
+    fills = res["fills"]
+    if len(fills):
+        g = fills.groupby("tag").agg(trades=("pnl", "size"), win_rate=("pnl", lambda x: float((x > 0).mean())), avg_r=("r", "mean"), pnl=("pnl", "sum"))
+        out["test_by_expert"] = g.round(4).to_dict("index")
+    out["stress"] = {f"slip x{x}": run_intraday(best, data, replace(costs, slip_bps=costs.slip_bps * x), pf, *test)["metrics"] for x in (2.5, 5.0)}
+    plc = [run_intraday(best, data, costs, pf, *test, placebo_seed=s)["metrics"] for s in range(placebo_runs)]
+    ex = [p.get("expectancy_pct_notional") for p in plc if p.get("trades")]
+    real = res["metrics"].get("expectancy_pct_notional")
+    out["placebo"] = {"runs": len(ex), "mean_expectancy_pct": float(np.mean(ex)) if ex else None,
+                      "real_beats_share": float(np.mean([real > e for e in ex])) if ex and real is not None else None}
+    if spy_daily is not None:
+        out["benchmark_buy_hold_SPY"] = benchmark(spy_daily, *test)
+    dm = res["metrics"].get("daily_ret_pct_mean")
+    out["target_0.75_to_1pct_per_day"] = {"average_daily_return_pct": dm, "met": bool(dm is not None and dm >= TARGET_DAILY_PCT[0])}
+    out["verdict"] = verdict({**out, "chosen": out["chosen"]})
+    return out

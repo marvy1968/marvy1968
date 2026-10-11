@@ -432,3 +432,82 @@ class ManagedBacktestTests(unittest.TestCase):
             self.assertEqual(len(idx), len(set(idx)))
             for s in strat.signals(full):
                 self.assertTrue(s.managed and s.atr > 0 and s.stop_dist > 0)
+
+
+# ---------------------------------------------------------------- experts + brain
+from unittest import mock  # noqa: E402
+
+from alpacabot.brain import Brain  # noqa: E402
+from alpacabot.experts import ALL_EXPERTS, Experts, features_all  # noqa: E402
+
+
+class ExpertTests(unittest.TestCase):
+    def test_every_expert_is_causal(self):
+        for seed in range(3):
+            raw = make_day(seed=seed, vol=0.0012, n=390)
+            full = raw.join(features_all(raw))
+            ex = Experts(("09:35", "15:55"))
+            for name in ALL_EXPERTS:
+                idx = [s.i for _, s in ex.signals(full, [name])]
+                for cut in (150, 260, 340):
+                    part = [s.i for _, s in ex.signals(full.iloc[:cut], [name])]
+                    self.assertEqual(part, [i for i in idx if i < cut], (name, seed, cut))
+
+    def test_each_expert_ships_a_stop_and_an_exit(self):
+        raw = make_day(seed=5, vol=0.002, n=390)
+        full = raw.join(features_all(raw))
+        for name, s in Experts(("09:35", "15:55")).signals(full):
+            self.assertGreater(s.stop_dist, 0, name)
+            self.assertTrue(s.target_r > 0 or s.exit_col or s.managed, name)
+            if s.exit_col:
+                self.assertIn(s.exit_col, full.columns)
+
+
+class BrainRuleTests(unittest.TestCase):
+    @staticmethod
+    def row(ratio=1.0, adx=30.0, mtf=True):
+        return pd.DataFrame({"f_atr_ratio": [ratio], "f_adx": [adx], "f_mtf_up": [mtf]})
+
+    def test_volatility_circuit_breaker(self):
+        b = Brain(route=False, mtf=False)
+        self.assertTrue(b._allowed(self.row(1.0), "connors_rsi2", 0))
+        self.assertFalse(b._allowed(self.row(3.0), "connors_rsi2", 0))      # spike
+        self.assertFalse(b._allowed(self.row(0.2), "connors_rsi2", 0))      # flat / illiquid
+        self.assertFalse(b._allowed(self.row(float("nan")), "connors_rsi2", 0))
+
+    def test_regime_router_and_higher_timeframe_filter(self):
+        b = Brain(route=True, mtf=True)
+        self.assertTrue(b._allowed(self.row(adx=30), "donchian_turtle", 0))
+        self.assertFalse(b._allowed(self.row(adx=18), "donchian_turtle", 0))   # trend expert in chop
+        self.assertFalse(b._allowed(self.row(adx=30), "connors_rsi2", 0))      # mean reversion in a strong trend
+        self.assertTrue(b._allowed(self.row(adx=18), "connors_rsi2", 0))
+        self.assertFalse(b._allowed(self.row(adx=30, mtf=False), "donchian_turtle", 0))
+        self.assertTrue(Brain(route=False, mtf=False)._allowed(self.row(adx=18), "donchian_turtle", 0))
+
+    def test_consensus_needs_two_different_experts_and_priority_picks_one(self):
+        d = flat_day().join(pd.DataFrame({"f_atr_ratio": 1.0, "f_adx": 30.0, "f_mtf_up": True, "f_atr": 1.0}, index=flat_day().index))
+        fake = [("williams_r", Signal(100, 1, 1.0, 2.0, 0, "williams_r")), ("connors_rsi2", Signal(101, 1, 1.0, 2.0, 0, "connors_rsi2")),
+                ("williams_r", Signal(200, 1, 1.0, 2.0, 0, "williams_r"))]
+        with mock.patch.object(Experts, "signals", return_value=fake):
+            one = Brain(route=False, mtf=False, consensus=1, priority=["connors_rsi2", "williams_r"]).signals(d)
+            two = Brain(route=False, mtf=False, consensus=2, window=3).signals(d)
+        self.assertEqual([s.i for s in one], [100, 101, 200])
+        self.assertEqual([s.i for s in two], [101])          # only bar 101 has two distinct experts inside the 3-bar window
+
+
+class IndicatorExitTests(unittest.TestCase):
+    def test_exit_on_indicator_fills_at_next_open(self):
+        df = flat_day()
+        df["x"] = False
+        df.iloc[110, df.columns.get_loc("x")] = True
+        df.iloc[111, df.columns.get_loc("open")] = 100.4
+        t = simulate_day("X", df, [Signal(100, 1, 5.0, 0.0, 0, "t", exit_col="x")], Costs(0, 0))[0]
+        self.assertEqual((t.reason, t.exit_time), ("signal", df.index[111]))
+        self.assertAlmostEqual(t.exit_px, 100.4)
+
+    def test_cooldown_blocks_an_immediate_reentry(self):
+        df = flat_day()
+        df.iloc[105, df.columns.get_loc("high")] = 103.0               # target hit at bar 105 (exit)
+        sigs = [Signal(100, 1, 1.0, 2.0), Signal(106, 1, 1.0, 2.0)]
+        self.assertEqual(len(simulate_day("X", df, sigs, Costs(0, 0), cooldown=0)), 2)
+        self.assertEqual(len(simulate_day("X", df, sigs, Costs(0, 0), cooldown=3)), 1)

@@ -14,6 +14,12 @@ until a strategy shows a positive out-of-sample result *and* the owner says so.
 
 Long only. Shorting needs a margin account and borrow and adds costs this backtest does not model.
 
+## The central brain (`brain.py`, family `brain`)
+Ten experts (`experts.py`: Velez elephant bar and 180 reversal, Raschke Holy Grail, Brooks pullback, Connors RSI(2), Bollinger bounce, Williams %R, Donchian/Turtle breakout, VWAP deviation, and the Dual-Regime consensus engine) each decide when to **buy**, how to **sell** (own stop, target or indicator exit) and when to **take profit**. The brain controls what becomes a trade:
+volatility circuit breaker (ATR14/ATR50 outside 0.3-2.5), ADX regime router (trend experts only in trends, mean-reversion experts only in ranges), 15-minute trend filter, relative-volume check on breakouts, optional 2-expert consensus, one position per symbol, a re-entry cooldown, a slot cap, and **1% of equity risked per trade** (`Portfolio(risk_pct=0.01)`).
+`brain_walk_forward` tests every expert **alone on the train years**, keeps only those with positive expectancy and profit factor > 1.05, picks the brain settings on the same years, then runs the test years **once**, with per-expert attribution, placebo, cost stress and SPY.
+It reports the average daily return and whether it reached the 0.75-1.0%/day target. **It never tunes toward that target**: that would be fitting the past.
+
 ## How the backtest avoids fooling you
 * Signals use bars up to and including bar i; the fill is the **open of bar i+1** plus slippage (tested by truncation: signals computed on a prefix equal the prefix of the full-day signals).
 * A bar that touches both stop and target counts as a **stop**. Gap-downs through a stop fill at the open, not the stop.
@@ -33,6 +39,7 @@ Put paper-account **data** keys in `/opt/marv-bot/.env` yourself (never in chat 
     python -m alpacabot backtest --family swing_breakout
     python -m alpacabot backtest --family day
     python -m alpacabot backtest --family regime
+    python -m alpacabot backtest --family brain      # ~1-2 h; --placebo 20 --slip-bps 2
     python -m alpacabot backtest --family scalp
 
 Results land in `state/reports/alpaca_<family>.json`. Through the vm-link: `alpaca download ...` / `alpaca backtest --family ...`.
