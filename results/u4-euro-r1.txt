@@ -1,3 +1,52 @@
 $ marv stats-backtest --sport euroleague --seasons 2018-2025 --budget-min 70
-started 2026-10-10 19:50:59 EDT
-RUNNING...
+started 2026-10-10 19:50:59 EDT, took 851s, exit 0
+
+EuroLeague: tuned on [2018, 2019, 2020, 2021, 2022], tested on [2023, 2024]
+Moneyline >= 79%: validation 84 picks 91.7% | TEST 48 picks 91.7% (ROI n/a, no odds data)
+No historical totals in this data source, so over/under accuracy can't be backtested.
+Every test game: winner picked 66.0%
+Test accuracy by confidence:
+confidence  picks  accuracy  roi
+   50%-60%    264  0.541667  NaN
+   60%-70%    209  0.688995  NaN
+   70%-80%    120  0.775000  NaN
+   80%-85%     28  0.892857  NaN
+   85%-90%     12  1.000000  NaN
+  90%-100%      2  1.000000  NaN
+
+--- stderr ---
+2026-10-10 19:51:16,082 WARNING EuroLeague box score 2018/21 unavailable: 
+2026-10-10 19:53:26,923 WARNING EuroLeague box score 2024/305 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=305&seasoncode=E2024
+2026-10-10 19:53:27,027 WARNING EuroLeague box score 2024/306 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=306&seasoncode=E2024
+2026-10-10 19:53:27,125 WARNING EuroLeague box score 2024/307 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=307&seasoncode=E2024
+2026-10-10 19:53:27,263 WARNING EuroLeague box score 2024/308 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=308&seasoncode=E2024
+2026-10-10 19:53:27,374 WARNING EuroLeague box score 2024/309 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=309&seasoncode=E2024
+2026-10-10 19:53:27,489 WARNING EuroLeague box score 2024/310 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=310&seasoncode=E2024
+2026-10-10 19:53:27,600 WARNING EuroLeague box score 2024/311 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=311&seasoncode=E2024
+2026-10-10 19:53:27,731 WARNING EuroLeague box score 2024/312 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=312&seasoncode=E2024
+2026-10-10 19:53:27,830 WARNING EuroLeague box score 2024/313 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=313&seasoncode=E2024
+2026-10-10 19:53:27,945 WARNING EuroLeague box score 2024/314 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=314&seasoncode=E2024
+2026-10-10 19:53:28,062 WARNING EuroLeague box score 2024/315 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=315&seasoncode=E2024
+2026-10-10 19:53:28,168 WARNING EuroLeague box score 2024/316 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=316&seasoncode=E2024
+2026-10-10 19:53:28,286 WARNING EuroLeague box score 2024/317 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=317&seasoncode=E2024
+2026-10-10 19:53:28,398 WARNING EuroLeague box score 2024/318 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=318&seasoncode=E2024
+2026-10-10 19:53:28,505 WARNING EuroLeague box score 2024/319 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=319&seasoncode=E2024
+2026-10-10 19:53:28,651 WARNING EuroLeague box score 2024/320 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=320&seasoncode=E2024
+2026-10-10 19:53:28,767 WARNING EuroLeague box score 2024/321 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=321&seasoncode=E2024
+2026-10-10 19:53:28,894 WARNING EuroLeague box score 2024/322 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=322&seasoncode=E2024
+2026-10-10 19:53:29,001 WARNING EuroLeague box score 2024/323 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=323&seasoncode=E2024
+2026-10-10 19:53:29,115 WARNING EuroLeague box score 2024/324 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=324&seasoncode=E2024
+2026-10-10 19:53:29,218 WARNING EuroLeague box score 2024/325 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=325&seasoncode=E2024
+2026-10-10 19:53:29,343 WARNING EuroLeague box score 2024/326 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=326&seasoncode=E2024
+2026-10-10 19:53:29,443 WARNING EuroLeague box score 2024/327 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=327&seasoncode=E2024
+2026-10-10 19:53:29,543 WARNING EuroLeague box score 2024/328 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=328&seasoncode=E2024
+2026-10-10 19:53:29,640 WARNING EuroLeague box score 2024/329 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=329&seasoncode=E2024
+2026-10-10 19:53:29,761 WARNING EuroLeague box score 2024/330 unavailable: 429 Client Error: Too Many Requests for url: https://live.euroleague.net/api/Boxscore?gamecode=330&seasoncode=E2024
+2026-10-10 19:53:29,918 WARNING EuroLeague season 2025 schedule unavailable: 429 Client Error: Too Many Requests for url: https://api-live.euroleague.net/v1/results/?seasonCode=E2025
+2026-10-10 19:53:48,848 INFO euroleague season 2018 projected
+2026-10-10 19:54:13,719 INFO euroleague season 2019 projected
+2026-10-10 19:55:39,555 INFO euroleague season 2020 projected
+2026-10-10 19:58:03,194 INFO euroleague season 2021 projected
+2026-10-10 20:00:29,041 INFO euroleague season 2022 projected
+2026-10-10 20:02:59,213 INFO euroleague season 2023 projected
+2026-10-10 20:05:08,201 INFO euroleague season 2024 projected
