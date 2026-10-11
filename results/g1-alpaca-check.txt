@@ -1,3 +1,22 @@
 $ alpaca download --symbols SPY --start 2024-01-02 --end 2024-01-05
-started 2026-10-11 08:23:08 EDT
-RUNNING...
+started 2026-10-11 08:23:08 EDT, took 1s, exit 1
+
+
+--- stderr ---
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/marv-bot/alpacabot/__main__.py", line 3, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/opt/marv-bot/alpacabot/cli.py", line 53, in main
+    load(sym, "1Day", a.start, a.end, cache)
+  File "/opt/marv-bot/alpacabot/data.py", line 75, in load
+    df = _fetch(symbol, timeframe, f"{y}-{m:02d}-01T00:00:00Z", f"{month_end:%Y-%m-%d}T00:00:00Z", feed)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/marv-bot/alpacabot/data.py", line 35, in _fetch
+    r = s.get(URL.format(symbol=symbol), params=params, headers=_headers(), timeout=60)
+                                                                ^^^^^^^^^^
+  File "/opt/marv-bot/alpacabot/data.py", line 23, in _headers
+    raise RuntimeError("set ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY in the bot's .env (data access only)")
+RuntimeError: set ALPACA_DATA_KEY_ID and ALPACA_DATA_SECRET_KEY in the bot's .env (data access only)
