@@ -1,0 +1,3 @@
+$ read-odds-bot /home/moonrider1968/aj-bet-bot
+started 2026-10-10 20:06:27 EDT
+RUNNING...
