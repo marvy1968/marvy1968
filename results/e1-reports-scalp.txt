@@ -1,0 +1,3 @@
+$ read-bot-reports /home/moonrider1968/scalp_bot
+started 2026-10-11 08:07:38 EDT
+RUNNING...
