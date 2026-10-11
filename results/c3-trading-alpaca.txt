@@ -1,3 +1,1122 @@
 $ read-odds-bot /home/moonrider1968/MasterBot_Center/Trading_Alpaca
-started 2026-10-11 08:04:03 EDT
-RUNNING...
+started 2026-10-11 08:04:03 EDT, took 0s, exit 0
+
+
+===== ./alpaca_beast.py
+
+def calculate_chop(df, length=14):
+    # M-29 Logic: High CHOP (>61.8) = Stay out of the range
+    tr1 = pd.DataFrame(df['high'] - df['low'])
+    tr2 = pd.DataFrame(abs(df['high'] - df['close'].shift(1)))
+    tr3 = pd.DataFrame(abs(df['low'] - df['close'].shift(1)))
+    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+    atr_sum = tr.rolling(window=length).sum()
+    max_high = df['high'].rolling(window=length).max()
+    min_low = df['low'].rolling(window=length).min()
+    # Fractal dimension formula
+    chop = 100 * np.log10(atr_sum / (max_high - min_low)) / np.log10(length)
+    return chop.iloc[-1]
+
+from sector_gatekeeper import SECTOR_MAP, get_sector_bias
+
+def validate_entry(symbol, stock_signal, df_sector):
+    """M-07 Weinstein Sector Filter: Only trade in the direction of the sector."""
+    sector_bias = get_sector_bias(df_sector)
+    
+    # LONG logic: Only if Sector is BULL
+    if stock_signal == "LONG" and sector_bias == "BULL":
+        return "EXECUTE_LONG"
+    
+    # SHORT logic: Only if Sector is BEAR
+    elif stock_signal == "SHORT" and sector_bias == "BEAR":
+        return "EXECUTE_SHORT"
+    
+    # BLOCK: If sector is CHOP or opposing the signal
+    else:
+        return "BLOCK"
+
+def execute_alpaca_box_trade(symbol, action):
+    """
+    M-29 Box Master for Alpaca:
+    Handles Range Pings and Shorting safety.
+    """
+    is_crypto = "/" in symbol or any(c in symbol for c in ["BTC", "ETH"])
+    
+    # 1. Protection: Alpaca doesn't allow shorting Crypto
+    if action == "RANGE_SHORT" and is_crypto:
+        return "SKIP_CRYPTO_SHORT"
+    
+    # 2. Logic for Range Scalps vs Breakout Flips
+    if action == "RANGE_LONG":
+        return "BUY_LIMIT_LOW"
+    elif action == "RANGE_SHORT":
+        return "SELL_LIMIT_HIGH"
+    elif action == "BREAKOUT_LONG":
+        return "FLIP_BUY_MARKET"
+    elif action == "BREAKOUT_SHORT":
+        return "FLIP_SHORT_MARKET"
+    
+    return "HOLD"
+
+===== ./alpaca_sniper.py
+import os, logging, asyncio, time
+from datetime import datetime
+import pytz
+from dotenv import load_dotenv
+from alpaca.data.live import StockDataStream, CryptoDataStream
+
+load_dotenv(os.path.join(os.getcwd(), '.env'))
+
+API_KEY = os.getenv("ALPACA_API_KEY").strip()
+API_SECRET = os.getenv("ALPACA_API_SECRET").strip()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s')
+log = logging.getLogger(__name__)
+ET = pytz.timezone('US/Eastern')
+
+class VelezWeinsteinBot:
+    def __init__(self):
+        self.high_water_marks = {}
+        self.entry_prices = {}
+
+    def get_market_mode(self):
+        now = datetime.now(ET)
+        if now.weekday() < 5 and 8 <= now.hour < 16:
+            return "STOCKS", ["NVDA", "AAPL", "MSFT", "TSLA"]
+        return "CRYPTO", ["BTC/USD", "ETH/USD"]
+
+    async def handle_bar(self, bar):
+        symbol = bar.symbol
+        price = bar.close
+        log.info(f"🛡️ {symbol} Heartbeat: {price}")
+        # Logic discussed (Staircase/Trail) goes here
+
+    async def start(self):
+        mode, watchlist = self.get_market_mode()
+        log.info(f"🚀 ATTEMPTING {mode} CONNECTION...")
+        
+        # Use the Saturday logic: Direct instantiation and run
+        if mode == "CRYPTO":
+            stream = CryptoDataStream(API_KEY, API_SECRET)
+            stream.subscribe_bars(self.handle_bar, *watchlist)
+        else:
+            stream = StockDataStream(API_KEY, API_SECRET)
+            stream.subscribe_bars(self.handle_bar, *watchlist)
+        
+        await stream._run_forever()
+
+if __name__ == "__main__":
+    bot = VelezWeinsteinBot()
+    while True:
+        try:
+            asyncio.run(bot.start())
+        except Exception as e:
+            log.error(f"Stream Loop Pulse: {e}")
+            time.sleep(15)
+
+===== ./close_all.py
+import os
+from alpaca.trading.client import TradingClient
+from dotenv import load_dotenv
+
+# 1. Load credentials from your .env
+load_dotenv()
+
+api_key = os.getenv('ALPACA_API_KEY_ID') or os.getenv('APCA_API_KEY_ID')
+api_secret = os.getenv('ALPACA_API_SECRET_KEY') or os.getenv('APCA_API_SECRET_KEY')
+is_live = os.getenv('LIVE_MODE', 'false').lower() == 'true'
+
+if not api_key or not api_secret:
+    print("ERROR: API Keys not found in .env file.")
+    exit(1)
+
+# 2. Setup Client
+client = TradingClient(api_key, api_secret, paper=(not is_live))
+
+print(f"--- INITIATING FULL LIQUIDATION (Account: {'LIVE' if is_live else 'PAPER'}) ---")
+
+try:
+    # 3. This one command cancels all orders AND sells all positions at market price
+    closed_positions = client.close_all_positions(cancel_orders=True)
+    
+    if not closed_positions:
+        print("No open positions found. Portfolio is already flat.")
+    else:
+        for response in closed_positions:
+            print(f"Closed: {response.symbol} | Status: {response.status}")
+            
+    print("\nSUCCESS: All positions liquidated. You are 100% in cash.")
+except Exception as e:
+    print(f"CRITICAL ERROR: {e}")
+
+===== ./config.py
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def env_str(name: str, default: str) -> str:
+    return os.getenv(name, default)
+
+def env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+def env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+def env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+BOT_NAME = env_str("BOT_NAME", "sector_trend_bot")
+LOG_LEVEL = env_str("LOG_LEVEL", "INFO").upper()
+
+ENABLE_LIVE_EXECUTION = env_bool("ENABLE_LIVE_EXECUTION", False)
+ENABLE_LEARNING = env_bool("ENABLE_LEARNING", True)
+LIVE_MODE = env_bool("LIVE_MODE", False)
+
+ALPACA_API_KEY = env_str("ALPACA_API_KEY", "")
+ALPACA_SECRET_KEY = env_str("ALPACA_SECRET_KEY", "")
+MAX_API_RETRIES = env_int("MAX_API_RETRIES", 3)
+API_BACKOFF_FACTOR = env_float("API_BACKOFF_FACTOR", 2.0)
+
+STARTING_EQUITY = env_float("STARTING_EQUITY", 10000.0)
+RISK_PER_TRADE = 0.05
+MAX_POSITIONS_TOTAL = env_int("MAX_POSITIONS_TOTAL", 10)
+MAX_POSITIONS_PER_SECTOR = env_int("MAX_POSITIONS_PER_SECTOR", 3)
+DEFAULT_TARGET_R = env_float("DEFAULT_TARGET_R", 2.2)
+DAILY_LOSS_CAP_R = env_float("DAILY_LOSS_CAP_R", 4.0)
+TIMEOUT_BARS = env_int("TIMEOUT_BARS", 8)
+
+PRICE_MIN = env_float("PRICE_MIN", 10.0)
+RVOL_MIN = env_float("RVOL_MIN", 1.10)
+ATR_PCT_MIN = env_float("ATR_PCT_MIN", 0.80)
+ATR_PCT_MAX = env_float("ATR_PCT_MAX", 8.00)
+
+BULLISH_STOCK_VOTE_MIN = env_int("BULLISH_STOCK_VOTE_MIN", 3)
+BEARISH_STOCK_VOTE_MIN = env_int("BEARISH_STOCK_VOTE_MIN", 3)
+SECTOR_PASS_COUNT = env_int("SECTOR_PASS_COUNT", 5)
+MAX_STOCKS_PER_SECTOR = env_int("MAX_STOCKS_PER_SECTOR", 10)
+TOP_CANDIDATES_PER_SECTOR = env_int("TOP_CANDIDATES_PER_SECTOR", 5)
+
+PARTIAL_TP_FRACTION = env_float("PARTIAL_TP_FRACTION", 0.75)
+PARTIAL_TP_PCT = env_float("PARTIAL_TP_PCT", 0.0075)
+
+BREAK_EVEN_TRIGGER_R = env_float("BREAK_EVEN_TRIGGER_R", 0.60)
+PROFIT_LOCK_TRIGGER_R = env_float("PROFIT_LOCK_TRIGGER_R", 1.00)
+PROFIT_LOCK_R = env_float("PROFIT_LOCK_R", 0.40)
+ATR_TRAIL_MULT = env_float("ATR_TRAIL_MULT", 1.25)
+USE_ATR_TRAIL_AFTER_PARTIAL = env_bool("USE_ATR_TRAIL_AFTER_PARTIAL", True)
+
+DATA_PERIOD = env_str("DATA_PERIOD", "6mo")
+DATA_INTERVAL = env_str("DATA_INTERVAL", "1d")
+
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+REPORTS_DIR = DATA_DIR / "reports"
+OPEN_TRADES_CSV = DATA_DIR / "paper_open_trades.csv"
+CLOSED_TRADES_CSV = DATA_DIR / "paper_closed_trades.csv"
+EQUITY_CSV = DATA_DIR / "paper_equity_curve.csv"
+SECTOR_REPORT_JSON = REPORTS_DIR / "latest_sector_report.json"
+CANDIDATE_REPORT_JSON = REPORTS_DIR / "latest_candidate_report.json"
+
+OPEN_COLUMNS = [
+    "timestamp", "symbol", "sector", "direction", "setup", "entry_price", "initial_stop", "current_stop",
+    "target_price", "partial_tp_price", "atr_value", "shares_initial", "shares_remaining", "partial_taken",
+    "partial_fill_price", "realized_partial_pnl", "bars_held", "highest_price", "lowest_price",
+    "candidate_score", "confidence", "current_r", "alpaca_order_id"
+]
+CLOSED_COLUMNS = [
+    "timestamp", "symbol", "sector", "direction", "setup", "entry_price", "exit_price", "initial_stop", "final_stop",
+    "target_price", "shares_initial", "shares_remaining", "partial_taken", "partial_fill_price",
+    "realized_partial_pnl", "realized_pnl", "bars_held", "reason", "candidate_score", "confidence", "alpaca_order_id"
+]
+
+===== ./crypto_weekend.py
+import os
+import time
+import logging
+from dotenv import load_dotenv
+import alpaca_trade_api as tradeapi
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s | 🛡️ CRYPTO BEAST | %(message)s')
+
+# Load keys (We know these work now)
+load_dotenv()
+API_KEY = os.getenv("ALPACA_API_KEY_ID")
+SECRET_KEY = os.getenv("ALPACA_API_SECRET_KEY")
+BASE_URL = os.getenv("ALPACA_API_BASE_URL", "https://paper-api.alpaca.markets")
+
+try:
+    api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL, api_version='v2')
+    account = api.get_account()
+    logging.info(f"Connection Active. Buying Power: ${account.buying_power}")
+except Exception as e:
+    logging.error(f"Auth Failed: {e}")
+    exit()
+
+CRYPTO_SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD"]
+
+logging.info(f"🚀 Weekend Handoff Engaged. Scanning: {CRYPTO_SYMBOLS}")
+
+while True:
+    try:
+        for symbol in CRYPTO_SYMBOLS:
+            # Pull latest crypto quotes
+            quote = api.get_latest_crypto_quote(symbol, exchange="CBSE")
+            logging.info(f"Tracking {symbol} | Bid: {quote.bp} | Ask: {quote.ap}")
+            
+            # Crypto volatility trailing logic goes here
+            time.sleep(2) # Prevent rate limiting
+            
+        time.sleep(60) # Scan every 60 seconds
+    except Exception as e:
+        logging.error(f"Scan Error: {e}")
+        time.sleep(60)
+
+===== ./hybrid_monster_velez.py
+import os
+import time
+import pandas as pd
+from dotenv import load_dotenv
+import alpaca_trade_api as tradeapi
+
+load_dotenv()
+
+# --- CONFIGURATION ---
+GAP_LIMIT_PCT = 2.0  # Max gap allowed before we stand down
+RISK_PER_TRADE_PCT = 5.0 
+
+# --- API SETUP ---
+api = tradeapi.REST(
+    key_id=os.getenv('APCA_API_KEY_ID'),
+    secret_key=os.getenv('APCA_API_SECRET_KEY'),
+    base_url=os.getenv('APCA_API_BASE_URL')
+)
+
+def get_gap_status(symbol):
+    """Checks if the stock opened too far from yesterday's close."""
+    try:
+        # Get last 2 daily bars
+        bars = api.get_bars(symbol, '1Day', limit=2).df
+        if len(bars) < 2: return True # Not enough data, proceed with caution
+        
+        prev_close = bars['close'].iloc[-2]
+        today_open = bars['open'].iloc[-1]
+        gap_pct = abs(((today_open - prev_close) / prev_close) * 100)
+        
+        if gap_pct > GAP_LIMIT_PCT:
+            print(f"[!] {symbol} GAP ALERT: {gap_pct:.2f}% (Limit: {GAP_LIMIT_PCT}%). Entry Locked.")
+            return False
+        return True
+    except Exception as e:
+        print(f"Error checking gap for {symbol}: {e}")
+        return True
+
+def run_sniper():
+    print(f"--- HYBRID MONSTER SNIPER ACTIVE (Balance: $100k+) ---")
+    # Example Watchlist (Energy/Tech Divergence)
+    watchlist = ['XOM', 'CVX', 'SLB', 'AAPL', 'NVDA']
+    
+    for symbol in watchlist:
+        # NEW: Gap Guard Check
+        if not get_gap_status(symbol):
+            continue # Skip this ticker for the session unless it resets
+            
+        print(f"[*] Scanning {symbol} for 5-Min EMA 20 Touch...")
+        # (Trading logic for EMA 20 touch and ATR trailing goes here...)
+        # ... [Rest of your Velez sniper logic] ...
+
+if __name__ == "__main__":
+    run_sniper()
+
+===== ./kill.py
+import os
+from alpaca.trading.client import TradingClient
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv('ALPACA_API_KEY_ID')
+api_secret = os.getenv('ALPACA_API_SECRET_KEY')
+is_live = os.getenv('LIVE_MODE', 'false').lower() == 'true'
+
+# Setup Client
+client = TradingClient(api_key, api_secret, paper=(not is_live))
+
+print(f"--- INITIATING FULL LIQUIDATION (Live Mode: {is_live}) ---")
+
+try:
+    # This cancels all orders AND sells all positions
+    res = client.close_all_positions(cancel_orders=True)
+    print("SUCCESS: All positions closed and orders canceled.")
+except Exception as e:
+    print(f"ERROR: {e}")
+
+===== ./pos_state.json
+{
+  "AMD": {
+    "be": true,
+    "entry": 202.27,
+    "in_pos": true,
+    "qty": 11,
+    "score": 0.55,
+    "side": "long",
+    "stop": 202.27,
+    "tp": 203.19151868477,
+    "ts": "2026-03-31T17:15:22.196117"
+  },
+  "META": {
+    "in_pos": false
+  },
+  "MSFT": {
+    "in_pos": false
+  },
+  "NVDA": {
+    "in_pos": false
+  },
+  "TSLA": {
+    "in_pos": false
+  }
+}
+===== ./run_bot.sh
+#!/bin/bash
+cd /home/moonrider1968/bots/alpaca_velez_sniper
+source venv/bin/activate
+
+echo "--- GROWTH MODE INITIATED ---"
+echo "Current Portfolio: $98,171"
+echo "Waiting 3 minutes for the NY Opening Range to form..."
+
+# Visual Countdown
+for i in {180..1}; do
+    echo -ne "Time remaining until hunt: $i seconds\033[0K\r"
+    sleep 1
+done
+
+echo -e "\n[$(date)] 3-Minute Buffer Complete. Launching Hybrid Monster..." >> logs/bot_run.log
+
+# Start the bot in the background
+nohup python3 velez_master_sniper_all.py >> logs/bot_run.log 2>&1 &
+
+echo "SUCCESS: Hybrid Monster is now hunting in the background."
+echo "You can safely close this terminal and head to your patients."
+
+===== ./sector_analysis.py
+import os
+import pandas as pd
+from alpaca.data.historical import StockHistoricalDataClient
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import Timeframe
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# 1. Load Keys
+load_dotenv()
+api_key = os.getenv('ALPACA_API_KEY_ID') or os.getenv('APCA_API_KEY_ID')
+api_secret = os.getenv('ALPACA_API_SECRET_KEY') or os.getenv('APCA_API_SECRET_KEY')
+client = StockHistoricalDataClient(api_key, api_secret)
+
+# 2. Dual-Index Master List
+sectors = {
+    # --- NASDAQ SUB-SECTORS ---
+    "SEMIS": ["NVDA", "AMD", "AVGO", "TXN", "QCOM", "INTC", "AMAT", "MU", "LRCX", "ADI"],
+    "MEGA_TECH": ["AAPL", "MSFT", "GOOGL", "META", "AMZN", "TSLA", "NFLX", "ADBE", "CSCO", "PEP"],
+    
+    # --- S&P 500 SECTORS ---
+    "ENERGY": ["XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX", "VLO", "WMB", "OXY"],
+    "FINANCE": ["JPM", "BAC", "WFC", "GS", "MS", "C", "BLK", "AXP", "V", "MA"]
+}
+
+def get_sentiment(symbol):
+    try:
+        # Pull 7 days of data to ensure we hit active trading days (ignoring weekends)
+        request_params = StockBarsRequest(
+            symbol_or_symbols=symbol,
+            timeframe=Timeframe.Day,
+            start=datetime.now() - timedelta(days=7)
+        )
+        bars = client.get_stock_bars(request_params).df
+        
+        if len(bars) < 2:
+            return 0
+            
+        # Velez Daily Trend Check: Last close higher than previous close
+        last_close = bars['close'].iloc[-1]
+        prev_close = bars['close'].iloc[-2]
+        
+        return 1 if last_close > prev_close else 0
+    except Exception as e:
+        return 0
+
+print("--- DUAL-INDEX SECTOR CENSUS INITIATED ---")
+green_symbols = []
+
+# 3. The 6/10 Rule Engine
+for sector, stocks in sectors.items():
+    bull_count = sum(get_sentiment(s) for s in stocks)
+    print(f"Sector {sector}: {bull_count}/10 Bullish")
+    
+    if bull_count >= 6:
+        print(f"✅ {sector} is GREEN. Adding to hunt list.")
+        green_symbols.extend(stocks)
+    else:
+        print(f"❌ {sector} is NEUTRAL/BEARISH. Skipping.")
+
+# 4. Fallback Protocol
+if not green_symbols:
+    print("[!] ALL SECTORS RED. Defaulting to safe market ETFs to prevent forced trades.")
+    green_symbols = ["SPY", "QQQ"]
+
+# 5. Export to Bot
+watchlist_path = os.path.expanduser('~/bots/alpaca_velez_sniper/active_watchlist.txt')
+with open(watchlist_path, 'w') as f:
+    f.write(",".join(green_symbols))
+    
+print(f"\nSUCCESS: Active Watchlist Updated with {len(green_symbols)} targets.")
+
+===== ./sector_gatekeeper.py
+import pandas as pd
+import pandas_ta_classic as ta
+
+SECTOR_MAP = {
+    "NVDA": "XLK", "AAPL": "XLK", "AMD": "XLK",
+    "TSLA": "XLY", "AMZN": "XLY",
+    "BTC/USD": "CRYPTO", "ETH/USD": "CRYPTO"
+}
+
+def get_sector_bias(df_sector):
+    """Returns 'BULL', 'BEAR', or 'CHOP' based on Weinstein Stages"""
+    df_sector['EMA_30'] = ta.ema(df_sector['close'], length=30)
+    last = df_sector.iloc[-1]
+    prev = df_sector.iloc[-2]
+    
+    # Stage 2: Price above EMA and EMA rising
+    if last['close'] > last['EMA_30'] and last['EMA_30'] > prev['EMA_30']:
+        return "BULL"
+    # Stage 4: Price below EMA and EMA falling
+    elif last['close'] < last['EMA_30'] and last['EMA_30'] < prev['EMA_30']:
+        return "BEAR"
+    else:
+        return "CHOP"
+
+===== ./stats.py
+import pandas as pd
+import os
+
+csv_path = os.path.expanduser('~/bots/alpaca_velez_sniper/trades.csv')
+
+print("--- HYBRID SNIPER PERFORMANCE REPORT ---")
+
+if not os.path.exists(csv_path):
+    print(f"[!] No trades found in {csv_path}")
+else:
+    # Read the CSV with flexible column handling
+    df = pd.read_csv(csv_path, names=['timestamp', 'symbol', 'type', 'qty', 'price', 'stop', 'target', 'score'], header=None)
+    df = df.fillna(0)
+    
+    total_trades = len(df[df['type'] == 'ENTRY'])
+    unique_symbols = df['symbol'].nunique()
+    
+    print(f"Total Entries Recorded: {total_trades}")
+    print(f"Active Symbols Hunted: {unique_symbols}")
+    if not df.empty:
+        print(f"Latest Activity: {df['timestamp'].iloc[-1]}")
+    print("---------------------------------------")
+
+===== ./stealth_trail.py
+import os
+import time
+from alpaca.trading.client import TradingClient
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv('ALPACA_API_KEY_ID') or os.getenv('APCA_API_KEY_ID')
+api_secret = os.getenv('ALPACA_API_SECRET_KEY') or os.getenv('APCA_API_SECRET_KEY')
+is_live = os.getenv('LIVE_MODE', 'false').lower() == 'true'
+
+client = TradingClient(api_key, api_secret, paper=(not is_live))
+
+high_water_marks = {}
+TRAIL_PCT = 0.005  # 0.5% Micro Edge
+
+print(f"--- STEALTH VIRTUAL TRAIL ACTIVE (0.5%) | Live: {is_live} ---")
+print("Monitoring open positions...")
+
+while True:
+    try:
+        positions = client.get_all_positions()
+        current_symbols = [pos.symbol for pos in positions]
+        
+        for pos in positions:
+            symbol = pos.symbol
+            current_price = float(pos.current_price)
+            
+            # Update High-Water Mark if climbing
+            if symbol not in high_water_marks or current_price > high_water_marks[symbol]:
+                high_water_marks[symbol] = current_price
+                
+            peak_price = high_water_marks[symbol]
+            drawdown = (peak_price - current_price) / peak_price
+            
+            # The Stealth Execution
+            if drawdown >= TRAIL_PCT:
+                print(f"\n[!] VIRTUAL TRAIL HIT: {symbol} dropped {drawdown*100:.2f}% from peak of ${peak_price:.2f}.")
+                print(f"--- SECURING PROFIT: Closing {symbol} at ${current_price:.2f} ---")
+                client.close_position(symbol)
+                del high_water_marks[symbol]
+
+        # Clean up memory if the main bot sold something
+        for sym in list(high_water_marks.keys()):
+            if sym not in current_symbols:
+                del high_water_marks[sym]
+                
+    except Exception as e:
+        pass # Ignore minor API hiccups and keep hunting
+        
+    time.sleep(3) # Check prices every 3 seconds
+
+===== ./velez_master_sniper_all.py
+#!/usr/bin/env python3
+import os
+import time
+import json
+import logging
+import traceback
+from dataclasses import dataclass
+from pathlib import Path
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+import numpy as np
+import pandas as pd
+from dotenv import load_dotenv
+
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
+from alpaca.data.historical import StockHistoricalDataClient
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import TimeFrame
+
+
+BASE_DIR = Path(__file__).resolve().parent
+ENV_PATH = BASE_DIR / ".env"
+LOG_DIR = BASE_DIR / "logs"
+RPT_DIR = BASE_DIR / "reports"
+LOG_DIR.mkdir(exist_ok=True)
+RPT_DIR.mkdir(exist_ok=True)
+
+POS_STATE = BASE_DIR / "pos_state.json"
+TRADES_CSV = BASE_DIR / "trades.csv"
+
+ET = ZoneInfo("America/New_York")
+
+
+def _f(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)).strip())
+    except Exception:
+        return float(default)
+
+
+def _i(name: str, default: int) -> int:
+    try:
+        return int(float(os.getenv(name, str(default)).strip()))
+    except Exception:
+        return int(default)
+
+
+def _b(name: str, default: bool) -> bool:
+    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "y", "on")
+
+
+def jload(path: Path, default):
+    try:
+        if path.exists():
+            return json.loads(path.read_text())
+    except Exception:
+        pass
+    return default
+
+
+def jsave(path: Path, obj):
+    path.write_text(json.dumps(obj, indent=2, sort_keys=True))
+
+
+def ensure_trades_csv():
+    if not TRADES_CSV.exists():
+        TRADES_CSV.write_text("ts,symbol,action,qty,price,stop,tp,reason\n")
+
+
+def clamp(x, lo, hi):
+    return max(lo, min(hi, x))
+
+
+def ema(s: pd.Series, span: int) -> pd.Series:
+    return s.ewm(span=span, adjust=False).mean()
+
+
+def atr_wilder(df: pd.DataFrame, n: int) -> pd.Series:
+    high = df["high"]
+    low = df["low"]
+    close = df["close"]
+    prev_close = close.shift(1)
+    tr = pd.concat(
+        [
+            (high - low).abs(),
+            (high - prev_close).abs(),
+            (low - prev_close).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    return tr.ewm(alpha=1.0 / n, adjust=False).mean()
+
+
+def vwap_daily(df: pd.DataFrame) -> pd.Series:
+    df = df.copy()
+    if df.index.tz is None:
+        trade_dates = df.index.date
+    else:
+        trade_dates = df.index.tz_convert(ET).date
+    df["trade_date"] = trade_dates
+
+    def _calc(group: pd.DataFrame) -> pd.Series:
+        pv = (group["close"] * group["volume"]).cumsum()
+        vv = group["volume"].cumsum().replace(0, np.nan)
+        return pv / vv
+
+    return df.groupby("trade_date", group_keys=False).apply(_calc)
+
+
+@dataclass
+class Features:
+    trend: bool
+    above_20: bool
+    above_200: bool
+    elephant: bool
+    rvol: bool
+    vwap_ok: bool
+    breakout: bool
+    close_strong: bool
+    atr_filter_ok: bool
+
+
+@dataclass
+class Signal:
+    ok: bool
+    side: str
+    entry_ref: float
+    stop: float
+    tp: float
+    score: float
+    reason: str
+    feat: Features
+
+
+class VelezMasterSniper:
+    def __init__(self):
+        load_dotenv(dotenv_path=str(ENV_PATH), override=True)
+
+        self.paper = _b("ALPACA_PAPER", True)
+        self.key = os.getenv("ALPACA_API_KEY_ID", "").strip()
+        self.sec = os.getenv("ALPACA_API_SECRET_KEY", "").strip()
+        if not self.key or not self.sec:
+            raise RuntimeError("Missing ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in .env")
+
+        syms = os.getenv("SYMBOLS", "NVDA,TSLA,AMD,META,MSFT").strip()
+        self.symbols = [s.strip().upper() for s in syms.split(",") if s.strip()]
+
+        self.feed = os.getenv("DATA_FEED", "iex").strip().lower()
+        self.delay_min = _i("DATA_DELAY_MINUTES", 0)
+
+        self.win_start = os.getenv("OPEN_WINDOW_START", "09:35").strip()
+        self.win_end = os.getenv("OPEN_WINDOW_END", "15:50").strip()
+
+        self.ema_fast = _i("EMA_FAST", 20)
+        self.ema_mid = _i("EMA_MID", 50)
+        self.ema_slow = _i("EMA_SLOW", 200)
+
+        self.atr_len = _i("ATR_LEN", 14)
+        self.atr_stop_mult = _f("ATR_STOP_MULT", 1.10)
+        self.atr_tp_mult = _f("ATR_TP_MULT", 2.10)
+        self.atr_pct_min = _f("ATR_PCT_MIN", 0.0020)
+        self.atr_pct_max = _f("ATR_PCT_MAX", 0.0350)
+
+        self.breakout_lookback = _i("BREAKOUT_LOOKBACK", 20)
+        self.rvol_len = _i("RVOL_LEN", 20)
+        self.rvol_min = _f("RVOL_MIN", 1.30)
+        self.min_score = _f("MIN_SCORE", 0.55)
+
+        self.risk_min_pct = _f("RISK_MIN_PCT", 0.0100)
+        self.risk_max_pct = _f("RISK_MAX_PCT", 0.0150)
+
+        self.max_pos_pct = _f("MAX_POS_PCT", 0.25)
+        self.max_notional_pct = _f("MAX_NOTIONAL_PCT", 0.25)
+        self.max_qty = _i("MAX_QTY", 1000)
+
+        self.sleep_s = _i("SLEEP_SECONDS", 30)
+        self.bar_limit = _i("BAR_LIMIT", 500)
+
+        self.trading = TradingClient(self.key, self.sec, paper=self.paper)
+        self.data = StockHistoricalDataClient(self.key, self.sec)
+
+        self.pos = jload(POS_STATE, {})
+        ensure_trades_csv()
+
+        self.log = logging.getLogger("velez_master_sniper")
+        self.log.setLevel(logging.INFO)
+        if not self.log.handlers:
+            fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+            sh = logging.StreamHandler()
+            sh.setFormatter(fmt)
+            fh = logging.FileHandler(LOG_DIR / "velez_master_sniper.log")
+            fh.setFormatter(fmt)
+            self.log.addHandler(sh)
+            self.log.addHandler(fh)
+
+        self.log.info(
+            f"✅ VelezMasterSniper ready | symbols={self.symbols} | paper={self.paper} | feed={self.feed}"
+        )
+        self.log.info(
+            f"ATR stop={self.atr_stop_mult:.2f}x | ATR tp={self.atr_tp_mult:.2f}x | "
+            f"ATR%% filter={self.atr_pct_min:.4f}-{self.atr_pct_max:.4f}"
+        )
+
+    def save_pos(self):
+        jsave(POS_STATE, self.pos)
+
+    def log_trade(self, sym: str, action: str, qty: int, price: float, stop: float, tp: float, reason: str):
+        with TRADES_CSV.open("a") as f:
+            f.write(
+                f"{datetime.now(ET).isoformat()},{sym},{action},{qty},{price:.4f},{stop:.4f},{tp:.4f},{reason}\n"
+            )
+
+    def in_window(self) -> bool:
+        now = datetime.now(ET).strftime("%H:%M")
+        return self.win_start <= now <= self.win_end
+
+    def get_buying_power(self) -> float:
+        acct = self.trading.get_account()
+        try:
+            return float(acct.buying_power)
+        except Exception:
+            return float(acct.cash)
+
+    def fetch_bars(self, sym: str) -> pd.DataFrame:
+        end = datetime.now(ET) - timedelta(minutes=self.delay_min)
+        start = end - timedelta(days=7)
+
+        req = StockBarsRequest(
+            symbol_or_symbols=[sym],
+            timeframe=TimeFrame.Minute,
+            start=start,
+            end=end,
+            feed=self.feed,
+        )
+
+        bars = self.data.get_stock_bars(req)
+        raw = bars.data.get(sym, [])
+
+        rows = []
+        for b in raw:
+            rows.append(
+                {
+                    "ts": pd.Timestamp(b.timestamp),
+                    "open": float(b.open),
+                    "high": float(b.high),
+                    "low": float(b.low),
+                    "close": float(b.close),
+                    "volume": float(b.volume),
+                }
+            )
+
+        df = pd.DataFrame(rows)
+        if df.empty:
+            return df
+
+        df = df.tail(self.bar_limit).copy()
+        df = df.set_index("ts").sort_index()
+
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        else:
+            df.index = df.index.tz_convert("UTC")
+
+        return df
+
+    def compute_qty(self, buying_power: float, entry: float, stop: float, risk_pct: float) -> int:
+        risk_dollars = buying_power * risk_pct
+        risk_per_share = abs(entry - stop)
+        if risk_per_share <= 0:
+            return 0
+
+        qty_by_risk = int(risk_dollars / risk_per_share)
+        qty_by_notional = int((buying_power * self.max_notional_pct) / max(entry, 0.01))
+        qty_by_pos_cap = int((buying_power * self.max_pos_pct) / max(entry, 0.01))
+
+        qty = min(qty_by_risk, qty_by_notional, qty_by_pos_cap, self.max_qty)
+        return max(qty, 0)
+
+    def build_signal(self, df: pd.DataFrame) -> Signal:
+        if df is None or df.empty:
+            return Signal(
+                False, "", 0.0, 0.0, 0.0, 0.0, "no bars",
+                Features(False, False, False, False, False, False, False, False, False),
+            )
+
+        min_bars = max(self.ema_slow + 5, self.breakout_lookback + 5, self.atr_len + 5, self.rvol_len + 5)
+        if len(df) < min_bars:
+            return Signal(
+                False, "", 0.0, 0.0, 0.0, 0.0, f"not enough bars ({len(df)}/{min_bars})",
+                Features(False, False, False, False, False, False, False, False, False),
+            )
+
+        d = df.copy()
+        d["ema_fast"] = ema(d["close"], self.ema_fast)
+        d["ema_mid"] = ema(d["close"], self.ema_mid)
+        d["ema_slow"] = ema(d["close"], self.ema_slow)
+        d["atr"] = atr_wilder(d, self.atr_len)
+        d["vol_avg"] = d["volume"].rolling(self.rvol_len).mean()
+        d["vwap"] = vwap_daily(d)
+        
+        # --- THE VELEZ SNIPER ENTRY LOGIC (FIXED POSITION) ---
+        last = d.iloc[-1]
+        
+        # 1. LONG SIGNAL
+        if (last["close"] > last["open"]) and (last["close"] > last["ema_fast"]):
+            return Signal(True, "BUY", last["close"], last["close"] * 0.995, last["close"] * 1.015, 0.0, "BULLISH", Features(True, False, False, False, False, False, False, False, False))
+        
+        # 2. SHORT SIGNAL
+        if (last["close"] < last["open"]) and (last["close"] < last["ema_fast"]):
+            return Signal(True, "SELL", last["close"], last["close"] * 1.005, last["close"] * 0.985, 0.0, "BEARISH", Features(False, True, False, False, False, False, False, False, False))
+        
+        return Signal(False, "", 0.0, 0.0, 0.0, 0.0, "no trend", Features(False, False, False, False, False, False, False, False, False))
+
+        last = d.iloc[-1]
+        entry_ref = float(last["close"])
+        atr_last = float(last["atr"]) if np.isfinite(last["atr"]) else 0.0
+
+        if atr_last <= 0:
+            return Signal(
+                False, "", 0.0, 0.0, 0.0, 0.0, "bad atr",
+                Features(False, False, False, False, False, False, False, False, False),
+            )
+
+        atr_pct = atr_last / max(entry_ref, 0.01)
+        atr_filter_ok = self.atr_pct_min <= atr_pct <= self.atr_pct_max
+        if not atr_filter_ok:
+            return Signal(
+                False, "", 0.0, 0.0, 0.0, 0.0, f"atr filter fail ({atr_pct:.4f})",
+                Features(False, False, False, False, False, False, False, False, False),
+            )
+
+        trend = bool(last["ema_fast"] > last["ema_mid"] > last["ema_slow"])
+        above_20 = bool(entry_ref > float(last["ema_fast"]))
+        above_200 = bool(entry_ref > float(last["ema_slow"]))
+        vwap_ok = bool(np.isfinite(last["vwap"]) and entry_ref > float(last["vwap"]))
+
+        body = abs(float(last["close"]) - float(last["open"]))
+        candle_range = float(last["high"]) - float(last["low"])
+        elephant = bool(
+            candle_range > 0
+            and body > (0.8 * candle_range)
+            and body > (1.2 * atr_last)
+            and float(last["close"]) > float(last["open"])
+        )
+
+        breakout_high = d["high"].iloc[-self.breakout_lookback:-1].max()
+        breakout = bool(entry_ref > float(breakout_high))
+
+        close_strong = bool(
+            entry_ref >= (float(last["low"]) + 0.7 * (float(last["high"]) - float(last["low"])))
+        )
+
+        rvol = bool(
+            np.isfinite(last["vol_avg"]) and float(last["volume"]) >= float(last["vol_avg"]) * self.rvol_min
+        )
+
+        feat = Features(
+            trend=trend,
+            above_20=above_20,
+            above_200=above_200,
+            elephant=elephant,
+            rvol=rvol,
+            vwap_ok=vwap_ok,
+            breakout=breakout,
+            close_strong=close_strong,
+            atr_filter_ok=atr_filter_ok,
+        )
+
+        score = 0.0
+        score += 0.30 if elephant else 0.0
+        score += 0.15 if above_20 else 0.0
+        score += 0.15 if above_200 else 0.0
+        score += 0.10 if vwap_ok else 0.0
+        score += 0.15 if breakout else 0.0
+        score += 0.10 if rvol else 0.0
+        score += 0.05 if close_strong else 0.0
+
+        if not trend:
+            return Signal(False, "", 0.0, 0.0, 0.0, score, "trend not aligned", feat)
+
+        if score < self.min_score:
+            return Signal(False, "", 0.0, 0.0, 0.0, score, "score too low", feat)
+
+        stop = entry_ref - (atr_last * self.atr_stop_mult)
+        tp = entry_ref + (atr_last * self.atr_tp_mult)
+
+        if stop <= 0 or tp <= entry_ref:
+            return Signal(False, "", 0.0, 0.0, 0.0, score, "bad stop/tp", feat)
+
+        return Signal(
+            True,
+            "long",
+            entry_ref,
+            stop,
+            tp,
+            score,
+            f"velez elephant | breakout={int(breakout)} rvol={int(rvol)} vwap={int(vwap_ok)}",
+            feat,
+        )
+
+    def exit_trade(self, sym: str, qty: int, reason: str, price: float, stop: float, tp: float):
+        order = MarketOrderRequest(
+            symbol=sym,
+            qty=qty,
+            side=OrderSide.SELL,
+            time_in_force=TimeInForce.DAY,
+        )
+        self.trading.submit_order(order_data=order)
+        self.log.info(f"EXIT {sym} | {reason} | px={price:.2f}")
+        self.log_trade(sym, reason, qty, price, stop, tp, reason)
+        self.pos[sym] = {"in_pos": False}
+        self.save_pos()
+
+    def manage_positions(self, sym: str, current_price: float):
+        p = self.pos.get(sym)
+        if not p or not p.get("in_pos"):
+            return
+
+        qty = int(p["qty"])
+        entry = float(p["entry"])
+        stop = float(p["stop"])
+        tp = float(p["tp"])
+
+        if current_price <= stop:
+            self.exit_trade(sym, qty, "STOP", current_price, stop, tp)
+            return
+
+        if current_price >= tp:
+            self.exit_trade(sym, qty, "TP", current_price, stop, tp)
+            return
+
+        if not p.get("be", False):
+            if current_price >= (entry + (entry - stop)):
+                p["stop"] = entry
+                p["be"] = True
+                self.pos[sym] = p
+                self.save_pos()
+                self.log.info(f"🟨 Move to BE for {sym}")
+
+    def run(self):
+        self.log.info("🚀 starting main loop")
+
+        while True:
+            try:
+                if not self.in_window():
+                    time.sleep(30)
+                    continue
+
+                buying_power = self.get_buying_power()
+
+                for sym in self.symbols:
+                    df = self.fetch_bars(sym)
+                    if df.empty:
+                        self.log.info(f"… {sym} no bars")
+                        continue
+
+                    current_price = float(df.iloc[-1]["close"])
+
+                    if self.pos.get(sym, {}).get("in_pos"):
+                        self.manage_positions(sym, current_price)
+                        continue
+
+                    sig = self.build_signal(df)
+                    if not sig.ok:
+                        self.log.info(f"… {sym} no entry: {sig.reason}")
+                        continue
+
+                    risk_pct = self.risk_min_pct + (self.risk_max_pct - self.risk_min_pct) * clamp(sig.score, 0.0, 1.0)
+                    qty = self.compute_qty(buying_power, sig.entry_ref, sig.stop, risk_pct)
+
+                    if qty <= 0:
+                        self.log.info(f"⚠️ {sym} qty=0 (stop wide or caps). skip")
+                        continue
+
+                    order = MarketOrderRequest(
+                        symbol=sym,
+                        qty=qty,
+                        side=OrderSide.BUY,
+                        time_in_force=TimeInForce.DAY,
+                    )
+
+                    self.log.info(
+                        f"🟩 ENTRY {sym} LONG qty={qty} px={sig.entry_ref:.2f} stop={sig.stop:.2f} tp={sig.tp:.2f} "
+                        f"risk={risk_pct*100:.2f}% score={sig.score:.2f} | "
+                        f"trend={int(sig.feat.trend)},above20={int(sig.feat.above_20)},above200={int(sig.feat.above_200)},"
+                        f"elephant={int(sig.feat.elephant)},rvol={int(sig.feat.rvol)},vwap={int(sig.feat.vwap_ok)},"
+                        f"breakout={int(sig.feat.breakout)},atr_ok={int(sig.feat.atr_filter_ok)}"
+                    )
+
+                    try:
+                        self.trading.submit_order(order_data=order)
+                    except Exception as e:
+                        self.log.error(f"❌ submit_order error: {repr(e)}")
+                        continue
+
+                    self.pos[sym] = {
+                        "in_pos": True,
+                        "qty": qty,
+                        "entry": sig.entry_ref,
+                        "stop": sig.stop,
+                        "tp": sig.tp,
+                        "side": "long",
+                        "be": False,
+                        "ts": datetime.utcnow().isoformat(),
+                        "score": sig.score,
+                    }
+                    self.save_pos()
+                    self.log_trade(sym, "ENTRY", qty, sig.entry_ref, sig.stop, sig.tp, f"score={sig.score:.2f}")
+
+                    time.sleep(60)
+
+                time.sleep(self.sleep_s)
+
+            except KeyboardInterrupt:
+                self.log.info("👋 stopped by user")
+                break
+            except Exception as e:
+                self.log.error(f"❌ Loop error: {repr(e)}")
+                self.log.error(traceback.format_exc())
+                time.sleep(10)
+
+
+if __name__ == "__main__":
+    VelezMasterSniper().run()
