@@ -189,7 +189,7 @@ def main(argv=None) -> int:
         cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith("ab-")]
         close, keep, mixed = [], [], []
         for p in pos:
-            sym, q = p["symbol"], int(float(p["qty"])) * (-1 if p.get("side") == "short" else 1)
+            sym, q = p["symbol"], abs(int(float(p["qty"]))) * (-1 if p.get("side") == "short" else 1)
             if sym not in own:
                 close.append((sym, q))
             elif q == own[sym]:
