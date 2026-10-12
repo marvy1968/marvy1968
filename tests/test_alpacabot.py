@@ -904,3 +904,39 @@ class TaggedExitTests(unittest.TestCase):
                                                               "exit": 228.2, "pnl": -47.0, "r": -1.05, "reason": "stop"}) + "\n")
             card = paper.report_card(d, date(2026, 10, 12))
         self.assertIn("By symbol: NVDA $-47\n", card + "\n")
+
+
+class ExecutionTruthTests(unittest.TestCase):
+    def test_junk_iex_quote_falls_back_to_last_trade(self):
+        from alpacabot import paper
+
+        class R(paper.RestBroker):
+            def __init__(self, q): self.q = q
+            def _req(self, method, url, **kw):
+                class Resp:
+                    def __init__(s, j): s._j = j
+                    def json(s): return s._j
+                return Resp({"quote": self.q} if "quotes" in url else {"trade": {"p": 380.05}})
+        self.assertEqual(R({"bp": 378.9, "ap": 381.71}).quote("TSLA"), (380.05, 380.05))      # $2.81 wide on IEX
+        self.assertEqual(R({"bp": 380.04, "ap": 380.06}).quote("TSLA"), (380.04, 380.06))     # a real 2-cent quote is kept
+        self.assertEqual(R({"bp": 0, "ap": 381.0}).quote("TSLA"), (380.05, 380.05))
+
+    def test_relative_spread_guard(self):
+        self.assertTrue(X.spread_ok(538.50, 538.89, 1e9, 0.001))      # MSFT 39 cents = 0.07%: fine
+        self.assertFalse(X.spread_ok(587.0, 589.0, 1e9, 0.001))       # 0.34%: blocked
+
+    def test_rejected_entry_never_becomes_a_position(self):
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.0)
+            def order(self, oid): return {"id": oid, "status": "rejected", "filled_qty": "0"}
+        with tempfile.TemporaryDirectory() as d:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)
+            self.assertEqual(r.confirm_fill({"id": "x1", "status": "new"}), ("rejected", 0, 0.0))
+            self.assertEqual(r.confirm_fill({"id": "x2", "status": "filled", "filled_qty": "59", "filled_avg_price": "227.31"}),
+                             ("filled", 59, 227.31))
+            self.assertIsNone(r.confirm_fill(None))                    # simulations without order records keep the quote fill

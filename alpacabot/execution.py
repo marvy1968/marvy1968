@@ -153,12 +153,14 @@ class Executor:
     risk_pct: float = 0.005
     max_pos_frac: float = 0.25
     max_spread: float = 0.05
+    max_spread_pct: float | None = None       # when set, the guard is relative (fraction of price) instead of absolute dollars
     max_positions: int = 4
     stale_minutes: float = 45.0
     sleep: object = time.sleep
     opened: dict = field(default_factory=dict)      # symbol -> entry time
     kill_switch: bool = False
     last_qty: int = 0
+    last_order: object = None                 # the broker's reply to the last entry order (id, status, fill), when it gives one
     sent_ids: set = field(default_factory=set)      # client order ids already sent (a restart or a repeated tick cannot double-enter)
 
     def submit(self, symbol, qty, stop, target, coid, side=1):
@@ -201,7 +203,7 @@ class Executor:
         if symbol in self.opened or len(self.opened) >= self.max_positions:
             return "position limit"
         bid, ask = retry_call(self.broker.quote, symbol, sleep=self.sleep)
-        if not spread_ok(bid, ask, self.max_spread):
+        if not spread_ok(bid, ask, self.max_spread, self.max_spread_pct):
             return f"spread too wide ({ask - bid:.3f})"
         equity = retry_call(self.broker.equity, sleep=self.sleep)
         qty = position_size(equity, self.risk_pct, entry_ref, signal.stop_dist, self.max_pos_frac)
@@ -211,7 +213,7 @@ class Executor:
         stop = round(entry_ref - side * signal.stop_dist, 2)
         target = round(entry_ref + side * signal.target_r * signal.stop_dist, 2) if signal.target_r > 0 else None
         self.sent_ids.add(coid)
-        retry_call(self.submit, symbol, qty, stop, target, coid, side, sleep=self.sleep)
+        self.last_order = retry_call(self.submit, symbol, qty, stop, target, coid, side, sleep=self.sleep)
         self.opened[symbol] = now_et
         self.last_qty = qty
         log.info("ordered %s %s x%d stop %.2f target %s", "SHORT" if side == -1 else "LONG", symbol, qty, stop, target)

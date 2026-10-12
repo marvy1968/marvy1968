@@ -53,9 +53,24 @@ class RestBroker:
     def clock(self) -> dict:
         return self._req("GET", f"{TRADE_URL}/clock").json()
 
+    JUNK_SPREAD = 0.001     # an IEX quote wider than 0.1% of price is IEX's thin book, not the market
+
+    def last_trade(self, symbol: str) -> float:
+        return float(self._req("GET", f"{DATA_URL}/stocks/{symbol}/trades/latest", params={"feed": "iex"}).json()["trade"]["p"])
+
     def quote(self, symbol: str):
+        """(bid, ask). The free plan only has IEX, one exchange whose top of book is often far wider than the real market (TSLA $2-3,
+        AMD $30 on Oct 12 when the real spread was ~1 cent). Such a quote is replaced by the last IEX trade print on both sides, so neither
+        the entry guard nor the virtual stops act on a phantom spread."""
         q = self._req("GET", f"{DATA_URL}/stocks/{symbol}/quotes/latest", params={"feed": "iex"}).json()["quote"]
-        return float(q["bp"]), float(q["ap"])
+        bid, ask = float(q.get("bp") or 0), float(q.get("ap") or 0)
+        if bid <= 0 or ask <= 0 or ask < bid or (ask - bid) / ((ask + bid) / 2) > self.JUNK_SPREAD:
+            t = self.last_trade(symbol)
+            return t, t
+        return bid, ask
+
+    def order(self, order_id: str) -> dict:
+        return self._req("GET", f"{TRADE_URL}/orders/{order_id}").json()
 
     def positions(self) -> dict[str, int]:
         """symbol -> signed quantity (negative = short)."""
@@ -183,7 +198,7 @@ class PaperRunner:
         self.exits = VirtualExitManager(self.store, self.broker, sleep=sleep)
         # no 45-minute stale exit: each signal carries the backtest's own time stop (max_bars), checked at every bar close
         self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(limit=breaker_limit), risk_pct=risk_pct, max_positions=max_positions,
-                             stale_minutes=10 ** 9, sleep=sleep)
+                             stale_minutes=10 ** 9, sleep=sleep, max_spread_pct=0.001)      # relative guard: 0.1% of price
         self.last_px: dict[str, float] = {}      # last exit-side price: bid for longs, ask for shorts
         self.heat, self.heat_day, self.borrow = {}, None, {}
         self.day, self.trades_today, self.last_exit = None, {}, {}
@@ -346,9 +361,38 @@ class PaperRunner:
                 bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
                 qty = self.exec.last_qty
                 fill = ask if sig.side == 1 else bid
+                got = self.confirm_fill(self.exec.last_order)
+                if got is not None:
+                    status, filled_qty, price = got
+                    if status != "filled" or filled_qty <= 0:
+                        self.exec.opened.pop(sym, None)
+                        self.journal("entry_not_filled", symbol=sym, status=status, filled_qty=filled_qty)
+                        continue
+                    qty, fill = filled_qty, price
                 self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
+
+    def confirm_fill(self, order, tries: int = 6):
+        """(status, filled qty, average fill price) from the broker, or None when the broker gives no order record (simulations).
+        A market order on these names fills in well under a second; a rejected or still-unfilled order never becomes a position."""
+        if not isinstance(order, dict) or not order.get("id") or not hasattr(self.raw, "order"):
+            return None
+        o = order
+        for _ in range(tries):
+            if o.get("status") in ("filled", "rejected", "canceled", "expired"):
+                break
+            self.sleep(0.5)
+            try:
+                o = self.raw.order(order["id"])
+            except Exception:
+                log.exception("order status check failed")
+        qty = int(float(o.get("filled_qty") or 0))
+        px = float(o.get("filled_avg_price") or 0)
+        status = o.get("status", "unknown")
+        if status == "partially_filled" and qty > 0:
+            status = "filled"                       # keep what filled; the remainder is a day order Alpaca will finish or cancel
+        return status, qty, px
 
     def check_session(self, now_et: datetime):
         """Kill switch file and today's real close (early-close days), from the broker's clock."""
