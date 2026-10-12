@@ -876,3 +876,31 @@ class LimitEntryTests(unittest.TestCase):
         t = simulate_day("X", df, [Signal(100, -1, 1.0, 2.0, 10)], Costs(10, 0, entry="limit", limit_offset=0.1))[0]
         self.assertAlmostEqual(t.entry_px, 100.1)                   # a sell limit at 100 + 0.1 filled when price went through it
         self.assertEqual(t.side, -1)
+
+
+class TaggedExitTests(unittest.TestCase):
+    def test_exit_orders_carry_the_ab_prefix_and_the_right_side(self):
+        from alpacabot import paper
+        sent = []
+
+        class R(paper.RestBroker):
+            def __init__(self): pass
+            def submit_market(self, symbol, qty, client_order_id=None, side="buy"): sent.append((symbol, qty, side, client_order_id))
+
+        class Runner:
+            class exits:
+                positions = {"NVDA": {"qty": 59, "side": -1}, "AAPL": {"qty": 10, "side": 1}}
+        book = paper.OwnBook(R(), Runner())
+        book.close("NVDA")
+        book.close("AAPL")
+        self.assertEqual([(s, q, side) for s, q, side, _ in sent], [("NVDA", 59, "buy"), ("AAPL", 10, "sell")])
+        self.assertTrue(all(c.startswith("ab-x-") for *_, c in sent))
+
+    def test_report_card_lists_each_symbol_once(self):
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "trades.jsonl").write_text(json.dumps({"date": "2026-10-12", "symbol": "NVDA", "side": "short", "qty": 59, "entry": 227.4,
+                                                              "exit": 228.2, "pnl": -47.0, "r": -1.05, "reason": "stop"}) + "\n")
+            card = paper.report_card(d, date(2026, 10, 12))
+        self.assertIn("By symbol: NVDA $-47\n", card + "\n")

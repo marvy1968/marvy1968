@@ -79,6 +79,10 @@ class RestBroker:
         r.raise_for_status()
         return r.json()
 
+    def close_tagged(self, symbol: str, qty: int, side: int, client_order_id: str):
+        """Close `qty` of OUR position with a market order that carries our own client order id (sell a long / buy back a short)."""
+        return self.submit_market(symbol, qty, client_order_id, side="sell" if side == 1 else "buy")
+
     def close(self, symbol: str, qty: int | None = None):
         """Close `qty` shares: sells a long or buys back a short (only this bot's own shares on a shared account); the whole position when qty is None."""
         return self._req("DELETE", f"{TRADE_URL}/positions/{symbol}", params={"qty": str(qty)} if qty else None)
@@ -103,7 +107,12 @@ class OwnBook:
 
     def close(self, symbol: str):
         pos = self.r.exits.positions.get(symbol)
-        return self.b.close(symbol, pos["qty"]) if pos else None
+        if not pos:
+            return None
+        if hasattr(self.b, "close_tagged"):          # exit orders carry the ab- prefix too, so the history can always trace them
+            coid = f"ab-x-{symbol}-{int(time.time() * 1000)}"
+            return self.b.close_tagged(symbol, pos["qty"], pos.get("side", 1), coid)
+        return self.b.close(symbol, pos["qty"])
 
     def flatten_all(self):
         for sym in list(self.r.exits.positions):
@@ -464,7 +473,8 @@ def report_card(state_dir, day=None) -> str:
         by[t["symbol"]] += t["pnl"]
     if by:
         best = sorted(by.items(), key=lambda x: -x[1])
-        lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in best[:3] + best[-2:]))
+        shown = best if len(best) <= 5 else best[:3] + best[-2:]
+        lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in shown))
     if gate:
         lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")
