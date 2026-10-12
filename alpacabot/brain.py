@@ -7,6 +7,10 @@
   5. consensus                    consensus=1 takes any expert; 2 needs two different experts within the last `window` bars
   6. one position per symbol, a re-entry cooldown after each exit (bars), a per-day trade cap per symbol
   7. priority                     when several experts fire together, the one ranked first in `priority` (best train expectancy) wins
+  8. sector heat map (gates.py)    sector_filter=True: no longs while the symbol's sector is BEARISH
+  9. shorts                       short_experts: the same experts on the mirrored series, ONLY while the market or the sector is BEARISH
+                                  (short_gate="bearish"), or also while SPY is red on the day (short_gate="red"). A bar where both a
+                                  long and a short fire is skipped (the experts disagree).
 Sizing (1% of equity at risk per trade), the slot cap and the daily loss limit live in engine.Portfolio. Trade tags carry the expert name, so
 results can be split by expert.
 """
@@ -16,7 +20,9 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from .experts import ALL_EXPERTS, RANGE_EXPERTS, TREND_EXPERTS, Experts
+from dataclasses import replace
+
+from .experts import ALL_EXPERTS, RANGE_EXPERTS, TREND_EXPERTS, Experts, short_view
 from .strategies import Signal
 
 
@@ -36,6 +42,9 @@ class Brain:
     entry_from: str = "09:50"
     entry_to: str = "15:30"
     name: str = "brain"
+    short_experts: list = field(default_factory=list)  # empty = no shorting
+    sector_filter: bool = False
+    short_gate: str = "bearish"                        # "bearish" (market or sector BEARISH) or "red" (that, or SPY red on the day)
 
     def _allowed(self, d: pd.DataFrame, name: str, i: int) -> bool:
         r = d.iloc[i]
@@ -53,7 +62,21 @@ class Brain:
         return True
 
     def signals(self, d: pd.DataFrame) -> list[Signal]:
-        found = Experts((self.entry_from, self.entry_to)).signals(d, self.experts)
+        longs = self._side(d, self.experts) if self.experts else []
+        if self.sector_filter and "g_long_ok" in d:
+            ok = d["g_long_ok"].to_numpy(bool)
+            longs = [s for s in longs if ok[s.i]]
+        shorts = []
+        if self.short_experts and "g_short_ok" in d and "m_f_atr" in d:     # never short without the gate and the mirrored features
+            gate = d["g_short_ok"].to_numpy(bool)
+            if self.short_gate == "red" and "g_spy_red" in d:
+                gate = gate | d["g_spy_red"].to_numpy(bool)
+            shorts = [replace(s, side=-1, tag="S:" + s.tag) for s in self._side(short_view(d), self.short_experts) if gate[s.i]]
+        both = {s.i for s in longs} & {s.i for s in shorts}
+        return sorted([s for s in longs + shorts if s.i not in both], key=lambda s: s.i)
+
+    def _side(self, d: pd.DataFrame, experts: list) -> list[Signal]:
+        found = Experts((self.entry_from, self.entry_to)).signals(d, experts)
         rank = {n: k for k, n in enumerate(self.priority or ALL_EXPERTS)}
         out, last_i = [], {}
         by_bar: dict[int, list] = {}

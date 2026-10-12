@@ -4,7 +4,7 @@ that sizes by risk, caps concurrent positions and applies a daily loss limit (an
 Intraday strategies close at the end of the same session. Swing strategies decide at the close and trade the next open.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 
 import numpy as np
@@ -32,25 +32,34 @@ class Trade:
     reason: str
     bars: int
     tag: str = ""
+    side: int = 1          # +1 long, -1 short (entry_px / exit_px are always real, positive prices)
 
     def pnl_per_share(self, costs: Costs) -> float:
-        fee = self.exit_px * costs.fee_bps_sell / 1e4 + 2 * costs.commission
-        return self.exit_px - self.entry_px - fee
+        sell_leg = self.exit_px if self.side == 1 else self.entry_px
+        fee = sell_leg * costs.fee_bps_sell / 1e4 + 2 * costs.commission
+        return self.side * (self.exit_px - self.entry_px) - fee
 
 
 # ---------------------------------------------------------------- intraday
 def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0) -> list[Trade]:
-    o, h, l, c = (df[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+    """Shorts are simulated as longs on the mirrored series (open -> -open, high -> -low, low -> -high, close -> -close): every level, stop,
+    trail and tie rule is then the same code as for longs, and slippage is always applied against the trader (abs(price) * slip)."""
+    long_arr = tuple(df[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+    short_arr = (-long_arr[0], -long_arr[2], -long_arr[1], -long_arr[3])
     n, slip, trades, busy = len(df), costs.slip_bps / 1e4, [], -1
+    buy = lambda px: px + abs(px) * slip      # noqa: E731  (entry in the trade's own direction)
+    sell = lambda px: px - abs(px) * slip     # noqa: E731  (exit)
     for s in sorted(sigs, key=lambda s: s.i):
         if len(trades) >= max_trades:
             break
         j0 = s.i + 1
-        if s.side != 1:
-            raise NotImplementedError("long only")
         if j0 >= n or s.i < busy + (cooldown if busy >= 0 else 0) or s.stop_dist <= 0:
             continue
-        fill = o[j0] * (1 + slip)
+        side = -1 if s.side == -1 else 1
+        o, h, l, c = long_arr if side == 1 else short_arr
+        xcol = (s.exit_col if side == 1 else "m_" + s.exit_col) if s.exit_col else ""
+        real = lambda px: side * px           # noqa: E731
+        fill = buy(o[j0])
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
         if s.managed:
@@ -58,28 +67,28 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             for j in range(j0, n):
                 hit = st.check(o[j], h[j], l[j])
                 if hit:
-                    px, why = hit[1] * (1 - slip), hit[0]          # virtual exit = market close after the cross: adverse slippage
+                    px, why = sell(hit[1]), hit[0]          # virtual exit = market close after the cross: adverse slippage
                 elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
-                    px, why = c[j] * (1 - slip), "time" if j < n - 1 else "eod"
+                    px, why = sell(c[j]), "time" if j < n - 1 else "eod"
                 else:
                     st.ratchet(h[j])
                     continue
-                trades.append(Trade(symbol, df.index[j0], df.index[j], fill, px, s.stop_dist, why, j - j0 + 1, s.tag))
+                trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(px), s.stop_dist, why, j - j0 + 1, s.tag, side))
                 busy = j
                 break
             continue
         for j in range(j0, n):
             if l[j] <= stop:
-                px, why = min(stop, o[j]) * (1 - slip), "stop"
+                px, why = sell(min(stop, o[j])), "stop"
             elif h[j] >= tgt:
                 px, why = max(tgt, o[j]), "target"
             elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
-                px, why = c[j] * (1 - slip), "time" if j < n - 1 else "eod"
-            elif s.exit_col and bool(df[s.exit_col].iloc[j]) and j + 1 < n:      # the expert says "sell": decided at this close, filled at the next open
-                j, px, why = j + 1, o[j + 1] * (1 - slip), "signal"
+                px, why = sell(c[j]), "time" if j < n - 1 else "eod"
+            elif xcol and bool(df[xcol].iloc[j]) and j + 1 < n:      # the expert says "exit": decided at this close, filled at the next open
+                j, px, why = j + 1, sell(o[j + 1]), "signal"
             else:
                 continue
-            trades.append(Trade(symbol, df.index[j0], df.index[j], fill, px, s.stop_dist, why, j - j0 + 1, s.tag))
+            trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(px), s.stop_dist, why, j - j0 + 1, s.tag, side))
             busy = j
             break
     return trades
@@ -105,7 +114,9 @@ def split_days(bars: dict[str, pd.DataFrame], minutes: int = 1, feature_fn=None,
     for sym, df in bars.items():
         df = resample_bars(df, minutes)
         if feature_fn is not None and len(df):
-            df = df.join(feature_fn(df))
+            f = feature_fn(df)
+            f = f.astype({c: "float32" for c in f.columns if f[c].dtype == "float64"})     # halves memory on 10 years of 5-minute bars
+            df = df.join(f)
         if flat_by and len(df):
             h, m = map(int, flat_by.split(":"))
             close_min = df.index.hour * 60 + df.index.minute + max(minutes, 1)
@@ -126,7 +137,11 @@ def raw_intraday(strategy, days: dict[str, list[pd.DataFrame]], costs: Costs, pl
                 continue
             sigs = strategy.signals(day)
             if rng is not None:
+                sides = [s.side for s in sigs]
                 sigs = strategy.placebo(day, len(sigs), rng) if sigs else []
+                if any(x == -1 for x in sides):          # same long/short mix as the real signals, at random times
+                    rng.shuffle(sides)
+                    sigs = [replace(p, side=sd) for p, sd in zip(sigs, sides)]
             out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades), cooldown=getattr(strategy, "cooldown", 0))
     return sorted(out, key=lambda t: t.entry_time)
 
@@ -164,7 +179,7 @@ def size_intraday(trades: list[Trade], costs: Costs, pf: Portfolio) -> pd.DataFr
             open_until.append(t.exit_time)
             rows.append({"day": day, "symbol": t.symbol, "entry": t.entry_time, "exit": t.exit_time, "qty": qty, "entry_px": t.entry_px,
                          "exit_px": t.exit_px, "pnl": pnl, "r": t.pnl_per_share(costs) / t.stop_dist, "reason": t.reason,
-                         "bars": t.bars, "notional": qty * t.entry_px, "tag": t.tag})
+                         "bars": t.bars, "notional": qty * t.entry_px, "tag": t.tag, "side": t.side})
         if taken:
             history.append(day)
         equity += day_pnl
@@ -246,6 +261,7 @@ def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, 
 def metrics(fills: pd.DataFrame, curve: pd.Series | None = None, start_equity: float = 100_000.0) -> dict:
     if fills is None or len(fills) == 0:
         return {"trades": 0}
+    fills = fills.assign(pnl=fills.pnl.astype(float), r=fills.r.astype(float), notional=fills.notional.astype(float))
     w, lo = fills[fills.pnl > 0], fills[fills.pnl <= 0]
     out = {"trades": int(len(fills)), "win_rate": float((fills.pnl > 0).mean()), "avg_r": float(fills.r.mean()),
            "expectancy_pct_notional": float((fills.pnl / fills.notional).mean() * 100),

@@ -6,14 +6,15 @@ import os
 from datetime import date
 from pathlib import Path
 
-from .data import credentials, load
+from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
-from .experts import features_all
+from .experts import features_all, features_both
+from .gates import HEAT_ETFS, add_gates
 from .research import GRIDS, brain_walk_forward, verdict, walk_forward
 from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
-SWING = INTRADAY + ["DIA", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "GLD", "TLT"]
+SWING = INTRADAY + ["DIA", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLC", "GLD", "TLT"]
 
 
 def _d(s: str) -> date:
@@ -58,6 +59,10 @@ def run_all(a) -> int:
                 if fam == "brain":
                     days = split_days(minute, minutes=5, feature_fn=features_all)
                     res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+                elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy, shorts=True)
                 elif fam == "regime":
                     days = split_days(minute, minutes=5, feature_fn=DualRegime.features)
                     res = walk_forward(fam, days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
@@ -95,10 +100,16 @@ def main(argv=None) -> int:
     ra.add_argument("--out", default="state/reports")
     ra.add_argument("--phase", choices=["validate", "final"], default="validate",
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
-    ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "scalp"])
+    ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"])
     ra.add_argument("--slip-bps", type=float, default=2.0)
     pp = sub.add_parser("paper", help="run the PAPER trading loop (Alpaca paper account only)")
     pp.add_argument("--state", default="state/alpaca_paper")
+    cv = sub.add_parser("coverage", help="bars per year per symbol (is the history really there?)")
+    cv.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
+    cv.add_argument("--timeframe", default="1Day", choices=["1Day", "1Min"])
+    cv.add_argument("--feed", default=None)
+    cv.add_argument("--start", type=_d, default=date(2016, 1, 1))
+    cv.add_argument("--end", type=_d, default=date.today())
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
@@ -108,6 +119,9 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "coverage":
+        print(coverage(["SPY", "AAPL", "NVDA", "XLK", "XLC"], a.timeframe, a.start, a.end, Path(a.cache), a.feed))
+        return 0
     if a.cmd == "check":
         from .paper import RestBroker
         key, secret = credentials()

@@ -1,4 +1,8 @@
-"""Ten rule-based experts on 5-minute bars (long only), plus the shared causal feature table they read.
+"""Ten rule-based experts on 5-minute bars, plus the shared causal feature table they read.
+
+Shorts: every expert's SELL-SHORT signal is its buy signal on the mirrored price series (open -> -open, high -> -low, low -> -high,
+close -> -close). All indicators here are symmetric under that flip, so a short is literally the long rule turned upside down.
+features_both() adds the mirrored features as m_* columns; short_view() turns a day frame into the mirrored frame the experts read.
 
   velez_elephant   Elephant Bar: a big-bodied bar (>= 1.5 ATR, closes in the top of its range) breaking the prior high, with the trend
   velez_180        180 reversal: a bullish bar that fully reverses the prior bearish bar, in an uptrend
@@ -57,6 +61,27 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     return f
 
 
+def mirror(df: pd.DataFrame) -> pd.DataFrame:
+    """The price series upside down: a short on df is a long on mirror(df)."""
+    return pd.DataFrame({"open": -df["open"], "high": -df["low"], "low": -df["high"], "close": -df["close"], "volume": df["volume"]}, index=df.index)
+
+
+def features_both(df: pd.DataFrame) -> pd.DataFrame:
+    """Long features (f_*, x_*) plus the same features on the mirrored series (m_f_*, m_x_*) for the short side."""
+    return features_all(df).join(features_all(mirror(df)).add_prefix("m_"))
+
+
+def short_view(d: pd.DataFrame) -> pd.DataFrame:
+    """A day frame as the short side sees it: mirrored prices with the m_* features under their plain names (gate columns kept)."""
+    v = mirror(d)
+    for col in d.columns:
+        if col.startswith("m_"):
+            v[col[2:]] = d[col]
+        elif col.startswith("g_"):
+            v[col] = d[col]
+    return v
+
+
 def _sig(i, stop_dist, target_r=0.0, max_bars=0, tag="", exit_col="") -> Signal:
     return Signal(int(i), 1, float(stop_dist), target_r, max_bars, tag, exit_col=exit_col)
 
@@ -80,7 +105,7 @@ class Experts:
         out["brooks_pullback"] = (d["f_ema20"] > d["f_ema50"]) & pulled & (c > o) & ((c - l) >= 0.66 * rng) & ((l - d["f_ema20"]).abs() <= 0.5 * a)
         out["connors_rsi2"] = (d["f_rsi2"] < 10) & (c > d["f_sma200"])
         out["bollinger_bounce"] = (c.shift(1) < d["f_bb_lo"].shift(1)) & (c > d["f_bb_lo"]) & (d["f_rsi14"] < 40)
-        out["williams_r"] = (d["f_willr"].shift(1) < -80) & (d["f_willr"] >= -80) & (c > d["f_ema20"] * 0.995)
+        out["williams_r"] = (d["f_willr"].shift(1) < -80) & (d["f_willr"] >= -80) & (c > d["f_ema20"] - 0.005 * d["f_ema20"].abs())
         out["donchian_turtle"] = (c > d["f_hh20"]) & (d["f_rvol"] >= 1.2) & (d["f_adx"] >= 20)
         out["vwap_dev"] = (d["f_vwap_z"] <= -2.0) & (c > o)
         return out

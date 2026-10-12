@@ -99,9 +99,39 @@ class FillTests(unittest.TestCase):
         t1 = simulate_day("X", df, [Signal(100, 1, 1.0, 2.0)], Costs(5, 1))[0]
         self.assertLess(t1.pnl_per_share(Costs(5, 1)), t0.pnl_per_share(Costs(0, 0)))
 
-    def test_short_is_not_supported_yet(self):
-        with self.assertRaises(NotImplementedError):
-            simulate_day("X", flat_day(), [Signal(100, -1, 1.0, 1.0)], self.costs)
+    def test_short_target_and_stop_mirror_the_long(self):
+        df = flat_day()                                        # flat at 100
+        df.iloc[105, df.columns.get_loc("low")] = 97.0         # price falls: the short's 2R target (98) is hit
+        t = simulate_day("X", df, [Signal(100, -1, 1.0, 2.0)], Costs(0, 0))[0]
+        self.assertEqual((t.side, t.reason), (-1, "target"))
+        self.assertAlmostEqual(t.entry_px, 100.0)
+        self.assertAlmostEqual(t.exit_px, 98.0)
+        self.assertAlmostEqual(t.pnl_per_share(Costs(0, 0)), 2.0)
+        df = flat_day()
+        df.iloc[103, df.columns.get_loc("open")] = 105.0       # gap UP through the short's stop (101): filled at the open, a loss
+        df.iloc[103, df.columns.get_loc("high")] = 106.0
+        t = simulate_day("X", df, [Signal(100, -1, 1.0, 0.0)], Costs(0, 0))[0]
+        self.assertEqual(t.reason, "stop")
+        self.assertAlmostEqual(t.exit_px, 105.0)
+        self.assertAlmostEqual(t.pnl_per_share(Costs(0, 0)), -5.0)
+
+    def test_short_slippage_and_fees_are_adverse(self):
+        df = flat_day()
+        t = simulate_day("X", df, [Signal(100, -1, 1.0, 0.0, 10)], Costs(10, 0))[0]     # 10 bps, time exit on a flat tape
+        self.assertAlmostEqual(t.entry_px, 100.0 * (1 - 0.001))    # sold lower
+        self.assertAlmostEqual(t.exit_px, 100.0 * (1 + 0.001))     # bought back higher
+        self.assertLess(t.pnl_per_share(Costs(10, 0.4)), t.pnl_per_share(Costs(10, 0)))
+
+    def test_short_with_managed_exit_trails_from_the_low(self):
+        df = flat_day()
+        for k in range(102, 110):                               # steady fall, then a bounce through the trail
+            for col in ("open", "high", "low", "close"):
+                df.iloc[k, df.columns.get_loc(col)] = 100.0 - (k - 101) * 0.5
+        for col, v in (("open", 96.5), ("high", 99.0), ("low", 96.5), ("close", 98.5)):
+            df.iloc[110, df.columns.get_loc(col)] = v
+        t = simulate_day("X", df, [Signal(100, -1, 1.5, 0.0, 0, "s", True, 1.0, 20.0, 1.5, 9.0)], Costs(0, 0))[0]
+        self.assertEqual(t.side, -1)
+        self.assertGreater(t.pnl_per_share(Costs(0, 0)), 0)     # trailed down, closed in profit on the bounce
 
 
 def trade(day, sym="X", sd=1.0, pnl_ps=0.5, minute=0):
@@ -610,3 +640,61 @@ class FlatBy350Tests(unittest.TestCase):
         w = X.EntryWindow()
         self.assertFalse(w.must_flatten(datetime(2026, 10, 12, 15, 49)))
         self.assertTrue(w.must_flatten(datetime(2026, 10, 12, 15, 50)))
+
+
+class HeatMapAndShortTests(unittest.TestCase):
+    def _daily(self, drift):
+        idx = pd.date_range("2024-01-02", periods=80, freq="B", tz="America/New_York")
+        rng = np.random.default_rng(1)
+        c = 100 * np.exp(np.cumsum(drift + rng.normal(0, 0.003, len(idx))))
+        return pd.DataFrame({"open": c, "high": c * 1.002, "low": c * 0.998, "close": c, "volume": 1e6}, index=idx)
+
+    def test_heat_state_direction_and_no_lookahead(self):
+        from alpacabot.gates import heat_state
+        down, up = heat_state(self._daily(-0.004)), heat_state(self._daily(0.004))
+        self.assertEqual(down.iloc[-1], -1)
+        self.assertEqual(up.iloc[-1], 1)
+        d = self._daily(-0.004)
+        full = heat_state(d)
+        cut = heat_state(d.iloc[:-1])                   # the last day's own bar is not used for that day's state
+        self.assertTrue(full.iloc[:-1].equals(cut))
+
+    def test_gates_block_longs_and_allow_shorts_only_when_bearish(self):
+        from alpacabot import gates
+        day = pd.date_range("2024-04-23 09:30", periods=10, freq="5min", tz="America/New_York")
+        d = pd.DataFrame({"open": 100.0, "high": 100.1, "low": 99.9, "close": 100.0, "volume": 1.0}, index=day)
+        bear = pd.Series({day[0].date(): -1.0})
+        neutral = pd.Series({day[0].date(): 0.0})
+        g = gates.apply(d.copy(), "NVDA", {"XLK": bear, "SPY": neutral})
+        self.assertFalse(g["g_long_ok"].all())
+        self.assertTrue(g["g_short_ok"].all())
+        g = gates.apply(d.copy(), "NVDA", {"XLK": neutral, "SPY": neutral})
+        self.assertTrue(g["g_long_ok"].all())
+        self.assertFalse(g["g_short_ok"].any())
+        g = gates.apply(d.copy(), "AMZN", {"XLY": neutral, "SPY": bear})       # market bearish: shorts allowed everywhere
+        self.assertTrue(g["g_short_ok"].all())
+
+    def test_brain_shorts_only_through_the_gate(self):
+        from alpacabot.experts import features_both, mirror
+        idx = pd.date_range("2024-03-04 09:30", periods=78 * 6, freq="5min", tz="America/New_York")
+        idx = idx[(idx.time >= pd.Timestamp("09:30").time()) & (idx.time <= pd.Timestamp("15:45").time())]
+        rng = np.random.default_rng(3)
+        c = 100 + np.cumsum(rng.normal(0, 0.15, len(idx)))
+        df = pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0}, index=idx)
+        df["high"] = df[["open", "high", "close"]].max(axis=1)
+        df["low"] = df[["open", "low", "close"]].min(axis=1)
+        full = df.join(features_both(df))
+        day = full[full.index.date == full.index[-1].date()].copy()
+        b = Brain(experts=[], short_experts=list(ALL_EXPERTS), route=False, mtf=False)
+        day["g_long_ok"], day["g_short_ok"], day["g_spy_red"] = True, False, False
+        self.assertEqual(b.signals(day), [])                              # gate closed: no shorts at all
+        day["g_short_ok"] = True
+        sigs = b.signals(day)
+        self.assertTrue(sigs and all(s.side == -1 and s.tag.startswith("S:") for s in sigs))
+        # a short on df is exactly a long on the mirrored series
+        m = mirror(df)
+        mday = m.join(features_both(m)).loc[day.index]
+        long_on_mirror = Brain(experts=list(ALL_EXPERTS), route=False, mtf=False).signals(mday)
+        self.assertEqual([s.i for s in sigs], [s.i for s in long_on_mirror])
+        day["g_short_ok"], day["g_spy_red"] = False, True
+        self.assertEqual(Brain(experts=[], short_experts=list(ALL_EXPERTS), route=False, mtf=False, short_gate="red").signals(day) != [], True)

@@ -105,40 +105,56 @@ TARGET_DAILY_PCT = (0.75, 1.0)
 
 
 def brain_walk_forward(data, train, test, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), min_trades: int = 50,
-                       placebo_runs: int = 20, spy_daily=None) -> dict:
-    """data: split_days(..., minutes=5, feature_fn=features_all). Select experts and tune the brain on TRAIN only; test once."""
+                       placebo_runs: int = 20, spy_daily=None, shorts: bool = False) -> dict:
+    """data: split_days(..., minutes=5, feature_fn=features_all) - or features_both + gates.add_gates when shorts=True.
+    Select experts (each side separately) and tune the brain on TRAIN only; test once."""
     base = dict(route=False, mtf=False, consensus=1)
-    solo = {}
+    pick_keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe")
+    good = lambda m: (m["trades"] or 0) >= min_trades and (m["expectancy_pct_notional"] or 0) > 0 and (m["profit_factor"] or 0) > 1.05  # noqa: E731
+    solo, solo_short = {}, {}
     for name in ALL_EXPERTS:
         m = run_intraday(Brain(experts=[name], **base), data, costs, pf, *train)["metrics"]
-        solo[name] = {k: m.get(k) for k in ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe")}
-    keep = [n for n, m in solo.items() if (m["trades"] or 0) >= min_trades and (m["expectancy_pct_notional"] or 0) > 0 and (m["profit_factor"] or 0) > 1.05]
-    keep.sort(key=lambda n: -(solo[n]["expectancy_pct_notional"] or 0))
-    out = {"family": "brain", "train": [str(x) for x in train], "test": [str(x) for x in test], "solo_train": solo, "selected_experts": keep}
-    if not keep:
+        solo[name] = {k: m.get(k) for k in pick_keys}
+        if shorts:
+            m = run_intraday(Brain(experts=[], short_experts=[name], **base), data, costs, pf, *train)["metrics"]
+            solo_short[name] = {k: m.get(k) for k in pick_keys}
+    keep = sorted([n for n, m in solo.items() if good(m)], key=lambda n: -(solo[n]["expectancy_pct_notional"] or 0))
+    keep_s = sorted([n for n, m in solo_short.items() if good(m)], key=lambda n: -(solo_short[n]["expectancy_pct_notional"] or 0))
+    out = {"family": "brain_ls" if shorts else "brain", "train": [str(x) for x in train], "test": [str(x) for x in test], "solo_train": solo,
+           "selected_experts": keep}
+    if shorts:
+        out["solo_train_short"], out["selected_short_experts"] = solo_short, keep_s
+    if not keep and not keep_s:
         out["note"] = "no expert had positive expectancy, profit factor > 1.05 and enough trades on the train years: the brain stays flat"
         out["verdict"] = "NO EDGE FOUND"
         return out
     table = []
-    for route, mtf, cons in itertools.product([True, False], [True, False], [1, 2] if len(keep) > 1 else [1]):
-        b = Brain(experts=keep, priority=keep, route=route, mtf=mtf, consensus=cons)
+    sector_opts = [False, True] if shorts else [False]
+    gate_opts = ["bearish", "red"] if keep_s else ["bearish"]
+    for route, mtf, cons, sect, gate in itertools.product([True, False], [True, False], [1, 2] if max(len(keep), len(keep_s)) > 1 else [1],
+                                                          sector_opts, gate_opts):
+        b = Brain(experts=keep, priority=keep + keep_s, route=route, mtf=mtf, consensus=cons, short_experts=keep_s, sector_filter=sect, short_gate=gate)
         m = run_intraday(b, data, costs, pf, *train)["metrics"]
-        table.append({"route": route, "mtf": mtf, "consensus": cons, **{k: m.get(k) for k in ("trades", "expectancy_pct_notional", "profit_factor", "sharpe", "daily_ret_pct_mean")}})
+        table.append({"route": route, "mtf": mtf, "consensus": cons, "sector_filter": sect, "short_gate": gate,
+                      **{k: m.get(k) for k in ("trades", "expectancy_pct_notional", "profit_factor", "sharpe", "daily_ret_pct_mean")}})
     ranked = sorted([t for t in table if (t["trades"] or 0) >= min_trades and t["sharpe"] is not None], key=lambda t: -t["sharpe"])
     out["brain_grid_train"] = table
     if not ranked:
         out["note"] = "the selected experts together produced too few trades on the train years"
         out["verdict"] = "NO RESULT"
         return out
-    pick = {k: ranked[0][k] for k in ("route", "mtf", "consensus")}
-    best = Brain(experts=keep, priority=keep, **pick)
-    out["chosen"] = {"experts": keep, **pick}
+    pick = {k: ranked[0][k] for k in ("route", "mtf", "consensus", "sector_filter", "short_gate")}
+    best = Brain(experts=keep, priority=keep + keep_s, short_experts=keep_s, **pick)
+    out["chosen"] = {"experts": keep, "short_experts": keep_s, **pick}
     res = run_intraday(best, data, costs, pf, *test)
     out["test_metrics"] = res["metrics"]
     fills = res["fills"]
     if len(fills):
         g = fills.groupby("tag").agg(trades=("pnl", "size"), win_rate=("pnl", lambda x: float((x > 0).mean())), avg_r=("r", "mean"), pnl=("pnl", "sum"))
         out["test_by_expert"] = g.round(4).to_dict("index")
+        if "side" in fills:
+            sd = fills.groupby("side").agg(trades=("pnl", "size"), win_rate=("pnl", lambda x: float((x > 0).mean())), avg_r=("r", "mean"), pnl=("pnl", "sum"))
+            out["test_by_side"] = {("long" if k == 1 else "short"): v for k, v in sd.round(4).to_dict("index").items()}
     out["stress"] = {f"slip x{x}": run_intraday(best, data, replace(costs, slip_bps=costs.slip_bps * x), pf, *test)["metrics"] for x in (2.5, 5.0)}
     plc = [run_intraday(best, data, costs, pf, *test, placebo_seed=s)["metrics"] for s in range(placebo_runs)]
     ex = [p.get("expectancy_pct_notional") for p in plc if p.get("trades")]
