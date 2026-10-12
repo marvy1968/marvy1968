@@ -827,6 +827,38 @@ def cmd_sports(s: Settings, args) -> int:
     return 0
 
 
+def cmd_soccer(s: Settings, args) -> int:
+    """Marv Soccer Predict Max node (marv/soccer_max): paper only, never sends Telegram."""
+    from .soccer_max import node as SN
+    state = Path(s.state_dir)
+    if args.action == "run":
+        print(json.dumps(SN.run(state, validate_if_older_days=0 if args.validate else 7), indent=1, default=str))
+    elif args.action == "validate":
+        from .soccer_max import validate as V
+        rep = V.run(state / "cache" / "soccer_fd", SN.out_dir(state), args.league.split(",") if args.league else None)
+        (SN.out_dir(state) / "soccer_validation.md").write_text(V.markdown(rep))
+        print(V.markdown(rep))
+    elif args.action == "refresh":
+        print(json.dumps(SN.refresh(state), indent=1))
+    elif args.action == "grade":
+        print(json.dumps(SN.grade(state), indent=1))
+    elif args.action == "project":
+        from .soccer_max import engine as E
+        key, r, home, away = SN.locate(state, args.league or "soccer", args.home, args.away, None)
+        if not home:
+            print("teams not found (run `soccer refresh` first, check names / --league)")
+            return 1
+        proj = E.MarvSoccerPredictMax(r, SN.calib_penalty(state, key)).project_match(home, away)
+        print(json.dumps({k: v for k, v in proj.items() if k not in ("asian_handicap",)}, indent=1, default=str))
+    elif args.action == "overlay":
+        o = bridge.overlay(state, args.league or "soccer", args.market, args.side, args.line, args.home, args.away,
+                           args.text, args.price, args.live)
+        print(bridge.overlay_json(o))
+    elif args.action == "status":
+        print((SN.out_dir(state) / "status.json").read_text() if (SN.out_dir(state) / "status.json").exists() else "{}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="marv", description="Marv Predict Max multi-sport bot")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -959,12 +991,24 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("test-telegram", help="send a test message")
     sub.add_parser("get-chat-id", help="list chat ids that have messaged your bot")
     sub.add_parser("sports", help="list sports, sources and schedules")
+    so = sub.add_parser("soccer", help="Marv Soccer Predict Max node (paper): run / validate / refresh / grade / project / overlay / status")
+    so.add_argument("action", choices=["run", "validate", "refresh", "grade", "project", "overlay", "status"])
+    so.add_argument("--league", help="eng.1, soccer_epl, ... (comma list for validate)")
+    so.add_argument("--home")
+    so.add_argument("--away")
+    so.add_argument("--market", default="totals")
+    so.add_argument("--side", default="under")
+    so.add_argument("--line", type=float)
+    so.add_argument("--price", type=float)
+    so.add_argument("--text")
+    so.add_argument("--live", action="store_true")
+    so.add_argument("--validate", action="store_true", help="run: force the walk-forward validation")
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
     try:
         return handler[args.command](s, args)
     except Exception:
