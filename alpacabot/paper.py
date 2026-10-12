@@ -369,6 +369,9 @@ class PaperRunner:
                         self.journal("entry_not_filled", symbol=sym, status=status, filled_qty=filled_qty)
                         continue
                     qty, fill = filled_qty, price
+                    ref_px = ask if sig.side == 1 else bid
+                    slip_bps = (price - ref_px) / ref_px * 1e4 * sig.side         # + = we paid more / sold for less than the quote
+                    self.journal("fill", symbol=sym, side=sig.side, qty=filled_qty, quote=ref_px, fill=price, slip_bps=round(slip_bps, 2))
                 self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1

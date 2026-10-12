@@ -246,3 +246,20 @@ def swing_expert_study(daily, train, costs: Costs = Costs(), pf: Portfolio = Por
             and (v.get("sharpe") or 0) > 0.5 and (spy_cagr is None or (v.get("cagr") or -1) > 0)]
     out["verdict"] = (f"candidates for validation: {', '.join(good)}" if good else "no daily-bar expert qualifies on the train years")
     return out
+
+
+def filters_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6)) -> dict:
+    """TRAIN years only: the whole expert set with every brain filter combination (regime router, 15-minute trend, how many experts must agree,
+    sector heat-map gate, shorts on/off). Fewer, better-confirmed trades pay the same costs once, so this is the 'trade less' test."""
+    keys = ("trades", "win_rate", "expectancy_pct_notional", "profit_factor", "daily_ret_pct_mean")
+    rows = []
+    for route, mtf, cons, sect, shorts in itertools.product([False, True], [False, True], [1, 2, 3], [False, True], [False, True]):
+        b = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS) if shorts else [], route=route, mtf=mtf, consensus=cons,
+                  sector_filter=sect, short_gate="red")
+        m = run_intraday(b, data, costs, pf, *train)["metrics"]
+        rows.append({"route": route, "mtf": mtf, "consensus": cons, "sector_filter": sect, "shorts": shorts, **{k: m.get(k) for k in keys}})
+    rows.sort(key=lambda r: -(r["expectancy_pct_notional"] if r["expectancy_pct_notional"] is not None else -9))
+    ok = [r for r in rows if (r["trades"] or 0) >= 500 and (r["expectancy_pct_notional"] or 0) > 0 and (r["profit_factor"] or 0) > 1.05]
+    return {"family": "filters", "train": [str(x) for x in train], "table": rows, "candidates": ok,
+            "verdict": (f"{len(ok)} filter combinations are positive after costs on the train years -> validate the best one once" if ok
+                        else "no filter combination is positive after costs on the train years")}
