@@ -29,6 +29,7 @@ from .strategies import SectorTopDown
 ET = ZoneInfo(NY)
 UNIVERSE = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
 RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.0035, 3, 0.333, 5.0
+WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
 
@@ -115,6 +116,18 @@ class SwingRunner:
         mv = sum(p["qty"] * closes.get(s, p["entry"]) for s, p in held.items())
         equity = self.state["base_equity"] + self.realized() + sum((closes.get(s, p["entry"]) - p["entry"]) * p["qty"] for s, p in held.items())
         cash = equity - mv + sum(held[s]["qty"] * closes[s] for s in exits)
+        hist = (self.state.get("equity_hist") or [])[-4:] + [round(equity, 2)]
+        self.state["equity_hist"] = hist
+        locked = equity < max(hist) * (1 - WEEKLY_LIMIT)
+        if locked:
+            self.journal("weekly_lock", now, equity=round(equity, 2), peak=max(hist))
+            if not self.state.get("lock_alerted"):
+                _alert(f"ALPACA PAPER (swing): weekly loss lock - book ${equity:,.0f} is {1 - equity / max(hist):.1%} below its 5-day peak. "
+                       "No new entries until it recovers; exits and broker stops still run.")
+                self.state["lock_alerted"] = True
+            cands = []
+        else:
+            self.state["lock_alerted"] = False
         entries = []
         for s in cands[:max(free, 0)]:
             px, stop = closes[s], float(frames[s]["stop"].iloc[-1])
@@ -197,6 +210,14 @@ class SwingRunner:
         pos["stop_order_id"] = so.get("id") if isinstance(so, dict) else None
         self.state["positions"][sym] = pos
         self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"])
+
+
+def _alert(text: str):
+    try:
+        from .paper import send_telegram
+        send_telegram(text)
+    except Exception:
+        log.exception("telegram alert failed")
 
 
 def summary(state_dir="state/alpaca_swing") -> list[str]:

@@ -415,12 +415,32 @@ class PaperRunner:
             status = "filled"                       # keep what filled; the remainder is a day order Alpaca will finish or cancel
         return status, qty, px
 
+    WEEKLY_LIMIT = 0.05      # own equity 5% below its peak of the last 7 days -> no new entries until a person deletes KILL_SWITCH
+
+    def weekly_guard(self, now_et: datetime):
+        """Weekly loss lock: compares this bot's own equity with the peak of its last 7 days of end-of-day snapshots."""
+        if (self.dir / "KILL_SWITCH").exists():
+            return
+        snaps = [e for e in _jl(self.dir / "equity.jsonl") if e.get("date", "") >= (now_et.date() - timedelta(days=7)).isoformat()]
+        if not snaps:
+            return
+        peak = max(e["equity"] for e in snaps)
+        eq = self.own_equity()
+        if eq < peak * (1 - self.WEEKLY_LIMIT):
+            msg = f"weekly loss lock: own equity ${eq:,.0f} is {1 - eq / peak:.1%} below this week's peak ${peak:,.0f}"
+            (self.dir / "KILL_SWITCH").write_text(msg + "\nDelete this file to resume new entries.\n")
+            self.journal("weekly_lock", equity=round(eq, 2), peak=peak)
+            send_telegram(f"ALPACA PAPER (intraday): {msg}. New entries stopped; open trades keep their exits. "
+                          f"Resume: delete /opt/marv-bot/state/alpaca_paper/KILL_SWITCH")
+
     def check_session(self, now_et: datetime):
         """Kill switch file and today's real close (early-close days), from the broker's clock."""
+        self.weekly_guard(now_et)
         killed = (self.dir / "KILL_SWITCH").exists()
         if killed != self.exec.kill_switch:
             self.exec.kill_switch = killed
             self.journal("kill_switch", on=killed)
+            send_telegram(f"ALPACA PAPER (intraday): kill switch {'ON - no new entries' if killed else 'OFF - entries resume'}")
         if getattr(self, "_close_day", None) != now_et.date() and hasattr(self.raw, "clock"):
             try:
                 nc = self.raw.clock().get("next_close")
@@ -439,6 +459,9 @@ class PaperRunner:
         snapshot = dict(self.exits.positions)
         for action in self.exec.on_tick(now_et):
             self.journal("housekeeping", action=action)
+            if "breaker" in action:
+                send_telegram(f"ALPACA PAPER (intraday): daily circuit breaker tripped - own equity fell "
+                              f"{self.exec.breaker.limit:.0%} today. Flattened; no new entries for {self.exec.breaker.lock_hours:.0f} h.")
             if "flatten" in action or "breaker" in action:      # OwnBook.flatten_all already recorded each exit
                 self.exits.positions.clear()
             elif action.startswith("stale exit "):

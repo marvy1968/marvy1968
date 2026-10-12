@@ -1032,3 +1032,48 @@ class SwingUnitTests(unittest.TestCase):
             self.assertTrue(all(x[5].startswith("sw-") for x in B.sent))
             self.assertIn("NVDA", r.state["positions"])
             self.assertEqual(r.open(datetime(2026, 11, 27, 9, 21, tzinfo=et)), {})          # never twice
+
+
+class WeeklyLockTests(unittest.TestCase):
+    def test_intraday_weekly_lock_writes_kill_switch_and_alerts(self):
+        import tempfile
+        from unittest import mock
+        from alpacabot import paper
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.0)
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(paper, "send_telegram") as tg:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)
+            (Path(d) / "equity.jsonl").write_text(json.dumps({"date": "2026-10-09", "equity": 53000.0}) + "\n")
+            now = datetime(2026, 10, 12, 11, 0, tzinfo=paper.ET)
+            r.base_equity = 50500.0                                          # own equity 50,500 vs peak 53,000 = -4.7%: no lock
+            r.check_session(now)
+            self.assertFalse((Path(d) / "KILL_SWITCH").exists())
+            r.base_equity = 50000.0                                          # -5.7%: lock
+            r.check_session(now)
+            self.assertTrue((Path(d) / "KILL_SWITCH").exists())
+            self.assertTrue(r.exec.kill_switch)
+            self.assertTrue(any("weekly loss lock" in c.args[0] for c in tg.call_args_list))
+
+    def test_swing_weekly_lock_blocks_entries_only(self):
+        import sys
+        import tempfile
+        from unittest import mock
+        from zoneinfo import ZoneInfo
+        sys.path.insert(0, str(Path(__file__).parent))
+        import test_swing_replay as R
+        from alpacabot import swing_paper
+        data = {"AAA": R.series(2, 0.0020), "BBB": R.series(3, 0.0012), "SPY": R.series(1, 0.0003, 0.009, 400.0)}
+        et = ZoneInfo("America/New_York")
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(swing_paper, "_alert") as alert:
+            box = {}
+            fetch = lambda sym, tf, a, b, feed: data[sym][data[sym].index.date <= box["day"]]      # noqa: E731
+            r = swing_paper.SwingRunner(R.SimBroker(data), state_dir=d, universe=["AAA", "BBB"], fetch=fetch, base_equity=100000.0)
+            day = next(x.date() for x in R.DAYS[60:] if (box.update(day=x.date()) or True)
+                       and r.scan(datetime(x.year, x.month, x.day, 16, 20, tzinfo=et)).get("entries"))
+            r.state["equity_hist"] = [200000.0] * 4                       # a peak far above today's book: the lock must engage
+            plan = r.scan(datetime(day.year, day.month, day.day, 16, 20, tzinfo=et))
+            self.assertEqual(plan["entries"], [])
+            self.assertTrue(alert.called)
