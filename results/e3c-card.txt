@@ -1,3 +1,30 @@
 $ show alpaca_paper/report_card.txt
-started 2026-10-12 16:48:48 EDT
-RUNNING...
+started 2026-10-12 16:48:48 EDT, took 0s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-12
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 45 trades, 15W/30L (33%), P&L $-260
+Equity $54,159  day +0.00%
+ROI since start (2026-10-12): +0.00% over 1 days   SPY +0.00%   avg daily +0.00% (goal 0.75-1.0%)
+Max drawdown 0.0%
+
+All trades: 45, 15W/30L (33%), profit factor 0.51, avg R -0.19
+  longs: 28, 10W/18L (36%), P&L $-104, profit factor 0.65
+  shorts: 17, 5W/12L (29%), P&L $-156, profit factor 0.32
+By symbol: AMD $+48, TSLA $+38, SPY $+1, AMZN $-84, META $-136
+
+GO-LIVE GATE (every line must pass, then it is your decision):
+  wait  30+ trading days: 1
+  wait  100+ trades: 45
+  wait  net ROI > 0: +0.00%
+  wait  profit factor >= 1.3: 0.51
+  PASS  max drawdown <= 10%: 0.0%
+  wait  beats SPY: +0.00% vs +0.00%
+  wait  avg daily >= 0.75%: +0.00%
+GATE NOT MET: keep paper trading.
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 0, 0W/0L, P&L $+0
+  holding: nothing
+  next open: buy ['META', 'MSFT', 'XLK'], sell nothing
