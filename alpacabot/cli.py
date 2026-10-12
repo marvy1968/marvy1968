@@ -143,6 +143,9 @@ def main(argv=None) -> int:
     sc.add_argument("--symbols", nargs="+", required=True)
     sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
+    co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
+    co.add_argument("--execute", action="store_true")
+    co.add_argument("--state", default="state/alpaca_paper")
     sub.add_parser("positions", help="read-only: every open position and open order on the paper account")
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
@@ -172,6 +175,44 @@ def main(argv=None) -> int:
         res = symbol_check({s: days[s] for s in syms if s in days}, (start, date(2020, 12, 31)), (date(2021, 1, 1), end), Costs(), brain_kwargs=kw)
         for s, r in res.items():
             print(f"{s:6s} {'QUALIFIES' if r['qualifies'] else 'no':9s} train {r['train']}  validate {r['validate']}  2.5x slip {r['validate_slip_x2.5']}")
+        return 0
+    if a.cmd == "close-others":
+        import requests
+
+        from .data import _headers
+        from .exits import StateStore
+        api = "https://paper-api.alpaca.markets/v2"
+        h = _headers()
+        own = {s: p["qty"] * p.get("side", 1) for s, p in StateStore(Path(a.state) / "positions.json").load().items()}
+        pos = requests.get(f"{api}/positions", headers=h, timeout=30).json()
+        orders = requests.get(f"{api}/orders", headers=h, params={"status": "open", "limit": 500}, timeout=30).json()
+        cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith("ab-")]
+        close, keep, mixed = [], [], []
+        for p in pos:
+            sym, q = p["symbol"], int(float(p["qty"])) * (-1 if p.get("side") == "short" else 1)
+            if sym not in own:
+                close.append((sym, q))
+            elif q == own[sym]:
+                keep.append((sym, q))
+            else:
+                mixed.append((sym, q, own[sym]))
+        print(f"new bot holds: {own or 'nothing'}")
+        print(f"KEEP (the new bot's): {keep}")
+        print(f"CANCEL {len(cancel)} orders not from the new bot: " + ", ".join(f"{o['symbol']} {o['side']} {o['type']}" for o in cancel))
+        print(f"CLOSE {len(close)} positions not from the new bot: " + ", ".join(f"{s} {q:+d}" for s, q in close))
+        if mixed:
+            print(f"NOT TOUCHED (shared with the new bot, close the difference by hand): {mixed}")
+        if not a.execute:
+            print("DRY RUN: nothing was sent. Re-run with --execute to do it.")
+            return 0
+        for o in cancel:
+            r = requests.delete(f"{api}/orders/{o['id']}", headers=h, timeout=30)
+            print("cancel", o["symbol"], r.status_code)
+        import time as _t
+        _t.sleep(3)
+        for sym, q in close:
+            r = requests.delete(f"{api}/positions/{sym}", headers=h, timeout=30)
+            print("close", sym, q, r.status_code, (r.text[:120] if r.status_code >= 300 else ""))
         return 0
     if a.cmd == "positions":
         import requests
