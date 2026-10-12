@@ -1,3 +1,182 @@
 $ show reports/alpaca_validate_brain_ls.json
-started 2026-10-12 09:13:09 EDT
-RUNNING...
+started 2026-10-12 09:13:09 EDT, took 0s, exit 0
+
+{
+ "family": "brain_ls",
+ "train": [
+  "2016-01-04",
+  "2020-12-31"
+ ],
+ "test": [
+  "2021-01-01",
+  "2022-12-31"
+ ],
+ "solo_train": {
+  "velez_elephant": {
+   "trades": 7073,
+   "win_rate": 0.39035769828926903,
+   "avg_r": -0.16000629092519134,
+   "expectancy_pct_notional": -0.03811264802370524,
+   "profit_factor": 0.8189618642850827,
+   "sharpe": -2.0752429404717985
+  },
+  "velez_180": {
+   "trades": 20375,
+   "win_rate": 0.3359509202453988,
+   "avg_r": -0.25126286394175923,
+   "expectancy_pct_notional": -0.03181830305559044,
+   "profit_factor": 0.791959248143457,
+   "sharpe": -3.4811917043501954
+  },
+  "raschke_grail": {
+   "trades": 4541,
+   "win_rate": 0.2834177493944065,
+   "avg_r": -0.37246215407108535,
+   "expectancy_pct_notional": -0.04369328586236234,
+   "profit_factor": 0.720584733458426,
+   "sharpe": -3.087707768359617
+  },
+  "brooks_pullback": {
+   "trades": 13248,
+   "win_rate": 0.27219202898550726,
+   "avg_r": -0.41883423226216543,
+   "expectancy_pct_notional": -0.042541937812740155,
+   "profit_factor": 0.6809592055317616,
+   "sharpe": -5.7516893904757875
+  },
+  "connors_rsi2": {
+   "trades": 18856,
+   "win_rate": 0.5135235468816292,
+   "avg_r": -0.1311609109775747,
+   "expectancy_pct_notional": -0.029881338070163084,
+   "profit_factor": 0.6873186282126793,
+   "sharpe": -5.015404007542599
+  },
+  "bollinger_bounce": {
+   "trades": 10997,
+   "win_rate": 0.4487587523870146,
+   "avg_r": -0.19243497823139294,
+   "expectancy_pct_notional": -0.049204769723492484,
+   "profit_factor": 0.7699247651929194,
+   "sharpe": -3.047481615406794
+  },
+  "williams_r": {
+   "trades": 27315,
+   "win_rate": 0.4691195313930075,
+   "avg_r": -0.22702664803203026,
+   "expectancy_pct_notional": -0.058528632414648264,
+   "profit_factor": 0.6698988115220534,
+   "sharpe": -7.30276557465008
+  },
+  "donchian_turtle": {
+   "trades": 9661,
+   "win_rate": 0.354621674774868,
+   "avg_r": -0.19180443223322474,
+   "expectancy_pct_notional": -0.046704516899613975,
+   "profit_factor": 0.6998228559521753,
+   "sharpe": -4.152963437097342
+  },
+  "vwap_dev": {
+   "trades": 15477,
+   "win_rate": 0.41810428377592557,
+   "avg_r": -0.18996974886696139,
+   "expectancy_pct_notional": -0.05264066393311634,
+   "profit_factor": 0.7230480681408504,
+   "sharpe": -4.117639675599279
+  },
+  "dual_regime": {
+   "trades": 27804,
+   "win_rate": 0.34811537908214646,
+   "avg_r": -0.1904157963558058,
+   "expectancy_pct_notional": -0.04585421731683822,
+   "profit_factor": 0.6967112603270752,
+   "sharpe": -5.815582560001824
+  }
+ },
+ "selected_experts": [],
+ "solo_train_short": {
+  "velez_elephant": {
+   "trades": 1176,
+   "win_rate": 0.3469387755102041,
+   "avg_r": -0.16915821005976442,
+   "expectancy_pct_notional": -0.09418869911195799,
+   "profit_factor": 0.6997824662493949,
+   "sharpe": -3.0847697697685392
+  },
+  "velez_180": {
+   "trades": 3017,
+   "win_rate": 0.35664567451110374,
+   "avg_r": -0.09613299073580141,
+   "expectancy_pct_notional": -0.023773074810507954,
+   "profit_factor": 0.9095713171601787,
+   "sharpe": -1.0528769623080534
+  },
+  "raschke_grail": {
+   "trades": 662,
+   "win_rate": 0.29003021148036257,
+   "avg_r": -0.2520821237143975,
+   "expectancy_pct_notional": -0.05263505339090326,
+   "profit_factor": 0.7814976654650686,
+   "sharpe": -1.9977423267915897
+  },
+  "brooks_pullback": {
+   "trades": 1874,
+   "win_rate": 0.3297758804695838,
+   "avg_r": -0.12938550642797728,
+   "expectancy_pct_notional": -0.016636463310025454,
+   "profit_factor": 0.9225605215396333,
+   "sharpe": -0.7807000577895151
+  },
+  "connors_rsi2": {
+   "trades": 2515,
+   "win_rate": 0.5717693836978132,
+   "avg_r": -0.06356126446337272,
+   "expectancy_pct_notional": -0.030290737174573222,
+   "profit_factor": 0.8166861795861622,
+   "sharpe": -1.8601580231896684
+  },
+  "bollinger_bounce": {
+   "trades": 1926,
+   "win_rate": 0.4434060228452752,
+   "avg_r": -0.19463766990329273,
+   "expectancy_pct_notional": -0.05290997545570711,
+   "profit_factor": 0.7895140704250498,
+   "sharpe": -2.5382300400434157
+  },
+  "williams_r": {
+   "trades": 4305,
+   "win_rate": 0.4831591173054588,
+   "avg_r": -0.17628380221224554,
+   "expectancy_pct_notional": -0.0653113987683736,
+   "profit_factor": 0.7089609091588199,
+   "sharpe": -4.856256455736673
+  },
+  "donchian_turtle": {
+   "trades": 1652,
+   "win_rate": 0.3855932203389831,
+   "avg_r": -0.14923294756963792,
+   "expectancy_pct_notional": -0.06879293118264879,
+   "profit_factor": 0.6950682777523307,
+   "sharpe": -3.8129453972565415
+  },
+  "vwap_dev": {
+   "trades": 2941,
+   "win_rate": 0.39646378782726965,
+   "avg_r": -0.19582367641880113,
+   "expectancy_pct_notional": -0.051230096321908544,
+   "profit_factor": 0.7603870564686659,
+   "sharpe": -2.5698276336374564
+  },
+  "dual_regime": {
+   "trades": 4713,
+   "win_rate": 0.3831954169318905,
+   "avg_r": -0.1656290804967298,
+   "expectancy_pct_notional": -0.0617907266552954,
+   "profit_factor": 0.6969614695464521,
+   "sharpe": -4.618828941731229
+  }
+ },
+ "selected_short_experts": [],
+ "note": "no expert had positive expectancy, profit factor > 1.05 and enough trades on the train years: the brain stays flat",
+ "verdict": "NO EDGE FOUND"
+}
