@@ -1,3 +1,4 @@
 $ alpaca swing status
-started 2026-10-12 16:12:03 EDT
-RUNNING...
+started 2026-10-12 16:12:03 EDT, took 1s, exit 0
+
+swing runner has not run yet
