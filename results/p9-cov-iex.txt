@@ -1,0 +1,2 @@
+$ alpaca coverage --feed iex
+REFUSED: alpaca needs download, backtest, run-all, check or paper-report
