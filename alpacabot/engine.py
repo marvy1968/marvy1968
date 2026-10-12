@@ -93,15 +93,23 @@ def resample_bars(df: pd.DataFrame, minutes: int) -> pd.DataFrame:
     return out.dropna(subset=["open"])
 
 
-def split_days(bars: dict[str, pd.DataFrame], minutes: int = 1, feature_fn=None, min_bars: int | None = None) -> dict[str, list[pd.DataFrame]]:
+FLAT_BY = "15:50"   # intraday positions are closed by 3:50 pm ET (the live runner's EntryWindow.flatten_at); the last kept bar closes at that time
+
+
+def split_days(bars: dict[str, pd.DataFrame], minutes: int = 1, feature_fn=None, min_bars: int | None = None, flat_by: str | None = FLAT_BY) -> dict[str, list[pd.DataFrame]]:
     """symbol -> list of one-session frames. minutes: aggregate to that bar size first. feature_fn: causal indicator columns computed once on the
-    continuous series (so the first bar of a day already has warm indicators)."""
+    continuous series (so the first bar of a day already has warm indicators). flat_by: drop bars that close after this time, so the backtest's
+    end-of-day exit happens at the same clock time as the live flatten."""
     need = min_bars if min_bars is not None else max(60 // minutes, 12)
     out = {}
     for sym, df in bars.items():
         df = resample_bars(df, minutes)
         if feature_fn is not None and len(df):
             df = df.join(feature_fn(df))
+        if flat_by and len(df):
+            h, m = map(int, flat_by.split(":"))
+            close_min = df.index.hour * 60 + df.index.minute + max(minutes, 1)
+            df = df[close_min <= h * 60 + m]
         out[sym] = [d for _, d in df.groupby(df.index.date) if len(d) >= need]
     return out
 

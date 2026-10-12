@@ -597,3 +597,16 @@ class PaperRunnerTests(unittest.TestCase):
             t = paper._jl(Path(d) / "trades.jsonl")
             self.assertEqual((t[0]["reason"], t[0]["pnl"]), ("flatten", 10.0))
             self.assertAlmostEqual(r.own_equity(), 54010.0)                   # own book, not the shared account
+
+
+class FlatBy350Tests(unittest.TestCase):
+    def test_backtest_days_end_350_and_live_flattens_350(self):
+        idx = pd.date_range("2026-10-12 09:30", "2026-10-12 15:59", freq="1min", tz="America/New_York")
+        df = pd.DataFrame({"open": 100.0, "high": 100.1, "low": 99.9, "close": 100.0, "volume": 1000.0}, index=idx)
+        one = split_days({"SPY": df})["SPY"][0]
+        five = split_days({"SPY": df}, minutes=5)["SPY"][0]
+        self.assertEqual(one.index[-1].strftime("%H:%M"), "15:49")      # 1-min bar 15:49-15:50 is the last
+        self.assertEqual(five.index[-1].strftime("%H:%M"), "15:45")     # 5-min bar 15:45-15:50 is the last
+        w = X.EntryWindow()
+        self.assertFalse(w.must_flatten(datetime(2026, 10, 12, 15, 49)))
+        self.assertTrue(w.must_flatten(datetime(2026, 10, 12, 15, 50)))

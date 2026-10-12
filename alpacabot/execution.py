@@ -85,7 +85,7 @@ class EntryWindow:
     """Regular-hours session rules (Eastern time)."""
     no_entry_before: dtime = dtime(9, 45)
     no_entry_after: dtime = dtime(15, 30)
-    flatten_at: dtime = dtime(15, 55)
+    flatten_at: dtime = dtime(15, 50)          # day trades and scalps are flat by 3:50 pm ET; only swing trades hold overnight
 
     def entries_allowed(self, now_et: datetime) -> bool:
         return now_et.weekday() < 5 and self.no_entry_before <= now_et.time() <= self.no_entry_after
