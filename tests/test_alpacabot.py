@@ -570,3 +570,30 @@ class PaperRunnerTests(unittest.TestCase):
             self.assertIn("GATE NOT MET", t)                     # 2 days and 4 trades cannot pass
             self.assertIn("PAPER account only", t)
         self.assertIn("No equity snapshots", paper.report_card(tempfile.mkdtemp(), date(2026, 10, 12)))
+
+    def test_shared_account_only_touches_own_shares(self):
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def __init__(self): self.closed, self.cancelled = [], False
+            def positions(self): return {"SPY": 110, "XOM": 50}          # 100 SPY + all XOM belong to the other bots
+            def equity(self): return 54000.0
+            def quote(self, s): return (101.0, 101.02)
+            def submit_market(self, s, q, c=None): return {}
+            def close(self, s, qty=None): self.closed.append((s, qty))
+            def flatten_all(self): self.cancelled = True                  # account-wide: must never be called
+            def clock_open(self): return True
+
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            r.exits.positions["SPY"] = {"state": ExitState.open(100, 1, 20), "qty": 10, "opened": "2026-10-12T10:00:00-04:00"}
+            r.exec.opened["SPY"] = datetime(2026, 10, 12, 10, 0)
+            r.tick(datetime(2026, 10, 12, 15, 56, tzinfo=paper.ET))          # flatten time
+            self.assertEqual(b.closed, [("SPY", 10)])                          # only our 10 shares
+            self.assertFalse(b.cancelled)
+            self.assertEqual(r.exits.positions, {})
+            t = paper._jl(Path(d) / "trades.jsonl")
+            self.assertEqual((t[0]["reason"], t[0]["pnl"]), ("flatten", 10.0))
+            self.assertAlmostEqual(r.own_equity(), 54010.0)                   # own book, not the shared account

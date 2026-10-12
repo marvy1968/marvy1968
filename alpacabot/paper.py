@@ -65,12 +65,37 @@ class RestBroker:
         r.raise_for_status()
         return r.json()
 
+    def close(self, symbol: str, qty: int | None = None):
+        """Sell `qty` shares (only this bot's own shares when the account is shared); whole position only when qty is None."""
+        return self._req("DELETE", f"{TRADE_URL}/positions/{symbol}", params={"qty": str(qty)} if qty else None)
+
+
+class OwnBook:
+    """The account is shared with the owner's other bots, so this bot must only ever touch, and only ever measure, its own shares.
+
+    equity()     = this bot's own book: starting capital + its realized P&L + its open P&L (drives sizing, the breaker and the report card)
+    close(sym)   = sells only this bot's quantity in sym
+    flatten_all  = closes only this bot's positions; never cancels or closes anything the other bots own
+    """
+
+    def __init__(self, broker, runner):
+        self.b, self.r = broker, runner
+
+    def __getattr__(self, name):                 # quote, positions, submit_market, clock_open pass straight through
+        return getattr(self.b, name)
+
+    def equity(self) -> float:
+        return self.r.own_equity()
+
     def close(self, symbol: str):
-        return self._req("DELETE", f"{TRADE_URL}/positions/{symbol}")
+        pos = self.r.exits.positions.get(symbol)
+        return self.b.close(symbol, pos["qty"]) if pos else None
 
     def flatten_all(self):
-        self._req("DELETE", f"{TRADE_URL}/orders")
-        return self._req("DELETE", f"{TRADE_URL}/positions", params={"cancel_orders": "true"})
+        for sym in list(self.r.exits.positions):
+            bid, _ = retry_call(self.b.quote, sym, sleep=self.r.sleep)
+            self.close(sym)
+            self.r.record_exit(sym, bid, "flatten")
 
 
 def today_frame(sym: str, now_et: datetime, brain: Brain, fetch=_fetch):
@@ -95,16 +120,43 @@ class PaperRunner:
         self.dir = Path(state_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
         self.store = StateStore(self.dir / "positions.json")
-        self.exits = VirtualExitManager(self.store, broker, sleep=sleep)
-        self.exec = Executor(broker, EntryWindow(), CircuitBreaker(), risk_pct=risk_pct, max_positions=6, sleep=sleep)
+        self.raw = broker
+        self.broker = OwnBook(broker, self)
+        self.exits = VirtualExitManager(self.store, self.broker, sleep=sleep)
+        self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(), risk_pct=risk_pct, max_positions=6, sleep=sleep)
+        self.last_bid: dict[str, float] = {}
+        base = self.dir / "base_equity.json"
+        if not base.exists():                    # the bot's starting capital = the account equity the first time it runs
+            base.write_text(json.dumps({"equity": float(retry_call(broker.equity, sleep=sleep))}))
+        self.base_equity = json.loads(base.read_text())["equity"]
         self.exec.opened = self.exits.opened_at()
         self.last_bar: dict[str, object] = {}
         self.entries_today = 0
         self.reported = None
+        self.traded_days: set = set()
 
     def journal(self, kind: str, **kw):
         with open(self.dir / "journal.jsonl", "a") as f:
             f.write(json.dumps({"t": datetime.now(ET).isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n")
+
+    def realized(self) -> float:
+        return sum(t["pnl"] for t in _jl(self.dir / "trades.jsonl"))
+
+    def own_equity(self) -> float:
+        open_pnl = sum((self.last_bid.get(s, p["state"].entry) - p["state"].entry) * p["qty"] for s, p in self.exits.positions.items())
+        return self.base_equity + self.realized() + open_pnl
+
+    def record_exit(self, sym: str, bid: float, reason: str, pos=None):
+        pos = pos or self.exits.positions.get(sym)
+        if not pos:
+            return
+        qty, entry = pos["qty"], pos["state"].entry
+        risk = pos["state"].atr * pos["state"].trail * qty
+        pnl = (bid - entry) * qty
+        self.journal("exit", symbol=sym, reason=reason, bid=bid)
+        with open(self.dir / "trades.jsonl", "a") as f:
+            f.write(json.dumps({"date": datetime.now(ET).date().isoformat(), "symbol": sym, "qty": qty, "entry": entry, "exit": bid, "pnl": round(pnl, 2),
+                                "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason, "opened": pos["opened"]}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -119,17 +171,12 @@ class PaperRunner:
         """Virtual stop / trail / take-profit, run every ~15 s on live quotes."""
         for sym in list(self.exits.positions):
             bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
+            self.last_bid[sym] = bid
             pos = self.exits.positions.get(sym)
-            entry, qty, opened = (pos["state"].entry, pos["qty"], pos["opened"]) if pos else (0, 0, "")
-            reason = self.exits.on_quote(sym, bid, ask)
+            reason = self.exits.on_quote(sym, bid, ask)       # sells only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
-                self.journal("exit", symbol=sym, reason=reason, bid=bid)
-                risk = pos["state"].atr * pos["state"].trail * qty if pos else 0
-                pnl = (bid - entry) * qty
-                with open(self.dir / "trades.jsonl", "a") as f:
-                    f.write(json.dumps({"date": now_et.date().isoformat(), "symbol": sym, "qty": qty, "entry": entry, "exit": bid, "pnl": round(pnl, 2),
-                                        "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason, "opened": opened}) + "\n")
+                self.record_exit(sym, bid, reason, pos)
 
     def on_bar_close(self, now_et: datetime):
         """Once per new 5-minute bar: ask the Brain about each symbol and enter on a fresh signal."""
@@ -153,18 +200,24 @@ class PaperRunner:
                 self.entries_today += 1
 
     def tick(self, now_et: datetime):
+        snapshot = dict(self.exits.positions)
         for action in self.exec.on_tick(now_et):
             self.journal("housekeeping", action=action)
-            if "flatten" in action or "breaker" in action:
+            if "flatten" in action or "breaker" in action:      # OwnBook.flatten_all already recorded each exit
                 self.exits.positions.clear()
-                self.store.save(self.exits.positions)
+            elif action.startswith("stale exit "):
+                sym = action.split()[-1]
+                if sym in snapshot:
+                    self.record_exit(sym, self.last_bid.get(sym, snapshot[sym]["state"].entry), "stale", snapshot[sym])
+                    self.exits.positions.pop(sym, None)
+        self.store.save(self.exits.positions)
         self.poll_exits(now_et)
 
     def end_of_day(self, now_et: datetime):
         """Snapshot equity and SPY, then send the daily report card (Telegram when configured, always saved to disk)."""
         try:
             bid, ask = self.broker.quote("SPY")
-            snap = {"date": now_et.date().isoformat(), "equity": self.broker.equity(), "spy": round((bid + ask) / 2, 2)}
+            snap = {"date": now_et.date().isoformat(), "equity": round(self.own_equity(), 2), "account_equity": self.raw.equity(), "spy": round((bid + ask) / 2, 2)}
             with open(self.dir / "equity.jsonl", "a") as f:
                 f.write(json.dumps(snap) + "\n")
             text = report_card(self.dir, now_et.date())
@@ -180,13 +233,14 @@ class PaperRunner:
         while True:
             now = datetime.now(ET)
             try:
+                if now.time() >= dtime(16, 5) and self.reported != now.date() and now.date() in self.traded_days:
+                    self.reported = now.date()          # after the bell the clock says closed, so the card is sent before that check
+                    self.end_of_day(now)
                 if now.weekday() >= 5 or not self.broker.clock_open():
                     self.sleep(60)
                     continue
                 self.tick(now)
-                if now.time() >= dtime(16, 5) and self.reported != now.date():
-                    self.reported = now.date()
-                    self.end_of_day(now)
+                self.traded_days.add(now.date())
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot
@@ -215,7 +269,7 @@ def report_card(state_dir, day=None) -> str:
         return len(ts), len(w), len(ts) - len(w), (len(w) / len(ts) if ts else 0.0), (sum(t["pnl"] for t in w) / gl if gl else float("inf") if w else 0.0), (sum(t["r"] for t in ts) / len(ts) if ts else 0.0)
     n, w, l, wr, pf, ar = stats(today)
     N, W, L, WR, PF, AR = stats(trades)
-    lines = ["ALPACA PAPER REPORT CARD " + day, "PAPER account only. Nothing here is a live result.", ""]
+    lines = ["ALPACA PAPER REPORT CARD " + day, "PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).", ""]
     lines.append(f"Today: {n} trades, {w}W/{l}L ({wr:.0%}), P&L ${sum(t['pnl'] for t in today):+,.0f}")
     days = len(eq)
     gate = []
