@@ -19,7 +19,8 @@ from .data import NY, _fetch, _headers
 from .engine import resample_bars
 from .exits import StateStore
 from .execution import CircuitBreaker, EntryWindow, Executor, VirtualExitManager, retry_call, setup_logging, spread_ok
-from .experts import features_all
+from .experts import ALL_EXPERTS, features_both
+from . import gates
 
 ET = ZoneInfo(NY)
 TRADE_URL = "https://paper-api.alpaca.markets/v2"
@@ -53,10 +54,19 @@ class RestBroker:
         return float(q["bp"]), float(q["ap"])
 
     def positions(self) -> dict[str, int]:
-        return {p["symbol"]: int(float(p["qty"])) for p in self._req("GET", f"{TRADE_URL}/positions").json()}
+        """symbol -> signed quantity (negative = short)."""
+        return {p["symbol"]: abs(int(float(p["qty"]))) * (-1 if p.get("side") == "short" else 1) for p in self._req("GET", f"{TRADE_URL}/positions").json()}
 
-    def submit_market(self, symbol: str, qty: int, client_order_id: str | None = None):
-        body = {"symbol": symbol, "qty": str(qty), "side": "buy", "type": "market", "time_in_force": "day"}
+    def shortable(self, symbol: str) -> bool:
+        a = self._req("GET", f"{TRADE_URL}/assets/{symbol}").json()
+        return bool(a.get("shortable")) and bool(a.get("easy_to_borrow"))
+
+    def daily(self, symbol: str, days: int = 90):
+        now = datetime.now(ET)
+        return _fetch(symbol, "1Day", (now - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00Z"), now.strftime("%Y-%m-%dT%H:%M:%SZ"), "iex")
+
+    def submit_market(self, symbol: str, qty: int, client_order_id: str | None = None, side: str = "buy"):
+        body = {"symbol": symbol, "qty": str(qty), "side": side, "type": "market", "time_in_force": "day"}
         if client_order_id:
             body["client_order_id"] = client_order_id
         r = self._req("POST", f"{TRADE_URL}/orders", json=body)
@@ -66,7 +76,7 @@ class RestBroker:
         return r.json()
 
     def close(self, symbol: str, qty: int | None = None):
-        """Sell `qty` shares (only this bot's own shares when the account is shared); whole position only when qty is None."""
+        """Close `qty` shares: sells a long or buys back a short (only this bot's own shares on a shared account); the whole position when qty is None."""
         return self._req("DELETE", f"{TRADE_URL}/positions/{symbol}", params={"qty": str(qty)} if qty else None)
 
 
@@ -93,13 +103,13 @@ class OwnBook:
 
     def flatten_all(self):
         for sym in list(self.r.exits.positions):
-            bid, _ = retry_call(self.b.quote, sym, sleep=self.r.sleep)
+            bid, ask = retry_call(self.b.quote, sym, sleep=self.r.sleep)
             self.close(sym)
-            self.r.record_exit(sym, bid, "flatten")
+            self.r.record_exit(sym, bid if self.r.exits.positions[sym].get("side", 1) == 1 else ask, "flatten")
 
 
 def today_frame(sym: str, now_et: datetime, brain: Brain, fetch=_fetch):
-    """Today's completed 5-minute bars with causal features (computed on the last 5 sessions so indicators are warm)."""
+    """Today's completed 5-minute bars with causal long AND short (mirrored) features, computed on the last 5 sessions so they are warm."""
     start = (now_et - timedelta(days=7)).strftime("%Y-%m-%dT00:00:00Z")
     raw = fetch(sym, "1Min", start, (now_et + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ"), "iex")
     raw = raw.between_time("09:30", "15:59") if len(raw) else raw
@@ -109,14 +119,24 @@ def today_frame(sym: str, now_et: datetime, brain: Brain, fetch=_fetch):
     df = df[df.index + timedelta(minutes=5) <= now_et]       # a bar is usable only once it has closed
     if len(df) < 20:
         return None
-    df = df.join(features_all(df))
+    df = df.join(features_both(df))
     day = df[df.index.date == now_et.date()]
     return day if len(day) >= 3 else None
 
 
+def default_brain(state_dir) -> Brain:
+    """Paper default: every expert both ways; longs blocked in a BEARISH sector; shorts only while the market or the sector is BEARISH or
+    SPY is red on the day. Overridden by <state>/brain.json (written once validation has chosen a configuration)."""
+    cfg = {"experts": list(ALL_EXPERTS), "short_experts": list(ALL_EXPERTS), "sector_filter": True, "short_gate": "red"}
+    p = Path(state_dir) / "brain.json"
+    if p.exists():
+        cfg.update(json.loads(p.read_text()))
+    return Brain(**cfg)
+
+
 class PaperRunner:
     def __init__(self, broker, brain: Brain | None = None, state_dir="state/alpaca_paper", risk_pct=0.01, symbols=None, fetch=_fetch, sleep=time.sleep):
-        self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or Brain(), symbols or SYMBOLS, fetch, sleep
+        self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or default_brain(state_dir), symbols or SYMBOLS, fetch, sleep
         self.dir = Path(state_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
         self.store = StateStore(self.dir / "positions.json")
@@ -124,7 +144,8 @@ class PaperRunner:
         self.broker = OwnBook(broker, self)
         self.exits = VirtualExitManager(self.store, self.broker, sleep=sleep)
         self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(), risk_pct=risk_pct, max_positions=6, sleep=sleep)
-        self.last_bid: dict[str, float] = {}
+        self.last_px: dict[str, float] = {}      # last exit-side price: bid for longs, ask for shorts
+        self.heat, self.heat_day, self.borrow = {}, None, {}
         base = self.dir / "base_equity.json"
         if not base.exists():                    # the bot's starting capital = the account equity the first time it runs
             base.write_text(json.dumps({"equity": float(retry_call(broker.equity, sleep=sleep))}))
@@ -142,21 +163,27 @@ class PaperRunner:
     def realized(self) -> float:
         return sum(t["pnl"] for t in _jl(self.dir / "trades.jsonl"))
 
+    @staticmethod
+    def entry_px(pos) -> float:
+        return pos.get("side", 1) * pos["state"].entry          # shorts are tracked on -price
+
     def own_equity(self) -> float:
-        open_pnl = sum((self.last_bid.get(s, p["state"].entry) - p["state"].entry) * p["qty"] for s, p in self.exits.positions.items())
+        open_pnl = sum(p.get("side", 1) * (self.last_px.get(s, self.entry_px(p)) - self.entry_px(p)) * p["qty"] for s, p in self.exits.positions.items())
         return self.base_equity + self.realized() + open_pnl
 
-    def record_exit(self, sym: str, bid: float, reason: str, pos=None):
+    def record_exit(self, sym: str, px: float, reason: str, pos=None):
+        """px: the real exit price (bid for a long, ask for a short)."""
         pos = pos or self.exits.positions.get(sym)
         if not pos:
             return
-        qty, entry = pos["qty"], pos["state"].entry
+        qty, side, entry = pos["qty"], pos.get("side", 1), self.entry_px(pos)
         risk = pos["state"].atr * pos["state"].trail * qty
-        pnl = (bid - entry) * qty
-        self.journal("exit", symbol=sym, reason=reason, bid=bid)
+        pnl = side * (px - entry) * qty
+        self.journal("exit", symbol=sym, reason=reason, px=px, side=side)
         with open(self.dir / "trades.jsonl", "a") as f:
-            f.write(json.dumps({"date": datetime.now(ET).date().isoformat(), "symbol": sym, "qty": qty, "entry": entry, "exit": bid, "pnl": round(pnl, 2),
-                                "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason, "opened": pos["opened"]}) + "\n")
+            f.write(json.dumps({"date": datetime.now(ET).date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
+                                "entry": round(entry, 4), "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
+                                "reason": reason, "opened": pos["opened"]}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -171,32 +198,75 @@ class PaperRunner:
         """Virtual stop / trail / take-profit, run every ~15 s on live quotes."""
         for sym in list(self.exits.positions):
             bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
-            self.last_bid[sym] = bid
             pos = self.exits.positions.get(sym)
-            reason = self.exits.on_quote(sym, bid, ask)       # sells only our qty (OwnBook.close)
+            px = bid if pos.get("side", 1) == 1 else ask
+            self.last_px[sym] = px
+            reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
-                self.record_exit(sym, bid, reason, pos)
+                self.record_exit(sym, px, reason, pos)
+
+    def refresh_heat(self, now_et: datetime):
+        """Sector & market heat map, once a day from completed daily bars."""
+        if self.heat_day == now_et.date():
+            return
+        daily = {}
+        for etf in gates.HEAT_ETFS:
+            try:
+                d = self.raw.daily(etf) if hasattr(self.raw, "daily") else None
+                daily[etf] = d[d.index.date < now_et.date()] if d is not None and len(d) else None    # completed days only
+            except Exception:
+                log.exception("heat map: no daily bars for %s (treated as NEUTRAL)", etf)
+        self.heat, self.heat_day = gates.heat_map(daily), now_et.date()
+        self.journal("heat_map", **{k: int(v.iloc[-1]) if len(v) else 0 for k, v in self.heat.items()})
+
+    def can_short(self, sym: str) -> str:
+        """'' when shorting sym is allowed; otherwise the reason."""
+        held = retry_call(self.broker.positions, sleep=self.sleep).get(sym, 0)
+        if held:                                    # another bot holds sym: a sell would cut THEIR long, not open our short
+            return "another bot holds this symbol"
+        if sym not in self.borrow:
+            try:
+                self.borrow[sym] = bool(self.raw.shortable(sym)) if hasattr(self.raw, "shortable") else False
+            except Exception:
+                self.borrow[sym] = False
+        return "" if self.borrow[sym] else "not easy to borrow"
 
     def on_bar_close(self, now_et: datetime):
-        """Once per new 5-minute bar: ask the Brain about each symbol and enter on a fresh signal."""
-        for sym in self.symbols:
+        """Once per new 5-minute bar: ask the Brain about each symbol and enter on a fresh signal (long, or short when the gate allows)."""
+        self.refresh_heat(now_et)
+        spy_day = None
+        for sym in sorted(self.symbols, key=lambda s: s != gates.MARKET):      # SPY first: its 'red' state feeds the other symbols
             if sym in self.exits.positions:
+                if sym == gates.MARKET:
+                    spy_day = today_frame(sym, now_et, self.brain, self.fetch)
                 continue
             day = today_frame(sym, now_et, self.brain, self.fetch)
+            if sym == gates.MARKET:
+                spy_day = day
             if day is None or day.index[-1] == self.last_bar.get(sym):
                 continue
             self.last_bar[sym] = day.index[-1]
-            sig = next((s for s in self.brain.signals(day) if s.i == len(day) - 1 and s.side == 1), None)
+            gates.apply(day, sym, self.heat, spy_day)
+            sig = next((s for s in self.brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
             ref = float(day["close"].iloc[-1])
+            if sig.side == -1:
+                why = self.can_short(sym)
+                if why:
+                    self.journal("signal", symbol=sym, side="short", tag=sig.tag, ref=ref, result=why)
+                    continue
+            elif retry_call(self.broker.positions, sleep=self.sleep).get(sym, 0) < 0:
+                self.journal("signal", symbol=sym, side="long", tag=sig.tag, ref=ref, result="another bot is short this symbol")
+                continue
             verdict = self.exec.try_enter(sym, sig, ref, now_et)       # risk 1% of equity, spread guard, window, breaker, duplicate-id guard
-            self.journal("signal", symbol=sym, tag=sig.tag, ref=ref, result=verdict)
+            self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=verdict)
             if verdict == "ordered":
                 bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
                 qty = self.exec.last_qty
-                self.exits.open(sym, qty, ask, sig.atr, sig.adx, now_et, sig.trail, sig.tp_scale)
+                fill = ask if sig.side == 1 else bid
+                self.exits.open(sym, qty, fill, sig.atr, sig.adx, now_et, sig.trail, sig.tp_scale, side=sig.side)
                 self.entries_today += 1
 
     def tick(self, now_et: datetime):
@@ -208,7 +278,7 @@ class PaperRunner:
             elif action.startswith("stale exit "):
                 sym = action.split()[-1]
                 if sym in snapshot:
-                    self.record_exit(sym, self.last_bid.get(sym, snapshot[sym]["state"].entry), "stale", snapshot[sym])
+                    self.record_exit(sym, self.last_px.get(sym, self.entry_px(snapshot[sym])), "stale", snapshot[sym])
                     self.exits.positions.pop(sym, None)
         self.store.save(self.exits.positions)
         self.poll_exits(now_et)
@@ -291,6 +361,11 @@ def report_card(state_dir, day=None) -> str:
                 ("max drawdown <= 10%", dd <= GATE["max_dd"], f"{dd:.1%}"), ("beats SPY", roi > spy, f"{roi:+.2%} vs {spy:+.2%}"),
                 ("avg daily >= 0.75%", avg_daily >= 0.0075, f"{avg_daily:+.2%}")]
     lines += ["", f"All trades: {N}, {W}W/{L}L ({WR:.0%}), profit factor {PF:.2f}, avg R {AR:+.2f}"]
+    for side in ("long", "short"):
+        st = [t for t in trades if t.get("side", "long") == side]
+        if st:
+            n_, w_, l_, wr_, pf_, ar_ = stats(st)
+            lines.append(f"  {side}s: {n_}, {w_}W/{l_}L ({wr_:.0%}), P&L ${sum(t['pnl'] for t in st):+,.0f}, profit factor {pf_:.2f}")
     by = {}
     for t in trades:
         by.setdefault(t["symbol"], 0.0)

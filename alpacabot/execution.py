@@ -149,10 +149,12 @@ class Executor:
     last_qty: int = 0
     sent_ids: set = field(default_factory=set)      # client order ids already sent (a restart or a repeated tick cannot double-enter)
 
-    def submit(self, symbol, qty, stop, target, coid):
-        """Brackets when the broker supports them; plain market orders (virtual exits) otherwise."""
-        if hasattr(self.broker, "submit_bracket"):
+    def submit(self, symbol, qty, stop, target, coid, side=1):
+        """Brackets when the broker supports them (longs only); plain market orders (virtual exits) otherwise. side -1 = sell short."""
+        if hasattr(self.broker, "submit_bracket") and side == 1:
             return self.broker.submit_bracket(symbol, qty, stop, target, coid)
+        if side == -1:
+            return self.broker.submit_market(symbol, qty, coid, side="sell")
         return self.broker.submit_market(symbol, qty, coid)
 
     def on_tick(self, now_et: datetime) -> list[str]:
@@ -193,13 +195,14 @@ class Executor:
         qty = position_size(equity, self.risk_pct, entry_ref, signal.stop_dist, self.max_pos_frac)
         if qty < 1:
             return "size < 1 share"
-        stop = round(entry_ref - signal.stop_dist, 2)
-        target = round(entry_ref + signal.target_r * signal.stop_dist, 2) if signal.target_r > 0 else None
+        side = -1 if signal.side == -1 else 1
+        stop = round(entry_ref - side * signal.stop_dist, 2)
+        target = round(entry_ref + side * signal.target_r * signal.stop_dist, 2) if signal.target_r > 0 else None
         self.sent_ids.add(coid)
-        retry_call(self.submit, symbol, qty, stop, target, coid, sleep=self.sleep)
+        retry_call(self.submit, symbol, qty, stop, target, coid, side, sleep=self.sleep)
         self.opened[symbol] = now_et
         self.last_qty = qty
-        log.info("ordered %s x%d stop %.2f target %s", symbol, qty, stop, target)
+        log.info("ordered %s %s x%d stop %.2f target %s", "SHORT" if side == -1 else "LONG", symbol, qty, stop, target)
         return "ordered"
 
 
@@ -251,27 +254,32 @@ class VirtualExitManager:
         self.store, self.broker, self.sleep = store, broker, sleep
         self.positions = store.load()          # restart-safe: open-trade parameters survive a reboot
 
-    def open(self, symbol: str, qty: int, entry: float, atr: float, adx: float, now: datetime, trail: float = 1.5, tp_scale: float = 1.0):
+    def open(self, symbol: str, qty: int, entry: float, atr: float, adx: float, now: datetime, trail: float = 1.5, tp_scale: float = 1.0,
+             side: int = 1):
+        """side -1: a short, tracked on the mirrored price (-price), so the same ExitState code trails it from the LOW."""
         from .exits import ExitState
-        self.positions[symbol] = {"state": ExitState.open(entry, atr, adx, trail, tp_scale), "qty": qty, "opened": now.isoformat()}
+        self.positions[symbol] = {"state": ExitState.open(side * entry, atr, adx, trail, tp_scale), "qty": qty, "opened": now.isoformat(),
+                                  "side": side}
         self.store.save(self.positions)
 
     def on_quote(self, symbol: str, bid: float, ask: float) -> str | None:
-        """Feed one quote. Longs exit at the bid. Returns the exit reason when a level was crossed (and sends the market close)."""
+        """Feed one quote. Longs exit at the bid, shorts buy back at the ask. Returns the exit reason when a level was crossed."""
         pos = self.positions.get(symbol)
-        if not pos or not bid or bid <= 0:
+        side = pos.get("side", 1) if pos else 1
+        if not pos or not bid or bid <= 0 or (side == -1 and (not ask or ask <= 0)):
             return None
         st = pos["state"]
-        hit = st.check(bid, bid, bid)
+        px = bid if side == 1 else -ask
+        hit = st.check(px, px, px)
         if hit:
             if self.broker is not None:
                 retry_call(self.broker.close, symbol, sleep=self.sleep)
             self.positions.pop(symbol)
             self.store.save(self.positions)
-            log.info("virtual %s exit %s at %.2f (level crossed)", hit[0], symbol, bid)
+            log.info("virtual %s exit %s %s at %.2f (level crossed)", hit[0], "short" if side == -1 else "long", symbol, abs(px))
             return hit[0]
         before = (st.stop, st.hwm)
-        st.ratchet(bid)
+        st.ratchet(px)
         if (st.stop, st.hwm) != before:
             self.store.save(self.positions)
         return None

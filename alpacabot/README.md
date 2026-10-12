@@ -58,3 +58,11 @@ trade, spread guard, entry window 09:45-15:30, flat by 15:55, 2% day circuit bre
 Decisions go to `state/alpaca_paper/journal.jsonl`; `python -m alpacabot paper-report` summarises them; the paper dashboard shows P&L.
 Install: `sudo cp deploy/marv-alpaca-paper.service /etc/systemd/system/ && sudo systemctl enable --now marv-alpaca-paper`.
 The Brain is not yet validated, so this is a forward test, not evidence of an edge.
+
+## Shorts and the heat map
+Shorts are the same ten experts run on the mirrored price series, so a short is the long rule upside down (exits, trails and slippage use
+the same code). The heat map (`gates.py`) rates SPY and each symbol's sector ETF (XLK, XLY, XLC; the index ETFs rate themselves) from the
+previous close: BULLISH / NEUTRAL / BEARISH on EMA(9) vs EMA(21) and a volatility-scaled 20-day return. Longs are blocked while the sector is
+BEARISH; shorts are allowed only while the market or the sector is BEARISH, or (short_gate="red") also while SPY is red on the day.
+Paper: short sells only on easy-to-borrow symbols, and never on a symbol another bot on the shared account holds. Day trades, scalps and
+shorts are all flat by 3:50 pm ET. The report card splits wins/losses into longs and shorts. Backtests use SIP history (`ALPACA_FEED`).

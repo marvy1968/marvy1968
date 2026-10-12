@@ -698,3 +698,32 @@ class HeatMapAndShortTests(unittest.TestCase):
         self.assertEqual([s.i for s in sigs], [s.i for s in long_on_mirror])
         day["g_short_ok"], day["g_spy_red"] = False, True
         self.assertEqual(Brain(experts=[], short_experts=list(ALL_EXPERTS), route=False, mtf=False, short_gate="red").signals(day) != [], True)
+
+    def test_paper_short_round_trip(self):
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def __init__(self): self.closed, self.px = [], (100.0, 100.02)
+            def positions(self): return {"TSLA": -10}
+            def equity(self): return 50000.0
+            def quote(self, s): return self.px
+            def submit_market(self, s, q, c=None, side="buy"): return {}
+            def close(self, s, qty=None): self.closed.append((s, qty))
+            def clock_open(self): return True
+
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            r.exits.open("TSLA", 10, 100.0, 1.0, 20.0, datetime(2026, 10, 12, 10, 0, tzinfo=paper.ET), 1.5, 1.0, side=-1)   # short at 100, stop 101.5
+            b.px = (99.0, 99.02)                       # falls: the short is winning, trail ratchets down
+            r.poll_exits(datetime(2026, 10, 12, 10, 5, tzinfo=paper.ET))
+            self.assertIn("TSLA", r.exits.positions)
+            self.assertAlmostEqual(r.own_equity(), 50000.0 + (100.0 - 99.02) * 10)
+            b.px = (101.9, 102.0)                      # rips through the stop: buy back at the ask
+            r.poll_exits(datetime(2026, 10, 12, 10, 10, tzinfo=paper.ET))
+            self.assertEqual(b.closed, [("TSLA", 10)])
+            t = paper._jl(Path(d) / "trades.jsonl")[0]
+            self.assertEqual((t["side"], t["reason"]), ("short", "stop"))
+            self.assertAlmostEqual(t["pnl"], -20.0)    # (100 - 102) * 10
+            self.assertIn("shorts: 1, 0W/1L", paper.report_card(d, date(2026, 10, 12)))

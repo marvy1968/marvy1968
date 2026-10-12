@@ -75,10 +75,11 @@ class StateStore:
             bad = self.path.with_suffix(".corrupt")
             os.replace(self.path, bad)          # keep the evidence, start clean rather than crash
             return {}
-        return {s: {"state": ExitState.from_json(v["state"]), "qty": v["qty"], "opened": v["opened"]} for s, v in raw.items()}
+        return {s: {"state": ExitState.from_json(v["state"]), "qty": v["qty"], "opened": v["opened"], "side": v.get("side", 1)} for s, v in raw.items()}
 
     def save(self, positions: dict) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({s: {"state": p["state"].to_json(), "qty": p["qty"], "opened": p["opened"]} for s, p in positions.items()}, indent=1))
+        tmp.write_text(json.dumps({s: {"state": p["state"].to_json(), "qty": p["qty"], "opened": p["opened"], "side": p.get("side", 1)}
+                                   for s, p in positions.items()}, indent=1))
         os.replace(tmp, self.path)
