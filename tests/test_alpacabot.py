@@ -989,3 +989,20 @@ class SectorTopDownTests(unittest.TestCase):
         self.assertEqual(t.reason, "stop")
         self.assertAlmostEqual(t.exit_px, float(f["stop"].iloc[i]) - 5.0)                  # the adverse open, not the stop level
         self.assertTrue(t.rank >= 0.03)
+
+
+class SwingValidateTests(unittest.TestCase):
+    def test_placebo_keeps_the_entry_count_and_candidates_are_predeclared(self):
+        from alpacabot.experts import ExpertSwing
+        from alpacabot.research import SWING_CANDIDATES
+        self.assertEqual(SWING_CANDIDATES, [("brooks_pullback", 10), ("williams_r", 10), ("donchian_turtle", 10)])
+        idx = pd.bdate_range("2018-01-02", periods=500, tz="America/New_York")
+        rng = np.random.default_rng(8)
+        c = 100 * np.exp(np.cumsum(rng.normal(0.0005, 0.012, len(idx))))
+        o = np.r_[c[0], c[:-1]]
+        d = pd.DataFrame({"open": o, "high": np.maximum(o, c) * 1.005, "low": np.minimum(o, c) * 0.995, "close": c, "volume": 1e6}, index=idx)
+        real = ExpertSwing("williams_r").frame(d)
+        for seed in (1, 2):
+            plc = ExpertSwing("williams_r", placebo_seed=seed).frame(d)
+            self.assertEqual(int(plc["entry"].sum()), int(real["entry"].sum()))
+        self.assertFalse(ExpertSwing("williams_r", placebo_seed=1).frame(d)["entry"].equals(ExpertSwing("williams_r", placebo_seed=2).frame(d)["entry"]))

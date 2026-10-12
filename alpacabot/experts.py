@@ -164,15 +164,21 @@ class ExpertSwing:
     exit on the expert's own exit rule (if it has one) or after max_days. Long only. Costs per trade are tiny next to multi-day moves,
     which is the point of this test."""
 
-    def __init__(self, name: str, max_days: int = 10, stop_atr: float = 2.0):
-        self.name, self.max_days, self.stop_atr = name, max_days, stop_atr
+    def __init__(self, name: str, max_days: int = 10, stop_atr: float = 2.0, placebo_seed: int | None = None):
+        self.name, self.max_days, self.stop_atr, self.placebo_seed = name, max_days, stop_atr, placebo_seed
 
     def frame(self, d: pd.DataFrame) -> pd.DataFrame:
         dd = d.join(features_all(d))
         m = Experts().masks(dd)[self.name].fillna(False) & dd["f_sma200"].notna() & dd["f_atr"].notna()
         xcol = SWING_EXITS.get(self.name)
         ex = dd[xcol].fillna(False).astype(bool) if xcol else pd.Series(False, index=dd.index)
-        return pd.DataFrame({"entry": m.astype(bool), "exit": ex, "atr": dd["f_atr"]}, index=dd.index)
+        entry = m.astype(bool)
+        if self.placebo_seed is not None:                    # same number of entries, on random days: does the entry rule beat a drifting market?
+            ok = np.flatnonzero((dd["f_sma200"].notna() & dd["f_atr"].notna()).to_numpy())
+            pick = np.random.default_rng(self.placebo_seed).choice(ok, size=min(int(entry.sum()), len(ok)), replace=False) if len(ok) else []
+            entry = pd.Series(False, index=dd.index)
+            entry.iloc[pick] = True
+        return pd.DataFrame({"entry": entry, "exit": ex, "atr": dd["f_atr"]}, index=dd.index)
 
     def stop_dist(self, f, i):
         return float(self.stop_atr * f["atr"].iloc[i])

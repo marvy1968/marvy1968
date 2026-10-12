@@ -295,3 +295,31 @@ def sector_td_study(universes: dict, spy: pd.DataFrame, periods: dict, costs: Co
                          "max_drawdown": m.get("max_drawdown"), "sharpe": m.get("sharpe"), "by_year": yearly, "top_symbols_pnl": top,
                          "buy_hold_equal_weight": _hold_stats(closes, a, b), "spy": benchmark(spy, a, b), "symbols": len(data)})
     return {"family": "sector_td", "rows": rows}
+
+
+# Pre-declared BEFORE the validation years were looked at: the three distinct experts with the best train-year (2016-2020) Sharpe in swing_expert_study.
+SWING_CANDIDATES = [("brooks_pullback", 10), ("williams_r", 10), ("donchian_turtle", 10)]
+
+
+def swing_validate(daily, test, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=10), spy_daily=None, placebo_runs: int = 20) -> dict:
+    """ONE look at the validation years for the pre-declared swing candidates: real entries vs random entries with the same exits (placebo),
+    at normal and 2.5x slippage, against buy-and-hold SPY. Nothing is tuned here."""
+    from .experts import ExpertSwing
+    out = {"family": "swing_validate", "test": [str(x) for x in test], "rows": []}
+    for name, hold in SWING_CANDIDATES:
+        real = run_swing(ExpertSwing(name, max_days=hold), daily, costs, pf, *test)["metrics"]
+        stress = run_swing(ExpertSwing(name, max_days=hold), daily, replace(costs, slip_bps=costs.slip_bps * 2.5), pf, *test)["metrics"]
+        plc = [run_swing(ExpertSwing(name, max_days=hold, placebo_seed=sd), daily, costs, pf, *test)["metrics"] for sd in range(placebo_runs)]
+        pe = [p.get("expectancy_pct_notional") for p in plc if p.get("trades")]
+        e = real.get("expectancy_pct_notional")
+        beat = float(np.mean([e > x for x in pe])) if pe and e is not None else None
+        ok = ((real.get("trades") or 0) >= 100 and (e or 0) > 0 and (real.get("profit_factor") or 0) > 1.2 and (real.get("sharpe") or 0) > 0.5
+              and (stress.get("expectancy_pct_notional") or -1) > 0 and (beat or 0) >= 0.9)
+        out["rows"].append({"expert": name, "hold_days": hold, "real": {k: real.get(k) for k in ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "cagr", "max_drawdown")},
+                            "slip_x2.5_expectancy": stress.get("expectancy_pct_notional"), "placebo_mean_expectancy": float(np.mean(pe)) if pe else None,
+                            "real_beats_placebo_share": beat, "passes": bool(ok)})
+    if spy_daily is not None:
+        out["benchmark_buy_hold_SPY"] = benchmark(spy_daily, *test)
+    passed = [r["expert"] for r in out["rows"] if r["passes"]]
+    out["verdict"] = (f"PASSED validation: {', '.join(passed)} (one look at 2021-22; the final test is still unspent)" if passed else "none of the pre-declared candidates passed validation")
+    return out

@@ -10,7 +10,7 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_study, swing_expert_study, symbol_check, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_study, swing_expert_study, swing_validate, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
 SECTOR_TD_THEIRS = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
@@ -74,6 +74,9 @@ def run_all(a) -> int:
                            "2020-2022": (date(2020, 1, 2), date(2022, 12, 31)), "2023-today": (date(2023, 1, 3), end2)}
                 res = sector_td_study(uni, spy2, periods, Costs(slip_bps=5.0), Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333))
                 res["verdict"] = "see the table: compare each row with buy-and-hold of the same names"
+            elif fam == "swing_validate":        # the three pre-declared daily-bar candidates, ONE look at 2021-2022
+                data = {s: load(s, "1Day", start, end, cache) for s in SWING}
+                res = swing_validate(data, test, costs, spy_daily=spy)
             elif fam == "swing_experts":           # the 10 experts on daily bars, multi-day holds, TRAIN years only
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_expert_study(data, train, costs, spy_daily=spy)
@@ -122,6 +125,14 @@ def run_all(a) -> int:
             for r in res["table"]:
                 lines.append(f"| {r['route']} | {r['mtf']} | {r['consensus']} | {r['sector_filter']} | {r['shorts']} | {r['trades']} | {r['win_rate'] or 0:.0%} | "
                              f"{r['expectancy_pct_notional'] or 0:+.4f} | {r['profit_factor'] or 0:.2f} | {r['daily_ret_pct_mean'] or 0:+.3f} |")
+        if fam == "swing_validate":
+            for r in res.get("rows", []):
+                x = r["real"]
+                lines.append(f"- {r['expert']} hold<={r['hold_days']}d: {x.get('trades')}t win {x.get('win_rate') or 0:.0%} exp {x.get('expectancy_pct_notional') or 0:+.3f}% "
+                             f"PF {x.get('profit_factor') or 0:.2f} sharpe {x.get('sharpe') or 0:.2f} cagr {x.get('cagr') or 0:+.1%} maxDD {x.get('max_drawdown') or 0:.1%} | "
+                             f"2.5x slip exp {r['slip_x2.5_expectancy'] or 0:+.3f}% | placebo mean exp {r['placebo_mean_expectancy'] or 0:+.3f}%, real beats {r['real_beats_placebo_share'] or 0:.0%} | PASS {r['passes']}")
+            if res.get("benchmark_buy_hold_SPY"):
+                lines.append(f"- SPY buy-and-hold (same years): {res['benchmark_buy_hold_SPY']}")
         if fam == "sector_td":
             for r in res.get("rows", []):
                 bh, sp = r["buy_hold_equal_weight"], r["spy"]
