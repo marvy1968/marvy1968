@@ -1,3 +1,18 @@
 $ alpaca run-all --phase validate --families sector_td
-started 2026-10-12 14:51:15 EDT
-RUNNING...
+started 2026-10-12 14:51:15 EDT, took 1045s, exit 0
+
+daily data ready
+## sector_td: see the table: compare each row with buy-and-hold of the same names
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- their 10 | 2016-2019 (untouched by their research): 124 trades, win 45%, avgR +0.34, PF 2.02, return +16.2% (CAGR +3.8%), maxDD -3.2% | buy&hold same names +264.5% (DD -28.8%) | SPY CAGR +14.5% | by year {2016: 0.0649, 2017: 0.0268, 2018: -0.0059, 2019: 0.0687} | top P&L {'NVDA': 6283.0, 'TSLA': 3688.0, 'AMZN': 2901.0}
+- their 10 | 2020-2022: 92 trades, win 36%, avgR +0.07, PF 1.15, return +2.1% (CAGR +0.7%), maxDD -4.8% | buy&hold same names +63.1% (DD -47.1%) | SPY CAGR +7.3% | by year {2020: -0.006, 2021: 0.0413, 2022: -0.0132} | top P&L {'TSLA': 2896.0, 'AMD': 1159.0, 'AMZN': 587.0}
+- their 10 | 2023-today: 136 trades, win 38%, avgR +0.41, PF 2.17, return +20.2% (CAGR +5.0%), maxDD -4.3% | buy&hold same names +399.4% (DD -28.7%) | SPY CAGR +22.4% | by year {2023: 0.0633, 2024: 0.1367, 2025: 0.0242, 2026: -0.0216} | top P&L {'NVDA': 4589.0, 'TSLA': 3705.0, 'AMD': 3368.0}
+- 2016 large caps (control) | 2016-2019 (untouched by their research): 137 trades, win 40%, avgR +0.31, PF 1.67, return +15.4% (CAGR +3.7%), maxDD -4.8% | buy&hold same names +62.9% (DD -16.7%) | SPY CAGR +14.5% | by year {2016: 0.0738, 2017: 0.0462, 2018: -0.014, 2019: 0.0355} | top P&L {'CSCO': 4302.0, 'KO': 3930.0, 'JPM': 2712.0}
+- 2016 large caps (control) | 2020-2022: 145 trades, win 34%, avgR -0.01, PF 0.96, return +0.4% (CAGR +0.1%), maxDD -6.1% | buy&hold same names +16.9% (DD -34.3%) | SPY CAGR +7.3% | by year {2020: -0.0032, 2021: 0.0389, 2022: -0.0287} | top P&L {'PG': 1962.0, 'JPM': 1927.0, 'CVX': 1461.0}
+- 2016 large caps (control) | 2023-today: 189 trades, win 38%, avgR +0.09, PF 1.22, return +6.0% (CAGR +1.6%), maxDD -6.1% | buy&hold same names +107.5% (DD -15.7%) | SPY CAGR +22.4% | by year {2023: -0.0294, 2024: 0.078, 2025: -0.0185, 2026: 0.0272} | top P&L {'CSCO': 3205.0, 'MRK': 2757.0, 'GE': 2055.0}
+ALL DONE
