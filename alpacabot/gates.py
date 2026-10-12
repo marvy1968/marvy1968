@@ -22,6 +22,17 @@ SECTOR = {"AAPL": "XLK", "MSFT": "XLK", "NVDA": "XLK", "AMD": "XLK", "AMZN": "XL
           "SPY": "SPY", "QQQ": "QQQ", "IWM": "IWM"}
 MARKET = "SPY"
 HEAT_ETFS = sorted(set(SECTOR.values()) | {MARKET})
+SECTOR_ETFS = {"XLK", "XLY", "XLC", "XLF", "XLE", "XLV", "XLP", "XLI", "XLU", "XLB", "XLRE", "SPY", "QQQ", "IWM", "DIA"}
+
+
+def add_sector(symbol: str, etf: str) -> None:
+    """Map an added stock to its sector ETF (and rate that ETF in the heat map)."""
+    if etf not in SECTOR_ETFS:
+        raise ValueError(f"{etf} is not a known sector ETF")
+    SECTOR[symbol] = etf
+    if etf not in HEAT_ETFS:
+        HEAT_ETFS.append(etf)
+        HEAT_ETFS.sort()
 
 
 def heat_state(daily: pd.DataFrame) -> pd.Series:

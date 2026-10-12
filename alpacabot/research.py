@@ -187,3 +187,23 @@ def exit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(ri
     better = [k for k, v in table.items() if v["staircase_better"]]
     return {"family": "exits", "train": [str(x) for x in train], "table": table, "staircase_better_for": better,
             "verdict": f"staircase better for {len(better)} of {len(table)} expert/side pairs (train years, after costs)"}
+
+
+def symbol_check(days_by_symbol, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
+                 brain_kwargs: dict | None = None, min_trades: int = 60) -> dict:
+    """Should a stock join the paper universe? The CURRENT brain is run on that stock alone, on the train years and on the validation years,
+    after costs. It qualifies only if both periods are profitable per trade with enough trades and the cost-stressed validation still is.
+    How another bot did on the stock is not an input: only how THIS bot's rules trade it."""
+    kw = brain_kwargs or {}
+    out = {}
+    for sym, frames in days_by_symbol.items():
+        one = {sym: frames}
+        tr = run_intraday(Brain(**kw), one, costs, pf, *train)["metrics"]
+        va = run_intraday(Brain(**kw), one, costs, pf, *validate)["metrics"]
+        st = run_intraday(Brain(**kw), one, replace(costs, slip_bps=costs.slip_bps * 2.5), pf, *validate)["metrics"]
+        e = lambda m: m.get("expectancy_pct_notional") or 0.0   # noqa: E731
+        ok = ((tr.get("trades") or 0) >= min_trades and (va.get("trades") or 0) >= min_trades // 2 and e(tr) > 0 and e(va) > 0 and e(st) > 0)
+        out[sym] = {"qualifies": bool(ok), "train": {k: tr.get(k) for k in ("trades", "win_rate", "expectancy_pct_notional", "profit_factor")},
+                    "validate": {k: va.get(k) for k in ("trades", "win_rate", "expectancy_pct_notional", "profit_factor")},
+                    "validate_slip_x2.5": {k: st.get(k) for k in ("trades", "expectancy_pct_notional")}}
+    return out

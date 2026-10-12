@@ -150,10 +150,22 @@ def default_brain(state_dir) -> Brain:
     return Brain(**cfg)
 
 
+def engaged_symbols() -> list[str]:
+    """The paper universe: SYMBOLS plus any stock added to brain_config.json ("symbols": [...], "sectors": {"XOM": "XLE"}) after it passed
+    `python -m alpacabot symbol-check`. Added stocks join the sector heat map through their sector ETF."""
+    syms = list(SYMBOLS)
+    if ENGAGED.exists():
+        raw = json.loads(ENGAGED.read_text())
+        for sym, etf in (raw.get("sectors") or {}).items():
+            gates.add_sector(sym, etf)
+        syms += [x for x in raw.get("symbols", []) if x not in syms]
+    return syms
+
+
 class PaperRunner:
     def __init__(self, broker, brain: Brain | None = None, state_dir="state/alpaca_paper", risk_pct=0.01, symbols=None, fetch=_fetch, sleep=time.sleep,
                  breaker_limit: float = 0.02, max_positions: int = 6):
-        self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or default_brain(state_dir), symbols or SYMBOLS, fetch, sleep
+        self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or default_brain(state_dir), symbols or engaged_symbols(), fetch, sleep
         self.dir = Path(state_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
         self.store = StateStore(self.dir / "positions.json")

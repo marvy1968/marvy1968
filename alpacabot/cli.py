@@ -10,7 +10,7 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, exit_study, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
@@ -122,6 +122,10 @@ def main(argv=None) -> int:
     cv.add_argument("--feed", default=None)
     cv.add_argument("--start", type=_d, default=date(2016, 1, 1))
     cv.add_argument("--end", type=_d, default=date.today())
+    sc = sub.add_parser("symbol-check", help="should these stocks join the paper universe? (the current brain on each stock, 2016-2022)")
+    sc.add_argument("--symbols", nargs="+", required=True)
+    sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
+    sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
@@ -133,6 +137,23 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "symbol-check":
+        from . import gates
+        from .paper import default_brain
+        for pair in a.sectors:
+            sym, etf = pair.split("=")
+            gates.add_sector(sym.upper(), etf.upper())
+        start, end = date(2016, 1, 4), date(2022, 12, 31)
+        cache = Path(a.cache)
+        syms = [x.upper() for x in a.symbols]
+        minute = {s: load(s, "1Min", start, end, cache) for s in sorted(set(syms) | {"SPY"})}
+        days = add_gates(split_days(minute, minutes=5, feature_fn=features_both), {s: load(s, "1Day", start, end, cache) for s in gates.HEAT_ETFS})
+        b = default_brain("state/alpaca_paper")
+        kw = {k: getattr(b, k) for k in ("experts", "short_experts", "priority", "route", "mtf", "consensus", "sector_filter", "short_gate", "max_trades", "cooldown")}
+        res = symbol_check({s: days[s] for s in syms if s in days}, (start, date(2020, 12, 31)), (date(2021, 1, 1), end), Costs(), brain_kwargs=kw)
+        for s, r in res.items():
+            print(f"{s:6s} {'QUALIFIES' if r['qualifies'] else 'no':9s} train {r['train']}  validate {r['validate']}  2.5x slip {r['validate_slip_x2.5']}")
+        return 0
     if a.cmd == "history":
         from .history import report
         print(report(a.days))

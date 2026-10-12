@@ -836,3 +836,22 @@ class HistoryReportTests(unittest.TestCase):
         self.assertIn("BY BOT", txt)
         self.assertIn("sw:KO +8", txt)
         self.assertIn("sx:TSLA -2", txt)
+
+
+class UniverseTests(unittest.TestCase):
+    def test_added_stock_joins_universe_and_heat_map(self):
+        import tempfile
+        from unittest import mock
+        from alpacabot import gates, paper
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "brain_config.json"
+            cfg.write_text(json.dumps({"symbols": ["XOM"], "sectors": {"XOM": "XLE"}}))
+            with mock.patch.object(paper, "ENGAGED", cfg):
+                syms = paper.engaged_symbols()
+        self.assertIn("XOM", syms)
+        self.assertEqual(gates.SECTOR["XOM"], "XLE")
+        self.assertIn("XLE", gates.HEAT_ETFS)
+        with self.assertRaises(ValueError):
+            gates.add_sector("ABC", "NOTANETF")
+        del gates.SECTOR["XOM"]
+        gates.HEAT_ETFS.remove("XLE")
