@@ -1,0 +1,3 @@
+$ alpaca coverage --feed sip
+started 2026-10-11 22:51:17 EDT
+RUNNING...
