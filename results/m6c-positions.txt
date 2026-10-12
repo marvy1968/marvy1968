@@ -1,3 +1,8 @@
 $ alpaca positions
-started 2026-10-12 11:34:25 EDT
-RUNNING...
+started 2026-10-12 11:34:25 EDT, took 1s, exit 0
+
+equity $53,364.46  cash $80,337.58  long mv $0.00  short mv $-26,973.12
+2 open positions:
+  NVDA       short qty          -60  value $-13,543.32  unrealized $    -5.06
+  QQQ        short qty          -18  value $-13,429.80  unrealized $    -5.84
+0 open orders:
