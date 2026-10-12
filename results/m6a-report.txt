@@ -1,3 +1,13 @@
 $ alpaca paper-report
-started 2026-10-12 11:34:18 EDT
-RUNNING...
+started 2026-10-12 11:34:18 EDT, took 1s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-12
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 5 trades, 2W/3L (40%), P&L $-58
+
+All trades: 5, 2W/3L (40%), profit factor 0.17, avg R -0.42
+  longs: 3, 2W/1L (67%), P&L $+8, profit factor 3.50
+  shorts: 2, 0W/2L (0%), P&L $-66, profit factor 0.00
+By symbol: SPY $+8, IWM $-20, NVDA $-47
+No equity snapshots yet; the first appears after today's close.
