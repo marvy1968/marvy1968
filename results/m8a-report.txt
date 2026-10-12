@@ -1,3 +1,13 @@
 $ alpaca paper-report
-started 2026-10-12 13:33:08 EDT
-RUNNING...
+started 2026-10-12 13:33:08 EDT, took 1s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-12
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 24 trades, 10W/14L (42%), P&L $-237
+
+All trades: 24, 10W/14L (42%), profit factor 0.35, avg R -0.30
+  longs: 16, 7W/9L (44%), P&L $-128, profit factor 0.42
+  shorts: 8, 3W/5L (38%), P&L $-109, profit factor 0.24
+By symbol: MSFT $+11, TSLA $+10, SPY $+3, AMZN $-77, META $-92
+No equity snapshots yet; the first appears after today's close.
