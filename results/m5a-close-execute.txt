@@ -1,3 +1,52 @@
 $ alpaca close-others --execute
-started 2026-10-12 11:04:49 EDT
-RUNNING...
+started 2026-10-12 11:04:49 EDT, took 11s, exit 0
+
+new bot holds: {'NVDA': -60, 'QQQ': -18, 'SPY': 17}
+KEEP (the new bot's): [('NVDA', -60), ('QQQ', -18), ('SPY', 17)]
+CANCEL 21 orders not from the new bot: NTAP sell stop, HPE sell stop, DT sell stop, MKTX sell stop, DIS sell stop, ECPG sell stop, ECPG sell limit, PBF sell limit, COP sell stop, GOOGL sell stop, APTV buy stop, APTV buy limit, ANET sell limit, ANET sell stop, FTNT sell limit, FTNT sell stop, SNOW sell limit, PANW sell limit, NET sell limit, CRWD sell limit, JPM sell limit
+CLOSE 24 positions not from the new bot: ADBE +6, ANET +19, APA -6, APTV -15, COP +1, CRWD +14, DIA +10, DIS +7, DT +3, DUK +24, ECPG +43, FTNT +20, GOOGL +9, HPE +61, INTC +1, JPM +25, MKTX +30, NET +10, NTAP +22, OXY -44, PANW +9, PBF +1, QCOM +1, SNOW +17
+cancel NTAP 204
+cancel HPE 204
+cancel DT 204
+cancel MKTX 204
+cancel DIS 204
+cancel ECPG 204
+cancel ECPG 204
+cancel PBF 204
+cancel COP 204
+cancel GOOGL 204
+cancel APTV 204
+cancel APTV 204
+cancel ANET 204
+cancel ANET 204
+cancel FTNT 204
+cancel FTNT 204
+cancel SNOW 204
+cancel PANW 204
+cancel NET 204
+cancel CRWD 204
+cancel JPM 204
+close ADBE 6 200 
+close ANET 19 200 
+close APA -6 200 
+close APTV -15 200 
+close COP 1 200 
+close CRWD 14 200 
+close DIA 10 200 
+close DIS 7 200 
+close DT 3 200 
+close DUK 24 200 
+close ECPG 43 200 
+close FTNT 20 200 
+close GOOGL 9 200 
+close HPE 61 200 
+close INTC 1 200 
+close JPM 25 200 
+close MKTX 30 200 
+close NET 10 200 
+close NTAP 22 200 
+close OXY -44 200 
+close PANW 9 200 
+close PBF 1 200 
+close QCOM 1 200 
+close SNOW 17 200 
