@@ -190,6 +190,9 @@ def main(argv=None) -> int:
     sc.add_argument("--symbols", nargs="+", required=True)
     sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
+    sw = sub.add_parser("swing", help="daily Sector Top-Down swing runner (PAPER): scan after the close, open before the open, status")
+    sw.add_argument("action", choices=["scan", "open", "status"])
+    sw.add_argument("--state", default="state/alpaca_swing")
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
@@ -223,6 +226,25 @@ def main(argv=None) -> int:
         for s, r in res.items():
             print(f"{s:6s} {'QUALIFIES' if r['qualifies'] else 'no':9s} train {r['train']}  validate {r['validate']}  2.5x slip {r['validate_slip_x2.5']}")
         return 0
+    if a.cmd == "swing":
+        from datetime import datetime as _dt
+
+        from .paper import RestBroker
+        from .swing_paper import ET as _ET, SwingRunner, summary
+        if a.action == "status":
+            print("\n".join(summary(a.state)) or "swing runner has not run yet")
+            return 0
+        if not all(credentials()):
+            print("WAITING FOR KEYS")
+            return 2
+        setup = __import__("alpacabot.execution", fromlist=["setup_logging"]).setup_logging
+        setup(Path(a.state) / "swing.log")
+        r = SwingRunner(RestBroker(), state_dir=a.state)
+        now = _dt.now(_ET)
+        out = r.scan(now) if a.action == "scan" else r.open(now)
+        print(json.dumps(out, indent=1, default=str))
+        print("\n".join(summary(a.state)))
+        return 0
     if a.cmd == "close-others":
         import requests
 
@@ -231,9 +253,13 @@ def main(argv=None) -> int:
         api = "https://paper-api.alpaca.markets/v2"
         h = _headers()
         own = {s: p["qty"] * p.get("side", 1) for s, p in StateStore(Path(a.state) / "positions.json").load().items()}
+        swing_state = Path(a.state).parent / "alpaca_swing" / "state.json"
+        if swing_state.exists():
+            for s_, p_ in (json.loads(swing_state.read_text()).get("positions") or {}).items():
+                own[s_] = own.get(s_, 0) + int(p_["qty"])
         pos = requests.get(f"{api}/positions", headers=h, timeout=30).json()
         orders = requests.get(f"{api}/orders", headers=h, params={"status": "open", "limit": 500}, timeout=30).json()
-        cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith("ab-")]
+        cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith(("ab-", "sw-"))]
         close, keep, mixed = [], [], []
         for p in pos:
             sym, q = p["symbol"], abs(int(float(p["qty"]))) * (-1 if p.get("side") == "short" else 1)

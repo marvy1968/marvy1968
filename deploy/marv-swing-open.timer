@@ -1,0 +1,9 @@
+[Unit]
+Description=Swing runner opening-auction orders (weekdays 09:20 ET)
+
+[Timer]
+OnCalendar=Mon..Fri 09:20 America/New_York
+Persistent=false
+
+[Install]
+WantedBy=timers.target

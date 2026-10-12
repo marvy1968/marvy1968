@@ -42,7 +42,7 @@ def run_intraday(strategy, days, costs, pf, start, end, placebo_seed=None) -> di
 
 
 def run_swing(strategy, daily: dict[str, pd.DataFrame], costs, pf, start, end) -> dict:
-    trades = [t for sym, d in daily.items() for t in simulate_swing(sym, d, strategy, costs)]
+    trades = [t for sym, d in daily.items() for t in simulate_swing(sym, d, strategy, costs, all_signals=True)]
     trades = [t for t in trades if start <= t.entry_time.date() <= end]
     closes = {sym: d["close"] for sym, d in daily.items()}
     fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), closes, costs, pf, start, end)

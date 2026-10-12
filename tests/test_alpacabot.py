@@ -1006,3 +1006,29 @@ class SwingValidateTests(unittest.TestCase):
             plc = ExpertSwing("williams_r", placebo_seed=seed).frame(d)
             self.assertEqual(int(plc["entry"].sum()), int(real["entry"].sum()))
         self.assertFalse(ExpertSwing("williams_r", placebo_seed=1).frame(d)["entry"].equals(ExpertSwing("williams_r", placebo_seed=2).frame(d)["entry"]))
+
+
+class SwingUnitTests(unittest.TestCase):
+    def test_holiday_and_same_day_plans_are_not_executed(self):
+        import tempfile
+        from zoneinfo import ZoneInfo
+        from alpacabot.swing_paper import SwingRunner
+        et = ZoneInfo("America/New_York")
+
+        class B:
+            sent = []
+            def equity(self): return 50000.0
+            def is_session(self, day): return day.isoformat() != "2026-11-26"          # Thanksgiving
+            def submit_order(self, *a, **k): self.sent.append(a); return {"id": "x"}
+            def order(self, oid): return {"id": oid, "status": "filled", "filled_qty": "10", "filled_avg_price": "100"}
+        with tempfile.TemporaryDirectory() as d:
+            r = SwingRunner(B(), state_dir=d, fetch=lambda *a: pd.DataFrame())
+            r.state["plan"] = {"made": "2026-11-25", "exits": [], "entries": [{"symbol": "NVDA", "qty": 10, "stop": 90.0, "rs": 0.1, "signal_close": 100}]}
+            self.assertEqual(r.open(datetime(2026, 11, 25, 9, 20, tzinfo=et)), {})          # plan made today: not today
+            self.assertEqual(r.open(datetime(2026, 11, 26, 9, 20, tzinfo=et)), {})          # holiday: waits
+            self.assertEqual(B.sent, [])
+            r.open(datetime(2026, 11, 27, 9, 20, tzinfo=et), wait_until=datetime(2026, 11, 27, 9, 20, tzinfo=et))
+            self.assertEqual([x[:5] for x in B.sent], [("NVDA", 10, "buy", "market", "opg"), ("NVDA", 10, "sell", "stop", "gtc")])
+            self.assertTrue(all(x[5].startswith("sw-") for x in B.sent))
+            self.assertIn("NVDA", r.state["positions"])
+            self.assertEqual(r.open(datetime(2026, 11, 27, 9, 21, tzinfo=et)), {})          # never twice

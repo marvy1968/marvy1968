@@ -1,0 +1,9 @@
+[Unit]
+Description=Swing runner scan after the close (weekdays 16:20 ET)
+
+[Timer]
+OnCalendar=Mon..Fri 16:20 America/New_York
+Persistent=false
+
+[Install]
+WantedBy=timers.target

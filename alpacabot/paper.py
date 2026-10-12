@@ -69,6 +69,24 @@ class RestBroker:
             return t, t
         return bid, ask
 
+    def submit_order(self, symbol: str, qty: int, side: str, type_: str, tif: str, client_order_id: str, stop_price: float | None = None) -> dict:
+        """Generic order (the swing runner: OPG market orders at the open, GTC stops). A repeated client id returns the existing order."""
+        body = {"symbol": symbol, "qty": str(qty), "side": side, "type": type_, "time_in_force": tif, "client_order_id": client_order_id}
+        if stop_price is not None:
+            body["stop_price"] = f"{stop_price:.2f}"
+        r = self._req("POST", f"{TRADE_URL}/orders", json=body)
+        if r.status_code == 422 and "client_order_id" in r.text:
+            return self._req("GET", f"{TRADE_URL}/orders:by_client_order_id", params={"client_order_id": client_order_id}).json()
+        r.raise_for_status()
+        return r.json()
+
+    def cancel_order(self, order_id: str):
+        return self._req("DELETE", f"{TRADE_URL}/orders/{order_id}")
+
+    def is_session(self, day) -> bool:
+        cal = self._req("GET", f"{TRADE_URL}/calendar", params={"start": day.isoformat(), "end": day.isoformat()}).json()
+        return any(c.get("date") == day.isoformat() for c in cal)
+
     def order(self, order_id: str) -> dict:
         return self._req("GET", f"{TRADE_URL}/orders/{order_id}").json()
 
@@ -527,6 +545,8 @@ def report_card(state_dir, day=None) -> str:
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")
     else:
         lines.append("No equity snapshots yet; the first appears after today's close.")
+    from .swing_paper import summary as swing_summary
+    lines += swing_summary(Path(state_dir).parent / "alpaca_swing")
     return "\n".join(lines)
 
 

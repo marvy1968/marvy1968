@@ -204,7 +204,9 @@ def size_intraday(trades: list[Trade], costs: Costs, pf: Portfolio) -> pd.DataFr
 
 
 # ---------------------------------------------------------------- swing
-def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs) -> list[Trade]:
+def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signals: bool = False) -> list[Trade]:
+    """all_signals=False: one trade at a time per symbol. True: every entry signal becomes a candidate trade and the PORTFOLIO decides
+    (size_swing takes a candidate only when the symbol is not already held), which is what a live bot does when its slots are full."""
     f = strat.frame(d)
     o, h, l, c = (d[k].to_numpy(float) for k in ("open", "high", "low", "close"))
     entry, exit_, n, slip = f["entry"].to_numpy(bool), f["exit"].to_numpy(bool), len(d), costs.slip_bps / 1e4
@@ -245,7 +247,7 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs) -> list[Tr
             k += 1
         out.append(Trade(symbol, d.index[j0], d.index[min(k, n - 1)], fill, px, sd, why, k - j0 + 1,
                          rank=float(strat.rank(f, i)) if hasattr(strat, "rank") else 0.0))
-        i = max(k, i + 1)
+        i = i + 1 if all_signals else max(k, i + 1)
     return out
 
 
@@ -258,23 +260,32 @@ def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, 
     cash, open_pos, rows, curve = pf.equity, [], [], {}
     last_eq = pf.equity
     for d in days:
-        # exits at this date (open or stop): realize
-        for p in [p for p in open_pos if p["t"].exit_time <= d]:
+        def realize(p):
+            nonlocal cash
             cash += p["qty"] * (p["t"].exit_px - p["t"].exit_px * costs.fee_bps_sell / 1e4) - 2 * costs.commission * p["qty"]
             pnl = p["qty"] * p["t"].pnl_per_share(costs)
             rows.append({"symbol": p["t"].symbol, "entry": p["t"].entry_time, "exit": p["t"].exit_time, "qty": p["qty"], "entry_px": p["t"].entry_px,
                          "exit_px": p["t"].exit_px, "pnl": pnl, "r": p["t"].pnl_per_share(costs) / p["t"].stop_dist, "reason": p["t"].reason,
                          "bars": p["t"].bars, "notional": p["qty"] * p["t"].entry_px})
             open_pos.remove(p)
+
+        # exits that happen AT this open (signal / time) free their slot and cash for today's entries; a stop that hits later TODAY does not
+        # (a live bot placing orders before the open cannot know about it), so it is realized after today's entries
+        for p in [p for p in open_pos if p["t"].exit_time < d or (p["t"].exit_time == d and p["t"].reason != "stop")]:
+            realize(p)
         for t in by_entry.get(d, []):
             if len(open_pos) >= pf.max_positions:
                 break
+            if any(p["t"].symbol == t.symbol for p in open_pos):
+                continue                                  # already holding this name
             risk_ps = t.stop_dist + t.entry_px * costs.slip_bps / 1e4
             qty = int(min(last_eq * pf.risk_pct / risk_ps, last_eq * pf.max_pos_frac / t.entry_px, cash / t.entry_px))
             if qty < pf.min_qty:
                 continue
             cash -= qty * t.entry_px
             open_pos.append({"t": t, "qty": qty})
+        for p in [p for p in open_pos if p["t"].exit_time == d and p["t"].reason == "stop"]:
+            realize(p)
         mv = sum(p["qty"] * float(closes[p["t"].symbol].get(d, p["t"].entry_px)) for p in open_pos)
         last_eq = cash + mv
         curve[d] = last_eq
