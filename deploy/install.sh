@@ -106,9 +106,9 @@ if systemctl list-unit-files marv-cfb-bot.timer >/dev/null 2>&1; then
   rm -f /etc/systemd/system/marv-cfb-bot.{service,timer}
 fi
 
-cp "$DIR"/deploy/marv-*.service "$DIR"/deploy/marv-bot*.timer "$DIR"/deploy/marv-health.timer /etc/systemd/system/
+cp "$DIR"/deploy/marv-*.service "$DIR"/deploy/marv-bot*.timer "$DIR"/deploy/marv-health.timer "$DIR"/deploy/marv-soccer.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now marv-bot.timer marv-bot-late.timer marv-health.timer marv-bridge.service marv-live.service marv-edges.service
+systemctl enable --now marv-bot.timer marv-bot-late.timer marv-health.timer marv-soccer.timer marv-bridge.service marv-live.service marv-edges.service
 systemctl restart marv-bridge.service marv-live.service marv-edges.service 2>/dev/null || true
 # Alpaca PAPER trading loop (paper account only; idles with "WAITING FOR KEYS" until the keys are in .env)
 systemctl enable marv-alpaca-paper.service 2>/dev/null && systemctl restart marv-alpaca-paper.service 2>/dev/null || true

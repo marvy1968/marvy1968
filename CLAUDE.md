@@ -109,3 +109,14 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     efficiency term + calibrated restricted MC; CFB adds Marvin's HPR (BCR/depth from `state/cache/cfb_bcr.csv`, `tools/cfb_bcr.py`)
     and a BCR guard (fav BCR > 0.70 vs dog < 0.45 = never an upset fade). Soft-favourite tag (NFL/WNBA) is paper only. Backtests:
     `tools/hybrid_refine_bt.py`, `tools/cfb_upset_bt.py`, WNBA lines `tools/wnba_lines.py`. Nothing passed bar + placebo -> no %.
+
+14. Soccer node (Oct 11 2026, `marv/soccer_max/`, Marvin's "Marv Soccer Predict Max" PDF): power (time-decayed opponent-adjusted
+    Poisson attack/defence on goals blended 50/50 with xG / a shots-on-target xG proxy, league home edge) + H2H category matrix
+    (goals, xG, shots, on target, corners, for/against) + last-5 trend -> expected goals -> Dixon-Coles Monte Carlo (seeded) ->
+    1X2/DNB/AH/totals/BTTS/team totals; market only after the projection; veto stack + confidence. Data: football-data.co.uk
+    (EPL, Championship, La Liga, Bundesliga, Serie A, Ligue 1, Eredivisie, Primeira, MLS, Liga MX). `marv-soccer.timer` (3 h):
+    `python -m marv soccer run` = refresh ratings, paper-log fixtures vs pre-match odds (state/marv_predict/soccer/paper.json),
+    grade, weekly walk-forward (`soccer_validation.md`). March_edge overlay: bridge routes eng.1/soccer_epl/... to the node,
+    verdict `paper` (never a veto, never a %), every read logged to overlay_log.jsonl and graded. Walk-forward 2020-26 (23.6k
+    matches): beats base rates (Brier 0.598 vs 0.649) but not the closing market (0.586) in any league; edge bets lose
+    (1X2 -10.7%, O/U2.5 -5.9%, CLV -3%). Nothing in marv/proven.py. Promote only after the bar + 100+ graded paper reads.

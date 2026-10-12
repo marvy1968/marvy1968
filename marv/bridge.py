@@ -254,6 +254,8 @@ class Overlay:
             return ""
         if self.verdict == "pick":
             return f"🧠 Marv H2H: {self.pick} {self.why} · {self.prob}"
+        if self.verdict == "paper":  # soccer node (marv/soccer_max): paper read, never a %, never a veto
+            return f"🧠 Marv H2H: {self.why} · {self.prob}"
         icon = {"good": "👍 good", "not": "👎 bad", "mixed": "➖ mixed", "n/a": "➖ no H2H read"}[self.verdict]
         return f"🧠 Marv H2H: {icon} — {self.why} · {self.prob}"
 
@@ -316,7 +318,14 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
     """Marv Predict read on one March_edge alert: every metric Marv has on the game (ratings margin, O/D category
     points, stars, Marv model, injuries/QB, line moves, Bovada vs Pinnacle, O/U trends) compared FOR / AGAINST the
     bet -> good / bad / mixed + short why (marv/insight.py). A % prints only for a proven rule (marv/proven.py).
-    sport may be a March_edge league key (ncaaf, nfl, ...)."""
+    sport may be a March_edge league key (ncaaf, nfl, eng.1, soccer_epl ...)."""
+    from .soccer_max import node as SN
+    if SN.is_soccer(sport):  # Marv Soccer Predict Max node: paper read only (verdict 'paper' cannot veto)
+        try:
+            o = SN.overlay(state_dir, sport, market, side, line, team, other, text, price, live)
+        except Exception:  # noqa: BLE001 - never break the March_edge alert
+            o = None
+        return Overlay(True, o["verdict"], o["why"], o["prob"], o["game"]) if o else Overlay(False)
     from . import insight as I
     from . import proven
     sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
@@ -416,6 +425,13 @@ def game_h2h(state_dir: Path, sport: str, team: str | None = None, other: str | 
     """Game-level Marv Predict read for queries (/game, /board, March_edge /game): the H2H pick, every metric compared
     for / against it (good / bad / mixed + why) and the O/U lean. A % only if that rule passed the proven bar;
     close games never get a %."""
+    from .soccer_max import node as SN
+    if SN.is_soccer(sport):  # soccer node: game-level paper read, never a %
+        try:
+            o = SN.game_read(state_dir, sport, team, other, text)
+        except Exception:  # noqa: BLE001
+            o = None
+        return Overlay(True, "pick", o["why"], o["prob"], o["game"], o["pick"]) if o else Overlay(False)
     from . import insight as I
     from . import proven
     sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
