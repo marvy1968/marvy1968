@@ -1,0 +1,3 @@
+$ alpaca close-others
+started 2026-10-12 10:58:03 EDT
+RUNNING...
