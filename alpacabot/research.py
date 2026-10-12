@@ -323,3 +323,55 @@ def swing_validate(daily, test, costs: Costs = Costs(), pf: Portfolio = Portfoli
     passed = [r["expert"] for r in out["rows"] if r["passes"]]
     out["verdict"] = (f"PASSED validation: {', '.join(passed)} (one look at 2021-22; the final test is still unspent)" if passed else "none of the pre-declared candidates passed validation")
     return out
+
+
+def _curve_stats(cv: pd.Series, equity: float) -> dict:
+    if cv is None or not len(cv):
+        return {}
+    r = cv.pct_change().dropna()
+    years = max(len(cv) / 252, 1e-9)
+    return {"total_return": float(cv.iloc[-1] / equity - 1), "cagr": float((cv.iloc[-1] / equity) ** (1 / years) - 1),
+            "max_drawdown": float((cv / cv.cummax() - 1).min()), "sharpe": float(r.mean() / r.std() * np.sqrt(252)) if r.std() > 0 else None}
+
+
+def sector_td_robust(data: dict, spy: pd.DataFrame, start: date, end: date, costs: Costs, seed: int = 7) -> dict:
+    """Robustness of the frozen Sector Top-Down rules on one universe over [start, end]:
+    leave-one-symbol-out, nearby parameters, risk sizing, and a moving-block bootstrap of daily returns (keeps losing streaks together)."""
+    from .strategies import SectorTopDown
+    base_pf = Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333)
+
+    def run(strat, d=data, pf=base_pf):
+        res = run_swing(strat, d, costs, pf, start, end)
+        m = res["metrics"]
+        return {"trades": m.get("trades"), "profit_factor": m.get("profit_factor"), "avg_r": m.get("avg_r"), **_curve_stats(res["curve"], pf.equity)}, res
+
+    base, base_res = run(SectorTopDown(spy["close"]))
+    loo = {sym: run(SectorTopDown(spy["close"]), {k: v for k, v in data.items() if k != sym})[0] for sym in data}
+    params = []
+    for rs_m in (0.02, 0.03, 0.04):
+        for e in (15, 20, 25):
+            for am in (0.75, 1.0, 1.5):
+                m, _ = run(SectorTopDown(spy["close"], rs_margin=rs_m, ema_n=e, atr_mult=am))
+                params.append({"rs_margin": rs_m, "ema": e, "atr_mult": am, **m})
+    sizing = []
+    for risk in (0.0035, 0.005, 0.0075, 0.01):
+        for slots in (3, 5):
+            m, _ = run(SectorTopDown(spy["close"]), pf=Portfolio(risk_pct=risk, max_positions=slots, max_pos_frac=min(0.333, 1.0 / slots + 0.001)))
+            sizing.append({"risk_pct": risk, "max_positions": slots, **m})
+    r = base_res["curve"].pct_change().dropna().to_numpy()
+    rng, block, paths = np.random.default_rng(seed), 20, 2000
+    ann, dds = [], []
+    if len(r) > block:
+        for _ in range(paths):
+            idx = np.concatenate([np.arange(k, k + block) for k in rng.integers(0, len(r) - block, size=len(r) // block + 1)])[:len(r)]
+            c = np.cumprod(1 + r[idx])
+            ann.append(c[-1] ** (252 / len(r)) - 1)
+            dds.append(float((c / np.maximum.accumulate(c) - 1).min()))
+    boot = ({"paths": paths, "block_days": block, "cagr_p5": float(np.percentile(ann, 5)), "cagr_p50": float(np.percentile(ann, 50)),
+             "cagr_p95": float(np.percentile(ann, 95)), "share_profitable": float(np.mean(np.array(ann) > 0)),
+             "maxdd_p50": float(np.percentile(dds, 50)), "maxdd_p95": float(np.percentile(dds, 5)), "maxdd_p99": float(np.percentile(dds, 1))} if ann else {})
+    pf_vals = [p["profit_factor"] for p in params if p["profit_factor"] is not None]
+    return {"family": "sector_td_robust", "period": [str(start), str(end)], "symbols": sorted(data), "base": base, "leave_one_out": loo,
+            "params": params, "params_profitable_share": float(np.mean([v > 1 for v in pf_vals])) if pf_vals else None,
+            "params_pf_range": [min(pf_vals), max(pf_vals)] if pf_vals else None, "sizing": sizing, "bootstrap": boot,
+            "spy": benchmark(spy, start, end)}

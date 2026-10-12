@@ -10,7 +10,7 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_study, swing_expert_study, swing_validate, symbol_check, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_robust, sector_td_study, swing_expert_study, swing_validate, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
 SECTOR_TD_THEIRS = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
@@ -74,6 +74,14 @@ def run_all(a) -> int:
                            "2020-2022": (date(2020, 1, 2), date(2022, 12, 31)), "2023-today": (date(2023, 1, 3), end2)}
                 res = sector_td_study(uni, spy2, periods, Costs(slip_bps=5.0), Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333))
                 res["verdict"] = "see the table: compare each row with buy-and-hold of the same names"
+            elif fam == "sector_td_robust":      # leave-one-out, nearby parameters, sizing, block bootstrap: 2016-today, both universes
+                end2 = date.today()
+                spy2 = load("SPY", "1Day", start, end2, cache)
+                res = {"family": fam, "verdict": "see the table", "universes": {}}
+                for name, syms in (("their 10", SECTOR_TD_THEIRS), ("2016 large caps (control)", SECTOR_TD_CONTROL)):
+                    d_ = {s: load(s, "1Day", start, end2, cache) for s in syms}
+                    res["universes"][name] = sector_td_robust({k: v for k, v in d_.items() if len(v) > 300}, spy2, date(2016, 3, 1), end2,
+                                                              Costs(slip_bps=5.0))
             elif fam == "swing_validate":        # the three pre-declared daily-bar candidates, ONE look at 2021-2022
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_validate(data, test, costs, spy_daily=spy)
@@ -125,6 +133,19 @@ def run_all(a) -> int:
             for r in res["table"]:
                 lines.append(f"| {r['route']} | {r['mtf']} | {r['consensus']} | {r['sector_filter']} | {r['shorts']} | {r['trades']} | {r['win_rate'] or 0:.0%} | "
                              f"{r['expectancy_pct_notional'] or 0:+.4f} | {r['profit_factor'] or 0:.2f} | {r['daily_ret_pct_mean'] or 0:+.3f} |")
+        if fam == "sector_td_robust":
+            for uname, u in res.get("universes", {}).items():
+                b = u["base"]
+                lines.append(f"### {uname} ({u['period'][0]}..{u['period'][1]}): base {b.get('trades')}t PF {b.get('profit_factor') or 0:.2f} "
+                             f"CAGR {b.get('cagr') or 0:+.1%} maxDD {b.get('max_drawdown') or 0:.1%} sharpe {b.get('sharpe') or 0:.2f} | SPY CAGR {u['spy'].get('cagr', 0):+.1%}")
+                lines.append("- leave one out (CAGR, PF): " + ", ".join(f"-{k} {v.get('cagr') or 0:+.1%}/{v.get('profit_factor') or 0:.2f}" for k, v in u["leave_one_out"].items()))
+                lines.append(f"- 27 nearby parameter sets: {u['params_profitable_share'] or 0:.0%} profitable, PF range {u['params_pf_range']}")
+                lines.append("- sizing (risk, slots -> CAGR, maxDD, sharpe): " + ", ".join(
+                    f"{z['risk_pct']:.2%}/{z['max_positions']} -> {z.get('cagr') or 0:+.1%}, {z.get('max_drawdown') or 0:.1%}, {z.get('sharpe') or 0:.2f}" for z in u["sizing"]))
+                bt = u["bootstrap"]
+                if bt:
+                    lines.append(f"- block bootstrap ({bt['paths']} paths, {bt['block_days']}-day blocks): CAGR p5/p50/p95 {bt['cagr_p5']:+.1%}/{bt['cagr_p50']:+.1%}/{bt['cagr_p95']:+.1%}, "
+                                 f"profitable {bt['share_profitable']:.0%}, maxDD median {bt['maxdd_p50']:.1%}, 95th {bt['maxdd_p95']:.1%}, 99th {bt['maxdd_p99']:.1%}")
         if fam == "swing_validate":
             for r in res.get("rows", []):
                 x = r["real"]
