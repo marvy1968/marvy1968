@@ -1,3 +1,12 @@
 $ alpaca history --days 2
-started 2026-10-12 10:00:09 EDT
-RUNNING...
+started 2026-10-12 10:00:09 EDT, took 6s, exit 0
+
+ACCOUNT HISTORY (paper) 2026-10-12 .. 2026-10-12: 9 fills, 2 symbols, bots by order-id prefix: ab, sx, untagged
+
+== BY BOT (closed round trips, before fees; 'ab' = the new Marv bot)
+bot         trips  win%      P&L $    avg $  avg %  med hold  scalp/day/swing short%  top symbols (trips)
+
+== STILL OPEN (net shares by bot, from fills): ab:NVDA -59, sx:DUK +24, untagged:NVDA +59
+
+Notes: P&L is from fill prices, before regulatory fees; crypto fills are included under their pair symbol.
+A round trip whose opening fill is older than the period start is not counted.
