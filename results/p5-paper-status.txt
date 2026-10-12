@@ -1,3 +1,15 @@
 $ alpaca-paper-status
-started 2026-10-11 21:41:59 EDT
-RUNNING...
+started 2026-10-11 21:41:59 EDT, took 0s, exit 0
+
+● marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)
+     Loaded: loaded (/etc/systemd/system/marv-alpaca-paper.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-10-11 21:41:57 EDT; 4s ago
+   Main PID: 424446 (python)
+      Tasks: 3 (limit: 4617)
+     Memory: 67.7M
+        CPU: 1.107s
+     CGroup: /system.slice/marv-alpaca-paper.service
+             └─424446 /opt/marv-bot/.venv/bin/python -m alpacabot paper
+
+Oct 11 21:41:57 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 11 21:41:57 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
