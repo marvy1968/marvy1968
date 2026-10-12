@@ -38,6 +38,8 @@ class RestBroker:
         r = self.s.request(method, url, headers=_headers(), timeout=30, **kw)
         if r.status_code in (429,) or r.status_code >= 500:
             raise requests.ConnectionError(f"HTTP {r.status_code}")
+        if r.status_code >= 400 and r.status_code != 422:      # 401/403 = wrong or live keys: fail loudly
+            r.raise_for_status()
         return r
 
     def equity(self) -> float:

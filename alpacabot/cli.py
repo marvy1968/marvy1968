@@ -99,6 +99,7 @@ def main(argv=None) -> int:
     ra.add_argument("--slip-bps", type=float, default=2.0)
     pp = sub.add_parser("paper", help="run the PAPER trading loop (Alpaca paper account only)")
     pp.add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
     bt.add_argument("--train-end", type=_d, default=date(2021, 12, 31))
@@ -107,6 +108,17 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "check":
+        from .paper import RestBroker
+        key, secret = credentials()
+        print("keys found in the environment:", bool(key and secret))
+        if key and secret:
+            try:
+                print("paper account equity: $%s, market open: %s" % (format(RestBroker().equity(), ",.0f"), RestBroker().clock_open()))
+            except Exception as exc:
+                print("paper account check FAILED (live keys or a typo?):", type(exc).__name__, str(exc)[:120])
+                return 1
+        return 0 if key and secret else 2
     if a.cmd == "paper":
         from .paper import main as paper_main
         return paper_main(a)

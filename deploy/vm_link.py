@@ -37,7 +37,7 @@ GIT_ENV = {**os.environ, "GIT_SSH_COMMAND": f"ssh -i {KEY} -o IdentitiesOnly=yes
 MARV_OK = {"run", "stats-backtest", "h2h-backtest", "props", "props-backtest", "ingame", "edges", "situational",
            "check", "report", "sports", "probe-ewl", "test-telegram", "get-chat-id", "gaps", "live-probe", "injuries", "live-props-probe", "grade-prop", "mirror-status", "talent-dump"}
 MARV_FLAGS_REFUSED = {"--send", "--watch"}
-UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink", "marv-health"}
+UNITS = {"marv-bot", "marv-bot-late", "marv-bridge", "marv-live", "marv-edges", "marv-vmlink", "marv-health", "marv-alpaca-paper"}
 TOKEN = re.compile(r"^[A-Za-z0-9_.,:=/@+%-]+$")
 MAX_OUT = 200_000
 JOB_TIMEOUT = int(os.environ.get("VM_LINK_TIMEOUT", 45 * 60))  # per job; a "# timeout 7200" line in the job overrides
@@ -89,9 +89,11 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
     if cmd == "alpaca":  # backtests / data download for alpacabot (never live trading: that has no job here)
-        if not args or args[0] not in ("download", "backtest", "run-all"):
-            return None, "alpaca needs download, backtest or run-all [options]"
+        if not args or args[0] not in ("download", "backtest", "run-all", "check", "paper-report"):
+            return None, "alpaca needs download, backtest, run-all, check or paper-report"
         return as_bot + [py, "-m", "alpacabot", *args], ""
+    if cmd == "alpaca-paper-status":  # the paper-trading service and its last log lines
+        return ["bash", "-c", "systemctl --no-pager status marv-alpaca-paper | head -15; journalctl -u marv-alpaca-paper -n 30 --no-pager"], ""
     if cmd == "read-bot-reports":  # logs/reports/csv heads of a bot folder, secrets scrubbed (find_odds_bot.sh --reports)
         if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:
             return None, "read-bot-reports needs one absolute folder path"
