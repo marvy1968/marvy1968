@@ -1,3 +1,9 @@
 $ alpaca close-others
-started 2026-10-12 10:58:03 EDT
-RUNNING...
+started 2026-10-12 10:58:03 EDT, took 3s, exit 0
+
+new bot holds: {'NVDA': -60, 'QQQ': -18, 'SPY': 17}
+KEEP (the new bot's): [('SPY', 17)]
+CANCEL 21 orders not from the new bot: NTAP sell stop, HPE sell stop, DT sell stop, MKTX sell stop, DIS sell stop, ECPG sell stop, ECPG sell limit, PBF sell limit, COP sell stop, GOOGL sell stop, APTV buy stop, APTV buy limit, ANET sell limit, ANET sell stop, FTNT sell limit, FTNT sell stop, SNOW sell limit, PANW sell limit, NET sell limit, CRWD sell limit, JPM sell limit
+CLOSE 24 positions not from the new bot: ADBE +6, ANET +19, APA +6, APTV +15, COP +1, CRWD +14, DIA +10, DIS +7, DT +3, DUK +24, ECPG +43, FTNT +20, GOOGL +9, HPE +61, INTC +1, JPM +25, MKTX +30, NET +10, NTAP +22, OXY +44, PANW +9, PBF +1, QCOM +1, SNOW +17
+NOT TOUCHED (shared with the new bot, close the difference by hand): [('NVDA', 60, -60), ('QQQ', 18, -18)]
+DRY RUN: nothing was sent. Re-run with --execute to do it.
