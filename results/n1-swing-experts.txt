@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families swing_experts
+started 2026-10-12 13:38:42 EDT
+RUNNING...
