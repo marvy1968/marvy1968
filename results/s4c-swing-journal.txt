@@ -1,0 +1,3 @@
+$ show alpaca_swing/journal.jsonl
+started 2026-10-12 16:23:56 EDT
+RUNNING...
