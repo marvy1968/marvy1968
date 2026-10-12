@@ -130,13 +130,20 @@ def bar_start(t: datetime) -> pd.Timestamp:
     return pd.Timestamp(t).floor("5min")
 
 
+ENGAGED = Path(__file__).with_name("brain_config.json")     # the validated configuration, committed to the repo when one passes
+BRAIN_KEYS = {"experts", "short_experts", "priority", "route", "mtf", "consensus", "sector_filter", "short_gate", "max_trades", "cooldown"}
+
+
 def default_brain(state_dir) -> Brain:
     """Paper default: every expert both ways; longs blocked in a BEARISH sector; shorts only while the market or the sector is BEARISH or
-    SPY is red on the day. Overridden by <state>/brain.json (written once validation has chosen a configuration)."""
+    SPY is red on the day. Replaced by alpacabot/brain_config.json once validation has proven a configuration (its "brain" block), and by
+    <state>/brain.json for a local override."""
     cfg = {"experts": list(ALL_EXPERTS), "short_experts": list(ALL_EXPERTS), "sector_filter": True, "short_gate": "red"}
-    p = Path(state_dir) / "brain.json"
-    if p.exists():
-        cfg.update(json.loads(p.read_text()))
+    for p in (ENGAGED, Path(state_dir) / "brain.json"):
+        if p.exists():
+            raw = json.loads(p.read_text())
+            cfg.update({k: v for k, v in raw.get("brain", raw).items() if k in BRAIN_KEYS})
+    log.info("brain: %s", cfg)
     return Brain(**cfg)
 
 

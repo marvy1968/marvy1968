@@ -732,3 +732,19 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertEqual((t["side"], t["reason"]), ("short", "stop"))
             self.assertAlmostEqual(t["pnl"], -20.0)    # (100 - 102) * 10
             self.assertIn("shorts: 1, 0W/1L", paper.report_card(d, date(2026, 10, 12)))
+
+
+class EngagedConfigTests(unittest.TestCase):
+    def test_engaged_config_is_applied_and_unknown_keys_ignored(self):
+        import tempfile
+        from unittest import mock
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "brain_config.json"
+            cfg.write_text(json.dumps({"validated": "2021-2022", "brain": {"experts": ["connors_rsi2"], "short_experts": [], "route": False,
+                                                                           "consensus": 2, "rm -rf": 1}}))
+            with mock.patch.object(paper, "ENGAGED", cfg):
+                b = paper.default_brain(d)
+            self.assertEqual((b.experts, b.short_experts, b.route, b.consensus), (["connors_rsi2"], [], False, 2))
+            b = paper.default_brain(d)                      # no engaged file: the default (all experts both ways, gated)
+            self.assertEqual(len(b.experts), 10)
