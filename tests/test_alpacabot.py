@@ -748,3 +748,22 @@ class EngagedConfigTests(unittest.TestCase):
             self.assertEqual((b.experts, b.short_experts, b.route, b.consensus), (["connors_rsi2"], [], False, 2))
             b = paper.default_brain(d)                      # no engaged file: the default (all experts both ways, gated)
             self.assertEqual(len(b.experts), 10)
+
+
+class StaircaseModeTests(unittest.TestCase):
+    def test_staircase_mode_puts_every_expert_on_the_trailing_manager(self):
+        idx = pd.DatetimeIndex([t for d in pd.bdate_range("2024-03-04", periods=5)
+                                for t in pd.date_range(f"{d.date()} 09:30", f"{d.date()} 15:45", freq="5min", tz="America/New_York")])
+        rng = np.random.default_rng(5)
+        c = 100 + np.cumsum(rng.normal(0, 0.15, len(idx)))
+        df = pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0}, index=idx)
+        df["high"], df["low"] = df[["open", "high", "close"]].max(axis=1), df[["open", "low", "close"]].min(axis=1)
+        d = df.join(features_all(df))
+        day = d[d.index.date == d.index[-1].date()]
+        fixed = [n for n in ALL_EXPERTS if n not in ("donchian_turtle", "dual_regime")]      # the 8 experts with their own exits
+        own = Brain(experts=fixed, route=False, mtf=False).signals(day)
+        st = Brain(experts=fixed, route=False, mtf=False, exit_mode="staircase").signals(day)
+        self.assertEqual([s.i for s in own], [s.i for s in st])              # same entries
+        self.assertTrue(st and all(s.managed and s.atr > 0 and s.max_bars == 0 and not s.exit_col and
+                                   abs(s.stop_dist - 1.5 * s.atr) < 1e-9 for s in st))
+        self.assertTrue(own and not any(s.managed for s in own))             # the default keeps each expert's own exits

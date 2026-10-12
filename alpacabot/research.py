@@ -167,3 +167,23 @@ def brain_walk_forward(data, train, test, costs: Costs = Costs(), pf: Portfolio 
     out["target_0.75_to_1pct_per_day"] = {"average_daily_return_pct": dm, "met": bool(dm is not None and dm >= TARGET_DAILY_PCT[0])}
     out["verdict"] = verdict({**out, "chosen": out["chosen"]})
     return out
+
+
+def exit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = False) -> dict:
+    """TRAIN years only (does not touch the test years): each expert's real entries with its OWN exits vs the STAIRCASE, after costs.
+    Answers 'does the staircase help this expert?' without spending the held-out data."""
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe")
+    table = {}
+    for name in ALL_EXPERTS:
+        for side in (["long", "short"] if shorts else ["long"]):
+            row = {}
+            for mode in ("own", "staircase"):
+                kw = dict(experts=[name]) if side == "long" else dict(experts=[], short_experts=[name])
+                m = run_intraday(Brain(route=False, mtf=False, exit_mode=mode, **kw), data, costs, pf, *train)["metrics"]
+                row[mode] = {k: m.get(k) for k in keys}
+            e_own, e_st = row["own"].get("expectancy_pct_notional"), row["staircase"].get("expectancy_pct_notional")
+            row["staircase_better"] = bool(e_own is not None and e_st is not None and e_st > e_own)
+            table[f"{name} {side}"] = row
+    better = [k for k, v in table.items() if v["staircase_better"]]
+    return {"family": "exits", "train": [str(x) for x in train], "table": table, "staircase_better_for": better,
+            "verdict": f"staircase better for {len(better)} of {len(table)} expert/side pairs (train years, after costs)"}

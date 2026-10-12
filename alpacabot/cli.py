@@ -10,7 +10,7 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, verdict, walk_forward
 from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
@@ -59,6 +59,10 @@ def run_all(a) -> int:
                 if fam == "brain":
                     days = split_days(minute, minutes=5, feature_fn=features_all)
                     res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+                elif fam == "exits":          # staircase vs each expert's own exits, TRAIN years only
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    res = exit_study(days, train, costs, shorts=True)
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -78,6 +82,11 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam == "exits" and res.get("table"):
+            lines.append("| expert / side | own exits: trades, win, exp %/trade | staircase: trades, win, exp %/trade |\n|---|---|---|")
+            for k, v in res["table"].items():
+                f = lambda r: f"{r.get('trades')}, {r.get('win_rate') or 0:.0%}, {r.get('expectancy_pct_notional') or 0:+.3f}"   # noqa: E731
+                lines.append(f"| {k} | {f(v['own'])} | {f(v['staircase'])} |")
         (out / f"alpaca_{a.phase}_summary.md").write_text("\n".join(lines))
         print(lines[-1], flush=True)
     print("ALL DONE")

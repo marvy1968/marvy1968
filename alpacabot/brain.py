@@ -45,6 +45,7 @@ class Brain:
     short_experts: list = field(default_factory=list)  # empty = no shorting
     sector_filter: bool = False
     short_gate: str = "bearish"                        # "bearish" (market or sector BEARISH) or "red" (that, or SPY red on the day)
+    exit_mode: str = "own"                             # "own": each expert's exits; "staircase": every trade on the trailing staircase
 
     def _allowed(self, d: pd.DataFrame, name: str, i: int) -> bool:
         r = d.iloc[i]
@@ -77,6 +78,11 @@ class Brain:
 
     def _side(self, d: pd.DataFrame, experts: list) -> list[Signal]:
         found = Experts((self.entry_from, self.entry_to)).signals(d, experts)
+        if self.exit_mode == "staircase":      # 1.5 ATR stop, break-even at +1 ATR, 1.5 ATR trail, ADX-scaled top step; no time/indicator exit
+            a, x = d["f_atr"].to_numpy(float), d["f_adx"].to_numpy(float)
+            found = [(n, replace(s, stop_dist=1.5 * a[s.i], target_r=0.0, max_bars=0, managed=True, atr=a[s.i],
+                                 adx=x[s.i] if np.isfinite(x[s.i]) else 0.0, trail=1.5, tp_scale=1.0, exit_col=""))
+                     for n, s in found if np.isfinite(a[s.i]) and a[s.i] > 0]
         rank = {n: k for k, n in enumerate(self.priority or ALL_EXPERTS)}
         out, last_i = [], {}
         by_bar: dict[int, list] = {}
