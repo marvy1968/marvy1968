@@ -1,3 +1,38 @@
 $ logs marv-swing-scan 40
-started 2026-10-12 16:23:53 EDT
-RUNNING...
+started 2026-10-12 16:23:53 EDT, took 1s, exit 0
+
+Oct 12 16:20:05 instance-stockbot systemd[1]: Starting marv-swing-scan.service - Alpaca PAPER swing runner: scan (Sector Top-Down, daily)...
+Oct 12 16:20:09 instance-stockbot python[506017]: {
+Oct 12 16:20:09 instance-stockbot python[506017]:  "made": "2026-10-12",
+Oct 12 16:20:09 instance-stockbot python[506017]:  "exits": [],
+Oct 12 16:20:09 instance-stockbot python[506017]:  "entries": [
+Oct 12 16:20:09 instance-stockbot python[506017]:   {
+Oct 12 16:20:09 instance-stockbot python[506017]:    "symbol": "META",
+Oct 12 16:20:09 instance-stockbot python[506017]:    "qty": 3,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "stop": 689.1026888985886,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "rs": 0.0919,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "signal_close": 742.96
+Oct 12 16:20:09 instance-stockbot python[506017]:   },
+Oct 12 16:20:09 instance-stockbot python[506017]:   {
+Oct 12 16:20:09 instance-stockbot python[506017]:    "symbol": "MSFT",
+Oct 12 16:20:09 instance-stockbot python[506017]:    "qty": 5,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "stop": 504.4092831845755,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "rs": 0.0456,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "signal_close": 541.15
+Oct 12 16:20:09 instance-stockbot python[506017]:   },
+Oct 12 16:20:09 instance-stockbot python[506017]:   {
+Oct 12 16:20:09 instance-stockbot python[506017]:    "symbol": "XLK",
+Oct 12 16:20:09 instance-stockbot python[506017]:    "qty": 46,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "stop": 192.42043958167847,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "rs": 0.0416,
+Oct 12 16:20:09 instance-stockbot python[506017]:    "signal_close": 196.36
+Oct 12 16:20:09 instance-stockbot python[506017]:   }
+Oct 12 16:20:09 instance-stockbot python[506017]:  ]
+Oct 12 16:20:09 instance-stockbot python[506017]: }
+Oct 12 16:20:09 instance-stockbot python[506017]: SWING (Sector Top-Down, daily, holds overnight)
+Oct 12 16:20:09 instance-stockbot python[506017]:   closed trades 0, 0W/0L, P&L $+0
+Oct 12 16:20:09 instance-stockbot python[506017]:   holding: nothing
+Oct 12 16:20:09 instance-stockbot python[506017]:   next open: buy ['META', 'MSFT', 'XLK'], sell nothing
+Oct 12 16:20:09 instance-stockbot systemd[1]: marv-swing-scan.service: Deactivated successfully.
+Oct 12 16:20:09 instance-stockbot systemd[1]: Finished marv-swing-scan.service - Alpaca PAPER swing runner: scan (Sector Top-Down, daily).
+Oct 12 16:20:09 instance-stockbot systemd[1]: marv-swing-scan.service: Consumed 1.886s CPU time.
