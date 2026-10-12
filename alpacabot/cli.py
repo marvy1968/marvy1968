@@ -10,9 +10,12 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, swing_expert_study, symbol_check, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_study, swing_expert_study, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
+SECTOR_TD_THEIRS = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
+# 2016 large caps that are NOT in the list above (no hindsight pick of today's winners): many of them went sideways or down
+SECTOR_TD_CONTROL = ["XOM", "JNJ", "GE", "JPM", "WFC", "T", "PG", "VZ", "KO", "WMT", "CVX", "PFE", "BAC", "INTC", "CSCO", "HD", "DIS", "MRK", "ORCL", "IBM", "C"]
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
 SWING = INTRADAY + ["DIA", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLC", "GLD", "TLT"]
 
@@ -53,7 +56,25 @@ def run_all(a) -> int:
     for fam in a.families:
         first = len(lines)
         try:
-            if fam == "swing_experts":           # the 10 experts on daily bars, multi-day holds, TRAIN years only
+            if fam == "sector_td":               # the supplied frozen rules, tested on untouched years and on a hindsight-free control list
+                end2 = date.today()
+                spy2 = load("SPY", "1Day", start, end2, cache)
+                uni = {}
+                for name, syms in (("their 10", SECTOR_TD_THEIRS), ("2016 large caps (control)", SECTOR_TD_CONTROL)):
+                    got = {}
+                    for s in syms:
+                        try:
+                            d = load(s, "1Day", start, end2, cache)
+                            if len(d) > 300:
+                                got[s] = d
+                        except Exception as exc:
+                            print("skip", s, exc, flush=True)
+                    uni[name] = got
+                periods = {"2016-2019 (untouched by their research)": (date(2016, 1, 4), date(2019, 12, 31)),
+                           "2020-2022": (date(2020, 1, 2), date(2022, 12, 31)), "2023-today": (date(2023, 1, 3), end2)}
+                res = sector_td_study(uni, spy2, periods, Costs(slip_bps=5.0), Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333))
+                res["verdict"] = "see the table: compare each row with buy-and-hold of the same names"
+            elif fam == "swing_experts":           # the 10 experts on daily bars, multi-day holds, TRAIN years only
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_expert_study(data, train, costs, spy_daily=spy)
             elif fam in ("swing_rsi", "swing_breakout"):
@@ -101,6 +122,12 @@ def run_all(a) -> int:
             for r in res["table"]:
                 lines.append(f"| {r['route']} | {r['mtf']} | {r['consensus']} | {r['sector_filter']} | {r['shorts']} | {r['trades']} | {r['win_rate'] or 0:.0%} | "
                              f"{r['expectancy_pct_notional'] or 0:+.4f} | {r['profit_factor'] or 0:.2f} | {r['daily_ret_pct_mean'] or 0:+.3f} |")
+        if fam == "sector_td":
+            for r in res.get("rows", []):
+                bh, sp = r["buy_hold_equal_weight"], r["spy"]
+                lines.append(f"- {r['universe']} | {r['period']}: {r['trades']} trades, win {r['win_rate'] or 0:.0%}, avgR {r['avg_r'] or 0:+.2f}, PF {r['profit_factor'] or 0:.2f}, "
+                             f"return {r['total_return'] or 0:+.1%} (CAGR {r['cagr'] or 0:+.1%}), maxDD {r['max_drawdown'] or 0:.1%} | buy&hold same names {bh.get('total_return', 0):+.1%} "
+                             f"(DD {bh.get('max_drawdown', 0):.1%}) | SPY CAGR {sp.get('cagr', 0):+.1%} | by year {r['by_year']} | top P&L {r['top_symbols_pnl']}")
         if fam in ("limit", "swing_experts") and res.get("table"):
             for k, v in res["table"].items():
                 if fam == "limit":

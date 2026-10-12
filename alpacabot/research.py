@@ -45,7 +45,7 @@ def run_swing(strategy, daily: dict[str, pd.DataFrame], costs, pf, start, end) -
     trades = [t for sym, d in daily.items() for t in simulate_swing(sym, d, strategy, costs)]
     trades = [t for t in trades if start <= t.entry_time.date() <= end]
     closes = {sym: d["close"] for sym, d in daily.items()}
-    fills, curve = size_swing(sorted(trades, key=lambda t: t.entry_time), closes, costs, pf, start, end)
+    fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), closes, costs, pf, start, end)
     return {"fills": fills, "curve": curve, "metrics": metrics(fills, curve, pf.equity)}
 
 
@@ -263,3 +263,35 @@ def filters_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio
     return {"family": "filters", "train": [str(x) for x in train], "table": rows, "candidates": ok,
             "verdict": (f"{len(ok)} filter combinations are positive after costs on the train years -> validate the best one once" if ok
                         else "no filter combination is positive after costs on the train years")}
+
+
+def _hold_stats(closes: pd.DataFrame, start: date, end: date) -> dict:
+    """Equal-weight buy-and-hold of the same names (daily rebalanced) over the same dates."""
+    c = closes[(closes.index.date >= start) & (closes.index.date <= end)]
+    r = c.pct_change().mean(axis=1).dropna()
+    if not len(r):
+        return {}
+    curve = (1 + r).cumprod()
+    return {"total_return": float(curve.iloc[-1] - 1), "cagr": float(curve.iloc[-1] ** (252 / len(r)) - 1), "max_drawdown": float((curve / curve.cummax() - 1).min())}
+
+
+def sector_td_study(universes: dict, spy: pd.DataFrame, periods: dict, costs: Costs, pf: Portfolio) -> dict:
+    """The supplied Sector Top-Down rules, frozen exactly, on each universe and period, against equal-weight buy-and-hold of the same names."""
+    from .strategies import SectorTopDown
+    rows = []
+    for uname, data in universes.items():
+        closes = pd.DataFrame({s: d["close"] for s, d in data.items()})
+        for pname, (a, b) in periods.items():
+            res = run_swing(SectorTopDown(spy["close"]), data, costs, pf, a, b)
+            m, f, cv = res["metrics"], res["fills"], res["curve"]
+            tot = float(cv.iloc[-1] / pf.equity - 1) if len(cv) else None
+            yearly = {}
+            if len(cv):
+                for y, g in cv.groupby([t.year for t in cv.index]):
+                    yearly[int(y)] = round(float(g.iloc[-1] / g.iloc[0] - 1), 4)
+            top = (f.groupby("symbol")["pnl"].sum().sort_values(ascending=False).head(3).round(0).to_dict() if len(f) else {})
+            rows.append({"universe": uname, "period": pname, "dates": [str(a), str(b)], "trades": m.get("trades"), "win_rate": m.get("win_rate"),
+                         "avg_r": m.get("avg_r"), "profit_factor": m.get("profit_factor"), "total_return": tot, "cagr": m.get("cagr"),
+                         "max_drawdown": m.get("max_drawdown"), "sharpe": m.get("sharpe"), "by_year": yearly, "top_symbols_pnl": top,
+                         "buy_hold_equal_weight": _hold_stats(closes, a, b), "spy": benchmark(spy, a, b), "symbols": len(data)})
+    return {"family": "sector_td", "rows": rows}

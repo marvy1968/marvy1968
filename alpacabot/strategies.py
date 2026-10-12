@@ -233,3 +233,37 @@ class DualRegime:
             a = float(df["f_atr"].iloc[i])
             out.append(Signal(int(i), 1, self.trail * a, 0.0, self.max_bars, "placebo", True, a, float(df["f_adx"].iloc[i]), self.trail, self.tp_scale))
         return out
+
+
+class SectorTopDown:
+    """The 'Sector Top-Down / Multi-Factor' rules exactly as supplied (daily bars, long only), so they can be tested outside the data they were found on.
+    ENTRY (completed daily bar, filled at the NEXT open): close > EMA20 > SMA50 and the stock's 20-day return beats SPY's 20-day return by >= 3 points.
+    STOP: signal-bar EMA20 - 1 x ATR14 (a fixed price; a gap through it fills at the open). EXIT: a daily close below EMA20, filled at the next open.
+    Competing signals on one day are ranked by relative strength (the supplied rules do not say; this is an assumption).
+    bench: SPY daily closes (tz-aware index, same convention as the stock data)."""
+
+    def __init__(self, bench: pd.Series, rs_margin: float = 0.03, ema_n: int = 20, sma_n: int = 50, atr_mult: float = 1.0):
+        self.bench, self.rs_margin, self.ema_n, self.sma_n, self.atr_mult = bench, rs_margin, ema_n, sma_n, atr_mult
+        self.max_days = 10 ** 6
+        self.name = "sector_top_down"
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        c = d["close"]
+        e, sm, a = ema(c, self.ema_n), sma(c, self.sma_n), atr(d, 14)
+        spy20 = self.bench.pct_change(20).reindex(d.index, method="ffill")
+        rs = c.pct_change(20) - spy20
+        f = pd.DataFrame(index=d.index)
+        f["entry"] = ((c > e) & (e > sm) & (rs >= self.rs_margin) & a.notna() & spy20.notna()).fillna(False)
+        f["exit"] = (c < e).fillna(False)
+        f["stop"] = e - self.atr_mult * a
+        f["rs"] = rs
+        return f
+
+    def stop_dist(self, f, i):                      # only used as a validity check; the real stop is stop_price()
+        return float("inf") if pd.isna(f["stop"].iloc[i]) else 1.0
+
+    def stop_price(self, f, i):
+        return float(f["stop"].iloc[i])
+
+    def rank(self, f, i):
+        return float(f["rs"].iloc[i])

@@ -36,6 +36,7 @@ class Trade:
     bars: int
     tag: str = ""
     side: int = 1          # +1 long, -1 short (entry_px / exit_px are always real, positive prices)
+    rank: float = 0.0      # priority when several signals compete for the same slot on one day (higher first)
 
     def pnl_per_share(self, costs: Costs) -> float:
         sell_leg = self.exit_px if self.side == 1 else self.entry_px
@@ -219,6 +220,12 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs) -> list[Tr
             continue
         fill = o[j0] * (1 + slip)
         stop = fill - sd
+        if hasattr(strat, "stop_price"):              # a stop that is a fixed PRICE decided at the signal bar, not a distance from the fill
+            stop = float(strat.stop_price(f, i))
+            sd = fill - stop                          # risk per share is measured from the actual fill (a gap up widens it)
+            if not np.isfinite(sd) or sd <= 0:
+                i += 1
+                continue
         k, px, why = j0, None, ""
         while k < n:
             if k > j0 and o[k] <= stop:
@@ -236,7 +243,8 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs) -> list[Tr
             if px is not None:
                 break
             k += 1
-        out.append(Trade(symbol, d.index[j0], d.index[min(k, n - 1)], fill, px, sd, why, k - j0 + 1))
+        out.append(Trade(symbol, d.index[j0], d.index[min(k, n - 1)], fill, px, sd, why, k - j0 + 1,
+                         rank=float(strat.rank(f, i)) if hasattr(strat, "rank") else 0.0))
         i = max(k, i + 1)
     return out
 

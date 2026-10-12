@@ -940,3 +940,52 @@ class ExecutionTruthTests(unittest.TestCase):
             self.assertEqual(r.confirm_fill({"id": "x2", "status": "filled", "filled_qty": "59", "filled_avg_price": "227.31"}),
                              ("filled", 59, 227.31))
             self.assertIsNone(r.confirm_fill(None))                    # simulations without order records keep the quote fill
+
+
+class SectorTopDownTests(unittest.TestCase):
+    def _data(self):
+        idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")
+        rng = np.random.default_rng(4)
+        spy = 100 * np.exp(np.cumsum(rng.normal(0.0002, 0.006, len(idx))))
+        stk = 100 * np.exp(np.cumsum(rng.normal(0.0035, 0.008, len(idx))))        # a strong, persistent leader
+        def frame(c):
+            o = np.r_[c[0], c[:-1]]
+            return pd.DataFrame({"open": o, "high": np.maximum(o, c) * 1.004, "low": np.minimum(o, c) * 0.996, "close": c, "volume": 1e6}, index=idx)
+        return frame(stk), frame(spy)
+
+    def test_rules_no_lookahead_and_fixed_price_stop(self):
+        from alpacabot.engine import simulate_swing
+        from alpacabot.strategies import SectorTopDown
+        d, spy = self._data()
+        st = SectorTopDown(spy["close"])
+        f = st.frame(d)
+        c = d["close"]
+        from alpacabot.indicators import ema, sma
+        want = (c > ema(c, 20)) & (ema(c, 20) > sma(c, 50)) & ((c.pct_change(20) - spy["close"].pct_change(20)) >= 0.03)
+        self.assertTrue(f["entry"].equals(want & f["entry"]) and f["entry"].sum() > 5)       # only when every condition holds
+        trades = simulate_swing("X", d, st, Costs(0, 0))
+        self.assertTrue(trades)
+        for t in trades:
+            i = d.index.get_loc(t.entry_time) - 1                                          # the signal bar is the one BEFORE the entry bar
+            self.assertTrue(f["entry"].iloc[i])
+            self.assertAlmostEqual(t.entry_px, d["open"].iloc[i + 1])                      # filled at the next open, no slippage here
+            self.assertAlmostEqual(t.stop_dist, t.entry_px - f["stop"].iloc[i])            # risk is measured to the signal-bar stop price
+        d2 = d.copy()                                                                      # changing today's bar cannot change yesterday's signal
+        d2.iloc[-1, d2.columns.get_loc("close")] *= 0.5
+        self.assertTrue(st.frame(d2)["entry"].iloc[:-1].equals(f["entry"].iloc[:-1]))
+
+    def test_gap_through_the_stop_fills_at_the_open_and_ranking(self):
+        from alpacabot.engine import simulate_swing
+        from alpacabot.strategies import SectorTopDown
+        d, spy = self._data()
+        st = SectorTopDown(spy["close"])
+        f = st.frame(d)
+        t0 = simulate_swing("X", d, st, Costs(0, 0))[0]
+        i = d.index.get_loc(t0.entry_time) - 1
+        k = d.index.get_loc(t0.entry_time) + 2
+        d.iloc[k, d.columns.get_loc("open")] = float(f["stop"].iloc[i]) - 5.0              # gap far below the stop
+        d.iloc[k, d.columns.get_loc("low")] = float(f["stop"].iloc[i]) - 6.0
+        t = simulate_swing("X", d, st, Costs(0, 0))[0]
+        self.assertEqual(t.reason, "stop")
+        self.assertAlmostEqual(t.exit_px, float(f["stop"].iloc[i]) - 5.0)                  # the adverse open, not the stop level
+        self.assertTrue(t.rank >= 0.03)
