@@ -1,0 +1,3 @@
+$ show reports/alpaca_validate_brain_ls.json
+started 2026-10-12 09:13:09 EDT
+RUNNING...
