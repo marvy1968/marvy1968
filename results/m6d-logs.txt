@@ -1,3 +1,43 @@
 $ logs marv-alpaca-paper 40
-started 2026-10-12 11:34:28 EDT
-RUNNING...
+started 2026-10-12 11:34:28 EDT, took 1s, exit 0
+
+Oct 12 06:45:08 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 06:45:08 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 06:45:08 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 06:45:08 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 2.322s CPU time.
+Oct 12 06:45:08 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 06:54:38 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 06:54:38 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 06:54:38 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 06:54:38 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 3.811s CPU time.
+Oct 12 06:54:38 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 07:00:52 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 07:00:53 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 07:00:53 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 07:00:53 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 2.326s CPU time.
+Oct 12 07:00:53 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 08:56:54 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 08:56:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 08:56:54 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 08:56:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 4.861s CPU time.
+Oct 12 08:56:54 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:06:22 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 10:06:22 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 10:06:22 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:06:22 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 21.954s CPU time.
+Oct 12 10:06:22 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:53:29 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 10:53:29 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 10:53:29 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:53:29 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 28.745s CPU time.
+Oct 12 10:53:29 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:56:41 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 10:56:41 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 10:56:41 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 10:56:41 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 11.677s CPU time.
+Oct 12 10:56:42 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 11:01:01 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 12 11:01:01 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 12 11:01:01 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 12 11:01:01 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 19.934s CPU time.
+Oct 12 11:01:01 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
