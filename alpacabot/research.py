@@ -207,3 +207,42 @@ def symbol_check(days_by_symbol, train, validate, costs: Costs = Costs(), pf: Po
                     "validate": {k: va.get(k) for k in ("trades", "win_rate", "expectancy_pct_notional", "profit_factor")},
                     "validate_slip_x2.5": {k: st.get(k) for k in ("trades", "expectancy_pct_notional")}}
     return out
+
+
+def limit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = True) -> dict:
+    """TRAIN years only: each expert with MARKET entries (next open + slippage) vs LIMIT entries (at the signal close, or 0.25 stop
+    distances better, waiting 3 bars, no slippage, unfilled = no trade). Costs are what separates these signals from break-even."""
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
+    modes = {"market": costs, "limit@close": replace(costs, entry="limit", limit_offset=0.0),
+             "limit-0.25": replace(costs, entry="limit", limit_offset=0.25)}
+    table = {}
+    for name in ALL_EXPERTS:
+        for side in (["long", "short"] if shorts else ["long"]):
+            kw = dict(experts=[name]) if side == "long" else dict(experts=[], short_experts=[name])
+            table[f"{name} {side}"] = {mode: {k: run_intraday(Brain(route=False, mtf=False, **kw), data, c, pf, *train)["metrics"].get(k) for k in keys}
+                                       for mode, c in modes.items()}
+    best = sorted(((k, m, v[m].get("expectancy_pct_notional") or -9) for k, v in table.items() for m in v
+                   if (v[m].get("trades") or 0) >= 100), key=lambda x: -x[2])[:5]
+    positive = [f"{k} [{m}]" for k, m, e in best if e > 0]
+    return {"family": "limit", "train": [str(x) for x in train], "table": table, "best5": best,
+            "verdict": (f"positive after costs on the train years: {', '.join(positive)} -> candidates for validation" if positive
+                        else "no expert is positive even with limit entries (train years)")}
+
+
+def swing_expert_study(daily, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=10), spy_daily=None) -> dict:
+    """TRAIN years only: each expert on daily bars, held for days (max 10), long, across the swing universe, vs buy-and-hold SPY."""
+    from .experts import SWING_EXPERTS, ExpertSwing
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "cagr", "max_drawdown")
+    table = {}
+    for name in SWING_EXPERTS:
+        for hold in (5, 10):
+            m = run_swing(ExpertSwing(name, max_days=hold), daily, costs, pf, *train)["metrics"]
+            table[f"{name} hold<={hold}d"] = {k: m.get(k) for k in keys}
+    out = {"family": "swing_experts", "train": [str(x) for x in train], "table": table}
+    if spy_daily is not None:
+        out["benchmark_buy_hold_SPY"] = benchmark(spy_daily, *train)
+    spy_cagr = (out.get("benchmark_buy_hold_SPY") or {}).get("cagr")
+    good = [k for k, v in table.items() if (v.get("trades") or 0) >= 100 and (v.get("expectancy_pct_notional") or 0) > 0
+            and (v.get("sharpe") or 0) > 0.5 and (spy_cagr is None or (v.get("cagr") or -1) > 0)]
+    out["verdict"] = (f"candidates for validation: {', '.join(good)}" if good else "no daily-bar expert qualifies on the train years")
+    return out

@@ -855,3 +855,24 @@ class UniverseTests(unittest.TestCase):
             gates.add_sector("ABC", "NOTANETF")
         del gates.SECTOR["XOM"]
         gates.HEAT_ETFS.remove("XLE")
+
+
+class LimitEntryTests(unittest.TestCase):
+    def test_limit_fills_only_when_traded_through_at_the_limit_without_slippage(self):
+        df = flat_day()                                            # flat at 100, lows 99.95
+        c = Costs(10, 0, entry="limit", limit_offset=0.1, limit_wait=3)    # limit = 100 - 0.1 x 1.0 = 99.9: never traded through
+        self.assertEqual(simulate_day("X", df, [Signal(100, 1, 1.0, 2.0, 10)], c), [])
+        df.iloc[102, df.columns.get_loc("low")] = 99.8             # traded through on the 2nd bar after the signal
+        t = simulate_day("X", df, [Signal(100, 1, 1.0, 2.0, 10)], c)[0]
+        self.assertAlmostEqual(t.entry_px, 99.9)                    # at the limit, no slippage
+        self.assertEqual(t.entry_time, df.index[102])
+        df2 = flat_day()
+        df2.iloc[104, df2.columns.get_loc("low")] = 99.0           # too late: outside the 3-bar wait
+        self.assertEqual(simulate_day("X", df2, [Signal(100, 1, 1.0, 2.0, 10)], c), [])
+
+    def test_short_limit_sells_above(self):
+        df = flat_day()
+        df.iloc[101, df.columns.get_loc("high")] = 100.2
+        t = simulate_day("X", df, [Signal(100, -1, 1.0, 2.0, 10)], Costs(10, 0, entry="limit", limit_offset=0.1))[0]
+        self.assertAlmostEqual(t.entry_px, 100.1)                   # a sell limit at 100 + 0.1 filled when price went through it
+        self.assertEqual(t.side, -1)

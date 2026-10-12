@@ -152,3 +152,27 @@ class Experts:
             for s in DualRegime(start=self.window[0], end=self.window[1], max_trades=50).signals(d):
                 found.append(("dual_regime", Signal(s.i, 1, s.stop_dist, 0.0, 0, "dual_regime", True, s.atr, s.adx, s.trail, s.tp_scale)))
         return sorted(found, key=lambda x: x[1].i)
+
+
+SWING_EXITS = {"connors_rsi2": "x_connors", "bollinger_bounce": "x_boll", "williams_r": "x_willr"}
+SWING_EXPERTS = ["velez_elephant", "velez_180", "raschke_grail", "brooks_pullback", "connors_rsi2", "bollinger_bounce", "williams_r",
+                 "donchian_turtle"]     # vwap_dev (session VWAP) and dual_regime have no daily-bar meaning
+
+
+class ExpertSwing:
+    """One expert on DAILY bars, held for days (engine.simulate_swing): decide at the close, fill at the next open, stop stop_atr x ATR below,
+    exit on the expert's own exit rule (if it has one) or after max_days. Long only. Costs per trade are tiny next to multi-day moves,
+    which is the point of this test."""
+
+    def __init__(self, name: str, max_days: int = 10, stop_atr: float = 2.0):
+        self.name, self.max_days, self.stop_atr = name, max_days, stop_atr
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        dd = d.join(features_all(d))
+        m = Experts().masks(dd)[self.name].fillna(False) & dd["f_sma200"].notna() & dd["f_atr"].notna()
+        xcol = SWING_EXITS.get(self.name)
+        ex = dd[xcol].fillna(False).astype(bool) if xcol else pd.Series(False, index=dd.index)
+        return pd.DataFrame({"entry": m.astype(bool), "exit": ex, "atr": dd["f_atr"]}, index=dd.index)
+
+    def stop_dist(self, f, i):
+        return float(self.stop_atr * f["atr"].iloc[i])

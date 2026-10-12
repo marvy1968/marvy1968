@@ -10,7 +10,7 @@ from .data import coverage, credentials, load
 from .engine import Costs, Portfolio, split_days
 from .experts import features_all, features_both
 from .gates import HEAT_ETFS, add_gates
-from .research import GRIDS, brain_walk_forward, exit_study, symbol_check, verdict, walk_forward
+from .research import GRIDS, brain_walk_forward, exit_study, limit_study, swing_expert_study, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
 INTRADAY = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
@@ -53,7 +53,10 @@ def run_all(a) -> int:
     for fam in a.families:
         first = len(lines)
         try:
-            if fam in ("swing_rsi", "swing_breakout"):
+            if fam == "swing_experts":           # the 10 experts on daily bars, multi-day holds, TRAIN years only
+                data = {s: load(s, "1Day", start, end, cache) for s in SWING}
+                res = swing_expert_study(data, train, costs, spy_daily=spy)
+            elif fam in ("swing_rsi", "swing_breakout"):
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = walk_forward(fam, data, train, test, costs, Portfolio(risk_pct=0.01), spy_daily=spy)
             else:
@@ -62,6 +65,10 @@ def run_all(a) -> int:
                 if fam == "brain":
                     days = split_days(minute, minutes=5, feature_fn=features_all)
                     res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
+                elif fam == "limit":          # market vs limit entries per expert, TRAIN years only
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    res = limit_study(days, train, costs, shorts=True)
                 elif fam == "exits":          # staircase vs each expert's own exits, TRAIN years only
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -85,6 +92,16 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam in ("limit", "swing_experts") and res.get("table"):
+            for k, v in res["table"].items():
+                if fam == "limit":
+                    lines.append(f"- {k}: " + " | ".join(f"{m} {r.get('trades')}t exp {r.get('expectancy_pct_notional') or 0:+.4f}% PF {r.get('profit_factor') or 0:.2f}"
+                                                         for m, r in v.items()))
+                else:
+                    lines.append(f"- {k}: {v.get('trades')}t win {v.get('win_rate') or 0:.0%} exp {v.get('expectancy_pct_notional') or 0:+.3f}% "
+                                 f"PF {v.get('profit_factor') or 0:.2f} sharpe {v.get('sharpe') or 0:.2f} cagr {v.get('cagr') or 0:+.1%}")
+            if res.get("benchmark_buy_hold_SPY"):
+                lines.append(f"- SPY buy-and-hold (same years): {res['benchmark_buy_hold_SPY']}")
         if fam == "exits" and res.get("table"):
             lines.append("| expert / side | own exits: trades, win, exp %/trade | staircase: trades, win, exp %/trade |\n|---|---|---|")
             for k, v in res["table"].items():

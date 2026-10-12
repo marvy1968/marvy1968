@@ -19,6 +19,9 @@ class Costs:
     slip_bps: float = 2.0       # adverse slippage per side, in basis points of price (liquid ETFs/large caps; stress it)
     fee_bps_sell: float = 0.4   # SEC + FINRA TAF on the sell leg, roughly
     commission: float = 0.0     # per share (Alpaca stocks are commission-free)
+    entry: str = "market"       # "market": fill at the next open + slippage. "limit": a limit at the signal close (minus limit_offset x the
+    limit_offset: float = 0.0   #   stop distance) that waits limit_wait bars; it fills only if price trades THROUGH it (low < limit), at the
+    limit_wait: int = 3         #   limit or a better open, with no slippage. Unfilled signals are skipped. Exits stay market orders.
 
 
 @dataclass
@@ -59,7 +62,14 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
         o, h, l, c = long_arr if side == 1 else short_arr
         xcol = (s.exit_col if side == 1 else "m_" + s.exit_col) if s.exit_col else ""
         real = lambda px: side * px           # noqa: E731
-        fill = buy(o[j0])
+        if costs.entry == "limit":
+            lim = c[s.i] - costs.limit_offset * s.stop_dist
+            j0 = next((j for j in range(s.i + 1, min(n, s.i + 1 + costs.limit_wait)) if l[j] < lim), None)
+            if j0 is None:
+                continue                                  # never traded through the limit: no trade (that is the price of no slippage)
+            fill = min(lim, o[j0])
+        else:
+            fill = buy(o[j0])
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
         if s.managed:
