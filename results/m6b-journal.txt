@@ -1,3 +1,39 @@
 $ show alpaca_paper/journal.jsonl
-started 2026-10-12 11:34:22 EDT
-RUNNING...
+started 2026-10-12 11:34:22 EDT, took 0s, exit 0
+
+{"t": "2026-10-12T09:30:58-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T09:55:12-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:dual_regime", "ref": 227.27, "result": "ordered"}
+{"t": "2026-10-12T09:55:32-04:00", "kind": "exit", "symbol": "NVDA", "reason": "stop", "px": 228.2, "side": -1}
+{"t": "2026-10-12T10:05:12-04:00", "kind": "signal", "symbol": "IWM", "side": "short", "tag": "S:dual_regime", "ref": 278.12, "result": "ordered"}
+{"t": "2026-10-12T10:06:25-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T10:10:07-04:00", "kind": "signal", "symbol": "SPY", "side": "long", "tag": "connors_rsi2", "ref": 777.745, "result": "ordered"}
+{"t": "2026-10-12T10:10:07-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_elephant", "ref": 745.94, "result": "spread too wide (0.050)"}
+{"t": "2026-10-12T10:10:07-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:velez_elephant", "ref": 225.805, "result": "ordered"}
+{"t": "2026-10-12T10:12:44-04:00", "kind": "exit", "symbol": "IWM", "reason": "stop", "px": 278.42, "side": -1}
+{"t": "2026-10-12T10:20:07-04:00", "kind": "exit", "symbol": "SPY", "reason": "signal", "px": 778.12, "side": 1}
+{"t": "2026-10-12T10:20:07-04:00", "kind": "signal", "symbol": "MSFT", "side": "long", "tag": "brooks_pullback", "ref": 538.67, "result": "spread too wide (0.390)"}
+{"t": "2026-10-12T10:20:07-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "williams_r", "ref": 380.03, "result": "spread too wide (2.810)"}
+{"t": "2026-10-12T10:25:14-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_elephant", "ref": 745.67, "result": "ordered"}
+{"t": "2026-10-12T10:25:14-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:raschke_grail", "ref": 261.36, "result": "spread too wide (0.110)"}
+{"t": "2026-10-12T10:25:14-04:00", "kind": "signal", "symbol": "AMD", "side": "short", "tag": "S:velez_elephant", "ref": 588.88, "result": "spread too wide (30.000)"}
+{"t": "2026-10-12T10:30:05-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_180", "ref": 380.78, "result": "spread too wide (3.350)"}
+{"t": "2026-10-12T10:50:19-04:00", "kind": "signal", "symbol": "SPY", "side": "long", "tag": "velez_180", "ref": 777.905, "result": "ordered"}
+{"t": "2026-10-12T10:51:24-04:00", "kind": "exit", "symbol": "SPY", "reason": "stop", "px": 777.79, "side": 1}
+{"t": "2026-10-12T10:53:34-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T10:53:34-04:00", "kind": "signal", "symbol": "SPY", "side": "long", "tag": "velez_180", "ref": 777.905, "result": "ordered"}
+{"t": "2026-10-12T10:56:56-04:00", "kind": "reconcile_drop", "symbol": "SPY"}
+{"t": "2026-10-12T10:56:56-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T10:56:56-04:00", "kind": "signal", "symbol": "SPY", "side": "long", "tag": "williams_r", "ref": 778.22, "result": "ordered"}
+{"t": "2026-10-12T11:00:09-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "williams_r", "ref": 379.81, "result": "spread too wide (1.950)"}
+{"t": "2026-10-12T11:01:08-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T11:01:08-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "williams_r", "ref": 379.81, "result": "spread too wide (2.090)"}
+{"t": "2026-10-12T11:20:11-04:00", "kind": "exit", "symbol": "SPY", "reason": "signal", "px": 778.38, "side": 1}
+{"t": "2026-10-12T11:20:11-04:00", "kind": "signal", "symbol": "MSFT", "side": "long", "tag": "donchian_turtle", "ref": 542.065, "result": "spread too wide (0.350)"}
+{"t": "2026-10-12T11:20:11-04:00", "kind": "signal", "symbol": "META", "side": "long", "tag": "donchian_turtle", "ref": 750.5, "result": "spread too wide (2.800)"}
+{"t": "2026-10-12T11:20:11-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "connors_rsi2", "ref": 378.93, "result": "spread too wide (1.080)"}
+{"t": "2026-10-12T11:20:11-04:00", "kind": "signal", "symbol": "AMD", "side": "long", "tag": "dual_regime", "ref": 587.495, "result": "spread too wide (2.670)"}
+{"t": "2026-10-12T11:25:19-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:williams_r", "ref": 261.13, "result": "spread too wide (0.130)"}
+{"t": "2026-10-12T11:25:19-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:dual_regime", "ref": 745.5, "result": "spread too wide (7.630)"}
+{"t": "2026-10-12T11:25:19-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "connors_rsi2", "ref": 378.61, "result": "spread too wide (3.350)"}
+{"t": "2026-10-12T11:25:19-04:00", "kind": "signal", "symbol": "AMD", "side": "short", "tag": "S:dual_regime", "ref": 587.42, "result": "spread too wide (1.470)"}
+{"t": "2026-10-12T11:30:10-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "connors_rsi2", "ref": 378.475, "result": "spread too wide (1.000)"}
