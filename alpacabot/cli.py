@@ -202,6 +202,7 @@ def main(argv=None) -> int:
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("paper-eod", help="take today's equity snapshot and send the report card now, if not already done").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
     bt.add_argument("--train-end", type=_d, default=date(2021, 12, 31))
     bt.add_argument("--slip-bps", type=float, default=2.0)
@@ -326,6 +327,18 @@ def main(argv=None) -> int:
     if a.cmd == "paper":
         from .paper import main as paper_main
         return paper_main(a)
+    if a.cmd == "paper-eod":
+        from datetime import datetime as _dt
+
+        from .paper import ET as _PET, PaperRunner, RestBroker
+        r = PaperRunner(RestBroker(), state_dir=a.state)
+        now = _dt.now(_PET)
+        if r.reported == now.date():
+            print("already sent today")
+            return 0
+        r.end_of_day(now)
+        print((Path(a.state) / "report_card.txt").read_text() if (Path(a.state) / "report_card.txt").exists() else "no card written")
+        return 0
     if a.cmd == "paper-report":
         from .paper import report
         print(report(a.state))

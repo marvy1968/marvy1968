@@ -8,7 +8,7 @@ appended to state/alpaca_paper/journal.jsonl so the forward record can be compar
 import json
 import logging
 import time
-from datetime import datetime, time as dtime, timedelta
+from datetime import date, datetime, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -228,8 +228,10 @@ class PaperRunner:
         self.exec.opened = self.exits.opened_at()
         self.last_bar: dict[str, object] = {}
         self.entries_today = 0
-        self.reported = None
+        self.report_marker = self.dir / "last_report.txt"
+        self.reported = date.fromisoformat(self.report_marker.read_text().strip()) if self.report_marker.exists() else None
         self.traded_days: set = set()
+        self._session_cache: dict = {}
 
     def journal(self, kind: str, **kw):
         with open(self.dir / "journal.jsonl", "a") as f:
@@ -399,20 +401,33 @@ class PaperRunner:
         A market order on these names fills in well under a second; a rejected or still-unfilled order never becomes a position."""
         if not isinstance(order, dict) or not order.get("id") or not hasattr(self.raw, "order"):
             return None
+        final = ("filled", "rejected", "canceled", "expired")
         o = order
         for _ in range(tries):
-            if o.get("status") in ("filled", "rejected", "canceled", "expired"):
+            if o.get("status") in final:
                 break
             self.sleep(0.5)
             try:
                 o = self.raw.order(order["id"])
             except Exception:
                 log.exception("order status check failed")
+        if o.get("status") not in final and hasattr(self.raw, "cancel_order"):
+            # still working (partly filled or not yet filled): cancel the rest so no shares can arrive later untracked, then read the final fill
+            try:
+                self.raw.cancel_order(order["id"])
+            except Exception:
+                log.exception("cancel of the unfilled remainder failed")
+            for _ in range(6):
+                self.sleep(0.5)
+                try:
+                    o = self.raw.order(order["id"])
+                except Exception:
+                    log.exception("order status check failed")
+                if o.get("status") in final:
+                    break
         qty = int(float(o.get("filled_qty") or 0))
         px = float(o.get("filled_avg_price") or 0)
-        status = o.get("status", "unknown")
-        if status == "partially_filled" and qty > 0:
-            status = "filled"                       # keep what filled; the remainder is a day order Alpaca will finish or cancel
+        status = "filled" if qty > 0 else o.get("status", "unknown")
         return status, qty, px
 
     WEEKLY_LIMIT = 0.05      # own equity 5% below its peak of the last 7 days -> no new entries until a person deletes KILL_SWITCH
@@ -472,6 +487,17 @@ class PaperRunner:
         self.store.save(self.exits.positions)
         self.poll_exits(now_et)
 
+    def was_session(self, day) -> bool:
+        """Was `day` a trading session? From the broker's calendar (survives restarts), else from what this process saw."""
+        if day in self.traded_days:
+            return True
+        if day not in self._session_cache and hasattr(self.raw, "is_session"):
+            try:
+                self._session_cache[day] = bool(self.raw.is_session(day))
+            except Exception:
+                return False
+        return self._session_cache.get(day, False)
+
     def end_of_day(self, now_et: datetime):
         """Snapshot equity and SPY, then send the daily report card (Telegram when configured, always saved to disk)."""
         try:
@@ -482,6 +508,8 @@ class PaperRunner:
             text = report_card(self.dir, now_et.date())
             (self.dir / "report_card.txt").write_text(text)
             send_telegram(text)
+            self.reported = now_et.date()
+            self.report_marker.write_text(now_et.date().isoformat())       # on disk: a restart cannot send it twice or skip it
         except Exception:
             log.exception("end-of-day report failed (continuing)")
 
@@ -492,9 +520,8 @@ class PaperRunner:
         while True:
             now = datetime.now(ET)
             try:
-                if now.time() >= dtime(16, 5) and self.reported != now.date() and now.date() in self.traded_days:
-                    self.reported = now.date()          # after the bell the clock says closed, so the card is sent before that check
-                    self.end_of_day(now)
+                if now.time() >= dtime(16, 5) and self.reported != now.date() and self.was_session(now.date()):
+                    self.end_of_day(now)                # after the bell the clock says closed, so the card is sent before that check
                 if now.weekday() >= 5 or not self.broker.clock_open():
                     self.sleep(60)
                     continue

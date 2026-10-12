@@ -1077,3 +1077,42 @@ class WeeklyLockTests(unittest.TestCase):
             plan = r.scan(datetime(day.year, day.month, day.day, 16, 20, tzinfo=et))
             self.assertEqual(plan["entries"], [])
             self.assertTrue(alert.called)
+
+
+class PartialFillTests(unittest.TestCase):
+    def test_unfinished_entry_is_cancelled_and_only_the_filled_part_is_tracked(self):
+        import tempfile
+        from alpacabot import paper
+        cancelled = []
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.0)
+            def cancel_order(self, oid): cancelled.append(oid)
+            def order(self, oid):
+                if cancelled:
+                    return {"id": oid, "status": "canceled", "filled_qty": "57", "filled_avg_price": "226.10"}
+                return {"id": oid, "status": "partially_filled", "filled_qty": "40", "filled_avg_price": "226.00"}
+        with tempfile.TemporaryDirectory() as d:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)
+            self.assertEqual(r.confirm_fill({"id": "o1", "status": "new"}), ("filled", 57, 226.10))   # the FINAL quantity, after cancelling the rest
+            self.assertEqual(cancelled, ["o1"])
+
+    def test_report_card_survives_a_restart(self):
+        import tempfile
+        from unittest import mock
+        from alpacabot import paper
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.0)
+            def is_session(self, day): return True
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(paper, "send_telegram") as tg:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)
+            self.assertTrue(r.was_session(date(2026, 10, 12)))                     # known from the calendar, not from memory
+            r.end_of_day(datetime(2026, 10, 12, 16, 6, tzinfo=paper.ET))
+            self.assertEqual(tg.call_count, 1)
+            r2 = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)          # restart
+            self.assertEqual(r2.reported, date(2026, 10, 12))                       # will not send twice
