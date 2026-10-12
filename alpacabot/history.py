@@ -141,6 +141,22 @@ def fetch(days: int = 365) -> tuple[pd.DataFrame, pd.DataFrame]:
     return fills, pd.DataFrame(orders)
 
 
-def report(days: int = 365) -> str:
+def by_month(rt: pd.DataFrame) -> str:
+    if not len(rt):
+        return ""
+    m = rt.assign(month=rt["closed"].dt.tz_convert(ET).dt.strftime("%Y-%m")).groupby("month")
+    lines = ["", "== BY MONTH (closed trips)", f"{'month':8s} {'trips':>6s} {'win%':>5s} {'P&L $':>10s}   scalp $ / day $ / swing $"]
+    for mon, g in m:
+        st = g.groupby("style")["pnl"].sum()
+        lines.append(f"{mon:8s} {len(g):6d} {100 * (g.pnl > 0).mean():5.0f} {g.pnl.sum():10,.0f}   "
+                     f"{st.get('scalp', 0):,.0f} / {st.get('day', 0):,.0f} / {st.get('swing', 0):,.0f}")
+    return "\n".join(lines)
+
+
+def report(days: int = 365, stocks_only: bool = False) -> str:
     fills, _ = fetch(days)
-    return summarize(round_trips(fills) if len(fills) else pd.DataFrame(), fills)
+    if stocks_only and len(fills):
+        fills = fills[~fills["symbol"].str.contains("/")]
+    rt = round_trips(fills) if len(fills) else pd.DataFrame()
+    head = "STOCKS ONLY (crypto removed)\n" if stocks_only else ""
+    return head + summarize(rt, fills) + by_month(rt)

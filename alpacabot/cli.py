@@ -128,6 +128,7 @@ def main(argv=None) -> int:
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
+    hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
@@ -156,7 +157,7 @@ def main(argv=None) -> int:
         return 0
     if a.cmd == "history":
         from .history import report
-        print(report(a.days))
+        print(report(a.days, a.stocks_only))
         return 0
     if a.cmd == "coverage":
         print(coverage(["SPY", "AAPL", "NVDA", "XLK", "XLC"], a.timeframe, a.start, a.end, Path(a.cache), a.feed))
