@@ -1,3 +1,13 @@
 $ alpaca close-others --execute
-started 2026-10-12 16:48:37 EDT
-RUNNING...
+started 2026-10-12 16:48:37 EDT, took 5s, exit 0
+
+new bot holds: nothing
+KEEP (the new bot's): []
+CANCEL 0 orders not from the new bot: 
+CLOSE 6 positions not from the new bot: AAPL +3, IWM -1, NVDA -1, QQQ -3, SPY -1, TSLA -2
+close AAPL 3 200 
+close IWM -1 200 
+close NVDA -1 200 
+close QQQ -3 200 
+close SPY -1 200 
+close TSLA -2 200 
