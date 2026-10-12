@@ -1,0 +1,3 @@
+$ alpaca check
+started 2026-10-11 21:40:30 EDT
+RUNNING...
