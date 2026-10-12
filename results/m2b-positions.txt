@@ -1,3 +1,53 @@
 $ alpaca positions
-started 2026-10-12 10:54:44 EDT
-RUNNING...
+started 2026-10-12 10:54:44 EDT, took 5s, exit 0
+
+equity $53,354.03  cash $17,773.43  long mv $66,201.74  short mv $-30,621.14
+26 open positions:
+  NVDA       short qty          -60  value $-13,553.40  unrealized $   -15.14
+  QQQ        short qty          -18  value $-13,437.72  unrealized $   -13.76
+  JPM        long  qty           25  value $  8,356.25  unrealized $    -1.13
+  SNOW       long  qty           17  value $  6,163.35  unrealized $   377.48
+  NTAP       long  qty           22  value $  5,216.42  unrealized $   313.28
+  DIA        long  qty           10  value $  5,182.25  unrealized $    87.45
+  MKTX       long  qty           30  value $  4,936.50  unrealized $     2.40
+  ECPG       long  qty           43  value $  4,336.98  unrealized $    21.50
+  HPE        long  qty           61  value $  4,308.43  unrealized $   125.66
+  ANET       long  qty           19  value $  4,031.51  unrealized $    92.65
+  FTNT       long  qty           20  value $  3,881.60  unrealized $   227.80
+  CRWD       long  qty           14  value $  3,716.23  unrealized $    -9.31
+  PANW       long  qty            9  value $  3,670.65  unrealized $   100.47
+  NET        long  qty           10  value $  3,510.50  unrealized $     0.06
+  GOOGL      long  qty            9  value $  3,191.53  unrealized $    16.79
+  DUK        long  qty           24  value $  2,816.16  unrealized $     9.36
+  OXY        short qty          -44  value $ -2,693.24  unrealized $   -60.72
+  ADBE       long  qty            6  value $  1,435.92  unrealized $   -28.86
+  DIS        long  qty            7  value $    757.47  unrealized $     5.60
+  APTV       short qty          -15  value $   -656.70  unrealized $    -3.15
+  APA        short qty           -6  value $   -280.08  unrealized $    -4.58
+  DT         long  qty            3  value $    194.19  unrealized $     6.06
+  QCOM       long  qty            1  value $    173.34  unrealized $    -2.75
+  COP        long  qty            1  value $    136.26  unrealized $     3.20
+  INTC       long  qty            1  value $    101.26  unrealized $    -3.40
+  PBF        long  qty            1  value $     84.87  unrealized $    -1.13
+21 open orders:
+  NTAP       sell 22 stop new  id xp-qull-bo-1009-NTAP-s-f
+  HPE        sell 61 stop new  id xp-qull-bo-1009-HPE-s-fe
+  DT         sell 3 stop new  id xp-qull-bo-1009-DT-s-c9d
+  MKTX       sell 30 stop new  id xp-qull-bo-1009-MKTX-s-4
+  DIS        sell 7 stop new  id xp-shannon-avwap-1009-DI
+  ECPG       sell 22 stop new  id xp-minervini-vcp-1008-EC
+  ECPG       sell 21 limit new  id xp-minervini-vcp-1008-EC
+  PBF        sell 1 limit new  id xp-minervini-vcp-1008-PB
+  COP        sell 1 stop new  id xp-shannon-avwap-1008-CO
+  GOOGL      sell 9 stop new  id xp-shannon-avwap-1008-GO
+  APTV       buy  8 stop new  id xp-landry-tko-1007-APTV-
+  APTV       buy  7 limit new  id xp-landry-tko-1007-APTV-
+  ANET       sell 9 limit new  id xp-minervini-vcp-1002-AN
+  ANET       sell 10 stop new  id xp-minervini-vcp-1002-AN
+  FTNT       sell 10 limit new  id xp-minervini-vcp-1002-FT
+  FTNT       sell 10 stop new  id xp-minervini-vcp-1002-FT
+  SNOW       sell 17 limit new  id vws-guard-SNOW-1002-oco-
+  PANW       sell 9 limit new  id vws-guard-PANW-1002-oco-
+  NET        sell 10 limit new  id vws-guard-NET-1002-oco-3
+  CRWD       sell 14 limit new  id vws-guard-CRWD-1002-oco-
+  JPM        sell 25 limit new  id 88707306-854f-477e-838b-
