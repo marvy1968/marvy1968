@@ -1116,3 +1116,15 @@ class PartialFillTests(unittest.TestCase):
             self.assertEqual(tg.call_count, 1)
             r2 = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)          # restart
             self.assertEqual(r2.reported, date(2026, 10, 12))                       # will not send twice
+
+
+class ReportStartTests(unittest.TestCase):
+    def test_day_one_counts_from_starting_capital(self):
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "base_equity.json").write_text(json.dumps({"equity": 54419.0}))
+            (Path(d) / "equity.jsonl").write_text(json.dumps({"date": "2026-10-12", "equity": 54159.0, "spy": 777.0}) + "\n")
+            card = paper.report_card(d, date(2026, 10, 12))
+        self.assertIn("ROI since start (2026-10-12): -0.48%", card)
+        self.assertIn("day -0.48%", card)

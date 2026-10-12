@@ -560,15 +560,18 @@ def report_card(state_dir, day=None) -> str:
     days = len(eq)
     gate = []
     if len(eq) >= 1:
-        start, cur = eq[0]["equity"], eq[-1]["equity"]
+        base_f = d / "base_equity.json"                          # ROI and drawdown start from the bot's starting capital, so day 1 counts
+        start = float(json.loads(base_f.read_text())["equity"]) if base_f.exists() else eq[0]["equity"]
+        periods = days if base_f.exists() else days - 1
+        cur = eq[-1]["equity"]
         roi = cur / start - 1
-        dayret = (eq[-1]["equity"] / eq[-2]["equity"] - 1) if len(eq) > 1 else 0.0
+        dayret = (eq[-1]["equity"] / (eq[-2]["equity"] if len(eq) > 1 else start) - 1)
         peak, dd = start, 0.0
         for e in eq:
             peak = max(peak, e["equity"])
             dd = max(dd, 1 - e["equity"] / peak)
         spy = eq[-1]["spy"] / eq[0]["spy"] - 1 if eq[0].get("spy") else 0.0
-        avg_daily = ((cur / start) ** (1 / max(days - 1, 1)) - 1) if days > 1 else 0.0
+        avg_daily = ((cur / start) ** (1 / max(periods, 1)) - 1) if periods >= 1 else 0.0
         lines += [f"Equity ${cur:,.0f}  day {dayret:+.2%}",
                   f"ROI since start ({eq[0]['date']}): {roi:+.2%} over {days} days   SPY {spy:+.2%}   avg daily {avg_daily:+.2%} (goal 0.75-1.0%)",
                   f"Max drawdown {dd:.1%}"]
