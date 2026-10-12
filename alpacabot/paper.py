@@ -48,7 +48,10 @@ class RestBroker:
         return float(self._req("GET", f"{TRADE_URL}/account").json()["equity"])
 
     def clock_open(self) -> bool:
-        return bool(self._req("GET", f"{TRADE_URL}/clock").json()["is_open"])
+        return bool(self.clock()["is_open"])
+
+    def clock(self) -> dict:
+        return self._req("GET", f"{TRADE_URL}/clock").json()
 
     def quote(self, symbol: str):
         q = self._req("GET", f"{DATA_URL}/stocks/{symbol}/quotes/latest", params={"feed": "iex"}).json()["quote"]
@@ -326,8 +329,27 @@ class PaperRunner:
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
 
+    def check_session(self, now_et: datetime):
+        """Kill switch file and today's real close (early-close days), from the broker's clock."""
+        killed = (self.dir / "KILL_SWITCH").exists()
+        if killed != self.exec.kill_switch:
+            self.exec.kill_switch = killed
+            self.journal("kill_switch", on=killed)
+        if getattr(self, "_close_day", None) != now_et.date() and hasattr(self.raw, "clock"):
+            try:
+                nc = self.raw.clock().get("next_close")
+                if nc:
+                    close = pd.Timestamp(nc).tz_convert(ET).to_pydatetime()
+                    self.exec.window.session_close = close
+                    self._close_day = now_et.date()
+                    if close.date() == now_et.date() and close.time() < dtime(16, 0):
+                        self.journal("early_close", close=close.isoformat())
+            except Exception:
+                log.exception("clock check failed (keeping the regular 3:50 flatten)")
+
     def tick(self, now_et: datetime):
         self.now = now_et
+        self.check_session(now_et)
         snapshot = dict(self.exits.positions)
         for action in self.exec.on_tick(now_et):
             self.journal("housekeeping", action=action)

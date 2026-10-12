@@ -767,3 +767,45 @@ class StaircaseModeTests(unittest.TestCase):
         self.assertTrue(st and all(s.managed and s.atr > 0 and s.max_bars == 0 and not s.exit_col and
                                    abs(s.stop_dist - 1.5 * s.atr) < 1e-9 for s in st))
         self.assertTrue(own and not any(s.managed for s in own))             # the default keeps each expert's own exits
+
+
+class SessionSafetyTests(unittest.TestCase):
+    def test_early_close_day_flattens_ten_minutes_before_the_real_close(self):
+        from zoneinfo import ZoneInfo
+        et = ZoneInfo("America/New_York")
+        w = X.EntryWindow(session_close=datetime(2026, 11, 27, 13, 0, tzinfo=et))          # day after Thanksgiving
+        self.assertTrue(w.entries_allowed(datetime(2026, 11, 27, 12, 30, tzinfo=et)))
+        self.assertFalse(w.entries_allowed(datetime(2026, 11, 27, 12, 35, tzinfo=et)))
+        self.assertFalse(w.must_flatten(datetime(2026, 11, 27, 12, 49, tzinfo=et)))
+        self.assertTrue(w.must_flatten(datetime(2026, 11, 27, 12, 50, tzinfo=et)))
+        normal = X.EntryWindow(session_close=datetime(2026, 11, 30, 16, 0, tzinfo=et))     # a normal day keeps 3:35 / 3:50
+        self.assertTrue(normal.entries_allowed(datetime(2026, 11, 30, 15, 35, tzinfo=et)))
+        self.assertFalse(normal.must_flatten(datetime(2026, 11, 30, 15, 49, tzinfo=et)))
+        # the backtest cuts an early-close day at the same time
+        idx = pd.date_range("2026-11-27 09:30", "2026-11-27 12:59", freq="1min", tz="America/New_York")
+        df = pd.DataFrame({"open": 100.0, "high": 100.1, "low": 99.9, "close": 100.0, "volume": 1.0}, index=idx)
+        self.assertEqual(split_days({"S": df}, minutes=5)["S"][0].index[-1].strftime("%H:%M"), "12:45")
+
+    def test_kill_switch_file_stops_new_entries(self):
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.0)
+            def clock(self): return {"is_open": True, "next_close": "2026-10-12T20:00:00Z"}
+            def clock_open(self): return True
+
+        with tempfile.TemporaryDirectory() as d:
+            r = paper.PaperRunner(B(), state_dir=d, sleep=lambda *_: None)
+            now = datetime(2026, 10, 12, 10, 0, tzinfo=paper.ET)
+            r.tick(now)
+            self.assertFalse(r.exec.kill_switch)
+            (Path(d) / "KILL_SWITCH").write_text("stop")
+            r.tick(now)
+            self.assertTrue(r.exec.kill_switch)
+            self.assertEqual(r.exec.try_enter("SPY", Signal(5, 1, 1.0, 2.0), 100.0, now), "kill switch")
+            (Path(d) / "KILL_SWITCH").unlink()
+            r.tick(now)
+            self.assertFalse(r.exec.kill_switch)

@@ -87,10 +87,22 @@ class EntryWindow:
     no_entry_after: dtime = dtime(15, 35)     # the last decision bar is 15:30-15:35 (its close is when the order goes in), as in the backtest
     flatten_at: dtime = dtime(15, 50)          # day trades and scalps are flat by 3:50 pm ET; only swing trades hold overnight
 
+    session_close: datetime | None = None    # today's real close from Alpaca's clock (early-close days: 1:00 pm)
+
+    def _early(self, now_et: datetime):
+        c = self.session_close
+        return c if c is not None and c.date() == now_et.date() and c.time() < dtime(16, 0) else None
+
     def entries_allowed(self, now_et: datetime) -> bool:
+        c = self._early(now_et)
+        if c is not None and now_et >= c - timedelta(minutes=25):          # same 25-minute gap as 3:35 -> 4:00
+            return False
         return now_et.weekday() < 5 and self.no_entry_before <= now_et.time() <= self.no_entry_after
 
     def must_flatten(self, now_et: datetime) -> bool:
+        c = self._early(now_et)
+        if c is not None and now_et >= c - timedelta(minutes=10):          # same 10 minutes as 3:50 -> 4:00
+            return True
         return now_et.time() >= self.flatten_at
 
 

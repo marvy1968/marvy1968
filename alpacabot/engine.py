@@ -117,11 +117,17 @@ def split_days(bars: dict[str, pd.DataFrame], minutes: int = 1, feature_fn=None,
             f = feature_fn(df)
             f = f.astype({c: "float32" for c in f.columns if f[c].dtype == "float64"})     # halves memory on 10 years of 5-minute bars
             df = df.join(f)
+        frames = [d for _, d in df.groupby(df.index.date)]
         if flat_by and len(df):
             h, m = map(int, flat_by.split(":"))
-            close_min = df.index.hour * 60 + df.index.minute + max(minutes, 1)
-            df = df[close_min <= h * 60 + m]
-        out[sym] = [d for _, d in df.groupby(df.index.date) if len(d) >= need]
+            cut = []
+            for d in frames:
+                close_min = d.index.hour * 60 + d.index.minute + max(minutes, 1)
+                session_end = int(close_min.max())                                # 960 (4:00 pm), or 780 on an early-close day
+                limit = min(h * 60 + m, session_end - 10) if session_end < 16 * 60 else h * 60 + m
+                cut.append(d[close_min <= limit])
+            frames = cut
+        out[sym] = [d for d in frames if len(d) >= need]
     return out
 
 
