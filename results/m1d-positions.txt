@@ -1,3 +1,4 @@
 $ show alpaca_paper/positions.json
-started 2026-10-12 09:59:01 EDT
-RUNNING...
+started 2026-10-12 09:59:01 EDT, took 0s, exit 0
+
+{}
