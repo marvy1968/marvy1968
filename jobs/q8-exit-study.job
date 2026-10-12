@@ -1,2 +1,0 @@
-# timeout 28800
-alpaca run-all --phase validate --families exits

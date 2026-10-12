@@ -1,2 +1,0 @@
-# timeout 14400
-alpaca symbol-check --symbols GOOGL AVGO KO UNH DE SMH COIN CEG --sectors GOOGL=XLC AVGO=XLK KO=XLP UNH=XLV DE=XLI SMH=XLK COIN=XLF CEG=XLU
