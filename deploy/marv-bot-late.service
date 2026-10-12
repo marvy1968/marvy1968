@@ -10,5 +10,4 @@ WorkingDirectory=/opt/marv-bot
 EnvironmentFile=/opt/marv-bot/.env
 ExecStart=/opt/marv-bot/.venv/bin/python -m marv run --sport all --hours 6 --label "Late update"
 TimeoutStartSec=1800
-Restart=on-failure
-RestartSec=600
+# No Restart=: oneshot + Restart=on-failure re-ran the full Odds-API slate every 10 min after a Telegram 403.

@@ -1,0 +1,12 @@
+[Unit]
+Description=Marv daily card: ranked 2-leg parlays per sport + best pregame ML and O/U (paper, Telegram)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=/opt/marv-bot/.env
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv.dailypicks
+TimeoutStartSec=3600

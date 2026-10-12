@@ -22,6 +22,13 @@ esc = html.escape
 LABEL = "👽 <b>MARV</b>"  # first line of every Marv message, so it's never confused with another bot's alerts
 
 
+def marv_telegram_enabled() -> bool:
+    """MARV_TELEGRAM=off cancels the @Marvy1_bot feed (owner blocked it as a duplicate of March_edge). Default on."""
+    return os.environ.get("MARV_TELEGRAM", "on").strip().lower() not in (
+        "0", "false", "no", "off", "cancel", "cancelled", "canceled",
+    )
+
+
 def mirror_token() -> str:
     """MIRROR_BOT_TOKEN from the environment, forgiving copy-paste slips: spaces, quotes, a Windows line ending, or
     the variable name pasted twice (MIRROR_BOT_TOKEN=MIRROR_BOT_TOKEN=123:abc), or the token pasted twice in a row."""
@@ -44,6 +51,31 @@ def token_shape(token: str) -> str:
         " (a real token is about 8-10 digits, a colon, then 35 characters)"
 
 
+class TelegramError(RuntimeError):
+    """A Bot API error with the token-bearing URL stripped (requests' HTTPError puts the token in the log)."""
+
+
+class TelegramBlocked(TelegramError):
+    """403 Forbidden: the user blocked the bot (or the bot was removed from the chat)."""
+
+
+BLOCK_RETRY_S = 1800  # while blocked, try the Marv chat again at most every 30 min (messages in between are dropped, not queued)
+
+
+def _raise_for(resp) -> None:
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError:
+        code = getattr(resp, "status_code", None)
+        try:
+            desc = resp.json().get("description", "")
+        except Exception:  # noqa: BLE001
+            desc = ""
+        if code == 403:
+            raise TelegramBlocked(f"403 {desc or 'Forbidden'}") from None
+        raise TelegramError(f"{code} {desc}".strip()) from None
+
+
 def _post(token: str, chat_id: str, text: str) -> None:
     for chunk in split_message(text):
         resp = requests.post(
@@ -51,18 +83,118 @@ def _post(token: str, chat_id: str, text: str) -> None:
             json={"chat_id": chat_id, "text": chunk, "parse_mode": "HTML", "disable_web_page_preview": True},
             timeout=30,
         )
-        resp.raise_for_status()
+        _raise_for(resp)
+
+
+def _block_path():
+    from pathlib import Path
+    base = os.environ.get("STATE_DIR") or str(Path(__file__).resolve().parent.parent / "state")
+    return Path(base) / "telegram_blocked.json"
+
+
+def _block_key(token: str, chat_id: str) -> str:
+    return f"{token.partition(':')[0]}:{chat_id}"  # bot id + chat, never the secret half of the token
+
+
+def _block_state() -> dict:
+    import json
+    try:
+        return json.loads(_block_path().read_text())
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _block_save(data: dict) -> None:
+    import json
+    try:
+        path = _block_path()
+        if data:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(data))
+        elif path.exists():
+            path.unlink()
+    except Exception:  # noqa: BLE001
+        log.warning("could not save telegram block state", exc_info=True)
+
+
+def blocked_since(token: str, chat_id: str) -> str | None:
+    """ISO time the Marv chat was first found blocked, or None."""
+    return (_block_state().get(_block_key(token, chat_id)) or {}).get("since")
+
+
+def _send_main(token: str, chat_id: str, text: str) -> None:
+    """Post to the Marv chat. When the user has blocked the bot (403) Marv stops retrying every tick: it logs ONE
+    warning, remembers it in state/telegram_blocked.json, drops (does not queue) messages for BLOCK_RETRY_S, then tries
+    again; the first success clears the flag. A blocked chat never raises, so it can't fail the daily run or set off a
+    failure-alert / watchdog loop. Other Telegram errors still raise (token stripped from the message)."""
+    import time
+    from datetime import datetime, timezone
+    data = _block_state()
+    key = _block_key(token, chat_id)
+    entry = data.get(key)
+    if entry and time.time() - float(entry.get("tried", 0)) < BLOCK_RETRY_S:
+        log.debug("telegram: Marv chat still blocked since %s; message skipped", entry.get("since"))
+        return
+    try:
+        _post(token, chat_id, text)
+    except TelegramBlocked as exc:
+        first = entry is None
+        entry = entry or {"since": datetime.now(timezone.utc).isoformat(timespec="seconds"), "noted": False}
+        entry["tried"] = time.time()
+        entry["error"] = str(exc)
+        data[key] = entry
+        _block_save(data)
+        if first:
+            log.warning("telegram: %s -- the owner blocked the Marv bot; Marv chat messages are skipped (not queued) "
+                        "until it is unblocked, retry every %d min", exc, BLOCK_RETRY_S // 60)
+            _blocked_note(token, chat_id, entry, data)
+        return
+    if entry:
+        log.info("telegram: Marv chat unblocked (blocked since %s)", entry.get("since"))
+        data.pop(key, None)
+        _block_save(data)
+
+
+def _blocked_note(token: str, chat_id: str, entry: dict, data: dict) -> None:
+    """One note (per block) through the mirror bot, if one is configured, so the owner knows why Marv went quiet."""
+    m_token = mirror_token()
+    m_chat = os.environ.get("MIRROR_CHAT_ID", "") or chat_id
+    if entry.get("noted") or not m_token or (m_token, m_chat) == (token, chat_id) or not marv_telegram_enabled():
+        return
+    bot = os.environ.get("TELEGRAM_BOT_USERNAME", "").lstrip("@")
+    if not bot:
+        try:
+            bot = requests.get(API.format(token=token, method="getMe"), timeout=10).json().get("result", {}).get("username", "")
+        except Exception:  # noqa: BLE001
+            bot = ""
+    who = f"@{bot}" if bot else "the Marv bot"
+    try:
+        _post(m_token, m_chat, f"{LABEL}\n⚠️ Telegram says {esc(who)} is blocked in your chat, so Marv's own chat gets "
+                               f"nothing. Open {esc(who)} in Telegram and tap Unblock / Restart. Marv retries every "
+                               f"{BLOCK_RETRY_S // 60} min and does not resend what it missed. (one-time note)")
+        entry["noted"] = True
+        _block_save(data)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("telegram blocked note via mirror failed: %s", exc)
 
 
 def send_message(token: str, chat_id: str, text: str, mirror: bool = True) -> None:
     """Send a Marv message, labelled "👽 MARV". With MIRROR_BOT_TOKEN (and optionally MIRROR_CHAT_ID) set in
     Marv's .env by the owner (their other alert chat, e.g. March_edge's) it is also delivered there; mirror=False keeps a message in the
     Marv chat only (command replies, failure alerts, the watchdog). A mirror failure never blocks the
-    original message."""
+    original message.
+
+    MARV_TELEGRAM=off cancels the @Marvy1_bot feed (intentional duplicate): Marv never posts to its own bot;
+    when mirror=True and MIRROR_BOT_TOKEN is set, delivery is March_edge-only. mirror=False is a quiet no-op.
+    A blocked Marv chat never raises, so it cannot fail the daily run or start a crash/retry loop."""
     if not token or not chat_id:
         raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
     text = f"{LABEL}\n{text}"
-    _post(token, chat_id, text)
+    feed_on = marv_telegram_enabled()
+    if feed_on:
+        _send_main(token, chat_id, text)
+    else:
+        log.debug("telegram: MARV_TELEGRAM=off; @Marvy1_bot send skipped")
     # A private chat's id is the user's own Telegram id, so one account's two bot chats share it: when only
     # MIRROR_BOT_TOKEN is set, the mirror chat is the same id as the Marv chat.
     m_token = mirror_token()
@@ -72,16 +204,27 @@ def send_message(token: str, chat_id: str, text: str, mirror: bool = True) -> No
             _post(m_token, m_chat, text)
         except Exception as exc:
             log.warning("telegram mirror failed: %s", exc)
+    elif not feed_on and mirror and not m_token:
+        log.debug("telegram: MARV_TELEGRAM=off and no MIRROR_BOT_TOKEN; message dropped")
 
 
 def send_document(token: str, chat_id: str, path, caption: str = "") -> None:
     if not token or not chat_id:
         raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
+    if not marv_telegram_enabled():
+        log.debug("telegram: MARV_TELEGRAM=off; document %s skipped", path)
+        return
+    if blocked_since(token, chat_id):
+        log.debug("telegram: Marv chat blocked; document %s skipped", path)
+        return
     with open(path, "rb") as fh:
         resp = requests.post(API.format(token=token, method="sendDocument"),
                              data={"chat_id": chat_id, "caption": caption[:1000]},
                              files={"document": (str(path).rsplit("/", 1)[-1], fh, "application/pdf")}, timeout=60)
-    resp.raise_for_status()
+    try:
+        _raise_for(resp)
+    except TelegramBlocked as exc:
+        log.warning("telegram document skipped: %s", exc)
 
 
 def get_chat_ids(token: str) -> list[tuple[str, str]]:

@@ -1,0 +1,9 @@
+[Unit]
+Description=Marv daily parlay + ML/O-U card every morning (starts 07:40 CT, card lands ~08:00 CT)
+
+[Timer]
+OnCalendar=*-*-* 07:40:00 America/Chicago
+Persistent=true
+
+[Install]
+WantedBy=timers.target

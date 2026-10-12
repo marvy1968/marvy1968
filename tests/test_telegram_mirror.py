@@ -11,6 +11,7 @@ class MirrorTests(unittest.TestCase):
         def fake_post(url, json, timeout):
             calls.append((url.split("/bot")[1].split("/")[0], json["chat_id"], json["text"]))
             return mock.Mock(raise_for_status=lambda: None)
+        env = {**{"MARV_TELEGRAM": "on"}, **env}
         with mock.patch.dict(os.environ, env, clear=False), mock.patch.object(telegram.requests, "post", fake_post):
             telegram.send_message("MARVTOKEN", "123", "NEW EDGE\nUnder 48.5", **kw)
         return calls

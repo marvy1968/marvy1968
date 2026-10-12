@@ -1,0 +1,539 @@
+"""Daily Marv Predict card (Hybrid Engine v2.0 style): ranked 2-leg parlays for EVERY analyzed sport + the best
+pregame straight moneylines and over/unders. Paper-tracked and graded; nothing here is a proven edge.
+
+Run: `python -m marv.dailypicks [--dry-run] [--test] [--no-refresh] [--sports nfl,cfb,...]` (marv-dailypicks.timer,
+08:00 America/Chicago). Telegram `/parlay [sport]` answers from the stored card (state/marv_predict/daily_card.json).
+
+Sports: NFL, CFB, WNBA, NBA, EuroLeague, NCAAB, NCAAW, MLB, NHL (each runs only when it has games today) +
+soccer from the Marv Soccer node (state/marv_predict/soccer/paper.json, refreshed every 3 h by marv-soccer.timer).
+
+Legs (nothing new is modelled; each reuses a Marv read):
+  Tier A  🔥 HIGH    Marv pick that passed the full veto stack (backtested confidence floor, injuries, eliminations)
+  Tier B  📈 SIGNAL  a backtested paper signal (college O/U trend fades, NFL inflated total, MARV4); the only legs
+                     that may print a %, and only the BACKTEST hit rate via marv/proven.py
+  Tier C  🧮 LEAN    Marv model edge (2%+) that failed only a soft rule; soccer node picks (paper, unproven)
+UF filter (upset/unsafe filter) removes a leg when: the game has a hard veto (backup QB, key injury, stale stats,
+starters out, wind...); the upset score fires against the ML favourite we'd back (marv/upset.py); the ML is
+shorter than UF_MAX_FAV (default -500: adds almost nothing to a parlay and carries the upset risk); soccer picks
+with a hard veto or node confidence < 50.
+Parlays: every 2-leg combo of distinct games inside one sport, ranked by summed leg strength (a ranking, not a
+probability). No model %, fair price or edge prints on Telegram (proven-logic rule). Everything is logged to
+state/marv_predict/daily_picks_log.json and graded from final scores on the next run.
+"""
+
+import argparse
+import html
+import itertools
+import json
+import logging
+import os
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+log = logging.getLogger(__name__)
+CT = ZoneInfo("America/Chicago")
+SPORTS = ("nfl", "cfb", "wnba", "nba", "euroleague", "ncaab", "ncaaw", "mlb", "nhl")
+EMOJI = {"nfl": "🏈", "cfb": "🏈", "wnba": "🏀", "nba": "🏀", "euroleague": "🏀", "ncaab": "🏀", "ncaaw": "🏀",
+         "mlb": "⚾", "nhl": "🏒", "soccer": "⚽"}
+NAME = {"nfl": "NFL", "cfb": "CFB", "wnba": "WNBA", "nba": "NBA", "euroleague": "EuroLeague", "ncaab": "NCAAB",
+        "ncaaw": "NCAAW", "mlb": "MLB", "nhl": "NHL", "soccer": "Soccer"}
+TIER_BASE = {"HIGH": 3.0, "SIGNAL": 2.0, "LEAN": 1.0}
+TIER_ICON = {"HIGH": "🔥", "SIGNAL": "📈", "LEAN": "🧮"}
+TIER_NAME = {"HIGH": "A·HIGH", "SIGNAL": "B·SIGNAL", "LEAN": "C·LEAN"}
+UF_MAX_FAV = float(os.environ.get("UF_MAX_FAV", "-500"))
+MIN_LEAN_EDGE = float(os.environ.get("DAILY_MIN_EDGE", "0.02"))
+PARLAYS_PER_SPORT = int(os.environ.get("DAILY_PARLAYS_PER_SPORT", "5"))
+STRAIGHT_MAX = int(os.environ.get("DAILY_STRAIGHT_MAX", "10"))
+WINDOW_H = int(os.environ.get("DAILY_WINDOW_HOURS", "22"))
+CARD = "daily_card.json"
+LOG = "daily_picks_log.json"
+
+
+# ---------------------------------------------------------------- odds math
+def dec_to_american(d: float) -> float:
+    d = float(d)
+    return round((d - 1) * 100) if d >= 2 else round(-100 / (d - 1))
+
+
+def american_to_dec(p: float) -> float:
+    p = float(p)
+    return 1 + (p / 100 if p > 0 else 100 / -p)
+
+
+def combined(prices) -> int:
+    d = 1.0
+    for p in prices:
+        d *= american_to_dec(p)
+    return int(dec_to_american(d))
+
+
+def _dir(state: Path) -> Path:
+    d = Path(state) / "marv_predict"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _jload(path: Path, default):
+    try:
+        return json.loads(Path(path).read_text())
+    except (OSError, ValueError):
+        return default
+
+
+def _jsave(path: Path, data) -> None:
+    tmp = Path(path).with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, indent=1, default=str))
+    tmp.replace(path)
+
+
+# ---------------------------------------------------------------- legs from Marv's engine (US sports)
+def _leg(sport, g, market, side, line, price, tier, strength, why, **kw) -> dict:
+    return {"sport": sport, "game": f"{g.away} @ {g.home}", "home": g.home, "away": g.away,
+            "start": g.start.isoformat(), "market": market, "side": side, "line": line, "price": float(price),
+            "tier": tier, "strength": round(strength, 3), "why": why, **kw}
+
+
+def engine_legs(sport: str, preds, projections, slate, uf_favs: set, uf: list) -> list[dict]:
+    from . import betcard, proven
+    legs = []
+    by_id = {}
+    for pred in preds:
+        g = pred.game
+        by_id[g.id] = g
+        blocked = betcard._game_blocked(pred)
+        for pk in pred.picks:
+            if pk.market not in ("ml", "total") or pk.price is None:
+                continue
+            hard = betcard._hard(pk.vetoes)
+            if blocked or hard:
+                if pk.active or pk.edge >= MIN_LEAN_EDGE:
+                    uf.append(f"{sport.upper()} {g.away} @ {g.home} {pk.side}: hard veto")
+                continue
+            if pk.active:
+                tier = "HIGH"
+            elif pk.edge >= MIN_LEAN_EDGE:
+                tier = "LEAN"
+            else:
+                continue
+            if pk.market == "ml":
+                if pk.price < UF_MAX_FAV:
+                    uf.append(f"{sport.upper()} {pk.side} ML {pk.price:+.0f}: shorter than {UF_MAX_FAV:+.0f}")
+                    continue
+                if (sport, pk.side.lower()) in uf_favs:
+                    uf.append(f"{sport.upper()} {pk.side} ML: upset score fires against it")
+                    continue
+                side, line = pk.side, None
+            else:
+                side, line = pk.side, pk.line
+            strength = TIER_BASE[tier] + min(max(pk.edge, 0), 0.15) * 10 + (max(pk.prob - 0.5, 0) * 2 if pk.market == "ml" else 0)
+            why = ("passed every check (backtested floor, injuries, eliminations)" if tier == "HIGH"
+                   else "model edge, held back by: " + "; ".join(pk.vetoes)[:70])
+            legs.append(_leg(sport, g, pk.market, side, line, pk.price, tier, strength, why + f" · {proven.UNPROVEN}"))
+    # backtested O/U signals (trend fades, inflated totals) on projected and unprojected slate games
+    seen = set()
+    cands = betcard.candidates(sport, preds, projections) + betcard.tag_candidates(
+        sport, slate, getattr(projections, "tags", {}) or {})
+    for b in cands:
+        if b.tier != "SIGNAL" or b.market != "total" or b.line is None:
+            continue
+        key = (b.game, b.side)
+        if key in seen:
+            continue
+        seen.add(key)
+        hit = betcard.SIGNAL_RANK.get(b.why.split(":")[0], 52.5) / 100
+        g = type("G", (), {"home": b.home, "away": b.away, "start": datetime.fromisoformat(b.start.replace("Z", "+00:00"))})
+        legs.append(_leg(sport, g, "total", b.side, b.line, b.price, "SIGNAL", TIER_BASE["SIGNAL"] + (hit - 0.524) * 20,
+                         b.why))
+    return legs
+
+
+def _upset_favs(state: Path, sports, now) -> set:
+    """(sport, team) favourites the upset score fires against today."""
+    try:
+        from . import upset
+        return {(u["sport"], str(u["fav"]).lower()) for u in upset.candidates(state, list(sports), now) if u.get("fires")}
+    except Exception:  # noqa: BLE001
+        log.exception("upset filter failed (no UF upset check this run)")
+        return set()
+
+
+def run_engine(s, sport_key: str, now: datetime, grade_only: bool = False):
+    """Fresh Marv projections for one sport (no Telegram, no ledgers except predictions.json); grades our log."""
+    from . import bridge
+    from .engine import predict
+    from .config import Settings
+    from .sources import load_for_run
+    from .sports import SPORTS as REG
+    from .stats import registry as stats_registry
+    sport = REG[sport_key]
+    history, slate, ctx = load_for_run(sport, s, now, WINDOW_H)
+    grade(Path(s.state_dir), sport_key, history)
+    if grade_only or not slate:
+        return [], None, slate or []
+    projections = None
+    if s.stats_model and sport.key in stats_registry.MODULES:
+        projections = stats_registry.project(sport.key, slate, s, now, history=history)
+    preds = predict(sport, history, slate, now, s.simulations, ctx, veto=Settings.veto_for(sport.key),
+                    model_weight=Settings.model_weight(sport.key), projections=projections) or []
+    if preds:
+        bridge.export(Path(s.state_dir), sport.key, preds)
+    return preds, projections, slate
+
+
+# ---------------------------------------------------------------- soccer node
+def soccer_legs(state: Path, days: set, uf: list) -> list[dict]:
+    od = Path(state) / "marv_predict" / "soccer"
+    paper = _jload(od / "paper.json", {})
+    card = {(m["home"], m["away"]): m for m in _jload(od / "card.json", {}).get("matches", [])}
+    legs = []
+    for key, e in paper.items():
+        if e.get("date") not in days or "result" in e:
+            continue
+        m = card.get((e["home"], e["away"]), {})
+        conf = e.get("confidence", m.get("confidence", 0)) or 0
+        hard = [v for v in e.get("vetoes", []) if not str(v).startswith("soft")]
+        best = None
+        for mk in e.get("market", []):
+            if mk.get("selection") == "draw" or mk.get("edge") is None or mk["edge"] < MIN_LEAN_EDGE:
+                continue
+            if best is None or mk["edge"] > best["edge"]:
+                best = mk
+        if not best:
+            continue
+        game = f"{e['away']} @ {e['home']}"
+        if hard or conf < 50:
+            uf.append(f"SOCCER {game}: {'hard veto' if hard else f'node confidence {conf}'}")
+            continue
+        price = dec_to_american(best["price"])
+        if best["market"] == "1x2":
+            side, market, line = (e["home"] if best["selection"] == "home" else e["away"]), "ml", None
+            if price < UF_MAX_FAV:
+                uf.append(f"SOCCER {side} ML {price:+.0f}: shorter than {UF_MAX_FAV:+.0f}")
+                continue
+        else:
+            side, market, line = best["selection"].split()[0].title(), "total", float(best["selection"].split()[1])
+        ko = str(m.get("kickoff") or e["date"])
+        try:
+            start = datetime.strptime(ko, "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo("Europe/London"))
+        except ValueError:
+            start = datetime.fromisoformat(e["date"]).replace(hour=12, tzinfo=timezone.utc)
+        legs.append({"sport": "soccer", "game": game, "home": e["home"], "away": e["away"], "league": e["league"],
+                     "skey": key, "start": start.isoformat(), "market": market, "side": side, "line": line,
+                     "price": float(price), "tier": "LEAN",
+                     "strength": round(TIER_BASE["LEAN"] + min(best["edge"], 0.15) * 10 + (conf - 50) / 100, 3),
+                     "why": f"{m.get('competition', e['league'])} · soccer node (Poisson+H2H+trend), conf {conf} · unproven, paper"})
+    return legs
+
+
+# ---------------------------------------------------------------- card
+def dedupe(legs: list[dict]) -> list[dict]:
+    """Best leg per (sport, game, market); ML and total of the same game may both stand in the straight cards."""
+    best = {}
+    for leg in legs:
+        k = (leg["sport"], leg["game"], leg["market"])
+        if k not in best or leg["strength"] > best[k]["strength"]:
+            best[k] = leg
+    return sorted(best.values(), key=lambda x: -x["strength"])
+
+
+def parlays(legs: list[dict], n: int = PARLAYS_PER_SPORT) -> list[dict]:
+    """Ranked 2-leg parlays inside one sport, distinct games only (no correlated same-game legs)."""
+    out = []
+    for a, b in itertools.combinations(legs, 2):
+        if a["game"] == b["game"]:
+            continue
+        out.append({"legs": sorted([a, b], key=lambda x: x["start"]), "price": combined([a["price"], b["price"]]),
+                    "score": round(a["strength"] + b["strength"], 3),
+                    "tiers": "+".join(sorted({a["tier"], b["tier"]}, key=lambda t: -TIER_BASE[t]))})
+    out.sort(key=lambda p: (-p["score"], -p["price"]))
+    return out[:n]
+
+
+def build(legs: list[dict], uf: list, sports_checked: list, now: datetime) -> dict:
+    legs = dedupe(legs)
+    by_sport = {}
+    for leg in legs:
+        by_sport.setdefault(leg["sport"], []).append(leg)
+    order = list(SPORTS) + ["soccer"]
+    return {"date": now.astimezone(CT).date().isoformat(), "built": now.isoformat(), "sports_checked": sports_checked,
+            "sports_with_legs": [s for s in order if s in by_sport],
+            "parlays": {s: p for s in order if s in by_sport and (p := parlays(by_sport[s]))},
+            "ml": [x for x in legs if x["market"] == "ml"][:STRAIGHT_MAX],
+            "ou": [x for x in legs if x["market"] == "total"][:STRAIGHT_MAX],
+            "uf_removed": uf, "n_legs": len(legs)}
+
+
+def _when(start: str) -> str:
+    return datetime.fromisoformat(start).astimezone(CT).strftime("%-I:%M %p CT")
+
+
+def _pick(leg: dict) -> str:
+    t = leg["side"].split()[-1] if leg["sport"] == "nfl" else leg["side"]
+    if leg["market"] == "ml":
+        return f"{t} ML {leg['price']:+.0f}"
+    return f"{leg['side']} {leg['line']:g} ({leg['price']:+.0f})"
+
+
+def _why(leg: dict) -> str:
+    from . import proven
+    if leg["tier"] == "SIGNAL":  # % only when the rule is proven (backtest number), else no %
+        sig = leg["why"].split(":")[0]
+        ev = proven.evidence(leg["sport"], "total", sig)
+        return f"{sig}: " + (ev.label() if ev else "backtested paper signal, not yet 100+ live graded")
+    return leg["why"]
+
+
+def text(card: dict, test: bool = False, paper: bool = True, sport: str | None = None, full: bool = True) -> str:
+    d = datetime.fromisoformat(card["date"])
+    head = ("🧪 TEST · " if test else "") + f"👽 MARV PREDICT · DAILY CARD · Hybrid v2.0 style · {d:%a %b %-d}"
+    lines = [head + (" · 📝 PAPER" if paper else ""),
+             f"Sports checked: {', '.join(NAME[s] for s in card['sports_checked'])}",
+             f"UF filter removed {len(card['uf_removed'])} leg(s) (hard veto / upset score fires / shorter than "
+             f"{UF_MAX_FAV:+.0f} / soccer conf<50)"]
+    sports = [sport] if sport else card["sports_with_legs"]
+    lines += ["", "━━ 🎰 BEST 2-LEG PARLAYS (ranked best → least) ━━"]
+    any_p = False
+    for s in sports:
+        ps = card["parlays"].get(s) or []
+        if not ps:
+            continue
+        any_p = True
+        lines.append(f"{EMOJI[s]} {NAME[s]}")
+        for i, p in enumerate(ps, 1):
+            a, b = p["legs"]
+            lines.append(f" {i}) {p['price']:+d} · {TIER_ICON[a['tier']]} {_pick(a)} + {TIER_ICON[b['tier']]} {_pick(b)}")
+            lines.append(f"    {a['game']} {_when(a['start'])} | {b['game']} {_when(b['start'])}")
+    thin = [f"{NAME[s]} {len({l['game'] for l in card['ml'] + card['ou'] if l['sport'] == s})}"
+            for s in sports if not card["parlays"].get(s)]
+    if not any_p:
+        lines.append(" none today (need 2+ qualifying games in one sport)")
+    if thin:
+        lines.append(" only 1 qualifying game (no 2-leg combo): " + ", ".join(thin))
+    if full:
+        for title, key in (("💰 BEST PREGAME MONEYLINES", "ml"), ("📐 BEST PREGAME OVER/UNDERS", "ou")):
+            lines += ["", f"━━ {title} ━━"]
+            rows = [x for x in card[key] if not sport or x["sport"] == sport]
+            if not rows:
+                lines.append(" none qualified today")
+            for i, x in enumerate(rows, 1):
+                lines.append(f" {i}) {TIER_ICON[x['tier']]} {TIER_NAME[x['tier']]} · {EMOJI[x['sport']]} {_pick(x)} · "
+                             f"{x['game']} · {_when(x['start'])}")
+                lines.append(f"    {_why(x)}")
+    lines += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked by leg "
+              "strength, not a probability; no model % (only proven backtests print a %). 0.5u paper leans, "
+              "graded daily — not real-money picks until 100+ graded above 52.4%."]
+    return html.escape("\n".join(lines))
+
+
+# ---------------------------------------------------------------- paper log + grading
+def log_card(state: Path, card: dict) -> int:
+    path = _dir(state) / LOG
+    book = _jload(path, [])
+    have = {(r["date"], r["kind"], r.get("sport"), r["id"]) for r in book}
+    n = 0
+
+    def add(kind, sport, legs, price):
+        nonlocal n
+        rid = "|".join(f"{l['game']}:{l['market']}:{l['side']}:{l['line']}" for l in legs)
+        if (card["date"], kind, sport, rid) in have:
+            return
+        book.append({"date": card["date"], "kind": kind, "sport": sport, "id": rid, "price": price, "units": 0.5,
+                     "legs": [{k: l.get(k) for k in ("sport", "game", "home", "away", "start", "market", "side", "line",
+                                                    "price", "tier", "league", "skey")} | {"result": None} for l in legs],
+                     "result": None, "profit": None})
+        have.add((card["date"], kind, sport, rid))
+        n += 1
+    for s, ps in card["parlays"].items():
+        for p in ps:
+            add("parlay2", s, p["legs"], p["price"])
+    for x in card["ml"] + card["ou"]:
+        add("straight", x["sport"], [x], x["price"])
+    _jsave(path, book)
+    return n
+
+
+def _settle(book: list) -> None:
+    from . import edges as E
+    for r in book:
+        if r["result"] is not None:
+            continue
+        res = [l["result"] for l in r["legs"]]
+        if any(x is None for x in res):
+            if "loss" in res:  # a parlay dies with its first losing leg
+                r["result"], r["profit"] = "loss", -r["units"]
+            continue
+        if "loss" in res:
+            r["result"], r["profit"] = "loss", -r["units"]
+        elif all(x == "push" for x in res):
+            r["result"], r["profit"] = "push", 0.0
+        else:
+            price = combined([l["price"] for l in r["legs"] if l["result"] == "win"])
+            r["result"], r["profit"] = "win", round(r["units"] * E.payout(price), 3)
+
+
+def _grade_leg(l: dict, hs: float, as_: float) -> str:
+    if l["market"] == "total":
+        v = (hs + as_ - l["line"]) * (1 if l["side"] == "Over" else -1)
+    else:
+        from .data.teams import similarity
+        v = (hs - as_) if similarity(l["side"], l["home"]) >= similarity(l["side"], l["away"]) else (as_ - hs)
+        if l["sport"] == "soccer" and v == 0:
+            return "loss"  # 1X2 moneyline: a draw loses
+    return "push" if v == 0 else ("win" if v > 0 else "loss")
+
+
+def grade(state: Path, sport: str, finished) -> None:
+    from .data.teams import similarity
+    path = _dir(state) / LOG
+    book = _jload(path, [])
+    if not book:
+        return
+    done = [g for g in finished if g.completed and g.home_score is not None and g.away_score is not None]
+    for r in book:
+        for l in r["legs"]:
+            if l["sport"] != sport or l["result"] is not None:
+                continue
+            st = datetime.fromisoformat(l["start"])
+            g = next((x for x in done if abs(x.start - st) < timedelta(hours=12)
+                      and min(similarity(x.home, l["home"]), similarity(x.away, l["away"])) >= 0.75), None)
+            if g:
+                l["result"] = _grade_leg(l, g.home_score, g.away_score)
+    _settle(book)
+    _jsave(path, book)
+
+
+def grade_soccer(state: Path) -> None:
+    path = _dir(state) / LOG
+    book = _jload(path, [])
+    paper = _jload(Path(state) / "marv_predict" / "soccer" / "paper.json", {})
+    for r in book:
+        for l in r["legs"]:
+            if l["sport"] == "soccer" and l["result"] is None and "result" in paper.get(l.get("skey") or "", {}):
+                hg, ag = paper[l["skey"]]["result"]
+                l["result"] = _grade_leg(l, hg, ag)
+    _settle(book)
+    _jsave(path, book)
+
+
+def record(state: Path) -> str:
+    book = _jload(_dir(state) / LOG, [])
+    out = []
+    for kind in ("parlay2", "straight"):
+        rows = [r for r in book if r["kind"] == kind and r["result"] in ("win", "loss", "push")]
+        w = sum(r["result"] == "win" for r in rows)
+        lo = sum(r["result"] == "loss" for r in rows)
+        u = sum(r["profit"] or 0 for r in rows)
+        out.append(f"{'2-leg parlays' if kind == 'parlay2' else 'straight ML/O-U'} {w}-{lo} ({u:+.1f}u, n={len(rows)})")
+    return "Paper record: " + " · ".join(out)
+
+
+# ---------------------------------------------------------------- entry points
+def collect(s, now: datetime, sports=SPORTS, refresh: bool = True) -> dict:
+    state = Path(s.state_dir)
+    legs, uf, checked = [], [], []
+    results = {}
+    for key in sports:
+        try:
+            results[key] = run_engine(s, key, now, grade_only=not refresh)
+            checked.append(key)
+        except Exception:  # noqa: BLE001
+            log.exception("daily picks: %s failed", key)
+    favs = _upset_favs(state, sports, now)
+    end = now + timedelta(hours=WINDOW_H)
+    for key, (preds, proj, slate) in results.items():
+        preds = [p for p in preds if now < p.game.start <= end]
+        slate = [g for g in slate if now < g.start <= end]
+        try:
+            legs += engine_legs(key, preds, proj, slate, favs, uf)
+        except Exception:  # noqa: BLE001
+            log.exception("daily picks legs: %s", key)
+    try:
+        grade_soccer(state)
+        days = {(now + timedelta(days=i)).astimezone(CT).date().isoformat() for i in (0, 1)}
+        sl = soccer_legs(state, days, uf)
+        legs += [x for x in sl if now < datetime.fromisoformat(x["start"]) <= end]
+        checked.append("soccer")
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: soccer failed")
+    card = build(legs, uf, checked, now)
+    _jsave(_dir(state) / CARD, card)
+    return card
+
+
+def answer(settings, parts=None, full: bool = True) -> str:
+    """Telegram /reportcard [sport] (full card) and /parlay [sport] (full=False: parlays only): today's stored card (no Odds API credits). Falls back to the old /parlay."""
+    state = Path(settings.state_dir)
+    card = _jload(_dir(state) / CARD, None)
+    today = datetime.now(CT).date().isoformat()
+    sport = (parts[1].lower() if parts and len(parts) > 1 else None)
+    if sport in ("ncaam", "cbb"):
+        sport = "ncaab"
+    if not card or card.get("date") != today:
+        from . import parlay
+        return ("(today's daily card isn't built yet — it runs 07:40 CT; showing the live /parlay board)\n"
+                + parlay.answer(settings))
+    if sport and sport not in card["parlays"] and not any(x["sport"] == sport for x in card["ml"] + card["ou"]):
+        return f"No qualifying {NAME.get(sport, sport)} parlays on today's card. Sports with legs: " + \
+            ", ".join(NAME[s] for s in card["sports_with_legs"])
+    return text(card, paper=getattr(settings, "paper_mode", True), sport=sport, full=full) + "\n" + \
+        html.escape(record(state))
+
+
+def daily_card_telegram_enabled() -> bool:
+    """DAILY_CARD_TELEGRAM=off skips the daily-card Telegram send (March_edge mirror already covers). Default on."""
+    return os.environ.get("DAILY_CARD_TELEGRAM", "on").strip().lower() not in (
+        "0", "false", "no", "off", "cancel", "cancelled", "canceled",
+    )
+
+
+def send(s, msg: str) -> str:
+    """Marv bot first (mirrored as usual); if Marv's own bot fails (e.g. 403 blocked by the user) deliver through
+    the March_edge mirror bot (MIRROR_BOT_TOKEN) instead. Returns where it landed; raises if both fail.
+
+    DAILY_CARD_TELEGRAM=off: no Telegram at all (build + paper log still run)."""
+    if not daily_card_telegram_enabled():
+        log.info("daily picks: DAILY_CARD_TELEGRAM=off; Telegram send skipped (mirror already covers)")
+        return "disabled (DAILY_CARD_TELEGRAM=off)"
+    from . import telegram as T
+    try:
+        T.send_message(s.telegram_bot_token, s.telegram_chat_id, msg)
+        return "Marv bot (+ mirror if configured)"
+    except Exception as exc:  # noqa: BLE001
+        m_token, m_chat = T.mirror_token(), os.environ.get("MIRROR_CHAT_ID", "") or s.telegram_chat_id
+        if not m_token:
+            raise
+        log.warning("daily picks: Marv bot send failed (%s); using the March_edge mirror", str(exc)[:80])
+        T._post(m_token, m_chat, f"{T.LABEL}\n{msg}")
+        return f"March_edge mirror (Marv bot failed: {str(exc)[:60]})"
+
+
+def main(argv=None) -> int:
+    from .config import Settings
+    ap = argparse.ArgumentParser(prog="marv.dailypicks")
+    ap.add_argument("--dry-run", action="store_true", help="print, don't send or log")
+    ap.add_argument("--test", action="store_true", help="send labelled TEST, don't log as paper picks")
+    ap.add_argument("--no-refresh", action="store_true", help="grade only; no new projections")
+    ap.add_argument("--sports", default=",".join(SPORTS))
+    ap.add_argument("--cached", action="store_true", help="re-send today's stored card (no projections)")
+    a = ap.parse_args(argv)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    s = Settings.from_env()
+    now = datetime.now(timezone.utc)
+    cached = _jload(_dir(Path(s.state_dir)) / CARD, None) if a.cached else None
+    card = cached or collect(s, now, [x for x in a.sports.split(",") if x in SPORTS], refresh=not a.no_refresh)
+    msg = text(card, test=a.test, paper=s.paper_mode) + "\n" + html.escape(record(Path(s.state_dir)))
+    print(msg)
+    if a.dry_run:
+        return 0
+    if not a.test:
+        n = log_card(Path(s.state_dir), card)
+        log.info("daily picks: logged %d paper entries", n)
+    where = send(s, msg)
+    log.info("daily picks: sent %s via %s", "TEST" if a.test else "daily card", where)
+    print(f"SENT via {where}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
