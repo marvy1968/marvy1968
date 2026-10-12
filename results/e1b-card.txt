@@ -1,3 +1,6 @@
 $ show alpaca_paper/report_card.txt
-started 2026-10-12 16:34:43 EDT
-RUNNING...
+started 2026-10-12 16:34:43 EDT, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_paper/report_card.txt' for reading: No such file or directory
