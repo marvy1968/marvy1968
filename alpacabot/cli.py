@@ -122,6 +122,8 @@ def main(argv=None) -> int:
     cv.add_argument("--feed", default=None)
     cv.add_argument("--start", type=_d, default=date(2016, 1, 1))
     cv.add_argument("--end", type=_d, default=date.today())
+    hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
+    hs.add_argument("--days", type=int, default=365)
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
@@ -131,6 +133,10 @@ def main(argv=None) -> int:
     bt.add_argument("--placebo", type=int, default=20)
     bt.add_argument("--out", default="state/reports")
     a = ap.parse_args(argv)
+    if a.cmd == "history":
+        from .history import report
+        print(report(a.days))
+        return 0
     if a.cmd == "coverage":
         print(coverage(["SPY", "AAPL", "NVDA", "XLK", "XLC"], a.timeframe, a.start, a.end, Path(a.cache), a.feed))
         return 0

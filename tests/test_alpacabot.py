@@ -809,3 +809,30 @@ class SessionSafetyTests(unittest.TestCase):
             (Path(d) / "KILL_SWITCH").unlink()
             r.tick(now)
             self.assertFalse(r.exec.kill_switch)
+
+
+class HistoryReportTests(unittest.TestCase):
+    def test_bot_labels_round_trips_styles_and_pnl(self):
+        from alpacabot.history import bot_label, round_trips, summarize
+        self.assertEqual(bot_label("sx-AAPL-1"), "sx")
+        self.assertEqual(bot_label("ab-SPY-20261012-40"), "ab")
+        self.assertEqual(bot_label("3f2b8c1e-1234-4abc-9def-0123456789ab"), "untagged")
+        t = lambda s: pd.Timestamp(s, tz="America/New_York").tz_convert("UTC")      # noqa: E731
+        fills = pd.DataFrame([
+            {"bot": "sx", "symbol": "AAPL", "time": t("2026-10-09 10:00"), "side": "buy", "qty": 10, "price": 100.0},
+            {"bot": "sx", "symbol": "AAPL", "time": t("2026-10-09 10:10"), "side": "sell", "qty": 10, "price": 101.0},   # scalp +10
+            {"bot": "xp", "symbol": "NVDA", "time": t("2026-10-09 10:00"), "side": "sell", "qty": 5, "price": 200.0},    # short
+            {"bot": "xp", "symbol": "NVDA", "time": t("2026-10-09 14:00"), "side": "buy", "qty": 5, "price": 204.0},     # day -20
+            {"bot": "sw", "symbol": "KO", "time": t("2026-10-08 15:00"), "side": "buy", "qty": 20, "price": 60.0},
+            {"bot": "sw", "symbol": "KO", "time": t("2026-10-09 10:00"), "side": "sell", "qty": 12, "price": 61.0},      # swing +12, 8 still open
+            {"bot": "sx", "symbol": "TSLA", "time": t("2026-10-09 11:00"), "side": "buy", "qty": 4, "price": 50.0},
+            {"bot": "sx", "symbol": "TSLA", "time": t("2026-10-09 11:20"), "side": "sell", "qty": 6, "price": 49.0},     # closes 4 (-4), opens short 2
+        ])
+        rt = round_trips(fills)
+        got = {(r.bot, r.symbol, r.side, r.style): round(r.pnl, 6) for r in rt.itertuples()}
+        self.assertEqual(got, {("sx", "AAPL", "long", "scalp"): 10.0, ("xp", "NVDA", "short", "day"): -20.0,
+                               ("sw", "KO", "long", "swing"): 12.0, ("sx", "TSLA", "long", "scalp"): -4.0})
+        txt = summarize(rt, fills)
+        self.assertIn("BY BOT", txt)
+        self.assertIn("sw:KO +8", txt)
+        self.assertIn("sx:TSLA -2", txt)
