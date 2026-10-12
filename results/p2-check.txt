@@ -1,3 +1,5 @@
 $ alpaca check
-started 2026-10-11 21:40:30 EDT
-RUNNING...
+started 2026-10-11 21:40:30 EDT, took 2s, exit 0
+
+keys found in the environment: True
+paper account equity: $54,295, market open: False
