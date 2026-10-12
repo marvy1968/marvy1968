@@ -1,3 +1,47 @@
 $ alpaca run-all --phase validate
-started 2026-10-11 21:43:09 EDT
-RUNNING...
+started 2026-10-11 21:43:09 EDT, took 3619s, exit 0
+
+daily data ready
+## swing_rsi: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## swing_breakout: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## day: ERROR TypeError('cumsum is not supported for object dtype')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## regime: NO EDGE FOUND
+- chosen: {'adx_split': 30.0, 'trail': 2.0, 'tp_scale': 1.25}
+- test trades 9601, win 0.40995729611498805, avg R -0.11741334053017795, sharpe -4.237939313905363, cagr -0.46875160139160443, max DD -0.7163793845442548, avg daily % -0.2456869839337945
+- placebo {'runs': 20, 'mean_expectancy_pct': -0.04875779495733715, 'real_beats_share': 0.25}
+- SPY {'cagr': 0.03340790369676516, 'sharpe': 0.2667634281630733, 'max_drawdown': -0.24512143446553214}
+- target 0.75-1.0%/day met: False
+
+## brain: ERROR TypeError('cumsum is not supported for object dtype')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## scalp: ERROR TypeError('cumsum is not supported for object dtype')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
