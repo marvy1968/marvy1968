@@ -1,3 +1,12 @@
 $ alpaca paper-report
-started 2026-10-12 09:58:53 EDT
-RUNNING...
+started 2026-10-12 09:58:53 EDT, took 2s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-12
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 1 trades, 0W/1L (0%), P&L $-47
+
+All trades: 1, 0W/1L (0%), profit factor 0.00, avg R -1.05
+  shorts: 1, 0W/1L (0%), P&L $-47, profit factor 0.00
+By symbol: NVDA $-47, NVDA $-47
+No equity snapshots yet; the first appears after today's close.
