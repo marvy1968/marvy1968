@@ -1,3 +1,100 @@
 $ status
-started 2026-10-12 16:13:25 EDT
-RUNNING...
+started 2026-10-12 16:13:25 EDT, took 1s, exit 0
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Wed 2026-10-07 15:55:35 EDT; 5 days ago
+    Trigger: Mon 2026-10-12 17:30:00 EDT; 1h 16min left
+   Triggers: ● marv-bot-late.service
+
+Oct 07 15:55:35 instance-stockbot systemd[1]: Started marv-bot-late.timer - Re-check injuries and stats shortly before games.
+
+● marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run)
+     Loaded: loaded (/etc/systemd/system/marv-soccer.timer; enabled; preset: enabled)
+     Active: active (waiting) since Sun 2026-10-11 23:18:18 EDT; 16h ago
+    Trigger: Mon 2026-10-12 17:19:06 EDT; 1h 5min left
+   Triggers: ● marv-soccer.service
+
+Oct 11 23:18:18 instance-stockbot systemd[1]: Started marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run).
+
+● marv-bot.timer - Run Marv Predict Max every morning (each sport decides if it has games)
+     Loaded: loaded (/etc/systemd/system/marv-bot.timer; enabled; preset: enabled)
+     Active: active (waiting) since Wed 2026-10-07 15:55:35 EDT; 5 days ago
+    Trigger: Tue 2026-10-13 10:00:00 EDT; 17h left
+   Triggers: ● marv-bot.service
+
+Oct 07 15:55:35 instance-stockbot systemd[1]: Started marv-bot.timer - Run Marv Predict Max every morning (each sport decides if it has games).
+
+● marv-swing-scan.timer - Swing runner scan after the close (weekdays 16:20 ET)
+     Loaded: loaded (/etc/systemd/system/marv-swing-scan.timer; enabled; preset: enabled)
+     Active: active (waiting) since Mon 2026-10-12 16:13:23 EDT; 4s ago
+    Trigger: Mon 2026-10-12 16:20:00 EDT; 6min left
+   Triggers: ● marv-swing-scan.service
+
+Oct 12 16:13:23 instance-stockbot systemd[1]: Started marv-swing-scan.timer - Swing runner scan after the close (weekdays 16:20 ET).
+
+● marv-health.timer - Run the Marv watchdog every 30 minutes
+     Loaded: loaded (/etc/systemd/system/marv-health.timer; enabled; preset: enabled)
+     Active: active (waiting) since Mon 2026-10-12 12:16:47 EDT; 3h 56min ago
+    Trigger: Mon 2026-10-12 16:18:36 EDT; 5min left
+   Triggers: ● marv-health.service
+
+Oct 12 12:16:47 instance-stockbot systemd[1]: marv-health.timer: Deactivated successfully.
+Oct 12 12:16:47 instance-stockbot systemd[1]: Stopped marv-health.timer - Run the Marv watchdog every 30 minutes.
+Oct 12 12:16:47 instance-stockbot systemd[1]: Stopping marv-health.timer - Run the Marv watchdog every 30 minutes...
+Oct 12 12:16:47 instance-stockbot systemd[1]: Started marv-health.timer - Run the Marv watchdog every 30 minutes.
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-10-12 16:13:21 EDT; 5s ago
+   Main PID: 505814 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 112.6M
+        CPU: 2.653s
+     CGroup: /system.slice/marv-bridge.service
+             └─505814 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 12 16:13:21 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-10-12 16:13:21 EDT; 5s ago
+   Main PID: 505816 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 113.3M
+        CPU: 2.662s
+     CGroup: /system.slice/marv-live.service
+             └─505816 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 12 16:13:21 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+
+● marv-dailypicks.timer - Marv daily parlay + ML/O-U card every morning (starts 07:40 CT, card lands ~08:00 CT)
+     Loaded: loaded (/etc/systemd/system/marv-dailypicks.timer; enabled; preset: enabled)
+     Active: active (waiting) since Sun 2026-10-11 23:55:15 EDT; 16h ago
+    Trigger: Tue 2026-10-13 08:40:00 EDT; 16h left
+   Triggers: ● marv-dailypicks.service
+
+Oct 11 23:55:15 instance-stockbot systemd[1]: Started marv-dailypicks.timer - Marv daily parlay + ML/O-U card every morning (starts 07:40 CT, card lands ~08:00 CT).
+
+● marv-swing-open.timer - Swing runner opening-auction orders (weekdays 09:20 ET)
+     Loaded: loaded (/etc/systemd/system/marv-swing-open.timer; enabled; preset: enabled)
+     Active: active (waiting) since Mon 2026-10-12 16:13:23 EDT; 4s ago
+    Trigger: Tue 2026-10-13 09:20:00 EDT; 17h left
+   Triggers: ● marv-swing-open.service
+NEXT                        LEFT          LAST                        PASSED       UNIT                  ACTIVATES
+Mon 2026-10-12 16:18:36 EDT 5min left     Mon 2026-10-12 15:48:36 EDT 24min ago    marv-health.timer     marv-health.service
+Mon 2026-10-12 16:20:00 EDT 6min left     -                           -            marv-swing-scan.timer marv-swing-scan.service
+Mon 2026-10-12 17:19:06 EDT 1h 5min left  Mon 2026-10-12 14:19:06 EDT 1h 54min ago marv-soccer.timer     marv-soccer.service
+Mon 2026-10-12 17:30:00 EDT 1h 16min left Sun 2026-10-11 17:30:08 EDT 22h ago      marv-bot-late.timer   marv-bot-late.service
+Tue 2026-10-13 08:40:00 EDT 16h left      Mon 2026-10-12 08:40:00 EDT 7h ago       marv-dailypicks.timer marv-dailypicks.service
+Tue 2026-10-13 09:20:00 EDT 17h left      -                           -            marv-swing-open.timer marv-swing-open.service
+Tue 2026-10-13 10:00:00 EDT 17h left      Mon 2026-10-12 10:00:08 EDT 6h ago       marv-bot.timer        marv-bot.service
+-                           -             Mon 2026-10-12 16:13:10 EDT 17s ago      marv-vmlink.timer     marv-vmlink.service
+
+8 timers listed.
+Pass --all to see loaded but inactive timers, too.
+87a3302 alpacabot: daily Sector Top-Down swing runner (paper) - scan after the close, OPG orders at the open, broker-side GTC stops, sw- order ids, own ledger and report-card section, timers; replay-tested trade for trade against the backtest (27 and 30 trades)
+eb41a77 alpacabot: swing_validate - the three pre-declared daily-bar candidates, one look at 2021-22 with a random-entry placebo and 2.5x slippage
+b0562c7 alpacabot: SectorTopDown strategy exactly as supplied (fixed-price stop, relative-strength ranking) and sector_td study: untouched 2016-2019, a hindsight-free control universe, and buy-and-hold comparison
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   70G   25G  75% /
