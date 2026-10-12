@@ -1,3 +1,6 @@
 $ show alpaca_paper/journal.jsonl
-started 2026-10-12 09:58:58 EDT
-RUNNING...
+started 2026-10-12 09:58:58 EDT, took 0s, exit 0
+
+{"t": "2026-10-12T09:30:58-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLC": 0, "XLK": 1, "XLY": 0}
+{"t": "2026-10-12T09:55:12-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:dual_regime", "ref": 227.27, "result": "ordered"}
+{"t": "2026-10-12T09:55:32-04:00", "kind": "exit", "symbol": "NVDA", "reason": "stop", "px": 228.2, "side": -1}
