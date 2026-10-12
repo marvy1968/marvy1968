@@ -84,7 +84,7 @@ def position_size(equity: float, risk_pct: float, entry: float, stop_dist: float
 class EntryWindow:
     """Regular-hours session rules (Eastern time)."""
     no_entry_before: dtime = dtime(9, 45)
-    no_entry_after: dtime = dtime(15, 30)
+    no_entry_after: dtime = dtime(15, 35)     # the last decision bar is 15:30-15:35 (its close is when the order goes in), as in the backtest
     flatten_at: dtime = dtime(15, 50)          # day trades and scalps are flat by 3:50 pm ET; only swing trades hold overnight
 
     def entries_allowed(self, now_et: datetime) -> bool:
@@ -278,11 +278,25 @@ class VirtualExitManager:
             self.store.save(self.positions)
             log.info("virtual %s exit %s %s at %.2f (level crossed)", hit[0], "short" if side == -1 else "long", symbol, abs(px))
             return hit[0]
-        before = (st.stop, st.hwm)
+        before = (st.stop, getattr(st, "hwm", None))
         st.ratchet(px)
-        if (st.stop, st.hwm) != before:
+        if (st.stop, getattr(st, "hwm", None)) != before:
             self.store.save(self.positions)
         return None
+
+    def open_signal(self, symbol: str, qty: int, fill: float, sig, now: datetime, entry_bar: str):
+        """Open with the exact exit plan the backtest uses for this signal: the trailing manager for managed signals, otherwise the
+        expert's fixed stop and R-multiple target; plus its time stop (max_bars) and indicator exit (exit_col), checked at each bar close."""
+        from .exits import ExitState, FixedState
+        side = -1 if sig.side == -1 else 1
+        e = side * fill                                  # shorts are tracked on -price
+        if sig.managed:
+            st = ExitState.open(e, sig.atr, sig.adx, sig.trail, sig.tp_scale)
+        else:
+            st = FixedState(e, e - sig.stop_dist, e + sig.target_r * sig.stop_dist if sig.target_r > 0 else float("inf"), sig.stop_dist, 1.0)
+        self.positions[symbol] = {"state": st, "qty": qty, "opened": now.isoformat(), "side": side, "max_bars": int(sig.max_bars),
+                                  "exit_col": sig.exit_col, "entry_bar": entry_bar, "tag": sig.tag}
+        self.store.save(self.positions)
 
     def opened_at(self) -> dict[str, datetime]:
         return {s: datetime.fromisoformat(p["opened"]) for s, p in self.positions.items()}

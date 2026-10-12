@@ -1,6 +1,7 @@
 """Sector & market heat map: the pre-trade direction gate.
 
-Daily state per ETF, from completed daily bars only (the state used on day D comes from the close of D-1):
+Daily state per ETF, from completed daily bars only: the state used on day D is the one computed at the last close BEFORE D
+(state_on), so neither a partial bar for today nor a missing one can leak into, or blank out, the day's state:
   BULLISH (+1)  EMA(9) > EMA(21) and 20-day return > +0.5 of its own 20-day volatility
   BEARISH (-1)  EMA(9) < EMA(21) and 20-day return < -0.5 of its own 20-day volatility
   NEUTRAL (0)   otherwise
@@ -24,7 +25,7 @@ HEAT_ETFS = sorted(set(SECTOR.values()) | {MARKET})
 
 
 def heat_state(daily: pd.DataFrame) -> pd.Series:
-    """date -> -1/0/+1, usable on that date (computed from the PREVIOUS close)."""
+    """close date -> -1/0/+1 as of that close. Use state_on() to read it for a trading day (it takes the last close before that day)."""
     if daily is None or len(daily) < 25:
         return pd.Series(dtype=float)
     c = daily["close"].astype(float)
@@ -34,9 +35,16 @@ def heat_state(daily: pd.DataFrame) -> pd.Series:
     z = roc / vol.replace(0, np.nan)
     st = pd.Series(np.where((e9 > e21) & (z > 0.5), 1, np.where((e9 < e21) & (z < -0.5), -1, 0)), index=c.index, dtype=float)
     st[z.isna()] = 0
-    st = st.shift(1)
     st.index = pd.Index([t.date() for t in st.index])
-    return st.dropna()
+    return st
+
+
+def state_on(st: pd.Series | None, day) -> int:
+    """The state usable on `day`: as of the last close strictly before it (missing history = NEUTRAL)."""
+    if st is None or not len(st):
+        return 0
+    k = int(np.searchsorted(np.array(st.index, dtype=object), day, side="left"))
+    return int(st.iloc[k - 1]) if k > 0 else 0
 
 
 def heat_map(daily: dict[str, pd.DataFrame]) -> dict[str, pd.Series]:
@@ -53,7 +61,7 @@ def spy_red(spy_day: pd.DataFrame | None) -> pd.Series | None:
 def apply(d: pd.DataFrame, symbol: str, heat: dict[str, pd.Series], spy_day: pd.DataFrame | None = None) -> pd.DataFrame:
     """Add g_* columns to one symbol's day frame (in place and returned)."""
     day = d.index[0].date()
-    look = lambda etf: int(heat.get(etf, pd.Series(dtype=float)).get(day, 0) or 0)      # noqa: E731  (missing history = NEUTRAL)
+    look = lambda etf: state_on(heat.get(etf), day)      # noqa: E731
     sector, market = look(SECTOR.get(symbol, MARKET)), look(MARKET)
     d["g_long_ok"] = sector != -1
     d["g_short_ok"] = (sector == -1) or (market == -1)

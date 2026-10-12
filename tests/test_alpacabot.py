@@ -651,20 +651,25 @@ class HeatMapAndShortTests(unittest.TestCase):
 
     def test_heat_state_direction_and_no_lookahead(self):
         from alpacabot.gates import heat_state
+        from alpacabot.gates import state_on
         down, up = heat_state(self._daily(-0.004)), heat_state(self._daily(0.004))
         self.assertEqual(down.iloc[-1], -1)
         self.assertEqual(up.iloc[-1], 1)
         d = self._daily(-0.004)
-        full = heat_state(d)
-        cut = heat_state(d.iloc[:-1])                   # the last day's own bar is not used for that day's state
-        self.assertTrue(full.iloc[:-1].equals(cut))
+        last = d.index[-1].date()
+        with_today, without_today = heat_state(d), heat_state(d.iloc[:-1])
+        # the state used ON the last day is the same whether or not that day's (partial) bar exists, and it is not NEUTRAL by accident
+        self.assertEqual(state_on(with_today, last), state_on(without_today, last))
+        self.assertEqual(state_on(without_today, last), -1)
+        self.assertEqual(state_on(with_today, d.index[0].date()), 0)       # nothing before the first close
 
     def test_gates_block_longs_and_allow_shorts_only_when_bearish(self):
         from alpacabot import gates
         day = pd.date_range("2024-04-23 09:30", periods=10, freq="5min", tz="America/New_York")
         d = pd.DataFrame({"open": 100.0, "high": 100.1, "low": 99.9, "close": 100.0, "volume": 1.0}, index=day)
-        bear = pd.Series({day[0].date(): -1.0})
-        neutral = pd.Series({day[0].date(): 0.0})
+        prev = (day[0] - pd.Timedelta(days=1)).date()          # states are keyed by the close they were computed at
+        bear = pd.Series({prev: -1.0})
+        neutral = pd.Series({prev: 0.0})
         g = gates.apply(d.copy(), "NVDA", {"XLK": bear, "SPY": neutral})
         self.assertFalse(g["g_long_ok"].all())
         self.assertTrue(g["g_short_ok"].all())

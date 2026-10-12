@@ -12,6 +12,7 @@ from datetime import datetime, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pandas as pd
 import requests
 
 from .brain import Brain
@@ -124,6 +125,11 @@ def today_frame(sym: str, now_et: datetime, brain: Brain, fetch=_fetch):
     return day if len(day) >= 3 else None
 
 
+def bar_start(t: datetime) -> pd.Timestamp:
+    """Start of the 5-minute bar that contains t."""
+    return pd.Timestamp(t).floor("5min")
+
+
 def default_brain(state_dir) -> Brain:
     """Paper default: every expert both ways; longs blocked in a BEARISH sector; shorts only while the market or the sector is BEARISH or
     SPY is red on the day. Overridden by <state>/brain.json (written once validation has chosen a configuration)."""
@@ -135,7 +141,8 @@ def default_brain(state_dir) -> Brain:
 
 
 class PaperRunner:
-    def __init__(self, broker, brain: Brain | None = None, state_dir="state/alpaca_paper", risk_pct=0.01, symbols=None, fetch=_fetch, sleep=time.sleep):
+    def __init__(self, broker, brain: Brain | None = None, state_dir="state/alpaca_paper", risk_pct=0.01, symbols=None, fetch=_fetch, sleep=time.sleep,
+                 breaker_limit: float = 0.02, max_positions: int = 6):
         self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or default_brain(state_dir), symbols or SYMBOLS, fetch, sleep
         self.dir = Path(state_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -143,9 +150,13 @@ class PaperRunner:
         self.raw = broker
         self.broker = OwnBook(broker, self)
         self.exits = VirtualExitManager(self.store, self.broker, sleep=sleep)
-        self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(), risk_pct=risk_pct, max_positions=6, sleep=sleep)
+        # no 45-minute stale exit: each signal carries the backtest's own time stop (max_bars), checked at every bar close
+        self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(limit=breaker_limit), risk_pct=risk_pct, max_positions=max_positions,
+                             stale_minutes=10 ** 9, sleep=sleep)
         self.last_px: dict[str, float] = {}      # last exit-side price: bid for longs, ask for shorts
         self.heat, self.heat_day, self.borrow = {}, None, {}
+        self.day, self.trades_today, self.last_exit = None, {}, {}
+        self.now = None   # per-symbol daily trade cap and post-exit cooldown, as in the backtest
         base = self.dir / "base_equity.json"
         if not base.exists():                    # the bot's starting capital = the account equity the first time it runs
             base.write_text(json.dumps({"equity": float(retry_call(broker.equity, sleep=sleep))}))
@@ -158,10 +169,14 @@ class PaperRunner:
 
     def journal(self, kind: str, **kw):
         with open(self.dir / "journal.jsonl", "a") as f:
-            f.write(json.dumps({"t": datetime.now(ET).isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n")
+            f.write(json.dumps({"t": self.clock().isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n")
 
     def realized(self) -> float:
         return sum(t["pnl"] for t in _jl(self.dir / "trades.jsonl"))
+
+    def clock(self) -> datetime:
+        """The trading clock (the time the loop is working on), not the machine's wall clock."""
+        return self.now or datetime.now(ET)
 
     @staticmethod
     def entry_px(pos) -> float:
@@ -181,8 +196,8 @@ class PaperRunner:
         pnl = side * (px - entry) * qty
         self.journal("exit", symbol=sym, reason=reason, px=px, side=side)
         with open(self.dir / "trades.jsonl", "a") as f:
-            f.write(json.dumps({"date": datetime.now(ET).date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
-                                "entry": round(entry, 4), "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
+            f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
+                                "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
                                 "reason": reason, "opened": pos["opened"]}) + "\n")
 
     def reconcile(self):
@@ -196,6 +211,7 @@ class PaperRunner:
 
     def poll_exits(self, now_et: datetime):
         """Virtual stop / trail / take-profit, run every ~15 s on live quotes."""
+        self.now = now_et
         for sym in list(self.exits.positions):
             bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
             pos = self.exits.positions.get(sym)
@@ -205,6 +221,7 @@ class PaperRunner:
             if reason:
                 self.exec.opened.pop(sym, None)
                 self.record_exit(sym, px, reason, pos)
+                self.last_exit[sym] = bar_start(now_et)
 
     def refresh_heat(self, now_et: datetime):
         """Sector & market heat map, once a day from completed daily bars."""
@@ -214,11 +231,11 @@ class PaperRunner:
         for etf in gates.HEAT_ETFS:
             try:
                 d = self.raw.daily(etf) if hasattr(self.raw, "daily") else None
-                daily[etf] = d[d.index.date < now_et.date()] if d is not None and len(d) else None    # completed days only
+                daily[etf] = d if d is not None and len(d) else None      # state_on() only reads closes before today
             except Exception:
                 log.exception("heat map: no daily bars for %s (treated as NEUTRAL)", etf)
         self.heat, self.heat_day = gates.heat_map(daily), now_et.date()
-        self.journal("heat_map", **{k: int(v.iloc[-1]) if len(v) else 0 for k, v in self.heat.items()})
+        self.journal("heat_map", **{k: gates.state_on(v, now_et.date()) for k, v in self.heat.items()})
 
     def can_short(self, sym: str) -> str:
         """'' when shorting sym is allowed; otherwise the reason."""
@@ -232,15 +249,39 @@ class PaperRunner:
                 self.borrow[sym] = False
         return "" if self.borrow[sym] else "not easy to borrow"
 
+    def close_now(self, sym: str, reason: str, exit_bar):
+        pos = self.exits.positions.get(sym)
+        bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
+        px = bid if pos.get("side", 1) == 1 else ask
+        retry_call(self.broker.close, sym, sleep=self.sleep)          # our qty only
+        self.record_exit(sym, px, reason, pos)
+        self.exits.positions.pop(sym, None)
+        self.exec.opened.pop(sym, None)
+        self.store.save(self.exits.positions)
+        self.last_exit[sym] = exit_bar
+
+    def bar_exits(self, sym: str, day, now_et: datetime):
+        """At a bar close: the signal's time stop (max_bars) and the expert's own exit rule (exit_col), in the backtest's order."""
+        pos = self.exits.positions[sym]
+        held = int((day.index >= pd.Timestamp(pos["entry_bar"])).sum())
+        if held < 1:
+            return
+        if pos.get("max_bars") and held >= pos["max_bars"]:
+            self.close_now(sym, "time", day.index[-1])
+            return
+        col = pos.get("exit_col") or ""
+        col = col if pos.get("side", 1) == 1 or not col else "m_" + col
+        if col and col in day and bool(day[col].iloc[-1]):
+            self.close_now(sym, "signal", day.index[-1] + pd.Timedelta(minutes=5))      # "exit" decided at this close, filled at the next open
+
     def on_bar_close(self, now_et: datetime):
-        """Once per new 5-minute bar: ask the Brain about each symbol and enter on a fresh signal (long, or short when the gate allows)."""
+        """Once per new 5-minute bar: exits that are decided at a bar close, then entries (long, or short when the gate allows)."""
+        self.now = now_et
         self.refresh_heat(now_et)
+        if self.day != now_et.date():
+            self.day, self.trades_today, self.last_exit = now_et.date(), {}, {}
         spy_day = None
         for sym in sorted(self.symbols, key=lambda s: s != gates.MARKET):      # SPY first: its 'red' state feeds the other symbols
-            if sym in self.exits.positions:
-                if sym == gates.MARKET:
-                    spy_day = today_frame(sym, now_et, self.brain, self.fetch)
-                continue
             day = today_frame(sym, now_et, self.brain, self.fetch)
             if sym == gates.MARKET:
                 spy_day = day
@@ -248,8 +289,16 @@ class PaperRunner:
                 continue
             self.last_bar[sym] = day.index[-1]
             gates.apply(day, sym, self.heat, spy_day)
+            if sym in self.exits.positions:
+                self.bar_exits(sym, day, now_et)
+                if sym in self.exits.positions:
+                    continue
             sig = next((s for s in self.brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
+                continue
+            if self.trades_today.get(sym, 0) >= self.brain.max_trades:
+                continue
+            if sym in self.last_exit and day.index[-1] < self.last_exit[sym] + pd.Timedelta(minutes=5 * self.brain.cooldown):
                 continue
             ref = float(day["close"].iloc[-1])
             if sig.side == -1:
@@ -266,10 +315,12 @@ class PaperRunner:
                 bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
                 qty = self.exec.last_qty
                 fill = ask if sig.side == 1 else bid
-                self.exits.open(sym, qty, fill, sig.atr, sig.adx, now_et, sig.trail, sig.tp_scale, side=sig.side)
+                self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
                 self.entries_today += 1
+                self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
 
     def tick(self, now_et: datetime):
+        self.now = now_et
         snapshot = dict(self.exits.positions)
         for action in self.exec.on_tick(now_et):
             self.journal("housekeeping", action=action)

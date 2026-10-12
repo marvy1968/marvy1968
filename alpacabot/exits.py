@@ -57,7 +57,34 @@ class ExitState:
 
     @classmethod
     def from_json(cls, d: dict):
-        return cls(**d)
+        return state_from_json(d)
+
+
+@dataclass
+class FixedState:
+    """A fixed stop and target (the plain experts): the same check() as ExitState, no trailing. tp = inf means no target."""
+    entry: float
+    stop: float
+    tp: float
+    atr: float = 0.0
+    trail: float = 0.0
+
+    def check(self, open_: float, high: float, low: float):
+        if low <= self.stop:
+            return "stop", min(self.stop, open_)
+        if high >= self.tp:
+            return "target", max(self.tp, open_)
+        return None
+
+    def ratchet(self, high: float) -> None:
+        return None
+
+    def to_json(self) -> dict:
+        return asdict(self)
+
+
+def state_from_json(d: dict):
+    return ExitState(**d) if "hwm" in d else FixedState(**d)
 
 
 class StateStore:
@@ -75,11 +102,10 @@ class StateStore:
             bad = self.path.with_suffix(".corrupt")
             os.replace(self.path, bad)          # keep the evidence, start clean rather than crash
             return {}
-        return {s: {"state": ExitState.from_json(v["state"]), "qty": v["qty"], "opened": v["opened"], "side": v.get("side", 1)} for s, v in raw.items()}
+        return {s: {**v, "state": state_from_json(v["state"]), "side": v.get("side", 1)} for s, v in raw.items()}
 
     def save(self, positions: dict) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({s: {"state": p["state"].to_json(), "qty": p["qty"], "opened": p["opened"], "side": p.get("side", 1)}
-                                   for s, p in positions.items()}, indent=1))
+        tmp.write_text(json.dumps({s: {**p, "state": p["state"].to_json()} for s, p in positions.items()}, indent=1))
         os.replace(tmp, self.path)
