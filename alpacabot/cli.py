@@ -143,6 +143,7 @@ def main(argv=None) -> int:
     sc.add_argument("--symbols", nargs="+", required=True)
     sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
+    sub.add_parser("positions", help="read-only: every open position and open order on the paper account")
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
@@ -171,6 +172,24 @@ def main(argv=None) -> int:
         res = symbol_check({s: days[s] for s in syms if s in days}, (start, date(2020, 12, 31)), (date(2021, 1, 1), end), Costs(), brain_kwargs=kw)
         for s, r in res.items():
             print(f"{s:6s} {'QUALIFIES' if r['qualifies'] else 'no':9s} train {r['train']}  validate {r['validate']}  2.5x slip {r['validate_slip_x2.5']}")
+        return 0
+    if a.cmd == "positions":
+        import requests
+
+        from .data import _headers
+        api = "https://paper-api.alpaca.markets/v2"
+        acct = requests.get(f"{api}/account", headers=_headers(), timeout=30).json()
+        pos = requests.get(f"{api}/positions", headers=_headers(), timeout=30).json()
+        orders = requests.get(f"{api}/orders", headers=_headers(), params={"status": "open", "limit": 500}, timeout=30).json()
+        print(f"equity ${float(acct.get('equity', 0)):,.2f}  cash ${float(acct.get('cash', 0)):,.2f}  long mv ${float(acct.get('long_market_value', 0)):,.2f}"
+              f"  short mv ${float(acct.get('short_market_value', 0)):,.2f}")
+        print(f"{len(pos)} open positions:")
+        for p in sorted(pos, key=lambda p: -abs(float(p.get('market_value') or 0))):
+            print(f"  {p['symbol']:10s} {p.get('side', ''):5s} qty {p['qty']:>12s}  value ${float(p.get('market_value') or 0):>10,.2f}  "
+                  f"unrealized ${float(p.get('unrealized_pl') or 0):>9,.2f}")
+        print(f"{len(orders)} open orders:")
+        for o in orders:
+            print(f"  {o['symbol']:10s} {o['side']:4s} {o.get('qty') or o.get('notional')} {o['type']} {o['status']}  id {str(o.get('client_order_id'))[:24]}")
         return 0
     if a.cmd == "history":
         from .history import report
