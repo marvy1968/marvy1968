@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families swing_validate
-started 2026-10-12 15:10:24 EDT
-RUNNING...
+started 2026-10-12 15:10:24 EDT, took 239s, exit 0
+
+daily data ready
+## swing_validate: none of the pre-declared candidates passed validation
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY {'cagr': 0.033184479164266145, 'sharpe': 0.265366351266136, 'max_drawdown': -0.24496487119437949}
+- target 0.75-1.0%/day met: False
+
+- brooks_pullback hold<=10d: 150t win 43% exp -0.518% PF 0.74 sharpe -0.77 cagr -7.4% maxDD -18.4% | 2.5x slip exp -0.674% | placebo mean exp -0.330%, real beats 40% | PASS False
+- williams_r hold<=10d: 130t win 52% exp -0.483% PF 0.76 sharpe -0.62 cagr -4.6% maxDD -13.6% | 2.5x slip exp -0.532% | placebo mean exp -0.228%, real beats 25% | PASS False
+- donchian_turtle hold<=10d: 84t win 46% exp +0.314% PF 1.10 sharpe 0.24 cagr +1.6% maxDD -10.6% | 2.5x slip exp +0.200% | placebo mean exp -0.211%, real beats 75% | PASS False
+- SPY buy-and-hold (same years): {'cagr': 0.033184479164266145, 'sharpe': 0.265366351266136, 'max_drawdown': -0.24496487119437949}
+ALL DONE
