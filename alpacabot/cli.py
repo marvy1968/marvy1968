@@ -48,7 +48,10 @@ def run_all(a) -> int:
     print("daily data ready", flush=True)
     intraday_syms = INTRADAY
     minute = {}
+    default = ["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"]
+    suffix = "" if list(a.families) == default else "_" + "_".join(a.families)     # a partial run never overwrites the full summary
     for fam in a.families:
+        first = len(lines)
         try:
             if fam in ("swing_rsi", "swing_breakout"):
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
@@ -87,8 +90,8 @@ def run_all(a) -> int:
             for k, v in res["table"].items():
                 f = lambda r: f"{r.get('trades')}, {r.get('win_rate') or 0:.0%}, {r.get('expectancy_pct_notional') or 0:+.3f}"   # noqa: E731
                 lines.append(f"| {k} | {f(v['own'])} | {f(v['staircase'])} |")
-        (out / f"alpaca_{a.phase}_summary.md").write_text("\n".join(lines))
-        print(lines[-1], flush=True)
+        (out / f"alpaca_{a.phase}_summary{suffix}.md").write_text("\n".join(lines))
+        print("\n".join(lines[first:]), flush=True)
     print("ALL DONE")
     return 0
 
