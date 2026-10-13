@@ -507,7 +507,10 @@ class PaperRunner:
                 f.write(json.dumps(snap) + "\n")
             text = report_card(self.dir, now_et.date())
             (self.dir / "report_card.txt").write_text(text)
-            send_telegram(text)
+            ok = send_telegram(text)
+            self.journal("report_card", sent=bool(ok))              # False = no Telegram settings, or Telegram refused it
+            if not ok:
+                log.warning("report card NOT delivered to Telegram (check TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)")
             self.reported = now_et.date()
             self.report_marker.write_text(now_et.date().isoformat())       # on disk: a restart cannot send it twice or skip it
         except Exception:
@@ -608,7 +611,13 @@ def send_telegram(text: str) -> bool:
     tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
     if not tok or not chat:
         return False
-    r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage", data={"chat_id": chat, "text": text[:4000]}, timeout=20)
+    try:
+        r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage", data={"chat_id": chat, "text": text[:4000]}, timeout=20)
+    except requests.RequestException:
+        log.exception("telegram send failed")
+        return False
+    if not r.ok:
+        log.warning("telegram refused the message: HTTP %s", r.status_code)
     return r.ok
 
 
