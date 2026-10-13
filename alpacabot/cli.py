@@ -100,15 +100,15 @@ def run_all(a) -> int:
                 elif fam == "filters":        # every brain filter combination, TRAIN years only
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
-                    res = filters_study(days, train, costs)
+                    res = filters_study(days, train, costs, ckpt=out / f"ckpt_{a.phase}_filters.json")
                 elif fam == "limit":          # market vs limit entries per expert, TRAIN years only
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
-                    res = limit_study(days, train, costs, shorts=True)
+                    res = limit_study(days, train, costs, shorts=True, ckpt=out / f"ckpt_{a.phase}_limit.json")
                 elif fam == "exits":          # staircase vs each expert's own exits, TRAIN years only
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
-                    res = exit_study(days, train, costs, shorts=True)
+                    res = exit_study(days, train, costs, shorts=True, ckpt=out / f"ckpt_{a.phase}_exits.json")
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})

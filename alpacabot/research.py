@@ -29,6 +29,27 @@ GRIDS = {
 }
 
 
+class Checkpoint:
+    """Results of finished runs saved to disk after each run, so a stopped study resumes where it left off."""
+
+    def __init__(self, path=None):
+        import json as _j
+        from pathlib import Path as _P
+        self.path, self._j = (_P(path) if path else None), _j
+        self.data = self._j.loads(self.path.read_text()) if self.path and self.path.exists() else {}
+
+    def get(self, key, fn):
+        if key in self.data:
+            return self.data[key]
+        val = fn()
+        self.data[key] = val
+        if self.path:
+            tmp = self.path.with_suffix(".tmp")
+            tmp.write_text(self._j.dumps(self.data, default=str))
+            tmp.replace(self.path)
+        return val
+
+
 def grid_points(grid: dict):
     keys = list(grid)
     for vals in itertools.product(*(grid[k] for k in keys)):
@@ -169,18 +190,17 @@ def brain_walk_forward(data, train, test, costs: Costs = Costs(), pf: Portfolio 
     return out
 
 
-def exit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = False) -> dict:
+def exit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = False, ckpt=None) -> dict:
     """TRAIN years only (does not touch the test years): each expert's real entries with its OWN exits vs the STAIRCASE, after costs.
     Answers 'does the staircase help this expert?' without spending the held-out data."""
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe")
-    table = {}
+    table, cp = {}, Checkpoint(ckpt)
     for name in ALL_EXPERTS:
         for side in (["long", "short"] if shorts else ["long"]):
             row = {}
             for mode in ("own", "staircase"):
                 kw = dict(experts=[name]) if side == "long" else dict(experts=[], short_experts=[name])
-                m = run_intraday(Brain(route=False, mtf=False, exit_mode=mode, **kw), data, costs, pf, *train)["metrics"]
-                row[mode] = {k: m.get(k) for k in keys}
+                row[mode] = cp.get(f"{name}-{side}-{mode}", lambda kw=kw, mode=mode: {k: run_intraday(Brain(route=False, mtf=False, exit_mode=mode, **kw), data, costs, pf, *train)["metrics"].get(k) for k in keys})
             e_own, e_st = row["own"].get("expectancy_pct_notional"), row["staircase"].get("expectancy_pct_notional")
             row["staircase_better"] = bool(e_own is not None and e_st is not None and e_st > e_own)
             table[f"{name} {side}"] = row
@@ -209,17 +229,17 @@ def symbol_check(days_by_symbol, train, validate, costs: Costs = Costs(), pf: Po
     return out
 
 
-def limit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = True) -> dict:
+def limit_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), shorts: bool = True, ckpt=None) -> dict:
     """TRAIN years only: each expert with MARKET entries (next open + slippage) vs LIMIT entries (at the signal close, or 0.25 stop
     distances better, waiting 3 bars, no slippage, unfilled = no trade). Costs are what separates these signals from break-even."""
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
     modes = {"market": costs, "limit@close": replace(costs, entry="limit", limit_offset=0.0),
              "limit-0.25": replace(costs, entry="limit", limit_offset=0.25)}
-    table = {}
+    table, cp = {}, Checkpoint(ckpt)
     for name in ALL_EXPERTS:
         for side in (["long", "short"] if shorts else ["long"]):
             kw = dict(experts=[name]) if side == "long" else dict(experts=[], short_experts=[name])
-            table[f"{name} {side}"] = {mode: {k: run_intraday(Brain(route=False, mtf=False, **kw), data, c, pf, *train)["metrics"].get(k) for k in keys}
+            table[f"{name} {side}"] = {mode: cp.get(f"{name}-{side}-{mode}", lambda kw=kw, c=c: {k: run_intraday(Brain(route=False, mtf=False, **kw), data, c, pf, *train)["metrics"].get(k) for k in keys})
                                        for mode, c in modes.items()}
     best = sorted(((k, m, v[m].get("expectancy_pct_notional") or -9) for k, v in table.items() for m in v
                    if (v[m].get("trades") or 0) >= 100), key=lambda x: -x[2])[:5]
@@ -248,15 +268,16 @@ def swing_expert_study(daily, train, costs: Costs = Costs(), pf: Portfolio = Por
     return out
 
 
-def filters_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6)) -> dict:
+def filters_study(data, train, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
     """TRAIN years only: the whole expert set with every brain filter combination (regime router, 15-minute trend, how many experts must agree,
     sector heat-map gate, shorts on/off). Fewer, better-confirmed trades pay the same costs once, so this is the 'trade less' test."""
     keys = ("trades", "win_rate", "expectancy_pct_notional", "profit_factor", "daily_ret_pct_mean")
+    cp = Checkpoint(ckpt)
     rows = []
     for route, mtf, cons, sect, shorts in itertools.product([False, True], [False, True], [1, 2, 3], [False, True], [False, True]):
         b = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS) if shorts else [], route=route, mtf=mtf, consensus=cons,
                   sector_filter=sect, short_gate="red")
-        m = run_intraday(b, data, costs, pf, *train)["metrics"]
+        m = cp.get(f"{route}-{mtf}-{cons}-{sect}-{shorts}", lambda: {k: run_intraday(b, data, costs, pf, *train)["metrics"].get(k) for k in keys})
         rows.append({"route": route, "mtf": mtf, "consensus": cons, "sector_filter": sect, "shorts": shorts, **{k: m.get(k) for k in keys}})
     rows.sort(key=lambda r: -(r["expectancy_pct_notional"] if r["expectancy_pct_notional"] is not None else -9))
     ok = [r for r in rows if (r["trades"] or 0) >= 500 and (r["expectancy_pct_notional"] or 0) > 0 and (r["profit_factor"] or 0) > 1.05]

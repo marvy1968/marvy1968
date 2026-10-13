@@ -1128,3 +1128,17 @@ class ReportStartTests(unittest.TestCase):
             card = paper.report_card(d, date(2026, 10, 12))
         self.assertIn("ROI since start (2026-10-12): -0.48%", card)
         self.assertIn("day -0.48%", card)
+
+
+class CheckpointTests(unittest.TestCase):
+    def test_finished_runs_are_not_repeated_after_a_restart(self):
+        import tempfile
+        from alpacabot.research import Checkpoint
+        calls = []
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "ck.json"
+            a = Checkpoint(p)
+            self.assertEqual(a.get("x", lambda: calls.append(1) or {"pf": 1.1}), {"pf": 1.1})
+            b = Checkpoint(p)                                         # a new process after a stop
+            self.assertEqual(b.get("x", lambda: calls.append(2) or {"pf": 9}), {"pf": 1.1})
+            self.assertEqual(calls, [1])
