@@ -223,6 +223,10 @@ def main(argv=None) -> int:
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
+    pz = sub.add_parser("paper-pause", help="on: the intraday bot takes no new entries (open trades keep their exits); off: resume")
+    pz.add_argument("mode", choices=["on", "off"])
+    pz.add_argument("--state", default="state/alpaca_paper")
+    pz.add_argument("--reason", default="paused by the owner")
     sub.add_parser("paper-eod", help="take today's equity snapshot and send the report card now, if not already done").add_argument("--state", default="state/alpaca_paper")
     bt = sub.choices["backtest"]
     bt.add_argument("--train-end", type=_d, default=date(2021, 12, 31))
@@ -348,6 +352,15 @@ def main(argv=None) -> int:
     if a.cmd == "paper":
         from .paper import main as paper_main
         return paper_main(a)
+    if a.cmd == "paper-pause":
+        k = Path(a.state) / "KILL_SWITCH"
+        if a.mode == "on":
+            k.parent.mkdir(parents=True, exist_ok=True)
+            k.write_text(a.reason + "\nDelete this file (or run: python -m alpacabot paper-pause off) to resume new entries.\n")
+        elif k.exists():
+            k.unlink()
+        print(f"intraday entries {'PAUSED' if a.mode == 'on' else 'RESUMED'} (the running service picks this up within 15 s)")
+        return 0
     if a.cmd == "paper-eod":
         from datetime import datetime as _dt
 

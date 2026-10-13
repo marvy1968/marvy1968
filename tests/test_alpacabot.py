@@ -1142,3 +1142,14 @@ class CheckpointTests(unittest.TestCase):
             b = Checkpoint(p)                                         # a new process after a stop
             self.assertEqual(b.get("x", lambda: calls.append(2) or {"pf": 9}), {"pf": 1.1})
             self.assertEqual(calls, [1])
+
+
+class PausePausesTests(unittest.TestCase):
+    def test_paper_pause_toggles_the_kill_switch_file(self):
+        import tempfile
+        from alpacabot.cli import main
+        with tempfile.TemporaryDirectory() as d:
+            main(["paper-pause", "on", "--state", d, "--reason", "validation: no intraday edge"])
+            self.assertIn("no intraday edge", (Path(d) / "KILL_SWITCH").read_text())
+            main(["paper-pause", "off", "--state", d])
+            self.assertFalse((Path(d) / "KILL_SWITCH").exists())
