@@ -1,3 +1,18 @@
 $ alpaca positions
-started 2026-10-13 00:02:41 EDT
-RUNNING...
+started 2026-10-13 00:02:41 EDT, took 1s, exit 0
+
+equity $53,217.96  cash $56,446.54  long mv $1,024.80  short mv $-4,253.38
+6 open positions:
+  QQQ        short qty           -3  value $ -2,222.82  unrealized $    12.59
+  AAPL       long  qty            3  value $  1,024.80  unrealized $     5.69
+  SPY        short qty           -1  value $   -777.00  unrealized $     0.70
+  TSLA       short qty           -2  value $   -751.00  unrealized $     6.50
+  IWM        short qty           -1  value $   -278.33  unrealized $    -0.37
+  NVDA       short qty           -1  value $   -224.23  unrealized $     2.16
+6 open orders:
+  TSLA       buy  2 market accepted  id d3070512-4541-476c-824a-
+  SPY        buy  1 market accepted  id 6c94320f-8215-4473-bf01-
+  QQQ        buy  3 market accepted  id b27daa85-6107-47c0-9b6e-
+  NVDA       buy  1 market accepted  id 0f66aaab-3fc9-45a9-9625-
+  IWM        buy  1 market accepted  id 50d5976d-3143-4065-bc18-
+  AAPL       sell 3 market accepted  id b20752a6-0aa7-48ff-804e-
