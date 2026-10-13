@@ -1,3 +1,22 @@
 $ alpaca run-all --phase validate --families sector_td_robust
-started 2026-10-12 23:54:37 EDT
-RUNNING...
+started 2026-10-12 23:54:37 EDT, took 477s, exit 0
+
+daily data ready
+## sector_td_robust: see the table
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+### their 10 (2016-03-01..2026-10-12): base 367t PF 2.23 CAGR +5.0% maxDD -4.4% sharpe 1.17 | SPY CAGR +15.6%
+- leave one out (CAGR, PF): -AAPL +4.7%/2.14, -NVDA +4.3%/2.12, -MSFT +5.2%/2.26, -AMD +4.5%/2.17, -TSLA +4.0%/2.04, -AMZN +4.9%/2.26, -GOOGL +4.7%/2.16, -META +4.5%/2.16, -XLK +5.1%/2.29, -QQQ +5.0%/2.23
+- 27 nearby parameter sets: 100% profitable, PF range [1.6826634595179737, 2.6473222812983797]
+- sizing (risk, slots -> CAGR, maxDD, sharpe): 0.35%/3 -> +5.0%, -4.4%, 1.17, 0.35%/5 -> +6.1%, -5.9%, 1.17, 0.50%/3 -> +7.2%, -6.2%, 1.18, 0.50%/5 -> +8.7%, -8.3%, 1.19, 0.75%/3 -> +10.6%, -9.1%, 1.19, 0.75%/5 -> +13.2%, -11.8%, 1.24, 1.00%/3 -> +13.8%, -11.8%, 1.19, 1.00%/5 -> +16.7%, -14.4%, 1.26
+- block bootstrap (2000 paths, 20-day blocks): CAGR p5/p50/p95 +2.6%/+5.0%/+7.7%, profitable 100%, maxDD median -6.2%, 95th -10.0%, 99th -12.5%
+### 2016 large caps (control) (2016-03-01..2026-10-12): base 509t PF 1.07 CAGR +0.5% maxDD -6.3% sharpe 0.15 | SPY CAGR +15.6%
+- leave one out (CAGR, PF): -XOM +0.2%/1.03, -JNJ +0.9%/1.15, -GE +0.8%/1.12, -JPM +0.3%/1.04, -WFC +0.5%/1.07, -T +1.1%/1.17, -PG +0.5%/1.08, -VZ +1.3%/1.19, -KO +0.3%/1.05, -WMT +1.2%/1.19, -CVX +0.5%/1.07, -PFE +0.5%/1.07, -BAC +0.8%/1.12, -INTC +1.1%/1.17, -CSCO +0.6%/1.09, -HD +0.9%/1.14, -DIS +1.1%/1.18, -MRK +0.5%/1.08, -ORCL +0.9%/1.14, -IBM +0.7%/1.11, -C +0.8%/1.12
+- 27 nearby parameter sets: 100% profitable, PF range [1.0582971639167738, 1.2681558030535287]
+- sizing (risk, slots -> CAGR, maxDD, sharpe): 0.35%/3 -> +0.5%, -6.3%, 0.15, 0.35%/5 -> +2.7%, -7.8%, 0.54, 0.50%/3 -> +0.6%, -9.3%, 0.15, 0.50%/5 -> +3.5%, -11.2%, 0.53, 0.75%/3 -> +0.8%, -15.1%, 0.14, 0.75%/5 -> +5.1%, -14.2%, 0.57, 1.00%/3 -> +0.9%, -20.1%, 0.14, 1.00%/5 -> +6.2%, -17.3%, 0.59
+- block bootstrap (2000 paths, 20-day blocks): CAGR p5/p50/p95 -1.2%/+0.5%/+2.3%, profitable 68%, maxDD median -10.4%, 95th -18.9%, 99th -23.2%
+ALL DONE
