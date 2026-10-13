@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families sector_td_robust
+started 2026-10-12 23:54:37 EDT
+RUNNING...
