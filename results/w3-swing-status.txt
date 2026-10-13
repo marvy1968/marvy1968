@@ -1,3 +1,8 @@
 $ alpaca swing status
-started 2026-10-13 00:02:37 EDT
-RUNNING...
+started 2026-10-13 00:02:37 EDT, took 1s, exit 0
+
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 0, 0W/0L, P&L $+0
+  holding: nothing
+  next open: buy ['META', 'MSFT', 'XLK'], sell nothing
