@@ -1,3 +1,7 @@
 $ alpaca run-all --phase validate --families filters
-started 2026-10-12 16:54:22 EDT
-RUNNING...
+started 2026-10-12 16:54:22 EDT, took 17407s, exit 143
+
+daily data ready
+
+--- stderr ---
+Terminated
