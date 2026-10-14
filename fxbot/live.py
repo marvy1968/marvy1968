@@ -413,6 +413,9 @@ class FxPaper:
                  f"book equity ${self.equity(trades):,.2f} (start ${self.base():,.2f})  realized ${sum(t['pl'] for t in led):+,.2f}"
                  f"  today ${sum(t['pl'] for t in today):+,.2f} ({len(today)} fills)",
                  f"market {'OPEN' if market_open(self.clock()) else 'CLOSED'}  kill switch {'ON' if (self.dir / 'KILL').exists() or (self.dir / 'KILL_SWITCH').exists() else 'off'}",
+                 "last completed bar scanned: " + ", ".join(
+                     f"{n} {sum(1 for k in self.last_bar if k.startswith(n + ':'))}/{len(PAIRS)} pairs @ "
+                     f"{max((v for k, v in self.last_bar.items() if k.startswith(n + ':')), default='-')[:16]}" for n in self.cfg["strategies"]),
                  f"open groups {len(self.groups)}, OANDA trades {len(ours)}:"]
         for g in self.groups.values():
             upl = sum(float(t.get("unrealizedPL", 0) or 0) for t in ours if t["id"] in g["trades"])
