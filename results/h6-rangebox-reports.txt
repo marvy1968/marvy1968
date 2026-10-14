@@ -1,3 +1,258 @@
 $ read-bot-reports /home/moonrider1968/bots/RangeBox_Master
-started 2026-10-14 06:38:52 EDT
-RUNNING...
+started 2026-10-14 06:38:52 EDT, took 0s, exit 0
+
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/crypto.log (19456 lines, 2026-06-25)
+2026-06-25 19:56:13,250 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:56:29,345 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59723.34 | ADX: 14.8 | BB_Inside: 46/50
+2026-06-25 19:56:30,405 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1563.53 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:56:31,463 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 21.1 | BB_Inside: 46/50
+2026-06-25 19:56:32,553 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:56:48,649 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59723.34 | ADX: 14.8 | BB_Inside: 46/50
+2026-06-25 19:56:49,718 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1563.53 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:56:50,778 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 21.1 | BB_Inside: 46/50
+2026-06-25 19:56:51,835 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:07,931 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:08,989 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:10,050 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:11,109 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:27,214 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:28,389 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:29,447 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:30,513 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:46,606 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:47,664 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:48,726 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:49,786 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:05,882 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:06,943 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:08,023 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:09,081 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:25,172 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:26,227 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:27,296 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:28,355 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:44,454 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:45,516 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:46,575 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:47,634 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:59:03,738 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:04,796 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:05,851 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:06,905 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+2026-06-25 19:59:23,000 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:24,056 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:25,114 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:26,172 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+2026-06-25 19:59:42,273 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:43,330 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:44,389 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:45,467 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/crypto_stdout.log (2 lines, 2026-06-23)
+nohup: ignoring input
+2026-06-23 15:32:12,050 [INFO] [RANGE_FACTORY] 📡 Hybrid Matrix loop initiated for CRYPTO profile universe.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/factory_core.log (21158 lines, 2026-06-25)
+2026-06-25 19:56:13,250 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:56:29,345 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59723.34 | ADX: 14.8 | BB_Inside: 46/50
+2026-06-25 19:56:30,405 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1563.53 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:56:31,463 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 21.1 | BB_Inside: 46/50
+2026-06-25 19:56:32,553 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:56:48,649 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59723.34 | ADX: 14.8 | BB_Inside: 46/50
+2026-06-25 19:56:49,718 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1563.53 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:56:50,778 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 21.1 | BB_Inside: 46/50
+2026-06-25 19:56:51,835 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:07,931 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:08,989 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:10,050 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:11,109 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:27,214 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:28,389 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:29,447 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:30,513 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:57:46,606 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59677.68 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:57:47,664 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1562.94 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:57:48,726 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.54 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:57:49,786 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:05,882 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:06,943 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:08,023 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:09,081 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:25,172 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:26,227 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:27,296 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:28,355 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:58:44,454 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59721.58 | ADX: 15.0 | BB_Inside: 46/50
+2026-06-25 19:58:45,516 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1565.35 | ADX: 31.2 | BB_Inside: 48/50
+2026-06-25 19:58:46,575 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.61 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:58:47,634 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.24 | ADX: 9.7 | BB_Inside: 48/50
+2026-06-25 19:59:03,738 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:04,796 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:05,851 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:06,905 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+2026-06-25 19:59:23,000 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:24,056 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:25,114 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:26,172 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+2026-06-25 19:59:42,273 [INFO] [RANGE_FACTORY] 🔍 [SCAN] BTC/USD | Price: 59690.17 | ADX: 17.1 | BB_Inside: 46/50
+2026-06-25 19:59:43,330 [INFO] [RANGE_FACTORY] 🔍 [SCAN] ETH/USD | Price: 1564.70 | ADX: 31.5 | BB_Inside: 48/50
+2026-06-25 19:59:44,389 [INFO] [RANGE_FACTORY] 🔍 [SCAN] SOL/USD | Price: 67.57 | ADX: 20.6 | BB_Inside: 46/50
+2026-06-25 19:59:45,467 [INFO] [RANGE_FACTORY] 🔍 [SCAN] LINK/USD | Price: 7.23 | ADX: 11.7 | BB_Inside: 48/50
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/forex.log (2 lines, 2026-06-24)
+nohup: ignoring input
+2026-06-24 09:37:32,904 [INFO] [RANGE_FACTORY] 📡 Hybrid Matrix loop initiated for FOREX profile universe.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/forex_stdout.log (2 lines, 2026-06-23)
+nohup: ignoring input
+2026-06-23 15:32:11,905 [INFO] [RANGE_FACTORY] 📡 Hybrid Matrix loop initiated for FOREX profile universe.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/orchestrator.log (2429 lines, 2026-07-08)
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+📈 [MODE] Running Velez Engine
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/range.log (939 lines, 2026-06-27)
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/stocks.log (2 lines, 2026-06-23)
+nohup: ignoring input
+2026-06-23 15:58:56,936 [INFO] [RANGE_FACTORY] 📡 Hybrid Matrix loop initiated for STOCKS profile universe.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/stocks_stdout.log (2 lines, 2026-06-23)
+nohup: ignoring input
+2026-06-23 15:32:11,950 [INFO] [RANGE_FACTORY] 📡 Hybrid Matrix loop initiated for STOCKS profile universe.
+
+===== /home/moonrider1968/bots/RangeBox_Master/logs/unified_beast.log (18616 lines, 2026-06-27)
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
+🔍 [WAIT] GBP_USD | No Alpha detected.
+🔍 [WAIT] AUD_USD | No Alpha detected.
+🔍 [WAIT] EUR_USD | No Alpha detected.
+🔍 [WAIT] USD_JPY | No Alpha detected.
