@@ -150,10 +150,23 @@ class FxLiveTests(unittest.TestCase):
             rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
             self.assertEqual([x["reason"] for x in rows], ["zone25", "zone50"])
 
+    def test_one_stop_by_default_and_paused_strategies_only_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
+            self.assertEqual(r.cfg["trade"], ["lien_h1"])
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            api.px["EUR_USD"] = (g["fill"] - 0.0023, g["fill"] - 0.0022)              # three quarters to the stop: no cut, OANDA's stop decides
+            r.manage(gid, 58000.0, "")
+            self.assertEqual(g["sold"], 0)
+
     def test_against_the_trade_cuts_in_steps(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
             r = runner(tmp, api)
+            r.cfg["ladder"] = {**r.cfg["ladder"], "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75]}     # optional setting still works
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
             fill, total = g["fill"], g["peak_units"]

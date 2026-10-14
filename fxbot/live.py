@@ -10,7 +10,7 @@ Owner's rules, the same as the stock bot:
                    up -> longs only, down -> shorts only, range -> both (both strategies are mean-reversion style)
   ENTRY ZONE       no chasing: skip when the price is more than 0.5 ATR past the signal close
   ENTRY            one entry risking 1% of this book (the owner's drawing, 2026-10-14); optional scale-in tiers in CONFIG["ladder"]
-  SELL ZONE        against the trade: sell 25% half way to the stop, 50% in all at three quarters; the stop takes the rest
+  SELL ZONE        one stop (the drawn 25/50% cut steps tested worse than one stop on 2016-22 forex history; owner chose one stop)
   TP ZONE          the nearer of the strategy's own target, the 20-bar mean (>= 0.75R, else 1.5R) and the nearest strong daily zone-map
                    level (>= 1R); sell 25% at the zone (stop to break-even at OANDA), 50% in all 0.25 ATR beyond (stop locked at the
                    zone); the rest rides the trend (OANDA take-profit 3 ATR beyond the zone)
@@ -42,13 +42,17 @@ STRATS = {"lien_h1": {"make": LienFader, "gran": "H1", "count": 1500, "minutes":
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
           "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs)
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
-                     "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75],          # against the trade: 25% half way, 50% at 3/4, stop = all
+                     "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
+                                                                                      # more than one stop on all three strategies, 2016-22)
                      "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],          # TP zone: 25% at the zone, 50% a little beyond
                      "lock": ["breakeven", "tp"], "ride_tp_atr": 3.0,               # stop to BE, then to the zone; the rest rides,
                      "trail_atr": 1.0, "trail_step_atr": 0.25},                     # followed by a stop 1 ATR behind the best price
           "zone": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "map_min_r": 1.0},
           "max_groups": 4, "max_per_ccy_side": 2, "breaker": 0.02, "max_notional_x": 10.0, "max_spread_frac": 0.25,
-          "book_cap": 100_000.0, "strategies": list(STRATS)}
+          "book_cap": 100_000.0, "strategies": list(STRATS),
+          # owner 2026-10-14 after the 2016-22 backtest: only Lien Fader places trades; the range box (-75% on 2016-20) and F0 (-13..-18%)
+          # keep scanning and log their signals as "paused (signal logged)" so their live record builds without risking the book
+          "trade": ["lien_h1"]}
 
 
 def decimals(instrument: str) -> int:
@@ -239,6 +243,10 @@ class FxPaper:
         if not side:
             return
         sd = float(row["stop"])
+        if name not in self.cfg.get("trade", list(STRATS)):
+            self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last,
+                         close=float(m["close"].iloc[-1]), stop_dist=sd, result="paused (signal logged)")
+            return
         res = self.try_open(name, inst, side, sd, float(row.get("target", float("nan"))), m, eq, why, trades, last,
                             zone_px=float(row.get("zone_px", float("nan"))))
         self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=res)
