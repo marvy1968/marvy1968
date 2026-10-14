@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import Locked, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -41,6 +41,13 @@ FAMILIES = {
     # the owner's F0 (H4 SMA100 +-2.5 sigma reclaim, 3.5 sigma stop, mean target): the best recorded FX result, frozen
     "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
 }
+
+# Profit-lock variants (added 2026-10-14, owner: "secure profits"): the same frozen strategies with stop -> break-even at +1R and a
+# 1R trail after +2R. Same pass bar; compare each with its unlocked twin. Nothing here is tuned.
+LOCK = {"be_at": 1.0, "trail_after": 2.0, "trail_r": 1.0}
+for _name in ("fx_donchian_d", "fx_bigbuild_h4", "fx_f0_h4", "fx_lien_fader_h1", "fx_pullback_h4"):
+    _g, _cls, _grid = FAMILIES[_name]
+    FAMILIES[_name + "_lock"] = (_g, (lambda c: (lambda **p: Locked(c(**p), **LOCK)))(_cls), _grid)
 
 
 def _grid(g):

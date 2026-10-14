@@ -294,3 +294,16 @@ class F0Reversion:
         short = (z.shift(1) >= self.entry_z) & (z < self.entry_z)
         stop = pd.Series(np.where(long_, c - (mu - self.stop_z * sd), (mu + self.stop_z * sd) - c), index=m.index)
         return _frame(m.index, long_, short, c >= mu, c <= mu, stop, z.shift(1).abs())
+
+
+
+class Locked:
+    """Any strategy plus the profit lock: stop to break-even once the trade is +be_at R, and after +trail_after R the stop trails
+    trail_r R behind the best price. Updated at each bar's end, active from the next bar (no intrabar look-ahead)."""
+
+    def __init__(self, base, be_at: float = 1.0, trail_after: float = 2.0, trail_r: float = 1.0):
+        self.base, self.lock = base, (be_at, trail_after, trail_r)
+        self.max_bars, self.name = base.max_bars, getattr(base, "name", type(base).__name__) + " +lock"
+
+    def frame(self, m):
+        return self.base.frame(m)

@@ -83,13 +83,15 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
         fill = ao[j0] if side == 1 else bo[j0]
         stop = fill - side * sd
         tgt = fill + side * tgt_d[i] if np.isfinite(tgt_d[i]) and tgt_d[i] > 0 else None
+        lock = getattr(strat, "lock", None)        # (be_at_r, trail_after_r, trail_r): profit lock, applied from the NEXT bar
+        best = fill
         k, px, why = j0, None, ""
         while k < n:
             lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
             if k > j0 and side * (op - stop) <= 0:
                 px, why = op, "stop"                # gapped through
             elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
-                px, why = stop, "stop"
+                px, why = stop, ("stop" if side * (stop - fill) < 0 else "lock")
             elif tgt is not None and k > j0 and side * (op - tgt) >= 0:
                 px, why = op, "target"              # gapped through the target: the better open
             elif tgt is not None and ((side == 1 and bh[k] >= tgt) or (side == -1 and al[k] <= tgt)):
@@ -105,6 +107,14 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
                 px, why = (df["bc"].iloc[k] if side == 1 else df["ac"].iloc[k]), "end"
             if px is not None:
                 break
+            if lock:                                # update the stop with this bar's best price; it only acts from the next bar on
+                best = max(best, bh[k]) if side == 1 else min(best, al[k])
+                gain = side * (best - fill)
+                be_at, trail_after, trail_r = lock
+                if gain >= be_at * sd:
+                    stop = max(stop, fill) if side == 1 else min(stop, fill)
+                if gain >= trail_after * sd:
+                    stop = max(stop, best - trail_r * sd) if side == 1 else min(stop, best + trail_r * sd)
             k += 1
         k = min(k, n - 1)
         out.append(Trade(instrument, side, df.index[j0], df.index[k], float(fill), float(px), sd, why, k - j0 + 1,

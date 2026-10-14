@@ -100,6 +100,41 @@ class NoLookAheadTests(unittest.TestCase):
         self.assertGreater(u["AUD_USD"], 50_000)                    # after it closed, its profit is
 
 
+class ProfitLockTests(unittest.TestCase):
+    def test_breakeven_after_one_r_then_trail(self):
+        from fxbot.strategies import Locked
+
+        class Hold(Always):
+            def frame(self, m):
+                f = super().frame(m)
+                f["exit_long"] = False
+                return f
+        # +1R (0.01) reached on bar 2, then price falls back through the entry: the locked trade exits at break-even, the plain one at -1R
+        path = [1.10, 1.10, 1.112, 1.104, 1.095, 1.085, 1.085]
+        d = bars(path, spread=0.0)
+        plain = simulate("EUR_USD", d, Hold(1, stop=0.01))[0]
+        locked = simulate("EUR_USD", d, Locked(Hold(1, stop=0.01), 1.0, 2.0, 1.0))[0]
+        self.assertEqual(plain.reason, "stop")
+        self.assertAlmostEqual(plain.exit_px, plain.entry_px - 0.01, places=6)
+        self.assertEqual(locked.reason, "lock")
+        self.assertAlmostEqual(locked.exit_px, locked.entry_px, places=6)
+
+    def test_lock_never_uses_the_bar_that_set_the_new_high(self):
+        from fxbot.strategies import Locked
+
+        class Hold(Always):
+            def frame(self, m):
+                f = super().frame(m)
+                f["exit_long"] = False
+                return f
+        # one wide bar makes +3R and dips below entry in the same bar: the stop cannot move inside that bar
+        d = bars([1.10, 1.10, 1.10, 1.10], spread=0.0)
+        d.iloc[2, d.columns.get_loc("bh")] = 1.14
+        d.iloc[2, d.columns.get_loc("bl")] = 1.095
+        t = simulate("EUR_USD", d, Locked(Hold(1, stop=0.01), 1.0, 2.0, 1.0))[0]
+        self.assertNotEqual(t.reason, "lock")
+
+
 class TargetTests(unittest.TestCase):
     def test_target_fills_at_its_level_after_the_stop_check(self):
         class T(Always):
