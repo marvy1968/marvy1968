@@ -1,3 +1,445 @@
 $ read-bot-reports /opt/xp-test
-started 2026-10-14 06:50:13 EDT
-RUNNING...
+started 2026-10-14 06:50:13 EDT, took 0s, exit 0
+
+
+===== /opt/xp-test/.pytest_cache/README.md (8 lines, 2026-10-02)
+# pytest cache directory #
+
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+
+**Do not** commit this to version control.
+
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
+
+===== /opt/xp-test/backups/20261002-brokertargets/docs/SYSTEMS.md (209 lines, 2026-10-02)
+# xp-test systems: rules, timeframe, universe, sources
+
+All systems: PAPER only; risk 0.25% of total account equity per trade (stop distance sets shares), notional <= 10% of equity, xp gross <= 1.5x equity (overnight <= 0.6x), last 25% of shared buying power reserved; one xp 
+
+**Gorilla Trades**: SKIPPED. GorillaTrades.com publishes only that picks must pass "all 14 technical parameters" of a "proprietary stock picking formula... known only by the Gorilla" (https://www.gorillatrades.com/techni
+
+## velez-eb - Oliver Velez: Elephant / ignition bar at the 20
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. FIRST bull EB (>=2x avg range, >=70% body, clears 5 bars, no elephant in the prior 10 bars) originating near the 20 (low <= SMA20 + 0.25 ATR), either in the picture of power (SMA20 rising, close > SMA
+- **Approximations / DEFAULTs:** EB size (2x avg range, 70% body, 0.25% min), "near the 20" (0.25 ATR), first-EB lookback (10 bars) and wide state (|SMA20-SMA200| > 1.0%) are DEFAULT numbers; Velez gives no fixed values.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-2020 - Oliver Velez: 20/200 flat-and-narrow open + elephant bar (20-Minute Trader / 90% pattern)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. At the open the SMA20 and SMA200 are flat-and-narrow (within 0.3% and at least one flat). In the first 10 bars (20 minutes) a bull EB closes above both MAs -> buy 1c over its high on the next bar only
+- **Approximations / DEFAULTs:** F&N thresholds (0.3% gap, 0.05% slope) and the 10:30 time exit are DEFAULT. "20-Minute Trader" mechanics are from secondary summaries.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-rbi - Oliver Velez: Red Bar Ignored / Green Bar Ignored (pullback in a picture of power)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Picture of power (SMA20 rising, price & 20 above the 200), not in a wide state. The 1st or 2nd small red bar (range <= median of prior 10) right after green, pulling back near the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** "Small" bar = <= median of last 10; near-20 = 0.5 ATR; wide state > 1.0% (DEFAULT). Velez uses RBI mostly as an add-on after a power event ("the first RBI is mandatory"); here it is a sta
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-180 - Oliver Velez: Bullish / bearish 180 (two-bar U-turn)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Bar1 = fat red bar (body >= 70% of range, range >= avg range) at/near the SMA20 or SMA200. Buy stop 1c over bar1 high valid for the NEXT bar only (the green bar must immediately wipe out the red, entr
+- **Approximations / DEFAULTs:** Definition now from Velez's own talk ("The Bull 180" https://www.youtube.com/watch?v=A8WREc0hL20 ; "Trade Every 8 Minutes" https://www.youtube.com/watch?v=XxhON6lgs_U). Fat = body >= 70% 
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-tail - Oliver Velez: Bottoming / topping tail after 3-5 bars (Pristine micro)
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. A 3-5 bar drop (3-5 consecutive red bars OR 3-5 consecutive lower highs), then a bar that makes a lower low but leaves a lower tail >= 50% of its range -> buy stop 1c over the tail bar; stop 1c under 
+- **Approximations / DEFAULTs:** "Relatively long tail" coded as >= 50% of range (DEFAULT; a third-party summary says "ideally two-thirds", unverified). 3-5 bar drop = red bars or lower highs (Tools & Tactics ch.11 "3 to
+- **Sources:** Velez, "Options Trading the Pristine Way / Pristine Combinations" (3-5 bar rule; bottoming & topping tails) https://vdoc.pub/documents/option-trading-tactics-with-oliver-velez-28md05thning ; Velez & Capra,
+
+## velez-mr - Oliver Velez: Momentum reversal: Green Bar Reversal / Red Bar Reversal after a 3-5 bar run
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. After a steady 3-5 bar decline (consecutive red bars) a green bar closes above the prior red bar's open (it 'corrects' the red bar) -> buy when the next bar exceeds its high; stop 1c under the lower o
+- **Approximations / DEFAULTs:** Reversal = 3-5 consecutive red bars + green bar closing above the prior bar's open (DEFAULT reading of "corrects the previous red bar"; Pristine's "+COG" only needs a green bar after 3+ r
+- **Sources:** Oliver Velez method summary: Ignition bars / Green Bar Reversal / Red Bar Reversal https://www.scribd.com/document/967353484/Summary-Oliver-Velez-Method-pdf ; Velez "Trade for Wealth" (igniting elephant ba
+
+## velez-guer - Oliver Velez: Guerrilla tactics: Gap-n-Snap / Gap-n-Crap / 20-20 plays (1-3 day)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily setup: down 2 days in a row, wide-range day (>= $1.00) that opened in the top 20% and closed in the bottom 20% of its range. Gap-n-Snap: next day gaps down >= $0.50 under that low -> buy $0.07 over the
+- **Approximations / DEFAULTs:** Gap-n-Snap gap measured vs the prior LOW (rule text: "gaps open to the downside by $0.50"); buffers $0.07 (rule: $0.05-$0.10); NASDAQ>$20/NYSE>$40 coded as >= $20; day 3 = exit at day-3 c
+- **Sources:** Pristine seminar "Guerrilla Trading Tactics with Oliver Velez" (Gap-n-Snap, Gap-n-Crap, 20/20 plays; exact entries/stops/targets) https://pdfcoffee.com/pristine-guerrilla-trading-tactics-with-oliver-velezp
+
+## velez-pbs - Oliver Velez: Pristine Buy/Sell Setup swing (Key Buy / PBS action steps)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily. 20-day SMA rising and above the 40-day; a recent new high (highest high of the prior 20 days, made <= 8 bars ago) followed by 3-5 consecutive lower-high days pulling back into the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** Near-20 = 0.25 ATR and new-high lookback 20 days are DEFAULT; "new high within 8 bars" and "1/16 above the high / below the low" ($0.06) are Tools & Tactics ch.14; stop / minimum target /
+- **Sources:** Velez & Capra, Tools and Tactics for the Master DayTrader (McGraw-Hill 2000), ch.14 pp.293-299 (Key Buy, 30-Minute Buy; public USPTO exhibit CQG Ex.1007) and ch.7 Secret #9 (TOC) ; T3Live/Pristine "Variati
+
+
+===== /opt/xp-test/docs/OPERATIONS.md (16 lines, 2026-10-02)
+# xp-test operations (VM instance-stockbot, /opt/xp-test) — PAPER ONLY
+
+- Service: `xp-test.service` (one process, all 25 systems: the original 20 + 5 daily swing-book systems added 2026-10-02, trading from Mon 2026-10-05). Safety-net timer: `xp-test-flatten.timer` (15:57 ET weekdays,
+  flattens only xp intraday positions still open).
+- Daily schedule (ET): 08:45 prep (daily SIP bars, watchlists, earnings) · 09:20 + 09:31 gapper scans · 09:31-15:30 entries ·
+  15:44 on-the-close decisions -> market-on-close orders · 15:55 intraday flatten · 16:05 MOC fills/EOD marks ·
+  16:15 Telegram scorecard ([xp PAPER], chat ***, send-only) + reports; weekly summary on the last trading day of the week.
+- Status: `cd /opt/xp-test && venv/bin/python -m xp.main --status` · `venv/bin/python -m xp.ctl list`
+- Logs: `/opt/xp-test/logs/xp-test.log` (rotates daily) · `journalctl -u xp-test -f`
+- Ledger (SQLite, every row tagged by system): `/opt/xp-test/state/xp_ledger.sqlite` (signals, orders, fills, positions, exits
+  with P&L / R / slippage, daily, events). Reports: `/opt/xp-test/reports/` (scorecard_<day>.md/.csv, trades_all.csv, weekly_<day>.md).
+- Stop ONE system: `venv/bin/python -m xp.ctl stop <system>` (flattens that system within ~10 s, no new entries);
+  `pause <system>` = no new entries, positions managed; `resume <system>` undoes. `ALL` works for every system.
+- Stop everything: `venv/bin/python -m xp.ctl stop ALL` (flattens), then `sudo systemctl disable --now xp-test xp-test-flatten.timer`.
+  With the service down: `venv/bin/python -m xp.ctl flatten [--system S]` (direct, xp-owned quantities only).
+- Disable a system permanently: set `enabled: false` under `systems:` in config/config.yaml, `sudo systemctl restart xp-test`.
+
+===== /opt/xp-test/docs/SYSTEMS.md (237 lines, 2026-10-02)
+# xp-test systems: rules, timeframe, universe, sources
+
+All systems: PAPER only; risk 0.25% of total account equity per trade (stop distance sets shares), notional <= 10% of equity, xp gross <= 1.5x equity (overnight <= 0.6x), last 25% of shared buying power reserved; one xp 
+
+**Gorilla Trades**: SKIPPED. GorillaTrades.com publishes only that picks must pass "all 14 technical parameters" of a "proprietary stock picking formula... known only by the Gorilla" (https://www.gorillatrades.com/techni
+
+## velez-eb - Oliver Velez: Elephant / ignition bar at the 20
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. FIRST bull EB (>=2x avg range, >=70% body, clears 5 bars, no elephant in the prior 10 bars) originating near the 20 (low <= SMA20 + 0.25 ATR), either in the picture of power (SMA20 rising, close > SMA
+- **Approximations / DEFAULTs:** EB size (2x avg range, 70% body, 0.25% min), "near the 20" (0.25 ATR), first-EB lookback (10 bars) and wide state (|SMA20-SMA200| > 1.0%) are DEFAULT numbers; Velez gives no fixed values.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-2020 - Oliver Velez: 20/200 flat-and-narrow open + elephant bar (20-Minute Trader / 90% pattern)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. At the open the SMA20 and SMA200 are flat-and-narrow (within 0.3% and at least one flat). In the first 10 bars (20 minutes) a bull EB closes above both MAs -> buy 1c over its high on the next bar only
+- **Approximations / DEFAULTs:** F&N thresholds (0.3% gap, 0.05% slope) and the 10:30 time exit are DEFAULT. "20-Minute Trader" mechanics are from secondary summaries.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-rbi - Oliver Velez: Red Bar Ignored / Green Bar Ignored (pullback in a picture of power)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Picture of power (SMA20 rising, price & 20 above the 200), not in a wide state. The 1st or 2nd small red bar (range <= median of prior 10) right after green, pulling back near the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** "Small" bar = <= median of last 10; near-20 = 0.5 ATR; wide state > 1.0% (DEFAULT). Velez uses RBI mostly as an add-on after a power event ("the first RBI is mandatory"); here it is a sta
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-180 - Oliver Velez: Bullish / bearish 180 (two-bar U-turn)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Bar1 = fat red bar (body >= 70% of range, range >= avg range) at/near the SMA20 or SMA200. Buy stop 1c over bar1 high valid for the NEXT bar only (the green bar must immediately wipe out the red, entr
+- **Approximations / DEFAULTs:** Definition now from Velez's own talk ("The Bull 180" https://www.youtube.com/watch?v=A8WREc0hL20 ; "Trade Every 8 Minutes" https://www.youtube.com/watch?v=XxhON6lgs_U). Fat = body >= 70% 
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-tail - Oliver Velez: Bottoming / topping tail after 3-5 bars (Pristine micro)
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. A 3-5 bar drop (3-5 consecutive red bars OR 3-5 consecutive lower highs), then a bar that makes a lower low but leaves a lower tail >= 50% of its range -> buy stop 1c over the tail bar; stop 1c under 
+- **Approximations / DEFAULTs:** "Relatively long tail" coded as >= 50% of range (DEFAULT; a third-party summary says "ideally two-thirds", unverified). 3-5 bar drop = red bars or lower highs (Tools & Tactics ch.11 "3 to
+- **Sources:** Velez, "Options Trading the Pristine Way / Pristine Combinations" (3-5 bar rule; bottoming & topping tails) https://vdoc.pub/documents/option-trading-tactics-with-oliver-velez-28md05thning ; Velez & Capra,
+
+## velez-mr - Oliver Velez: Momentum reversal: Green Bar Reversal / Red Bar Reversal after a 3-5 bar run
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. After a steady 3-5 bar decline (consecutive red bars) a green bar closes above the prior red bar's open (it 'corrects' the red bar) -> buy when the next bar exceeds its high; stop 1c under the lower o
+- **Approximations / DEFAULTs:** Reversal = 3-5 consecutive red bars + green bar closing above the prior bar's open (DEFAULT reading of "corrects the previous red bar"; Pristine's "+COG" only needs a green bar after 3+ r
+- **Sources:** Oliver Velez method summary: Ignition bars / Green Bar Reversal / Red Bar Reversal https://www.scribd.com/document/967353484/Summary-Oliver-Velez-Method-pdf ; Velez "Trade for Wealth" (igniting elephant ba
+
+## velez-guer - Oliver Velez: Guerrilla tactics: Gap-n-Snap / Gap-n-Crap / 20-20 plays (1-3 day)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily setup: down 2 days in a row, wide-range day (>= $1.00) that opened in the top 20% and closed in the bottom 20% of its range. Gap-n-Snap: next day gaps down >= $0.50 under that low -> buy $0.07 over the
+- **Approximations / DEFAULTs:** Gap-n-Snap gap measured vs the prior LOW (rule text: "gaps open to the downside by $0.50"); buffers $0.07 (rule: $0.05-$0.10); NASDAQ>$20/NYSE>$40 coded as >= $20; day 3 = exit at day-3 c
+- **Sources:** Pristine seminar "Guerrilla Trading Tactics with Oliver Velez" (Gap-n-Snap, Gap-n-Crap, 20/20 plays; exact entries/stops/targets) https://pdfcoffee.com/pristine-guerrilla-trading-tactics-with-oliver-velezp
+
+## velez-pbs - Oliver Velez: Pristine Buy/Sell Setup swing (Key Buy / PBS action steps)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily. 20-day SMA rising and above the 40-day; a recent new high (highest high of the prior 20 days, made <= 8 bars ago) followed by 3-5 consecutive lower-high days pulling back into the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** Near-20 = 0.25 ATR and new-high lookback 20 days are DEFAULT; "new high within 8 bars" and "1/16 above the high / below the low" ($0.06) are Tools & Tactics ch.14; stop / minimum target /
+- **Sources:** Velez & Capra, Tools and Tactics for the Master DayTrader (McGraw-Hill 2000), ch.14 pp.293-299 (Key Buy, 30-Minute Buy; public USPTO exhibit CQG Ex.1007) and ch.7 Secret #9 (TOC) ; T3Live/Pristine "Variati
+
+
+===== /opt/xp-test/logs/xp-test.log (6 lines, 2026-10-12)
+2026-10-12 08:48:11,053 INFO xp.main daily bars 1506 symbols in 177s
+2026-10-12 08:49:09,823 INFO xp.main warm-up minute bars for 29 symbols
+2026-10-12 08:49:09,831 INFO xp.main prep done: active symbols 141, watchlists {'velez-guer': ['ABBV', 'BRK.B', 'DE', 'MA', 'NVDA', 'PM', 'V', 'WMT'], 'velez-pbs': ['NFLX'], 'raschke-8020': ['ABBV', 'AMZN', 'AVGO', 'BAC'
+2026-10-12 09:20:03,166 INFO xp.main gappers (09:20): {'WFF': (17.01, True), 'PDSB': (6.52, False), 'CRM': (3.87, True), 'BMY': (3.06, True), 'MDT': (2.28, True)}
+2026-10-12 09:20:04,064 INFO xp.main warm-up minute bars for 5 symbols
+2026-10-12 09:31:06,334 INFO xp.main gappers (09:31): {'ASTX': (10.09, False), 'LQDA': (7.12, False), 'GDXD': (4.42, False), 'BIIB': (3.58, True), 'CRM': (3.29, True), 'DAR': (3.24, False), 'MDT': (3.22, True), 'BORR': (
+
+===== /opt/xp-test/reports/replay_2026-09-25_to_2026-10-01.md (24 lines, 2026-10-02)
+# REPLAY 2026-09-25..2026-10-01 (SIP history, sim fills, 2bp slippage)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | cameron-gng | 16 | 56 | 1200.31 | 2.16 | 0.89 | 767.91 | 3 | 848.95 | 0 |
+| 2 | crabel-orb | 26 | 50 | 312.71 | 2.75 | 0.19 | 104.04 | 5 | 91.01 | 0 |
+| 3 | raschke-8020 | 12 | 67 | 224.73 | 3.82 | 0.19 | 52.89 | 8 | 127.88 | 0 |
+| 4 | velez-eb | 38 | 53 | 119.61 | 1.64 | 0.06 | 75.70 | 5 | 18.71 | 0 |
+| 5 | velez-pbs | 1 | 100 | 26.69 | inf | 0.33 | 0.00 | 0 | 0.00 | 0 |
+| 6 | velez-rbi | 50 | 42 | 20.18 | 1.19 | 0.02 | 44.97 | 10 | 57.25 | 0 |
+| 7 | velez-guer | 2 | 50 | 2.12 | 1.09 | 0.30 | 24.87 | 2 | 2.12 | 0 |
+| 8 | raschke-hg | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 9 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 10 | brooks-h2 | 4 | 50 | -1.28 | 0.84 | 0.14 | 8.08 | 0 | 0.00 | 0 |
+| 11 | velez-2020 | 9 | 44 | -30.61 | 0.74 | -0.25 | 100.94 | 0 | 0.00 | 0 |
+| 12 | velez-mr | 50 | 46 | -34.52 | 0.82 | -0.01 | 79.85 | 10 | 15.65 | 0 |
+| 13 | velez-tail | 50 | 38 | -54.83 | 0.60 | -0.23 | 89.63 | 10 | 9.10 | 0 |
+| 14 | aziz-abcd | 7 | 43 | -71.79 | 0.01 | -0.34 | 71.79 | 1 | -2.45 | 0 |
+| 15 | minervini-vcp | 1 | 0 | -82.47 | 0.00 | -0.73 | 82.47 | 0 | 0.00 | 5 |
+| 16 | velez-180 | 50 | 38 | -124.96 | 0.28 | -0.22 | 156.72 | 10 | 11.48 | 0 |
+| 17 | qull-ep | 1 | 0 | -132.71 | 0.00 | -1.00 | 132.71 | 0 | 0.00 | 1 |
+| 18 | qull-bo | 1 | 0 | -135.83 | 0.00 | -1.17 | 135.83 | 0 | 0.00 | 0 |
+| 19 | raschke-ts | 8 | 0 | -225.96 | 0.00 | -3.58 | 225.96 | 5 | -23.56 | 2 |
+| 20 | shannon-avwap | 3 | 0 | -245.35 | 0.00 | -1.00 | 245.35 | 2 | -239.52 | 0 |
+
+===== /opt/xp-test/reports/scorecard_2026-10-02.csv (76 lines, 2026-10-02)
+system,scope,trades,win_pct,pnl,profit_factor,avg_r,max_dd,max_dd_pct
+velez-mr,today,10,50.0,28.7,1.31,-0.024,52.27,0.099
+velez-mr,cum,10,50.0,28.7,1.31,-0.024,52.27,0.099
+velez-mr,week,10,50.0,28.7,1.31,-0.024,52.27,0.099
+...
+crabel-orb,today,10,10.0,-242.97,0.21,-0.522,242.97,0.458
+crabel-orb,cum,10,10.0,-242.97,0.21,-0.522,242.97,0.458
+crabel-orb,week,10,10.0,-242.97,0.21,-0.522,242.97,0.458
+
+===== /opt/xp-test/reports/scorecard_2026-10-02.md (29 lines, 2026-10-02)
+# xp PAPER scorecard 2026-10-02 (equity $53,028)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | velez-mr | 10 | 50 | 28.70 | 1.31 | -0.02 | 52.27 | 10 | 28.70 | 0 |
+| 2 | velez-eb | 1 | 100 | 4.15 | inf | 0.23 | 0.00 | 1 | 4.15 | 0 |
+| 3 | velez-180 | 10 | 40 | 1.42 | 1.03 | -0.17 | 23.40 | 10 | 1.42 | 0 |
+| 4 | aziz-abcd | 1 | 100 | 1.20 | inf | 0.45 | 0.00 | 1 | 1.20 | 0 |
+| 5 | velez-guer | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 6 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 7 | brooks-h2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 8 | raschke-hg | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 9 | raschke-ts | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 10 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 11 | minervini-vcp | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 5 |
+| 12 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 13 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 14 | weinstein-s2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 15 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 16 | landry-tko | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 2 |
+| 17 | cooper-xbo | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 18 | velez-tail | 10 | 40 | -1.87 | 0.98 | 0.13 | 83.67 | 10 | -1.87 | 0 |
+| 19 | raschke-8020 | 2 | 50 | -5.20 | 0.65 | -9.02 | 14.80 | 2 | -5.20 | 0 |
+| 20 | qull-bo | 1 | 0 | -5.60 | 0.00 | -1.04 | 5.60 | 1 | -5.60 | 3 |
+| 21 | velez-rbi | 10 | 50 | -11.48 | 0.70 | 0.03 | 21.77 | 10 | -11.48 | 0 |
+| 22 | qull-ep | 1 | 0 | -12.90 | 0.00 | -1.50 | 12.90 | 1 | -12.90 | 0 |
+| 23 | velez-2020 | 3 | 33 | -17.72 | 0.68 | -0.29 | 56.24 | 3 | -17.72 | 0 |
+| 24 | cameron-gng | 1 | 0 | -112.86 | 0.00 | -1.29 | 112.86 | 1 | -112.86 | 0 |
+| 25 | crabel-orb | 10 | 10 | -242.97 | 0.21 | -0.52 | 242.97 | 10 | -242.97 | 0 |
+
+===== /opt/xp-test/reports/scorecard_2026-10-07.csv (76 lines, 2026-10-07)
+system,scope,trades,win_pct,pnl,profit_factor,avg_r,max_dd,max_dd_pct
+velez-mr,today,10,40.0,-16.48,0.61,-0.186,38.65,0.073
+velez-mr,cum,20,45.0,12.22,1.09,-0.105,52.27,0.098
+velez-mr,week,10,40.0,-16.48,0.61,-0.186,38.65,0.073
+...
+crabel-orb,today,1,100.0,56.1,inf,0.649,0.0,0.0
+crabel-orb,cum,11,18.2,-186.87,0.39,-0.416,242.97,0.458
+crabel-orb,week,1,100.0,56.1,inf,0.649,0.0,0.0
+
+===== /opt/xp-test/reports/scorecard_2026-10-07.md (29 lines, 2026-10-07)
+# xp PAPER scorecard 2026-10-07 (equity $53,072)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | velez-mr | 20 | 45 | 12.22 | 1.09 | -0.10 | 52.27 | 10 | -16.48 | 0 |
+| 2 | velez-eb | 1 | 100 | 4.15 | inf | 0.23 | 0.00 | 0 | 0.00 | 0 |
+| 3 | brooks-h2 | 1 | 100 | 1.93 | inf | 0.48 | 0.00 | 1 | 1.93 | 0 |
+| 4 | aziz-abcd | 1 | 100 | 1.20 | inf | 0.45 | 0.00 | 0 | 0.00 | 0 |
+| 5 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 6 | raschke-hg | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 7 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 8 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 9 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 10 | weinstein-s2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 11 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 12 | landry-tko | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 3 |
+| 13 | velez-guer | 1 | 0 | -1.63 | 0.00 | -0.99 | 1.63 | 1 | -1.63 | 0 |
+| 14 | raschke-ts | 1 | 0 | -2.21 | 0.00 | -1.22 | 2.21 | 1 | -2.21 | 0 |
+| 15 | qull-bo | 1 | 0 | -5.60 | 0.00 | -1.04 | 5.60 | 0 | 0.00 | 3 |
+| 16 | cooper-xbo | 1 | 0 | -8.25 | 0.00 | -1.03 | 8.25 | 1 | -8.25 | 0 |
+| 17 | qull-ep | 1 | 0 | -12.90 | 0.00 | -1.50 | 12.90 | 0 | 0.00 | 0 |
+| 18 | velez-180 | 20 | 25 | -15.45 | 0.79 | -0.30 | 47.43 | 10 | -16.87 | 0 |
+| 19 | velez-2020 | 3 | 33 | -17.72 | 0.68 | -0.29 | 56.24 | 0 | 0.00 | 0 |
+| 20 | velez-rbi | 17 | 35 | -30.10 | 0.48 | -0.33 | 30.10 | 7 | -18.62 | 0 |
+| 21 | raschke-8020 | 3 | 33 | -47.12 | 0.17 | -6.35 | 47.12 | 1 | -41.92 | 0 |
+| 22 | velez-tail | 20 | 30 | -70.97 | 0.59 | -0.31 | 83.67 | 10 | -69.10 | 0 |
+| 23 | cameron-gng | 1 | 0 | -112.86 | 0.00 | -1.29 | 112.86 | 0 | 0.00 | 0 |
+| 24 | minervini-vcp | 1 | 0 | -116.76 | 0.00 | -1.01 | 116.76 | 1 | -116.76 | 4 |
+| 25 | crabel-orb | 11 | 18 | -186.87 | 0.39 | -0.42 | 242.97 | 1 | 56.10 | 0 |
+
+===== /opt/xp-test/reports/scorecard_2026-10-08.csv (76 lines, 2026-10-08)
+system,scope,trades,win_pct,pnl,profit_factor,avg_r,max_dd,max_dd_pct
+crabel-orb,today,6,66.7,241.77,6.35,1.019,45.22,0.086
+crabel-orb,cum,17,35.3,54.9,1.16,0.091,242.97,0.463
+crabel-orb,week,7,71.4,297.87,7.59,0.966,45.22,0.086
+...
+minervini-vcp,today,1,0.0,-131.87,0.00,-1.034,131.87,0.251
+minervini-vcp,cum,2,0.0,-248.63,0.00,-1.023,248.63,0.474
+minervini-vcp,week,2,0.0,-248.63,0.00,-1.023,248.63,0.474
+
+===== /opt/xp-test/reports/scorecard_2026-10-08.md (29 lines, 2026-10-08)
+# xp PAPER scorecard 2026-10-08 (equity $52,454)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | crabel-orb | 17 | 35 | 54.90 | 1.16 | 0.09 | 242.97 | 6 | 241.77 | 0 |
+| 2 | raschke-8020 | 7 | 57 | 15.60 | 1.24 | -2.44 | 47.12 | 4 | 62.72 | 0 |
+| 3 | brooks-h2 | 2 | 50 | 0.83 | 1.75 | -0.45 | 1.10 | 1 | -1.10 | 0 |
+| 4 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 5 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 6 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 2 |
+| 7 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 8 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 9 | velez-mr | 30 | 47 | -1.05 | 1.00 | -0.09 | 88.41 | 10 | -13.27 | 0 |
+| 10 | raschke-hg | 1 | 0 | -1.06 | 0.00 | -1.03 | 1.06 | 1 | -1.06 | 0 |
+| 11 | velez-guer | 1 | 0 | -1.63 | 0.00 | -0.99 | 1.63 | 0 | 0.00 | 0 |
+| 12 | aziz-abcd | 4 | 50 | -3.60 | 0.39 | 0.07 | 5.92 | 3 | -4.80 | 0 |
+| 13 | velez-eb | 3 | 67 | -4.57 | 0.81 | -0.09 | 23.52 | 2 | -8.72 | 0 |
+| 14 | raschke-ts | 2 | 0 | -5.80 | 0.00 | -1.18 | 5.80 | 1 | -3.59 | 0 |
+| 15 | cooper-xbo | 1 | 0 | -8.25 | 0.00 | -1.03 | 8.25 | 0 | 0.00 | 0 |
+| 16 | weinstein-s2 | 1 | 0 | -12.57 | 0.00 | -0.17 | 12.57 | 1 | -12.57 | 0 |
+| 17 | qull-ep | 1 | 0 | -12.90 | 0.00 | -1.50 | 12.90 | 0 | 0.00 | 0 |
+| 18 | qull-bo | 2 | 0 | -16.90 | 0.00 | -1.02 | 16.90 | 1 | -11.30 | 2 |
+| 19 | velez-rbi | 27 | 33 | -30.96 | 0.66 | -0.22 | 62.46 | 10 | -0.86 | 0 |
+| 20 | velez-180 | 30 | 20 | -63.13 | 0.48 | -0.49 | 87.95 | 10 | -47.68 | 0 |
+| 21 | velez-2020 | 6 | 33 | -84.08 | 0.35 | -0.45 | 84.08 | 3 | -66.36 | 0 |
+| 22 | cameron-gng | 1 | 0 | -112.86 | 0.00 | -1.29 | 112.86 | 0 | 0.00 | 0 |
+| 23 | velez-tail | 30 | 30 | -123.00 | 0.47 | -0.39 | 124.41 | 10 | -52.03 | 0 |
+| 24 | landry-tko | 1 | 0 | -136.80 | 0.00 | -1.03 | 136.80 | 1 | -136.80 | 2 |
+| 25 | minervini-vcp | 2 | 0 | -248.63 | 0.00 | -1.02 | 248.63 | 1 | -131.87 | 5 |
+
+===== /opt/xp-test/reports/scorecard_2026-10-09.csv (76 lines, 2026-10-09)
+system,scope,trades,win_pct,pnl,profit_factor,avg_r,max_dd,max_dd_pct
+crabel-orb,today,5,100.0,182.96,inf,0.621,0.0,0.0
+crabel-orb,cum,22,50.0,237.86,1.67,0.211,242.97,0.449
+crabel-orb,week,12,83.3,480.83,11.63,0.822,45.22,0.084
+...
+minervini-vcp,today,1,0.0,-163.45,0.00,-1.111,163.45,0.302
+minervini-vcp,cum,3,0.0,-412.08,0.00,-1.052,412.08,0.762
+minervini-vcp,week,3,0.0,-412.08,0.00,-1.052,412.08,0.762
+
+===== /opt/xp-test/reports/scorecard_2026-10-09.md (29 lines, 2026-10-09)
+# xp PAPER scorecard 2026-10-09 (equity $54,074)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | crabel-orb | 22 | 50 | 237.86 | 1.67 | 0.21 | 242.97 | 5 | 182.96 | 0 |
+| 2 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 3 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 2 |
+| 4 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 3 |
+| 5 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 6 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 7 | brooks-h2 | 4 | 50 | -0.50 | 0.90 | -0.10 | 4.77 | 2 | -1.33 | 0 |
+| 8 | raschke-hg | 1 | 0 | -1.06 | 0.00 | -1.03 | 1.06 | 0 | 0.00 | 0 |
+| 9 | velez-guer | 1 | 0 | -1.63 | 0.00 | -0.99 | 1.63 | 0 | 0.00 | 0 |
+| 10 | raschke-ts | 2 | 0 | -5.80 | 0.00 | -1.18 | 5.80 | 0 | 0.00 | 0 |
+| 11 | cooper-xbo | 1 | 0 | -8.25 | 0.00 | -1.03 | 8.25 | 0 | 0.00 | 0 |
+| 12 | weinstein-s2 | 1 | 0 | -12.57 | 0.00 | -0.17 | 12.57 | 0 | 0.00 | 0 |
+| 13 | qull-ep | 1 | 0 | -12.90 | 0.00 | -1.50 | 12.90 | 0 | 0.00 | 0 |
+| 14 | qull-bo | 2 | 0 | -16.90 | 0.00 | -1.02 | 16.90 | 0 | 0.00 | 4 |
+| 15 | velez-rbi | 37 | 38 | -20.36 | 0.80 | -0.11 | 62.46 | 10 | 10.60 | 0 |
+| 16 | raschke-8020 | 12 | 33 | -22.34 | 0.78 | -1.98 | 47.12 | 5 | -37.94 | 0 |
+| 17 | velez-eb | 6 | 50 | -28.95 | 0.40 | -0.26 | 47.90 | 3 | -24.38 | 0 |
+| 18 | velez-mr | 40 | 48 | -31.50 | 0.90 | -0.12 | 88.41 | 10 | -30.45 | 0 |
+| 19 | aziz-abcd | 5 | 40 | -80.64 | 0.03 | -0.15 | 82.96 | 1 | -77.04 | 0 |
+| 20 | velez-tail | 40 | 32 | -108.54 | 0.64 | -0.31 | 124.41 | 10 | 14.46 | 0 |
+| 21 | velez-2020 | 9 | 33 | -108.99 | 0.33 | -0.41 | 108.99 | 3 | -24.91 | 0 |
+| 22 | cameron-gng | 1 | 0 | -112.86 | 0.00 | -1.29 | 112.86 | 0 | 0.00 | 0 |
+| 23 | velez-180 | 40 | 20 | -122.27 | 0.34 | -0.59 | 147.09 | 10 | -59.14 | 0 |
+| 24 | landry-tko | 2 | 0 | -219.66 | 0.00 | -0.83 | 219.66 | 1 | -82.86 | 1 |
+| 25 | minervini-vcp | 3 | 0 | -412.08 | 0.00 | -1.05 | 412.08 | 1 | -163.45 | 5 |
+
+===== /opt/xp-test/reports/trades_all.csv (245 lines, 2026-10-09)
+ts,day,system,symbol,side,pid,qty,entry_px,exit_px,ref_px,pnl,r_mult,entry_slip,exit_slip,reason,final
+2026-10-02 09:35:39.489738-04:00,2026-10-02,qull-ep,SYNA,long,7,43,121.55,121.25,121.35,-12.899999999999878,-1.4999999999999645,-0.18000000000000682,0.09999999999999432,stop,1
+2026-10-02 09:37:09.171535-04:00,2026-10-02,velez-2020,V,short,15,14,356.786429,358.88,358.62,-29.30999399999996,-1.1417997994078168,0.6735709999999813,0.2599999999999909,stop,1
+2026-10-02 09:37:29.522632-04:00,2026-10-02,velez-180,MCD,long,16,23,231.848261,231.25,231.31,-13.760003000000182,-1.1114700860734879,0.11826100000001816,0.060000000000002274,stop,1
+...
+2026-10-09 15:55:00.896237-04:00,2026-10-09,crabel-orb,UNH,long,184,13,377.68077,378.430769,379.03,9.749987000000033,0.11243064893558045,2.290770000000009,0.5992309999999748,intraday flatten 15:55,1
+2026-10-09 15:55:00.896237-04:00,2026-10-09,crabel-orb,WMT,long,185,48,110.85,111.371875,111.415,25.05000000000041,0.4701576576576656,0.47999999999998977,0.04312500000000341,intraday flatten 15:55,1
+2026-10-09 15:55:00.896237-04:00,2026-10-09,crabel-orb,KO,long,186,60,87.74,88.159167,88.135,25.150020000000097,0.8383340000000032,-0.020000000000010232,-0.02416699999999139,intraday flatten 15:55,1
+
+===== /opt/xp-test/reports/weekly_2026-10-02.md (29 lines, 2026-10-02)
+# xp PAPER weekly summary, week ending 2026-10-02
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | velez-mr | 10 | 50 | 28.70 | 1.31 | -0.02 | 52.27 | 10 | 28.70 | 0 |
+| 2 | velez-eb | 1 | 100 | 4.15 | inf | 0.23 | 0.00 | 1 | 4.15 | 0 |
+| 3 | velez-180 | 10 | 40 | 1.42 | 1.03 | -0.17 | 23.40 | 10 | 1.42 | 0 |
+| 4 | aziz-abcd | 1 | 100 | 1.20 | inf | 0.45 | 0.00 | 1 | 1.20 | 0 |
+| 5 | velez-guer | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 6 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 7 | brooks-h2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 8 | raschke-hg | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 9 | raschke-ts | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 10 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 11 | minervini-vcp | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 5 |
+| 12 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 13 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 14 | weinstein-s2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 15 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 16 | landry-tko | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 2 |
+| 17 | cooper-xbo | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 1 |
+| 18 | velez-tail | 10 | 40 | -1.87 | 0.98 | 0.13 | 83.67 | 10 | -1.87 | 0 |
+| 19 | raschke-8020 | 2 | 50 | -5.20 | 0.65 | -9.02 | 14.80 | 2 | -5.20 | 0 |
+| 20 | qull-bo | 1 | 0 | -5.60 | 0.00 | -1.04 | 5.60 | 1 | -5.60 | 3 |
+| 21 | velez-rbi | 10 | 50 | -11.48 | 0.70 | 0.03 | 21.77 | 10 | -11.48 | 0 |
+| 22 | qull-ep | 1 | 0 | -12.90 | 0.00 | -1.50 | 12.90 | 1 | -12.90 | 0 |
+| 23 | velez-2020 | 3 | 33 | -17.72 | 0.68 | -0.29 | 56.24 | 3 | -17.72 | 0 |
+| 24 | cameron-gng | 1 | 0 | -112.86 | 0.00 | -1.29 | 112.86 | 1 | -112.86 | 0 |
+| 25 | crabel-orb | 10 | 10 | -242.97 | 0.21 | -0.52 | 242.97 | 10 | -242.97 | 0 |
+
+===== /opt/xp-test/reports/weekly_2026-10-09.md (29 lines, 2026-10-09)
+# xp PAPER weekly summary, week ending 2026-10-09
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | crabel-orb | 12 | 83 | 480.83 | 11.63 | 0.82 | 45.22 | 5 | 182.96 | 0 |
+| 2 | velez-pbs | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 3 | connors-rsi2 | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 2 |
+| 4 | shannon-avwap | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 3 |
+| 5 | oneil-cwh | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 6 | darvas-box | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 7 | brooks-h2 | 4 | 50 | -0.50 | 0.90 | -0.10 | 4.77 | 2 | -1.33 | 0 |
+| 8 | raschke-hg | 1 | 0 | -1.06 | 0.00 | -1.03 | 1.06 | 0 | 0.00 | 0 |
+| 9 | velez-guer | 1 | 0 | -1.63 | 0.00 | -0.99 | 1.63 | 0 | 0.00 | 0 |
+| 10 | raschke-ts | 2 | 0 | -5.80 | 0.00 | -1.18 | 5.80 | 0 | 0.00 | 0 |
+| 11 | cooper-xbo | 1 | 0 | -8.25 | 0.00 | -1.03 | 8.25 | 0 | 0.00 | 0 |
+| 12 | weinstein-s2 | 1 | 0 | -12.57 | 0.00 | -0.17 | 12.57 | 0 | 0.00 | 0 |
+| 13 | qull-ep | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 14 | qull-bo | 1 | 0 | -11.30 | 0.00 | -1.00 | 11.30 | 0 | 0.00 | 4 |
+| 15 | velez-rbi | 27 | 33 | -8.88 | 0.87 | -0.16 | 50.98 | 10 | 10.60 | 0 |
+| 16 | raschke-8020 | 10 | 30 | -17.14 | 0.81 | -0.57 | 41.92 | 5 | -37.94 | 0 |
+| 17 | velez-eb | 5 | 40 | -33.10 | 0.31 | -0.35 | 47.90 | 3 | -24.38 | 0 |
+| 18 | velez-mr | 30 | 47 | -60.20 | 0.71 | -0.15 | 88.41 | 10 | -30.45 | 0 |
+| 19 | aziz-abcd | 4 | 25 | -81.84 | 0.01 | -0.30 | 82.96 | 1 | -77.04 | 0 |
+| 20 | velez-tail | 30 | 30 | -106.67 | 0.49 | -0.46 | 122.54 | 10 | 14.46 | 0 |
+| 21 | velez-2020 | 6 | 33 | -91.27 | 0.14 | -0.47 | 91.27 | 3 | -24.91 | 0 |
+| 22 | cameron-gng | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 23 | velez-180 | 30 | 13 | -123.69 | 0.10 | -0.73 | 123.69 | 10 | -59.14 | 0 |
+| 24 | landry-tko | 2 | 0 | -219.66 | 0.00 | -0.83 | 219.66 | 1 | -82.86 | 1 |
+| 25 | minervini-vcp | 3 | 0 | -412.08 | 0.00 | -1.05 | 412.08 | 1 | -163.45 | 5 |
