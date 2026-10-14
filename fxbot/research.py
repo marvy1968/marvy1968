@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import DirectionZoneMap, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -105,3 +105,10 @@ ZONE_STYLE = {"fx_donchian_d": "trend", "fx_bigbuild_h4": "trend", "fx_pullback_
 for _name, _style in ZONE_STYLE.items():
     _gran, _cls, _params = FAMILIES[_name]
     FAMILIES[_name + "_zones"] = (_gran, (lambda c, st: (lambda **p: Zoned(c(**p), profile=st)))(_cls, _style), _params)
+
+
+# Direction first + per-style zones + the pair's daily zone map (owner, 2026-10-14): every family that has a zone style, frozen rules.
+for _name, _style in ZONE_STYLE.items():
+    _gran, _cls, _params = FAMILIES[_name]
+    FAMILIES[_name + "_dirmap"] = (_gran, (lambda c, st: (lambda **p: DirectionZoneMap(Zoned(c(**p), profile=st), style=st)))(_cls, _style),
+                                   _params)

@@ -336,3 +336,46 @@ class Zoned:
         f["zone_close"], f["zone_atr"] = m["close"], atr(m, 14)
         f["zone_mean"] = m["close"].rolling(n).mean()
         return f
+
+
+class DirectionZoneMap:
+    """Direction first, then zones, for a forex pair (owner, 2026-10-14) - the same frozen rules as the stock bot, on the pair's own prices.
+    Daily bars are built from the strategy's bars (NY 17:00 trading days). Direction = the previous day's bias (up: close > EMA20 > SMA50
+    and ADX >= 20; down: mirror; else range). Up -> longs only, down -> shorts only, range -> both sides but only for a mean-reversion
+    strategy (style "range"); a trend strategy stands aside in a range. Take-profit: the nearest STRONG zone of the pair's daily zone map
+    (swing highs/lows of the last 120 days, merged within 0.5 ATR, 2+ touches) at least min_r x the stop away, measured from the signal
+    close; kept only when nearer than the strategy's own target."""
+
+    def __init__(self, base, style: str = "trend", min_r: float = 1.0):
+        self.base, self.style, self.min_r = base, style, min_r
+        self.max_bars, self.name = base.max_bars, getattr(base, "name", type(base).__name__) + " +direction+zonemap"
+        for k in ("zones", "lock"):
+            if hasattr(base, k):
+                setattr(self, k, getattr(base, k))
+
+    def frame(self, m):
+        from alpacabot.zonemap import LEVEL_RULES, bias, level_map, zone_target
+        f = self.base.frame(m).copy()
+        ny = m.index.tz_convert("America/New_York")
+        day = pd.Series((ny - pd.Timedelta(hours=17)).normalize(), index=m.index)
+        daily = pd.DataFrame({"open": m["open"].groupby(day).first(), "high": m["high"].groupby(day).max(),
+                              "low": m["low"].groupby(day).min(), "close": m["close"].groupby(day).last()})
+        b_prev = bias(daily).shift(1).fillna(0).astype(int)              # yesterday's completed daily bias
+        days = list(daily.index)
+        lv_by_day = {d: level_map(daily.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else [] for k, d in enumerate(days)}
+        bar_bias = b_prev.reindex(day.to_numpy()).to_numpy()
+        lg, sh = f["long"].to_numpy(bool).copy(), f["short"].to_numpy(bool).copy()
+        rng_ok = self.style == "range"
+        lg &= (bar_bias == 1) | ((bar_bias == 0) & rng_ok)
+        sh &= (bar_bias == -1) | ((bar_bias == 0) & rng_ok)
+        f["long"], f["short"] = lg, sh
+        tgt = f["target"].to_numpy(float).copy() if "target" in f else np.full(len(f), np.nan)
+        c, stop, dvals = m["close"].to_numpy(float), f["stop"].to_numpy(float), day.to_numpy()
+        for i in np.flatnonzero(lg | sh):
+            side = 1 if lg[i] else -1
+            z = zone_target(lv_by_day.get(dvals[i], []), c[i], side, stop[i], self.min_r)
+            if z is not None:
+                dist = abs(z - c[i])
+                tgt[i] = dist if not np.isfinite(tgt[i]) else min(tgt[i], dist)
+        f["target"] = tgt
+        return f

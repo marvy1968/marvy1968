@@ -280,6 +280,24 @@ class StrategyTests(unittest.TestCase):
             trades = simulate("EUR_USD", d, cls(**p))
             self.assertIsInstance(trades, list, name)
 
+    def test_direction_first_blocks_counter_trend_entries(self):
+        from fxbot.strategies import DirectionZoneMap
+
+        class Both:
+            max_bars, name = 10, "both"
+            def frame(self, m):
+                n = len(m)
+                t = pd.Series([i % 7 == 0 for i in range(n)], index=m.index)
+                none = pd.Series(False, index=m.index)
+                return pd.DataFrame({"long": t, "short": t, "exit_long": none, "exit_short": none, "stop": 0.002, "rank": 0.0}, index=m.index)
+        idx = pd.date_range("2016-01-04 22:00", periods=24 * 140, freq="h", tz="UTC")
+        c = pd.Series(1.10 * np.exp(np.linspace(0, 0.25, len(idx))), index=idx)        # a steady uptrend
+        m = pd.DataFrame({"open": c.shift(1).fillna(c.iloc[0]), "high": c * 1.0005, "low": c * 0.9995, "close": c})
+        trend = DirectionZoneMap(Both(), style="trend").frame(m)
+        late = trend.index > idx[24 * 90]
+        self.assertGreater(int(trend["long"][late].sum()), 0)
+        self.assertEqual(int(trend["short"][late].sum()), 0)                           # up bias: no shorts
+
     def test_walk_forward_runs_end_to_end(self):
         from fxbot import research
         rng = np.random.default_rng(9)
