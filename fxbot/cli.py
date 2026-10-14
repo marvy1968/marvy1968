@@ -1,4 +1,6 @@
-"""python -m fxbot download | run-all [--families ...] | spreads   (practice data only; no order placement exists in this package)"""
+"""python -m fxbot download | run-all [--families ...] | spreads   (research, practice data)
+python -m fxbot paper          our own OANDA PRACTICE runner (fxbot.live; marv-fx-paper.service)
+python -m fxbot paper-status   its book, open trades and today's fills (read-only)"""
 
 import argparse
 import json
@@ -23,7 +25,7 @@ def _env():
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="fxbot")
-    ap.add_argument("cmd", choices=["download", "run-all", "spreads"])
+    ap.add_argument("cmd", choices=["download", "run-all", "spreads", "paper", "paper-status"])
     ap.add_argument("--families", nargs="*", default=list(FAMILIES))
     ap.add_argument("--cache", default=str(STATE / "cache"))
     a = ap.parse_args(argv)
@@ -31,6 +33,17 @@ def main(argv=None) -> int:
     if not token():
         print("WAITING FOR KEYS: add OANDA_API_TOKEN=<practice token> to /opt/marv-bot/.env (practice account only)")
         return 2
+    if a.cmd == "paper":
+        from .live import run_forever
+        run_forever()
+        return 0
+    if a.cmd == "paper-status":
+        p = Path("state/fx_paper/status.txt")
+        print(p.read_text() if p.exists() else "fx practice runner has not run yet")
+        led = Path("state/fx_paper/trades.jsonl")
+        if led.exists():
+            print("last fills:\n" + "\n".join(led.read_text().splitlines()[-20:]))
+        return 0
     start, end = date(2015, 1, 1), date(2022, 12, 31)
     grans = sorted({FAMILIES[f][0] for f in a.families})
     data = {g: {i: load(i, g, start, end, Path(a.cache)) for i in MAJORS} for g in grans}

@@ -121,6 +121,8 @@ systemctl enable --now marv-bot.timer marv-bot-late.timer marv-health.timer marv
 systemctl restart marv-bridge.service marv-live.service marv-edges.service 2>/dev/null || true
 # Alpaca PAPER trading loop (paper account only; idles with "WAITING FOR KEYS" until the keys are in .env)
 systemctl enable marv-alpaca-paper.service 2>/dev/null && systemctl restart marv-alpaca-paper.service 2>/dev/null || true
+# our own FOREX practice runner (OANDA practice host only; forex, separate from the stock bot)
+systemctl enable marv-fx-paper.service 2>/dev/null && systemctl restart marv-fx-paper.service 2>/dev/null || true
 # daily Sector Top-Down swing runner (paper): scan after the close, opening-auction orders before the open
 systemctl enable --now marv-swing-scan.timer marv-swing-open.timer 2>/dev/null || true
 systemctl list-timers "marv-bot*" --no-pager

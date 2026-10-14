@@ -313,7 +313,8 @@ def main(argv=None) -> int:
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
-    sub.add_parser("positions", help="read-only: every open position and open order on the paper account")
+    sub.add_parser("positions", help="read-only: every open position and open order on the paper account").add_argument(
+        "--fx", action="store_true", help="the FOREX practice runner instead (fxbot; OANDA practice, separate book)")
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
@@ -409,6 +410,9 @@ def main(argv=None) -> int:
             r = requests.delete(f"{api}/positions/{sym}", headers=h, timeout=30)
             print("close", sym, q, r.status_code, (r.text[:120] if r.status_code >= 300 else ""))
         return 0
+    if a.cmd == "positions" and a.fx:                   # forex lives in fxbot; only routed through here for the VM link
+        from fxbot.cli import main as fx_main
+        return fx_main(["paper-status"])
     if a.cmd == "positions":
         import requests
 

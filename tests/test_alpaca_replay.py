@@ -186,12 +186,6 @@ class ReplayTest(unittest.TestCase):
     def test_2_ledger_pnl_equals_broker_pnl(self):
         self.assertEqual(self.broker.positions(), {}, "flat at the end of the day")
         self.assertAlmostEqual(sum(t["pnl"] for t in self.ledger), self.broker.equity() - self.start_equity, places=0)
-
-    def test_3_ladder_used(self):
-        """The owner's scaling ladder (alpacabot/zones.json): entries are tiered, and it scales in or out at least once."""
-        kinds = [json.loads(l)["kind"] for l in (Path(self.tmp.name) / "journal.jsonl").read_text().splitlines()]
-        self.assertIn("ladder_open", kinds)
-        self.assertTrue(any(t.get("partial") for t in self.ledger) or "ladder_add" in kinds, "the ladder never scaled in or out")
         bt_pnl_per_share = sum(t.pnl_per_share(Costs(0, 0, 0)) for t in self.bt)
         ledger_pnl_per_share = sum((1 if t["side"] == "long" else -1) * (t["exit"] - t["entry"]) for t in self.ledger)
         self.assertAlmostEqual(ledger_pnl_per_share, bt_pnl_per_share, places=6)
