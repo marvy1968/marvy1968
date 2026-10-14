@@ -366,11 +366,12 @@ class PaperRunner:
             pos["best_px"] = px if pos.get("best_px") is None else (max(pos["best_px"], px) if side == 1 else min(pos["best_px"], px))
             lad = pos.get("ladder")
             if lad:
-                self.ladder_add(sym, pos, bid, ask, now_et)   # deeper into the buy/sell zone: scale in (0.25% -> 0.5% -> 1% -> 2% risk)
-                pos = self.exits.positions.get(sym)
+                self.ladder_add(sym, pos, bid, ask, now_et)   # optional scale-in tiers (owner's current plan: one 1%-risk entry, none)
+                if self.ladder_cut(sym, pos, px, now_et):     # against the trade: sell 25%, then 50%, the rest at the stop
+                    continue
             tp = pos.get("zone_tp")
             if tp is not None and side * (px - tp) >= 0:     # LIVE take-profit zone reached
-                if lad and self.ladder_take(sym, pos, px, now_et):    # scaled: 25% -> 50% -> 75% -> 100% of the trade by depth
+                if lad and self.ladder_take(sym, pos, px, now_et):    # scaled out: 25% at the zone, 50% beyond; the rest rides the trend
                     continue
                 if not lad:
                     self.close_now(sym, "zone", bar_start(now_et) + pd.Timedelta(minutes=5))
@@ -464,28 +465,70 @@ class PaperRunner:
         self.store.save(self.exits.positions)
 
     def ladder_take(self, sym: str, pos: dict, px: float, now_et: datetime) -> bool:
-        """Scale out in the take-profit zone: 25% of the trade at the zone, 50% 0.25 ATR beyond, 75% at 0.5, everything at 1 ATR.
-        Returns True when the position is fully closed."""
+        """Scale out in the take-profit zone (owner's plan, alpacabot/zones.json "ladder"): tp_fracs of the peak position at tp_depth_atr ATRs
+        beyond the zone (25% at the zone, 50% in all a little beyond). After each step the virtual stop is locked (lock: "breakeven" = the
+        entry, "tp" = the take-profit zone itself) and what is left rides the trend. Returns True when the position is fully closed."""
         lad, side = pos["ladder"], pos.get("side", 1)
         cfg = lad["cfg"]
         beyond = side * (px - pos["zone_tp"]) / lad["atr"] if lad["atr"] > 0 else 99.0
-        frac = max(f for f, d in zip(cfg["tp_fracs"], cfg["tp_depth_atr"]) if beyond >= d)
-        want = int(round(lad["peak_qty"] * frac))
-        sell = min(want - lad["sold"], pos["qty"])
-        if sell < 1:
+        steps = [k for k, d in enumerate(cfg["tp_depth_atr"]) if beyond >= d]
+        if not steps:
             return False
+        k = max(steps)
+        if self.scale_out(sym, pos, px, now_et, cfg["tp_fracs"][k], f"zone{int(cfg['tp_fracs'][k] * 100)}"):
+            return True                                          # (None = nothing left to sell at this step: the stop still locks)
+        locks = cfg.get("lock") or []
+        for step in range(lad.get("tp_steps", 0), k + 1):
+            how = locks[step] if step < len(locks) else None
+            level = self.entry_px(pos) if how == "breakeven" else pos["zone_tp"] if how == "tp" else None
+            if level is not None:
+                self.lock_stop(sym, pos, level)
+        lad["tp_steps"] = k + 1
+        self.store.save(self.exits.positions)
+        return False
+
+    def ladder_cut(self, sym: str, pos: dict, px: float, now_et: datetime) -> bool:
+        """Against the trade, inside the sell zone: cut_fracs of the peak position once price is cut_depth_r of the way to the stop
+        (25% at half way, 50% in all at three quarters); the stop itself takes the rest. Returns True when nothing is left."""
+        lad, side = pos["ladder"], pos.get("side", 1)
+        cfg = lad["cfg"]
+        if not cfg.get("cut_fracs"):
+            return False
+        risk = abs(lad["fill"] - lad["stop_px"]) if "fill" in lad else abs(self.entry_px(pos) - lad["stop_px"])
+        depth = side * (lad.get("fill", self.entry_px(pos)) - px) / risk if risk > 0 else 0.0
+        steps = [k for k, d in enumerate(cfg["cut_depth_r"]) if depth >= d]
+        if not steps:
+            return False
+        frac = cfg["cut_fracs"][max(steps)]
+        return bool(self.scale_out(sym, pos, px, now_et, frac, f"cut{int(frac * 100)}"))
+
+    def scale_out(self, sym: str, pos: dict, px: float, now_et: datetime, frac: float, reason: str):
+        """Sell down to (1 - frac) of the peak position (fractions are cumulative and shared by the cut and take-profit ladders).
+        None = nothing to sell, True = position closed, False = partly sold."""
+        lad = pos["ladder"]
+        sell = min(int(round(lad["peak_qty"] * frac)) - lad["sold"], pos["qty"])
+        if sell < 1:
+            return None
         if sell >= pos["qty"]:
-            self.close_now(sym, f"zone{int(frac * 100)}", bar_start(now_et) + pd.Timedelta(minutes=5))
+            self.close_now(sym, reason, bar_start(now_et) + pd.Timedelta(minutes=5))
             return True
         if hasattr(self.raw, "close_tagged"):
-            self.raw.close_tagged(sym, sell, side, f"ab-p-{sym}-{int(time.time() * 1000)}")
+            self.raw.close_tagged(sym, sell, pos.get("side", 1), f"ab-p-{sym}-{int(time.time() * 1000)}")
         else:
             self.raw.close(sym, sell)
-        self.record_partial(sym, pos, px, sell, f"zone{int(frac * 100)}")
+        self.record_partial(sym, pos, px, sell, reason)
         pos["qty"] -= sell
         lad["sold"] += sell
         self.store.save(self.exits.positions)
         return False
+
+    def lock_stop(self, sym: str, pos: dict, level: float):
+        """Move the virtual stop to `level` (real price) if that tightens it; never loosens."""
+        st, side = pos["state"], pos.get("side", 1)
+        new = side * level                                       # shorts are tracked on -price
+        if new > st.stop:
+            st.stop = new
+            self.journal("stop_locked", symbol=sym, stop=round(level, 4))
 
     def record_partial(self, sym: str, pos: dict, px: float, qty: int, reason: str):
         """A partial take-profit: its own ledger row (partial=true) so realized P&L and the report card stay exact."""
@@ -660,8 +703,10 @@ class PaperRunner:
                     if lad_cfg and tier is not None:
                         side_ = -1 if sig.side == -1 else 1
                         atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
-                        pos["ladder"] = {"ref": ref, "atr": atr_i, "tier": tier, "stop_px": fill - side_ * sig.stop_dist,
-                                         "peak_qty": qty, "sold": 0, "cfg": lad_cfg}
+                        pos["ladder"] = {"ref": ref, "atr": atr_i, "tier": tier, "stop_px": fill - side_ * sig.stop_dist, "fill": fill,
+                                         "peak_qty": qty, "sold": 0, "tp_steps": 0, "cfg": lad_cfg}
+                        if lad_cfg.get("ride"):                  # the zones take profit; the expert's fixed target would close it all
+                            pos["state"].tp = float("inf")
                         self.journal("ladder_open", symbol=sym, tier=tier, risk_pct=lad_cfg["entry_risk"][tier], qty=qty)
                 self.store.save(self.exits.positions)
                 self.entries_today += 1

@@ -9,11 +9,11 @@ Owner's rules, the same as the stock bot:
   DIRECTION FIRST  the pair's daily bias (alpacabot.zonemap: up = close > EMA20 > SMA50 and ADX >= 20, down = mirror, else range):
                    up -> longs only, down -> shorts only, range -> both (both strategies are mean-reversion style)
   ENTRY ZONE       no chasing: skip when the price is more than 0.5 ATR past the signal close
-  SCALING IN       risk 0.25% of this book's equity at the signal, 0.5% / 1% / 2% in total as price goes 0.25 / 0.5 / 1 ATR deeper into
-                   the entry zone (each add is its own OANDA trade with the same stop and take-profit)
+  ENTRY            one entry risking 1% of this book (the owner's drawing, 2026-10-14); optional scale-in tiers in CONFIG["ladder"]
+  SELL ZONE        against the trade: sell 25% half way to the stop, 50% in all at three quarters; the stop takes the rest
   TP ZONE          the nearer of the strategy's own target, the 20-bar mean (>= 0.75R, else 1.5R) and the nearest strong daily zone-map
-                   level (>= 1R); scale out 25% at the zone, 50% / 75% / 100% at 0.25 / 0.5 / 1 ATR beyond it; after the first
-                   scale-out the stop goes to break-even
+                   level (>= 1R); sell 25% at the zone (stop to break-even at OANDA), 50% in all 0.25 ATR beyond (stop locked at the
+                   zone); the rest rides the trend (OANDA take-profit 3 ATR beyond the zone)
   AT THE BROKER    every trade has its stop-loss AND take-profit (the 100% level) placed at OANDA on fill, so a runner crash or a
                    VM outage never leaves a trade unprotected
 Safety: own book only (orders tagged marv-fx; a pair where another bot holds a trade is skipped), max 4 open trades groups, max 2 same-side
@@ -40,8 +40,10 @@ NY = "America/New_York"
 PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"]
 STRATS = {"lien_h1": {"make": LienFader, "gran": "H1", "count": 1500, "minutes": 60},
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240}}
-CONFIG = {"ladder": {"entry_risk": [0.0025, 0.005, 0.01, 0.02], "entry_depth_atr": [0.0, 0.25, 0.5, 1.0],
-                     "tp_fracs": [0.25, 0.5, 0.75, 1.0], "tp_depth_atr": [0.0, 0.25, 0.5, 1.0]},
+CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
+                     "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75],          # against the trade: 25% half way, 50% at 3/4, stop = all
+                     "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],          # TP zone: 25% at the zone, 50% a little beyond
+                     "lock": ["breakeven", "tp"], "ride_tp_atr": 3.0},              # stop to BE, then to the zone; the rest rides
           "zone": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "map_min_r": 1.0},
           "max_groups": 4, "max_per_ccy_side": 2, "breaker": 0.02, "max_notional_x": 10.0, "max_spread_frac": 0.25,
           "book_cap": 100_000.0, "strategies": list(STRATS)}
@@ -283,7 +285,7 @@ class FxPaper:
         if mt is not None:
             cands.append(mt)
         zone_tp = min(cands) if side == 1 else max(cands)
-        tp_px = zone_tp + side * lad["tp_depth_atr"][-1] * a          # the 100% scale-out level sits at OANDA as the take-profit
+        tp_px = zone_tp + side * lad.get("ride_tp_atr", lad["tp_depth_atr"][-1]) * a   # OANDA take-profit for what rides the trend
         units = self.size(inst, eq, lad["entry_risk"][tier], 0.0, px, stop_px)
         if units < 1:
             return "size 0"
@@ -293,7 +295,7 @@ class FxPaper:
             return f"rejected: {got['rejected']}"
         fill = got["price"]
         self.groups[gid] = {"id": gid, "strategy": name, "instrument": inst, "side": side, "opened": bar, "signal_close": close,
-                            "atr": a, "stop_px": stop_px, "zone_tp": zone_tp, "tp_px": tp_px, "tier": tier, "avg": fill,
+                            "atr": a, "stop_px": stop_px, "stop0": stop_px, "fill": fill, "tp_steps": 0, "zone_tp": zone_tp, "tp_px": tp_px, "tier": tier, "avg": fill,
                             "trades": [got["trade_id"]], "units": {got["trade_id"]: abs(got["units"])}, "peak_units": abs(got["units"]),
                             "sold": 0, "be": False, "bias": bias}
         self.journal("open", group=gid, side=side, units=got["units"], fill=fill, stop=fmt(inst, stop_px), zone_tp=fmt(inst, zone_tp),
@@ -341,29 +343,48 @@ class FxPaper:
                     self.journal("ladder_add", group=gid, tier=k, units=u, fill=got["price"], avg=round(g["avg"], 6),
                                  risk_pct=lad["entry_risk"][k])
             self.save()
-        # scale out in the take-profit zone
+        # against the trade, inside the sell zone: cut in steps before the stop (shared, cumulative fractions of the peak position)
         px_out = bid if side == 1 else ask
-        beyond = side * (px_out - g["zone_tp"]) / g["atr"] if g["atr"] > 0 else 99.0
-        hit = [f for f, d in zip(lad["tp_fracs"], lad["tp_depth_atr"]) if beyond >= d]
-        if not hit:
+        risk = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+        against = side * (g.get("fill", g["avg"]) - px_out) / risk if risk > 0 else 0.0
+        cuts = [k for k, d in enumerate(lad.get("cut_depth_r", [])) if against >= d]
+        if cuts and self.scale_to(gid, lad["cut_fracs"][max(cuts)], px_out, f"cut{int(lad['cut_fracs'][max(cuts)] * 100)}"):
             return
-        frac = max(hit)
+        # take-profit zone: scale out, lock the stop at OANDA after each step, let the rest ride
+        beyond = side * (px_out - g["zone_tp"]) / g["atr"] if g["atr"] > 0 else 99.0
+        steps = [k for k, d in enumerate(lad["tp_depth_atr"]) if beyond >= d]
+        if not steps:
+            self.save()
+            return
+        k = max(steps)
+        if self.scale_to(gid, lad["tp_fracs"][k], px_out, f"zone{int(lad['tp_fracs'][k] * 100)}"):
+            return
+        locks = lad.get("lock") or []
+        for step in range(g.get("tp_steps", 0), k + 1):
+            how = locks[step] if step < len(locks) else None
+            level = g["avg"] if how == "breakeven" else g["zone_tp"] if how == "tp" else None
+            if level is not None and side * (level - g["stop_px"]) > 0:
+                for tid in g["trades"]:
+                    try:
+                        self.api.set_stop(tid, fmt(inst, level))
+                    except OandaError as exc:
+                        self.journal("error", where="set_stop", trade=tid, error=str(exc)[:300])
+                g["stop_px"], g["be"] = level, True
+                self.journal("stop_locked", group=gid, how=how, stop=fmt(inst, level))
+        g["tp_steps"] = k + 1
+        self.save()
+
+    def scale_to(self, gid: str, frac: float, px: float, reason: str) -> bool:
+        """Sell down to (1 - frac) of the peak position. True when the group is closed."""
+        g = self.groups[gid]
         sell = int(round(g["peak_units"] * frac)) - g["sold"]
         if sell < 1:
-            return
+            return False
         if frac >= 1.0 or sell >= sum(g["units"].values()):
-            self.close_group(gid, f"zone{int(frac * 100)}")
-            return
-        self.close_units(gid, sell, px_out, f"zone{int(frac * 100)}")
-        if not g["be"]:                                    # secure the trade: stop to break-even after the first scale-out
-            for tid in g["trades"]:
-                try:
-                    self.api.set_stop(tid, fmt(inst, g["avg"]))
-                except OandaError as exc:
-                    self.journal("error", where="set_stop", trade=tid, error=str(exc)[:300])
-            g["be"], g["stop_px"] = True, g["avg"]
-            self.journal("stop_to_breakeven", group=gid, stop=fmt(inst, g["avg"]))
-        self.save()
+            self.close_group(gid, reason)
+            return True
+        self.close_units(gid, sell, px, reason)
+        return False
 
     def close_units(self, gid: str, units: int, px: float, reason: str):
         """Close `units` of the group, oldest trade first (FIFO-friendly)."""

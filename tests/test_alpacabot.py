@@ -1631,9 +1631,11 @@ class LiveZoneTests(unittest.TestCase):
 
 
 class LadderTests(unittest.TestCase):
-    """Owner's scaling zones: entry risk 0.25/0.5/1/2% by depth into the entry zone; take 25/50/75/100% by depth into the TP zone."""
+    """Owner's scaling zones (drawing, 2026-10-14): one 1%-risk entry; against the trade sell 25% / 50% before the stop; in the TP zone
+    sell 25% (stop to break-even) then 50% (stop locked at the zone) and let the rest ride. Tier sizing is kept for a multi-tier config."""
     CFG = {"entry_risk": [0.0025, 0.005, 0.01, 0.02], "entry_depth_atr": [0.0, 0.25, 0.5, 1.0],
-           "tp_fracs": [0.25, 0.5, 0.75, 1.0], "tp_depth_atr": [0.0, 0.25, 0.5, 1.0]}
+           "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75],
+           "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven", "tp"], "ride": True}
 
     def _runner(self, tmp, quote=(100.0, 100.0)):
         from alpacabot import paper
@@ -1656,7 +1658,9 @@ class LadderTests(unittest.TestCase):
         r.store, r.exits = Store(), Ex()
         r.exits.positions = {"X": {"state": FixedState(entry=100.0, stop=98.0, tp=104.0, atr=1.0, trail=2.0), "qty": 100, "side": 1,
                                    "opened": "t0", "zone_tp": 102.0,
-                                   "ladder": {"ref": 100.0, "atr": 1.0, "tier": 0, "stop_px": 98.0, "peak_qty": 100, "sold": 0, "cfg": self.CFG}}}
+                                   "ladder": {"ref": 100.0, "atr": 1.0, "tier": 0, "stop_px": 98.0, "fill": 100.0, "peak_qty": 100, "sold": 0,
+                                              "tp_steps": 0, "cfg": self.CFG}}}
+        r.journal = lambda *a, **k: None
         r.close_now = lambda sym, reason, bar: r.closed.append((sym, reason)) or r.exits.positions.pop(sym)
         return r
 
@@ -1671,23 +1675,44 @@ class LadderTests(unittest.TestCase):
             short = Signal(i=1, side=-1, stop_dist=2.0, atr=1.0, tag="S:t")
             self.assertEqual(self._runner(tmp, (100.3, 100.3)).ladder_tier("X", short, 100.0, self.CFG), 1)  # shorts: deeper = higher
 
-    def test_take_profit_scales_out(self):
+    def test_take_profit_scales_out_locks_stop_and_rides(self):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             r = self._runner(tmp)
             now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
-            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.0, now))        # at the zone: 25%
-            self.assertEqual(r.exits.positions["X"]["qty"], 75)
-            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.1, now))        # same tier: nothing more
-            self.assertEqual(r.exits.positions["X"]["qty"], 75)
-            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.3, now))        # 0.3 ATR beyond: 50% in all
-            self.assertEqual(r.exits.positions["X"]["qty"], 50)
-            self.assertTrue(r.ladder_take("X", r.exits.positions["X"], 103.0, now))         # 1 ATR beyond: the rest
-            self.assertEqual(r.closed, [("X", "zone100")])
+            pos = r.exits.positions["X"]
+            self.assertFalse(r.ladder_take("X", pos, 102.0, now))        # at the zone: 25% out, stop to break-even
+            self.assertEqual(pos["qty"], 75)
+            self.assertEqual(pos["state"].stop, 100.0)
+            self.assertFalse(r.ladder_take("X", pos, 102.1, now))        # same step: nothing more
+            self.assertEqual(pos["qty"], 75)
+            self.assertFalse(r.ladder_take("X", pos, 102.3, now))        # 0.3 ATR beyond: 50% out in all, stop locked at the zone
+            self.assertEqual(pos["qty"], 50)
+            self.assertEqual(pos["state"].stop, 102.0)
+            self.assertFalse(r.ladder_take("X", pos, 105.0, now))        # far beyond: the last half rides the trend
+            self.assertEqual(pos["qty"], 50)
+            self.assertEqual(r.closed, [])
             rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
-            self.assertEqual([t["qty"] for t in rows], [25, 25])
-            self.assertTrue(all(t["partial"] for t in rows))
+            self.assertEqual([(t["qty"], t["reason"]) for t in rows], [(25, "zone25"), (25, "zone50")])
             self.assertAlmostEqual(rows[0]["pnl"], 50.0)
+
+    def test_against_the_trade_cuts_in_steps(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
+            pos = r.exits.positions["X"]
+            self.assertFalse(r.ladder_cut("X", pos, 99.5, now))           # a quarter of the way to the stop: hold
+            self.assertEqual(pos["qty"], 100)
+            self.assertFalse(r.ladder_cut("X", pos, 99.0, now))           # half way: sell 25%
+            self.assertEqual(pos["qty"], 75)
+            self.assertFalse(r.ladder_cut("X", pos, 98.5, now))           # three quarters: 50% out in all
+            self.assertEqual(pos["qty"], 50)
+            self.assertFalse(r.ladder_cut("X", pos, 98.4, now))           # the stop (98) takes the rest, not the cut ladder
+            self.assertEqual(pos["qty"], 50)
+            rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
+            self.assertEqual([t["reason"] for t in rows], ["cut25", "cut50"])
+            self.assertTrue(r.ladder_take("X", pos, 102.0, now) is False and pos["qty"] == 50)   # 25% TP already covered: nothing sold
 
     def test_whole_trades_folds_partials(self):
         from alpacabot import paper

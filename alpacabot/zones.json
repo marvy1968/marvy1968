@@ -23,31 +23,34 @@
    }
   },
   "ladder": {
-   "_note": "owner 2026-10-14: scale in by depth into the entry zone (risk % of equity per tier, depth in ATRs from the signal close) and scale out in the take-profit zone (fraction of the peak position by ATRs beyond the target)",
+   "_note": "owner 2026-10-14 (drawing): buy once risking 1% of equity (the stop = the 'All' line); against the trade sell 25% half way to the stop and 50% in all at three quarters, the stop takes the rest; in the take-profit zone sell 25% at the zone (stop to break-even) and 50% in all 0.25 ATR beyond (stop locked at the zone); the rest rides the trend (expert's fixed target off). Repeats while the stock trends (up to 3 trades per stock per day).",
    "entry_risk": [
-    0.0025,
-    0.005,
-    0.01,
-    0.02
+    0.01
    ],
    "entry_depth_atr": [
-    0.0,
+    0.0
+   ],
+   "cut_fracs": [
     0.25,
+    0.5
+   ],
+   "cut_depth_r": [
     0.5,
-    1.0
+    0.75
    ],
    "tp_fracs": [
     0.25,
-    0.5,
-    0.75,
-    1.0
+    0.5
    ],
    "tp_depth_atr": [
     0.0,
-    0.25,
-    0.5,
-    1.0
-   ]
+    0.25
+   ],
+   "lock": [
+    "breakeven",
+    "tp"
+   ],
+   "ride": true
   }
  },
  "swing": {

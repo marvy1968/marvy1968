@@ -108,7 +108,7 @@ class FxLiveTests(unittest.TestCase):
             g = next(iter(r.groups.values()))
             self.assertEqual(g["tier"], 0)
             risk = o["units"] * 0.0030
-            self.assertAlmostEqual(risk / 58000.0, 0.0025, places=4)               # tier 0 = 0.25% of the book
+            self.assertAlmostEqual(risk / 58000.0, 0.01, places=4)                 # one entry risking 1% of the book
             self.assertEqual(api.trades["1"]["clientExtensions"]["tag"], TAG)
 
     def test_direction_chase_other_bot_and_kill(self):
@@ -127,34 +127,43 @@ class FxLiveTests(unittest.TestCase):
             self.assertEqual(r.entries_allowed(58000), "kill switch")
             self.assertEqual(api.orders, [])
 
-    def test_ladder_in_then_out_with_breakeven(self):
+    def test_take_profit_steps_lock_stop_and_ride(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
             r = runner(tmp, api)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
-            a = g["atr"]
-            api.px["EUR_USD"] = (1.1000 - 0.6 * a - 0.0001, 1.1000 - 0.6 * a)       # 0.6 ATR deeper: next tier only (one step per check)
-            r.manage(gid, 58000.0, "")
-            self.assertEqual(g["tier"], 1)
-            self.assertEqual(len(api.orders), 2)
-            self.assertEqual(api.orders[1]["sl"], api.orders[0]["sl"])               # same stop and target at OANDA
-            self.assertEqual(api.orders[1]["tp"], api.orders[0]["tp"])
-            total = sum(g["units"].values())
-            risk = sum(abs(int(o["units"])) * (r.groups[gid]["avg"] - float(o["sl"])) for o in api.orders)
-            self.assertAlmostEqual(risk / 58000.0, 0.005, places=3)                # total risk = 0.5% at tier 1
-            z = g["zone_tp"]
-            api.px["EUR_USD"] = (z, z + 0.0001)                                       # at the take-profit zone: 25% out, stop to BE
+            a, total, z = g["atr"], g["peak_units"], g["zone_tp"]
+            self.assertAlmostEqual(float(api.orders[0]["tp"]), z + 3 * a, places=4)   # OANDA TP far out: the rest can ride
+            api.px["EUR_USD"] = (z, z + 0.0001)                                       # at the zone: 25% out, stop to break-even
             r.manage(gid, 58000.0, "")
             self.assertEqual(g["sold"], int(round(total * 0.25)))
-            self.assertTrue(g["be"])
-            self.assertEqual({t for t, _ in api.stops}, set(g["trades"]))
-            rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
-            self.assertTrue(all(x["partial"] for x in rows))
-            api.px["EUR_USD"] = (z + 1.1 * a, z + 1.1 * a + 0.0001)                   # 1 ATR beyond: everything out
+            self.assertEqual(api.stops[-1][1], f"{g['avg']:.5f}")
+            api.px["EUR_USD"] = (z + 0.3 * a, z + 0.3 * a + 0.0001)                   # a little beyond: 50% out, stop locked at the zone
             r.manage(gid, 58000.0, "")
-            self.assertEqual(r.groups, {})
-            self.assertEqual(api.trades, {})
+            self.assertEqual(g["sold"], int(round(total * 0.5)))
+            self.assertEqual(api.stops[-1][1], f"{z:.5f}")
+            api.px["EUR_USD"] = (z + 2 * a, z + 2 * a + 0.0001)                       # far beyond: the last half rides
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+            self.assertEqual(len(api.orders), 1)                                       # never adds
+            rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
+            self.assertEqual([x["reason"] for x in rows], ["zone25", "zone50"])
+
+    def test_against_the_trade_cuts_in_steps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            fill, total = g["fill"], g["peak_units"]
+            api.px["EUR_USD"] = (fill - 0.0016, fill - 0.0015)                        # just past half way to the 30-pip stop
+            r.manage(gid, 58000.0, "")
+            self.assertEqual(g["sold"], int(round(total * 0.25)))
+            api.px["EUR_USD"] = (fill - 0.0023, fill - 0.0022)                        # three quarters
+            r.manage(gid, 58000.0, "")
+            self.assertEqual(g["sold"], int(round(total * 0.5)))
+            self.assertIn(gid, r.groups)                                               # OANDA's stop takes the rest
 
     def test_broker_closed_trade_goes_to_ledger(self):
         with tempfile.TemporaryDirectory() as tmp:
