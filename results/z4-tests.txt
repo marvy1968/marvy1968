@@ -1,0 +1,3 @@
+$ tests
+started 2026-10-13 22:16:25 EDT
+RUNNING...
