@@ -1,3 +1,7 @@
 $ alpaca swing status
-started 2026-10-14 10:06:06 EDT
-RUNNING...
+started 2026-10-14 10:06:06 EDT, took 1s, exit 0
+
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 0, 0W/0L, P&L $+0
+  holding: META 2 @ 755.19 (stop 692.95), AMD 5 @ 588.24 (stop 573.25), MSFT 5 @ 543.40 (stop 507.14)
