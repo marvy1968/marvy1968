@@ -1,3 +1,135 @@
 $ logs marv-swing-open 400
-started 2026-10-13 20:49:31 EDT
-RUNNING...
+started 2026-10-13 20:49:31 EDT, took 0s, exit 0
+
+Oct 13 09:20:05 instance-stockbot systemd[1]: Starting marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily)...
+Oct 13 09:31:36 instance-stockbot python[37662]: {
+Oct 13 09:31:36 instance-stockbot python[37662]:  "META": [
+Oct 13 09:31:36 instance-stockbot python[37662]:   "entry",
+Oct 13 09:31:36 instance-stockbot python[37662]:   {
+Oct 13 09:31:36 instance-stockbot python[37662]:    "id": "86266cf7-d7e7-4d43-8729-fb1043d28462",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "client_order_id": "sw-e-META-20261013",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "created_at": "2026-10-13T13:20:06.996714896Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "updated_at": "2026-10-13T13:20:06.998082167Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "submitted_at": "2026-10-13T13:20:06.996714896Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expired_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "canceled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "failed_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_by": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaces": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_id": "fc6a5dcd-4a70-4b8d-b64f-d83a6dae9ba4",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "symbol": "META",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_class": "us_equity",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "notional": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "qty": "3",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_qty": "0",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_avg_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_class": "",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "side": "buy",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "position_intent": "buy_to_open",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "time_in_force": "opg",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "limit_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "stop_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "status": "pending_new",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "extended_hours": false,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "legs": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_percent": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "hwm": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "subtag": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "source": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expires_at": "2026-10-13T20:00:00Z"
+Oct 13 09:31:36 instance-stockbot python[37662]:   }
+Oct 13 09:31:36 instance-stockbot python[37662]:  ],
+Oct 13 09:31:36 instance-stockbot python[37662]:  "MSFT": [
+Oct 13 09:31:36 instance-stockbot python[37662]:   "entry",
+Oct 13 09:31:36 instance-stockbot python[37662]:   {
+Oct 13 09:31:36 instance-stockbot python[37662]:    "id": "90368679-4a8f-4cc4-807f-cc07c5ff83fa",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "client_order_id": "sw-e-MSFT-20261013",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "created_at": "2026-10-13T13:20:07.032156129Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "updated_at": "2026-10-13T13:20:07.033979414Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "submitted_at": "2026-10-13T13:20:07.032156129Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expired_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "canceled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "failed_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_by": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaces": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_id": "b6d1aa75-5c9c-4353-a305-9e2caa1925ab",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "symbol": "MSFT",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_class": "us_equity",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "notional": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "qty": "5",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_qty": "0",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_avg_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_class": "",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "side": "buy",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "position_intent": "buy_to_open",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "time_in_force": "opg",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "limit_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "stop_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "status": "pending_new",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "extended_hours": false,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "legs": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_percent": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "hwm": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "subtag": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "source": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expires_at": "2026-10-13T20:00:00Z"
+Oct 13 09:31:36 instance-stockbot python[37662]:   }
+Oct 13 09:31:36 instance-stockbot python[37662]:  ],
+Oct 13 09:31:36 instance-stockbot python[37662]:  "XLK": [
+Oct 13 09:31:36 instance-stockbot python[37662]:   "entry",
+Oct 13 09:31:36 instance-stockbot python[37662]:   {
+Oct 13 09:31:36 instance-stockbot python[37662]:    "id": "ff3c4cb4-f1be-4b50-85e1-0f27579641a5",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "client_order_id": "sw-e-XLK-20261013",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "created_at": "2026-10-13T13:20:07.067492854Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "updated_at": "2026-10-13T13:20:07.069466605Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "submitted_at": "2026-10-13T13:20:07.067492854Z",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expired_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "canceled_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "failed_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_at": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaced_by": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "replaces": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_id": "d704f4fd-c735-44f8-a7fa-7a50fef08fe4",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "symbol": "XLK",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "asset_class": "us_equity",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "notional": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "qty": "46",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_qty": "0",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "filled_avg_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_class": "",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "order_type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "type": "market",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "side": "buy",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "position_intent": "buy_to_open",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "time_in_force": "opg",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "limit_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "stop_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "status": "pending_new",
+Oct 13 09:31:36 instance-stockbot python[37662]:    "extended_hours": false,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "legs": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_percent": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "trail_price": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "hwm": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "subtag": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "source": null,
+Oct 13 09:31:36 instance-stockbot python[37662]:    "expires_at": "2026-10-13T20:00:00Z"
+Oct 13 09:31:36 instance-stockbot python[37662]:   }
+Oct 13 09:31:36 instance-stockbot python[37662]:  ]
+Oct 13 09:31:36 instance-stockbot python[37662]: }
+Oct 13 09:31:36 instance-stockbot python[37662]: SWING (Sector Top-Down, daily, holds overnight)
+Oct 13 09:31:36 instance-stockbot python[37662]:   closed trades 0, 0W/0L, P&L $+0
+Oct 13 09:31:36 instance-stockbot python[37662]:   holding: nothing
+Oct 13 09:31:37 instance-stockbot systemd[1]: marv-swing-open.service: Deactivated successfully.
+Oct 13 09:31:37 instance-stockbot systemd[1]: Finished marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily).
+Oct 13 09:31:37 instance-stockbot systemd[1]: marv-swing-open.service: Consumed 2.366s CPU time.
