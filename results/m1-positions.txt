@@ -1,3 +1,12 @@
 $ alpaca positions
-started 2026-10-14 11:35:58 EDT
-RUNNING...
+started 2026-10-14 11:35:58 EDT, took 2s, exit 0
+
+equity $53,160.07  cash $46,094.39  long mv $7,065.68  short mv $0.00
+3 open positions:
+  AMD        long  qty            5  value $  2,897.62  unrealized $   -43.58
+  MSFT       long  qty            5  value $  2,686.35  unrealized $   -30.64
+  META       long  qty            2  value $  1,481.70  unrealized $   -28.68
+3 open orders:
+  MSFT       sell 5 stop new  id sw-s-MSFT-20261014
+  AMD        sell 5 stop new  id sw-s-AMD-20261014
+  META       sell 2 stop new  id sw-s-META-20261014
