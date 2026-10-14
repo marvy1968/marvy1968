@@ -1,3 +1,9 @@
 $ alpaca positions --fx
-started 2026-10-14 12:55:06 EDT
-RUNNING...
+started 2026-10-14 12:55:06 EDT, took 1s, exit 0
+
+MARV FX PRACTICE RUNNER 2026-10-14 16:54 UTC  (OANDA practice; forex only)
+book equity $59,021.37 (start $59,021.37)  realized $+0.00  today $+0.00 (0 fills)
+market OPEN  kill switch off
+last completed bar scanned: lien_h1 7/7 pairs @ 2026-10-14T15:00, f0_h4 7/7 pairs @ 2026-10-14T09:00
+open groups 0, OANDA trades 0:
+
