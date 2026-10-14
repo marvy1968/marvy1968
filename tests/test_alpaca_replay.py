@@ -121,8 +121,8 @@ class ReplayTest(unittest.TestCase):
             return df[df.index < cls.now]
 
         cls.now = pd.Timestamp(f"{TEST_DAY} 09:30", tz=NY)
-        r = paper.PaperRunner(broker, Brain(**cls.brain), state_dir=cls.tmp.name, fetch=fetch, sleep=lambda *_: None,
-                              breaker_limit=1.0, max_positions=10)
+        r = paper.PaperRunner(broker, Brain(**cls.brain), state_dir=cls.tmp.name, symbols=list(SYMS), fetch=fetch, sleep=lambda *_: None,
+                              breaker_limit=1.0, max_positions=10, profit_arm=10.0)
         cls.start_equity = broker.equity()
         cls.open_after_350, cls.gate_violations = [], []
         bars = cls.test_frames["SPY"].index                       # 5-minute bar starts, 09:30 .. 15:45

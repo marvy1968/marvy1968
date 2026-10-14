@@ -320,14 +320,18 @@ def sector_td_study(universes: dict, spy: pd.DataFrame, periods: dict, costs: Co
 
 # Pre-declared BEFORE the validation years were looked at: the three distinct experts with the best train-year (2016-2020) Sharpe in swing_expert_study.
 SWING_CANDIDATES = [("brooks_pullback", 10), ("williams_r", 10), ("donchian_turtle", 10)]
+# Declared 2026-10-14, before looking: connors_rsi2 passed the train years (PF 1.45, 601 trades) but was not in the first validation list.
+# The owner's old bots (killer_beast_sniper "VCP + RSI2", "master sniper") all trade this same RSI(2) pullback idea.
+RSI2_CANDIDATES = [("connors_rsi2", 10)]
 
 
-def swing_validate(daily, test, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=10), spy_daily=None, placebo_runs: int = 20) -> dict:
+def swing_validate(daily, test, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=10), spy_daily=None, placebo_runs: int = 20,
+                   candidates=None) -> dict:
     """ONE look at the validation years for the pre-declared swing candidates: real entries vs random entries with the same exits (placebo),
     at normal and 2.5x slippage, against buy-and-hold SPY. Nothing is tuned here."""
     from .experts import ExpertSwing
     out = {"family": "swing_validate", "test": [str(x) for x in test], "rows": []}
-    for name, hold in SWING_CANDIDATES:
+    for name, hold in candidates or SWING_CANDIDATES:
         real = run_swing(ExpertSwing(name, max_days=hold), daily, costs, pf, *test)["metrics"]
         stress = run_swing(ExpertSwing(name, max_days=hold), daily, replace(costs, slip_bps=costs.slip_bps * 2.5), pf, *test)["metrics"]
         plc = [run_swing(ExpertSwing(name, max_days=hold, placebo_seed=sd), daily, costs, pf, *test)["metrics"] for sd in range(placebo_runs)]

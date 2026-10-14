@@ -19,14 +19,14 @@ from .brain import Brain
 from .data import NY, _fetch, _headers
 from .engine import resample_bars
 from .exits import StateStore
-from .execution import CircuitBreaker, EntryWindow, Executor, VirtualExitManager, retry_call, setup_logging, spread_ok
+from .execution import CircuitBreaker, EntryWindow, Executor, ProfitLock, VirtualExitManager, retry_call, setup_logging, spread_ok
 from .experts import ALL_EXPERTS, features_both
-from . import gates
+from . import gates, universe
 
 ET = ZoneInfo(NY)
 TRADE_URL = "https://paper-api.alpaca.markets/v2"
 DATA_URL = "https://data.alpaca.markets/v2"
-SYMBOLS = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"]
+SYMBOLS = ["SPY", "QQQ", "IWM"] + universe.STOCKS          # the 5 largest S&P 500 stocks in each of the 11 sectors (universe.py)
 log = logging.getLogger("alpacabot")
 
 
@@ -196,6 +196,8 @@ def engaged_symbols() -> list[str]:
     """The paper universe: SYMBOLS plus any stock added to brain_config.json ("symbols": [...], "sectors": {"XOM": "XLE"}) after it passed
     `python -m alpacabot symbol-check`. Added stocks join the sector heat map through their sector ETF."""
     syms = list(SYMBOLS)
+    for sym in universe.STOCKS:                          # each stock rates its own sector ETF in the heat map
+        gates.add_sector(sym, universe.SECTOR_OF[sym])
     if ENGAGED.exists():
         raw = json.loads(ENGAGED.read_text())
         for sym, etf in (raw.get("sectors") or {}).items():
@@ -206,7 +208,7 @@ def engaged_symbols() -> list[str]:
 
 class PaperRunner:
     def __init__(self, broker, brain: Brain | None = None, state_dir="state/alpaca_paper", risk_pct=0.01, symbols=None, fetch=_fetch, sleep=time.sleep,
-                 breaker_limit: float = 0.02, max_positions: int = 6):
+                 breaker_limit: float = 0.02, max_positions: int = 6, profit_arm: float = 0.005, profit_keep: float = 0.5):
         self.broker, self.brain, self.symbols, self.fetch, self.sleep = broker, brain or default_brain(state_dir), symbols or engaged_symbols(), fetch, sleep
         self.dir = Path(state_dir)
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -216,7 +218,8 @@ class PaperRunner:
         self.exits = VirtualExitManager(self.store, self.broker, sleep=sleep)
         # no 45-minute stale exit: each signal carries the backtest's own time stop (max_bars), checked at every bar close
         self.exec = Executor(self.broker, EntryWindow(), CircuitBreaker(limit=breaker_limit), risk_pct=risk_pct, max_positions=max_positions,
-                             stale_minutes=10 ** 9, sleep=sleep, max_spread_pct=0.001)      # relative guard: 0.1% of price
+                             stale_minutes=10 ** 9, sleep=sleep, max_spread_pct=0.001,       # relative guard: 0.1% of price
+                             profit_lock=ProfitLock(arm=profit_arm, keep=profit_keep))
         self.last_px: dict[str, float] = {}      # last exit-side price: bid for longs, ask for shorts
         self.heat, self.heat_day, self.borrow = {}, None, {}
         self.day, self.trades_today, self.last_exit = None, {}, {}
@@ -477,6 +480,10 @@ class PaperRunner:
             if "breaker" in action:
                 send_telegram(f"ALPACA PAPER (intraday): daily circuit breaker tripped - own equity fell "
                               f"{self.exec.breaker.limit:.0%} today. Flattened; no new entries for {self.exec.breaker.lock_hours:.0f} h.")
+            if action.startswith("profit lock"):
+                pl = self.exec.profit_lock
+                send_telegram(f"ALPACA PAPER (intraday): profit lock - today's gain peaked at ${pl.peak_gain:,.0f} and fell to half of it. "
+                              f"Flattened to keep the rest; no new entries until tomorrow.")
             if "flatten" in action or "breaker" in action:      # OwnBook.flatten_all already recorded each exit
                 self.exits.positions.clear()
             elif action.startswith("stale exit "):

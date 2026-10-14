@@ -1,5 +1,5 @@
 [Unit]
-Description=Swing runner opening-auction orders (weekdays 09:20 ET)
+Description=Swing runner orders at the open (starts 09:20 ET, sends at 09:30)
 
 [Timer]
 OnCalendar=Mon..Fri 09:20 America/New_York

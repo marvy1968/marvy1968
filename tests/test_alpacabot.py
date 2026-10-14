@@ -843,18 +843,37 @@ class UniverseTests(unittest.TestCase):
         import tempfile
         from unittest import mock
         from alpacabot import gates, paper
-        with tempfile.TemporaryDirectory() as d:
-            cfg = Path(d) / "brain_config.json"
-            cfg.write_text(json.dumps({"symbols": ["XOM"], "sectors": {"XOM": "XLE"}}))
-            with mock.patch.object(paper, "ENGAGED", cfg):
+        sector0, heat0 = dict(gates.SECTOR), list(gates.HEAT_ETFS)
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                cfg = Path(d) / "brain_config.json"
+                cfg.write_text(json.dumps({"symbols": ["MU"], "sectors": {"MU": "XLK"}}))
+                with mock.patch.object(paper, "ENGAGED", cfg):
+                    syms = paper.engaged_symbols()
+            self.assertIn("MU", syms)
+            self.assertEqual(gates.SECTOR["MU"], "XLK")
+            with self.assertRaises(ValueError):
+                gates.add_sector("ABC", "NOTANETF")
+        finally:
+            gates.SECTOR.clear(); gates.SECTOR.update(sector0)
+            gates.HEAT_ETFS[:] = heat0
+
+    def test_universe_is_top5_per_sector_and_every_stock_rates_its_sector_etf(self):
+        from unittest import mock
+        from alpacabot import gates, paper, universe
+        self.assertEqual(len(universe.SECTOR_TOP5), 11)
+        self.assertTrue(all(len(v) == 5 for v in universe.SECTOR_TOP5.values()))
+        self.assertEqual(len(set(universe.STOCKS)), 55)
+        sector0, heat0 = dict(gates.SECTOR), list(gates.HEAT_ETFS)
+        try:
+            with mock.patch.object(paper, "ENGAGED", Path("/nonexistent/brain_config.json")):
                 syms = paper.engaged_symbols()
-        self.assertIn("XOM", syms)
-        self.assertEqual(gates.SECTOR["XOM"], "XLE")
-        self.assertIn("XLE", gates.HEAT_ETFS)
-        with self.assertRaises(ValueError):
-            gates.add_sector("ABC", "NOTANETF")
-        del gates.SECTOR["XOM"]
-        gates.HEAT_ETFS.remove("XLE")
+            self.assertEqual(set(syms), set(universe.STOCKS) | {"SPY", "QQQ", "IWM"})
+            self.assertEqual(gates.SECTOR["XOM"], "XLE")
+            self.assertTrue(set(universe.SECTOR_ETFS) <= set(gates.HEAT_ETFS))
+        finally:
+            gates.SECTOR.clear(); gates.SECTOR.update(sector0)
+            gates.HEAT_ETFS[:] = heat0
 
 
 class LimitEntryTests(unittest.TestCase):
@@ -996,6 +1015,8 @@ class SwingValidateTests(unittest.TestCase):
         from alpacabot.experts import ExpertSwing
         from alpacabot.research import SWING_CANDIDATES
         self.assertEqual(SWING_CANDIDATES, [("brooks_pullback", 10), ("williams_r", 10), ("donchian_turtle", 10)])
+        from alpacabot.research import RSI2_CANDIDATES
+        self.assertEqual(RSI2_CANDIDATES, [("connors_rsi2", 10)])
         idx = pd.bdate_range("2018-01-02", periods=500, tz="America/New_York")
         rng = np.random.default_rng(8)
         c = 100 * np.exp(np.cumsum(rng.normal(0.0005, 0.012, len(idx))))
@@ -1022,16 +1043,45 @@ class SwingUnitTests(unittest.TestCase):
             def submit_order(self, *a, **k): self.sent.append(a); return {"id": "x"}
             def order(self, oid): return {"id": oid, "status": "filled", "filled_qty": "10", "filled_avg_price": "100"}
         with tempfile.TemporaryDirectory() as d:
-            r = SwingRunner(B(), state_dir=d, fetch=lambda *a: pd.DataFrame())
+            r = SwingRunner(B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
             r.state["plan"] = {"made": "2026-11-25", "exits": [], "entries": [{"symbol": "NVDA", "qty": 10, "stop": 90.0, "rs": 0.1, "signal_close": 100}]}
             self.assertEqual(r.open(datetime(2026, 11, 25, 9, 20, tzinfo=et)), {})          # plan made today: not today
             self.assertEqual(r.open(datetime(2026, 11, 26, 9, 20, tzinfo=et)), {})          # holiday: waits
             self.assertEqual(B.sent, [])
             r.open(datetime(2026, 11, 27, 9, 20, tzinfo=et), wait_until=datetime(2026, 11, 27, 9, 20, tzinfo=et))
-            self.assertEqual([x[:5] for x in B.sent], [("NVDA", 10, "buy", "market", "opg"), ("NVDA", 10, "sell", "stop", "gtc")])
+            self.assertEqual([x[:5] for x in B.sent], [("NVDA", 10, "buy", "market", "day"), ("NVDA", 10, "sell", "stop", "gtc")])
             self.assertTrue(all(x[5].startswith("sw-") for x in B.sent))
             self.assertIn("NVDA", r.state["positions"])
             self.assertEqual(r.open(datetime(2026, 11, 27, 9, 21, tzinfo=et)), {})          # never twice
+
+    def test_unfilled_entry_is_cancelled_and_a_partial_fill_is_tracked(self):
+        import tempfile
+        from unittest import mock
+        from zoneinfo import ZoneInfo
+        from alpacabot import swing_paper
+        et = ZoneInfo("America/New_York")
+
+        class B:
+            def __init__(self): self.sent, self.cancelled = [], []
+            def equity(self): return 50000.0
+            def is_session(self, day): return True
+            def submit_order(self, *a, **k): self.sent.append(a); return {"id": a[0]}
+            def cancel_order(self, oid): self.cancelled.append(oid)
+            def order(self, oid):
+                if oid not in self.cancelled:
+                    return {"id": oid, "status": "accepted", "filled_qty": "0"}
+                return {"id": oid, "status": "canceled", "filled_qty": "4" if oid == "AMD" else "0", "filled_avg_price": "100"}
+        b = B()
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(swing_paper, "_alert"):
+            r = swing_paper.SwingRunner(b, state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            r.state["plan"] = {"made": "2025-10-13", "exits": [], "entries": [
+                {"symbol": "AMD", "qty": 5, "stop": 90.0, "rs": 0.1, "signal_close": 100},
+                {"symbol": "META", "qty": 2, "stop": 90.0, "rs": 0.1, "signal_close": 100}]}
+            r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+            self.assertEqual(sorted(b.cancelled), ["AMD", "META"])                       # nothing left working at the broker
+            self.assertEqual(r.state["positions"]["AMD"]["qty"], 4)                      # the partial fill is held, with its stop
+            self.assertNotIn("META", r.state["positions"])
+            self.assertIn(("AMD", 4, "sell", "stop", "gtc"), [x[:5] for x in b.sent])
 
 
 class WeeklyLockTests(unittest.TestCase):
@@ -1153,3 +1203,40 @@ class PausePausesTests(unittest.TestCase):
             self.assertIn("no intraday edge", (Path(d) / "KILL_SWITCH").read_text())
             main(["paper-pause", "off", "--state", d])
             self.assertFalse((Path(d) / "KILL_SWITCH").exists())
+
+
+class ProfitLockTests(unittest.TestCase):
+    def test_lock_arms_at_half_a_percent_and_flattens_after_giving_back_half(self):
+        from alpacabot.execution import ProfitLock
+        t = datetime(2026, 10, 14, 10, 0)
+        pl = ProfitLock(arm=0.005, keep=0.5)
+        self.assertFalse(pl.update(50000.0, t))                    # day start
+        self.assertFalse(pl.update(50200.0, t))                    # +0.4%: not armed
+        self.assertFalse(pl.update(50080.0, t))                    # gave back most of an unarmed gain: no lock
+        self.assertFalse(pl.update(50400.0, t))                    # +0.8%: armed, peak +400
+        self.assertFalse(pl.update(50250.0, t))                    # +250 > half of 400
+        self.assertTrue(pl.update(50200.0, t))                     # +200 = half: lock
+        self.assertFalse(pl.entries_allowed(t))
+        self.assertFalse(pl.update(50100.0, t))                    # trips once
+        nxt = datetime(2026, 10, 15, 9, 35)
+        self.assertFalse(pl.update(50200.0, nxt))                  # a new day starts fresh
+        self.assertTrue(pl.entries_allowed(nxt))
+
+    def test_executor_flattens_and_blocks_entries_on_lock(self):
+        from alpacabot.execution import Executor, ProfitLock
+
+        class B:
+            eq, flat = 50000.0, 0
+            def equity(self): return self.eq
+            def flatten_all(self): self.flat += 1
+        b = B()
+        ex = Executor(b, profit_lock=ProfitLock(), sleep=lambda *_: None)
+        t = datetime(2026, 10, 14, 11, 0)
+        ex.opened["NVDA"] = t
+        ex.on_tick(t)
+        b.eq = 50500.0
+        ex.on_tick(t)
+        b.eq = 50240.0
+        self.assertEqual(ex.on_tick(t), ["profit lock: flattened"])
+        self.assertEqual(b.flat, 1)
+        self.assertEqual(ex.try_enter("AAPL", None, 100.0, t), "profit lock")

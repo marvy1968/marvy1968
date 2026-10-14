@@ -130,6 +130,34 @@ class CircuitBreaker:
         return not (self.locked_until and now < self.locked_until)
 
 
+@dataclass
+class ProfitLock:
+    """Keeps a good day from being handed back. Once the day's gain has reached arm (fraction of the day's opening equity), a fall to
+    keep x the best gain seen today flattens everything and stops new entries until tomorrow (e.g. up $400 at the high, back to +$200:
+    flatten, the day ends +$200). A risk rule chosen by the owner, not a backtested edge: it also cuts days that dip and recover."""
+    arm: float = 0.005
+    keep: float = 0.5
+    day: object = None
+    start: float = 0.0
+    peak_gain: float = 0.0
+    locked_day: object = None
+
+    def update(self, equity: float, now: datetime) -> bool:
+        if self.day != now.date():
+            self.day, self.start, self.peak_gain = now.date(), equity, 0.0
+        if self.locked_day == now.date() or self.start <= 0:
+            return False
+        gain = equity - self.start
+        self.peak_gain = max(self.peak_gain, gain)
+        if self.peak_gain >= self.arm * self.start and gain <= self.keep * self.peak_gain:
+            self.locked_day = now.date()
+            return True
+        return False
+
+    def entries_allowed(self, now: datetime) -> bool:
+        return self.locked_day != now.date()
+
+
 def stale_positions(open_positions: dict[str, datetime], now: datetime, max_minutes: float = 45.0) -> list[str]:
     """Symbols held longer than max_minutes: the trade has neither hit its target nor its stop, so free the capital."""
     return [s for s, t0 in open_positions.items() if (now - t0).total_seconds() >= max_minutes * 60]
@@ -150,6 +178,7 @@ class Executor:
     broker: object                      # needs: equity(), quote(sym)->(bid,ask), submit_bracket(sym, qty, stop, target), close(sym), flatten_all()
     window: EntryWindow = field(default_factory=EntryWindow)
     breaker: CircuitBreaker = field(default_factory=CircuitBreaker)
+    profit_lock: ProfitLock | None = None
     risk_pct: float = 0.005
     max_pos_frac: float = 0.25
     max_spread: float = 0.05
@@ -179,6 +208,10 @@ class Executor:
             retry_call(self.broker.flatten_all, sleep=self.sleep)
             self.opened.clear()
             return ["breaker: flattened"]
+        if self.profit_lock and self.profit_lock.update(equity, now_et):
+            retry_call(self.broker.flatten_all, sleep=self.sleep)
+            self.opened.clear()
+            return ["profit lock: flattened"]
         if self.window.must_flatten(now_et) and self.opened:
             retry_call(self.broker.flatten_all, sleep=self.sleep)
             self.opened.clear()
@@ -195,6 +228,8 @@ class Executor:
             return "kill switch"
         if not self.breaker.entries_allowed(now_et):
             return "breaker lock"
+        if self.profit_lock and not self.profit_lock.entries_allowed(now_et):
+            return "profit lock"
         if not self.window.entries_allowed(now_et):
             return "outside entry window"
         coid = f"ab-{symbol}-{now_et:%Y%m%d}-{signal.i}"

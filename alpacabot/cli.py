@@ -13,6 +13,7 @@ from .gates import HEAT_ETFS, add_gates
 from .research import GRIDS, brain_walk_forward, exit_study, filters_study, limit_study, sector_td_robust, sector_td_study, swing_expert_study, swing_validate, symbol_check, verdict, walk_forward
 from .strategies import DualRegime
 
+from .universe import AS_OF as UNIVERSE_AS_OF, STOCKS as UNIVERSE_STOCKS
 SECTOR_TD_THEIRS = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
 # 2016 large caps that are NOT in the list above (no hindsight pick of today's winners): many of them went sideways or down
 SECTOR_TD_CONTROL = ["XOM", "JNJ", "GE", "JPM", "WFC", "T", "PG", "VZ", "KO", "WMT", "CVX", "PFE", "BAC", "INTC", "CSCO", "HD", "DIS", "MRK", "ORCL", "IBM", "C"]
@@ -78,13 +79,24 @@ def run_all(a) -> int:
                 end2 = date.today()
                 spy2 = load("SPY", "1Day", start, end2, cache)
                 res = {"family": fam, "verdict": "see the table", "universes": {}}
-                for name, syms in (("their 10", SECTOR_TD_THEIRS), ("2016 large caps (control)", SECTOR_TD_CONTROL)):
-                    d_ = {s: load(s, "1Day", start, end2, cache) for s in syms}
+                for name, syms in (("their 10", SECTOR_TD_THEIRS), ("2016 large caps (control)", SECTOR_TD_CONTROL),
+                                   (f"top 5 per sector ({UNIVERSE_AS_OF} caps, 55)", UNIVERSE_STOCKS)):
+                    d_ = {}
+                    for s in syms:
+                        try:
+                            d_[s] = load(s, "1Day", start, end2, cache)
+                        except Exception as exc:
+                            print(f"skip {s}: {exc}")
                     res["universes"][name] = sector_td_robust({k: v for k, v in d_.items() if len(v) > 300}, spy2, date(2016, 3, 1), end2,
                                                               Costs(slip_bps=5.0))
             elif fam == "swing_validate":        # the three pre-declared daily-bar candidates, ONE look at 2021-2022
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_validate(data, test, costs, spy_daily=spy)
+            elif fam == "rsi2_validate":         # connors_rsi2 (passed train, never validated), ONE look at 2021-2022
+                from .research import RSI2_CANDIDATES
+                data = {s: load(s, "1Day", start, end, cache) for s in SWING}
+                res = swing_validate(data, test, costs, spy_daily=spy, candidates=RSI2_CANDIDATES)
+                res["family"] = "rsi2_validate"
             elif fam == "swing_experts":           # the 10 experts on daily bars, multi-day holds, TRAIN years only
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_expert_study(data, train, costs, spy_daily=spy)
@@ -146,7 +158,7 @@ def run_all(a) -> int:
                 if bt:
                     lines.append(f"- block bootstrap ({bt['paths']} paths, {bt['block_days']}-day blocks): CAGR p5/p50/p95 {bt['cagr_p5']:+.1%}/{bt['cagr_p50']:+.1%}/{bt['cagr_p95']:+.1%}, "
                                  f"profitable {bt['share_profitable']:.0%}, maxDD median {bt['maxdd_p50']:.1%}, 95th {bt['maxdd_p95']:.1%}, 99th {bt['maxdd_p99']:.1%}")
-        if fam == "swing_validate":
+        if fam in ("swing_validate", "rsi2_validate"):
             for r in res.get("rows", []):
                 x = r["real"]
                 lines.append(f"- {r['expert']} hold<={r['hold_days']}d: {x.get('trades')}t win {x.get('win_rate') or 0:.0%} exp {x.get('expectancy_pct_notional') or 0:+.3f}% "

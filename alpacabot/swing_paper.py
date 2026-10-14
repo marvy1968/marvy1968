@@ -4,7 +4,7 @@
           exits    every held position whose daily close fell below EMA20
           entries  today's signals, ranked by relative strength, into the free slots (3 max), sized like engine.size_swing:
                    qty = min(equity x 0.35% / (est. risk per share + slippage), equity x 33.3% / price, free cash / price)
-  open  (weekdays 09:20 ET, before the open): opening-auction (OPG) orders for the plan, so fills ARE the open the backtest uses;
+  open  (weekdays 09:20 ET, before the open): market orders for the plan sent seconds after the 09:30 open (the backtest fills at the open);
           after the fills, a broker-side GTC stop at the signal-bar stop price (EMA20 - 1 ATR) for each new position. The stop lives at
           Alpaca, so an overnight position is protected even if this VM is down. A fill at or below its stop (a gap down) is sold at once;
           the backtest skips such a trade.
@@ -25,9 +25,10 @@ import pandas as pd
 
 from .data import NY, _fetch
 from .strategies import SectorTopDown
+from .universe import STOCKS
 
 ET = ZoneInfo(NY)
-UNIVERSE = ["AAPL", "NVDA", "MSFT", "AMD", "TSLA", "AMZN", "GOOGL", "META", "XLK", "QQQ"]
+UNIVERSE = list(STOCKS)          # the 5 largest S&P 500 stocks in each of the 11 sectors (universe.py)
 RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.0035, 3, 0.333, 5.0
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
@@ -154,6 +155,13 @@ class SwingRunner:
         if hasattr(self.b, "is_session") and not self.b.is_session(now.astimezone(ET).date()):
             return {}                                    # holiday: the plan waits for the next session
         tag = now.astimezone(ET).strftime("%Y%m%d")
+        # Alpaca's paper account let all three opening-auction (OPG) orders expire unfilled on 2026-10-13, so orders are plain
+        # market day orders sent a few seconds after the 09:30 open (the backtest fills at the open price).
+        d = now.astimezone(ET)
+        opens = datetime(d.year, d.month, d.day, 9, 30, 5, tzinfo=ET)
+        wait = (opens.astimezone(timezone.utc) - datetime.now(timezone.utc)).total_seconds()
+        if 0 < wait <= 1800:                             # the 09:20 timer; a manual run far from the open does not block
+            self.sleep(wait)
         sent = {}
         for sym in plan["exits"]:
             pos = self.state["positions"].get(sym)
@@ -164,13 +172,13 @@ class SwingRunner:
                     self.b.cancel_order(pos["stop_order_id"])
                 except Exception:
                     log.exception("cancel stop %s", sym)
-            sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell", "market", "opg", f"sw-x-{sym}-{tag}"))
+            sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell", "market", "day", f"sw-x-{sym}-{tag}"))
         for e in plan["entries"]:
-            sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy", "market", "opg", f"sw-e-{e['symbol']}-{tag}"))
+            sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy", "market", "day", f"sw-e-{e['symbol']}-{tag}"))
         plan["done"] = True
         self._save()
         self.journal("orders", now, sent={k: v[0] for k, v in sent.items()})
-        deadline = wait_until or now + timedelta(minutes=15)
+        deadline = wait_until or max(now, opens) + timedelta(minutes=10)
         pending = dict(sent)
         while pending:
             for sym, (kind, o) in list(pending.items()):
@@ -180,9 +188,18 @@ class SwingRunner:
                     del pending[sym]
             if pending and datetime.now(timezone.utc) < deadline.astimezone(timezone.utc):
                 self.sleep(5)
-            elif pending:
-                for sym, (kind, _) in pending.items():
-                    self.journal("open_unfilled", now, symbol=sym, kind=kind)
+            elif pending:                                # never leave a working order behind: a late fill would be untracked
+                for sym, (kind, o) in pending.items():
+                    try:
+                        self.b.cancel_order(o["id"])
+                        st = self.b.order(o["id"])
+                    except Exception:
+                        log.exception("cancel unfilled %s", sym)
+                        st = {}
+                    if float(st.get("filled_qty") or 0) > 0:
+                        self._settle_open(sym, kind, {**st, "status": "filled"}, now)
+                    else:
+                        self.journal("open_unfilled", now, symbol=sym, order=kind, status=st.get("status"))
                 break
         self._save()
         return sent
@@ -199,6 +216,7 @@ class SwingRunner:
         e = next(x for x in self.state["plan"]["entries"] if x["symbol"] == sym)
         if not filled:
             self.journal("entry_not_filled", now, symbol=sym, status=o.get("status"))
+            _alert(f"SWING (paper): {sym} buy not filled ({o.get('status')})")
             return
         qty = int(float(o.get("filled_qty") or e["qty"]))
         pos = {"qty": qty, "entry": px, "stop": e["stop"], "entry_date": now.astimezone(ET).date().isoformat()}
