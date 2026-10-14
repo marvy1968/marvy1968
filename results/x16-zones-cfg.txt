@@ -1,3 +1,26 @@
 $ show alpaca_paper/zones.json
-started 2026-10-14 10:07:19 EDT
-RUNNING...
+started 2026-10-14 10:07:19 EDT, took 0s, exit 0
+
+{
+ "live": true,
+ "direction_first": true,
+ "use_map": true,
+ "profiles": {
+  "trend": {
+   "chase_atr": 0.5,
+   "lookback": 20,
+   "min_r": 1.0,
+   "default_r": 2.0,
+   "exhaust_r": 1.5,
+   "target": "extreme"
+  },
+  "range": {
+   "chase_atr": 0.5,
+   "lookback": 20,
+   "min_r": 0.75,
+   "default_r": 1.5,
+   "exhaust_r": 1.5,
+   "target": "mean"
+  }
+ }
+}
