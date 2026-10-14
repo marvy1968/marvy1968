@@ -1,3 +1,33 @@
 $ alpaca run-all --families fx_lien_fader_h1_ladder fx_f0_h4_ladder fx_box200_h1 fx_box200_h1_ladder
-started 2026-10-14 12:55:10 EDT
-RUNNING...
+started 2026-10-14 12:55:10 EDT, took 13s, exit 0
+
+daily data ready
+## fx_lien_fader_h1_ladder: ERROR KeyError('fx_lien_fader_h1_ladder')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## fx_f0_h4_ladder: ERROR KeyError('fx_f0_h4_ladder')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## fx_box200_h1: ERROR KeyError('fx_box200_h1')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+## fx_box200_h1_ladder: ERROR KeyError('fx_box200_h1_ladder')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
