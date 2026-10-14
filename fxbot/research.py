@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import ConsensusMR, Donchian, RangeMR, RegimeSwitch, TsMom
+from .strategies import AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -27,6 +27,12 @@ FAMILIES = {
     "fx_range_h1": ("H1", RangeMR, {"bb_k": [2.0, 2.5], "stop_atr": [1.5, 2.5], "asian_only": [False, True]}),
     "fx_regime_h4": ("H4", RegimeSwitch, {"entry_n": [20, 55], "bb_k": [2.0, 2.5], "stop_atr": [2.0, 3.0]}),
     "fx_consensus_h1": ("H1", ConsensusMR, {"votes": [3]}),          # the owner's daemon exactly as found: one setting, nothing tuned
+    # added 2026-10-14 from the owner's other forex bots (pre-declared, before any run)
+    "fx_asian_breakout_h1": ("H1", AsianBreakout, {"buffer_atr": [0.0, 0.1], "exit_hour": [12, 16]}),
+    "fx_rangebox_h1": ("H1", RangeBoxFade, {"stop_atr": [1.2]}),       # RangeBox_Master frozen: one setting
+    "fx_pullback_h4": ("H4", EmaPullback, {"trend_n": [100, 200]}),
+    "fx_pullback_d": ("D", EmaPullback, {"trend_n": [100, 200]}),
+    "fx_nr7_d": ("D", NR7Breakout, {"max_bars": [5]}),
 }
 
 

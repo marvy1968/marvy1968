@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fxbot.engine import Book, _nights, metrics, portfolio, simulate
-from fxbot.strategies import ConsensusMR, Donchian, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
+from fxbot.strategies import AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
 
 
 def bars(mid, spread=0.0002, freq="D", start="2016-01-04 22:00"):
@@ -89,11 +89,40 @@ class StrategyTests(unittest.TestCase):
     def test_families_produce_both_sides_and_finite_stops(self):
         rng = np.random.default_rng(5)
         m = self._m(1.1 * np.exp(np.cumsum(rng.normal(0, 0.006, 900))))
-        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR()):
+        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR(), EmaPullback(100), NR7Breakout()):
             f = s.frame(m)
             self.assertGreater(int(f["long"].sum()), 0, s.name)
             self.assertGreater(int(f["short"].sum()), 0, s.name)
             self.assertTrue(np.isfinite(f["stop"].iloc[-1]))
+
+    def test_asian_breakout_first_signal_after_0700_only(self):
+        idx = pd.date_range("2016-01-04 00:00", periods=24 * 30, freq="h", tz="UTC")
+        rng = np.random.default_rng(2)
+        c = pd.Series(1.1 + rng.normal(0, 0.0004, len(idx)).cumsum() * 0.2, index=idx)
+        last = idx.normalize()[-1]
+        day = (idx.normalize() == last)
+        base = c[day & (idx.hour < 7)].mean()
+        c[day & (idx.hour < 7)] = base                                     # a tight Asian range on the last day
+        c[day & (idx.hour >= 7)] = base + 0.01                             # then a London breakout up
+        m = pd.DataFrame({"open": c.shift(1).fillna(c.iloc[0]), "high": c + 0.0001, "low": c - 0.0001, "close": c})
+        f = AsianBreakout(0.0, 16).frame(m)
+        hits = f.index[f["long"] & (f.index.normalize() == last)]
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].hour, 7)                                  # the 07:00 bar closes 08:00; the 06:00 bar is still Asia
+        self.assertFalse(f["short"][f.index.normalize() == last].any())
+        self.assertTrue(f.loc[hits[0], "stop"] > 0)
+
+    def test_rangebox_never_fires_in_a_trend_and_entries_sit_at_the_box_edge(self):
+        # the frozen gate (47 of 50 closes inside the bands) is very strict: even pure noise rarely passes it, so only properties are tested
+        rng = np.random.default_rng(6)
+        m = self._m(1.1 + rng.normal(0, 0.002, 1500))
+        f = RangeBoxFade().frame(m)
+        c, lo_box = m["close"], m["low"].rolling(40).min()
+        w = m["high"].rolling(40).max() - lo_box
+        self.assertTrue((c[f["long"]] <= (lo_box + 0.15 * w)[f["long"]] + 1e-12).all())
+        trend = self._m(1.1 * np.exp(np.cumsum(np.full(800, 0.003))))     # a straight trend: never a box
+        g = RangeBoxFade().frame(trend)
+        self.assertEqual(int(g["long"].sum()) + int(g["short"].sum()), 0)
 
     def test_walk_forward_runs_end_to_end(self):
         from fxbot import research

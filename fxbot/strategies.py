@@ -125,3 +125,97 @@ class ConsensusMR:
         xl = (r > 50).astype(int) + (c >= mid_).astype(int) + (k > 65).astype(int) >= 2
         xs = (r < 50).astype(int) + (c <= mid_).astype(int) + (k < 35).astype(int) >= 2
         return _frame(m.index, ok & (lv >= self.votes), ok & (sv >= self.votes), xl, xs, self.stop_atr * atr(m, 14), (lv - sv).abs().astype(float))
+
+
+class AsianBreakout:
+    """Asian-range breakout at the London open (H1). Range = high/low of bars 00:00-06:59 UTC; only on days the range is narrower than
+    1.5x its 20-day median. Entry on a bar closing 07:00-10:00 UTC: long when close > Asian high + buffer x ATR14, short when close <
+    Asian low - buffer x ATR14; first signal of the day only. Stop = distance to the far side of the range, capped at 1.5 ATR. Exit at the
+    close of the bar starting `exit_hour` UTC (max_bars 9 as a backstop)."""
+
+    def __init__(self, buffer_atr: float = 0.1, exit_hour: int = 16, max_bars: int = 9):
+        self.buffer_atr, self.exit_hour, self.max_bars = buffer_atr, exit_hour, max_bars
+        self.name = f"asian_breakout b{buffer_atr} x{exit_hour}"
+
+    def frame(self, m):
+        idx = m.index.tz_convert("UTC")
+        hour, day = idx.hour, idx.normalize()
+        a = atr(m, 14)
+        asia = pd.Series(hour < 7, index=m.index)
+        hi = m["high"].where(asia).groupby(day).transform("max")
+        lo = m["low"].where(asia).groupby(day).transform("min")
+        width = hi - lo
+        daily_w = width.groupby(day).first()
+        ok_w = (daily_w < 1.5 * daily_w.rolling(20).median()).reindex(day).to_numpy()
+        window = pd.Series((hour >= 6) & (hour <= 9), index=m.index)       # H1 bars starting 06..09 close 07:00..10:00
+        c = m["close"]
+        long_ = window & ok_w & (c > hi + self.buffer_atr * a)
+        short = window & ok_w & (c < lo - self.buffer_atr * a)
+        sig = (long_ | short)
+        firstmask = sig & (sig.astype(int).groupby(day).cumsum() == 1)
+        stop_l, stop_s = (c - lo).clip(upper=1.5 * a), (hi - c).clip(upper=1.5 * a)
+        stop = pd.Series(np.where(long_, stop_l, stop_s), index=m.index)
+        out_ = pd.Series(hour == self.exit_hour, index=m.index)
+        return _frame(m.index, long_ & firstmask, short & firstmask, out_, out_, stop, (c - hi).abs() / a)
+
+
+class RangeBoxFade:
+    """The owner's RangeBox_Master FOREX rules on H1 (frozen; partial take-profits replaced by one exit at the middle of the box).
+    Gate: ADX14 < 20, |EMA50 - EMA50[2 bars ago]| <= 0.25 x ATR14, >= 47 of the last 50 closes inside Bollinger(20,2). Box = last 40
+    bars' high/low, width >= 2 ATR. Long: close <= box low + 0.15 x width and close <= lower band; short mirrors. Exit at the box middle;
+    stop 1.2 ATR; max 40 bars. Note: the 47-of-50 gate is very strict (pure noise rarely passes it), so expect few trades."""
+
+    def __init__(self, stop_atr: float = 1.2, max_bars: int = 40):
+        self.stop_atr, self.max_bars, self.name = stop_atr, max_bars, "rangebox_fade (owner's)"
+
+    def frame(self, m):
+        from alpacabot.indicators import ema
+        c, a = m["close"], atr(m, 14)
+        _, up, lo = bollinger(c, 20, 2.0)
+        inside = ((c <= up) & (c >= lo)).astype(int).rolling(50).sum() >= 47
+        e = ema(c, 50)
+        gate = (adx(m, 14) < 20) & ((e - e.shift(2)).abs() <= 0.25 * a) & inside
+        bh, bl = m["high"].rolling(40).max(), m["low"].rolling(40).min()
+        w = bh - bl
+        gate = gate & (w >= 2 * a)
+        mid_box = bl + 0.5 * w
+        return _frame(m.index, gate & (c <= bl + 0.15 * w) & (c <= lo), gate & (c >= bh - 0.15 * w) & (c >= up),
+                      c >= mid_box, c <= mid_box, self.stop_atr * a, (w / a))
+
+
+class EmaPullback:
+    """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
+    bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,
+    at least 0.5 ATR. Exit when the close falls 0.5 ATR through EMA20; max 30 bars."""
+
+    def __init__(self, trend_n: int = 100, max_bars: int = 30):
+        self.trend_n, self.max_bars, self.name = trend_n, max_bars, f"ema20_pullback sma{trend_n}"
+
+    def frame(self, m):
+        from alpacabot.indicators import ema, sma
+        c, a, o = m["close"], atr(m, 14), m["open"]
+        e, s = ema(c, 20), sma(c, self.trend_n)
+        rng = m["high"] - m["low"]
+        long_ = (c > e) & (e > s) & (e > e.shift(5)) & (m["low"] <= e) & (c > o)
+        short = (c < e) & (e < s) & (e < e.shift(5)) & (m["high"] >= e) & (c < o)
+        stop_l = (c - (e - 0.5 * rng)).clip(lower=0.5 * a)
+        stop_s = ((e + 0.5 * rng) - c).clip(lower=0.5 * a)
+        stop = pd.Series(np.where(long_, stop_l, stop_s), index=m.index)
+        return _frame(m.index, long_, short, c < e - 0.5 * a, c > e + 0.5 * a, stop, ((c - e).abs() / a))
+
+
+class NR7Breakout:
+    """Crabel NR7 (daily): yesterday's range was the narrowest of 7; today closes beyond it -> enter that way. Stop = distance to the NR7
+    bar's far side; exit on a close back inside the NR7 bar or after 5 bars."""
+
+    def __init__(self, max_bars: int = 5):
+        self.max_bars, self.name = max_bars, "nr7_breakout"
+
+    def frame(self, m):
+        r = m["high"] - m["low"]
+        nr7 = (r == r.rolling(7).min()).shift(1).fillna(False).astype(bool)
+        ph, pl, c = m["high"].shift(1), m["low"].shift(1), m["close"]
+        long_, short = nr7 & (c > ph), nr7 & (c < pl)
+        stop = pd.Series(np.where(long_, c - pl, ph - c), index=m.index)
+        hold_h, hold_l = ph.where(long_ | short).ffill(), pl.where(long_ | short).ffill()
+        return _frame(m.index, long_, short, c < hold_h, c > hold_l, stop, (r.shift(1) / atr(m, 14)))
