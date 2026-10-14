@@ -1,0 +1,3 @@
+$ alpaca history --days 3 --stocks-only
+started 2026-10-13 20:45:11 EDT
+RUNNING...
