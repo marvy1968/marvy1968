@@ -125,9 +125,10 @@ class Book:
 def portfolio(trades: list[Trade], book: Book) -> tuple[pd.DataFrame, pd.Series]:
     """Takes trades in entry order (best rank first on ties), skips one if the book is full or the instrument is held.
     Equity is marked at each closed trade (realized); the daily curve is built from realized P&L by exit day."""
-    eq, open_, rows = book.equity, [], []
+    eq, open_, rows = book.equity, [], []        # eq = realized equity: a trade's P&L counts only once it has closed (no look-ahead)
     for t in sorted(trades, key=lambda t: (t.entry_time, -t.rank)):
-        for p in [p for p in open_ if p["t"].exit_time <= t.entry_time]:
+        for p in sorted([p for p in open_ if p["t"].exit_time <= t.entry_time], key=lambda p: p["t"].exit_time):
+            eq += p["pnl"]
             open_.remove(p)
         if len(open_) >= book.max_positions or any(p["t"].instrument == t.instrument for p in open_):
             continue
@@ -141,10 +142,9 @@ def portfolio(trades: list[Trade], book: Book) -> tuple[pd.DataFrame, pd.Series]
         pnl = units * usd_per_unit(t.instrument, move, t.exit_px)
         fin = units * _usd_notional(t.instrument, t.entry_px) * FIN_PER_NIGHT * t.nights
         pnl -= fin
-        eq += pnl
-        open_.append({"t": t})
+        open_.append({"t": t, "pnl": pnl})
         rows.append({"instrument": t.instrument, "side": t.side, "entry": t.entry_time, "exit": t.exit_time, "units": units, "pnl": pnl,
-                     "financing": fin, "r": pnl / (eq - pnl) / book.risk_pct, "reason": t.reason, "bars": t.bars})
+                     "financing": fin, "r": pnl / eq / book.risk_pct, "reason": t.reason, "bars": t.bars})
     fills = pd.DataFrame(rows)
     if not len(fills):
         return fills, pd.Series(dtype=float)

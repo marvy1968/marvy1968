@@ -87,6 +87,19 @@ class FirewallTests(unittest.TestCase):
         self.assertEqual(list(fills["instrument"]), ["EUR_USD", "USD_JPY", "USD_CAD"])   # GBP_USD would be a 3rd short-USD bet
 
 
+class NoLookAheadTests(unittest.TestCase):
+    def test_a_trade_is_sized_on_equity_without_unclosed_pnl(self):
+        from fxbot.engine import Trade
+        t0 = pd.Timestamp("2020-01-06 10:00", tz="UTC")
+        big_win = Trade("EUR_USD", 1, t0, t0 + pd.Timedelta(days=10), 1.10, 1.20, 0.01, "signal", 50, 0)      # still open when the next one starts
+        nxt = Trade("GBP_USD", 1, t0 + pd.Timedelta(days=1), t0 + pd.Timedelta(days=2), 1.30, 1.30, 0.01, "time", 5, 0)
+        later = Trade("AUD_USD", 1, t0 + pd.Timedelta(days=20), t0 + pd.Timedelta(days=21), 0.70, 0.70, 0.01, "time", 5, 0)
+        fills, _ = portfolio([big_win, nxt, later], Book(equity=100_000, risk_pct=0.005, max_positions=4, leverage=1000))
+        u = dict(zip(fills["instrument"], fills["units"]))
+        self.assertEqual(u["GBP_USD"], 50_000)                      # 0.5% of 100k / 0.01: the open winner is not counted yet
+        self.assertGreater(u["AUD_USD"], 50_000)                    # after it closed, its profit is
+
+
 class TargetTests(unittest.TestCase):
     def test_target_fills_at_its_level_after_the_stop_check(self):
         class T(Always):

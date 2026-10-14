@@ -57,7 +57,7 @@ def main(argv=None) -> int:
                      f"- train: {t.get('trades')}t PF {t.get('profit_factor') or 0:.2f} total {t.get('total_return') or 0:+.1%} "
                      f"maxDD {t.get('max_drawdown') or 0:.1%} avg/day {t.get('avg_daily_pct') or 0:+.3f}%\n"
                      f"- validate: {v.get('trades')}t win {v.get('win_rate') or 0:.0%} PF {v.get('profit_factor') or 0:.2f} total {v.get('total_return') or 0:+.1%} "
-                     f"CAGR {v.get('cagr') or 0:+.1%} maxDD {v.get('max_drawdown') or 0:.1%} avg/day {v.get('avg_daily_pct') or 0:+.3f}% "
+                     f"CAGR {v.get('cagr') or 0:+.1%} maxDD(closed trades) {v.get('max_drawdown') or 0:.1%} avg/day {v.get('avg_daily_pct') or 0:+.3f}% "
                      f"financing ${v.get('financing_paid') or 0:,.0f}\n"
                      f"- spread x2 total {(res.get('spread_x2') or {}).get('total_return') or 0:+.1%} | placebo PF {res.get('placebo_pf_mean') or 0:.2f}, "
                      f"real beats {res.get('beats_placebo_share') or 0:.0%} | PASS {res.get('passes')}\n")
