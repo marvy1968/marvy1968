@@ -1,3 +1,34 @@
 $ alpaca history --days 3 --stocks-only
-started 2026-10-13 20:45:11 EDT
-RUNNING...
+started 2026-10-13 20:45:11 EDT, took 6s, exit 0
+
+STOCKS ONLY (crypto removed)
+ACCOUNT HISTORY (paper) 2026-10-12 .. 2026-10-13: 435 fills, 35 symbols, bots by order-id prefix: ab, sx, untagged
+
+== BY BOT (closed round trips, before fees; 'ab' = the new Marv bot)
+bot         trips  win%      P&L $    avg $  avg %  med hold  scalp/day/swing short%  top symbols (trips)
+ab            305    45       -259     -0.8   0.01       25m   163/124/18        42  AAPL (38), SPY (38), NVDA (36), AMZN (32), QQQ (32), IWM (29)
+
+== BY STYLE (all bots)
+day    trips   124  win  40%  P&L $        46  avg +0.029%/trip  symbols: NVDA, QQQ, AAPL, IWM, TSLA, AMD, AMZN, MSFT
+scalp  trips   163  win  42%  P&L $      -398  avg -0.052%/trip  symbols: SPY, AAPL, AMZN, META, MSFT, QQQ, IWM, AMD
+swing  trips    18  win 100%  P&L $        93  avg +0.499%/trip  symbols: NVDA, QQQ, TSLA, AAPL, IWM, SPY
+
+== BY SYMBOL (all bots, best and worst by P&L)
+NVDA      trips   36  win  64%  P&L $      122  bots ab           styles day+swing
+AMD       trips   21  win  71%  P&L $       85  bots ab           styles day+scalp
+IWM       trips   29  win  62%  P&L $        4  bots ab           styles day+scalp+swing
+TSLA      trips   27  win  44%  P&L $       -8  bots ab           styles day+scalp+swing
+SPY       trips   38  win  61%  P&L $       -9  bots ab           styles day+scalp+swing
+QQQ       trips   32  win  41%  P&L $      -11  bots ab           styles day+scalp+swing
+MSFT      trips   27  win  44%  P&L $      -18  bots ab           styles day+scalp
+AAPL      trips   38  win  21%  P&L $      -40  bots ab           styles day+scalp+swing
+AMZN      trips   32  win  19%  P&L $     -127  bots ab           styles day+scalp
+META      trips   25  win  24%  P&L $     -258  bots ab           styles day+scalp
+
+== STILL OPEN (net shares by bot, from fills): ab:AAPL +3, ab:IWM -1, ab:NVDA -60, ab:QQQ -3, ab:SPY -1, ab:TSLA -2, sx:DUK +24, untagged:AAPL -3, untagged:ADBE -6, untagged:ANET -19, untagged:APA +6, untagged:APTV +15, untagged:CHEF -2, untagged:COP -1, untagged:CRWD -14, untagged:DIA -10, untagged:DIS -7, untagged:DT -3, untagged:DUK -24, untagged:ECPG -43, untagged:FTNT -20, untagged:GOOGL -9, untagged:HPE -61, untagged:INTC -1, untagged:IWM +1, untagged:JPM -25, untagged:MKTX -30, untagged:NET -10, untagged:NTAP -22, untagged:NVDA +60, untagged:OXY +44, untagged:PANW -9, untagged:PBF -1, untagged:QCOM -1, untagged:QQQ +3, untagged:SNOW -17, untagged:SPY +1, untagged:TSLA +2
+
+Notes: P&L is from fill prices, before regulatory fees; crypto fills are included under their pair symbol.
+A round trip whose opening fill is older than the period start is not counted.
+== BY MONTH (closed trips)
+month     trips  win%      P&L $   scalp $ / day $ / swing $
+2026-10     305    45       -259   -398 / 46 / 93
