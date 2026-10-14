@@ -135,6 +135,46 @@ class ProfitLockTests(unittest.TestCase):
         self.assertNotEqual(t.reason, "lock")
 
 
+class ZoneTests(unittest.TestCase):
+    class Hold(Always):
+        def frame(self, m):
+            f = super().frame(m)
+            f["exit_long"] = False
+            return f
+
+    def _zoned(self, d, **kw):
+        from fxbot.strategies import Zoned
+        return simulate("EUR_USD", d, Zoned(self.Hold(1, stop=0.01), lookback=3, **kw))
+
+    def test_exhaustion_zone_takes_profit_at_the_prior_high(self):
+        path = [1.10, 1.13, 1.10, 1.10, 1.115, 1.14, 1.14]                      # prior 3-bar high ~1.13 is >= 1R (0.01) above entry
+        d = bars(path, spread=0.0)
+        t = self._zoned(d, chase_atr=99)[0]
+        self.assertEqual(t.reason, "target")
+        self.assertLess(t.exit_px, 1.14)
+
+    def test_entry_zone_skips_a_chased_fill(self):
+        from fxbot.strategies import Zoned
+
+        class Late(self.Hold):                                                     # signal on bar 20, once ATR exists
+            def frame(self, m):
+                f = super().frame(m)
+                f["long"] = [i == 20 for i in range(len(m))]
+                return f
+        d = bars([1.10 + 0.001 * (i % 2) for i in range(30)], spread=0.0)
+        d.iloc[21, d.columns.get_loc("ao")] = 1.20                               # the next open gaps far past the signal close
+        self.assertEqual(simulate("EUR_USD", d, Zoned(Late(1, stop=0.01), lookback=3)), [])
+        d.iloc[21, d.columns.get_loc("ao")] = 1.1005                             # a normal fill is taken
+        self.assertEqual(len(simulate("EUR_USD", d, Zoned(Late(1, stop=0.01), lookback=3))), 1)
+
+    def test_exhaustion_bar_exits_after_a_big_run(self):
+        path = [1.10, 1.10, 1.10, 1.125, 1.13, 1.12, 1.12, 1.12]               # +2.5R then a bar closing under the last bar's low
+        d = bars(path, spread=0.0)
+        t = self._zoned(d, chase_atr=99, min_r=50, default_r=50)[0]           # targets out of reach: only the exhaustion bar can exit
+        self.assertEqual(t.reason, "exhausted")
+        self.assertGreater(t.exit_px, t.entry_px)
+
+
 class TargetTests(unittest.TestCase):
     def test_target_fills_at_its_level_after_the_stop_check(self):
         class T(Always):
@@ -217,6 +257,15 @@ class StrategyTests(unittest.TestCase):
         trend = self._m(1.1 * np.exp(np.cumsum(np.full(800, 0.003))))     # a straight trend: never a box
         g = RangeBoxFade().frame(trend)
         self.assertEqual(int(g["long"].sum()) + int(g["short"].sum()), 0)
+
+    def test_every_family_builds_and_simulates(self):
+        from fxbot import research
+        rng = np.random.default_rng(11)
+        d = bars(1.1 * np.exp(np.cumsum(rng.normal(0, 0.003, 1500))), freq="h")
+        for name, (gran, cls, grid) in research.FAMILIES.items():
+            p = research._grid(grid)[0]
+            trades = simulate("EUR_USD", d, cls(**p))
+            self.assertIsInstance(trades, list, name)
 
     def test_walk_forward_runs_end_to_end(self):
         from fxbot import research

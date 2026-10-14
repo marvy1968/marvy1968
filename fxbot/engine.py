@@ -71,6 +71,9 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
     tgt_d = f["target"].to_numpy(float) if "target" in f else np.full(n, np.nan)    # optional take-profit distance (checked after the stop)
     fam = f["family"].to_numpy() if "family" in f else None          # RegimeSwitch: a range trade exits by the range rule
     xlr, xsr = (f["exit_long_range"].to_numpy(), f["exit_short_range"].to_numpy()) if fam is not None else (xl, xs)
+    zones = getattr(strat, "zones", None)
+    if zones:
+        zh, zl, zc, za = (f[k].to_numpy(float) for k in ("zone_hi", "zone_lo", "zone_close", "zone_atr"))
     out, i = [], 0
     while i < n - 1:
         side = 1 if lg[i] else -1 if sh[i] else 0
@@ -83,6 +86,13 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
         fill = ao[j0] if side == 1 else bo[j0]
         stop = fill - side * sd
         tgt = fill + side * tgt_d[i] if np.isfinite(tgt_d[i]) and tgt_d[i] > 0 else None
+        if zones:                                  # trade zones decided at entry: entry (no chase), invalidation (= stop), exhaustion
+            if side * (fill - zc[i]) > zones["chase_atr"] * za[i]:
+                i += 1                              # the fill would be too far past the signal: outside the buy/sell zone
+                continue
+            zt = zh[i] if side == 1 else zl[i]
+            ztgt = zt if np.isfinite(zt) and side * (zt - fill) >= zones["min_r"] * sd else fill + side * zones["default_r"] * sd
+            tgt = ztgt if tgt is None else (min(tgt, ztgt) if side == 1 else max(tgt, ztgt))
         lock = getattr(strat, "lock", None)        # (be_at_r, trail_after_r, trail_r): profit lock, applied from the NEXT bar
         best = fill
         k, px, why = j0, None, ""
@@ -105,6 +115,12 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
                     px, why = (df["bc"].iloc[k] if side == 1 else df["ac"].iloc[k]), "end"
             elif k == n - 1:
                 px, why = (df["bc"].iloc[k] if side == 1 else df["ac"].iloc[k]), "end"
+            if px is None and zones and k > j0 and k + 1 < n:      # exhaustion bar: up >= exhaust_r and this bar closes past the last bar's extreme
+                best_z = max(bh[j0:k + 1]) if side == 1 else min(al[j0:k + 1])
+                rev = df["bc"].iloc[k] < bl[k - 1] if side == 1 else df["ac"].iloc[k] > ah[k - 1]
+                if side * (best_z - fill) >= zones["exhaust_r"] * sd and rev:
+                    k += 1
+                    px, why = (bo[k] if side == 1 else ao[k]), "exhausted"
             if px is not None:
                 break
             if lock:                                # update the stop with this bar's best price; it only acts from the next bar on

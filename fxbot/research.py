@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import Locked, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -51,8 +51,8 @@ FAMILIES["fx_scalp_london_break_m15"] = ("M15", AsianBreakout, {"buffer_atr": [0
 # 1R trail after +2R. Same pass bar; compare each with its unlocked twin. Nothing here is tuned.
 LOCK = {"be_at": 1.0, "trail_after": 2.0, "trail_r": 1.0}
 for _name in ("fx_donchian_d", "fx_bigbuild_h4", "fx_f0_h4", "fx_lien_fader_h1", "fx_pullback_h4"):
-    _g, _cls, _grid = FAMILIES[_name]
-    FAMILIES[_name + "_lock"] = (_g, (lambda c: (lambda **p: Locked(c(**p), **LOCK)))(_cls), _grid)
+    _gran, _cls, _params = FAMILIES[_name]
+    FAMILIES[_name + "_lock"] = (_gran, (lambda c: (lambda **p: Locked(c(**p), **LOCK)))(_cls), _params)
 
 
 def _grid(g):
@@ -95,3 +95,11 @@ def walk_forward(family: str, data: dict, placebo_runs: int = 20) -> dict:
 
 def instruments():
     return list(MAJORS)
+
+
+# Trade-zone variants (owner's idea, 2026-10-14, priority one): entry zone (no chase), invalidation (own stop), exhaustion take-profit.
+# Frozen rules in strategies.ZONES; same pass bar; compare each with its plain twin.
+for _name in ("fx_donchian_d", "fx_bigbuild_h4", "fx_f0_h4", "fx_lien_fader_h1", "fx_pullback_h4", "fx_scalp_asia_range_m15",
+              "fx_scalp_london_break_m15"):
+    _gran, _cls, _params = FAMILIES[_name]
+    FAMILIES[_name + "_zones"] = (_gran, (lambda c: (lambda **p: Zoned(c(**p))))(_cls), _params)

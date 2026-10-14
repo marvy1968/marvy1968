@@ -307,3 +307,27 @@ class Locked:
 
     def frame(self, m):
         return self.base.frame(m)
+
+
+
+ZONES = {"chase_atr": 0.5, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5}
+
+
+class Zoned:
+    """Any strategy plus trade zones (owner's idea, rules frozen 2026-10-14): ENTRY zone - skip a trade whose fill is more than 0.5 ATR past
+    the signal close (no chasing); INVALIDATION zone - the strategy's own stop; EXHAUSTION zone - take profit at the prior 20-bar high (long)
+    / low (short) when it is at least 1R away, else at 2R (whichever of this and the strategy's own target is nearer), and exit at the next
+    open when a trade that has been +1.5R closes beyond the previous bar's low (long) / high (short)."""
+
+    def __init__(self, base, **kw):
+        self.base, self.zones = base, {**ZONES, **kw}
+        self.max_bars, self.name = base.max_bars, getattr(base, "name", type(base).__name__) + " +zones"
+        if hasattr(base, "lock"):
+            self.lock = base.lock
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        n = self.zones["lookback"]
+        f["zone_hi"], f["zone_lo"] = m["high"].rolling(n).max(), m["low"].rolling(n).min()
+        f["zone_close"], f["zone_atr"] = m["close"], atr(m, 14)
+        return f
