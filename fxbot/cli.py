@@ -61,7 +61,11 @@ def main(argv=None) -> int:
                      f"financing ${v.get('financing_paid') or 0:,.0f}\n"
                      f"- spread x2 total {(res.get('spread_x2') or {}).get('total_return') or 0:+.1%} | placebo PF {res.get('placebo_pf_mean') or 0:.2f}, "
                      f"real beats {res.get('beats_placebo_share') or 0:.0%} | PASS {res.get('passes')}\n")
-        print(lines[-1], flush=True)
+        if not res.get("chosen") and res.get("grid"):          # a family that failed on train: show how its settings did
+            for g in sorted(res["grid"], key=lambda g: -(g.get("total_return") or -9))[:4]:
+                lines.append(f"  - train {g['params']}: {g.get('trades')}t PF {g.get('profit_factor') or 0:.2f} total {g.get('total_return') or 0:+.1%} "
+                             f"maxDD(closed) {g.get('max_drawdown') or 0:.1%}")
+        print("\n".join(lines[-5:]), flush=True)
     (out / "summary.md").write_text("\n".join(lines))
     print("ALL DONE")
     return 0
