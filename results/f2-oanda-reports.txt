@@ -1,3 +1,1785 @@
 $ read-bot-reports /home/moonrider1968/bots/oanda_active
-started 2026-10-14 06:24:26 EDT
-RUNNING...
+started 2026-10-14 06:24:26 EDT, took 18s, exit 0
+
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/oanda_fixed.log (19653 lines, 2026-04-25)
+2026-04-25 13:39:10,435 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-04-25 13:40:10,503 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-25 13:40:10,538 | 📊 Equity: $70,752.09
+2026-04-25 13:40:10,538 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-25 13:40:10,572 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-25 13:40:10,638 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-25 13:40:10,682 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-25 13:40:10,764 | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-25 13:40:10,829 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-25 13:40:10,894 | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-25 13:40:10,935 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-04-25 13:40:10,976 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-04-25 13:41:11,046 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-25 13:41:11,090 | 📊 Equity: $70,752.09
+2026-04-25 13:41:11,090 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-25 13:41:11,131 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-25 13:41:11,197 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-25 13:41:11,239 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-25 13:41:11,292 | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-25 13:41:11,369 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-25 13:41:11,422 | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-25 13:41:11,502 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-04-25 13:41:11,553 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-04-25 13:42:11,614 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-25 13:42:11,655 | 📊 Equity: $70,752.09
+2026-04-25 13:42:11,655 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-25 13:42:11,689 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-25 13:42:11,730 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-25 13:42:11,791 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-25 13:42:11,832 | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-25 13:42:11,877 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-25 13:42:11,918 | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-25 13:42:12,054 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-04-25 13:42:12,114 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-04-25 13:43:12,221 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-25 13:43:12,260 | 📊 Equity: $70,752.09
+2026-04-25 13:43:12,261 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-25 13:43:12,306 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-25 13:43:12,354 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-25 13:43:12,483 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-25 13:43:12,527 | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-25 13:43:12,580 | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-25 13:43:12,646 | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-25 13:43:12,709 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-04-25 13:43:12,764 | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/oanda_omni.log (1 lines, 2026-04-24)
+nohup: ignoring input
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/oanda_omni_war.log (1390 lines, 2026-04-24)
+2026-04-24 13:40:47,023 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:41:17,024 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:41:17,069 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:41:17,112 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:41:17,164 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:41:47,164 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:41:47,206 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:41:47,246 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:41:47,303 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:42:17,303 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:42:17,344 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:42:17,390 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:42:17,457 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:42:47,458 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:42:47,498 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:42:47,539 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:42:47,586 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:43:17,586 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:43:17,628 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:43:18,214 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:43:18,289 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:43:48,289 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:43:48,330 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:43:48,369 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:43:48,532 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:44:18,533 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:44:18,578 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:44:18,624 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:44:18,678 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:44:48,679 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:44:48,720 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:44:48,761 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:44:48,825 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:45:18,826 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:45:18,869 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:45:18,911 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:45:18,958 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:45:48,958 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:45:49,000 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:45:49,040 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:45:49,144 | ANTIBIOT ERROR: 'averagePrice'
+2026-04-24 13:46:19,144 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-04-24 13:46:19,185 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/positions
+2026-04-24 13:46:19,238 | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-24 13:46:19,294 | ANTIBIOT ERROR: 'averagePrice'
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/oanda_range.log (207153 lines, 2026-05-18)
+2026-05-18 16:32:17,481 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:32:17,700 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:32:17,700 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:32:47,701 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:32:47,945 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:32:47,946 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:33:17,946 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:33:18,169 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:33:18,169 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:33:48,169 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:33:48,386 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:33:48,386 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:34:18,387 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:34:18,612 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:34:18,612 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:34:48,612 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:34:48,840 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:34:48,840 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:35:18,841 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:35:19,062 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:35:19,062 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:35:49,062 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:35:49,275 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:35:49,275 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:36:19,275 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:36:19,512 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:36:19,512 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:36:49,512 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:36:49,732 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:36:49,732 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:37:19,733 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:37:19,955 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:37:19,956 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:37:49,956 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:37:50,302 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:37:50,302 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:38:20,302 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:38:20,523 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:38:20,523 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:38:50,524 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:38:50,745 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:38:50,745 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+2026-05-18 16:39:20,746 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-05-18 16:39:20,969 | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-05-18 16:39:20,970 | BEAST ERROR: {"errorMessage":"Insufficient authorization to perform request."}
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/oanda_velez.log (18216 lines, 2026-04-24)
+2026-04-24 13:37:50,653 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:38:35,688 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:38:35,723 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:38:35,758 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:38:35,791 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:39:20,824 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:39:20,858 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:39:20,891 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:39:20,929 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:05,964 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:06,000 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:06,034 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:06,072 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:51,110 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:51,152 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:51,188 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:40:51,222 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:41:36,257 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:41:36,293 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:41:36,326 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:41:36,363 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:42:21,863 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:42:21,897 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:42:21,931 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:42:21,966 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:06,999 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:07,034 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:07,066 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:07,100 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:52,134 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:52,168 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:52,202 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:43:52,236 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:44:37,272 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:44:37,309 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:44:37,342 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:44:37,375 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:45:22,410 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:45:22,487 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:45:22,525 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:45:22,560 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:46:07,596 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:46:07,634 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:46:07,670 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-04-24 13:46:07,704 | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+
+===== /home/moonrider1968/bots/oanda_active/MarchEdge/superbot.log (4 lines, 2026-04-22)
+nohup: ignoring input
+2026-04-22 11:43:57,713 | 🚀 SUPERBOT v4.4 OMNI-WAR (THE REAPER PATCH) ONLINE
+2026-04-22 11:43:58,086 | 🗺️ BATTLE MAP: {'TECH': 'RANGE_TRAP', 'CONSUMER': 'RANGE_TRAP', 'FINANCE': 'RANGE_TRAP'}
+2026-04-22 11:48:59,856 | 🗺️ BATTLE MAP: {'TECH': 'RANGE_TRAP', 'CONSUMER': 'RANGE_TRAP', 'FINANCE': 'RANGE_TRAP'}
+
+===== /home/moonrider1968/bots/oanda_active/active_watchlist.txt (1 lines, 2026-04-07)
+EUR_USD,GBP_USD,USD_JPY,AUD_USD,USD_CAD,NZD_USD,USD_CHF,EUR_JPY,GBP_JPY,EUR_GBP,EUR_AUD,GBP_AUD,AUD_JPY,CAD_JPY,EUR_CAD,GBP_CAD,AUD_CAD,NZD_JPY,USD_CNH,USD_ZAR
+
+===== /home/moonrider1968/bots/oanda_active/alpaca_microedge/microedge_live.log (4 lines, 2026-04-20)
+nohup: ignoring input
+  File "/home/moonrider1968/MasterBot_Center/all_engines_live.py", line 16
+    if settled_results:
+IndentationError: unexpected indent
+
+===== /home/moonrider1968/bots/oanda_active/backtest_results.csv (352 lines, 2026-06-30)
+direction,entry,stop,target,entry_time,exit_time,exit_price,pnl,result,pair
+SHORT,1.17632,1.1773542857142858,1.1748978571428572,2026-04-20 09:00:00+00:00,2026-04-20 11:15:00+00:00,1.1773542857142858,-0.0008792554018343353,LOSS,EUR_USD
+SHORT,1.17716,1.1779828571428572,1.1760285714285714,2026-04-20 11:30:00+00:00,2026-04-20 12:00:00+00:00,1.1760285714285714,0.0009611510511982747,WIN,EUR_USD
+SHORT,1.17812,1.1792445714285715,1.1765737142857142,2026-04-20 13:30:00+00:00,2026-04-20 14:45:00+00:00,1.1765737142857142,0.0013125027283178567,WIN,EUR_USD
+...
+LONG,1.41932,1.4186091428571428,1.4202974285714285,2026-06-26 06:15:00+00:00,2026-06-26 08:00:00+00:00,1.4186091428571428,-0.0005008434622615931,LOSS,USD_CAD
+SHORT,1.41962,1.4203034285714287,1.4186802857142857,2026-06-29 00:00:00+00:00,2026-06-29 02:15:00+00:00,1.4186802857142857,0.0006619477646936341,WIN,USD_CAD
+LONG,1.41769,1.41713,1.4184599999999998,2026-06-29 06:45:00+00:00,2026-06-29 07:45:00+00:00,1.4184599999999998,0.0005431370751010006,WIN,USD_CAD
+
+===== /home/moonrider1968/bots/oanda_active/beast_mode.log (174 lines, 2026-03-31)
+2026-03-04 10:15:41,610 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:41,650 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-04 10:15:41,702 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:41,739 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:41,779 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:51,821 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-04 10:15:51,861 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:51,902 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:51,952 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-04 10:15:52,044 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:52,085 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:52,125 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-04 10:15:52,175 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:52,218 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-04 10:15:52,330 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:15:52,379 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:02,417 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-04 10:16:03,566 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:03,616 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:03,657 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:03,705 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:03,750 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-04 10:16:03,934 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:03,975 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-04 10:16:04,032 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:04,084 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,134 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-04 10:16:14,181 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,219 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,259 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,304 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,346 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,385 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-04 10:16:14,437 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:14,480 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,526 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-04 10:16:24,589 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,629 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,668 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,720 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,757 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,796 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-04 10:16:24,849 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:24,886 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 10:16:30,381 | INFO | 👋 Stopped by user (Ctrl+C).
+
+===== /home/moonrider1968/bots/oanda_active/daemon.log (9290 lines, 2026-10-02)
+[2026-10-02 15:45:01 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+[!] Error processing EUR_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/EUR_USD/candles has timed out (read)
+======================================================================================
+[!] Error fetching positions: v20 REST request to https://api-fxpractice.oanda.com:443/v3/accounts/101-001-31460466-001/openPositions has timed out (read)
+======================================================================================
+[2026-10-02 16:00:02 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+[!] Error processing EUR_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/EUR_USD/candles has timed out (read)
+======================================================================================
+[!] Error fetching NAV: v20 REST request to https://api-fxpractice.oanda.com:443/v3/accounts/101-001-31460466-001 has timed out (read)
+======================================================================================
+[2026-10-02 16:15:02 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+======================================================================================
+[!] Error fetching positions: v20 REST request to https://api-fxpractice.oanda.com:443/v3/accounts/101-001-31460466-001/openPositions has timed out (read)
+[!] Error fetching NAV: v20 REST request to https://api-fxpractice.oanda.com:443/v3/accounts/101-001-31460466-001 has timed out (read)
+======================================================================================
+[2026-10-02 16:30:01 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+[!] Error processing GBP_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/GBP_USD/candles has timed out (read)
+======================================================================================
+======================================================================================
+[2026-10-02 16:45:02 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+[!] Error processing GBP_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/GBP_USD/candles has timed out (read)
+======================================================================================
+[!] Error fetching positions: v20 REST request to https://api-fxpractice.oanda.com:443/v3/accounts/101-001-31460466-001/openPositions has timed out (read)
+======================================================================================
+[2026-10-02 17:00:02 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+[!] Error processing GBP_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/GBP_USD/candles has timed out (read)
+[!] Error processing EUR_USD: v20 REST request to https://api-fxpractice.oanda.com:443/v3/instruments/EUR_USD/candles has timed out (read)
+======================================================================================
+======================================================================================
+[2026-10-02 17:15:01 EDT] RUNNING OANDA CONSENSUS SCAN | NAV: $50,000.00 | Risk/Trade: 0.50%
+PAIR      | TF   |    CLOSE |   ADX | BUY/5 | SHORT/5 | POSITION | ACTION
+--------------------------------------------------------------------------------------
+======================================================================================
+
+===== /home/moonrider1968/bots/oanda_active/logs/CryptoRange_Final_v1.log (2 lines, 2026-06-26)
+2026-06-26 11:35:13,834 | CryptoRange_Final_v1 | WARNING | Client: A corresponding secret_key must be supplied with the api_key
+2026-06-26 11:35:13,834 | CryptoRange_Final_v1 | INFO | Crypto Range Bot Starting (24/7)
+
+===== /home/moonrider1968/bots/oanda_active/logs/CryptoRange_Final_v2.log (1 lines, 2026-06-26)
+2026-06-26 15:28:44,174 | CryptoRange_Final_v2 | INFO | Crypto Range Bot Starting (24/7)
+
+===== /home/moonrider1968/bots/oanda_active/logs/DaytradeScalp_Final_v2.log (2 lines, 2026-06-26)
+2026-06-26 15:23:05,699 | DaytradeScalp_Final_v2 | INFO | Daytrade/Scalp Bot Starting
+2026-06-26 15:28:43,940 | DaytradeScalp_Final_v2 | INFO | Daytrade/Scalp Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/SwingTrend_Final_v1.log (2 lines, 2026-06-26)
+2026-06-26 01:24:40,346 | SwingTrend_Final_v1 | INFO | Alpaca SwingTrend clients initialized.
+2026-06-26 01:24:40,347 | SwingTrend_Final_v1 | INFO | === Swing Trend Bot Starting ===
+
+===== /home/moonrider1968/bots/oanda_active/logs/SwingTrend_Final_v2.log (10 lines, 2026-06-26)
+2026-06-26 11:06:14,066 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 11:08:17,677 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 11:09:29,390 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 11:10:27,505 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 15:00:04,744 | SwingTrend_Final_v2 | INFO | Loaded shared config (updated: True)
+2026-06-26 15:00:06,054 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 15:23:04,873 | SwingTrend_Final_v2 | INFO | Loaded shared config (updated: True)
+2026-06-26 15:23:05,684 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+2026-06-26 15:28:43,158 | SwingTrend_Final_v2 | INFO | Loaded shared config (updated: True)
+2026-06-26 15:28:43,988 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/Velez_Crypto_Master_v1.log (66 lines, 2026-06-29)
+2026-06-28 11:39:40,791 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 11:40:44,031 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:40:44,031 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 11:49:17,713 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:49:17,713 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 20:45:27,380 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:45:27,382 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 20:50:22,914 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:50:22,915 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 20:51:09,445 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:51:09,446 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 20:54:42,065 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:54:42,074 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 20:59:18,514 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:59:18,516 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 21:04:40,863 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:04:40,864 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 21:09:50,700 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:09:50,701 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 21:10:35,616 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:10:35,616 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:29:50,182 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:29:50,182 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:31:30,640 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:31:30,641 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:32:18,604 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:32:18,605 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:33:41,161 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:33:41,161 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:34:45,482 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:34:45,483 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:41:29,181 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:41:29,181 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-28 22:49:27,356 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:49:27,356 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-29 16:06:19,688 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 16:06:19,694 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-29 22:31:53,432 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:31:53,433 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-29 22:32:31,663 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:32:31,664 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-29 22:38:23,566 | Velez_Crypto_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:38:23,566 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+2026-06-29 23:20:34,983 | Velez_Crypto_Master_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,989 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/Velez_Institutional_Sector_Swing_v1.log (56 lines, 2026-06-29)
+2026-06-28 11:25:43,831 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 11:39:40,852 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:39:40,853 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 11:40:43,963 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:40:43,964 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 11:49:17,696 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:49:17,709 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 20:50:22,960 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:50:22,962 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 20:51:09,454 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:51:09,454 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 20:54:42,131 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:54:42,132 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 20:59:18,504 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:59:18,505 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 21:04:40,864 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:04:40,866 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 21:09:50,707 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:09:50,707 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 21:10:35,627 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:10:35,627 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:29:50,175 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:29:50,175 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:31:30,663 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:31:30,663 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:32:18,588 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:32:18,589 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:33:41,084 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:33:41,085 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:34:45,496 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:34:45,497 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:41:29,201 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:41:29,201 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-28 22:49:27,382 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:49:27,382 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-29 16:06:19,696 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 16:06:19,698 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-29 22:31:53,438 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:31:53,440 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-29 22:32:31,703 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:32:31,704 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-29 22:38:23,559 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:38:23,560 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+2026-06-29 23:20:34,848 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,861 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/Velez_Stock_Master_v1.log (66 lines, 2026-06-29)
+2026-06-28 11:39:40,872 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 11:40:44,067 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:40:44,067 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 11:49:17,692 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:49:17,693 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 20:45:27,381 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:45:27,382 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 20:50:22,936 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:50:22,936 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 20:51:09,456 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:51:09,456 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 20:54:42,129 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:54:42,130 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 20:59:18,477 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:59:18,477 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 21:04:40,846 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:04:40,853 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 21:09:50,703 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:09:50,704 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 21:10:35,620 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:10:35,620 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:29:50,133 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:29:50,133 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:31:30,637 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:31:30,637 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:32:18,601 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:32:18,601 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:33:41,145 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:33:41,145 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:34:45,506 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:34:45,506 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:41:29,182 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:41:29,182 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-28 22:49:27,360 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:49:27,361 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-29 16:06:19,690 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 16:06:19,693 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-29 22:31:53,433 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:31:53,435 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-29 22:32:31,609 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:32:31,609 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-29 22:38:23,496 | Velez_Stock_Master_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:38:23,496 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+2026-06-29 23:20:34,995 | Velez_Stock_Master_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,996 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/Velez_Weinstein_Swing_Aggressive_v1.log (57 lines, 2026-06-29)
+2026-06-28 11:25:44,069 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 11:39:40,858 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:39:40,858 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 11:40:44,062 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:40:44,062 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 11:49:17,708 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 11:49:17,708 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 20:50:22,931 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:50:22,955 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 20:51:09,426 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:51:09,426 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 20:54:42,100 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:54:42,100 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 20:59:18,454 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 20:59:18,454 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 21:04:40,869 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:04:40,871 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 21:09:50,699 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:09:50,702 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 21:10:35,575 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 21:10:35,576 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:29:50,175 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:29:50,176 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:31:30,642 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:31:30,643 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:32:18,572 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:32:18,573 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:33:41,156 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:33:41,157 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:34:45,492 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:34:45,493 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:41:29,212 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:41:29,212 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-28 22:49:27,370 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-28 22:49:27,371 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-29 16:06:19,690 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 16:06:19,691 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-29 22:31:53,441 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:31:53,443 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-29 22:32:31,701 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:32:31,702 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-29 22:38:23,273 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: A corresponding secret_key must be supplied with the api_key
+2026-06-29 22:38:23,276 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+2026-06-29 23:20:35,006 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:35,007 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/Velez_Weinstein_Swing_Inst_v1.log (2 lines, 2026-06-27)
+2026-06-27 19:48:59,191 | Velez_Weinstein_Swing_Inst_v1 | INFO | Velez-Weinstein Institutional Swing Bot Starting
+2026-06-27 20:02:56,081 | Velez_Weinstein_Swing_Inst_v1 | INFO | Velez-Weinstein Institutional Swing Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/alpaca_microedge_v5.log (2 lines, 2026-03-31)
+nohup: ignoring input
+python: can't open file '/home/moonrider1968/bots/oanda_fifo_practice/alpaca_microedge_v5.py': [Errno 2] No such file or directory
+
+===== /home/moonrider1968/bots/oanda_active/logs/beast.log (768900 lines, 2026-03-31)
+2026-03-30 05:35:11,495 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:35:42,423 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:36:13,153 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:36:44,239 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:37:15,017 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:37:45,774 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:38:16,534 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:38:47,442 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:39:18,135 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:39:48,882 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:40:19,611 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:40:50,365 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:41:21,159 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:41:51,850 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:42:22,572 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:42:53,315 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:43:24,134 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:43:54,894 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:44:25,619 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:44:56,298 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:45:27,193 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:45:57,884 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:46:29,074 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:46:59,839 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:47:30,670 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:48:01,429 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:48:32,249 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:49:03,011 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:49:33,816 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:50:04,500 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:50:35,233 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:51:05,905 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:51:36,642 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:52:07,381 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:52:38,121 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:53:09,220 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:53:39,889 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:54:10,595 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:54:41,277 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:55:11,900 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:55:42,636 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:56:13,465 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:56:44,183 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:57:14,937 | INFO | HEARTBEAT | nav=100643.21 | open_trades=0 | max_total=15 | sleep=10s
+2026-03-30 05:58:25,143 | ERROR | SYSTEM ERROR: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/cacert.pem
+
+===== /home/moonrider1968/bots/oanda_active/logs/crypto.log (1 lines, 2026-06-26)
+2026-06-26 15:28:44,174 | CryptoRange_Final_v2 | INFO | Crypto Range Bot Starting (24/7)
+
+===== /home/moonrider1968/bots/oanda_active/logs/datamine.log (4685573 lines, 2026-03-31)
+2026-03-16 23:42:50,976 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-16 23:42:51,037 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,086 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-16 23:42:51,144 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,185 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-16 23:42:51,229 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,267 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-16 23:42:51,311 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,349 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-16 23:42:51,392 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,432 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-16 23:42:51,598 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,638 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-16 23:42:51,738 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,779 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-16 23:42:51,858 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,900 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-16 23:42:51,945 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:51,997 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-16 23:42:52,103 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:52,145 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-16 23:42:52,205 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:52,242 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-16 23:42:52,286 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:57,329 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-16 23:42:57,367 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-16 23:42:57,406 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-16 23:42:57,445 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-16 23:42:57,681 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:57,719 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-16 23:42:57,760 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:57,815 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-16 23:42:57,855 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:57,896 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-16 23:42:57,964 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:58,002 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-16 23:42:58,064 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:58,104 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-16 23:42:58,148 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:58,187 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-16 23:42:58,229 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:58,267 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-16 23:42:58,308 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-16 23:42:58,351 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-16 23:42:5
+
+===== /home/moonrider1968/bots/oanda_active/logs/daytrade.log (1 lines, 2026-06-26)
+2026-06-26 15:28:43,940 | DaytradeScalp_Final_v2 | INFO | Daytrade/Scalp Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/forex_beast.log (3 lines, 2026-06-30)
+🚀 Velez Forex Beast - Tuned for Action
+
+[2026-06-30 00:28:23.701425] Scanning for Mean Reversion...
+
+===== /home/moonrider1968/bots/oanda_active/logs/forex_optimized.log (7 lines, 2026-06-30)
+🚀 Velez Forex MR Master Started - Mode: live
+
+[2026-06-30 00:10:39.061874] Scanning 5 pairs...
+Cycle complete. Waiting 4 minutes...
+
+[2026-06-30 00:14:44.758945] Scanning 5 pairs...
+Cycle complete. Waiting 4 minutes...
+
+===== /home/moonrider1968/bots/oanda_active/logs/forex_real.log (4 lines, 2026-06-30)
+🚀 Velez Forex MR Master Started - Mode: simulate
+
+[2026-06-30 00:16:26.229942] Scanning pairs...
+Cycle complete. Sleeping 4 minutes...
+
+===== /home/moonrider1968/bots/oanda_active/logs/forex_ultimate.log (3233 lines, 2026-07-03)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+⏸️ Outside trading hours (3:00 - 22:00 UTC)
+
+[2026-07-03 23:06:25.879092] Scanning...
+
+[2026-07-03 23:10:13.912766] Scanning...
+📊 Balance: $76,219.12 | DD: 0.01% | Daily Loss: 0.00%
+
+[2026-07-03 23:14:09.394077] Scanning...
+
+[2026-07-03 23:17:37.676206] Scanning...
+
+[2026-07-03 23:21:34.174162] Scanning...
+
+[2026-07-03 23:25:33.926263] Scanning...
+📊 Balance: $76,219.12 | DD: 0.01% | Daily Loss: 0.00%
+
+[2026-07-03 23:30:23.685432] Scanning...
+
+===== /home/moonrider1968/bots/oanda_active/logs/mb9.log (103266 lines, 2026-04-10)
+2026-04-10 23:57:32,409 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:57:32,445 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:57:32,445 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:57:42,446 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:57:42,480 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:57:42,481 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:57:52,481 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:57:52,516 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:57:52,516 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:02,516 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:02,552 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:02,552 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:12,553 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:12,588 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:12,588 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:22,589 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:22,624 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:22,624 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:32,625 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:32,660 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:32,660 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:42,661 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:42,706 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:42,706 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:58:52,707 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:58:52,741 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:58:52,741 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:02,742 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:02,777 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:02,777 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:12,778 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:12,813 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:12,813 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:22,813 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:22,849 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:22,849 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:32,849 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:32,883 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:32,884 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:42,884 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:42,918 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:42,918 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+2026-04-10 23:59:52,918 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/summary
+2026-04-10 23:59:52,953 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/summary failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+2026-04-10 23:59:52,953 | ERROR | SYSTEM ERR {"errorMessage":"Invalid value specified for 'accountID'"}
+
+===== /home/moonrider1968/bots/oanda_active/logs/mean_reversion.log (1094 lines, 2026-06-30)
+[2026-06-30 08:52:22.094013] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:53:22.146290] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:54:22.336348] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:55:22.408121] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:56:22.611758] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:57:22.836100] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:58:22.901181] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 08:59:23.101038] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:00:23.335274] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:01:23.597098] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:02:24.325214] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:03:24.443434] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:04:24.585905] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:05:24.638468] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:06:24.930510] Fetching EUR_USD M15 candles...
+No MR signal this cycle
+[2026-06-30 09:07:25.165980] Fetching EUR_USD M15 candles...
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/Velez_MeanReversion_Master.py", line 118, in <module>
+    bot.run_cycle()
+  File "/home/moonrider1968/bots/oanda_active/Velez_MeanReversion_Master.py", line 107, in run_cycle
+    df = self.get_candles()
+         ^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/Velez_MeanReversion_Master.py", line 31, in get_candles
+    self.client.request(r)
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 337, in request
+    response = self.__request(method, url,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 274, in __request
+    raise V20Error(response.status_code,
+oandapyV20.exceptions.V20Error: {"errorMessage":"Insufficient authorization to perform request."}
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v2.log (3 lines, 2026-03-31)
+nohup: ignoring input
+2026-03-06 19:37:24,807 | INFO | setting up API-client for environment practice
+2026-03-06 19:37:24,809 | INFO | OANDA MICROBEAST V2 RUNNING
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v3.log (2856 lines, 2026-03-31)
+2026-03-07 10:45:18,926 | INFO | CLOSE NZD_USD -0.3224%
+2026-03-07 10:45:18,926 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-07 10:45:19,049 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:19,091 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-07 10:45:19,131 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:19,172 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-07 10:45:19,230 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:19,383 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-07 10:45:19,431 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:29,475 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openPositions
+2026-03-07 10:45:29,518 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:29,560 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-03-07 10:45:29,613 | INFO | CLOSE NZD_USD -0.3224%
+2026-03-07 10:45:29,613 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-07 10:45:29,751 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:29,799 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-07 10:45:29,842 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:29,884 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-07 10:45:29,930 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:29,970 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-07 10:45:30,029 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:40,067 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openPositions
+2026-03-07 10:45:40,106 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:40,149 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-03-07 10:45:40,194 | INFO | CLOSE NZD_USD -0.3224%
+2026-03-07 10:45:40,195 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-07 10:45:40,240 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:40,278 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-07 10:45:40,322 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:40,368 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-07 10:45:40,458 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:40,500 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-07 10:45:40,550 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:50,600 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openPositions
+2026-03-07 10:45:50,650 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:50,686 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-03-07 10:45:50,734 | INFO | CLOSE NZD_USD -0.3224%
+2026-03-07 10:45:50,734 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-07 10:45:50,839 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:50,876 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-07 10:45:50,994 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:51,036 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-07 10:45:51,092 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-07 10:45:51,131 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-07 10:45:51,171 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v5.log (30445 lines, 2026-03-31)
+2026-03-09 05:33:45,855 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:45,897 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:33:45,992 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:46,034 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:33:46,076 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,117 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-09 05:33:56,160 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:33:56,208 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:33:56,249 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-09 05:33:56,310 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,353 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-09 05:33:56,424 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,466 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:33:56,594 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,633 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:33:56,775 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,815 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:33:56,856 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,895 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:33:56,936 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:56,982 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:33:57,034 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:57,074 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:33:57,116 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:57,154 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:33:57,202 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:57,243 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:33:57,290 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:57,339 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:33:57,379 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:57,418 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:33:57,505 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,537 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-09 05:34:05,580 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:05,617 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:05,654 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-09 05:34:05,728 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,768 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-09 05:34:05,853 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,891 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:34:05,934 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,975 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:34:06,015 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:06,054 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:34:06,101 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v6.log (30513 lines, 2026-03-31)
+2026-03-09 05:33:53,432 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:33:53,544 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:53,585 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:33:53,669 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:53,709 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:33:53,932 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:53,970 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:33:54,010 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,056 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:33:54,097 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,140 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:33:54,230 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,269 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:33:54,330 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,369 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:33:54,428 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,468 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:33:54,507 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:04,546 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-09 05:34:04,584 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:04,621 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:04,659 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-09 05:34:04,731 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:04,769 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-09 05:34:04,813 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:04,851 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:34:04,913 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:04,950 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:34:04,991 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,032 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:34:05,090 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,131 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:34:05,172 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,211 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:34:05,252 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,299 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:34:05,341 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,384 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:34:05,441 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,480 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:34:05,569 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,606 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:34:05,790 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,829 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:34:05,869 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v6_1.log (3 lines, 2026-03-31)
+nohup: ignoring input
+2026-03-07 22:08:11,930 | INFO | setting up API-client for environment practice
+2026-03-07 22:08:11,938 | INFO | MICROBEAST V6.1 RUNNING
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v7.log (3 lines, 2026-03-31)
+nohup: ignoring input
+2026-03-08 07:02:53,605 | INFO | setting up API-client for environment practice
+2026-03-08 07:02:53,607 | INFO | MICROBEAST MB7 RUNNING
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v8.log (28402 lines, 2026-03-31)
+2026-03-09 05:33:54,004 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,042 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:33:54,122 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,161 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:33:54,236 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,272 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:33:54,311 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,346 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:33:54,403 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,439 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:33:54,480 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,517 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:33:54,561 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,597 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:33:54,636 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,673 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:33:54,714 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,751 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:33:54,789 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:54,827 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:33:54,886 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:04,923 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:04,957 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-09 05:34:05,013 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,050 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-09 05:34:05,087 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,126 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:34:05,164 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,200 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:34:05,256 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,291 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:34:05,335 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,370 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:34:05,407 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,443 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:34:05,691 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,731 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:34:05,836 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,871 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:34:05,927 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:05,964 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:34:06,020 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:06,056 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:34:06,094 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:06,132 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+
+===== /home/moonrider1968/bots/oanda_active/logs/microbeast_v8_1.log (30405 lines, 2026-03-31)
+2026-03-09 05:33:51,365 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:33:51,436 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,477 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:33:51,526 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,568 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:33:51,609 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,647 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:33:51,686 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,723 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:33:51,763 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,804 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:33:51,846 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,885 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:33:51,925 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:51,965 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:33:52,005 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:33:52,041 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:33:52,160 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,198 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-09 05:34:02,237 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:02,274 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-09 05:34:02,310 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-09 05:34:02,351 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,389 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-09 05:34:02,428 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,465 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-09 05:34:02,540 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,577 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-09 05:34:02,652 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,688 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-09 05:34:02,937 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:02,978 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-09 05:34:03,021 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,058 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-09 05:34:03,116 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,158 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-09 05:34:03,257 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,294 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-09 05:34:03,336 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,376 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-09 05:34:03,440 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,478 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-09 05:34:03,522 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-09 05:34:03,558 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-09 05:34:03,600 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+
+===== /home/moonrider1968/bots/oanda_active/logs/oanda_beast_mode.log (2762 lines, 2026-03-31)
+2026-03-04 20:08:18,017 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:08:28,077 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:08:28,128 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-04 20:08:28,467 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-04 20:08:28,873 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-04 20:08:29,361 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-04 20:08:29,660 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-04 20:08:29,976 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-04 20:08:30,295 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-04 20:08:40,727 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:08:50,808 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:09:00,861 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:09:10,928 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing
+2026-03-04 20:09:19,416 | INFO | 👋 stopped by user (Ctrl+C).
+2026-03-04 20:24:22,771 | INFO | setting up API-client for environment practice
+2026-03-04 20:24:22,788 | INFO | ✅ BEAST MODE READY pairs=['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF', 'AUD_USD', 'NZD_USD', 'USD_CAD'] gran=M5 window=03:00-12:30
+2026-03-04 20:24:22,788 | INFO | 🧠 Brain: score_min=0.58 require_spread=True require_window=False elephant_mode=trend
+2026-03-04 20:24:22,788 | INFO | 🛡️ Safety: daily_target=3.00% daily_loss=4.00% dd_kill=12.00% theme_max=2
+2026-03-04 20:24:22,788 | INFO | 🧪 Execution enabled=True | trade_on_new_candle=True
+2026-03-04 20:24:22,789 | INFO | 🚀 Loop start sleep=10s pricing=10s candles=60s summary=300s
+2026-03-04 20:29:08,265 | INFO | 👋 stopped by user (Ctrl+C).
+2026-03-04 21:55:34,265 | INFO | setting up API-client for environment practice
+2026-03-04 21:55:34,297 | INFO | ✅ BEAST MODE READY pairs=['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF', 'AUD_USD', 'NZD_USD', 'USD_CAD'] gran=M5 window=03:00-12:30
+2026-03-04 21:55:34,297 | INFO | 🧠 Brain: score_min=0.58 require_spread=True require_window=False elephant_mode=trend
+2026-03-04 21:55:34,297 | INFO | 🛡️ Safety: daily_target=3.00% daily_loss=4.00% dd_kill=12.00% theme_max=2
+2026-03-04 21:55:34,297 | INFO | 🧪 Execution enabled=True | trade_on_new_candle=True
+2026-03-04 21:55:34,298 | INFO | 🚀 Loop start sleep=10s pricing=10s candles=60s summary=300s
+2026-03-04 22:08:20,467 | INFO | 👋 stopped by user (Ctrl+C).
+2026-03-05 04:58:16,065 | INFO | BEAST MODE CORE ONLINE - MONITORING STEALTH EXITS...
+2026-03-05 04:58:16,729 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:22,207 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:27,725 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:33,223 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:38,694 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:44,096 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:49,506 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:58:54,947 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 04:59:00,460 | ERROR | Loop Error: name 'trades' is not defined
+2026-03-05 05:04:58,001 | INFO | MONSTER BEAST ONLINE - MONITORING STEALTH EXITS...
+2026-03-06 08:29:43,769 | INFO | MONSTER BEAST ONLINE - MONITORING STEALTH EXITS...
+2026-03-06 08:30:05,785 | INFO | 🛑 STEALTH STOP | 774 | -0.20%
+2026-03-06 08:30:05,830 | WARNING | 🐘 ELEPHANT AGAINST LONG | Killing 762
+2026-03-06 08:34:49,173 | INFO | MONSTER BEAST ONLINE - MONITORING STEALTH EXITS...
+2026-03-06 09:38:20,180 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/pricing failed [('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))]
+2026-03-06 09:38:20,184 | ERROR | Loop Error: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+
+===== /home/moonrider1968/bots/oanda_active/logs/oanda_console.log (594178 lines, 2026-03-31)
+2026-03-01 09:55:53,336 | INFO | RANGE CHECK | adx=22.6 atr=0.00048 edge=0.00012 weak=0.00006 nearL=False nearH=False tooLow=False tooHigh=False donL=1.18112 donH=1.18260 price=1.18172
+2026-03-01 09:56:03,542 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:56:13,582 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 09:56:13,719 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:56:23,929 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:56:34,095 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:56:44,309 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:56:54,679 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:05,177 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:15,217 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 09:57:15,479 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:25,687 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:35,870 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:46,117 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:57:56,470 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:06,653 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:16,695 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 09:58:16,848 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:27,036 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:37,371 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:48,419 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:58:58,637 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:08,886 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:18,925 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 09:59:19,056 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:29,222 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:39,393 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:49,602 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 09:59:59,985 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:00:10,215 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:00:20,257 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 10:00:20,419 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:00:30,715 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:00:40,923 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:00:51,109 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:01,384 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:01,385 | INFO | RANGE CHECK | adx=22.6 atr=0.00048 edge=0.00012 weak=0.00006 nearL=False nearH=False tooLow=False tooHigh=False donL=1.18112 donH=1.18260 price=1.18172
+2026-03-01 10:01:11,591 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:21,636 | INFO | 💓 heartbeat | nav=100640.44
+2026-03-01 10:01:21,791 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:32,009 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:42,304 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:01:52,508 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:02:02,747 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+2026-03-01 10:02:12,952 | INFO | HEARTBEAT | price=1.18172 adx=22.6 regime=range donH=1.18260 donL=1.18112 buf=0.00020 LT=1.18280 ST=1.18092 dL=0.00108 dS=0.00080 bias=neutral long=False short=False cooldown=False
+
+===== /home/moonrider1968/bots/oanda_active/logs/oanda_growth.log (18 lines, 2026-03-31)
+nohup: ignoring input
+2026-03-31 07:36:14,152 | INFO | setting up API-client for environment practice
+2026-03-31 07:36:14,155 | INFO | MICROBEAST MB8 RUNNING
+2026-03-31 07:36:14,155 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/openTrades
+2026-03-31 07:36:14,307 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/openTrades failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 358, in <module>
+    MicroBeastV8().run()
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 334, in run
+    self.manage_exits()
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 257, in manage_exits
+    self.client.request(r)
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 337, in request
+    response = self.__request(method, url,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 274, in __request
+    raise V20Error(response.status_code,
+oandapyV20.exceptions.V20Error: {"errorMessage":"Invalid value specified for 'accountID'"}
+
+===== /home/moonrider1968/bots/oanda_active/logs/oanda_live.log (18 lines, 2026-03-31)
+nohup: ignoring input
+2026-03-31 07:28:25,186 | INFO | setting up API-client for environment practice
+2026-03-31 07:28:25,187 | INFO | MICROBEAST MB8 RUNNING
+2026-03-31 07:28:25,187 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/None/openTrades
+2026-03-31 07:28:25,324 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/None/openTrades failed [400,{"errorMessage":"Invalid value specified for 'accountID'"}]
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 358, in <module>
+    MicroBeastV8().run()
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 334, in run
+    self.manage_exits()
+  File "/home/moonrider1968/bots/oanda_active/oanda_microbeast_v8.py", line 257, in manage_exits
+    self.client.request(r)
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 337, in request
+    response = self.__request(method, url,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/oandapyV20/oandapyV20.py", line 274, in __request
+    raise V20Error(response.status_code,
+oandapyV20.exceptions.V20Error: {"errorMessage":"Invalid value specified for 'accountID'"}
+
+===== /home/moonrider1968/bots/oanda_active/logs/sweep_small.log (22 lines, 2026-07-03)
+nohup: ignoring input
+Starting SMALL Fast Parameter Sweep (Fixed)...
+
+Testing 2916 combinations across 4 pairs...
+
+
+===============================================================================================
+TOP RESULTS FROM SMALL SWEEP (sorted by Score)
+===============================================================================================
+ rsi_long  rsi_short  bb_mult_long  bb_mult_short  adx_max  stop_atr  target_atr  total_trades  win_rate  profit_factor  expectancy_%  avg_win_%  avg_loss_%  score
+       28         70         0.995            1.0       20       1.4         2.8            38      55.3           3.40         0.063      0.160      -0.058  6.875
+       30         70         0.995            1.0       20       1.4         2.8            38      55.3           3.40         0.063      0.160      -0.058  6.875
+       28         72         0.995            1.0       20       1.4         2.8            29      58.6           3.26         0.060      0.148      -0.064  6.501
+       26         72         0.995            1.0       20       1.4         2.8            29      58.6           3.26         0.060      0.148      -0.064  6.501
+       30         72         0.995            1.0       20       1.4         2.8            29      58.6           3.26         0.060      0.148      -0.064  6.501
+       30         70         0.995            1.0       20       1.5         2.8            38      55.3           3.17         0.061      0.160      -0.062  6.417
+       28         70         0.995            1.0       20       1.5         2.8            38      55.3           3.17         0.061      0.160      -0.062  6.417
+       28         70         0.995            1.0       20       1.4         2.6            38      55.3           3.15         0.056      0.149      -0.058  6.384
+       30         70         0.995            1.0       20       1.4         2.6            38      55.3           3.15         0.056      0.149      -0.058  6.384
+       30         72         0.995            1.0       20       1.5         2.8            29      58.6           3.04         0.058      0.148      -0.069  6.067
+
+✅ Saved to parameter_sweep_small_results.csv | Total valid: 2447
+
+===== /home/moonrider1968/bots/oanda_active/logs/swing.log (2 lines, 2026-06-26)
+2026-06-26 15:28:43,158 | SwingTrend_Final_v2 | INFO | Loaded shared config (updated: True)
+2026-06-26 15:28:43,988 | SwingTrend_Final_v2 | INFO | Swing Trend Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/velez_crypto.log (2 lines, 2026-06-29)
+2026-06-29 23:20:34,983 | Velez_Crypto_Master_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,989 | Velez_Crypto_Master_v1 | INFO | Velez Crypto Master Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/velez_institutional_sector.log (2 lines, 2026-06-29)
+2026-06-29 23:20:34,848 | Velez_Institutional_Sector_Swing_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,861 | Velez_Institutional_Sector_Swing_v1 | INFO | Institutional Sector Swing Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/velez_sniper.log (786 lines, 2026-03-31)
+2026-03-02 09:01:05,227 | INFO | SCAN | AUD_USD | active=False
+2026-03-02 09:01:05,365 | INFO | SCAN | AUD_USD | no data
+2026-03-02 09:01:05,365 | INFO | SCAN | USD_CAD | active=False
+2026-03-02 09:01:05,627 | INFO | SCAN | USD_CAD | no data
+2026-03-02 09:01:05,627 | INFO | SCAN | USD_CHF | active=False
+2026-03-02 09:01:05,747 | INFO | SCAN | USD_CHF | no data
+2026-03-02 09:02:05,898 | INFO | HEARTBEAT | nav=100656.57 | open_trades=0 | max_total=6 | sleep=60s
+2026-03-02 09:02:05,899 | INFO | SCAN | EUR_USD | active=False
+2026-03-02 09:02:06,071 | INFO | SCAN | EUR_USD | no data
+2026-03-02 09:02:06,071 | INFO | SCAN | GBP_USD | active=False
+2026-03-02 09:02:06,195 | INFO | SCAN | GBP_USD | no data
+2026-03-02 09:02:06,196 | INFO | SCAN | USD_JPY | active=False
+2026-03-02 09:02:06,339 | INFO | SCAN | USD_JPY | no data
+2026-03-02 09:02:06,339 | INFO | SCAN | AUD_USD | active=False
+2026-03-02 09:02:06,460 | INFO | SCAN | AUD_USD | no data
+2026-03-02 09:02:06,461 | INFO | SCAN | USD_CAD | active=False
+2026-03-02 09:02:06,592 | INFO | SCAN | USD_CAD | no data
+2026-03-02 09:02:06,592 | INFO | SCAN | USD_CHF | active=False
+2026-03-02 09:02:06,710 | INFO | SCAN | USD_CHF | no data
+2026-03-02 09:03:06,926 | INFO | HEARTBEAT | nav=100656.57 | open_trades=0 | max_total=6 | sleep=60s
+2026-03-02 09:03:06,927 | INFO | SCAN | EUR_USD | active=False
+2026-03-02 09:03:07,087 | INFO | SCAN | EUR_USD | no data
+2026-03-02 09:03:07,087 | INFO | SCAN | GBP_USD | active=False
+2026-03-02 09:03:07,249 | INFO | SCAN | GBP_USD | no data
+2026-03-02 09:03:07,249 | INFO | SCAN | USD_JPY | active=False
+2026-03-02 09:03:07,468 | INFO | SCAN | USD_JPY | no data
+2026-03-02 09:03:07,468 | INFO | SCAN | AUD_USD | active=False
+2026-03-02 09:03:07,892 | INFO | SCAN | AUD_USD | no data
+2026-03-02 09:03:07,892 | INFO | SCAN | USD_CAD | active=False
+2026-03-02 09:03:08,017 | INFO | SCAN | USD_CAD | no data
+2026-03-02 09:03:08,018 | INFO | SCAN | USD_CHF | active=False
+2026-03-02 09:03:08,165 | INFO | SCAN | USD_CHF | no data
+2026-03-02 09:04:08,798 | INFO | HEARTBEAT | nav=100656.57 | open_trades=0 | max_total=6 | sleep=60s
+2026-03-02 09:04:08,799 | INFO | SCAN | EUR_USD | active=False
+2026-03-02 09:04:09,000 | INFO | SCAN | EUR_USD | no data
+2026-03-02 09:04:09,000 | INFO | SCAN | GBP_USD | active=False
+2026-03-02 09:04:09,189 | INFO | SCAN | GBP_USD | no data
+2026-03-02 09:04:09,190 | INFO | SCAN | USD_JPY | active=False
+2026-03-02 09:04:09,358 | INFO | SCAN | USD_JPY | no data
+2026-03-02 09:04:09,359 | INFO | SCAN | AUD_USD | active=False
+2026-03-02 09:04:09,510 | INFO | SCAN | AUD_USD | no data
+2026-03-02 09:04:09,510 | INFO | SCAN | USD_CAD | active=False
+2026-03-02 09:04:09,714 | INFO | SCAN | USD_CAD | no data
+2026-03-02 09:04:09,715 | INFO | SCAN | USD_CHF | active=False
+2026-03-02 09:04:09,898 | INFO | SCAN | USD_CHF | no data
+
+===== /home/moonrider1968/bots/oanda_active/logs/velez_stock.log (2 lines, 2026-06-29)
+2026-06-29 23:20:34,995 | Velez_Stock_Master_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:34,996 | Velez_Stock_Master_v1 | INFO | Velez Stock Master Starting
+
+===== /home/moonrider1968/bots/oanda_active/logs/velez_weinstein_swing.log (2 lines, 2026-06-29)
+2026-06-29 23:20:35,006 | Velez_Weinstein_Swing_Aggressive_v1 | WARNING | Client init: No module named 'alpaca'
+2026-06-29 23:20:35,007 | Velez_Weinstein_Swing_Aggressive_v1 | INFO | Velez-Weinstein Aggressive Swing Bot Starting
+
+===== /home/moonrider1968/bots/oanda_active/microbeast.log (412035 lines, 2026-03-31)
+2026-03-31 07:18:10,753 | ERROR | Candle Fetch Error for USD_CHF: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,753 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-31 07:18:10,756 | ERROR | Candle Fetch Error for USD_CAD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,756 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-31 07:18:10,757 | ERROR | Candle Fetch Error for NZD_USD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,758 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-31 07:18:10,759 | ERROR | Candle Fetch Error for EUR_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,759 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-31 07:18:10,760 | ERROR | Candle Fetch Error for GBP_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,761 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-31 07:18:10,762 | ERROR | Candle Fetch Error for EUR_GBP: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,762 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-31 07:18:10,764 | ERROR | Candle Fetch Error for AUD_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:10,765 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-31 07:18:10,766 | ERROR | Candle Fetch Error for EUR_AUD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,766 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/summary
+2026-03-31 07:18:13,768 | ERROR | Failed to fetch NAV: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/cacert.pem
+2026-03-31 07:18:13,768 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-31 07:18:13,768 | ERROR | Failed to fetch open trades: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/cac
+2026-03-31 07:18:13,769 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/openTrades
+2026-03-31 07:18:13,769 | ERROR | Failed to fetch open trades: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/cac
+2026-03-31 07:18:13,770 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-03-31 07:18:13,771 | ERROR | Candle Fetch Error for EUR_USD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,771 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-03-31 07:18:13,772 | ERROR | Candle Fetch Error for GBP_USD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,772 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-03-31 07:18:13,773 | ERROR | Candle Fetch Error for USD_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,774 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-03-31 07:18:13,775 | ERROR | Candle Fetch Error for AUD_USD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,775 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-03-31 07:18:13,776 | ERROR | Candle Fetch Error for USD_CHF: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,776 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-03-31 07:18:13,777 | ERROR | Candle Fetch Error for USD_CAD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,778 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-03-31 07:18:13,778 | ERROR | Candle Fetch Error for NZD_USD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,779 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-03-31 07:18:13,781 | ERROR | Candle Fetch Error for EUR_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,781 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-03-31 07:18:13,782 | ERROR | Candle Fetch Error for GBP_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,782 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-03-31 07:18:13,783 | ERROR | Candle Fetch Error for EUR_GBP: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,784 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-03-31 07:18:13,785 | ERROR | Candle Fetch Error for AUD_JPY: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+2026-03-31 07:18:13,785 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-03-31 07:18:13,786 | ERROR | Candle Fetch Error for EUR_AUD: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_fifo_practice/venv/lib/python3.11/site-packages/certifi/
+
+===== /home/moonrider1968/bots/oanda_active/oanda_velez.log (5814 lines, 2026-04-10)
+2026-04-10 06:09:49,436 | WARNING | ⚠️ GBP_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:10:07,728 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:10:07,764 | WARNING | ⚠️ EUR_GBP Order Cancelled: Price moved beyond bound.
+2026-04-10 06:10:17,067 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:11:00,490 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:00,527 | WARNING | ⚠️ NZD_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:17,192 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:11:24,112 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:24,150 | WARNING | ⚠️ GBP_AUD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:30,644 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:30,687 | WARNING | ⚠️ GBP_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:43,836 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:43,874 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130409","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:11:43,874 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130409","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130409","requestID":"97520304295796028","time":"2026-04-10T10
+2026-04-10 06:12:17,615 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:13:15,147 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:15,182 | WARNING | ⚠️ AUD_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:17,097 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:17,136 | WARNING | ⚠️ EUR_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:17,649 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:13:47,861 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:47,901 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130414","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:13:47,901 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130414","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130414","requestID":"97520304815975879","time":"2026-04-10T10
+2026-04-10 06:13:56,200 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:56,237 | WARNING | ⚠️ USD_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:57,969 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:58,017 | WARNING | ⚠️ USD_CNH Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:09,282 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:09,318 | WARNING | ⚠️ AUD_JPY Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:17,731 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:14:25,974 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:26,011 | WARNING | ⚠️ USD_CHF Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:37,594 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:37,632 | WARNING | ⚠️ EUR_JPY Order Cancelled: Price moved beyond bound.
+2026-04-10 06:15:18,057 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:16:18,188 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:16:27,056 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:16:27,091 | WARNING | ⚠️ USD_ZAR Order Cancelled: Price moved beyond bound.
+2026-04-10 06:17:04,738 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:17:04,779 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130427","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:17:04,779 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130427","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130427","requestID":"97520305642400509","time":"2026-04-10T10
+2026-04-10 06:17:18,376 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:18:01,410 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:18:01,897 | WARNING | ⚠️ AUD_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:18:18,395 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+
+===== /home/moonrider1968/bots/oanda_active/oanda_velez_bot.log (666957 lines, 2026-04-10)
+2026-04-10 06:09:49,436 | WARNING | ⚠️ GBP_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:10:07,728 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:10:07,764 | WARNING | ⚠️ EUR_GBP Order Cancelled: Price moved beyond bound.
+2026-04-10 06:10:17,067 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:11:00,490 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:00,527 | WARNING | ⚠️ NZD_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:17,192 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:11:24,112 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:24,150 | WARNING | ⚠️ GBP_AUD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:30,644 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:30,687 | WARNING | ⚠️ GBP_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:11:43,836 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:11:43,874 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130409","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:11:43,874 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130409","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130409","requestID":"97520304295796028","time":"2026-04-10T10
+2026-04-10 06:12:17,615 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:13:15,147 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:15,182 | WARNING | ⚠️ AUD_USD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:17,097 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:17,136 | WARNING | ⚠️ EUR_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:17,649 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:13:47,861 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:47,901 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130414","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:13:47,901 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130414","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130414","requestID":"97520304815975879","time":"2026-04-10T10
+2026-04-10 06:13:56,200 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:56,237 | WARNING | ⚠️ USD_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:13:57,969 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:13:58,017 | WARNING | ⚠️ USD_CNH Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:09,282 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:09,318 | WARNING | ⚠️ AUD_JPY Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:17,731 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:14:25,974 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:26,011 | WARNING | ⚠️ USD_CHF Order Cancelled: Price moved beyond bound.
+2026-04-10 06:14:37,594 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:14:37,632 | WARNING | ⚠️ EUR_JPY Order Cancelled: Price moved beyond bound.
+2026-04-10 06:15:18,057 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:16:18,188 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:16:27,056 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:16:27,091 | WARNING | ⚠️ USD_ZAR Order Cancelled: Price moved beyond bound.
+2026-04-10 06:17:04,738 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:17:04,779 | ERROR | request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders failed [400,{"orderRejectTransaction":{"id":"130427","accountID":"101-001-31460466-001","userID":31460466
+2026-04-10 06:17:04,779 | ERROR | ❌ DISPATCH ERROR: {"orderRejectTransaction":{"id":"130427","accountID":"101-001-31460466-001","userID":31460466,"batchID":"130427","requestID":"97520305642400509","time":"2026-04-10T10
+2026-04-10 06:17:18,376 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+2026-04-10 06:18:01,410 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/101-001-31460466-001/orders
+2026-04-10 06:18:01,897 | WARNING | ⚠️ AUD_CAD Order Cancelled: Price moved beyond bound.
+2026-04-10 06:18:18,395 | INFO | 💓 Daily Trades: 0/15 | Buffer Warming: YES
+
+===== /home/moonrider1968/bots/oanda_active/oanda_velez_trade_log.csv (1 lines, 2026-04-07)
+timestamp,instrument,side,entry_price,exit_price,qty,pnl,reason,system
+...
+timestamp,instrument,side,entry_price,exit_price,qty,pnl,reason,system
+
+===== /home/moonrider1968/bots/oanda_active/parameter_sweep_small_results.csv (2448 lines, 2026-07-03)
+rsi_long,rsi_short,bb_mult_long,bb_mult_short,adx_max,stop_atr,target_atr,total_trades,win_rate,profit_factor,expectancy_%,avg_win_%,avg_loss_%,score
+28,70,0.995,1.0,20,1.4,2.8,38,55.3,3.4,0.063,0.16,-0.058,6.875
+30,70,0.995,1.0,20,1.4,2.8,38,55.3,3.4,0.063,0.16,-0.058,6.875
+28,72,0.995,1.0,20,1.4,2.8,29,58.6,3.26,0.06,0.148,-0.064,6.501
+...
+28,70,1.0,1.005,22,1.5,3.0,31,32.3,0.89,-0.005,0.137,-0.073,0.997
+26,72,1.005,1.005,22,1.4,3.0,39,30.8,0.82,-0.009,0.13,-0.071,0.926
+26,74,1.005,1.005,22,1.4,3.0,39,30.8,0.82,-0.009,0.13,-0.071,0.926
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260629.txt (16 lines, 2026-06-29)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-06-29 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-06-29 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260630.txt (16 lines, 2026-06-30)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-06-30 09:00:04
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-06-30 09:00:04
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260701.txt (16 lines, 2026-07-01)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-01 09:00:09
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-01 09:00:09
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260702.txt (16 lines, 2026-07-02)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-02 09:00:09
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-02 09:00:09
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260703.txt (16 lines, 2026-07-03)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-03 09:00:03
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-03 09:00:03
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260704.txt (1 lines, 2026-07-04)
+Killed
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260705.txt (1 lines, 2026-07-05)
+Killed
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260706.txt (1 lines, 2026-07-06)
+Killed
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260707.txt (1 lines, 2026-07-07)
+Killed
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260708.txt (1 lines, 2026-07-08)
+Killed
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260709.txt (16 lines, 2026-07-09)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-09 09:00:03
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-09 09:00:03
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260710.txt (16 lines, 2026-07-10)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-10 09:00:01
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-10 09:00:01
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260711.txt (16 lines, 2026-07-11)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-11 09:00:03
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-11 09:00:03
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260712.txt (16 lines, 2026-07-12)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-12 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-12 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260713.txt (16 lines, 2026-07-13)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-13 09:00:03
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-13 09:00:03
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260714.txt (16 lines, 2026-07-14)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-14 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-14 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260715.txt (16 lines, 2026-07-15)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-15 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-15 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260716.txt (16 lines, 2026-07-16)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-16 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-16 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260717.txt (16 lines, 2026-07-17)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-17 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-17 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260718.txt (16 lines, 2026-07-18)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-18 09:00:03
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-18 09:00:03
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260719.txt (16 lines, 2026-07-19)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-19 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-19 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260720.txt (16 lines, 2026-07-20)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-20 09:00:02
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-20 09:00:02
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260721.txt (16 lines, 2026-07-21)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-21 09:00:04
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-21 09:00:04
+
+===== /home/moonrider1968/bots/oanda_active/reports/daily_master_report_20260722.txt (16 lines, 2026-07-22)
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 7 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-22 09:00:07
+
+============================================================
+
+╔══════════════════════════════════════════════════════════════╗
+║           MASTER TRADING PERFORMANCE REPORT                ║
+║                  LAST 30 DAYS                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Report generated: 2026-07-22 09:00:07
