@@ -675,3 +675,34 @@ def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Por
                 "verdict": (f"ADOPT '{best}': best train ROI and it holds on the validation years" if ok else
                             f"'{best}' had the best train ROI but did not hold on the validation years vs the single exit")})
     return out
+
+
+def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None,
+                        ladder: dict | None = None) -> dict:
+    """Owner's idea (2026-10-14, "trading the open"): the opening-range-breakout expert as an 11th expert on the live configuration
+    (direction first + per-expert zones + zone map + the exit plan in use). It joins the live bot only if the brain WITH it beats the
+    brain without it in both the train and the validation years (_zone_verdict). ORB alone is reported for information."""
+    from .brain import DirectionFirst
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    lad = ladder or {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven", "tp"],
+                     "trail_atr": 1.0, "by_expert": EXPERT_LADDERS}
+
+    def run(experts, a, b):
+        br = Brain(experts=list(experts), short_experts=list(experts), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": lad}
+        r = run_intraday(DirectionFirst(br), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {
+            "ten experts (live)": cp.get(f"orb-{per}-base", lambda a=a, b=b: run(ALL_EXPERTS, a, b)),
+            "ten + opening-range breakout": cp.get(f"orb-{per}-with", lambda a=a, b=b: run(list(ALL_EXPERTS) + ["opening_range_breakout"], a, b)),
+            "opening-range breakout alone": cp.get(f"orb-{per}-alone", lambda a=a, b=b: run(["opening_range_breakout"], a, b))}
+    rows = [{"without": out["periods"][p]["ten experts (live)"], "with": out["periods"][p]["ten + opening-range breakout"]} for p in out["periods"]]
+    ok = _zone_verdict(rows)
+    out.update({"family": "orb_candidate", "passes": ok,
+                "verdict": ("ADD opening_range_breakout as an 11th expert: better than the live ten in the train and validation years" if ok else
+                            "do not add it: the ten experts without it did as well or better in the train or validation years")})
+    return out

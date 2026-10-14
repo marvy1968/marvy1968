@@ -1035,7 +1035,8 @@ class LadderWalkTests(unittest.TestCase):
         self.assertEqual(ladder_for(lad, "connors_rsi2")["tp_fracs"], [1.0])
         self.assertEqual(ladder_for(lad, "S:donchian_turtle")["tp_fracs"], [])          # shorts use the same expert's plan
         self.assertEqual(ladder_for(lad, "unknown")["tp_fracs"], [0.25, 0.5])            # default plan
-        self.assertEqual(set(EXPERT_LADDERS), set(__import__("alpacabot.experts", fromlist=["x"]).ALL_EXPERTS))
+        from alpacabot.experts import ALL_EXPERTS, CANDIDATE_EXPERTS
+        self.assertEqual(set(EXPERT_LADDERS), set(ALL_EXPERTS) | set(CANDIDATE_EXPERTS))
         bars = [(100, 102.1, 99.9, 102.0), (102.0, 103.0, 101.9, 102.9)]
         j, pnl, why = self.walk(bars, ladder_for(lad, "connors_rsi2"))
         self.assertEqual((j, pnl, why), (0, 2.0, "zone100"))                            # Connors: all out at the zone
@@ -1049,6 +1050,42 @@ class LadderWalkTests(unittest.TestCase):
         j, pnl, why = self.walk(bars)
         self.assertAlmostEqual(pnl, 0.25 * 2.0 + 0.75 * 0.0)                       # 25% banked, the rest out at break-even
         self.assertEqual(why, "lock")
+
+
+class OpeningRangeBreakoutTests(unittest.TestCase):
+    def _day(self, break_up=True):
+        from alpacabot.experts import features_both
+        idx = pd.DatetimeIndex([t for d in pd.bdate_range("2026-09-01", periods=8) for t in pd.date_range(f"{d.date()} 09:30", f"{d.date()} 15:55", freq="5min", tz="America/New_York")])
+        rng = np.random.default_rng(3)
+        c = 100 + np.cumsum(rng.normal(0, 0.15, len(idx)))
+        o = np.r_[100, c[:-1]]
+        df = pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.05, "low": np.minimum(o, c) - 0.05, "close": c,
+                           "volume": rng.integers(1000, 5000, len(idx)).astype(float)}, index=idx)
+        return df.join(features_both(df))
+
+    def test_signals_only_after_the_opening_range_and_before_11_30(self):
+        from alpacabot.experts import Experts, CANDIDATE_EXPERTS, ALL_EXPERTS
+        self.assertNotIn("opening_range_breakout", ALL_EXPERTS)                    # not live until the study passes
+        f = self._day()
+        sigs = Experts(("09:50", "15:30")).signals(f, ["opening_range_breakout"])
+        self.assertTrue(sigs)
+        for _, s in sigs:
+            t = f.index[s.i].strftime("%H:%M")
+            self.assertTrue("10:00" <= t <= "11:30")
+            self.assertTrue(0 < s.stop_dist)
+            self.assertEqual(s.tag, "opening_range_breakout")
+            day = f.index[s.i].date()
+            orng = f[(f.index.date == day) & (f.index.strftime("%H:%M") < "10:00")]
+            self.assertGreater(f["close"].iloc[s.i], orng["high"].max())              # broke the opening range high
+
+    def test_brain_accepts_it_on_both_sides(self):
+        from alpacabot.brain import Brain
+        f = self._day()
+        f["g_long_ok"] = True
+        f["g_short_ok"] = True
+        br = Brain(experts=["opening_range_breakout"], short_experts=["opening_range_breakout"], sector_filter=True, short_gate="red")
+        sig = br.signals(f)
+        self.assertTrue(any(s.side == 1 for s in sig) or any(s.side == -1 for s in sig))
 
 
 class SectorTopDownTests(unittest.TestCase):

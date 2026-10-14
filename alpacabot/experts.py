@@ -14,6 +14,8 @@ features_both() adds the mirrored features as m_* columns; short_view() turns a 
   donchian_turtle  close above the prior 20-bar high with relative volume >= 1.2; managed exits
   vwap_dev         price 2 sigma below session VWAP and the bar closes up; exits back at VWAP
   dual_regime      the ADX-routed 2-of-3 consensus engine (strategies.DualRegime) with the virtual exit manager
+  opening_range_breakout (candidate, off live)  the first close above the first 30 minutes' high (10:00-11:30), above session VWAP; stop
+                   at the range midpoint (Crabel / Fisher "ACD" / Zarattini-style opening-range breakout; rules frozen before any test)
 
 Every expert fires at the close of bar i (fills at the open of i+1) and ships its own stop, target / exit rule, and a time stop.
 """
@@ -26,6 +28,8 @@ from .strategies import DualRegime, Signal
 
 TREND_EXPERTS = {"velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"}
 RANGE_EXPERTS = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180"}
+# Candidate expert (owner's idea, 2026-10-14: "trading the open"); NOT in ALL_EXPERTS, so the live bot does not use it until the study passes
+CANDIDATE_EXPERTS = ["opening_range_breakout"]
 ALL_EXPERTS = ["velez_elephant", "velez_180", "raschke_grail", "brooks_pullback", "connors_rsi2", "bollinger_bounce", "williams_r",
                "donchian_turtle", "vwap_dev", "dual_regime"]
 
@@ -108,6 +112,24 @@ class Experts:
         out["williams_r"] = (d["f_willr"].shift(1) < -80) & (d["f_willr"] >= -80) & (c > d["f_ema20"] - 0.005 * d["f_ema20"].abs())
         out["donchian_turtle"] = (c > d["f_hh20"]) & (d["f_rvol"] >= 1.2) & (d["f_adx"] >= 20)
         out["vwap_dev"] = (d["f_vwap_z"] <= -2.0) & (c > o)
+        out["opening_range_breakout"] = self._orb(d)
+        return out
+
+    @staticmethod
+    def _orb(d: pd.DataFrame) -> pd.Series:
+        """First close above the opening range (09:30-09:59 bars of the same day) between 10:00 and 11:30, range 1-6 ATR wide, above VWAP.
+        On the mirrored (short) frame the same code is the break of the opening-range LOW."""
+        t = d.index.strftime("%H:%M")
+        day = pd.Series(d.index.date, index=d.index)
+        in_or = pd.Series(t < "10:00", index=d.index)
+        orh = d["high"].where(in_or).groupby(day).transform("max")
+        orl = d["low"].where(in_or).groupby(day).transform("min")
+        width, c = orh - orl, d["close"]
+        first = (c > orh) & (c.shift(1) <= orh)
+        win = pd.Series((t >= "10:00") & (t <= "11:30"), index=d.index)
+        ok = (width >= d["f_atr"]) & (width <= 6 * d["f_atr"]) & (c > d["f_vwap"])
+        out = (first & win & ok).fillna(False)
+        out.attrs["orb_mid"] = ((orh + orl) / 2)
         return out
 
     def signals(self, d: pd.DataFrame, names=None) -> list[tuple[str, Signal]]:
@@ -146,6 +168,10 @@ class Experts:
                     found.append((name, _sig(i, 1.5 * A, 0.0, 24, name, "x_willr")))
                 elif name == "vwap_dev":
                     found.append((name, _sig(i, 1.5 * A, 0.0, 12, name, "x_vwap")))
+                elif name == "opening_range_breakout":
+                    sd = cl - float(masks[name].attrs["orb_mid"].iloc[i])
+                    if 0 < sd <= 2.5 * A:
+                        found.append((name, _sig(i, sd, 2.0, 48, name)))
                 elif name == "donchian_turtle":
                     found.append((name, Signal(int(i), 1, 1.5 * A, 0.0, 0, name, True, A, float(d["f_adx"].iloc[i]), 1.5, 1.0)))
         if names is None or "dual_regime" in names:

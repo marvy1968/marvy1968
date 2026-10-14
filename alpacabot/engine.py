@@ -80,6 +80,8 @@ EXPERT_LADDERS = {
     "williams_r": {"tp_fracs": [1.0], "tp_depth_atr": [0.0]},                                            # Williams: take the first profit
     "vwap_dev": {"tp_fracs": [1.0], "tp_depth_atr": [0.0]},                                              # back to VWAP: all out
     "donchian_turtle": {"tp_fracs": [], "tp_depth_atr": [], "trail_atr": 2.0},                           # Turtles: no target, 2N trail
+    "opening_range_breakout": {"tp_fracs": [0.5], "tp_depth_atr": [0.0], "lock": ["breakeven"], "trail_atr": 1.0},   # (candidate) Crabel/Zarattini:
+    # bank half at the zone, hold the rest with a trailing stop into the afternoon
     "dual_regime": {"tp_fracs": [0.25], "tp_depth_atr": [0.0], "lock": ["breakeven"], "trail_atr": 1.5},  # trend-mode default: small bank,
     # long runner
 }
