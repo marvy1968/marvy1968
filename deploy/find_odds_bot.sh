@@ -11,6 +11,9 @@ if [ "${1:-}" = "--reports" ]; then
     -e 's/[0-9]{8,10}:[A-Za-z0-9_-]{30,}/REDACTED_TELEGRAM_TOKEN/g' \
     -e 's/\b(PK|AK|CK)[A-Z0-9]{16,}\b/REDACTED_BROKER_KEY/g' \
     -e 's/((API|api|APCA|apca|ALPACA|alpaca)[-_A-Za-z]*(KEY|key|SECRET|secret|TOKEN|token)[-_A-Za-z]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"']?)[A-Za-z0-9\/+_-]{8,}/\1REDACTED/g' \
+    -e 's/[0-9a-f]{32}-[0-9a-f]{32}/REDACTED_OANDA_TOKEN/g' \
+    -e 's/[0-9]{3}-[0-9]{3}-[0-9]{6,9}-[0-9]{3}/REDACTED_OANDA_ACCOUNT/g' \
+    -e 's/(Bearer[[:space:]]+)[A-Za-z0-9._-]{20,}/\1REDACTED/g' \
     -e 's/\b[A-Za-z0-9\/+]{40}\b/REDACTED40/g'; }
   find "$DIR" -type f \( -name '*.log' -o -name '*.md' -o -name '*.txt' -o -name '*.csv' -o -name '*report*.json' -o -name '*result*.json' \) \
        -not -path '*/venv/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' -not -path '*/archive/*' -not -name 'requirements*.txt' \
@@ -29,11 +32,12 @@ if [ "${1:-}" = "--trading" ]; then
   echo "== Python/JS/shell files mentioning Alpaca or other brokers (paths only, no code)"
   grep -rlIis --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.ipynb' \
        -e 'alpaca' -e 'APCA-API' -e 'APCA_API' -e 'alpaca_trade_api' -e 'alpaca-py' -e 'ib_insync' \
+       -e 'oanda' -e 'fxpractice' -e 'fxtrade' -e 'oandapyV20' \
        /home /opt /root /srv 2>/dev/null \
-    | grep -v -e '/opt/marv-bot' -e '/opt/marv-link' -e 'site-packages' -e '/venv/' -e '/.venv/' -e '/node_modules/' | head -40
+    | grep -v -e '/opt/marv-bot' -e '/opt/marv-link' -e 'site-packages' -e '/venv/' -e '/.venv/' -e '/node_modules/' | head -150
   echo
   echo "== Folders (file count) containing them"
-  grep -rlIis --include='*.py' -e 'alpaca' -e 'APCA' /home /opt /root /srv 2>/dev/null \
+  grep -rlIis --include='*.py' -e 'alpaca' -e 'APCA' -e 'oanda' -e 'fxpractice' /home /opt /root /srv 2>/dev/null \
     | grep -v -e '/opt/marv-bot' -e '/opt/marv-link' -e 'site-packages' -e '/venv/' -e '/.venv/' | xargs -r -n1 dirname | sort | uniq -c | sort -rn | head -10
   echo
   echo "== systemd services / cron / processes that look like trading bots"
