@@ -155,7 +155,7 @@ class FxLiveTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
-            self.assertEqual(r.cfg["trade"], ["lien_h1"])
+            self.assertEqual(r.cfg["trade"], ["lien_h1", "box_h1"])           # F0 only logs
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
             api.px["EUR_USD"] = (g["fill"] - 0.0023, g["fill"] - 0.0022)              # three quarters to the stop: no cut, OANDA's stop decides

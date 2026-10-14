@@ -50,9 +50,9 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           "zone": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "map_min_r": 1.0},
           "max_groups": 4, "max_per_ccy_side": 2, "breaker": 0.02, "max_notional_x": 10.0, "max_spread_frac": 0.25,
           "book_cap": 100_000.0, "strategies": list(STRATS),
-          # owner 2026-10-14 after the 2016-22 backtest: only Lien Fader places trades; the range box (-75% on 2016-20) and F0 (-13..-18%)
-          # keep scanning and log their signals as "paused (signal logged)" so their live record builds without risking the book
-          "trade": ["lien_h1"]}
+          # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
+          # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
+          "trade": ["lien_h1", "box_h1"]}
 
 
 def decimals(instrument: str) -> int:
