@@ -1,7 +1,7 @@
 """Script O/U live tracker (tracking, unproven). Paper/fake-money only; NEVER places real bets.
 Rule (PDF defaults; backtest-tuned thresholds did not validate on held-out data -> not used):
   extreme tier only: |Marv total - market total| >= 3 pts NFL/CFB, >= 4 WNBA, >= 0.6 goals soccer; UF=1; EV>0.
-Each run: (1) find new picks -> ledger + March_edge Telegram alert, (2) refresh closing line for pending picks,
+Each run: (1) find new picks -> ledger (+ March_edge Telegram only if SCRIPT_OU_TELEGRAM is on; default off), (2) refresh closing line for pending picks,
 (3) grade finished games via ESPN scoreboard, (4) write summary for /reportcard. pick_feed.py reads the ledger.
 Disable: systemctl disable --now script-ou.timer   (or touch /opt/marv-bot/state/script_ou/KILL)"""
 import json, math, os, sys, time, re
@@ -162,7 +162,14 @@ def save(L):
     """Atomic ledger write. Raises on failure so we never alert without persisting the dedupe record."""
     tmp = LED.with_suffix(".tmp"); json.dump(L, open(tmp, "w"), indent=1); os.replace(tmp, LED)
 
+def _telegram_on():
+    """SCRIPT_OU_TELEGRAM must be truthy to send separate Script O/U / Master extremes Telegram alerts.
+    Default OFF: tracking, ledger, and grading stay intact; O/U still appears on the daily morning card."""
+    return os.environ.get("SCRIPT_OU_TELEGRAM", "").strip().lower() in ("1", "true", "yes", "on")
+
 def _send(c, text):
+    if not _telegram_on():
+        return False  # silenced; ledger/grading still run
     try:
         ok = tg(text)
         return "dry-run" if os.environ.get("SCRIPT_OU_DRY", "0") == "1" else bool(ok)
