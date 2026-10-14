@@ -91,6 +91,9 @@ find "$WORK/odds-bot" -type f -size -2M | while read -r f; do
     -e 's/(["'"'"'])(sk|pk|rk)_[A-Za-z0-9]{16,}(["'"'"'])/\1REDACTED\3/g' \
     -e 's/((api|API)[_-]?(key|KEY)|token|TOKEN|secret|SECRET|password|PASSWORD|chat_id|CHAT_ID)([A-Za-z_]*)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{6,}["'"'"']/\1\4 = "REDACTED"/g' \
     -e 's/(apiKey=)[A-Za-z0-9]{16,}/\1REDACTED/g' \
+    -e 's/[0-9a-f]{32}-[0-9a-f]{32}/REDACTED_OANDA_TOKEN/g' \
+    -e 's/[0-9]{3}-[0-9]{3}-[0-9]{6,9}-[0-9]{3}/REDACTED_OANDA_ACCOUNT/g' \
+    -e 's/(Bearer[[:space:]]+)[A-Za-z0-9._-]{20,}/\1REDACTED/g' \
     -e 's/\b(PK|AK|CK)[A-Z0-9]{16,}\b/REDACTED_BROKER_KEY/g' \
     -e 's/((API|api|APCA|apca)[-_A-Za-z]*(KEY|key|SECRET|secret|TOKEN|token)[-_A-Za-z]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'])[^"'"'"']{6,}(["'"'"'])/\1REDACTED\4/g' \
     -e 's/(["'"'"'])[A-Za-z0-9\/+]{40}(["'"'"'])/\1REDACTED40\2/g' \

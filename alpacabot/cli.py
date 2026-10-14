@@ -57,7 +57,16 @@ def run_all(a) -> int:
     for fam in a.families:
         first = len(lines)
         try:
-            if fam == "sector_td":               # the supplied frozen rules, tested on untouched years and on a hindsight-free control list
+            if fam.startswith("fx"):               # OANDA forex research (fxbot, practice data only): "fx" = every family, "fx_<family>" = one
+                from fxbot.cli import main as fx_main
+                from fxbot.research import FAMILIES as FX_FAMILIES
+                fams = list(FX_FAMILIES) if fam == "fx" else [fam]
+                code = fx_main(["run-all", "--families", *fams])
+                summary = Path("state/fx/reports/summary.md")
+                res = {"family": fam, "verdict": "see state/fx/reports/summary.md" if code == 0 else "WAITING FOR KEYS (OANDA_API_TOKEN)"}
+                if summary.exists() and code == 0:
+                    lines.append(summary.read_text())
+            elif fam == "sector_td":               # the supplied frozen rules, tested on untouched years and on a hindsight-free control list
                 end2 = date.today()
                 spy2 = load("SPY", "1Day", start, end2, cache)
                 uni = {}

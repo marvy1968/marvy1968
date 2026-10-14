@@ -1,0 +1,72 @@
+"""Walk-forward for the FX families, same protocol as alpacabot.
+
+PRE-DECLARED (2026-10-14, before any run): train 2016-01-01..2020-12-31 picks ONE parameter set per family (highest profit factor among
+sets with 100+ trades and a positive total); validate 2021-01-01..2022-12-31 is looked at once. A family PASSES only if on validation:
+50+ trades, profit factor >= 1.2, total return > 0, still > 0 with the spread doubled, and it beats random entries (same count, same
+exits/stops) in >= 90% of 20 seeds by profit factor. The 2023-today final test is not run here. Portfolio: 0.5% risk per trade,
+max 4 positions, one per pair, leverage cap 20:1, financing 0.01%/night on notional.
+"""
+
+import itertools
+from datetime import date
+
+import numpy as np
+
+from .data import MAJORS
+from .engine import Book, metrics, portfolio, simulate
+from .strategies import ConsensusMR, Donchian, RangeMR, RegimeSwitch, TsMom
+
+TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
+VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
+
+FAMILIES = {
+    # name: (granularity, class, grid)
+    "fx_donchian_d": ("D", Donchian, {"entry_n": [20, 55], "exit_n": [10, 20], "stop_atr": [2.0, 3.0]}),
+    "fx_donchian_h4": ("H4", Donchian, {"entry_n": [20, 55], "exit_n": [10, 20], "stop_atr": [2.0, 3.0]}),
+    "fx_tsmom_d": ("D", TsMom, {"lookback": [63, 126, 252], "hold": [5, 21], "stop_atr": [3.0]}),
+    "fx_range_h1": ("H1", RangeMR, {"bb_k": [2.0, 2.5], "stop_atr": [1.5, 2.5], "asian_only": [False, True]}),
+    "fx_regime_h4": ("H4", RegimeSwitch, {"entry_n": [20, 55], "bb_k": [2.0, 2.5], "stop_atr": [2.0, 3.0]}),
+    "fx_consensus_h1": ("H1", ConsensusMR, {"votes": [3]}),          # the owner's daemon exactly as found: one setting, nothing tuned
+}
+
+
+def _grid(g):
+    keys = list(g)
+    return [dict(zip(keys, v)) for v in itertools.product(*(g[k] for k in keys))]
+
+
+def run(strat, data: dict, a: date, b: date, book: Book = None, spread_mult: float = 1.0, placebo_seed=None) -> dict:
+    book = book or Book()
+    trades = [t for inst, df in data.items() for t in simulate(inst, df, strat, spread_mult, placebo_seed)
+              if a <= t.entry_time.date() <= b]
+    fills, curve = portfolio(trades, book)
+    return metrics(fills, curve, book.equity, (b - a).days)
+
+
+def walk_forward(family: str, data: dict, placebo_runs: int = 20) -> dict:
+    gran, cls, grid = FAMILIES[family]
+    table = []
+    for p in _grid(grid):
+        m = run(cls(**p), data, *TRAIN)
+        table.append({"params": p, **m})
+    ok = [t for t in table if (t.get("trades") or 0) >= 100 and (t.get("total_return") or -1) > 0]
+    out = {"family": family, "granularity": gran, "train": [str(x) for x in TRAIN], "validate": [str(x) for x in VALIDATE], "grid": table}
+    if not ok:
+        out.update(chosen=None, passes=False, verdict="no parameter set made money with 100+ trades on the train years")
+        return out
+    best = max(ok, key=lambda t: t["profit_factor"])
+    strat = cls(**best["params"])
+    val = run(strat, data, *VALIDATE)
+    stress = run(strat, data, *VALIDATE, spread_mult=2.0)
+    plc = [run(strat, data, *VALIDATE, placebo_seed=s).get("profit_factor") or 0 for s in range(placebo_runs)]
+    beat = float(np.mean([(val.get("profit_factor") or 0) > p for p in plc]))
+    passes = ((val.get("trades") or 0) >= 50 and (val.get("profit_factor") or 0) >= 1.2 and (val.get("total_return") or -1) > 0
+              and (stress.get("total_return") or -1) > 0 and beat >= 0.9)
+    out.update(chosen=best["params"], train_metrics={k: v for k, v in best.items() if k != "params"}, validate_metrics=val,
+               spread_x2=stress, placebo_pf_mean=float(np.mean(plc)), beats_placebo_share=beat, passes=bool(passes),
+               verdict=("PASSED validation (the 2023-today final test may be run once)" if passes else "did not pass validation"))
+    return out
+
+
+def instruments():
+    return list(MAJORS)
