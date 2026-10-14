@@ -313,9 +313,18 @@ class PaperRunner:
             self.last_px[sym] = px
             side = pos.get("side", 1)                         # best exit-side price seen while open (peak open profit)
             pos["best_px"] = px if pos.get("best_px") is None else (max(pos["best_px"], px) if side == 1 else min(pos["best_px"], px))
+            lad = pos.get("ladder")
+            if lad:
+                self.ladder_add(sym, pos, bid, ask, now_et)   # deeper into the buy/sell zone: scale in (0.25% -> 0.5% -> 1% -> 2% risk)
+                pos = self.exits.positions.get(sym)
             tp = pos.get("zone_tp")
-            if tp is not None and side * (px - tp) >= 0:     # LIVE zone take-profit: price reached this trade's exhaustion zone
-                self.close_now(sym, "zone", bar_start(now_et) + pd.Timedelta(minutes=5))
+            if tp is not None and side * (px - tp) >= 0:     # LIVE take-profit zone reached
+                if lad and self.ladder_take(sym, pos, px, now_et):    # scaled: 25% -> 50% -> 75% -> 100% of the trade by depth
+                    continue
+                if not lad:
+                    self.close_now(sym, "zone", bar_start(now_et) + pd.Timedelta(minutes=5))
+                    continue
+            if sym not in self.exits.positions:
                 continue
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
@@ -356,6 +365,88 @@ class PaperRunner:
         except Exception:
             log.exception("zones.json unreadable: zones off until fixed")
             return {**default, "live": False}
+
+    def ladder_tier(self, sym: str, sig, ref: float, lad: dict) -> int:
+        """Entry tier from how far the quote already is INTO the entry zone (against the signal's direction from its close), in ATRs."""
+        bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
+        px = ask if sig.side == 1 else bid
+        atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
+        depth = (-1 if sig.side == -1 else 1) * (ref - px) / atr_i if atr_i > 0 else 0.0
+        return max(k for k, d in enumerate(lad["entry_depth_atr"]) if depth >= d or k == 0)
+
+    def ladder_add(self, sym: str, pos: dict, bid: float, ask: float, now_et: datetime):
+        """Scale in: when price goes one tier deeper into the entry zone (and is still beyond the stop), add shares so the trade's total
+        risk reaches that tier's % of equity (capped by the per-position notional cap). Entry window, breaker, profit lock and the kill
+        switch all apply to adds exactly as to new trades."""
+        lad, side = pos["ladder"], pos.get("side", 1)
+        cfg, k = lad["cfg"], lad["tier"] + 1
+        if k >= len(cfg["entry_risk"]) or lad.get("sold"):
+            return
+        ex = self.exec
+        if ex.kill_switch or not ex.window.entries_allowed(now_et) or not ex.breaker.entries_allowed(now_et) or \
+                (ex.profit_lock and not ex.profit_lock.entries_allowed(now_et)):
+            return
+        px = ask if side == 1 else bid
+        depth = side * (lad["ref"] - px) / lad["atr"] if lad["atr"] > 0 else 0.0
+        if depth < cfg["entry_depth_atr"][k] or side * (px - lad["stop_px"]) <= 0:
+            return
+        eq, entry, qty = self.own_equity(), self.entry_px(pos), pos["qty"]
+        dist = abs(px - lad["stop_px"])
+        add = int((eq * cfg["entry_risk"][k] - qty * abs(entry - lad["stop_px"])) / dist) if dist > 0 else 0
+        add = min(add, int(eq * ex.max_pos_frac / px) - qty)
+        lad["tier"] = k                                          # one step per tier, even when the cap leaves nothing to add
+        if add < 1:
+            self.store.save(self.exits.positions)
+            return
+        coid = f"ab-a-{sym}-{now_et:%Y%m%d}-{k}"
+        order = self.broker.submit_market(sym, add, coid, side="buy" if side == 1 else "sell")
+        got = self.confirm_fill(order)
+        filled, fpx = (add, px) if got is None else (got[1], got[2] or px)
+        if got is not None and (got[0] != "filled" or filled <= 0):
+            self.journal("ladder_add_not_filled", symbol=sym, tier=k, status=got[0])
+            self.store.save(self.exits.positions)
+            return
+        new_avg = (qty * entry + filled * fpx) / (qty + filled)
+        pos["state"].entry = side * new_avg                      # shorts are tracked on -price
+        pos["qty"], lad["peak_qty"] = qty + filled, qty + filled
+        self.journal("ladder_add", symbol=sym, tier=k, risk_pct=cfg["entry_risk"][k], added=filled, fill=fpx, avg=round(new_avg, 4))
+        self.store.save(self.exits.positions)
+
+    def ladder_take(self, sym: str, pos: dict, px: float, now_et: datetime) -> bool:
+        """Scale out in the take-profit zone: 25% of the trade at the zone, 50% 0.25 ATR beyond, 75% at 0.5, everything at 1 ATR.
+        Returns True when the position is fully closed."""
+        lad, side = pos["ladder"], pos.get("side", 1)
+        cfg = lad["cfg"]
+        beyond = side * (px - pos["zone_tp"]) / lad["atr"] if lad["atr"] > 0 else 99.0
+        frac = max(f for f, d in zip(cfg["tp_fracs"], cfg["tp_depth_atr"]) if beyond >= d)
+        want = int(round(lad["peak_qty"] * frac))
+        sell = min(want - lad["sold"], pos["qty"])
+        if sell < 1:
+            return False
+        if sell >= pos["qty"]:
+            self.close_now(sym, f"zone{int(frac * 100)}", bar_start(now_et) + pd.Timedelta(minutes=5))
+            return True
+        if hasattr(self.raw, "close_tagged"):
+            self.raw.close_tagged(sym, sell, side, f"ab-p-{sym}-{int(time.time() * 1000)}")
+        else:
+            self.raw.close(sym, sell)
+        self.record_partial(sym, pos, px, sell, f"zone{int(frac * 100)}")
+        pos["qty"] -= sell
+        lad["sold"] += sell
+        self.store.save(self.exits.positions)
+        return False
+
+    def record_partial(self, sym: str, pos: dict, px: float, qty: int, reason: str):
+        """A partial take-profit: its own ledger row (partial=true) so realized P&L and the report card stay exact."""
+        side, entry = pos.get("side", 1), self.entry_px(pos)
+        risk = pos["state"].atr * pos["state"].trail * qty
+        pnl = side * (px - entry) * qty
+        self.journal("partial_exit", symbol=sym, reason=reason, px=px, qty=qty)
+        with open(self.dir / "trades.jsonl", "a") as f:
+            f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
+                                "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason,
+                                "opened": pos["opened"], "closed": self.clock().isoformat(), "partial": True,
+                                "zone_profile": (pos.get("zone") or {}).get("profile")}) + "\n")
 
     def zone_entry_block(self, sym: str, sig, ref: float, zcfg: dict) -> str:
         """'' to allow the entry; otherwise why the zones block it (against the stock's direction, or chasing past the entry zone)."""
@@ -481,7 +572,15 @@ class PaperRunner:
                 if why:
                     self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
                     continue
-            verdict = self.exec.try_enter(sym, sig, ref, now_et)       # risk 1% of equity, spread guard, window, breaker, duplicate-id guard
+            risk_before, tier = self.exec.risk_pct, None
+            lad_cfg = zcfg.get("ladder") if zcfg["live"] else None
+            if lad_cfg:                                                  # owner's scaling: size by how deep price is into the entry zone
+                tier = self.ladder_tier(sym, sig, ref, lad_cfg)
+                self.exec.risk_pct = lad_cfg["entry_risk"][tier]
+            try:
+                verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
+            finally:
+                self.exec.risk_pct = risk_before
             self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=verdict)
             if verdict == "ordered":
                 bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
@@ -507,6 +606,12 @@ class PaperRunner:
                 if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
                     pos["exhaust_r"] = float(zcfg["profiles"][zone.get("profile", "trend")]["exhaust_r"])
+                    if lad_cfg and tier is not None:
+                        side_ = -1 if sig.side == -1 else 1
+                        atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
+                        pos["ladder"] = {"ref": ref, "atr": atr_i, "tier": tier, "stop_px": fill - side_ * sig.stop_dist,
+                                         "peak_qty": qty, "sold": 0, "cfg": lad_cfg}
+                        self.journal("ladder_open", symbol=sym, tier=tier, risk_pct=lad_cfg["entry_risk"][tier], qty=qty)
                 self.store.save(self.exits.positions)
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
@@ -762,10 +867,28 @@ def _giveback_lines(trades: list, today: list) -> list:
     return (["", "PROFIT GIVEBACK (peak open profit vs what was kept)"] + out) if out else []
 
 
+def whole_trades(rows: list[dict]) -> list[dict]:
+    """Ledger rows -> one row per trade: a scaled-out trade's partial take-profits (partial=true) are folded into its final row (same
+    symbol and open time), so counts, win rate and profit factor are per trade, while the P&L stays the exact sum."""
+    out, part = [], {}
+    for t in rows:
+        k = (t["symbol"], t.get("opened"))
+        if t.get("partial"):
+            part.setdefault(k, []).append(t)
+            continue
+        ps = part.pop(k, [])
+        if ps:
+            t = {**t, "pnl": round(t["pnl"] + sum(p["pnl"] for p in ps), 2), "r": round(t["r"] + sum(p["r"] for p in ps), 3),
+                 "qty": t["qty"] + sum(p["qty"] for p in ps), "partials": len(ps)}
+        out.append(t)
+    return out + [ps[0] | {"pnl": round(sum(p["pnl"] for p in ps), 2), "r": round(sum(p["r"] for p in ps), 3),
+                           "qty": sum(p["qty"] for p in ps), "partials": len(ps)} for ps in part.values()]   # still open: what is banked
+
+
 def report_card(state_dir, day=None) -> str:
     """Win/loss, ROI, drawdown, SPY comparison and the go-live gate, from the trade ledger and the daily equity snapshots."""
     d = Path(state_dir)
-    trades, eq = _jl(d / "trades.jsonl"), _jl(d / "equity.jsonl")
+    trades, eq = whole_trades(_jl(d / "trades.jsonl")), _jl(d / "equity.jsonl")
     day = (day or datetime.now(ET).date()).isoformat()
     today = [t for t in trades if t["date"] == day]
     def stats(ts):

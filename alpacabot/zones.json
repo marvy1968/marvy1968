@@ -21,6 +21,33 @@
     "exhaust_r": 1.5,
     "target": "mean"
    }
+  },
+  "ladder": {
+   "_note": "owner 2026-10-14: scale in by depth into the entry zone (risk % of equity per tier, depth in ATRs from the signal close) and scale out in the take-profit zone (fraction of the peak position by ATRs beyond the target)",
+   "entry_risk": [
+    0.0025,
+    0.005,
+    0.01,
+    0.02
+   ],
+   "entry_depth_atr": [
+    0.0,
+    0.25,
+    0.5,
+    1.0
+   ],
+   "tp_fracs": [
+    0.25,
+    0.5,
+    0.75,
+    1.0
+   ],
+   "tp_depth_atr": [
+    0.0,
+    0.25,
+    0.5,
+    1.0
+   ]
   }
  },
  "swing": {

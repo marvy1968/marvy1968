@@ -1594,6 +1594,80 @@ class LiveZoneTests(unittest.TestCase):
             self.assertEqual(r.zone_entry_block("UP", long_, 100.5, cfg), "")
 
 
+class LadderTests(unittest.TestCase):
+    """Owner's scaling zones: entry risk 0.25/0.5/1/2% by depth into the entry zone; take 25/50/75/100% by depth into the TP zone."""
+    CFG = {"entry_risk": [0.0025, 0.005, 0.01, 0.02], "entry_depth_atr": [0.0, 0.25, 0.5, 1.0],
+           "tp_fracs": [0.25, 0.5, 0.75, 1.0], "tp_depth_atr": [0.0, 0.25, 0.5, 1.0]}
+
+    def _runner(self, tmp, quote=(100.0, 100.0)):
+        from alpacabot import paper
+        from alpacabot.exits import FixedState
+        r = paper.PaperRunner.__new__(paper.PaperRunner)
+        r.dir, r.sleep, r.now, r.last_px, r.base_equity = Path(tmp), (lambda *_: None), None, {}, 100_000.0
+        r.closed, r.sent = [], []
+
+        class B:
+            def quote(self, s): return quote
+            def submit_market(self, s, q, coid=None, side="buy"): r.sent.append((s, q, side, coid))
+            def close_tagged(self, s, q, side, coid): r.sent.append((s, q, "close", coid))
+
+        class Store:
+            def save(self, p): pass
+
+        class Ex:
+            positions = {}
+        r.broker = r.raw = B()
+        r.store, r.exits = Store(), Ex()
+        r.exits.positions = {"X": {"state": FixedState(entry=100.0, stop=98.0, tp=104.0, atr=1.0, trail=2.0), "qty": 100, "side": 1,
+                                   "opened": "t0", "zone_tp": 102.0,
+                                   "ladder": {"ref": 100.0, "atr": 1.0, "tier": 0, "stop_px": 98.0, "peak_qty": 100, "sold": 0, "cfg": self.CFG}}}
+        r.close_now = lambda sym, reason, bar: r.closed.append((sym, reason)) or r.exits.positions.pop(sym)
+        return r
+
+    def test_tier_from_depth(self):
+        import tempfile
+        from alpacabot.strategies import Signal
+        with tempfile.TemporaryDirectory() as tmp:
+            sig = Signal(i=1, side=1, stop_dist=2.0, atr=1.0, tag="t")
+            self.assertEqual(self._runner(tmp, (100.0, 100.0)).ladder_tier("X", sig, 100.0, self.CFG), 0)
+            self.assertEqual(self._runner(tmp, (99.4, 99.4)).ladder_tier("X", sig, 100.0, self.CFG), 2)     # 0.6 ATR into the buy zone
+            self.assertEqual(self._runner(tmp, (98.9, 98.9)).ladder_tier("X", sig, 100.0, self.CFG), 3)
+            short = Signal(i=1, side=-1, stop_dist=2.0, atr=1.0, tag="S:t")
+            self.assertEqual(self._runner(tmp, (100.3, 100.3)).ladder_tier("X", short, 100.0, self.CFG), 1)  # shorts: deeper = higher
+
+    def test_take_profit_scales_out(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
+            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.0, now))        # at the zone: 25%
+            self.assertEqual(r.exits.positions["X"]["qty"], 75)
+            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.1, now))        # same tier: nothing more
+            self.assertEqual(r.exits.positions["X"]["qty"], 75)
+            self.assertFalse(r.ladder_take("X", r.exits.positions["X"], 102.3, now))        # 0.3 ATR beyond: 50% in all
+            self.assertEqual(r.exits.positions["X"]["qty"], 50)
+            self.assertTrue(r.ladder_take("X", r.exits.positions["X"], 103.0, now))         # 1 ATR beyond: the rest
+            self.assertEqual(r.closed, [("X", "zone100")])
+            rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
+            self.assertEqual([t["qty"] for t in rows], [25, 25])
+            self.assertTrue(all(t["partial"] for t in rows))
+            self.assertAlmostEqual(rows[0]["pnl"], 50.0)
+
+    def test_whole_trades_folds_partials(self):
+        from alpacabot import paper
+        rows = [{"symbol": "X", "opened": "t0", "pnl": 50.0, "r": 0.5, "qty": 25, "partial": True},
+                {"symbol": "X", "opened": "t0", "pnl": -10.0, "r": -0.1, "qty": 75},
+                {"symbol": "Y", "opened": "t1", "pnl": 5.0, "r": 0.1, "qty": 10}]
+        w = paper.whole_trades(rows)
+        self.assertEqual(len(w), 2)
+        self.assertEqual((w[0]["pnl"], w[0]["qty"], w[0]["partials"]), (40.0, 100, 1))
+
+
+def paper_ET():
+    from alpacabot.paper import ET
+    return ET
+
+
 class SwingZoneLiveTests(unittest.TestCase):
     class B:
         def __init__(self, ask=101.0):

@@ -96,6 +96,7 @@ class ReplayTest(unittest.TestCase):
     EXPECT_FLATTEN = False
     CALM_AFTER = None
     ZONES_LIVE = False
+    OVERRIDE = None                                   # extra zones_override.json keys (e.g. switch the scaling ladder off)
 
     @classmethod
     def setUpClass(cls):
@@ -113,7 +114,7 @@ class ReplayTest(unittest.TestCase):
 
         # ---------------- paper bot, bar by bar
         cls.tmp = tempfile.TemporaryDirectory()
-        (Path(cls.tmp.name) / "zones_override.json").write_text('{"live": %s}' % ("true" if cls.ZONES_LIVE else "false"))   # parity: zone-free
+        (Path(cls.tmp.name) / "zones_override.json").write_text(json.dumps({"live": cls.ZONES_LIVE, **(cls.OVERRIDE or {})}))   # parity: zone-free
         broker = SimBroker(cls.daily)
         for s in SYMS:
             broker.px[s] = float(cls.minute[s]["open"].iloc[0])
@@ -185,6 +186,12 @@ class ReplayTest(unittest.TestCase):
     def test_2_ledger_pnl_equals_broker_pnl(self):
         self.assertEqual(self.broker.positions(), {}, "flat at the end of the day")
         self.assertAlmostEqual(sum(t["pnl"] for t in self.ledger), self.broker.equity() - self.start_equity, places=0)
+
+    def test_3_ladder_used(self):
+        """The owner's scaling ladder (alpacabot/zones.json): entries are tiered, and it scales in or out at least once."""
+        kinds = [json.loads(l)["kind"] for l in (Path(self.tmp.name) / "journal.jsonl").read_text().splitlines()]
+        self.assertIn("ladder_open", kinds)
+        self.assertTrue(any(t.get("partial") for t in self.ledger) or "ladder_add" in kinds, "the ladder never scaled in or out")
         bt_pnl_per_share = sum(t.pnl_per_share(Costs(0, 0, 0)) for t in self.bt)
         ledger_pnl_per_share = sum((1 if t["side"] == "long" else -1) * (t["exit"] - t["entry"]) for t in self.ledger)
         self.assertAlmostEqual(ledger_pnl_per_share, bt_pnl_per_share, places=6)
@@ -213,8 +220,9 @@ class ReplayTest(unittest.TestCase):
 
     def test_5_report_card_matches_ledger(self):
         card = paper.report_card(self.tmp.name, TEST_DAY)
-        w = sum(t["pnl"] > 0 for t in self.ledger)
-        self.assertIn(f"Today: {len(self.ledger)} trades, {w}W/{len(self.ledger) - w}L", card)
+        whole = paper.whole_trades(self.ledger)                   # a scaled-out trade counts once
+        w = sum(t["pnl"] > 0 for t in whole)
+        self.assertIn(f"Today: {len(whole)} trades, {w}W/{len(whole) - w}L", card)
         self.assertIn("longs:", card)
         self.assertIn("shorts:", card)
 
@@ -243,9 +251,23 @@ class ReplayZonesLiveTest(ReplayTest):
 
     def test_1_paper_trades_equal_backtest_trades(self):
         reasons = {t["reason"] for t in self.ledger}
-        self.assertTrue(reasons & {"zone", "exhausted"}, f"zone exits never fired: {reasons}")
+        self.assertTrue(any(r.startswith("zone") or r == "exhausted" for r in reasons), f"zone exits never fired: {reasons}")
         self.assertTrue(all("zone_profile" in t for t in self.ledger), "every trade logs its zone profile")
 
     def test_2_ledger_pnl_equals_broker_pnl(self):
         self.assertEqual(self.broker.positions(), {}, "flat at the end of the day")
         self.assertAlmostEqual(sum(t["pnl"] for t in self.ledger), self.broker.equity() - self.start_equity, places=0)
+
+    def test_3_ladder_used(self):
+        """The owner's scaling ladder (alpacabot/zones.json): entries are tiered, and it scales in or out at least once."""
+        kinds = [json.loads(l)["kind"] for l in (Path(self.tmp.name) / "journal.jsonl").read_text().splitlines()]
+        self.assertIn("ladder_open", kinds)
+        self.assertTrue(any(t.get("partial") for t in self.ledger) or "ladder_add" in kinds, "the ladder never scaled in or out")
+
+
+class ReplayZonesNoLadderTest(ReplayZonesLiveTest):
+    """Zones live with the scaling ladder switched off locally: one entry size, one full take-profit at the zone."""
+    OVERRIDE = {"ladder": None}
+
+    def test_3_ladder_used(self):
+        self.assertFalse(any(t.get("partial") for t in self.ledger))
