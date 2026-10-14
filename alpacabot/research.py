@@ -556,12 +556,19 @@ def zones_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Port
 
     from .engine import ZONE_PROFILES
 
+    from .brain import DirectionFirst
+
     def run(z, a, b):
         br = Brain(**kw)
         if z == "flat":
             br.zones = dict(ZONES)
         elif z == "per_expert":
             br.zones = {"profiles": ZONE_PROFILES}
+        elif z == "direction":
+            br = DirectionFirst(br)
+        elif z == "direction_zonemap":                      # owner's full design: direction first, per-expert zones, daily zone map
+            br.zones = {"profiles": ZONE_PROFILES, "levels": True}
+            br = DirectionFirst(br)
         r = run_intraday(br, days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     rows = []
@@ -571,11 +578,17 @@ def zones_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Port
                      "with": cp.get(f"{per}-zones", lambda a=a, b=b: run("flat", a, b))})
         rows.append({"period": per, "variant": "per-expert zones (trend vs mean-reversion)", "without": plain,
                      "with": cp.get(f"{per}-zones-per-expert", lambda a=a, b=b: run("per_expert", a, b))})
-    flat_ok = _zone_verdict([r for r in rows if r["variant"].startswith("same")])
-    per_ok = _zone_verdict([r for r in rows if r["variant"].startswith("per")])
-    return {"family": "zones_intraday", "rows": rows, "passes": flat_ok or per_ok, "flat_passes": flat_ok, "per_expert_passes": per_ok,
-            "verdict": (f"zones PASS for the intraday bot ({'per-expert' if per_ok else 'same for every expert'}): adopt them"
-                        if (flat_ok or per_ok) else "zones did not pass for the intraday bot: keep them in shadow mode")}
+        rows.append({"period": per, "variant": "direction first (daily bias)", "without": plain,
+                     "with": cp.get(f"{per}-direction", lambda a=a, b=b: run("direction", a, b))})
+        rows.append({"period": per, "variant": "direction first + per-expert zones + zone map", "without": plain,
+                     "with": cp.get(f"{per}-direction-zonemap", lambda a=a, b=b: run("direction_zonemap", a, b))})
+    names = ["same zones for every expert", "per-expert zones (trend vs mean-reversion)", "direction first (daily bias)",
+             "direction first + per-expert zones + zone map"]
+    passed = {v: _zone_verdict([r for r in rows if r["variant"] == v]) for v in names}
+    winners = [v for v, ok in passed.items() if ok]
+    return {"family": "zones_intraday", "rows": rows, "passes": bool(winners), "variant_passes": passed,
+            "verdict": (f"PASS: {'; '.join(winners)} - adopt the best passing variant" if winners
+                        else "no zone/direction variant passed for the intraday bot: keep them in shadow mode")}
 
 
 def zones_swing_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
@@ -588,10 +601,15 @@ def zones_swing_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
     for name, data in universes.items():
         for per, (a, b) in periods.items():
             out = {}
-            for label, strat in (("without", SectorTopDown(spy["close"])), ("with", Zoned(SectorTopDown(spy["close"])))):
+            from .engine import ZONES
+            res_ = {}
+            for label, strat in (("without", SectorTopDown(spy["close"])), ("with", Zoned(SectorTopDown(spy["close"]))),
+                                 ("with_map", Zoned(SectorTopDown(spy["close"]), dict(ZONES, levels=True)))):
                 r = run_swing(strat, data, costs, pf, a, b)
-                out[label] = {**{k: r["metrics"].get(k) for k in keys}, **_curve_stats(r["curve"], pf.equity)}
-            rows.append({"universe": name, "period": per, **out})
-    ok = _zone_verdict(rows)
-    return {"family": "zones_swing", "rows": rows, "passes": ok,
-            "verdict": "zones PASS for the swing bot: adopt them" if ok else "zones did not pass for the swing bot: keep them in shadow mode"}
+                res_[label] = {**{k: r["metrics"].get(k) for k in keys}, **_curve_stats(r["curve"], pf.equity)}
+            rows.append({"universe": name, "period": per, "variant": "zones", "without": res_["without"], "with": res_["with"]})
+            rows.append({"universe": name, "period": per, "variant": "zones + zone map", "without": res_["without"], "with": res_["with_map"]})
+    passed = {v: _zone_verdict([r for r in rows if r["variant"] == v]) for v in ("zones", "zones + zone map")}
+    winners = [v for v, ok in passed.items() if ok]
+    return {"family": "zones_swing", "rows": rows, "passes": bool(winners), "variant_passes": passed,
+            "verdict": (f"PASS for the swing bot: {'; '.join(winners)}" if winners else "zones did not pass for the swing bot: keep them in shadow mode")}

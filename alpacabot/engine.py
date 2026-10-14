@@ -102,6 +102,11 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             lo_i = max(0, s.i - zp["lookback"] + 1)
             zone = float(np.mean(c[lo_i:s.i + 1])) if zp.get("target") == "mean" else float(np.max(h[lo_i:s.i + 1]))
             ztgt = zone if zone - fill >= zp["min_r"] * s.stop_dist else fill + zp["default_r"] * s.stop_dist
+            if zones.get("levels") and df.attrs.get("levels"):    # the stock's daily zone map: nearest strong zone >= min_r away wins
+                from .zonemap import zone_target
+                lv = zone_target(df.attrs["levels"], side * fill, side, s.stop_dist, zp["min_r"])
+                if lv is not None:
+                    ztgt = side * lv
             tgt = min(tgt, ztgt)
 
         def exhausted(j):                         # +exhaust_r reached and this bar closed under the previous bar's low
@@ -280,6 +285,11 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signal
                 continue
             zt = z_hi[i]
             ztgt = zt if np.isfinite(zt) and zt - fill >= zones["min_r"] * sd else fill + zones["default_r"] * sd
+            if zones.get("levels"):                       # the stock's own daily zone map (bars up to the signal close)
+                from .zonemap import LEVEL_RULES, level_map, zone_target
+                lv = zone_target(level_map(d.iloc[max(0, i + 1 - LEVEL_RULES["lookback"]):i + 1]), fill, 1, sd, zones["min_r"])
+                if lv is not None:
+                    ztgt = lv
         k, px, why = j0, None, ""
         while k < n:
             if k > j0 and o[k] <= stop:

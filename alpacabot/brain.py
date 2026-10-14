@@ -112,3 +112,28 @@ class Brain:
             a = float(d["f_atr"].iloc[i])
             out.append(Signal(int(i), 1, 1.5 * a, 0.0, 0, "placebo", True, a, float(d["f_adx"].iloc[i]), 1.5, 1.0))
         return out
+
+
+
+class DirectionFirst:
+    """The owner's rule: establish each stock's direction first (zonemap.bias on daily bars, set on the session frame as attrs["bias"]),
+    then trade only with it - longs in an up bias, shorts in a down bias; in a range bias both sides but only the mean-reversion
+    experts. Wraps a Brain; everything else (exits, zones, caps) is the brain's."""
+
+    def __init__(self, brain):
+        self.brain = brain
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def keep(self, s, b: int) -> bool:
+        name = (s.tag or "").removeprefix("S:")
+        if b == 1:
+            return s.side == 1
+        if b == -1:
+            return s.side == -1
+        return name in RANGE_EXPERTS
+
+    def signals(self, day):
+        b = int(day.attrs.get("bias", 0))
+        return [s for s in self.brain.signals(day) if self.keep(s, b)]

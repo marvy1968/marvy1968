@@ -8,7 +8,7 @@ appended to state/alpaca_paper/journal.jsonl so the forward record can be compar
 import json
 import logging
 import time
-from datetime import date, datetime, time as dtime, timedelta
+from datetime import date, datetime, time as dtime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -97,6 +97,11 @@ class RestBroker:
     def shortable(self, symbol: str) -> bool:
         a = self._req("GET", f"{TRADE_URL}/assets/{symbol}").json()
         return bool(a.get("shortable")) and bool(a.get("easy_to_borrow"))
+
+    def daily_history(self, symbol: str, days: int = 220):
+        """Completed daily bars from the consolidated (SIP) history; the free plan serves it up to 15 minutes ago."""
+        now = datetime.now(timezone.utc) - timedelta(minutes=20)
+        return _fetch(symbol, "1Day", (now - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00Z"), now.strftime("%Y-%m-%dT%H:%M:%SZ"), "sip")
 
     def daily(self, symbol: str, days: int = 90):
         now = datetime.now(ET)
@@ -274,8 +279,9 @@ class PaperRunner:
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
                                 "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(),
                                 "peak_r": round(peak / risk, 3) if risk else 0.0,
-                                **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit,
-                                    "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {})}) + "\n")
+                                **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit, "zone_profile": z.get("profile"),
+                                    "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {}),
+                                **({"bias": z["bias"], "against": bool(z["against"]), "map_target": z.get("map_target")} if "bias" in z else {})}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -314,7 +320,30 @@ class PaperRunner:
             except Exception:
                 log.exception("heat map: no daily bars for %s (treated as NEUTRAL)", etf)
         self.heat, self.heat_day = gates.heat_map(daily), now_et.date()
+        self.refresh_zonemap(now_et)
         self.journal("heat_map", **{k: gates.state_on(v, now_et.date()) for k, v in self.heat.items()})
+
+    def refresh_zonemap(self, now_et: datetime):
+        """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
+        history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
+        from .zonemap import bias_for_session, level_map
+        zm = {}
+        for sym in self.symbols:
+            try:
+                d = self.raw.daily_history(sym) if hasattr(self.raw, "daily_history") else None
+                if d is None or not len(d):
+                    continue
+                prior = d[d.index.date < now_et.date()]
+                zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior)}
+            except Exception:
+                log.exception("zone map: %s skipped", sym)
+        self.zonemap = zm
+        try:
+            (self.dir / "zonemap.json").write_text(json.dumps({"date": now_et.date().isoformat(), "stocks": zm}))
+        except Exception:
+            log.exception("zone map not saved")
+        n = {b: sum(1 for v in zm.values() if v["bias"] == b) for b in (1, -1, 0)}
+        self.journal("zonemap", up=n[1], down=n[-1], range=n[0], stocks=len(zm))
 
     def can_short(self, sym: str) -> str:
         """'' when shorting sym is allowed; otherwise the reason."""
@@ -406,7 +435,9 @@ class PaperRunner:
                     slip_bps = (price - ref_px) / ref_px * 1e4 * sig.side         # + = we paid more / sold for less than the quote
                     self.journal("fill", symbol=sym, side=sig.side, qty=filled_qty, quote=ref_px, fill=price, slip_bps=round(slip_bps, 2))
                 self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
-                self.exits.positions[sym]["zone"] = shadow_zone(day, sig, fill, ref)       # trade zones, SHADOW only: logged, not traded
+                zone = shadow_zone(day, sig, fill, ref)                                   # trade zones, SHADOW only: logged, not traded
+                zone.update(shadow_direction(getattr(self, "zonemap", {}).get(sym), sig, fill))
+                self.exits.positions[sym]["zone"] = zone
                 self.store.save(self.exits.positions)
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
@@ -612,6 +643,20 @@ def shadow_zone(day, sig, fill: float, ref: float) -> dict:
             "profile": "range" if zp.get("target") == "mean" else "trend"}
 
 
+def shadow_direction(zm: dict | None, sig, fill: float) -> dict:
+    """Direction-first check and the zone-map take-profit for a live trade (shadow only)."""
+    if not zm:
+        return {}
+    from .brain import DirectionFirst
+    from .engine import ZONE_PROFILES, zone_profile
+    from .zonemap import zone_target
+    side = -1 if sig.side == -1 else 1
+    zp = zone_profile({"profiles": ZONE_PROFILES}, sig.tag)
+    tgt = zone_target(zm.get("levels") or [], fill, side, sig.stop_dist, zp["min_r"])
+    return {"bias": zm.get("bias", 0), "against": not DirectionFirst(None).keep(sig, zm.get("bias", 0)),
+            "map_target": round(tgt, 4) if tgt is not None else None}
+
+
 def _zone_lines(trades: list) -> list:
     """Shadow comparison: what the trade zones would have changed (not traded)."""
     zs = [t for t in trades if "zone_hit" in t]
@@ -621,9 +666,15 @@ def _zone_lines(trades: list) -> list:
     hit = [t for t in zs if t.get("zone_hit")]
     actual_hit = sum(t["pnl"] for t in hit)
     zone_hit = sum(t["zone_pnl"] or 0 for t in hit)
-    return ["", "TRADE ZONES (shadow mode: logged, not traded)",
-            f"  entry zone: {len(chase)} of {len(zs)} trades were chases the zone would have skipped (their P&L ${sum(t['pnl'] for t in chase):+,.0f})",
-            f"  exhaustion zone: {len(hit)} trades reached it; taking profit there would have made ${zone_hit:+,.0f} vs ${actual_hit:+,.0f} actual"]
+    out = ["", "TRADE ZONES (shadow mode: logged, not traded)",
+           f"  entry zone: {len(chase)} of {len(zs)} trades were chases the zone would have skipped (their P&L ${sum(t['pnl'] for t in chase):+,.0f})",
+           f"  exhaustion zone: {len(hit)} trades reached it; taking profit there would have made ${zone_hit:+,.0f} vs ${actual_hit:+,.0f} actual"]
+    dz = [t for t in zs if "against" in t]
+    if dz:
+        ag = [t for t in dz if t["against"]]
+        out.append(f"  direction first: {len(ag)} of {len(dz)} trades went against their stock's daily direction "
+                   f"(their P&L ${sum(t['pnl'] for t in ag):+,.0f}; with the direction ${sum(t['pnl'] for t in dz if not t['against']):+,.0f})")
+    return out
 
 
 def _giveback_lines(trades: list, today: list) -> list:

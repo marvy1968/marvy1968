@@ -1461,3 +1461,95 @@ class ShadowZoneTests(unittest.TestCase):
             txt = paper.report_card(d, date(2026, 10, 14))
         self.assertIn("TRADE ZONES (shadow mode", txt)
         self.assertIn("would have made $+41 vs $-10 actual", txt)
+
+
+class DirectionAndZoneMapTests(unittest.TestCase):
+    def _daily(self, closes):
+        idx = pd.bdate_range("2025-01-02", periods=len(closes), tz="America/New_York")
+        c = np.asarray(closes, float)
+        o = np.r_[c[0], c[:-1]]
+        return pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.5, "low": np.minimum(o, c) - 0.5, "close": c, "volume": 1e6}, index=idx)
+
+    def test_bias_up_down_range(self):
+        from alpacabot import zonemap
+        up = self._daily(100 + np.arange(120) * 0.8)
+        dn = self._daily(200 - np.arange(120) * 0.8)
+        rng = self._daily(100 + 3 * np.sin(np.arange(120) / 2))
+        self.assertEqual(int(zonemap.bias(up).iloc[-1]), 1)
+        self.assertEqual(int(zonemap.bias(dn).iloc[-1]), -1)
+        self.assertEqual(int(zonemap.bias(rng).iloc[-1]), 0)
+        session = up.index[-1].date()
+        self.assertEqual(zonemap.bias_for_session(up, session), int(zonemap.bias(up.iloc[:-1]).iloc[-1]))   # previous close only
+
+    def test_level_map_counts_retests_and_targets_the_nearest_strong_zone(self):
+        from alpacabot import zonemap
+        x = np.arange(120)
+        d = self._daily(100 + 5 * np.sin(x * 2 * np.pi / 20))              # tops near 105.5 and bottoms near 94.5, retested 6 times
+        lv = zonemap.level_map(d)
+        strong = [z for z in lv if z["strong"]]
+        self.assertTrue(any(abs(z["price"] - 105.5) < 1 and z["touches"] >= 4 for z in strong))
+        self.assertTrue(any(abs(z["price"] - 94.5) < 1 for z in strong))
+        self.assertAlmostEqual(zonemap.zone_target(lv, 100.0, 1, 1.0), max(z["price"] for z in strong if z["price"] < 107), places=4)
+        self.assertIsNone(zonemap.zone_target(lv, 105.0, 1, 5.0))          # nothing strong 5R above
+
+    def test_direction_first_filters_signals(self):
+        from alpacabot.brain import DirectionFirst
+        from alpacabot.strategies import Signal
+
+        class B:
+            max_trades = 3
+            def signals(self, day):
+                return [Signal(i=1, side=1, tag="donchian_turtle"), Signal(i=2, side=-1, tag="S:velez_elephant"),
+                        Signal(i=3, side=1, tag="connors_rsi2"), Signal(i=4, side=-1, tag="S:williams_r")]
+        day = pd.DataFrame({"close": [1.0] * 5})
+        df = DirectionFirst(B())
+        for b, want in ((1, [1, 3]), (-1, [2, 4]), (0, [3, 4])):
+            day.attrs["bias"] = b
+            self.assertEqual([s.i for s in df.signals(day)], want)
+        self.assertEqual(df.max_trades, 3)                                  # everything else passes through
+
+    def test_engine_takes_profit_at_the_zone_map_level(self):
+        from alpacabot.engine import ZONES, Costs, simulate_day
+        from alpacabot.strategies import Signal
+        idx = pd.date_range("2025-03-03 09:30", periods=12, freq="5min", tz="America/New_York")
+        c = np.r_[np.full(6, 100.0), np.linspace(100.5, 106, 6)]
+        day = pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.05, "low": c - 0.05, "close": c, "volume": 1e5}, index=idx)
+        day.attrs["levels"] = [{"price": 101.5, "touches": 1, "strong": False}, {"price": 103.0, "touches": 3, "strong": True}]
+        t = simulate_day("X", day, [Signal(i=5, side=1, stop_dist=1.0, atr=1.0)], Costs(0, 0, 0), zones=dict(ZONES, levels=True))[0]
+        self.assertEqual(t.reason, "zone")
+        self.assertAlmostEqual(t.exit_px, 103.0)                            # the strong zone, not the weak one at 101.5
+
+
+class LiveZoneMapTests(unittest.TestCase):
+    def test_shadow_direction_flags_trades_against_the_bias(self):
+        from alpacabot import paper
+        from alpacabot.strategies import Signal
+        zm = {"bias": -1, "levels": [{"price": 95.0, "touches": 3, "strong": True}, {"price": 104.0, "touches": 2, "strong": True}]}
+        long_ = paper.shadow_direction(zm, Signal(i=1, side=1, stop_dist=1.0, tag="donchian_turtle"), 100.0)
+        short = paper.shadow_direction(zm, Signal(i=1, side=-1, stop_dist=1.0, tag="S:donchian_turtle"), 100.0)
+        self.assertEqual((long_["against"], long_["map_target"]), (True, 104.0))
+        self.assertEqual((short["against"], short["map_target"]), (False, 95.0))
+        self.assertEqual(paper.shadow_direction(None, Signal(i=1), 100.0), {})
+
+    def test_runner_builds_and_saves_the_zone_map_once_a_day(self):
+        import tempfile
+        from alpacabot import paper
+        idx = pd.bdate_range("2026-03-02", periods=150, tz="America/New_York")
+        c = 100 + np.arange(150) * 0.5
+        d = pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=idx)
+
+        class Raw:
+            calls = 0
+            def daily_history(self, sym):
+                Raw.calls += 1
+                return d
+        r = paper.PaperRunner.__new__(paper.PaperRunner)
+        r.symbols, r.raw = ["AAA", "BBB"], Raw()
+        with tempfile.TemporaryDirectory() as tmp:
+            r.dir = Path(tmp)
+            r.journal = lambda *a, **k: None
+            r.refresh_zonemap(datetime(2026, 10, 14, 9, 30, tzinfo=paper.ET))
+            saved = json.loads((Path(tmp) / "zonemap.json").read_text())
+        self.assertEqual(Raw.calls, 2)
+        self.assertEqual(saved["stocks"]["AAA"]["bias"], 1)
+        self.assertIn("levels", saved["stocks"]["BBB"])
