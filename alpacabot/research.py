@@ -477,3 +477,54 @@ def breadth_gate_study(universes: dict, spy: pd.DataFrame, costs: Costs, spec: d
     return {"family": "breadth_gate", "spec": spec, "rows": rows, "passes": ok_all,
             "verdict": ("PASSED (train + validation, both universes): the 2023-today final test may be run once" if ok_all
                         else "did not pass the pre-declared bar: the gate is not added")}
+
+
+# ------------------------------------------------------------------ the owner's frozen systems: Book A (Donchian) and Elite-20 (mean reversion)
+# PRE-DECLARED 2026-10-14, before any run, rules exactly as frozen (strategies.BookA / strategies.Elite20). Portfolio: Book A 0.5% risk,
+# max 3 positions; Elite-20 0.5% risk, max 3 positions, one per sector. Costs 5 bps slippage + sell fees; stress at 2.5x slippage.
+# Universes: the 2016 large-cap control list and the 55-stock top-5-per-sector list. Periods: train 2016-03-01..2019-12-31, validate
+# 2020-01-01..2022-12-31 (2023-today final NOT run here). PASS a system only if, on BOTH universes and in BOTH periods: 30+ trades, profit
+# factor >= 1.2, expectancy > 0 also at 2.5x slippage, and (validation) a profit factor above the random-entry placebo (same exits/stops,
+# same entry count) in >= 90% of 20 seeds.
+FROZEN_SPEC = {"train": ("2016-03-01", "2019-12-31"), "validate": ("2020-01-01", "2022-12-31"), "min_trades": 30, "min_pf": 1.2,
+               "placebo_runs": 20, "beat_share": 0.9, "risk_pct": 0.005, "max_positions": 3}
+
+
+def frozen_systems_study(universes: dict, costs: Costs, spec: dict = FROZEN_SPEC) -> dict:
+    """universes: name -> (data dict, sector_of). One pre-declared run per system; nothing is tuned."""
+    from .strategies import BookA, Elite20, RandomEntries
+    pf = Portfolio(risk_pct=spec["risk_pct"], max_positions=spec["max_positions"], max_pos_frac=0.333)
+    periods = {k: (date.fromisoformat(spec[k][0]), date.fromisoformat(spec[k][1])) for k in ("train", "validate")}
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
+
+    def run(strat, data, groups, c, a, b):
+        trades = [t for sym, d in data.items() for t in simulate_swing(sym, d, strat, c, all_signals=True)]
+        trades = [t for t in trades if a <= t.entry_time.date() <= b]
+        fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), {s: d["close"] for s, d in data.items()}, c, pf, a, b, groups)
+        m = metrics(fills, curve, pf.equity)
+        return {**{k: m.get(k) for k in keys}, **_curve_stats(curve, pf.equity)}
+
+    out = {"family": "frozen_systems", "spec": spec, "systems": {}}
+    for sysname, make, per_sector in (("Book A (55/20 Donchian, 1.5 ATR stop)", BookA, False), ("Elite-20 (-2.5 sigma reclaim, MA50 target)", Elite20, True)):
+        rows, ok_all = [], True
+        for uname, (data, sector_of) in universes.items():
+            groups = sector_of if per_sector else None
+            for per, (a, b) in periods.items():
+                real = run(make(), data, groups, costs, a, b)
+                stress = run(make(), data, groups, replace(costs, slip_bps=costs.slip_bps * 2.5), a, b)
+                row = {"universe": uname, "period": per, "real": real, "slip_x2.5_expectancy": stress.get("expectancy_pct_notional")}
+                ok = ((real.get("trades") or 0) >= spec["min_trades"] and (real.get("profit_factor") or 0) >= spec["min_pf"]
+                      and (real.get("expectancy_pct_notional") or -1) > 0 and (stress.get("expectancy_pct_notional") or -1) > 0)
+                if per == "validate":
+                    plc = [run(RandomEntries(make(), sd), data, groups, costs, a, b).get("profit_factor") or 0 for sd in range(spec["placebo_runs"])]
+                    beat = float(np.mean([(real.get("profit_factor") or 0) > p for p in plc]))
+                    row.update(placebo_pf_mean=float(np.mean(plc)), beats_placebo_share=beat)
+                    ok = ok and beat >= spec["beat_share"]
+                row["passes"] = bool(ok)
+                ok_all = ok_all and ok
+                rows.append(row)
+        out["systems"][sysname] = {"rows": rows, "passes": ok_all}
+    passed = [k for k, v in out["systems"].items() if v["passes"]]
+    out["verdict"] = (f"PASSED: {', '.join(passed)} (the 2023-today final test may be run once)" if passed
+                      else "neither frozen system passed the pre-declared bar")
+    return out

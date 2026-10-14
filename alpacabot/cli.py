@@ -107,6 +107,20 @@ def run_all(a) -> int:
                             print(f"skip {sym}: {exc}")
                     unis[name] = ({k: v for k, v in d_.items() if len(v)}, smap)
                 res = breadth_gate_study(unis, spy2, Costs(slip_bps=5.0))
+            elif fam == "frozen_systems":        # the owner's frozen Book A and Elite-20, pre-declared (research.FROZEN_SPEC)
+                from .research import frozen_systems_study
+                from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
+                end2 = date(2022, 12, 31)
+                unis = {}
+                for name, smap in (("2016 large caps (control)", CONTROL_SECTOR_OF), (f"top 5 per sector ({UNIVERSE_AS_OF} caps)", TOP5_SECTOR_OF)):
+                    d_ = {}
+                    for sym in smap:
+                        try:
+                            d_[sym] = load(sym, "1Day", date(2015, 1, 2), end2, cache)
+                        except Exception as exc:
+                            print(f"skip {sym}: {exc}")
+                    unis[name] = ({k: v for k, v in d_.items() if len(v)}, smap)
+                res = frozen_systems_study(unis, Costs(slip_bps=5.0))
             elif fam == "rsi2_validate":         # connors_rsi2 (passed train, never validated), ONE look at 2021-2022
                 from .research import RSI2_CANDIDATES
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
@@ -155,6 +169,16 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam == "frozen_systems":
+            for sysname, v in res.get("systems", {}).items():
+                lines.append(f"### {sysname}: {'PASS' if v['passes'] else 'FAIL'}")
+                for r in v["rows"]:
+                    x = r["real"]
+                    lines.append(f"- {r['universe']} | {r['period']}: {x.get('trades')}t win {x.get('win_rate') or 0:.0%} avgR {x.get('avg_r') or 0:+.2f} "
+                                 f"PF {x.get('profit_factor') or 0:.2f} CAGR {x.get('cagr') or 0:+.1%} maxDD {x.get('max_drawdown') or 0:.1%} | "
+                                 f"2.5x slip exp {r['slip_x2.5_expectancy'] or 0:+.3f}%"
+                                 + (f" | placebo PF {r['placebo_pf_mean']:.2f}, beats {r['beats_placebo_share']:.0%}" if "beats_placebo_share" in r else "")
+                                 + f" | PASS {r['passes']}")
         if fam == "breadth_gate":
             for r in res.get("rows", []):
                 g, u = r["gated"], r["ungated"]

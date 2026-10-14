@@ -290,3 +290,93 @@ class GatedSectorTopDown:
 
     def rank(self, f, i):
         return self.base.rank(f, i)
+
+
+
+class BookA:
+    """'Book A' exactly as the owner froze it (Sept 2026), daily bars, long only: ENTRY a close above the prior 55-day high (Donchian
+    breakout), filled at the next open; EXIT a close below the prior 20-day low, filled at the next open; initial STOP 1.5 x ATR(14)
+    below the fill (no trailing). Competing signals ranked by how far the close cleared the 55-day high, in ATRs (an assumption).
+    Portfolio rules (0.5% risk, max 3 positions) live in the test's Portfolio."""
+
+    def __init__(self, entry_n: int = 55, exit_n: int = 20, stop_atr: float = 1.5):
+        self.entry_n, self.exit_n, self.stop_atr = entry_n, exit_n, stop_atr
+        self.max_days, self.name = 10 ** 6, "book_a"
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        c, a = d["close"], atr(d, 14)
+        hi, lo = d["high"].rolling(self.entry_n).max().shift(1), d["low"].rolling(self.exit_n).min().shift(1)
+        f = pd.DataFrame(index=d.index)
+        f["entry"] = ((c > hi) & a.notna()).fillna(False)
+        f["exit"] = (c < lo).fillna(False)
+        f["atr"] = a
+        f["rank"] = (c - hi) / a
+        return f
+
+    def stop_dist(self, f, i):
+        return float(self.stop_atr * f["atr"].iloc[i]) if pd.notna(f["atr"].iloc[i]) else float("nan")
+
+    def rank(self, f, i):
+        v = f["rank"].iloc[i]
+        return float(v) if pd.notna(v) else 0.0
+
+
+class Elite20:
+    """'Elite-20' daily mean reversion as the owner froze it, long only. z = (close - 20-day mean) / 20-day std. ENTRY when z reclaims
+    -2.5 (yesterday z <= -2.5, today z > -2.5), filled at the next open; STOP fixed at the signal bar's mean - 3.5 std; TARGET a close at
+    or above the 50-day SMA, sold at the next open. Not in the frozen rules, so declared here: a 60-day time stop and ranking by how deep
+    yesterday's z was. Max 3 positions and one per sector live in the test's Portfolio / group_of."""
+
+    def __init__(self, n: int = 20, entry_z: float = -2.5, stop_z: float = -3.5, target_n: int = 50, max_days: int = 60):
+        self.n, self.entry_z, self.stop_z, self.target_n = n, entry_z, stop_z, target_n
+        self.max_days, self.name = max_days, "elite20"
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        c = d["close"]
+        m, sd = c.rolling(self.n).mean(), c.rolling(self.n).std()
+        z = (c - m) / sd
+        f = pd.DataFrame(index=d.index)
+        f["entry"] = ((z.shift(1) <= self.entry_z) & (z > self.entry_z)).fillna(False)
+        f["exit"] = (c >= sma(c, self.target_n)).fillna(False)
+        f["stop"] = m + self.stop_z * sd
+        f["rank"] = -z.shift(1)
+        return f
+
+    def stop_dist(self, f, i):
+        return 1.0 if pd.notna(f["stop"].iloc[i]) else float("nan")
+
+    def stop_price(self, f, i):
+        return float(f["stop"].iloc[i])
+
+    def rank(self, f, i):
+        v = f["rank"].iloc[i]
+        return float(v) if pd.notna(v) else 0.0
+
+
+class RandomEntries:
+    """Placebo: the wrapped strategy's exits and stops, but its entries moved to random days (same count, only days where a stop exists)."""
+
+    def __init__(self, base, seed: int):
+        self.base, self.seed = base, seed
+        self.max_days, self.name = base.max_days, base.name + "_placebo"
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        f = self.base.frame(d)
+        ok = [i for i in range(len(f)) if np.isfinite(self.base.stop_dist(f, i))]
+        k = min(int(f["entry"].sum()), len(ok))
+        pick = np.random.default_rng(self.seed).choice(ok, size=k, replace=False) if k else []
+        e = np.zeros(len(f), bool)
+        e[list(pick)] = True
+        f["entry"] = e
+        return f
+
+    def stop_dist(self, f, i):
+        return self.base.stop_dist(f, i)
+
+    def rank(self, f, i):
+        return self.base.rank(f, i)
+
+    def __getattr__(self, name):                     # stop_price only when the wrapped strategy has one
+        if name == "stop_price" and hasattr(self.base, "stop_price"):
+            return self.base.stop_price
+        raise AttributeError(name)

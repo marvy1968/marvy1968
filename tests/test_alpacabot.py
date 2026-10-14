@@ -1279,3 +1279,56 @@ class BreadthGateTests(unittest.TestCase):
         self.assertEqual([r["period"] for r in res["rows"]], ["train", "validate"])
         self.assertIn("beats_placebo_share", res["rows"][1])
         self.assertIsInstance(res["passes"], bool)
+
+
+class FrozenSystemsTests(unittest.TestCase):
+    def _df(self, close):
+        idx = pd.bdate_range("2016-01-04", periods=len(close), tz="America/New_York")
+        c = np.asarray(close, float)
+        return pd.DataFrame({"open": c, "high": c * 1.001, "low": c * 0.999, "close": c, "volume": 1e6}, index=idx)
+
+    def test_book_a_enters_on_55_day_high_and_exits_below_20_day_low(self):
+        from alpacabot.engine import Costs, simulate_swing
+        from alpacabot.strategies import BookA
+        c = [100.0] * 70 + [110.0] * 10 + [95.0] * 5                    # breakout at bar 70, collapse below the 20-day low at bar 80
+        d = self._df(c)
+        f = BookA().frame(d)
+        self.assertEqual(list(np.flatnonzero(f["entry"].to_numpy())), [70])
+        t = simulate_swing("X", d, BookA(), Costs(0, 0, 0))
+        self.assertEqual(len(t), 1)
+        self.assertEqual(t[0].entry_time, d.index[71])
+        self.assertIn(t[0].reason, ("signal", "stop"))
+
+    def test_elite20_reclaim_entry_fixed_stop_and_ma50_target(self):
+        from alpacabot.strategies import Elite20
+        rng = np.random.default_rng(4)
+        c = list(100 + rng.normal(0, 0.5, 60)) + [90.0, 92.0] + [100.0] * 60
+        f = Elite20().frame(self._df(c))
+        e = list(np.flatnonzero(f["entry"].to_numpy()))
+        s_ = pd.Series(c)
+        z = (s_ - s_.rolling(20).mean()) / s_.rolling(20).std()
+        expect = [i for i in range(1, len(c)) if z.iloc[i - 1] <= -2.5 and z.iloc[i] > -2.5]
+        self.assertEqual(e, expect)
+        self.assertTrue(expect and expect[0] in (61, 62))                 # the first bar back above -2.5 sigma after the flush
+        i = expect[0]
+        m, sd = s_.rolling(20).mean().iloc[i], s_.rolling(20).std().iloc[i]
+        self.assertAlmostEqual(Elite20().stop_price(f, i), m - 3.5 * sd)
+
+    def test_placebo_keeps_entry_count_and_one_per_sector_cap(self):
+        from alpacabot.engine import Costs, Portfolio, simulate_swing, size_swing
+        from alpacabot.strategies import BookA, RandomEntries
+        rng = np.random.default_rng(1)
+        d = self._df(100 * np.exp(np.cumsum(0.001 + rng.normal(0, 0.015, 600))))
+        real, plc = BookA().frame(d), RandomEntries(BookA(), 3).frame(d)
+        self.assertEqual(int(plc["entry"].sum()), int(real["entry"].sum()))
+        data = {"A": d, "B": d.copy()}
+        trades = sorted([t for s, x in data.items() for t in simulate_swing(s, x, BookA(), Costs(0, 0, 0), all_signals=True)], key=lambda t: t.entry_time)
+        a, b = d.index[0].date(), d.index[-1].date()
+        both, _ = size_swing(trades, {s: x["close"] for s, x in data.items()}, Costs(0, 0, 0), Portfolio(max_positions=3), a, b)
+        one, _ = size_swing(trades, {s: x["close"] for s, x in data.items()}, Costs(0, 0, 0), Portfolio(max_positions=3), a, b, {"A": "XLK", "B": "XLK"})
+        self.assertGreater(len(both), len(one))                          # same sector: never A and B at once
+        self.assertTrue(set(one["symbol"]) <= {"A", "B"})
+
+    def test_spec_is_predeclared(self):
+        from alpacabot.research import FROZEN_SPEC
+        self.assertEqual((FROZEN_SPEC["min_pf"], FROZEN_SPEC["beat_share"], FROZEN_SPEC["risk_pct"], FROZEN_SPEC["max_positions"]), (1.2, 0.9, 0.005, 3))

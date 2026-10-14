@@ -251,8 +251,10 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signal
     return out
 
 
-def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, pf: Portfolio, start: date, end: date) -> tuple[pd.DataFrame, pd.Series]:
-    """Daily portfolio with mark-to-market equity. closes: symbol -> daily close series (same index type as trade times)."""
+def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, pf: Portfolio, start: date, end: date,
+               group_of: dict | None = None) -> tuple[pd.DataFrame, pd.Series]:
+    """Daily portfolio with mark-to-market equity. closes: symbol -> daily close series (same index type as trade times).
+    group_of: symbol -> group (e.g. sector ETF); when given, at most one open position per group."""
     days = sorted({d for s in closes.values() for d in s.index if start <= d.date() <= end})
     by_entry = {}
     for t in trades:
@@ -278,6 +280,8 @@ def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, 
                 break
             if any(p["t"].symbol == t.symbol for p in open_pos):
                 continue                                  # already holding this name
+            if group_of and any(group_of.get(p["t"].symbol) == group_of.get(t.symbol) for p in open_pos):
+                continue                                  # one position per sector
             risk_ps = t.stop_dist + t.entry_px * costs.slip_bps / 1e4
             qty = int(min(last_eq * pf.risk_pct / risk_ps, last_eq * pf.max_pos_frac / t.entry_px, cash / t.entry_px))
             if qty < pf.min_qty:
