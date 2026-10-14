@@ -366,6 +366,7 @@ def paper_run(state_dir: Path, now: datetime | None = None, days: int = 4) -> di
     fx = D.load_fixtures(Path(state_dir) / "cache" / "soccer_fd")
     ledger = _jload(od / "paper.json", {})
     cards = []
+    _res: dict = {}
     if not fx.empty:
         today = pd.Timestamp(now.date())
         fx = fx[(fx["date"] >= today) & (fx["date"] <= today + pd.Timedelta(days=days))]
@@ -377,13 +378,33 @@ def paper_run(state_dir: Path, now: datetime | None = None, days: int = 4) -> di
             mk = f"{key}|{row['date'].date()}|{row['home']}|{row['away']}"
             proj = E.MarvSoccerPredictMax(r, calib_penalty(state_dir, key)).project_match(row["home"], row["away"], key=mk)
             ev = E.evaluate_market(proj, _snapshot(row))
+            old_best = ev["best"] if ev["qualified"] else None
+            try:
+                from .. import tci_ppe_uf as TPU
+                if key not in _res:
+                    _res[key] = _results(state_dir, key)
+                uf, why = TPU.soccer_uf(_res[key], row["home"], row["away"], row["date"])
+            except Exception:  # noqa: BLE001
+                uf, why = 1, ""
+            if ev["qualified"] and ev["best"] and ev["best"]["market"] == "1x2":
+                alt = [e for e in ev["edges"] if e["market"] != "1x2" and e["edge"] >= 0.04 and e["ev"] > 0 and e["price"] <= 6.0]
+                ev["best"] = max(alt, key=lambda e: e["ev"]) if alt else None
+                if not alt:
+                    ev["qualified"] = False
+                    ev["vetoes"].append("soccer moneyline dropped from play list")
+            if ev["qualified"] and uf == 0:
+                ev["qualified"] = False
+                ev["vetoes"].append(f"UF=0 ({why}): no bet")
             ent = ledger.setdefault(mk, {"league": key, "date": str(row["date"].date()), "home": row["home"],
                                          "away": row["away"], "first_eval": now.isoformat()})
             ent.update({"last_eval": now.isoformat(), "home_xg": proj["home_xg"], "away_xg": proj["away_xg"],
                         "p": [proj["p_home"], proj["p_draw"], proj["p_away"]], "p_over25": proj["totals"]["2.5"]["over"],
                         "market": ev["edges"], "confidence": proj["confidence"], "vetoes": ev["vetoes"]})
+            ent.update({"uf": uf, "uf_reason": why})
             if ev["qualified"] and not ent.get("pick"):
                 ent["pick"] = {**ev["best"], "at": now.isoformat()}
+            if old_best and not ent.get("pick_old"):
+                ent["pick_old"] = {**old_best, "at": now.isoformat()}  # pre-TCI/UF logic, paper side-by-side
             cards.append({"competition": D.LEAGUES[key][1], "kickoff": f"{row['date'].date()} {row.get('time', '')}",
                           "home": row["home"], "away": row["away"], "projected_goals": [proj["home_xg"], proj["away_xg"]],
                           "likely_scores": proj["score_distribution"][:3], "p_1x2": ent["p"],
@@ -425,8 +446,9 @@ def grade(state_dir: Path, now: datetime | None = None) -> dict:
         if not rs:
             continue
         e["result"] = list(rs)
-        pk = e.get("pick")
-        if pk:
+        for pk in (e.get("pick"), e.get("pick_old")):
+            if not pk:
+                continue
             hg, ag = rs
             sel = pk["selection"]
             win = {"home": hg > ag, "draw": hg == ag, "away": hg < ag, "over 2.5": hg + ag > 2.5,

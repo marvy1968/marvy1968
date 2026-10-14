@@ -3,3 +3,12 @@ __pycache__/
 .venv/
 .env
 state/
+backups/
+.ssh/
+.cache/
+*.bak*
+*.bak-*
+experiments/**/*.csv
+experiments/**/*.log
+experiments/**/backup_*/
+experiments/**/*.v1

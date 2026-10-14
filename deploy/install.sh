@@ -74,6 +74,15 @@ done
 
 chmod 600 "$DIR/.env"
 chown -R marvbot:marvbot "$DIR"
+# Script O/U tracker runs as moonrider1968 and must write state/script_ou (dedupe ledger). chown -R resets the
+# group to marvbot, so keep moonrider1968 in that group and the dir group-writable (2026-10-14 duplicate-alert fix).
+if id moonrider1968 >/dev/null 2>&1; then
+  usermod -aG marvbot moonrider1968 || true
+  for d in script_ou master; do  # both trackers (script-ou, marv-master) run as moonrider1968
+    mkdir -p "$DIR/state/$d" && chown marvbot:marvbot "$DIR/state/$d" && chmod 2775 "$DIR/state/$d"
+    chmod g+w "$DIR"/state/$d/* 2>/dev/null || true
+  done
+fi
 
 as_bot() { runuser -u marvbot -- bash -c "cd $DIR && .venv/bin/python -m marv $*"; }
 if ! grep -q "^TELEGRAM_BOT_TOKEN=." "$DIR/.env"; then
