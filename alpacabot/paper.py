@@ -251,6 +251,57 @@ class PaperRunner:
         self.reported = date.fromisoformat(self.report_marker.read_text().strip()) if self.report_marker.exists() else None
         self.traded_days: set = set()
         self._session_cache: dict = {}
+        self.restore_day_guards()
+
+    def day_guards(self) -> dict:
+        b, pl = self.exec.breaker, self.exec.profit_lock
+        return {"day": str(b.day) if b.day else None, "day_start_equity": b.day_start_equity,
+                "locked_until": b.locked_until.isoformat() if b.locked_until else None,
+                **({"pl_day": str(pl.day) if pl.day else None, "pl_start": pl.start, "pl_peak_gain": pl.peak_gain,
+                    "pl_locked_day": str(pl.locked_day) if pl.locked_day else None} if pl else {})}
+
+    def save_day_guards(self):
+        """The daily breaker and the profit lock survive a restart (a deploy mid-session must not unlock a locked day or move its
+        opening-equity baseline)."""
+        g = self.day_guards()
+        if g != getattr(self, "_guards_saved", None):
+            (self.dir / "day_guards.json").write_text(json.dumps(g))
+            self._guards_saved = g
+
+    def restore_locks_from_journal(self):
+        """No day_guards.json yet (first run of this version): today's profit lock / breaker from the journal, so a restart can't undo them."""
+        p, today = self.dir / "journal.jsonl", datetime.now(ET).date().isoformat()
+        if not p.exists():
+            return
+        with open(p) as f:
+            for line in f:
+                if not line.startswith('{"t": "' + today) or '"housekeeping"' not in line:
+                    continue
+                act = json.loads(line).get("action", "")
+                if act.startswith("profit lock") and self.exec.profit_lock:
+                    self.exec.profit_lock.locked_day = date.fromisoformat(today)
+                elif "breaker" in act:
+                    self.exec.breaker.locked_until = datetime.fromisoformat(json.loads(line)["t"]) + timedelta(hours=self.exec.breaker.lock_hours)
+
+    def restore_day_guards(self):
+        p = self.dir / "day_guards.json"
+        try:
+            g = json.loads(p.read_text()) if p.exists() else None
+        except Exception:
+            log.exception("day_guards.json unreadable")
+            g = None
+        if not g:
+            self.restore_locks_from_journal()
+            return
+        b, pl = self.exec.breaker, self.exec.profit_lock
+        if g.get("day"):
+            b.day, b.day_start_equity = date.fromisoformat(g["day"]), float(g["day_start_equity"])
+        if g.get("locked_until"):
+            b.locked_until = datetime.fromisoformat(g["locked_until"])
+        if pl and g.get("pl_day"):
+            pl.day, pl.start, pl.peak_gain = date.fromisoformat(g["pl_day"]), float(g["pl_start"]), float(g["pl_peak_gain"])
+            pl.locked_day = date.fromisoformat(g["pl_locked_day"]) if g.get("pl_locked_day") else None
+        self._guards_saved = g
 
     def journal(self, kind: str, **kw):
         with open(self.dir / "journal.jsonl", "a") as f:
@@ -709,6 +760,7 @@ class PaperRunner:
                     self.record_exit(sym, self.last_px.get(sym, self.entry_px(snapshot[sym])), "stale", snapshot[sym])
                     self.exits.positions.pop(sym, None)
         self.store.save(self.exits.positions)
+        self.save_day_guards()
         self.poll_exits(now_et)
 
     def was_session(self, day) -> bool:

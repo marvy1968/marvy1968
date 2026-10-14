@@ -961,6 +961,42 @@ class ExecutionTruthTests(unittest.TestCase):
             self.assertIsNone(r.confirm_fill(None))                    # simulations without order records keep the quote fill
 
 
+class DayGuardRestartTests(unittest.TestCase):
+    """A deploy mid-session must not unlock a profit-locked / breaker-locked day or move the day's opening-equity baseline."""
+    class B:
+        def positions(self): return {}
+        def equity(self): return 50000.0
+        def quote(self, s): return (100.0, 100.0)
+
+    def test_locks_survive_restart(self):
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            r = paper.PaperRunner(self.B(), state_dir=d, sleep=lambda *_: None)
+            now = datetime.now(paper.ET)
+            pl = r.exec.profit_lock
+            pl.update(50000.0, now)
+            pl.update(50400.0, now)
+            self.assertTrue(pl.update(50150.0, now))                     # gave back half: locked
+            r.exec.breaker.update(50000.0, now)
+            r.save_day_guards()
+            r2 = paper.PaperRunner(self.B(), state_dir=d, sleep=lambda *_: None)
+            self.assertFalse(r2.exec.profit_lock.entries_allowed(now))
+            self.assertEqual(r2.exec.breaker.day_start_equity, 50000.0)
+            self.assertEqual(r2.exec.profit_lock.peak_gain, 400.0)
+
+    def test_first_run_reads_todays_lock_from_the_journal(self):
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as d:
+            now = datetime.now(paper.ET)
+            (Path(d) / "journal.jsonl").write_text(json.dumps({"t": now.isoformat(timespec="seconds"), "kind": "housekeeping",
+                                                               "action": "profit lock: flattened"}) + "\n")
+            r = paper.PaperRunner(self.B(), state_dir=d, sleep=lambda *_: None)
+            self.assertFalse(r.exec.profit_lock.entries_allowed(now))
+            self.assertTrue(r.exec.breaker.entries_allowed(now))
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")
