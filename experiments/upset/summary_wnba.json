@@ -1,0 +1,155 @@
+{
+ "UFP fav<=-200 base": {
+  "aug1_oct12_2026": {
+   "n": 76,
+   "win": 0.829,
+   "impl": 0.778,
+   "roi_side": 0.019,
+   "roi_fade": -0.293
+  },
+  "sep21_oct12_2026": {
+   "n": 13,
+   "win": 0.769,
+   "impl": 0.772,
+   "roi_side": -0.044,
+   "roi_fade": -0.008
+  },
+  "prior_2018_2025": {
+   "n": 1233,
+   "win": 0.754,
+   "impl": 0.762,
+   "roi_side": -0.05,
+   "roi_fade": 0.0
+  }
+ },
+ "UFP fav<=-200 ufp_sched": {
+  "aug1_oct12_2026": {
+   "n": 4,
+   "win": 0.75,
+   "impl": 0.725,
+   "roi_side": -0.036,
+   "roi_fade": -0.325
+  },
+  "sep21_oct12_2026": {
+   "n": 0
+  },
+  "prior_2018_2025": {
+   "n": 36,
+   "win": 0.694,
+   "impl": 0.782,
+   "roi_side": -0.143,
+   "roi_fade": 0.489
+  }
+ },
+ "UFP fav<=-200 ufp_trench": {
+  "aug1_oct12_2026": {
+   "n": 14,
+   "win": 0.786,
+   "impl": 0.732,
+   "roi_side": 0.018,
+   "roi_fade": -0.361
+  },
+  "sep21_oct12_2026": {
+   "n": 2,
+   "win": 1.0,
+   "impl": 0.729,
+   "roi_side": 0.315,
+   "roi_fade": -1.0
+  },
+  "prior_2018_2025": {
+   "n": 176,
+   "win": 0.773,
+   "impl": 0.759,
+   "roi_side": -0.023,
+   "roi_fade": -0.068
+  }
+ },
+ "UVF dog>=+150 base": {
+  "aug1_oct12_2026": {
+   "n": 87,
+   "win": 0.207,
+   "impl": 0.241,
+   "roi_side": -0.234,
+   "roi_fade": -0.005
+  },
+  "sep21_oct12_2026": {
+   "n": 19,
+   "win": 0.263,
+   "impl": 0.273,
+   "roi_side": -0.051,
+   "roi_fade": -0.026
+  },
+  "prior_2018_2025": {
+   "n": 1407,
+   "win": 0.261,
+   "impl": 0.255,
+   "roi_side": -0.006,
+   "roi_fade": -0.046
+  }
+ },
+ "UVF dog>=+150 uvf_trench": {
+  "aug1_oct12_2026": {
+   "n": 4,
+   "win": 0.5,
+   "impl": 0.339,
+   "roi_side": 0.335,
+   "roi_fade": -0.294
+  },
+  "sep21_oct12_2026": {
+   "n": 1,
+   "win": 0.0,
+   "impl": 0.282,
+   "roi_side": -1.0,
+   "roi_fade": 0.336
+  },
+  "prior_2018_2025": {
+   "n": 26,
+   "win": 0.346,
+   "impl": 0.314,
+   "roi_side": 0.156,
+   "roi_fade": -0.076
+  }
+ },
+ "UVF dog>=+150 uvf_sched": {
+  "aug1_oct12_2026": {
+   "n": 4,
+   "win": 0.25,
+   "impl": 0.275,
+   "roi_side": -0.325,
+   "roi_fade": -0.036
+  },
+  "sep21_oct12_2026": {
+   "n": 0
+  },
+  "prior_2018_2025": {
+   "n": 43,
+   "win": 0.349,
+   "impl": 0.244,
+   "roi_side": 0.484,
+   "roi_fade": -0.175
+  }
+ },
+ "UVF dog>=+150 uvf_overreact": {
+  "aug1_oct12_2026": {
+   "n": 28,
+   "win": 0.143,
+   "impl": 0.213,
+   "roi_side": -0.449,
+   "roi_fade": 0.046
+  },
+  "sep21_oct12_2026": {
+   "n": 7,
+   "win": 0.429,
+   "impl": 0.275,
+   "roi_side": 0.806,
+   "roi_fade": -0.227
+  },
+  "prior_2018_2025": {
+   "n": 243,
+   "win": 0.243,
+   "impl": 0.23,
+   "roi_side": 0.019,
+   "roi_fade": -0.052
+  }
+ }
+}

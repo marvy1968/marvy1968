@@ -54,6 +54,12 @@ def export(state_dir: Path, sport: str, preds) -> None:
             "home_exp": round(p.home_exp, 2), "away_exp": round(p.away_exp, 2),
             "model_total": round(p.model_total, 2), "model_margin": round(p.model_margin, 2),
             "home_win": round(p.home_win, 4), "qualified": qualified, "notes": p.notes,
+            "home_win_old": round(getattr(p, "home_win_old", p.home_win), 4),
+            "uf": getattr(p, "uf", 1), "uf_reason": getattr(p, "uf_reason", ""),
+            **({k: getattr(p, k) for k in ("master_home_win", "master_home_win_tci", "master_uf", "master_uf_reason",
+                                           "master_tot_shift", "master_picks", "master_uf_old",
+                                           "master_uf_stake_side", "master_uf_stake_total", "tf_shift", "tci_ppe_shift") if hasattr(p, k)}
+               or {k: v for k, v in data.get(f"{sport}:{g.id}", {}).items() if k.startswith("master_")}),
             "updated": datetime.now(timezone.utc).isoformat(),
         }
     state_dir.mkdir(parents=True, exist_ok=True)

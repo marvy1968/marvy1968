@@ -78,6 +78,9 @@ class Store:
                           "home": pred.game.home, "away": pred.game.away, **asdict(pick),
                           "logged_at": now, "result": None}
                 record.pop("vetoes")
+                for a in ("prob_old", "edge_old", "old_active", "uf", "uf_reason"):
+                    if hasattr(pick, a):
+                        record[a] = getattr(pick, a)
                 if entry:
                     entry.update(record)  # keep the latest number before kickoff
                 else:

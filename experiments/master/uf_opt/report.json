@@ -1,0 +1,1980 @@
+{
+ "breakdown": {
+  "Sep21-Oct12": [
+   {
+    "reason": "rivalry",
+    "sport": "cfb",
+    "mkt": "sides",
+    "n": 33,
+    "W": 12,
+    "L": 19,
+    "units": -8.09
+   },
+   {
+    "reason": "rivalry",
+    "sport": "cfb",
+    "mkt": "totals",
+    "n": 26,
+    "W": 12,
+    "L": 13,
+    "units": -2.09
+   },
+   {
+    "reason": "rivalry",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 13,
+    "W": 5,
+    "L": 8,
+    "units": -3.99
+   },
+   {
+    "reason": "rivalry",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 6,
+    "W": 3,
+    "L": 3,
+    "units": -0.34
+   },
+   {
+    "reason": "rivalry",
+    "sport": "wnba",
+    "mkt": "sides",
+    "n": 5,
+    "W": 5,
+    "L": 0,
+    "units": 4.1
+   },
+   {
+    "reason": "rivalry",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 83,
+    "W": 37,
+    "L": 43,
+    "units": -10.42
+   },
+   {
+    "reason": "emotional",
+    "sport": "cfb",
+    "mkt": "sides",
+    "n": 21,
+    "W": 9,
+    "L": 12,
+    "units": -3.82
+   },
+   {
+    "reason": "emotional",
+    "sport": "cfb",
+    "mkt": "totals",
+    "n": 15,
+    "W": 7,
+    "L": 8,
+    "units": -1.64
+   },
+   {
+    "reason": "emotional",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 15,
+    "W": 9,
+    "L": 6,
+    "units": 1.52
+   },
+   {
+    "reason": "emotional",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 8,
+    "W": 5,
+    "L": 3,
+    "units": 1.47
+   },
+   {
+    "reason": "emotional",
+    "sport": "soccer",
+    "mkt": "totals",
+    "n": 4,
+    "W": 2,
+    "L": 2,
+    "units": -0.92
+   },
+   {
+    "reason": "emotional",
+    "sport": "wnba",
+    "mkt": "sides",
+    "n": 3,
+    "W": 2,
+    "L": 1,
+    "units": 0.4
+   },
+   {
+    "reason": "emotional",
+    "sport": "wnba",
+    "mkt": "totals",
+    "n": 2,
+    "W": 2,
+    "L": 0,
+    "units": 1.82
+   },
+   {
+    "reason": "emotional",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 68,
+    "W": 36,
+    "L": 32,
+    "units": -1.17
+   },
+   {
+    "reason": "weather",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 0,
+    "W": 0,
+    "L": 0,
+    "units": 0.0
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 18,
+    "W": 13,
+    "L": 5,
+    "units": 4.37
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 8,
+    "W": 4,
+    "L": 4,
+    "units": -0.48
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 26,
+    "W": 17,
+    "L": 9,
+    "units": 3.9
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 44,
+    "W": 23,
+    "L": 19,
+    "units": -1.51
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 20,
+    "W": 11,
+    "L": 9,
+    "units": 0.93
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 64,
+    "W": 34,
+    "L": 28,
+    "units": -0.58
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 61,
+    "W": 30,
+    "L": 28,
+    "units": -0.52
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 29,
+    "W": 16,
+    "L": 13,
+    "units": 1.38
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 90,
+    "W": 46,
+    "L": 41,
+    "units": 0.86
+   }
+  ],
+  "Aug01-Oct12": [
+   {
+    "reason": "rivalry",
+    "sport": "cfb",
+    "mkt": "sides",
+    "n": 43,
+    "W": 17,
+    "L": 23,
+    "units": -7.55
+   },
+   {
+    "reason": "rivalry",
+    "sport": "cfb",
+    "mkt": "totals",
+    "n": 33,
+    "W": 14,
+    "L": 18,
+    "units": -5.27
+   },
+   {
+    "reason": "rivalry",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 29,
+    "W": 10,
+    "L": 19,
+    "units": -10.97
+   },
+   {
+    "reason": "rivalry",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 13,
+    "W": 7,
+    "L": 6,
+    "units": 0.3
+   },
+   {
+    "reason": "rivalry",
+    "sport": "wnba",
+    "mkt": "sides",
+    "n": 5,
+    "W": 5,
+    "L": 0,
+    "units": 4.1
+   },
+   {
+    "reason": "rivalry",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 123,
+    "W": 53,
+    "L": 66,
+    "units": -19.39
+   },
+   {
+    "reason": "emotional",
+    "sport": "cfb",
+    "mkt": "sides",
+    "n": 47,
+    "W": 23,
+    "L": 24,
+    "units": -3.09
+   },
+   {
+    "reason": "emotional",
+    "sport": "cfb",
+    "mkt": "totals",
+    "n": 38,
+    "W": 16,
+    "L": 21,
+    "units": -6.45
+   },
+   {
+    "reason": "emotional",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 21,
+    "W": 10,
+    "L": 11,
+    "units": -2.94
+   },
+   {
+    "reason": "emotional",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 8,
+    "W": 5,
+    "L": 3,
+    "units": 1.47
+   },
+   {
+    "reason": "emotional",
+    "sport": "soccer",
+    "mkt": "totals",
+    "n": 13,
+    "W": 6,
+    "L": 7,
+    "units": -3.66
+   },
+   {
+    "reason": "emotional",
+    "sport": "wnba",
+    "mkt": "sides",
+    "n": 19,
+    "W": 15,
+    "L": 4,
+    "units": 6.11
+   },
+   {
+    "reason": "emotional",
+    "sport": "wnba",
+    "mkt": "totals",
+    "n": 12,
+    "W": 8,
+    "L": 4,
+    "units": 3.27
+   },
+   {
+    "reason": "emotional",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 158,
+    "W": 83,
+    "L": 74,
+    "units": -5.29
+   },
+   {
+    "reason": "weather",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 0,
+    "W": 0,
+    "L": 0,
+    "units": 0.0
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 22,
+    "W": 13,
+    "L": 9,
+    "units": 0.37
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 9,
+    "W": 4,
+    "L": 5,
+    "units": -1.48
+   },
+   {
+    "reason": "injury(key)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 31,
+    "W": 17,
+    "L": 14,
+    "units": -1.1
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 59,
+    "W": 32,
+    "L": 25,
+    "units": 0.25
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 23,
+    "W": 12,
+    "L": 11,
+    "units": -0.22
+   },
+   {
+    "reason": "injury(starter)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 82,
+    "W": 44,
+    "L": 36,
+    "units": 0.03
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "nfl",
+    "mkt": "sides",
+    "n": 104,
+    "W": 47,
+    "L": 53,
+    "units": -11.66
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "nfl",
+    "mkt": "totals",
+    "n": 42,
+    "W": 23,
+    "L": 19,
+    "units": 1.71
+   },
+   {
+    "reason": "injury(any)",
+    "sport": "ALL",
+    "mkt": "all",
+    "n": 146,
+    "W": 70,
+    "L": 72,
+    "units": -9.95
+   }
+  ]
+ },
+ "policies": {
+  "NO_UF": {
+   "Sep21-Oct12|totals": {
+    "W": 61,
+    "L": 61,
+    "units": -4.6,
+    "risked": 123.0,
+    "roi": -0.037,
+    "maxdd": 12.11,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   },
+   "Sep21-Oct12|sides": {
+    "W": 88,
+    "L": 74,
+    "units": 5.87,
+    "risked": 167.0,
+    "roi": 0.035,
+    "maxdd": 15.83,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   },
+   "Sep21-Oct12|all": {
+    "W": 149,
+    "L": 135,
+    "units": 1.27,
+    "risked": 290.0,
+    "roi": 0.004,
+    "maxdd": 23.77,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   },
+   "Aug01-Oct12|totals": {
+    "W": 191,
+    "L": 193,
+    "units": -30.1,
+    "risked": 386.0,
+    "roi": -0.078,
+    "maxdd": 48.63,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   },
+   "Aug01-Oct12|sides": {
+    "W": 214,
+    "L": 207,
+    "units": -24.12,
+    "risked": 430.0,
+    "roi": -0.056,
+    "maxdd": 37.15,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   },
+   "Aug01-Oct12|all": {
+    "W": 405,
+    "L": 400,
+    "units": -54.22,
+    "risked": 816.0,
+    "roi": -0.066,
+    "maxdd": 78.01,
+    "losers_cut_u": 0.0,
+    "winners_cut_u": 0.0
+   }
+  },
+  "CURRENT (all kill, inj=key)": {
+   "Sep21-Oct12|totals": {
+    "W": 34,
+    "L": 31,
+    "units": 1.78,
+    "risked": 65.0,
+    "roi": 0.027,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 23.62
+   },
+   "Sep21-Oct12|sides": {
+    "W": 43,
+    "L": 33,
+    "units": 9.9,
+    "risked": 79.0,
+    "roi": 0.125,
+    "maxdd": 4.76,
+    "losers_cut_u": 41.0,
+    "winners_cut_u": 36.97
+   },
+   "Sep21-Oct12|all": {
+    "W": 77,
+    "L": 64,
+    "units": 11.68,
+    "risked": 144.0,
+    "roi": 0.081,
+    "maxdd": 7.45,
+    "losers_cut_u": 71.0,
+    "winners_cut_u": 60.59
+   },
+   "Aug01-Oct12|totals": {
+    "W": 140,
+    "L": 132,
+    "units": -13.17,
+    "risked": 272.0,
+    "roi": -0.048,
+    "maxdd": 33.28,
+    "losers_cut_u": 61.0,
+    "winners_cut_u": 44.06
+   },
+   "Aug01-Oct12|sides": {
+    "W": 132,
+    "L": 133,
+    "units": -16.73,
+    "risked": 271.0,
+    "roi": -0.062,
+    "maxdd": 39.08,
+    "losers_cut_u": 74.0,
+    "winners_cut_u": 66.61
+   },
+   "Aug01-Oct12|all": {
+    "W": 272,
+    "L": 265,
+    "units": -29.9,
+    "risked": 543.0,
+    "roi": -0.055,
+    "maxdd": 52.39,
+    "losers_cut_u": 135.0,
+    "winners_cut_u": 110.68
+   }
+  },
+  "CURRENT inj=any": {
+   "Sep21-Oct12|totals": {
+    "W": 26,
+    "L": 27,
+    "units": -1.52,
+    "risked": 53.0,
+    "roi": -0.029,
+    "maxdd": 6.45,
+    "losers_cut_u": 34.0,
+    "winners_cut_u": 30.92
+   },
+   "Sep21-Oct12|sides": {
+    "W": 31,
+    "L": 19,
+    "units": 9.71,
+    "risked": 50.0,
+    "roi": 0.194,
+    "maxdd": 3.64,
+    "losers_cut_u": 55.0,
+    "winners_cut_u": 51.16
+   },
+   "Sep21-Oct12|all": {
+    "W": 57,
+    "L": 46,
+    "units": 8.19,
+    "risked": 103.0,
+    "roi": 0.08,
+    "maxdd": 6.73,
+    "losers_cut_u": 89.0,
+    "winners_cut_u": 82.08
+   },
+   "Aug01-Oct12|totals": {
+    "W": 128,
+    "L": 126,
+    "units": -18.07,
+    "risked": 254.0,
+    "roi": -0.071,
+    "maxdd": 34.89,
+    "losers_cut_u": 67.0,
+    "winners_cut_u": 54.96
+   },
+   "Aug01-Oct12|sides": {
+    "W": 108,
+    "L": 107,
+    "units": -14.62,
+    "risked": 217.0,
+    "roi": -0.067,
+    "maxdd": 31.56,
+    "losers_cut_u": 100.0,
+    "winners_cut_u": 90.5
+   },
+   "Aug01-Oct12|all": {
+    "W": 236,
+    "L": 233,
+    "units": -32.69,
+    "risked": 471.0,
+    "roi": -0.069,
+    "maxdd": 49.15,
+    "losers_cut_u": 167.0,
+    "winners_cut_u": 145.46
+   }
+  },
+  "rivalry off": {
+   "Sep21-Oct12|totals": {
+    "W": 43,
+    "L": 45,
+    "units": -4.08,
+    "risked": 89.0,
+    "roi": -0.046,
+    "maxdd": 9.94,
+    "losers_cut_u": 16.0,
+    "winners_cut_u": 15.48
+   },
+   "Sep21-Oct12|sides": {
+    "W": 60,
+    "L": 51,
+    "units": 6.45,
+    "risked": 116.0,
+    "roi": 0.056,
+    "maxdd": 8.37,
+    "losers_cut_u": 23.0,
+    "winners_cut_u": 22.43
+   },
+   "Sep21-Oct12|all": {
+    "W": 103,
+    "L": 96,
+    "units": 2.37,
+    "risked": 205.0,
+    "roi": 0.012,
+    "maxdd": 14.49,
+    "losers_cut_u": 39.0,
+    "winners_cut_u": 37.9
+   },
+   "Aug01-Oct12|totals": {
+    "W": 154,
+    "L": 154,
+    "units": -22.47,
+    "risked": 309.0,
+    "roi": -0.073,
+    "maxdd": 40.22,
+    "losers_cut_u": 39.0,
+    "winners_cut_u": 31.37
+   },
+   "Aug01-Oct12|sides": {
+    "W": 158,
+    "L": 162,
+    "units": -23.52,
+    "risked": 329.0,
+    "roi": -0.072,
+    "maxdd": 40.53,
+    "losers_cut_u": 45.0,
+    "winners_cut_u": 44.41
+   },
+   "Aug01-Oct12|all": {
+    "W": 312,
+    "L": 316,
+    "units": -46.0,
+    "risked": 638.0,
+    "roi": -0.072,
+    "maxdd": 61.73,
+    "losers_cut_u": 84.0,
+    "winners_cut_u": 75.78
+   }
+  },
+  "emotional off": {
+   "Sep21-Oct12|totals": {
+    "W": 43,
+    "L": 41,
+    "units": -0.8,
+    "risked": 84.0,
+    "roi": -0.01,
+    "maxdd": 8.73,
+    "losers_cut_u": 20.0,
+    "winners_cut_u": 16.2
+   },
+   "Sep21-Oct12|sides": {
+    "W": 56,
+    "L": 45,
+    "units": 9.17,
+    "risked": 104.0,
+    "roi": 0.088,
+    "maxdd": 8.55,
+    "losers_cut_u": 29.0,
+    "winners_cut_u": 25.7
+   },
+   "Sep21-Oct12|all": {
+    "W": 99,
+    "L": 86,
+    "units": 8.37,
+    "risked": 188.0,
+    "roi": 0.045,
+    "maxdd": 15.92,
+    "losers_cut_u": 49.0,
+    "winners_cut_u": 41.9
+   },
+   "Aug01-Oct12|totals": {
+    "W": 167,
+    "L": 164,
+    "units": -22.76,
+    "risked": 332.0,
+    "roi": -0.069,
+    "maxdd": 40.71,
+    "losers_cut_u": 29.0,
+    "winners_cut_u": 21.65
+   },
+   "Aug01-Oct12|sides": {
+    "W": 172,
+    "L": 159,
+    "units": -10.39,
+    "risked": 337.0,
+    "roi": -0.031,
+    "maxdd": 35.46,
+    "losers_cut_u": 48.0,
+    "winners_cut_u": 34.27
+   },
+   "Aug01-Oct12|all": {
+    "W": 339,
+    "L": 323,
+    "units": -33.15,
+    "risked": 669.0,
+    "roi": -0.05,
+    "maxdd": 54.17,
+    "losers_cut_u": 77.0,
+    "winners_cut_u": 55.93
+   }
+  },
+  "injury off": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 34,
+    "units": 0.52,
+    "risked": 70.0,
+    "roi": 0.007,
+    "maxdd": 6.45,
+    "losers_cut_u": 27.0,
+    "winners_cut_u": 21.88
+   },
+   "Sep21-Oct12|sides": {
+    "W": 49,
+    "L": 35,
+    "units": 12.04,
+    "risked": 87.0,
+    "roi": 0.138,
+    "maxdd": 5.5,
+    "losers_cut_u": 39.0,
+    "winners_cut_u": 32.83
+   },
+   "Sep21-Oct12|all": {
+    "W": 85,
+    "L": 69,
+    "units": 12.56,
+    "risked": 157.0,
+    "roi": 0.08,
+    "maxdd": 8.25,
+    "losers_cut_u": 66.0,
+    "winners_cut_u": 54.71
+   },
+   "Aug01-Oct12|totals": {
+    "W": 142,
+    "L": 136,
+    "units": -15.43,
+    "risked": 278.0,
+    "roi": -0.055,
+    "maxdd": 34.28,
+    "losers_cut_u": 57.0,
+    "winners_cut_u": 42.32
+   },
+   "Aug01-Oct12|sides": {
+    "W": 138,
+    "L": 137,
+    "units": -16.59,
+    "risked": 281.0,
+    "roi": -0.059,
+    "maxdd": 39.08,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 62.48
+   },
+   "Aug01-Oct12|all": {
+    "W": 280,
+    "L": 273,
+    "units": -32.02,
+    "risked": 559.0,
+    "roi": -0.057,
+    "maxdd": 52.39,
+    "losers_cut_u": 127.0,
+    "winners_cut_u": 104.8
+   }
+  },
+  "inj=starter": {
+   "Sep21-Oct12|totals": {
+    "W": 28,
+    "L": 30,
+    "units": -2.73,
+    "risked": 58.0,
+    "roi": -0.047,
+    "maxdd": 6.45,
+    "losers_cut_u": 31.0,
+    "winners_cut_u": 29.13
+   },
+   "Sep21-Oct12|sides": {
+    "W": 36,
+    "L": 22,
+    "units": 15.33,
+    "risked": 59.0,
+    "roi": 0.26,
+    "maxdd": 4.07,
+    "losers_cut_u": 52.0,
+    "winners_cut_u": 42.54
+   },
+   "Sep21-Oct12|all": {
+    "W": 64,
+    "L": 52,
+    "units": 12.59,
+    "risked": 117.0,
+    "roi": 0.108,
+    "maxdd": 8.01,
+    "losers_cut_u": 83.0,
+    "winners_cut_u": 71.68
+   },
+   "Aug01-Oct12|totals": {
+    "W": 133,
+    "L": 131,
+    "units": -18.53,
+    "risked": 264.0,
+    "roi": -0.07,
+    "maxdd": 34.13,
+    "losers_cut_u": 62.0,
+    "winners_cut_u": 50.42
+   },
+   "Aug01-Oct12|sides": {
+    "W": 119,
+    "L": 121,
+    "units": -16.23,
+    "risked": 244.0,
+    "roi": -0.067,
+    "maxdd": 39.08,
+    "losers_cut_u": 86.0,
+    "winners_cut_u": 78.11
+   },
+   "Aug01-Oct12|all": {
+    "W": 252,
+    "L": 252,
+    "units": -34.75,
+    "risked": 508.0,
+    "roi": -0.068,
+    "maxdd": 55.62,
+    "losers_cut_u": 148.0,
+    "winners_cut_u": 128.53
+   }
+  },
+  "rivalry half": {
+   "Sep21-Oct12|totals": {
+    "W": 43,
+    "L": 45,
+    "units": -1.15,
+    "risked": 77.0,
+    "roi": -0.015,
+    "maxdd": 7.55,
+    "losers_cut_u": 23.0,
+    "winners_cut_u": 19.55
+   },
+   "Sep21-Oct12|sides": {
+    "W": 60,
+    "L": 51,
+    "units": 8.17,
+    "risked": 97.5,
+    "roi": 0.084,
+    "maxdd": 6.26,
+    "losers_cut_u": 32.0,
+    "winners_cut_u": 29.7
+   },
+   "Sep21-Oct12|all": {
+    "W": 103,
+    "L": 96,
+    "units": 7.02,
+    "risked": 174.5,
+    "roi": 0.04,
+    "maxdd": 10.61,
+    "losers_cut_u": 55.0,
+    "winners_cut_u": 49.25
+   },
+   "Aug01-Oct12|totals": {
+    "W": 154,
+    "L": 154,
+    "units": -17.82,
+    "risked": 290.5,
+    "roi": -0.061,
+    "maxdd": 36.1,
+    "losers_cut_u": 50.0,
+    "winners_cut_u": 37.72
+   },
+   "Aug01-Oct12|sides": {
+    "W": 158,
+    "L": 162,
+    "units": -20.13,
+    "risked": 300.0,
+    "roi": -0.067,
+    "maxdd": 39.8,
+    "losers_cut_u": 59.5,
+    "winners_cut_u": 55.51
+   },
+   "Aug01-Oct12|all": {
+    "W": 312,
+    "L": 316,
+    "units": -37.95,
+    "risked": 590.5,
+    "roi": -0.064,
+    "maxdd": 56.32,
+    "losers_cut_u": 109.5,
+    "winners_cut_u": 93.23
+   }
+  },
+  "emotional half": {
+   "Sep21-Oct12|totals": {
+    "W": 43,
+    "L": 41,
+    "units": 0.49,
+    "risked": 74.5,
+    "roi": 0.007,
+    "maxdd": 7.5,
+    "losers_cut_u": 25.0,
+    "winners_cut_u": 19.91
+   },
+   "Sep21-Oct12|sides": {
+    "W": 56,
+    "L": 45,
+    "units": 9.54,
+    "risked": 91.5,
+    "roi": 0.104,
+    "maxdd": 5.78,
+    "losers_cut_u": 35.0,
+    "winners_cut_u": 31.34
+   },
+   "Sep21-Oct12|all": {
+    "W": 99,
+    "L": 86,
+    "units": 10.03,
+    "risked": 166.0,
+    "roi": 0.06,
+    "maxdd": 11.65,
+    "losers_cut_u": 60.0,
+    "winners_cut_u": 51.24
+   },
+   "Aug01-Oct12|totals": {
+    "W": 167,
+    "L": 164,
+    "units": -17.96,
+    "risked": 302.0,
+    "roi": -0.059,
+    "maxdd": 36.9,
+    "losers_cut_u": 45.0,
+    "winners_cut_u": 32.86
+   },
+   "Aug01-Oct12|sides": {
+    "W": 172,
+    "L": 159,
+    "units": -13.56,
+    "risked": 304.0,
+    "roi": -0.045,
+    "maxdd": 37.27,
+    "losers_cut_u": 61.0,
+    "winners_cut_u": 50.44
+   },
+   "Aug01-Oct12|all": {
+    "W": 339,
+    "L": 323,
+    "units": -31.52,
+    "risked": 606.0,
+    "roi": -0.052,
+    "maxdd": 52.49,
+    "losers_cut_u": 106.0,
+    "winners_cut_u": 83.3
+   }
+  },
+  "rivalry only if small edge (<1.5x)": {
+   "Sep21-Oct12|totals": {
+    "W": 42,
+    "L": 42,
+    "units": -1.99,
+    "risked": 85.0,
+    "roi": -0.023,
+    "maxdd": 7.85,
+    "losers_cut_u": 19.0,
+    "winners_cut_u": 16.38
+   },
+   "Sep21-Oct12|sides": {
+    "W": 57,
+    "L": 50,
+    "units": 4.76,
+    "risked": 112.0,
+    "roi": 0.042,
+    "maxdd": 9.15,
+    "losers_cut_u": 24.0,
+    "winners_cut_u": 25.11
+   },
+   "Sep21-Oct12|all": {
+    "W": 99,
+    "L": 92,
+    "units": 2.77,
+    "risked": 197.0,
+    "roi": 0.014,
+    "maxdd": 13.18,
+    "losers_cut_u": 43.0,
+    "winners_cut_u": 41.5
+   },
+   "Aug01-Oct12|totals": {
+    "W": 153,
+    "L": 150,
+    "units": -19.38,
+    "risked": 304.0,
+    "roi": -0.064,
+    "maxdd": 37.13,
+    "losers_cut_u": 43.0,
+    "winners_cut_u": 32.28
+   },
+   "Aug01-Oct12|sides": {
+    "W": 155,
+    "L": 160,
+    "units": -24.21,
+    "risked": 324.0,
+    "roi": -0.075,
+    "maxdd": 39.53,
+    "losers_cut_u": 47.0,
+    "winners_cut_u": 47.09
+   },
+   "Aug01-Oct12|all": {
+    "W": 308,
+    "L": 310,
+    "units": -43.6,
+    "risked": 628.0,
+    "roi": -0.069,
+    "maxdd": 58.42,
+    "losers_cut_u": 90.0,
+    "winners_cut_u": 79.37
+   }
+  },
+  "override >=2x": {
+   "Sep21-Oct12|totals": {
+    "W": 47,
+    "L": 49,
+    "units": -4.73,
+    "risked": 96.0,
+    "roi": -0.049,
+    "maxdd": 10.13,
+    "losers_cut_u": 12.0,
+    "winners_cut_u": 12.12
+   },
+   "Sep21-Oct12|sides": {
+    "W": 75,
+    "L": 64,
+    "units": 5.06,
+    "risked": 144.0,
+    "roi": 0.035,
+    "maxdd": 16.67,
+    "losers_cut_u": 10.0,
+    "winners_cut_u": 10.81
+   },
+   "Sep21-Oct12|all": {
+    "W": 122,
+    "L": 113,
+    "units": 0.34,
+    "risked": 240.0,
+    "roi": 0.001,
+    "maxdd": 20.88,
+    "losers_cut_u": 22.0,
+    "winners_cut_u": 22.93
+   },
+   "Aug01-Oct12|totals": {
+    "W": 171,
+    "L": 168,
+    "units": -22.56,
+    "risked": 339.0,
+    "roi": -0.067,
+    "maxdd": 40.98,
+    "losers_cut_u": 25.0,
+    "winners_cut_u": 17.46
+   },
+   "Aug01-Oct12|sides": {
+    "W": 187,
+    "L": 188,
+    "units": -26.98,
+    "risked": 383.0,
+    "roi": -0.07,
+    "maxdd": 38.51,
+    "losers_cut_u": 19.0,
+    "winners_cut_u": 21.87
+   },
+   "Aug01-Oct12|all": {
+    "W": 358,
+    "L": 356,
+    "units": -49.55,
+    "risked": 722.0,
+    "roi": -0.069,
+    "maxdd": 69.31,
+    "losers_cut_u": 44.0,
+    "winners_cut_u": 39.32
+   }
+  },
+  "override >=2.5x": {
+   "Sep21-Oct12|totals": {
+    "W": 41,
+    "L": 44,
+    "units": -4.89,
+    "risked": 85.0,
+    "roi": -0.058,
+    "maxdd": 9.78,
+    "losers_cut_u": 17.0,
+    "winners_cut_u": 17.29
+   },
+   "Sep21-Oct12|sides": {
+    "W": 72,
+    "L": 62,
+    "units": 5.0,
+    "risked": 139.0,
+    "roi": 0.036,
+    "maxdd": 15.76,
+    "losers_cut_u": 12.0,
+    "winners_cut_u": 12.87
+   },
+   "Sep21-Oct12|all": {
+    "W": 113,
+    "L": 106,
+    "units": 0.11,
+    "risked": 224.0,
+    "roi": 0.0,
+    "maxdd": 20.71,
+    "losers_cut_u": 29.0,
+    "winners_cut_u": 30.16
+   },
+   "Aug01-Oct12|totals": {
+    "W": 161,
+    "L": 155,
+    "units": -18.13,
+    "risked": 316.0,
+    "roi": -0.057,
+    "maxdd": 37.04,
+    "losers_cut_u": 38.0,
+    "winners_cut_u": 26.02
+   },
+   "Aug01-Oct12|sides": {
+    "W": 182,
+    "L": 183,
+    "units": -25.45,
+    "risked": 373.0,
+    "roi": -0.068,
+    "maxdd": 38.91,
+    "losers_cut_u": 24.0,
+    "winners_cut_u": 25.33
+   },
+   "Aug01-Oct12|all": {
+    "W": 343,
+    "L": 338,
+    "units": -43.57,
+    "risked": 689.0,
+    "roi": -0.063,
+    "maxdd": 63.36,
+    "losers_cut_u": 62.0,
+    "winners_cut_u": 51.35
+   }
+  },
+  "riv half + emo kill + ovr2x": {
+   "Sep21-Oct12|totals": {
+    "W": 50,
+    "L": 54,
+    "units": -5.86,
+    "risked": 100.5,
+    "roi": -0.058,
+    "maxdd": 11.26,
+    "losers_cut_u": 9.5,
+    "winners_cut_u": 10.76
+   },
+   "Sep21-Oct12|sides": {
+    "W": 82,
+    "L": 67,
+    "units": 6.73,
+    "risked": 149.0,
+    "roi": 0.045,
+    "maxdd": 15.41,
+    "losers_cut_u": 8.5,
+    "winners_cut_u": 7.65
+   },
+   "Sep21-Oct12|all": {
+    "W": 132,
+    "L": 121,
+    "units": 0.86,
+    "risked": 249.5,
+    "roi": 0.003,
+    "maxdd": 19.76,
+    "losers_cut_u": 18.0,
+    "winners_cut_u": 18.41
+   },
+   "Aug01-Oct12|totals": {
+    "W": 174,
+    "L": 176,
+    "units": -25.2,
+    "risked": 345.0,
+    "roi": -0.073,
+    "maxdd": 43.62,
+    "losers_cut_u": 21.0,
+    "winners_cut_u": 16.1
+   },
+   "Aug01-Oct12|sides": {
+    "W": 196,
+    "L": 196,
+    "units": -26.66,
+    "risked": 392.0,
+    "roi": -0.068,
+    "maxdd": 38.85,
+    "losers_cut_u": 15.0,
+    "winners_cut_u": 17.54
+   },
+   "Aug01-Oct12|all": {
+    "W": 370,
+    "L": 372,
+    "units": -51.86,
+    "risked": 737.0,
+    "roi": -0.07,
+    "maxdd": 71.53,
+    "losers_cut_u": 36.0,
+    "winners_cut_u": 33.64
+   }
+  },
+  "riv small1.5 + ovr2x": {
+   "Sep21-Oct12|totals": {
+    "W": 49,
+    "L": 51,
+    "units": -4.91,
+    "risked": 101.0,
+    "roi": -0.049,
+    "maxdd": 10.31,
+    "losers_cut_u": 10.0,
+    "winners_cut_u": 10.31
+   },
+   "Sep21-Oct12|sides": {
+    "W": 79,
+    "L": 66,
+    "units": 6.7,
+    "risked": 150.0,
+    "roi": 0.045,
+    "maxdd": 14.94,
+    "losers_cut_u": 8.0,
+    "winners_cut_u": 7.17
+   },
+   "Sep21-Oct12|all": {
+    "W": 128,
+    "L": 117,
+    "units": 1.79,
+    "risked": 251.0,
+    "roi": 0.007,
+    "maxdd": 18.41,
+    "losers_cut_u": 18.0,
+    "winners_cut_u": 17.48
+   },
+   "Aug01-Oct12|totals": {
+    "W": 173,
+    "L": 172,
+    "units": -24.74,
+    "risked": 346.0,
+    "roi": -0.072,
+    "maxdd": 43.16,
+    "losers_cut_u": 21.0,
+    "winners_cut_u": 15.64
+   },
+   "Aug01-Oct12|sides": {
+    "W": 193,
+    "L": 194,
+    "units": -27.02,
+    "risked": 396.0,
+    "roi": -0.068,
+    "maxdd": 38.19,
+    "losers_cut_u": 13.0,
+    "winners_cut_u": 15.9
+   },
+   "Aug01-Oct12|all": {
+    "W": 366,
+    "L": 366,
+    "units": -51.77,
+    "risked": 742.0,
+    "roi": -0.07,
+    "maxdd": 71.51,
+    "losers_cut_u": 34.0,
+    "winners_cut_u": 31.54
+   }
+  },
+  "riv half + emo half + ovr2x": {
+   "Sep21-Oct12|totals": {
+    "W": 58,
+    "L": 60,
+    "units": -5.48,
+    "risked": 107.5,
+    "roi": -0.051,
+    "maxdd": 11.55,
+    "losers_cut_u": 6.5,
+    "winners_cut_u": 7.38
+   },
+   "Sep21-Oct12|sides": {
+    "W": 84,
+    "L": 74,
+    "units": 4.14,
+    "risked": 153.5,
+    "roi": 0.027,
+    "maxdd": 16.95,
+    "losers_cut_u": 5.0,
+    "winners_cut_u": 6.73
+   },
+   "Sep21-Oct12|all": {
+    "W": 142,
+    "L": 134,
+    "units": -1.34,
+    "risked": 261.0,
+    "roi": -0.005,
+    "maxdd": 22.4,
+    "losers_cut_u": 11.5,
+    "winners_cut_u": 14.11
+   },
+   "Aug01-Oct12|totals": {
+    "W": 188,
+    "L": 191,
+    "units": -26.65,
+    "risked": 360.0,
+    "roi": -0.074,
+    "maxdd": 44.24,
+    "losers_cut_u": 13.5,
+    "winners_cut_u": 10.05
+   },
+   "Aug01-Oct12|sides": {
+    "W": 210,
+    "L": 207,
+    "units": -26.88,
+    "risked": 404.5,
+    "roi": -0.066,
+    "maxdd": 37.98,
+    "losers_cut_u": 9.5,
+    "winners_cut_u": 12.26
+   },
+   "Aug01-Oct12|all": {
+    "W": 398,
+    "L": 398,
+    "units": -53.52,
+    "risked": 764.5,
+    "roi": -0.07,
+    "maxdd": 73.36,
+    "losers_cut_u": 23.0,
+    "winners_cut_u": 22.3
+   }
+  },
+  "riv half + ovr2.5x": {
+   "Sep21-Oct12|totals": {
+    "W": 47,
+    "L": 52,
+    "units": -6.18,
+    "risked": 92.5,
+    "roi": -0.067,
+    "maxdd": 11.51,
+    "losers_cut_u": 13.0,
+    "winners_cut_u": 14.58
+   },
+   "Sep21-Oct12|sides": {
+    "W": 79,
+    "L": 66,
+    "units": 6.16,
+    "risked": 144.5,
+    "roi": 0.043,
+    "maxdd": 14.5,
+    "losers_cut_u": 10.0,
+    "winners_cut_u": 9.71
+   },
+   "Sep21-Oct12|all": {
+    "W": 126,
+    "L": 118,
+    "units": -0.02,
+    "risked": 237.0,
+    "roi": -0.0,
+    "maxdd": 20.14,
+    "losers_cut_u": 23.0,
+    "winners_cut_u": 24.29
+   },
+   "Aug01-Oct12|totals": {
+    "W": 169,
+    "L": 168,
+    "units": -20.99,
+    "risked": 327.0,
+    "roi": -0.064,
+    "maxdd": 40.33,
+    "losers_cut_u": 31.5,
+    "winners_cut_u": 22.38
+   },
+   "Aug01-Oct12|sides": {
+    "W": 191,
+    "L": 194,
+    "units": -26.62,
+    "risked": 383.5,
+    "roi": -0.069,
+    "maxdd": 39.75,
+    "losers_cut_u": 18.5,
+    "winners_cut_u": 21.0
+   },
+   "Aug01-Oct12|all": {
+    "W": 360,
+    "L": 362,
+    "units": -47.61,
+    "risked": 710.5,
+    "roi": -0.067,
+    "maxdd": 67.2,
+    "losers_cut_u": 50.0,
+    "winners_cut_u": 43.39
+   }
+  },
+  "emo off WNBA": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 31,
+    "units": 3.6,
+    "risked": 67.0,
+    "roi": 0.054,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 21.8
+   },
+   "Sep21-Oct12|sides": {
+    "W": 45,
+    "L": 34,
+    "units": 10.3,
+    "risked": 82.0,
+    "roi": 0.126,
+    "maxdd": 5.7,
+    "losers_cut_u": 40.0,
+    "winners_cut_u": 35.58
+   },
+   "Sep21-Oct12|all": {
+    "W": 81,
+    "L": 65,
+    "units": 13.89,
+    "risked": 149.0,
+    "roi": 0.093,
+    "maxdd": 8.45,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 57.38
+   },
+   "Aug01-Oct12|totals": {
+    "W": 148,
+    "L": 136,
+    "units": -9.89,
+    "risked": 284.0,
+    "roi": -0.035,
+    "maxdd": 30.56,
+    "losers_cut_u": 57.0,
+    "winners_cut_u": 36.79
+   },
+   "Aug01-Oct12|sides": {
+    "W": 147,
+    "L": 137,
+    "units": -10.63,
+    "risked": 290.0,
+    "roi": -0.037,
+    "maxdd": 37.01,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 56.51
+   },
+   "Aug01-Oct12|all": {
+    "W": 295,
+    "L": 273,
+    "units": -20.52,
+    "risked": 574.0,
+    "roi": -0.036,
+    "maxdd": 48.62,
+    "losers_cut_u": 127.0,
+    "winners_cut_u": 93.3
+   }
+  },
+  "emo half WNBA": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 31,
+    "units": 2.69,
+    "risked": 66.0,
+    "roi": 0.041,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 22.71
+   },
+   "Sep21-Oct12|sides": {
+    "W": 45,
+    "L": 34,
+    "units": 10.1,
+    "risked": 80.5,
+    "roi": 0.125,
+    "maxdd": 5.2,
+    "losers_cut_u": 40.5,
+    "winners_cut_u": 36.27
+   },
+   "Sep21-Oct12|all": {
+    "W": 81,
+    "L": 65,
+    "units": 12.79,
+    "risked": 146.5,
+    "roi": 0.087,
+    "maxdd": 7.95,
+    "losers_cut_u": 70.5,
+    "winners_cut_u": 58.98
+   },
+   "Aug01-Oct12|totals": {
+    "W": 148,
+    "L": 136,
+    "units": -11.53,
+    "risked": 278.0,
+    "roi": -0.041,
+    "maxdd": 31.92,
+    "losers_cut_u": 59.0,
+    "winners_cut_u": 40.43
+   },
+   "Aug01-Oct12|sides": {
+    "W": 147,
+    "L": 137,
+    "units": -13.68,
+    "risked": 280.5,
+    "roi": -0.049,
+    "maxdd": 38.04,
+    "losers_cut_u": 72.0,
+    "winners_cut_u": 61.56
+   },
+   "Aug01-Oct12|all": {
+    "W": 295,
+    "L": 273,
+    "units": -25.21,
+    "risked": 558.5,
+    "roi": -0.045,
+    "maxdd": 50.51,
+    "losers_cut_u": 131.0,
+    "winners_cut_u": 101.99
+   }
+  },
+  "inj off sides": {
+   "Sep21-Oct12|totals": {
+    "W": 34,
+    "L": 31,
+    "units": 1.78,
+    "risked": 65.0,
+    "roi": 0.027,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 23.62
+   },
+   "Sep21-Oct12|sides": {
+    "W": 49,
+    "L": 35,
+    "units": 12.04,
+    "risked": 87.0,
+    "roi": 0.138,
+    "maxdd": 5.5,
+    "losers_cut_u": 39.0,
+    "winners_cut_u": 32.83
+   },
+   "Sep21-Oct12|all": {
+    "W": 83,
+    "L": 66,
+    "units": 13.82,
+    "risked": 152.0,
+    "roi": 0.091,
+    "maxdd": 8.25,
+    "losers_cut_u": 69.0,
+    "winners_cut_u": 56.45
+   },
+   "Aug01-Oct12|totals": {
+    "W": 140,
+    "L": 132,
+    "units": -13.17,
+    "risked": 272.0,
+    "roi": -0.048,
+    "maxdd": 33.28,
+    "losers_cut_u": 61.0,
+    "winners_cut_u": 44.06
+   },
+   "Aug01-Oct12|sides": {
+    "W": 138,
+    "L": 137,
+    "units": -16.59,
+    "risked": 281.0,
+    "roi": -0.059,
+    "maxdd": 39.08,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 62.48
+   },
+   "Aug01-Oct12|all": {
+    "W": 278,
+    "L": 269,
+    "units": -29.76,
+    "risked": 553.0,
+    "roi": -0.054,
+    "maxdd": 52.39,
+    "losers_cut_u": 131.0,
+    "winners_cut_u": 106.54
+   }
+  },
+  "inj half sides": {
+   "Sep21-Oct12|totals": {
+    "W": 34,
+    "L": 31,
+    "units": 1.78,
+    "risked": 65.0,
+    "roi": 0.027,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 23.62
+   },
+   "Sep21-Oct12|sides": {
+    "W": 49,
+    "L": 35,
+    "units": 10.97,
+    "risked": 83.0,
+    "roi": 0.132,
+    "maxdd": 5.1,
+    "losers_cut_u": 40.0,
+    "winners_cut_u": 34.9
+   },
+   "Sep21-Oct12|all": {
+    "W": 83,
+    "L": 66,
+    "units": 12.75,
+    "risked": 148.0,
+    "roi": 0.086,
+    "maxdd": 7.85,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 58.52
+   },
+   "Aug01-Oct12|totals": {
+    "W": 140,
+    "L": 132,
+    "units": -13.17,
+    "risked": 272.0,
+    "roi": -0.048,
+    "maxdd": 33.28,
+    "losers_cut_u": 61.0,
+    "winners_cut_u": 44.06
+   },
+   "Aug01-Oct12|sides": {
+    "W": 138,
+    "L": 137,
+    "units": -16.66,
+    "risked": 276.0,
+    "roi": -0.06,
+    "maxdd": 39.08,
+    "losers_cut_u": 72.0,
+    "winners_cut_u": 64.55
+   },
+   "Aug01-Oct12|all": {
+    "W": 278,
+    "L": 269,
+    "units": -29.83,
+    "risked": 548.0,
+    "roi": -0.054,
+    "maxdd": 52.39,
+    "losers_cut_u": 133.0,
+    "winners_cut_u": 108.61
+   }
+  },
+  "injury half": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 34,
+    "units": 1.15,
+    "risked": 67.5,
+    "roi": 0.017,
+    "maxdd": 6.45,
+    "losers_cut_u": 28.5,
+    "winners_cut_u": 22.75
+   },
+   "Sep21-Oct12|sides": {
+    "W": 49,
+    "L": 35,
+    "units": 10.97,
+    "risked": 83.0,
+    "roi": 0.132,
+    "maxdd": 5.1,
+    "losers_cut_u": 40.0,
+    "winners_cut_u": 34.9
+   },
+   "Sep21-Oct12|all": {
+    "W": 85,
+    "L": 69,
+    "units": 12.12,
+    "risked": 150.5,
+    "roi": 0.081,
+    "maxdd": 7.85,
+    "losers_cut_u": 68.5,
+    "winners_cut_u": 57.65
+   },
+   "Aug01-Oct12|totals": {
+    "W": 142,
+    "L": 136,
+    "units": -14.3,
+    "risked": 275.0,
+    "roi": -0.052,
+    "maxdd": 33.78,
+    "losers_cut_u": 59.0,
+    "winners_cut_u": 43.19
+   },
+   "Aug01-Oct12|sides": {
+    "W": 138,
+    "L": 137,
+    "units": -16.66,
+    "risked": 276.0,
+    "roi": -0.06,
+    "maxdd": 39.08,
+    "losers_cut_u": 72.0,
+    "winners_cut_u": 64.55
+   },
+   "Aug01-Oct12|all": {
+    "W": 280,
+    "L": 273,
+    "units": -30.96,
+    "risked": 551.0,
+    "roi": -0.056,
+    "maxdd": 52.39,
+    "losers_cut_u": 131.0,
+    "winners_cut_u": 107.74
+   }
+  },
+  "PROPOSED: emo half WNBA + inj half sides": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 31,
+    "units": 2.69,
+    "risked": 66.0,
+    "roi": 0.041,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 22.71
+   },
+   "Sep21-Oct12|sides": {
+    "W": 51,
+    "L": 36,
+    "units": 11.17,
+    "risked": 84.5,
+    "roi": 0.132,
+    "maxdd": 5.6,
+    "losers_cut_u": 39.5,
+    "winners_cut_u": 34.21
+   },
+   "Sep21-Oct12|all": {
+    "W": 87,
+    "L": 67,
+    "units": 13.86,
+    "risked": 150.5,
+    "roi": 0.092,
+    "maxdd": 8.35,
+    "losers_cut_u": 69.5,
+    "winners_cut_u": 56.91
+   },
+   "Aug01-Oct12|totals": {
+    "W": 148,
+    "L": 136,
+    "units": -11.53,
+    "risked": 278.0,
+    "roi": -0.041,
+    "maxdd": 31.92,
+    "losers_cut_u": 59.0,
+    "winners_cut_u": 40.43
+   },
+   "Aug01-Oct12|sides": {
+    "W": 153,
+    "L": 141,
+    "units": -13.61,
+    "risked": 285.5,
+    "roi": -0.048,
+    "maxdd": 38.04,
+    "losers_cut_u": 70.0,
+    "winners_cut_u": 59.49
+   },
+   "Aug01-Oct12|all": {
+    "W": 301,
+    "L": 277,
+    "units": -25.14,
+    "risked": 563.5,
+    "roi": -0.045,
+    "maxdd": 50.51,
+    "losers_cut_u": 129.0,
+    "winners_cut_u": 99.92
+   }
+  },
+  "emo off WNBA + inj off sides": {
+   "Sep21-Oct12|totals": {
+    "W": 36,
+    "L": 31,
+    "units": 3.6,
+    "risked": 67.0,
+    "roi": 0.054,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 21.8
+   },
+   "Sep21-Oct12|sides": {
+    "W": 51,
+    "L": 36,
+    "units": 12.43,
+    "risked": 90.0,
+    "roi": 0.138,
+    "maxdd": 6.5,
+    "losers_cut_u": 38.0,
+    "winners_cut_u": 31.44
+   },
+   "Sep21-Oct12|all": {
+    "W": 87,
+    "L": 67,
+    "units": 16.03,
+    "risked": 157.0,
+    "roi": 0.102,
+    "maxdd": 9.25,
+    "losers_cut_u": 68.0,
+    "winners_cut_u": 53.24
+   },
+   "Aug01-Oct12|totals": {
+    "W": 148,
+    "L": 136,
+    "units": -9.89,
+    "risked": 284.0,
+    "roi": -0.035,
+    "maxdd": 30.56,
+    "losers_cut_u": 57.0,
+    "winners_cut_u": 36.79
+   },
+   "Aug01-Oct12|sides": {
+    "W": 153,
+    "L": 141,
+    "units": -10.49,
+    "risked": 300.0,
+    "roi": -0.035,
+    "maxdd": 37.01,
+    "losers_cut_u": 66.0,
+    "winners_cut_u": 52.37
+   },
+   "Aug01-Oct12|all": {
+    "W": 301,
+    "L": 277,
+    "units": -20.38,
+    "risked": 584.0,
+    "roi": -0.035,
+    "maxdd": 48.62,
+    "losers_cut_u": 123.0,
+    "winners_cut_u": 89.16
+   }
+  },
+  "riv off WNBA": {
+   "Sep21-Oct12|totals": {
+    "W": 34,
+    "L": 31,
+    "units": 1.78,
+    "risked": 65.0,
+    "roi": 0.027,
+    "maxdd": 6.45,
+    "losers_cut_u": 30.0,
+    "winners_cut_u": 23.62
+   },
+   "Sep21-Oct12|sides": {
+    "W": 48,
+    "L": 33,
+    "units": 14.0,
+    "risked": 84.0,
+    "roi": 0.167,
+    "maxdd": 3.7,
+    "losers_cut_u": 41.0,
+    "winners_cut_u": 32.87
+   },
+   "Sep21-Oct12|all": {
+    "W": 82,
+    "L": 64,
+    "units": 15.78,
+    "risked": 149.0,
+    "roi": 0.106,
+    "maxdd": 7.45,
+    "losers_cut_u": 71.0,
+    "winners_cut_u": 56.49
+   },
+   "Aug01-Oct12|totals": {
+    "W": 140,
+    "L": 132,
+    "units": -13.17,
+    "risked": 272.0,
+    "roi": -0.048,
+    "maxdd": 33.28,
+    "losers_cut_u": 61.0,
+    "winners_cut_u": 44.06
+   },
+   "Aug01-Oct12|sides": {
+    "W": 137,
+    "L": 133,
+    "units": -12.63,
+    "risked": 276.0,
+    "roi": -0.046,
+    "maxdd": 39.08,
+    "losers_cut_u": 74.0,
+    "winners_cut_u": 62.51
+   },
+   "Aug01-Oct12|all": {
+    "W": 277,
+    "L": 265,
+    "units": -25.8,
+    "risked": 548.0,
+    "roi": -0.047,
+    "maxdd": 52.39,
+    "losers_cut_u": 135.0,
+    "winners_cut_u": 106.58
+   }
+  }
+ },
+ "strength": {
+  "Sep21-Oct12|1-1.5x": {
+   "n": 20,
+   "W": 11,
+   "L": 9,
+   "units": 0.41
+  },
+  "Sep21-Oct12|1.5-2x": {
+   "n": 30,
+   "W": 16,
+   "L": 13,
+   "units": 0.52
+  },
+  "Sep21-Oct12|2-2.5x": {
+   "n": 16,
+   "W": 9,
+   "L": 7,
+   "units": 0.23
+  },
+  "Sep21-Oct12|2.5-99x": {
+   "n": 80,
+   "W": 36,
+   "L": 42,
+   "units": -11.57
+  },
+  "Aug01-Oct12|1-1.5x": {
+   "n": 41,
+   "W": 21,
+   "L": 20,
+   "units": -3.02
+  },
+  "Aug01-Oct12|1.5-2x": {
+   "n": 53,
+   "W": 26,
+   "L": 24,
+   "units": -1.66
+  },
+  "Aug01-Oct12|2-2.5x": {
+   "n": 33,
+   "W": 15,
+   "L": 18,
+   "units": -5.97
+  },
+  "Aug01-Oct12|2.5-99x": {
+   "n": 146,
+   "W": 71,
+   "L": 73,
+   "units": -13.67
+  }
+ }
+}

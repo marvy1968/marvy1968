@@ -126,10 +126,21 @@ def engine_legs(sport: str, preds, projections, slate, uf_favs: set, uf: list) -
                 side, line = pk.side, None
             else:
                 side, line = pk.side, pk.line
+            # Master architecture (MARV_MASTER=1): drop UF=0, mark half stake, tag Master-active sides
+            mp = next((m for m in (getattr(pred, "master_picks", None) or []) if m.get("market") == pk.market
+                       and m.get("side") == pk.side), None)
+            stake = (getattr(pred, "master_uf_stake_total", None) if pk.market == "total" else
+                     (mp.get("uf_stake") if mp and mp.get("active_master") else getattr(pred, "master_uf_stake_side", None)))
+            if stake is not None and float(stake) <= 0:
+                uf.append(f"{sport.upper()} {g.away} @ {g.home} {pk.side}: Master UF=0 ({getattr(pred, 'master_uf_reason', '')})")
+                continue
+            mtag = {"master": bool(mp and mp.get("active_master")),
+                    "uf_stake": None if stake is None else float(stake)}
             strength = TIER_BASE[tier] + min(max(pk.edge, 0), 0.15) * 10 + (max(pk.prob - 0.5, 0) * 2 if pk.market == "ml" else 0)
             why = ("passed every check (backtested floor, injuries, eliminations)" if tier == "HIGH"
                    else "model edge, held back by: " + "; ".join(pk.vetoes)[:70])
-            legs.append(_leg(sport, g, pk.market, side, line, pk.price, tier, strength, why + f" · {proven.UNPROVEN}"))
+            legs.append(_leg(sport, g, pk.market, side, line, pk.price, tier, strength + (0.5 if mtag["master"] else 0),
+                             why + f" · {proven.UNPROVEN}", **mtag))
     # backtested O/U signals (trend fades, inflated totals) on projected and unprojected slate games
     seen = set()
     cands = betcard.candidates(sport, preds, projections) + betcard.tag_candidates(
@@ -169,6 +180,12 @@ def run_engine(s, sport_key: str, now: datetime, grade_only: bool = False):
     sport = REG[sport_key]
     history, slate, ctx = load_for_run(sport, s, now, WINDOW_H)
     grade(Path(s.state_dir), sport_key, history)
+    try:  # UFP/UVF tracking ledger (MARV_UPSET=1; no betting effect)
+        from . import ufp_uvf
+        if ufp_uvf.ON:
+            ufp_uvf.grade(Path(s.state_dir), sport_key, history)
+    except Exception:  # noqa: BLE001
+        log.exception("ufp_uvf grade")
     if grade_only or not slate:
         return [], None, slate or []
     projections = None
@@ -227,13 +244,40 @@ def soccer_legs(state: Path, days: set, uf: list) -> list[dict]:
 
 
 # ---------------------------------------------------------------- card
+def _gkey(leg: dict) -> tuple:
+    """Normalized game key: book feeds disagree on names ("Delaware" vs "Delaware Blue Hens")."""
+    try:
+        st = datetime.fromisoformat(str(leg.get("start", "")).replace("Z", "+00:00")).astimezone(timezone.utc).strftime("%Y-%m-%dT%H")
+    except Exception:  # noqa: BLE001
+        st = str(leg.get("start", ""))[:13]
+    w = lambda t: (str(t or "").lower().split() or [""])[0]
+    return (leg["sport"], st, w(leg.get("away")), w(leg.get("home")))
+
+
+def _backtested(leg: dict) -> bool:
+    why = str(leg.get("why", "")).lower()
+    return "backtest" in why and "unproven" not in why
+
+
 def dedupe(legs: list[dict]) -> list[dict]:
-    """Best leg per (sport, game, market); ML and total of the same game may both stand in the straight cards."""
+    """Best leg per (sport, game, market); ML and total of the same game may both stand in the straight cards.
+    Conflict resolution (2026-10-13): never list opposite sides of one market/game; backtested basis beats
+    unproven, then strength. Dropped side is logged 'conflict resolved'."""
     best = {}
     for leg in legs:
-        k = (leg["sport"], leg["game"], leg["market"])
-        if k not in best or leg["strength"] > best[k]["strength"]:
+        k = _gkey(leg) + (leg["market"],)
+        cur = best.get(k)
+        if cur is None:
             best[k] = leg
+            continue
+        rank = lambda x: (_backtested(x), x["strength"])
+        win, lose = (leg, cur) if rank(leg) > rank(cur) else (cur, leg)
+        if win["side"] != lose["side"]:
+            log.warning("daily picks: conflict resolved %s %s %s: kept %s %s (%s), dropped %s %s (%s)",
+                        win["sport"], win["game"], win["market"], win["side"], win.get("line"),
+                        "backtested" if _backtested(win) else "unproven", lose["side"], lose.get("line"),
+                        "backtested" if _backtested(lose) else "unproven")
+        best[k] = win
     return sorted(best.values(), key=lambda x: -x["strength"])
 
 
@@ -288,7 +332,7 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
     d = datetime.fromisoformat(card["date"])
     head = ("🧪 TEST · " if test else "") + f"👽 MARV PREDICT · DAILY CARD · Hybrid v2.0 style · {d:%a %b %-d}"
     lines = [head + (" · 📝 PAPER" if paper else ""),
-             f"Sports checked: {', '.join(NAME[s] for s in card['sports_checked'])}",
+             f"Sports checked: {', '.join(NAME[s] for s in card['sports_checked'] if s not in TG_EXCLUDE)}" + (' (NBA excluded)' if 'nba' in TG_EXCLUDE else ''),
              f"UF filter removed {len(card['uf_removed'])} leg(s) (hard veto / upset score fires / shorter than "
              f"{UF_MAX_FAV:+.0f} / soccer conf<50)"]
     sports = [sport] if sport else card["sports_with_legs"]
@@ -320,6 +364,11 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
                 lines.append(f" {i}) {TIER_ICON[x['tier']]} {TIER_NAME[x['tier']]} · {EMOJI[x['sport']]} {_pick(x)} · "
                              f"{x['game']} · {_when(x['start'])}")
                 lines.append(f"    {_why(x)}")
+    try:
+        from . import ufp_uvf
+        lines += ufp_uvf.card_lines([t for t in card.get("upset_tags", []) if not sport or t["sport"] == sport])
+    except Exception:  # noqa: BLE001
+        pass
     lines += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked by leg "
               "strength, not a probability; no model % (only proven backtests print a %). 0.5u paper leans, "
               "graded daily — not real-money picks until 100+ graded above 52.4%."]
@@ -457,6 +506,13 @@ def collect(s, now: datetime, sports=SPORTS, refresh: bool = True) -> dict:
     except Exception:  # noqa: BLE001
         log.exception("daily picks: soccer failed")
     card = build(legs, uf, checked, now)
+    try:  # UFP Trap Warning / UVF Value Dog tags (tracking only, MARV_UPSET=1)
+        from . import ufp_uvf
+        if ufp_uvf.ON:
+            card["upset_tags"] = [t for k, (pr, _p, _s) in results.items()
+                                  for t in ufp_uvf.tag_games(k, [p for p in pr if now < p.game.start <= end], state, now)]
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: ufp_uvf tags")
     _jsave(_dir(state) / CARD, card)
     return card
 
@@ -476,8 +532,197 @@ def answer(settings, parts=None, full: bool = True) -> str:
     if sport and sport not in card["parlays"] and not any(x["sport"] == sport for x in card["ml"] + card["ou"]):
         return f"No qualifying {NAME.get(sport, sport)} parlays on today's card. Sports with legs: " + \
             ", ".join(NAME[s] for s in card["sports_with_legs"])
+    extra = ""
+    try:
+        from . import ufp_uvf
+        if ufp_uvf.ON:
+            extra = "\n" + html.escape(ufp_uvf.record_line(state))
+    except Exception:  # noqa: BLE001
+        pass
     return text(card, paper=getattr(settings, "paper_mode", True), sport=sport, full=full) + "\n" + \
-        html.escape(record(state))
+        html.escape(record(state)) + extra
+
+
+# ---------------------------------------------------------------- Telegram action plan (2026-10-13)
+TG_EXCLUDE = {x for x in os.environ.get("DAILY_TG_EXCLUDE", "nba").lower().split(",") if x}  # Marvin: no NBA on Telegram
+TG_TOP = int(os.environ.get("DAILY_TG_TOP", "5"))
+
+
+def _tag(leg):
+    return f"[{NAME[leg['sport']]}]"
+
+
+def _just(leg):
+    if leg.get("master_extreme"):
+        st = leg.get("uf_stake")
+        return leg["why"] + " · " + ("UF clean" if st is None or st >= 1 else "UF ½ STAKE")
+    bits = [TIER_NAME[leg["tier"]]]
+    if leg.get("master"):
+        bits.append("Master ✓ (TCI/PPE edge)")
+    st = leg.get("uf_stake")
+    if st is not None:
+        bits.append("UF clean" if st >= 1 else "UF ½ STAKE")
+    if leg["tier"] == "SIGNAL":
+        bits.append(_why(leg))
+    elif leg["tier"] == "HIGH":
+        bits.append("passed every veto")
+    else:
+        bits.append("model lean, unproven")
+    return " · ".join(bits)
+
+
+def _combos(legs, k, n):
+    out = []
+    pool = legs[:12]
+    for c in itertools.combinations(pool, k):
+        if len({_gkey(x) for x in c}) < k:
+            continue  # distinct games only
+        tiers = sorted({x["tier"] for x in c if not x.get("master_extreme")}, key=lambda t: -TIER_BASE[t])
+        tn = (["🎯MASTER EXTREME"] if any(x.get("master_extreme") for x in c) else []) + [TIER_NAME[t] for t in tiers]
+        out.append({"legs": sorted(c, key=lambda x: x["start"]), "price": combined([x["price"] for x in c]),
+                    "score": sum(x["strength"] for x in c) / k, "tiers": "+".join(tn),
+                    "half": any((x.get("uf_stake") or 1) < 1 for x in c)})
+    out.sort(key=lambda p: (-p["score"], -p["price"]))
+    return out[:n]
+
+
+MASTER_DIR = Path(os.environ.get("MARV_MASTER_STATE", "/opt/marv-bot/state/master"))
+MASTER_DAYS = int(os.environ.get("DAILY_MASTER_DAYS", "7"))
+
+
+def master_extremes(now=None) -> list[dict]:
+    """Pending upcoming Master extremes-rule totals (ledger.json): High Shootout = Over only, Def Grind = Under only.
+    UF stake from the latest decisions.jsonl row per game: 0 -> excluded, <1 -> half stake."""
+    now = now or datetime.now(timezone.utc)
+    stake = {}
+    try:
+        for ln in open(MASTER_DIR / "decisions.jsonl"):
+            try:
+                r = json.loads(ln)
+                stake[r["key"]] = float(r.get("uf_stake_total", 1.0))
+            except Exception:  # noqa: BLE001
+                continue
+    except Exception:  # noqa: BLE001
+        pass
+    out = []
+    for r in _jload(MASTER_DIR / "ledger.json", []):
+        try:
+            if r.get("kind") != "total" or r.get("status") != "pending":
+                continue
+            tier, sd = r.get("tier"), r.get("side")
+            if not ((tier == "high_shootout" and sd == 1) or (tier == "defensive_grind" and sd == -1)):
+                continue
+            st = datetime.fromisoformat(r["start"])
+            if not (now < st <= now + timedelta(days=MASTER_DAYS)):
+                continue
+            k = stake.get(r.get("pred_key"), 1.0)
+            if k <= 0:
+                continue
+            label = "High Shootout" if tier == "high_shootout" else "Def Grind"
+            g = type("G", (), {"home": r["home"], "away": r["away"], "start": st})
+            out.append(_leg(r["sport"], g, "total", "Over" if sd == 1 else "Under", float(r["line"]),
+                            float(r.get("price") or -110), "SIGNAL", 10.0 + abs(float(r.get("d", 0))) / 10,
+                            f"🎯 MASTER EXTREME · {label} (tracking, unproven)", master_extreme=label, uf_stake=k))
+        except Exception:  # noqa: BLE001
+            log.exception("daily picks: master extreme row")
+    # 2026-10-14: also surface Script O/U extremes (state/script_ou/ledger.json), same High Shootout/Def Grind rule
+    w = lambda t: (str(t or "").lower().split() or [""])[0]
+    seen = {(x["sport"], w(x["away"]), w(x["home"])) for x in out}
+    for r in _jload(Path(os.environ.get("SCRIPT_OU_LEDGER", "/opt/marv-bot/state/script_ou/ledger.json")), []):
+        try:
+            if r.get("status") != "pending" or r.get("uf", 1) != 1 or r.get("sport") == "soccer":
+                continue
+            st = datetime.fromisoformat(str(r["start"]).replace("Z", "+00:00"))
+            if not (now < st <= now + timedelta(days=MASTER_DAYS)) or (r["sport"], w(r["away"]), w(r["home"])) in seen:
+                continue
+            sd = 1 if r.get("side", 1) > 0 else -1
+            label = "High Shootout" if sd == 1 else "Def Grind"
+            g = type("G", (), {"home": r["home"], "away": r["away"], "start": st})
+            out.append(_leg(r["sport"], g, "total", "Over" if sd == 1 else "Under", float(r["line"]),
+                            float(r.get("price") or -110), "SIGNAL", 10.0 + abs(float(r.get("d", 0))) / 10,
+                            f"🎯 MASTER EXTREME · {label} (Script O/U, tracking, unproven)", master_extreme=label, uf_stake=1.0))
+            seen.add((r["sport"], w(r["away"]), w(r["home"])))
+        except Exception:  # noqa: BLE001
+            log.exception("daily picks: script_ou extreme row")
+    return sorted(out, key=lambda x: -x["strength"])
+
+
+def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
+    """Daily Cross-Sport Ranked Action Plan (Telegram). Real Marv/Master legs only; NBA stripped; no unproven %."""
+    mx = [x for x in master_extremes() if x["sport"] not in TG_EXCLUDE]
+    mkeys = {(x["sport"], x["away"].split()[0].lower(), x["home"].split()[0].lower()): x for x in mx}
+    legs = []
+    for x in card["ml"] + card["ou"]:
+        if x["sport"] in TG_EXCLUDE:
+            continue
+        m = mkeys.get((x["sport"], str(x["away"]).split()[0].lower(), str(x["home"]).split()[0].lower()))
+        if m and x["market"] == "total":
+            if x["side"] != m["side"]:
+                log.warning("daily picks: conflict resolved %s %s total: kept Master extreme %s, dropped %s",
+                            x["sport"], x["game"], m["side"], x["side"])
+            continue  # Master extreme owns this game's total
+        legs.append(x)
+    legs = mx + sorted(legs, key=lambda x: -x["strength"])
+    d = datetime.fromisoformat(card["date"])
+    sports = [NAME[s] for s in card["sports_checked"] if s not in TG_EXCLUDE]
+    L = [("🧪 TEST · " if test else "") + "👽 Daily Cross-Sport Ranked Action Plan · 📝 PAPER",
+         f"Sports checked: {', '.join(sports)} (NBA excluded)",
+         f"UF filter removed {len(card['uf_removed'])} leg(s) (UF=0 / hard veto / upset score / shorter than {UF_MAX_FAV:+.0f})"]
+    def plist(title, ps):
+        L.extend(["", f"━━ {title} ━━"])
+        if not ps:
+            L.append(" none today (not enough qualifying games)")
+        for i, p in enumerate(ps, 1):
+            L.append(f" {i}) {p['price']:+d} · " + " + ".join(f"{'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_pick(x)} {_tag(x)}" for x in p["legs"]))
+            L.append(f"    {len(p['legs'])} legs · {p['tiers']}" + (" · ½ STAKE (UF)" if p["half"] else ""))
+    plist("1️⃣ TOP RANKED 2-LEG PARLAYS", _combos(legs, 2, TG_TOP))
+    big = []
+    for k in (3, 4, 5):
+        big += _combos(legs, k, 2)
+    big.sort(key=lambda p: (-p["score"], -p["price"]))
+    plist("2️⃣ TOP RANKED 3- TO 5-LEG PARLAYS", big[:TG_TOP])
+    for title, key in (("3️⃣ TOP RANKED STRAIGHT MONEYLINES / SIDES", "ml"), ("4️⃣ OVER/UNDERS", "total")):
+        L.extend(["", f"━━ {title} ━━"])
+        rows = [x for x in legs if x["market"] == key][:STRAIGHT_MAX]
+        if not rows:
+            L.append(" none qualified today")
+        for i, x in enumerate(rows, 1):
+            icon = "🎯" if x.get("master_extreme") else TIER_ICON[x["tier"]]
+            when = _when(x["start"]) if datetime.fromisoformat(x["start"]).astimezone(CT).date() == d.date() else \
+                datetime.fromisoformat(x["start"]).astimezone(CT).strftime("%a %b %-d %-I:%M %p CT")
+            L.append(f" {i}) {icon} {_pick(x)} {_tag(x)} · {x['game']} · {when}")
+            L.append(f"    {_just(x)}")
+    try:
+        from . import ufp_uvf
+        L += ufp_uvf.card_lines([t for t in card.get("upset_tags", []) if t["sport"] not in TG_EXCLUDE])
+        if ufp_uvf.ON:
+            record_line = record_line + "\n" + ufp_uvf.record_line(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")))
+    except Exception:  # noqa: BLE001
+        pass
+    L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked best → least by leg "
+          "strength, not a probability; no model % (only proven backtests print one). Paper only.", record_line]
+    try:
+        ml = json.load(open("/opt/marv-bot/state/master/summary.json")).get("line", "")
+        if ml:
+            L.append(ml)
+    except Exception:  # noqa: BLE001
+        pass
+    L.append(f"📅 {d:%a %b %-d, %Y} · built {datetime.fromisoformat(card['built']).astimezone(CT):%-I:%M %p} CT")
+    return html.escape("\n".join(L))
+
+
+def _march_edge_creds():
+    """March_edge (@March_betbot) token/chat from the systemd credential (LoadCredential=march_edge:<aj-bet-bot env>)."""
+    d = os.environ.get("CREDENTIALS_DIRECTORY", "")
+    kv = {}
+    try:
+        for ln in open(os.path.join(d, "march_edge")):
+            if "=" in ln and not ln.lstrip().startswith("#"):
+                k, v = ln.split("=", 1)
+                kv[k.strip()] = v.strip().strip("\"'")
+    except Exception:  # noqa: BLE001
+        return "", ""
+    return kv.get("TELEGRAM_BOT_TOKEN", ""), kv.get("TELEGRAM_CHAT_ID", "")
 
 
 def daily_card_telegram_enabled() -> bool:
@@ -492,6 +737,13 @@ def send(s, msg: str) -> str:
     the March_edge mirror bot (MIRROR_BOT_TOKEN) instead. Returns where it landed; raises if both fail.
 
     DAILY_CARD_TELEGRAM=off: no Telegram at all (build + paper log still run)."""
+    if os.environ.get("DAILY_CARD_TELEGRAM", "").strip().lower() == "march_edge":
+        from . import telegram as T
+        tok, chat = _march_edge_creds()
+        if not tok or not chat:
+            raise RuntimeError("DAILY_CARD_TELEGRAM=march_edge but march_edge credential missing")
+        T._post(tok, chat, msg)
+        return "March_edge @March_betbot"
     if not daily_card_telegram_enabled():
         log.info("daily picks: DAILY_CARD_TELEGRAM=off; Telegram send skipped (mirror already covers)")
         return "disabled (DAILY_CARD_TELEGRAM=off)"
@@ -516,6 +768,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-refresh", action="store_true", help="grade only; no new projections")
     ap.add_argument("--sports", default=",".join(SPORTS))
     ap.add_argument("--cached", action="store_true", help="re-send today's stored card (no projections)")
+    ap.add_argument("--tg-preview", action="store_true", help="print the Telegram action plan only; no send/log")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
@@ -524,11 +777,23 @@ def main(argv=None) -> int:
     card = cached or collect(s, now, [x for x in a.sports.split(",") if x in SPORTS], refresh=not a.no_refresh)
     msg = text(card, test=a.test, paper=s.paper_mode) + "\n" + html.escape(record(Path(s.state_dir)))
     print(msg)
+    if os.environ.get("DAILY_CARD_TELEGRAM", "").strip().lower() == "march_edge" or a.tg_preview:
+        msg = telegram_text(card, record(Path(s.state_dir)), test=a.test)
+        print("----- TELEGRAM (March_edge) -----\n" + html.unescape(msg))
+    if a.tg_preview:
+        return 0
     if a.dry_run:
         return 0
     if not a.test:
         n = log_card(Path(s.state_dir), card)
         log.info("daily picks: logged %d paper entries", n)
+        try:
+            from . import ufp_uvf
+            if ufp_uvf.ON:
+                log.info("daily picks: logged %d UFP/UVF tracking tags",
+                         ufp_uvf.log_tags(Path(s.state_dir), card.get("upset_tags", []), card["ml"] + card["ou"]))
+        except Exception:  # noqa: BLE001
+            log.exception("ufp_uvf log")
     where = send(s, msg)
     log.info("daily picks: sent %s via %s", "TEST" if a.test else "daily card", where)
     print(f"SENT via {where}")

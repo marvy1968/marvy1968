@@ -44,6 +44,11 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     history, slate, ctx = load_for_run(sport, s, now, hours)
     if store.resolve(sport.key, history):
         log.info("%s: graded finished picks", sport.key)
+    try:  # TCI/PPE/UF A/B ledger (paper)
+        from . import tci_ppe_uf
+        tci_ppe_uf.ab_resolve(sport.key, history, Path(s.state_dir))
+    except Exception:
+        log.exception("TCI/PPE/UF A/B grading failed")
     try:
         ou_tags.grade(Path(s.state_dir), sport.key, history)
         sharpgap.grade(Path(s.state_dir), sport.key, history)
@@ -60,6 +65,11 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         log.info("%s: stats experts projected %d/%d games", sport.key, len(projections), len(slate))
     preds = predict(sport, history, slate, now, s.simulations, ctx, veto=Settings.veto_for(sport.key),
                     model_weight=Settings.model_weight(sport.key), projections=projections)
+    try:  # TCI/PPE log-odds shift + UF gate (cfb/soccer) + soccer ML drop; fail-open, MARV_TPU=0 disables
+        from . import tci_ppe_uf
+        preds = tci_ppe_uf.apply(sport, preds, history, Path(s.state_dir), now)
+    except Exception:
+        log.exception("TCI/PPE/UF layer failed; using original picks")
     if not preds:
         log.info("%s: %d games found but none had odds and rated teams", sport.key, len(slate))
         return [], projections, slate  # trend tags can still cover them (bet card)

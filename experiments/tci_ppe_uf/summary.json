@@ -1,0 +1,761 @@
+{
+ "ALL/all": {
+  "newUF": {
+   "n": 203,
+   "W": 102,
+   "L": 94,
+   "P": 7,
+   "units": 13.82,
+   "roi": 0.068,
+   "maxdd": 17.45,
+   "streak": 7
+  },
+  "newNoUF": {
+   "n": 376,
+   "W": 182,
+   "L": 182,
+   "P": 12,
+   "units": 1.85,
+   "roi": 0.005,
+   "maxdd": 23.13,
+   "streak": 7
+  },
+  "cur": {
+   "n": 367,
+   "W": 174,
+   "L": 183,
+   "P": 10,
+   "units": 1.64,
+   "roi": 0.004,
+   "maxdd": 22.26,
+   "streak": 7
+  },
+  "skip": {
+   "n": 173,
+   "Lavoid": 88,
+   "u_saved": 88.0,
+   "Wskip": 80,
+   "u_lost": 76.03
+  }
+ },
+ "ALL/ml": {
+  "newUF": {
+   "n": 51,
+   "W": 17,
+   "L": 34,
+   "P": 0,
+   "units": -7.76,
+   "roi": -0.152,
+   "maxdd": 14.2,
+   "streak": 7
+  },
+  "newNoUF": {
+   "n": 82,
+   "W": 32,
+   "L": 50,
+   "P": 0,
+   "units": -5.5,
+   "roi": -0.067,
+   "maxdd": 24.67,
+   "streak": 14
+  },
+  "cur": {
+   "n": 78,
+   "W": 28,
+   "L": 50,
+   "P": 0,
+   "units": -6.23,
+   "roi": -0.08,
+   "maxdd": 28.36,
+   "streak": 18
+  },
+  "skip": {
+   "n": 31,
+   "Lavoid": 16,
+   "u_saved": 16.0,
+   "Wskip": 15,
+   "u_lost": 18.26
+  }
+ },
+ "ALL/spread": {
+  "newUF": {
+   "n": 94,
+   "W": 54,
+   "L": 33,
+   "P": 7,
+   "units": 14.88,
+   "roi": 0.158,
+   "maxdd": 3.36,
+   "streak": 3
+  },
+  "newNoUF": {
+   "n": 172,
+   "W": 88,
+   "L": 72,
+   "P": 12,
+   "units": 6.44,
+   "roi": 0.037,
+   "maxdd": 9.79,
+   "streak": 5
+  },
+  "cur": {
+   "n": 164,
+   "W": 84,
+   "L": 70,
+   "P": 10,
+   "units": 4.92,
+   "roi": 0.03,
+   "maxdd": 8.95,
+   "streak": 5
+  },
+  "skip": {
+   "n": 78,
+   "Lavoid": 39,
+   "u_saved": 39.0,
+   "Wskip": 34,
+   "u_lost": 30.56
+  }
+ },
+ "ALL/total": {
+  "newUF": {
+   "n": 58,
+   "W": 31,
+   "L": 27,
+   "P": 0,
+   "units": 6.71,
+   "roi": 0.116,
+   "maxdd": 6.27,
+   "streak": 3
+  },
+  "newNoUF": {
+   "n": 122,
+   "W": 62,
+   "L": 60,
+   "P": 0,
+   "units": 0.91,
+   "roi": 0.007,
+   "maxdd": 7.07,
+   "streak": 4
+  },
+  "cur": {
+   "n": 125,
+   "W": 62,
+   "L": 63,
+   "P": 0,
+   "units": 2.95,
+   "roi": 0.024,
+   "maxdd": 11.45,
+   "streak": 6
+  },
+  "skip": {
+   "n": 64,
+   "Lavoid": 33,
+   "u_saved": 33.0,
+   "Wskip": 31,
+   "u_lost": 27.2
+  }
+ },
+ "cfb/all": {
+  "newUF": {
+   "n": 62,
+   "W": 34,
+   "L": 28,
+   "P": 0,
+   "units": 2.91,
+   "roi": 0.047,
+   "maxdd": 5.36,
+   "streak": 4
+  },
+  "newNoUF": {
+   "n": 141,
+   "W": 69,
+   "L": 70,
+   "P": 2,
+   "units": -7.27,
+   "roi": -0.052,
+   "maxdd": 17.18,
+   "streak": 6
+  },
+  "cur": {
+   "n": 128,
+   "W": 63,
+   "L": 64,
+   "P": 1,
+   "units": -6.73,
+   "roi": -0.053,
+   "maxdd": 15.09,
+   "streak": 6
+  },
+  "skip": {
+   "n": 79,
+   "Lavoid": 42,
+   "u_saved": 42.0,
+   "Wskip": 35,
+   "u_lost": 31.82
+  }
+ },
+ "cfb/ml": {
+  "newUF": {
+   "n": 0
+  },
+  "newNoUF": {
+   "n": 0
+  },
+  "cur": {
+   "n": 0
+  },
+  "skip": {
+   "n": 0,
+   "Lavoid": 0,
+   "u_saved": -0.0,
+   "Wskip": 0,
+   "u_lost": 0.0
+  }
+ },
+ "cfb/spread": {
+  "newUF": {
+   "n": 36,
+   "W": 21,
+   "L": 15,
+   "P": 0,
+   "units": 4.09,
+   "roi": 0.114,
+   "maxdd": 3.27,
+   "streak": 2
+  },
+  "newNoUF": {
+   "n": 80,
+   "W": 39,
+   "L": 39,
+   "P": 2,
+   "units": -3.55,
+   "roi": -0.044,
+   "maxdd": 12.91,
+   "streak": 3
+  },
+  "cur": {
+   "n": 72,
+   "W": 35,
+   "L": 36,
+   "P": 1,
+   "units": -4.18,
+   "roi": -0.058,
+   "maxdd": 8.27,
+   "streak": 4
+  },
+  "skip": {
+   "n": 44,
+   "Lavoid": 24,
+   "u_saved": 24.0,
+   "Wskip": 18,
+   "u_lost": 16.36
+  }
+ },
+ "cfb/total": {
+  "newUF": {
+   "n": 26,
+   "W": 13,
+   "L": 13,
+   "P": 0,
+   "units": -1.18,
+   "roi": -0.045,
+   "maxdd": 6.36,
+   "streak": 5
+  },
+  "newNoUF": {
+   "n": 61,
+   "W": 30,
+   "L": 31,
+   "P": 0,
+   "units": -3.73,
+   "roi": -0.061,
+   "maxdd": 8.09,
+   "streak": 4
+  },
+  "cur": {
+   "n": 56,
+   "W": 28,
+   "L": 28,
+   "P": 0,
+   "units": -2.55,
+   "roi": -0.045,
+   "maxdd": 9.55,
+   "streak": 6
+  },
+  "skip": {
+   "n": 35,
+   "Lavoid": 18,
+   "u_saved": 18.0,
+   "Wskip": 17,
+   "u_lost": 15.45
+  }
+ },
+ "nfl/all": {
+  "newUF": {
+   "n": 17,
+   "W": 11,
+   "L": 6,
+   "P": 0,
+   "units": 5.02,
+   "roi": 0.296,
+   "maxdd": 4.0,
+   "streak": 4
+  },
+  "newNoUF": {
+   "n": 83,
+   "W": 45,
+   "L": 35,
+   "P": 3,
+   "units": 10.34,
+   "roi": 0.125,
+   "maxdd": 7.83,
+   "streak": 5
+  },
+  "cur": {
+   "n": 73,
+   "W": 39,
+   "L": 31,
+   "P": 3,
+   "units": 10.48,
+   "roi": 0.144,
+   "maxdd": 8.11,
+   "streak": 8
+  },
+  "skip": {
+   "n": 66,
+   "Lavoid": 29,
+   "u_saved": 29.0,
+   "Wskip": 34,
+   "u_lost": 34.32
+  }
+ },
+ "nfl/ml": {
+  "newUF": {
+   "n": 4,
+   "W": 2,
+   "L": 2,
+   "P": 0,
+   "units": 0.78,
+   "roi": 0.195,
+   "maxdd": 2.0,
+   "streak": 2
+  },
+  "newNoUF": {
+   "n": 24,
+   "W": 13,
+   "L": 11,
+   "P": 0,
+   "units": 5.64,
+   "roi": 0.235,
+   "maxdd": 5.12,
+   "streak": 2
+  },
+  "cur": {
+   "n": 20,
+   "W": 11,
+   "L": 9,
+   "P": 0,
+   "units": 7.27,
+   "roi": 0.363,
+   "maxdd": 4.74,
+   "streak": 3
+  },
+  "skip": {
+   "n": 20,
+   "Lavoid": 9,
+   "u_saved": 9.0,
+   "Wskip": 11,
+   "u_lost": 13.86
+  }
+ },
+ "nfl/spread": {
+  "newUF": {
+   "n": 5,
+   "W": 3,
+   "L": 2,
+   "P": 0,
+   "units": 0.76,
+   "roi": 0.152,
+   "maxdd": 2.0,
+   "streak": 2
+  },
+  "newNoUF": {
+   "n": 29,
+   "W": 15,
+   "L": 11,
+   "P": 3,
+   "units": 2.46,
+   "roi": 0.085,
+   "maxdd": 4.0,
+   "streak": 4
+  },
+  "cur": {
+   "n": 25,
+   "W": 14,
+   "L": 8,
+   "P": 3,
+   "units": 4.57,
+   "roi": 0.183,
+   "maxdd": 3.0,
+   "streak": 3
+  },
+  "skip": {
+   "n": 24,
+   "Lavoid": 9,
+   "u_saved": 9.0,
+   "Wskip": 12,
+   "u_lost": 10.7
+  }
+ },
+ "nfl/total": {
+  "newUF": {
+   "n": 8,
+   "W": 6,
+   "L": 2,
+   "P": 0,
+   "units": 3.48,
+   "roi": 0.435,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "newNoUF": {
+   "n": 30,
+   "W": 17,
+   "L": 13,
+   "P": 0,
+   "units": 2.24,
+   "roi": 0.075,
+   "maxdd": 6.43,
+   "streak": 5
+  },
+  "cur": {
+   "n": 28,
+   "W": 14,
+   "L": 14,
+   "P": 0,
+   "units": -1.36,
+   "roi": -0.048,
+   "maxdd": 8.15,
+   "streak": 6
+  },
+  "skip": {
+   "n": 22,
+   "Lavoid": 11,
+   "u_saved": 11.0,
+   "Wskip": 11,
+   "u_lost": 9.76
+  }
+ },
+ "soccer/all": {
+  "newUF": {
+   "n": 108,
+   "W": 45,
+   "L": 56,
+   "P": 7,
+   "units": -0.66,
+   "roi": -0.006,
+   "maxdd": 17.66,
+   "streak": 8
+  },
+  "newNoUF": {
+   "n": 130,
+   "W": 50,
+   "L": 73,
+   "P": 7,
+   "units": -12.4,
+   "roi": -0.095,
+   "maxdd": 20.16,
+   "streak": 9
+  },
+  "cur": {
+   "n": 139,
+   "W": 51,
+   "L": 82,
+   "P": 6,
+   "units": -15.33,
+   "roi": -0.11,
+   "maxdd": 21.86,
+   "streak": 6
+  },
+  "skip": {
+   "n": 22,
+   "Lavoid": 17,
+   "u_saved": 17.0,
+   "Wskip": 5,
+   "u_lost": 5.26
+  }
+ },
+ "soccer/ml": {
+  "newUF": {
+   "n": 42,
+   "W": 11,
+   "L": 31,
+   "P": 0,
+   "units": -10.82,
+   "roi": -0.258,
+   "maxdd": 14.5,
+   "streak": 8
+  },
+  "newNoUF": {
+   "n": 50,
+   "W": 12,
+   "L": 38,
+   "P": 0,
+   "units": -15.32,
+   "roi": -0.306,
+   "maxdd": 17.05,
+   "streak": 8
+  },
+  "cur": {
+   "n": 49,
+   "W": 10,
+   "L": 39,
+   "P": 0,
+   "units": -17.99,
+   "roi": -0.367,
+   "maxdd": 20.22,
+   "streak": 12
+  },
+  "skip": {
+   "n": 8,
+   "Lavoid": 7,
+   "u_saved": 7.0,
+   "Wskip": 1,
+   "u_lost": 2.5
+  }
+ },
+ "soccer/spread": {
+  "newUF": {
+   "n": 46,
+   "W": 24,
+   "L": 15,
+   "P": 7,
+   "units": 5.57,
+   "roi": 0.121,
+   "maxdd": 4.79,
+   "streak": 3
+  },
+  "newNoUF": {
+   "n": 54,
+   "W": 26,
+   "L": 21,
+   "P": 7,
+   "units": 1.25,
+   "roi": 0.023,
+   "maxdd": 7.07,
+   "streak": 4
+  },
+  "cur": {
+   "n": 55,
+   "W": 26,
+   "L": 23,
+   "P": 6,
+   "units": -0.65,
+   "roi": -0.012,
+   "maxdd": 6.16,
+   "streak": 4
+  },
+  "skip": {
+   "n": 8,
+   "Lavoid": 6,
+   "u_saved": 6.0,
+   "Wskip": 2,
+   "u_lost": 1.68
+  }
+ },
+ "soccer/total": {
+  "newUF": {
+   "n": 20,
+   "W": 10,
+   "L": 10,
+   "P": 0,
+   "units": 4.59,
+   "roi": 0.229,
+   "maxdd": 4.0,
+   "streak": 4
+  },
+  "newNoUF": {
+   "n": 26,
+   "W": 12,
+   "L": 14,
+   "P": 0,
+   "units": 1.67,
+   "roi": 0.064,
+   "maxdd": 4.05,
+   "streak": 4
+  },
+  "cur": {
+   "n": 35,
+   "W": 15,
+   "L": 20,
+   "P": 0,
+   "units": 3.31,
+   "roi": 0.095,
+   "maxdd": 4.0,
+   "streak": 4
+  },
+  "skip": {
+   "n": 6,
+   "Lavoid": 4,
+   "u_saved": 4.0,
+   "Wskip": 2,
+   "u_lost": 1.08
+  }
+ },
+ "wnba/all": {
+  "newUF": {
+   "n": 16,
+   "W": 12,
+   "L": 4,
+   "P": 0,
+   "units": 6.55,
+   "roi": 0.409,
+   "maxdd": 1.09,
+   "streak": 1
+  },
+  "newNoUF": {
+   "n": 22,
+   "W": 18,
+   "L": 4,
+   "P": 0,
+   "units": 11.18,
+   "roi": 0.508,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "cur": {
+   "n": 27,
+   "W": 21,
+   "L": 6,
+   "P": 0,
+   "units": 13.22,
+   "roi": 0.49,
+   "maxdd": 2.09,
+   "streak": 2
+  },
+  "skip": {
+   "n": 6,
+   "Lavoid": 0,
+   "u_saved": -0.0,
+   "Wskip": 6,
+   "u_lost": 4.63
+  }
+ },
+ "wnba/ml": {
+  "newUF": {
+   "n": 5,
+   "W": 4,
+   "L": 1,
+   "P": 0,
+   "units": 2.28,
+   "roi": 0.455,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "newNoUF": {
+   "n": 8,
+   "W": 7,
+   "L": 1,
+   "P": 0,
+   "units": 4.18,
+   "roi": 0.522,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "cur": {
+   "n": 9,
+   "W": 7,
+   "L": 2,
+   "P": 0,
+   "units": 4.49,
+   "roi": 0.499,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "skip": {
+   "n": 3,
+   "Lavoid": 0,
+   "u_saved": -0.0,
+   "Wskip": 3,
+   "u_lost": 1.9
+  }
+ },
+ "wnba/spread": {
+  "newUF": {
+   "n": 7,
+   "W": 6,
+   "L": 1,
+   "P": 0,
+   "units": 4.45,
+   "roi": 0.636,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "newNoUF": {
+   "n": 9,
+   "W": 8,
+   "L": 1,
+   "P": 0,
+   "units": 6.27,
+   "roi": 0.697,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "cur": {
+   "n": 12,
+   "W": 9,
+   "L": 3,
+   "P": 0,
+   "units": 5.18,
+   "roi": 0.432,
+   "maxdd": 2.0,
+   "streak": 2
+  },
+  "skip": {
+   "n": 2,
+   "Lavoid": 0,
+   "u_saved": -0.0,
+   "Wskip": 2,
+   "u_lost": 1.82
+  }
+ },
+ "wnba/total": {
+  "newUF": {
+   "n": 4,
+   "W": 2,
+   "L": 2,
+   "P": 0,
+   "units": -0.18,
+   "roi": -0.045,
+   "maxdd": 1.09,
+   "streak": 1
+  },
+  "newNoUF": {
+   "n": 5,
+   "W": 3,
+   "L": 2,
+   "P": 0,
+   "units": 0.73,
+   "roi": 0.145,
+   "maxdd": 1.09,
+   "streak": 1
+  },
+  "cur": {
+   "n": 6,
+   "W": 5,
+   "L": 1,
+   "P": 0,
+   "units": 3.55,
+   "roi": 0.591,
+   "maxdd": 1.0,
+   "streak": 1
+  },
+  "skip": {
+   "n": 1,
+   "Lavoid": 0,
+   "u_saved": -0.0,
+   "Wskip": 1,
+   "u_lost": 0.91
+  }
+ }
+}
