@@ -1240,3 +1240,42 @@ class ProfitLockTests(unittest.TestCase):
         self.assertEqual(ex.on_tick(t), ["profit lock: flattened"])
         self.assertEqual(b.flat, 1)
         self.assertEqual(ex.try_enter("AAPL", None, 100.0, t), "profit lock")
+
+
+class BreadthGateTests(unittest.TestCase):
+    def _series(self, seed, drift, n=900):
+        idx = pd.bdate_range("2015-01-02", periods=n, tz="America/New_York")
+        rng = np.random.default_rng(seed)
+        c = 100 * np.exp(np.cumsum(drift + rng.normal(0, 0.012, n)))
+        o = np.r_[c[0], c[:-1]]
+        return pd.DataFrame({"open": o, "high": np.maximum(o, c) * 1.004, "low": np.minimum(o, c) * 0.996, "close": c, "volume": 1e6}, index=idx)
+
+    def test_gate_is_share_above_sma200_and_blocks_only_entries(self):
+        from alpacabot.research import breadth_gates
+        from alpacabot.strategies import GatedSectorTopDown, SectorTopDown
+        up, down = self._series(1, 0.002), self._series(2, -0.002)
+        data = {"A": up, "B": up.copy(), "C": down, "D": down.copy(), "E": down.copy()}
+        g = breadth_gates(data, {"A": "XLK", "B": "XLK", "C": "XLE", "D": "XLE", "E": "XLE"})
+        self.assertTrue(g["XLK"].iloc[:199].all())                           # no SMA200 yet: fewer than 2 rated -> open
+        from alpacabot.indicators import sma
+        exact = (up["close"] > sma(up["close"], 200)).iloc[199:]
+        self.assertTrue(g["XLK"].iloc[199:].equals(exact))                  # both members identical: gate = that stock above its SMA200
+        self.assertLess(g["XLE"].iloc[300:].mean(), g["XLK"].iloc[300:].mean())
+        spy = self._series(3, 0.0005)["close"]
+        base = SectorTopDown(spy).frame(up)
+        shut = GatedSectorTopDown(SectorTopDown(spy), pd.Series(False, index=up.index)).frame(up)
+        self.assertGreater(int(base["entry"].sum()), 0)
+        self.assertEqual(int(shut["entry"].sum()), 0)
+        self.assertTrue(shut["exit"].equals(base["exit"]))
+
+    def test_study_runs_and_spec_is_predeclared(self):
+        from alpacabot.engine import Costs
+        from alpacabot.research import BREADTH_SPEC, breadth_gate_study
+        self.assertEqual((BREADTH_SPEC["threshold"], BREADTH_SPEC["sma"], BREADTH_SPEC["beat_share"]), (0.6, 200, 0.9))
+        spec = {**BREADTH_SPEC, "placebo_runs": 2, "train": ("2016-03-01", "2016-12-31"), "validate": ("2017-01-01", "2018-06-30")}
+        smap = {"A": "XLK", "B": "XLK", "C": "XLE", "D": "XLE"}
+        data = {s: self._series(10 + k, 0.001 * (k % 3)) for k, s in enumerate(smap)}
+        res = breadth_gate_study({"u": (data, smap)}, self._series(3, 0.0005), Costs(slip_bps=5.0), spec)
+        self.assertEqual([r["period"] for r in res["rows"]], ["train", "validate"])
+        self.assertIn("beats_placebo_share", res["rows"][1])
+        self.assertIsInstance(res["passes"], bool)

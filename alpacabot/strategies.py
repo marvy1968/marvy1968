@@ -267,3 +267,26 @@ class SectorTopDown:
 
     def rank(self, f, i):
         return float(f["rs"].iloc[i])
+
+
+class GatedSectorTopDown:
+    """SectorTopDown with an extra entry gate (bool Series by date, True = entries allowed); exits and stops are unchanged."""
+
+    def __init__(self, base: "SectorTopDown", gate: pd.Series | None):
+        self.base, self.gate = base, gate
+        self.max_days, self.name = base.max_days, base.name + "+gate"
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        f = self.base.frame(d)
+        if self.gate is not None:
+            f["entry"] = f["entry"] & self.gate.reindex(d.index).fillna(True).astype(bool)
+        return f
+
+    def stop_dist(self, f, i):
+        return self.base.stop_dist(f, i)
+
+    def stop_price(self, f, i):
+        return self.base.stop_price(f, i)
+
+    def rank(self, f, i):
+        return self.base.rank(f, i)

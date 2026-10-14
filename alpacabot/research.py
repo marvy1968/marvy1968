@@ -400,3 +400,80 @@ def sector_td_robust(data: dict, spy: pd.DataFrame, start: date, end: date, cost
             "params": params, "params_profitable_share": float(np.mean([v > 1 for v in pf_vals])) if pf_vals else None,
             "params_pf_range": [min(pf_vals), max(pf_vals)] if pf_vals else None, "sizing": sizing, "bootstrap": boot,
             "spy": benchmark(spy, start, end)}
+
+
+# ------------------------------------------------------------------ sector breadth gate (idea from the owner's velez-bot "6/10 rule")
+# PRE-DECLARED 2026-10-14, before any run. Breadth of a sector on a close = share of that sector's stocks in the tested universe whose
+# close is above their 200-day SMA (stocks without 200 days of history are left out; fewer than 2 rated stocks = gate open). Gate ON when
+# breadth >= 0.6. Sector Top-Down may only ENTER a stock while its sector's gate is ON at the signal close; exits/stops unchanged.
+# Universes: the 2016 large-cap control list and the 55-stock top-5-per-sector list. Periods: train 2016-03-01..2019-12-31, validate
+# 2020-01-01..2022-12-31 (the 2023-today final test is NOT run here). Placebo: each sector's gate shuffled in 20-day blocks (same
+# on-share, same persistence), 20 seeds. PASS only if, on BOTH universes and in BOTH periods, the gated run has 30+ trades, a higher
+# profit factor than ungated, a max drawdown no deeper than ungated, CAGR no more than 1 point below ungated, and (validation period)
+# a profit factor above the placebo-gated one in >= 90% of seeds.
+BREADTH_SPEC = {"threshold": 0.6, "sma": 200, "min_members": 2, "train": ("2016-03-01", "2019-12-31"), "validate": ("2020-01-01", "2022-12-31"),
+                "placebo_runs": 20, "block_days": 20, "beat_share": 0.9}
+
+
+def breadth_gates(data: dict, sector_of: dict, threshold: float = 0.6, sma_n: int = 200, min_members: int = 2) -> dict:
+    """sector ETF -> bool Series (gate ON) on the union of the members' dates."""
+    from .indicators import sma
+    out = {}
+    for etf in sorted(set(sector_of[s] for s in data if s in sector_of)):
+        above = pd.DataFrame({s: (d["close"] > sma(d["close"], sma_n)).where(sma(d["close"], sma_n).notna())
+                              for s, d in data.items() if sector_of.get(s) == etf})
+        rated = above.notna().sum(axis=1)
+        share = above.sum(axis=1) / rated.replace(0, np.nan)
+        out[etf] = ((share >= threshold) | (rated < min_members)).astype(bool)
+    return out
+
+
+def _block_shuffle(g: pd.Series, seed: int, block: int = 20) -> pd.Series:
+    rng = np.random.default_rng(seed)
+    v = g.to_numpy()
+    blocks = [v[i:i + block] for i in range(0, len(v), block)]
+    order = rng.permutation(len(blocks))
+    return pd.Series(np.concatenate([blocks[k] for k in order])[:len(v)], index=g.index)
+
+
+def run_swing_gated(spy_close, data, sector_of, gates_by_etf, costs, pf, start, end) -> dict:
+    from .strategies import GatedSectorTopDown, SectorTopDown
+    trades = []
+    for sym, d in data.items():
+        g = gates_by_etf.get(sector_of.get(sym)) if gates_by_etf is not None else None
+        trades += [t for t in simulate_swing(sym, d, GatedSectorTopDown(SectorTopDown(spy_close), g), costs, all_signals=True)]
+    trades = [t for t in trades if start <= t.entry_time.date() <= end]
+    fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), {s: d["close"] for s, d in data.items()}, costs, pf, start, end)
+    m = metrics(fills, curve, pf.equity)
+    return {"trades": m.get("trades"), "profit_factor": m.get("profit_factor"), **_curve_stats(curve, pf.equity)}
+
+
+def breadth_gate_study(universes: dict, spy: pd.DataFrame, costs: Costs, spec: dict = BREADTH_SPEC) -> dict:
+    """universes: name -> (data dict, sector_of). One pre-declared run; nothing is tuned."""
+    pf = Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333)
+    periods = {k: (date.fromisoformat(spec[k][0]), date.fromisoformat(spec[k][1])) for k in ("train", "validate")}
+    rows, ok_all = [], True
+    for name, (data, sector_of) in universes.items():
+        gates = breadth_gates(data, sector_of, spec["threshold"], spec["sma"], spec["min_members"])
+        on_share = {e: round(float(g.mean()), 3) for e, g in gates.items()}
+        for per, (a, b) in periods.items():
+            base = run_swing_gated(spy["close"], data, sector_of, None, costs, pf, a, b)
+            gated = run_swing_gated(spy["close"], data, sector_of, gates, costs, pf, a, b)
+            row = {"universe": name, "period": per, "ungated": base, "gated": gated, "gate_on_share": on_share}
+            ok = ((gated.get("trades") or 0) >= 30 and (gated.get("profit_factor") or 0) > (base.get("profit_factor") or 0)
+                  and (gated.get("max_drawdown") or -1) >= (base.get("max_drawdown") or -1)
+                  and (gated.get("cagr") or -1) >= (base.get("cagr") or 0) - 0.01)
+            if per == "validate":
+                plc = []
+                for sd in range(spec["placebo_runs"]):
+                    pg = {e: _block_shuffle(g, sd * 100 + i, spec["block_days"]) for i, (e, g) in enumerate(sorted(gates.items()))}
+                    plc.append(run_swing_gated(spy["close"], data, sector_of, pg, costs, pf, a, b).get("profit_factor") or 0)
+                beat = float(np.mean([(gated.get("profit_factor") or 0) > p for p in plc]))
+                row.update(placebo_pf_mean=float(np.mean(plc)), beats_placebo_share=beat)
+                ok = ok and beat >= spec["beat_share"]
+            row["passes"] = bool(ok)
+            ok_all = ok_all and ok
+            rows.append(row)
+    return {"family": "breadth_gate", "spec": spec, "rows": rows, "passes": ok_all,
+            "verdict": ("PASSED (train + validation, both universes): the 2023-today final test may be run once" if ok_all
+                        else "did not pass the pre-declared bar: the gate is not added")}

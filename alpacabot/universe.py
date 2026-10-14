@@ -24,3 +24,8 @@ SECTOR_TOP5 = {
 SECTOR_OF = {s: etf for etf, syms in SECTOR_TOP5.items() for s in syms}
 STOCKS = [s for syms in SECTOR_TOP5.values() for s in syms]
 SECTOR_ETFS = list(SECTOR_TOP5)
+
+# The hindsight-free control list (2016's largest US companies, cli.SECTOR_TD_CONTROL) with each stock's sector ETF, for breadth tests.
+CONTROL_SECTOR_OF = {"XOM": "XLE", "CVX": "XLE", "JNJ": "XLV", "PFE": "XLV", "MRK": "XLV", "GE": "XLI", "JPM": "XLF", "WFC": "XLF",
+                     "BAC": "XLF", "C": "XLF", "T": "XLC", "VZ": "XLC", "DIS": "XLC", "PG": "XLP", "KO": "XLP", "WMT": "XLP",
+                     "INTC": "XLK", "CSCO": "XLK", "ORCL": "XLK", "IBM": "XLK", "HD": "XLY"}

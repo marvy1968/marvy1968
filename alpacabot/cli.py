@@ -92,6 +92,21 @@ def run_all(a) -> int:
             elif fam == "swing_validate":        # the three pre-declared daily-bar candidates, ONE look at 2021-2022
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
                 res = swing_validate(data, test, costs, spy_daily=spy)
+            elif fam == "breadth_gate":          # pre-declared sector-breadth entry gate on Sector Top-Down (research.BREADTH_SPEC)
+                from .research import breadth_gate_study
+                from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
+                end2 = date(2022, 12, 31)
+                spy2 = load("SPY", "1Day", date(2015, 1, 2), end2, cache)
+                unis = {}
+                for name, smap in (("2016 large caps (control)", CONTROL_SECTOR_OF), (f"top 5 per sector ({UNIVERSE_AS_OF} caps)", TOP5_SECTOR_OF)):
+                    d_ = {}
+                    for sym in smap:
+                        try:
+                            d_[sym] = load(sym, "1Day", date(2015, 1, 2), end2, cache)
+                        except Exception as exc:
+                            print(f"skip {sym}: {exc}")
+                    unis[name] = ({k: v for k, v in d_.items() if len(v)}, smap)
+                res = breadth_gate_study(unis, spy2, Costs(slip_bps=5.0))
             elif fam == "rsi2_validate":         # connors_rsi2 (passed train, never validated), ONE look at 2021-2022
                 from .research import RSI2_CANDIDATES
                 data = {s: load(s, "1Day", start, end, cache) for s in SWING}
@@ -140,6 +155,14 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam == "breadth_gate":
+            for r in res.get("rows", []):
+                g, u = r["gated"], r["ungated"]
+                lines.append(f"- {r['universe']} | {r['period']}: gated {g.get('trades')}t PF {g.get('profit_factor') or 0:.2f} CAGR {g.get('cagr') or 0:+.1%} "
+                             f"maxDD {g.get('max_drawdown') or 0:.1%} vs ungated {u.get('trades')}t PF {u.get('profit_factor') or 0:.2f} "
+                             f"CAGR {u.get('cagr') or 0:+.1%} maxDD {u.get('max_drawdown') or 0:.1%}"
+                             + (f" | placebo PF {r['placebo_pf_mean']:.2f}, beats {r['beats_placebo_share']:.0%}" if "beats_placebo_share" in r else "")
+                             + f" | PASS {r['passes']}")
         if fam == "filters" and res.get("table"):
             lines.append("| route | mtf | agree | sector | shorts | trades | win | exp %/trade | PF | %/day |\n|---|---|---|---|---|---|---|---|---|---|")
             for r in res["table"]:
