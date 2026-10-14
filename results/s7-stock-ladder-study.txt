@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families ladder_intraday
-started 2026-10-14 12:55:25 EDT
-RUNNING...
+started 2026-10-14 12:55:25 EDT, took 52s, exit 0
+
+daily data ready
+## ladder_intraday: ERROR KeyError('ladder_intraday')
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
