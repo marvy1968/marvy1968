@@ -1,3 +1,9 @@
 $ read-odds-bot /home/moonrider1968/MasterBot_Center/Trading_Alpaca
-started 2026-10-14 06:32:30 EDT
-RUNNING...
+started 2026-10-14 06:32:30 EDT, took 0s, exit 0
+
+
+--- stderr ---
+tar: /home/moonrider1968/MasterBot_Center/Trading_Alpaca: Cannot open: No such file or directory
+tar: Error is not recoverable: exiting now
+tar: This does not look like a tar archive
+tar: Exiting with failure status due to previous errors
