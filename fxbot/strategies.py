@@ -311,6 +311,10 @@ class Locked:
 
 
 ZONES = {"chase_atr": 0.5, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5}
+# Per-strategy zone profiles by STYLE (same as the stock bot): trend/breakout -> prior 20-bar high/low (>= 1R) else 2R;
+# mean-reversion -> back at the 20-bar average (>= 0.75R) else 1.5R. Levels always come from each pair's own bars.
+ZONE_PROFILES = {"trend": dict(ZONES, target="extreme"),
+                 "range": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "exhaust_r": 1.5, "target": "mean"}}
 
 
 class Zoned:
@@ -319,8 +323,8 @@ class Zoned:
     / low (short) when it is at least 1R away, else at 2R (whichever of this and the strategy's own target is nearer), and exit at the next
     open when a trade that has been +1.5R closes beyond the previous bar's low (long) / high (short)."""
 
-    def __init__(self, base, **kw):
-        self.base, self.zones = base, {**ZONES, **kw}
+    def __init__(self, base, profile: str = "trend", **kw):
+        self.base, self.zones = base, {**ZONE_PROFILES[profile], **kw}
         self.max_bars, self.name = base.max_bars, getattr(base, "name", type(base).__name__) + " +zones"
         if hasattr(base, "lock"):
             self.lock = base.lock
@@ -330,4 +334,5 @@ class Zoned:
         n = self.zones["lookback"]
         f["zone_hi"], f["zone_lo"] = m["high"].rolling(n).max(), m["low"].rolling(n).min()
         f["zone_close"], f["zone_atr"] = m["close"], atr(m, 14)
+        f["zone_mean"] = m["close"].rolling(n).mean()
         return f

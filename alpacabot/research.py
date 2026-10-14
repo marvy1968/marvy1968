@@ -554,19 +554,28 @@ def zones_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Port
     kw = brain_kwargs or {"experts": list(ALL_EXPERTS), "short_experts": list(ALL_EXPERTS), "sector_filter": True, "short_gate": "red"}
     cp = Checkpoint(ckpt)
 
+    from .engine import ZONE_PROFILES
+
     def run(z, a, b):
         br = Brain(**kw)
-        if z:
+        if z == "flat":
             br.zones = dict(ZONES)
+        elif z == "per_expert":
+            br.zones = {"profiles": ZONE_PROFILES}
         r = run_intraday(br, days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     rows = []
     for per, (a, b) in (("train", train), ("validate", validate)):
-        rows.append({"period": per, "without": cp.get(f"{per}-plain", lambda a=a, b=b: run(False, a, b)),
-                     "with": cp.get(f"{per}-zones", lambda a=a, b=b: run(True, a, b))})
-    ok = _zone_verdict(rows)
-    return {"family": "zones_intraday", "rows": rows, "passes": ok,
-            "verdict": "zones PASS for the intraday bot: adopt them" if ok else "zones did not pass for the intraday bot: keep them in shadow mode"}
+        plain = cp.get(f"{per}-plain", lambda a=a, b=b: run(None, a, b))
+        rows.append({"period": per, "variant": "same zones for every expert", "without": plain,
+                     "with": cp.get(f"{per}-zones", lambda a=a, b=b: run("flat", a, b))})
+        rows.append({"period": per, "variant": "per-expert zones (trend vs mean-reversion)", "without": plain,
+                     "with": cp.get(f"{per}-zones-per-expert", lambda a=a, b=b: run("per_expert", a, b))})
+    flat_ok = _zone_verdict([r for r in rows if r["variant"].startswith("same")])
+    per_ok = _zone_verdict([r for r in rows if r["variant"].startswith("per")])
+    return {"family": "zones_intraday", "rows": rows, "passes": flat_ok or per_ok, "flat_passes": flat_ok, "per_expert_passes": per_ok,
+            "verdict": (f"zones PASS for the intraday bot ({'per-expert' if per_ok else 'same for every expert'}): adopt them"
+                        if (flat_ok or per_ok) else "zones did not pass for the intraday bot: keep them in shadow mode")}
 
 
 def zones_swing_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:

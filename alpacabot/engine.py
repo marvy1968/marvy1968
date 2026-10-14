@@ -46,6 +46,22 @@ class Trade:
 
 # ---------------------------------------------------------------- intraday
 ZONES = {"chase_atr": 0.5, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5}   # owner's trade zones, frozen 2026-10-14
+# Per-expert zone profiles (owner, 2026-10-14), chosen by the expert's STYLE, never tuned per stock: the levels come from each stock's own
+# bars. Trend/breakout experts: exhaustion = prior 20-bar high (low for shorts) if >= 1R away, else 2R. Mean-reversion experts: exhaustion
+# = back at the 20-bar average if >= 0.75R away, else 1.5R. Both: no chasing (0.5 ATR) and the +1.5R exhaustion-bar exit.
+ZONE_PROFILES = {
+    "trend": dict(ZONES, target="extreme"),
+    "range": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "exhaust_r": 1.5, "target": "mean"},
+}
+RANGE_STYLE = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180"}     # = experts.RANGE_EXPERTS
+
+
+def zone_profile(zones: dict | None, tag: str) -> dict | None:
+    """zones may be one flat profile (ZONES) or {"profiles": ZONE_PROFILES}; the expert name is the signal tag ("S:" marks shorts)."""
+    if not zones or "profiles" not in zones:
+        return zones
+    name = (tag or "").removeprefix("S:")
+    return zones["profiles"]["range" if name in RANGE_STYLE else "trend"]
 
 
 def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0,
@@ -78,16 +94,18 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
         ztgt = np.inf
-        if zones:                                 # trade zones (same code for shorts: the arrays are mirrored)
+        zp = zone_profile(zones, s.tag)
+        if zp:                                    # trade zones (same code for shorts: the arrays are mirrored)
             atr_i = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
-            if fill - c[s.i] > zones["chase_atr"] * atr_i:
+            if fill - c[s.i] > zp["chase_atr"] * atr_i:
                 continue                          # outside the entry zone: the fill would chase the move
-            zone = float(np.max(h[max(0, s.i - zones["lookback"] + 1):s.i + 1]))
-            ztgt = zone if zone - fill >= zones["min_r"] * s.stop_dist else fill + zones["default_r"] * s.stop_dist
+            lo_i = max(0, s.i - zp["lookback"] + 1)
+            zone = float(np.mean(c[lo_i:s.i + 1])) if zp.get("target") == "mean" else float(np.max(h[lo_i:s.i + 1]))
+            ztgt = zone if zone - fill >= zp["min_r"] * s.stop_dist else fill + zp["default_r"] * s.stop_dist
             tgt = min(tgt, ztgt)
 
         def exhausted(j):                         # +exhaust_r reached and this bar closed under the previous bar's low
-            return (zones and j > j0 and j + 1 < n and np.max(h[j0:j + 1]) - fill >= zones["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])
+            return (zp and j > j0 and j + 1 < n and np.max(h[j0:j + 1]) - fill >= zp["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])
         if s.managed:
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale)
             for j in range(j0, n):

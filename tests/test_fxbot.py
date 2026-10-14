@@ -153,6 +153,19 @@ class ZoneTests(unittest.TestCase):
         self.assertEqual(t.reason, "target")
         self.assertLess(t.exit_px, 1.14)
 
+    def test_range_profile_targets_the_average(self):
+        from fxbot.strategies import Zoned
+        class At3(self.Hold):
+            def frame(self, m):
+                f = super().frame(m)
+                f["long"] = [i == 3 for i in range(len(m))]
+                return f
+        path = [1.12, 1.12, 1.12, 1.10, 1.105, 1.115, 1.12, 1.12]
+        d = bars(path, spread=0.0)
+        t = simulate("EUR_USD", d, Zoned(At3(1, stop=0.005), profile="range", lookback=3, chase_atr=99))[0]
+        self.assertEqual(t.reason, "target")
+        self.assertAlmostEqual(t.exit_px, float(np.mean(path[1:4])), places=6)   # the 3-bar average at the signal bar
+
     def test_entry_zone_skips_a_chased_fill(self):
         from fxbot.strategies import Zoned
 

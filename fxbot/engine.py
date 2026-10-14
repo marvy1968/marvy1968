@@ -74,6 +74,7 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
     zones = getattr(strat, "zones", None)
     if zones:
         zh, zl, zc, za = (f[k].to_numpy(float) for k in ("zone_hi", "zone_lo", "zone_close", "zone_atr"))
+        zm = f["zone_mean"].to_numpy(float) if "zone_mean" in f else zc
     out, i = [], 0
     while i < n - 1:
         side = 1 if lg[i] else -1 if sh[i] else 0
@@ -90,7 +91,7 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
             if side * (fill - zc[i]) > zones["chase_atr"] * za[i]:
                 i += 1                              # the fill would be too far past the signal: outside the buy/sell zone
                 continue
-            zt = zh[i] if side == 1 else zl[i]
+            zt = zm[i] if zones.get("target") == "mean" else (zh[i] if side == 1 else zl[i])
             ztgt = zt if np.isfinite(zt) and side * (zt - fill) >= zones["min_r"] * sd else fill + side * zones["default_r"] * sd
             tgt = ztgt if tgt is None else (min(tgt, ztgt) if side == 1 else max(tgt, ztgt))
         lock = getattr(strat, "lock", None)        # (be_at_r, trail_after_r, trail_r): profit lock, applied from the NEXT bar

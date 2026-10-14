@@ -201,7 +201,7 @@ def run_all(a) -> int:
         if fam in ("zones_intraday", "zones_swing"):
             for r in res.get("rows", []):
                 w, o = r["with"], r["without"]
-                lines.append(f"- {r.get('universe', 'paper brain')} | {r['period']}: WITH zones {w.get('trades')}t PF {w.get('profit_factor') or 0:.2f} "
+                lines.append(f"- {r.get('universe', r.get('variant', 'paper brain'))} | {r['period']}: WITH zones {w.get('trades')}t PF {w.get('profit_factor') or 0:.2f} "
                              f"exp {w.get('expectancy_pct_notional') or 0:+.3f}% maxDD {w.get('max_drawdown') or 0:.1%} | WITHOUT {o.get('trades')}t "
                              f"PF {o.get('profit_factor') or 0:.2f} exp {o.get('expectancy_pct_notional') or 0:+.3f}% maxDD {o.get('max_drawdown') or 0:.1%}")
         if fam == "frozen_systems":

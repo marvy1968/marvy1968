@@ -99,7 +99,9 @@ def instruments():
 
 # Trade-zone variants (owner's idea, 2026-10-14, priority one): entry zone (no chase), invalidation (own stop), exhaustion take-profit.
 # Frozen rules in strategies.ZONES; same pass bar; compare each with its plain twin.
-for _name in ("fx_donchian_d", "fx_bigbuild_h4", "fx_f0_h4", "fx_lien_fader_h1", "fx_pullback_h4", "fx_scalp_asia_range_m15",
-              "fx_scalp_london_break_m15"):
+# Each strategy gets the zone profile of its style (owner: "each expert needs its own zones"); the levels are each pair's own.
+ZONE_STYLE = {"fx_donchian_d": "trend", "fx_bigbuild_h4": "trend", "fx_pullback_h4": "trend", "fx_scalp_london_break_m15": "trend",
+              "fx_f0_h4": "range", "fx_lien_fader_h1": "range", "fx_scalp_asia_range_m15": "range", "fx_consensus_h1": "range"}
+for _name, _style in ZONE_STYLE.items():
     _gran, _cls, _params = FAMILIES[_name]
-    FAMILIES[_name + "_zones"] = (_gran, (lambda c: (lambda **p: Zoned(c(**p))))(_cls), _params)
+    FAMILIES[_name + "_zones"] = (_gran, (lambda c, st: (lambda **p: Zoned(c(**p), profile=st)))(_cls, _style), _params)

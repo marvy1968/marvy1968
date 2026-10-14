@@ -597,14 +597,19 @@ def _style_lines(trades: list, today: list) -> list:
 def shadow_zone(day, sig, fill: float, ref: float) -> dict:
     """The owner's trade zones for a live trade (engine.ZONES rules), recorded for comparison only: would the entry zone have skipped it
     as a chase, and where is its exhaustion take-profit (prior 20-bar high/low if >= 1R away, else 2R)."""
-    from .engine import ZONES
+    from .engine import ZONE_PROFILES, zone_profile
     side = -1 if sig.side == -1 else 1
+    zp = zone_profile({"profiles": ZONE_PROFILES}, sig.tag)          # this expert's style decides the profile; levels are this stock's
     atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
-    bars = day.iloc[-ZONES["lookback"]:]
-    zone = float(bars["high"].max()) if side == 1 else float(bars["low"].min())
-    far = side * (zone - fill) >= ZONES["min_r"] * sig.stop_dist
-    target = zone if far else fill + side * ZONES["default_r"] * sig.stop_dist
-    return {"chase": bool(side * (fill - ref) > ZONES["chase_atr"] * atr_i), "target": round(target, 4)}
+    bars = day.iloc[-zp["lookback"]:]
+    if zp.get("target") == "mean":
+        zone = float(bars["close"].mean())
+    else:
+        zone = float(bars["high"].max()) if side == 1 else float(bars["low"].min())
+    far = side * (zone - fill) >= zp["min_r"] * sig.stop_dist
+    target = zone if far else fill + side * zp["default_r"] * sig.stop_dist
+    return {"chase": bool(side * (fill - ref) > zp["chase_atr"] * atr_i), "target": round(target, 4),
+            "profile": "range" if zp.get("target") == "mean" else "trend"}
 
 
 def _zone_lines(trades: list) -> list:

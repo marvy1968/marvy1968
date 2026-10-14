@@ -1389,6 +1389,19 @@ class TradeZoneTests(unittest.TestCase):
         chased.iloc[6, chased.columns.get_loc("high")] = 103.05
         self.assertEqual(simulate_day("X", chased, [Signal(i=5, side=1, stop_dist=0.5, atr=0.5)], Costs(0, 0, 0), zones=ZONES), [])
 
+    def test_mean_reversion_experts_target_the_average(self):
+        from alpacabot.engine import ZONE_PROFILES, Costs, simulate_day
+        from alpacabot.strategies import Signal
+        day = self._day([102, 102, 102, 102, 101, 100, 99, 98, 98.5, 99.5, 100.5, 101.5, 102, 102])
+        sig = Signal(i=8, side=1, stop_dist=0.5, atr=0.5, tag="bollinger_bounce")
+        t = simulate_day("X", day, [sig], Costs(0, 0, 0), zones={"profiles": ZONE_PROFILES})[0]
+        mean = float(np.mean(day["close"].to_numpy()[0:9]))
+        self.assertEqual(t.reason, "zone")
+        self.assertAlmostEqual(t.exit_px, mean, places=6)                    # back at the 20-bar (here 9-bar) average
+        trend = simulate_day("X", day, [Signal(i=8, side=1, stop_dist=0.5, atr=0.5, tag="donchian_turtle")], Costs(0, 0, 0),
+                             zones={"profiles": ZONE_PROFILES})[0]
+        self.assertAlmostEqual(trend.exit_px, 102.05)                        # a trend expert targets the prior high instead
+
     def test_short_trades_use_the_mirrored_zone(self):
         from alpacabot.engine import ZONES, Costs, simulate_day
         from alpacabot.strategies import Signal
@@ -1434,9 +1447,12 @@ class ShadowZoneTests(unittest.TestCase):
         c = np.r_[np.linspace(100, 104, 10), np.linspace(104, 100, 15)]
         day = pd.DataFrame({"open": c, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1e5}, index=idx)
         z = paper.shadow_zone(day, Signal(i=24, side=1, stop_dist=1.0, atr=1.0), fill=100.2, ref=100.0)
-        self.assertEqual(z, {"chase": False, "target": 104.1})               # prior high is >= 1R away
+        self.assertEqual(z, {"chase": False, "target": 104.1, "profile": "trend"})   # untagged = trend style; prior high >= 1R away
         z2 = paper.shadow_zone(day, Signal(i=24, side=1, stop_dist=5.0, atr=1.0), fill=101.0, ref=100.0)
-        self.assertEqual(z2, {"chase": True, "target": 111.0})               # chased 1 point (> 0.5 ATR); high < 1R away -> 2R
+        self.assertEqual(z2, {"chase": True, "target": 111.0, "profile": "trend"})   # chased 1 point (> 0.5 ATR); high < 1R away -> 2R
+        z3 = paper.shadow_zone(day, Signal(i=24, side=1, stop_dist=1.0, atr=1.0, tag="connors_rsi2"), fill=100.2, ref=100.0)
+        self.assertEqual(z3["profile"], "range")                             # mean-reversion expert: target = the 20-bar average
+        self.assertAlmostEqual(z3["target"], round(float(day["close"].iloc[-20:].mean()), 4))
         rows = [{"date": "2026-10-14", "symbol": "A", "side": "long", "qty": 10, "entry": 100, "exit": 99, "pnl": -10, "r": -1, "peak_r": 1.5,
                  "reason": "stop", "opened": "2026-10-14T10:00:00-04:00", "closed": "2026-10-14T10:40:00-04:00",
                  "zone_chase": False, "zone_hit": True, "zone_pnl": 41.0}]
