@@ -265,12 +265,17 @@ class PaperRunner:
         pnl = side * (px - entry) * qty
         best = pos.get("best_px")
         peak = max(side * ((best if best is not None else px) - entry) * qty, pnl, 0.0)    # peak open profit ($), never below the result
+        z = pos.get("zone") or {}
+        extreme = px if best is None else (max(px, best) if side == 1 else min(px, best))     # furthest price reached in the trade's favour
+        z_hit = bool(z.get("target") is not None and side * (extreme - z["target"]) >= 0)
         self.journal("exit", symbol=sym, reason=reason, px=px, side=side)
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
                                 "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(),
-                                "peak_r": round(peak / risk, 3) if risk else 0.0}) + "\n")
+                                "peak_r": round(peak / risk, 3) if risk else 0.0,
+                                **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit,
+                                    "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {})}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -401,6 +406,8 @@ class PaperRunner:
                     slip_bps = (price - ref_px) / ref_px * 1e4 * sig.side         # + = we paid more / sold for less than the quote
                     self.journal("fill", symbol=sym, side=sig.side, qty=filled_qty, quote=ref_px, fill=price, slip_bps=round(slip_bps, 2))
                 self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
+                self.exits.positions[sym]["zone"] = shadow_zone(day, sig, fill, ref)       # trade zones, SHADOW only: logged, not traded
+                self.store.save(self.exits.positions)
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
 
@@ -587,6 +594,33 @@ def _style_lines(trades: list, today: list) -> list:
     return out
 
 
+def shadow_zone(day, sig, fill: float, ref: float) -> dict:
+    """The owner's trade zones for a live trade (engine.ZONES rules), recorded for comparison only: would the entry zone have skipped it
+    as a chase, and where is its exhaustion take-profit (prior 20-bar high/low if >= 1R away, else 2R)."""
+    from .engine import ZONES
+    side = -1 if sig.side == -1 else 1
+    atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
+    bars = day.iloc[-ZONES["lookback"]:]
+    zone = float(bars["high"].max()) if side == 1 else float(bars["low"].min())
+    far = side * (zone - fill) >= ZONES["min_r"] * sig.stop_dist
+    target = zone if far else fill + side * ZONES["default_r"] * sig.stop_dist
+    return {"chase": bool(side * (fill - ref) > ZONES["chase_atr"] * atr_i), "target": round(target, 4)}
+
+
+def _zone_lines(trades: list) -> list:
+    """Shadow comparison: what the trade zones would have changed (not traded)."""
+    zs = [t for t in trades if "zone_hit" in t]
+    if not zs:
+        return []
+    chase = [t for t in zs if t.get("zone_chase")]
+    hit = [t for t in zs if t.get("zone_hit")]
+    actual_hit = sum(t["pnl"] for t in hit)
+    zone_hit = sum(t["zone_pnl"] or 0 for t in hit)
+    return ["", "TRADE ZONES (shadow mode: logged, not traded)",
+            f"  entry zone: {len(chase)} of {len(zs)} trades were chases the zone would have skipped (their P&L ${sum(t['pnl'] for t in chase):+,.0f})",
+            f"  exhaustion zone: {len(hit)} trades reached it; taking profit there would have made ${zone_hit:+,.0f} vs ${actual_hit:+,.0f} actual"]
+
+
 def _giveback_lines(trades: list, today: list) -> list:
     """How much open profit was kept: peak open profit (R) vs the result (R), and trades that were +1R up but closed at <= 0."""
     def block(ts, label):
@@ -655,6 +689,7 @@ def report_card(state_dir, day=None) -> str:
         lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in shown))
     lines += _style_lines(trades, today)
     lines += _giveback_lines(trades, today)
+    lines += _zone_lines(trades)
     if gate:
         lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")

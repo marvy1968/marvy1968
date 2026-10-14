@@ -116,6 +116,21 @@ def run_all(a) -> int:
                             print(f"skip {sym}: {exc}")
                     unis[name] = ({k: v for k, v in d_.items() if len(v)}, smap)
                 res = breadth_gate_study(unis, spy2, Costs(slip_bps=5.0))
+            elif fam == "zones_swing":           # owner's trade zones on Sector Top-Down, control + top-55, train + validation
+                from .research import zones_swing_study
+                from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
+                end2 = date(2022, 12, 31)
+                spy2 = load("SPY", "1Day", date(2015, 1, 2), end2, cache)
+                unis = {}
+                for name, smap in (("2016 large caps (control)", CONTROL_SECTOR_OF), (f"top 5 per sector ({UNIVERSE_AS_OF} caps)", TOP5_SECTOR_OF)):
+                    d_ = {}
+                    for sym in smap:
+                        try:
+                            d_[sym] = load(sym, "1Day", date(2015, 1, 2), end2, cache)
+                        except Exception as exc:
+                            print(f"skip {sym}: {exc}")
+                    unis[name] = {k: v for k, v in d_.items() if len(v)}
+                res = zones_swing_study(unis, spy2, Costs(slip_bps=5.0))
             elif fam == "frozen_systems":        # the owner's frozen Book A and Elite-20, pre-declared (research.FROZEN_SPEC)
                 from .research import frozen_systems_study
                 from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
@@ -159,6 +174,11 @@ def run_all(a) -> int:
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     res = exit_study(days, train, costs, shorts=True, ckpt=out / f"ckpt_{a.phase}_exits.json")
+                elif fam == "zones_intraday":  # owner's trade zones on the paper brain, train + validation (research.ZONES_BAR)
+                    from .research import zones_intraday_study
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    res = zones_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}_zones.json")
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -178,6 +198,12 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam in ("zones_intraday", "zones_swing"):
+            for r in res.get("rows", []):
+                w, o = r["with"], r["without"]
+                lines.append(f"- {r.get('universe', 'paper brain')} | {r['period']}: WITH zones {w.get('trades')}t PF {w.get('profit_factor') or 0:.2f} "
+                             f"exp {w.get('expectancy_pct_notional') or 0:+.3f}% maxDD {w.get('max_drawdown') or 0:.1%} | WITHOUT {o.get('trades')}t "
+                             f"PF {o.get('profit_factor') or 0:.2f} exp {o.get('expectancy_pct_notional') or 0:+.3f}% maxDD {o.get('max_drawdown') or 0:.1%}")
         if fam == "frozen_systems":
             for sysname, v in res.get("systems", {}).items():
                 lines.append(f"### {sysname}: {'PASS' if v['passes'] else 'FAIL'}")

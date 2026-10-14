@@ -380,3 +380,28 @@ class RandomEntries:
         if name == "stop_price" and hasattr(self.base, "stop_price"):
             return self.base.stop_price
         raise AttributeError(name)
+
+
+
+class Zoned:
+    """Any daily swing strategy plus the owner's trade zones (engine.ZONES): skip fills > 0.5 ATR past the signal close, take profit at the
+    prior 20-day high if >= 1R away (else 2R), exit at the next open when a +1.5R trade closes under the previous day's low."""
+
+    def __init__(self, base, zones: dict | None = None):
+        from .engine import ZONES
+        self.base, self.zones = base, dict(zones or ZONES)
+        self.max_days, self.name = base.max_days, getattr(base, "name", type(base).__name__) + "+zones"
+
+    def frame(self, d):
+        return self.base.frame(d)
+
+    def stop_dist(self, f, i):
+        return self.base.stop_dist(f, i)
+
+    def rank(self, f, i):
+        return self.base.rank(f, i) if hasattr(self.base, "rank") else 0.0
+
+    def __getattr__(self, name):
+        if name == "stop_price" and hasattr(self.base, "stop_price"):
+            return self.base.stop_price
+        raise AttributeError(name)

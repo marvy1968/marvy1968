@@ -1365,3 +1365,83 @@ class GivebackTests(unittest.TestCase):
         self.assertIn("PROFIT GIVEBACK", txt)
         self.assertIn("1 of 2 trades that reached +1R closed at break-even or a loss", txt)
         self.assertIn("avg peak open profit +1.37R, avg kept +0.00R", txt)
+
+
+class TradeZoneTests(unittest.TestCase):
+    def _day(self, closes):
+        idx = pd.date_range("2025-03-03 09:30", periods=len(closes), freq="5min", tz="America/New_York")
+        c = np.asarray(closes, float)
+        o = np.r_[c[0], c[:-1]]
+        return pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.05, "low": np.minimum(o, c) - 0.05, "close": c, "volume": 1e5}, index=idx)
+
+    def test_intraday_exhaustion_zone_and_no_chase(self):
+        from alpacabot.engine import ZONES, Costs, simulate_day
+        from alpacabot.strategies import Signal
+        day = self._day([100, 101, 102, 101, 100, 100, 100.2, 100.5, 101, 101.5, 102.5, 103, 103, 103])
+        sig = Signal(i=5, side=1, stop_dist=0.5, target_r=0, max_bars=0, atr=0.5)
+        plain = simulate_day("X", day, [sig], Costs(0, 0, 0))[0]
+        zoned = simulate_day("X", day, [sig], Costs(0, 0, 0), zones=ZONES)[0]
+        self.assertEqual(zoned.reason, "zone")                              # prior high ~102.05 is >= 1R above the ~100 fill
+        self.assertAlmostEqual(zoned.exit_px, 102.05)
+        self.assertNotEqual(plain.reason, "zone")
+        chased = self._day([100, 100, 100, 100, 100, 100, 103, 103, 103])
+        chased.iloc[6, chased.columns.get_loc("open")] = 103.0                  # the fill bar opens 3 points (6 ATR) past the signal close
+        chased.iloc[6, chased.columns.get_loc("high")] = 103.05
+        self.assertEqual(simulate_day("X", chased, [Signal(i=5, side=1, stop_dist=0.5, atr=0.5)], Costs(0, 0, 0), zones=ZONES), [])
+
+    def test_short_trades_use_the_mirrored_zone(self):
+        from alpacabot.engine import ZONES, Costs, simulate_day
+        from alpacabot.strategies import Signal
+        day = self._day([100, 99, 98, 99, 100, 100, 99.8, 99.5, 99, 98.5, 97.5, 97, 97, 97])
+        t = simulate_day("X", day, [Signal(i=5, side=-1, stop_dist=0.5, atr=0.5)], Costs(0, 0, 0), zones=ZONES)[0]
+        self.assertEqual(t.reason, "zone")
+        self.assertAlmostEqual(t.exit_px, 97.95)                             # the prior low, 98 - 0.05
+
+    def test_swing_zone_target(self):
+        from alpacabot.engine import Costs, simulate_swing
+        from alpacabot.strategies import Zoned
+
+        class S:
+            max_days, name = 10 ** 6, "s"
+            def frame(self, d):
+                return pd.DataFrame({"entry": [i == 25 for i in range(len(d))], "exit": False}, index=d.index)
+            def stop_dist(self, f, i):
+                return 2.0
+        idx = pd.bdate_range("2025-01-02", periods=40, tz="America/New_York")
+        c = np.r_[np.full(10, 110.0), np.full(16, 100.0), np.linspace(100.2, 115, 14)]
+        d = pd.DataFrame({"open": c, "high": c + 0.5, "low": c - 0.5, "close": c, "volume": 1e6}, index=idx)
+        t = simulate_swing("X", d, Zoned(S()), Costs(0, 0, 0))[0]
+        self.assertEqual(t.reason, "zone")
+        self.assertAlmostEqual(t.exit_px, 110.5)                             # the prior 20-day high
+
+
+class ZoneStudyTests(unittest.TestCase):
+    def test_verdict_needs_better_expectancy_pf_and_no_deeper_drawdown_in_every_row(self):
+        from alpacabot.research import _zone_verdict
+        good = {"without": {"expectancy_pct_notional": 0.01, "profit_factor": 1.0, "max_drawdown": -0.05},
+                "with": {"expectancy_pct_notional": 0.02, "profit_factor": 1.1, "max_drawdown": -0.055}}
+        bad_dd = {"without": good["without"], "with": {**good["with"], "max_drawdown": -0.08}}
+        self.assertTrue(_zone_verdict([good, good]))
+        self.assertFalse(_zone_verdict([good, bad_dd]))
+
+
+class ShadowZoneTests(unittest.TestCase):
+    def test_shadow_zone_and_report_lines(self):
+        import tempfile
+        from alpacabot import paper
+        from alpacabot.strategies import Signal
+        idx = pd.date_range("2025-03-03 09:30", periods=25, freq="5min", tz="America/New_York")
+        c = np.r_[np.linspace(100, 104, 10), np.linspace(104, 100, 15)]
+        day = pd.DataFrame({"open": c, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1e5}, index=idx)
+        z = paper.shadow_zone(day, Signal(i=24, side=1, stop_dist=1.0, atr=1.0), fill=100.2, ref=100.0)
+        self.assertEqual(z, {"chase": False, "target": 104.1})               # prior high is >= 1R away
+        z2 = paper.shadow_zone(day, Signal(i=24, side=1, stop_dist=5.0, atr=1.0), fill=101.0, ref=100.0)
+        self.assertEqual(z2, {"chase": True, "target": 111.0})               # chased 1 point (> 0.5 ATR); high < 1R away -> 2R
+        rows = [{"date": "2026-10-14", "symbol": "A", "side": "long", "qty": 10, "entry": 100, "exit": 99, "pnl": -10, "r": -1, "peak_r": 1.5,
+                 "reason": "stop", "opened": "2026-10-14T10:00:00-04:00", "closed": "2026-10-14T10:40:00-04:00",
+                 "zone_chase": False, "zone_hit": True, "zone_pnl": 41.0}]
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "trades.jsonl").write_text(json.dumps(rows[0]) + "\n")
+            txt = paper.report_card(d, date(2026, 10, 14))
+        self.assertIn("TRADE ZONES (shadow mode", txt)
+        self.assertIn("would have made $+41 vs $-10 actual", txt)

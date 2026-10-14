@@ -528,3 +528,61 @@ def frozen_systems_study(universes: dict, costs: Costs, spec: dict = FROZEN_SPEC
     out["verdict"] = (f"PASSED: {', '.join(passed)} (the 2023-today final test may be run once)" if passed
                       else "neither frozen system passed the pre-declared bar")
     return out
+
+
+# ------------------------------------------------------------------ the owner's trade zones (entry / invalidation / exhaustion)
+# PRE-DECLARED 2026-10-14, before any run. Rules frozen in engine.ZONES. A bot adopts zones only if, with zones vs without, on BOTH the
+# train and the validation years: expectancy per trade is higher, profit factor is higher, and max drawdown is no more than 1 point deeper.
+ZONES_BAR = {"max_dd_worse": 0.01}
+
+
+def _zone_verdict(rows: list) -> bool:
+    ok = True
+    for r in rows:
+        a, b = r["without"], r["with"]
+        ok = ok and ((b.get("expectancy_pct_notional") or -9) > (a.get("expectancy_pct_notional") or -9)
+                     and (b.get("profit_factor") or 0) > (a.get("profit_factor") or 0)
+                     and (b.get("max_drawdown") or -1) >= (a.get("max_drawdown") or -1) - ZONES_BAR["max_dd_worse"])
+    return bool(ok)
+
+
+def zones_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
+                         brain_kwargs: dict | None = None, ckpt=None) -> dict:
+    """The paper brain (scalps + day trades, longs and red-gated shorts) with and without trade zones, train and validation years."""
+    from .engine import ZONES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean")
+    kw = brain_kwargs or {"experts": list(ALL_EXPERTS), "short_experts": list(ALL_EXPERTS), "sector_filter": True, "short_gate": "red"}
+    cp = Checkpoint(ckpt)
+
+    def run(z, a, b):
+        br = Brain(**kw)
+        if z:
+            br.zones = dict(ZONES)
+        r = run_intraday(br, days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    rows = []
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        rows.append({"period": per, "without": cp.get(f"{per}-plain", lambda a=a, b=b: run(False, a, b)),
+                     "with": cp.get(f"{per}-zones", lambda a=a, b=b: run(True, a, b))})
+    ok = _zone_verdict(rows)
+    return {"family": "zones_intraday", "rows": rows, "passes": ok,
+            "verdict": "zones PASS for the intraday bot: adopt them" if ok else "zones did not pass for the intraday bot: keep them in shadow mode"}
+
+
+def zones_swing_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
+    """Sector Top-Down (the live swing rules) with and without trade zones, per universe, train 2016-03..2019 and validate 2020-2022."""
+    from .strategies import SectorTopDown, Zoned
+    pf = Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333)
+    periods = {"train": (date(2016, 3, 1), date(2019, 12, 31)), "validate": (date(2020, 1, 1), date(2022, 12, 31))}
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
+    rows = []
+    for name, data in universes.items():
+        for per, (a, b) in periods.items():
+            out = {}
+            for label, strat in (("without", SectorTopDown(spy["close"])), ("with", Zoned(SectorTopDown(spy["close"])))):
+                r = run_swing(strat, data, costs, pf, a, b)
+                out[label] = {**{k: r["metrics"].get(k) for k in keys}, **_curve_stats(r["curve"], pf.equity)}
+            rows.append({"universe": name, "period": per, **out})
+    ok = _zone_verdict(rows)
+    return {"family": "zones_swing", "rows": rows, "passes": ok,
+            "verdict": "zones PASS for the swing bot: adopt them" if ok else "zones did not pass for the swing bot: keep them in shadow mode"}

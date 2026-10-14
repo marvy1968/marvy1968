@@ -45,7 +45,11 @@ class Trade:
 
 
 # ---------------------------------------------------------------- intraday
-def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0) -> list[Trade]:
+ZONES = {"chase_atr": 0.5, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5}   # owner's trade zones, frozen 2026-10-14
+
+
+def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0,
+                 zones: dict | None = None) -> list[Trade]:
     """Shorts are simulated as longs on the mirrored series (open -> -open, high -> -low, low -> -high, close -> -close): every level, stop,
     trail and tie rule is then the same code as for longs, and slippage is always applied against the trader (abs(price) * slip)."""
     long_arr = tuple(df[k].to_numpy(float) for k in ("open", "high", "low", "close"))
@@ -73,14 +77,29 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             fill = buy(o[j0])
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
+        ztgt = np.inf
+        if zones:                                 # trade zones (same code for shorts: the arrays are mirrored)
+            atr_i = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
+            if fill - c[s.i] > zones["chase_atr"] * atr_i:
+                continue                          # outside the entry zone: the fill would chase the move
+            zone = float(np.max(h[max(0, s.i - zones["lookback"] + 1):s.i + 1]))
+            ztgt = zone if zone - fill >= zones["min_r"] * s.stop_dist else fill + zones["default_r"] * s.stop_dist
+            tgt = min(tgt, ztgt)
+
+        def exhausted(j):                         # +exhaust_r reached and this bar closed under the previous bar's low
+            return (zones and j > j0 and j + 1 < n and np.max(h[j0:j + 1]) - fill >= zones["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])
         if s.managed:
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale)
             for j in range(j0, n):
                 hit = st.check(o[j], h[j], l[j])
                 if hit:
                     px, why = sell(hit[1]), hit[0]          # virtual exit = market close after the cross: adverse slippage
+                elif h[j] >= ztgt:
+                    px, why = max(ztgt, o[j]), "zone"
                 elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
                     px, why = sell(c[j]), "time" if j < n - 1 else "eod"
+                elif exhausted(j):
+                    j, px, why = j + 1, sell(o[j + 1]), "exhausted"
                 else:
                     st.ratchet(h[j])
                     continue
@@ -92,11 +111,13 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             if l[j] <= stop:
                 px, why = sell(min(stop, o[j])), "stop"
             elif h[j] >= tgt:
-                px, why = max(tgt, o[j]), "target"
+                px, why = max(tgt, o[j]), ("zone" if tgt == ztgt else "target")
             elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
                 px, why = sell(c[j]), "time" if j < n - 1 else "eod"
             elif xcol and bool(df[xcol].iloc[j]) and j + 1 < n:      # the expert says "exit": decided at this close, filled at the next open
                 j, px, why = j + 1, sell(o[j + 1]), "signal"
+            elif exhausted(j):
+                j, px, why = j + 1, sell(o[j + 1]), "exhausted"
             else:
                 continue
             trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(px), s.stop_dist, why, j - j0 + 1, s.tag, side))
@@ -159,7 +180,8 @@ def raw_intraday(strategy, days: dict[str, list[pd.DataFrame]], costs: Costs, pl
                 if any(x == -1 for x in sides):          # same long/short mix as the real signals, at random times
                     rng.shuffle(sides)
                     sigs = [replace(p, side=sd) for p, sd in zip(sigs, sides)]
-            out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades), cooldown=getattr(strategy, "cooldown", 0))
+            out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades), cooldown=getattr(strategy, "cooldown", 0),
+                                zones=getattr(strategy, "zones", None))
     return sorted(out, key=lambda t: t.entry_time)
 
 
@@ -210,6 +232,11 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signal
     f = strat.frame(d)
     o, h, l, c = (d[k].to_numpy(float) for k in ("open", "high", "low", "close"))
     entry, exit_, n, slip = f["entry"].to_numpy(bool), f["exit"].to_numpy(bool), len(d), costs.slip_bps / 1e4
+    zones = getattr(strat, "zones", None)
+    if zones:
+        from .indicators import atr as _atr
+        z_atr = _atr(d, 14).to_numpy(float)
+        z_hi = d["high"].rolling(zones["lookback"]).max().to_numpy(float)
     out, i = [], 0
     while i < n - 1:
         if not entry[i]:
@@ -228,12 +255,23 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signal
             if not np.isfinite(sd) or sd <= 0:
                 i += 1
                 continue
+        ztgt = np.inf
+        if zones:                                     # trade zones: no chasing, exhaustion take-profit, exhaustion bar
+            if np.isfinite(z_atr[i]) and fill - c[i] > zones["chase_atr"] * z_atr[i]:
+                i += 1
+                continue
+            zt = z_hi[i]
+            ztgt = zt if np.isfinite(zt) and zt - fill >= zones["min_r"] * sd else fill + zones["default_r"] * sd
         k, px, why = j0, None, ""
         while k < n:
             if k > j0 and o[k] <= stop:
                 px, why = o[k] * (1 - slip), "stop"
             elif l[k] <= stop:
                 px, why = stop * (1 - slip), "stop"
+            elif h[k] >= ztgt:
+                px, why = max(ztgt, o[k]), "zone"
+            elif zones and k > j0 and k + 1 < n and np.max(h[j0:k + 1]) - fill >= zones["exhaust_r"] * sd and c[k] < l[k - 1]:
+                k, px, why = k + 1, o[k + 1] * (1 - slip), "exhausted"
             elif exit_[k] or (k - j0 + 1) >= strat.max_days:
                 if k + 1 < n:
                     why = "signal" if exit_[k] else "time"
