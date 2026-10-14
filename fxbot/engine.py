@@ -119,6 +119,7 @@ class Book:
     risk_pct: float = 0.005
     max_positions: int = 4
     leverage: float = 20.0          # notional cap per position = equity x leverage / max_positions
+    max_per_currency: int = 2       # at most 2 open trades leaning the same way on one currency (e.g. long EUR/USD + short USD/JPY = 2x short USD)
 
 
 def portfolio(trades: list[Trade], book: Book) -> tuple[pd.DataFrame, pd.Series]:
@@ -130,6 +131,8 @@ def portfolio(trades: list[Trade], book: Book) -> tuple[pd.DataFrame, pd.Series]
             open_.remove(p)
         if len(open_) >= book.max_positions or any(p["t"].instrument == t.instrument for p in open_):
             continue
+        if book.max_per_currency and _currency_load(open_, t) > book.max_per_currency:
+            continue                                # currency firewall: too much of one currency on the same side already
         risk_usd = usd_per_unit(t.instrument, t.stop_dist, t.entry_px)
         units = int(min(eq * book.risk_pct / risk_usd, eq * book.leverage / book.max_positions / _usd_notional(t.instrument, t.entry_px)))
         if units < 1:
@@ -148,6 +151,17 @@ def portfolio(trades: list[Trade], book: Book) -> tuple[pd.DataFrame, pd.Series]
     daily = fills.groupby(fills["exit"].dt.tz_convert("America/New_York").dt.date)["pnl"].sum()
     curve = book.equity + daily.cumsum()
     return fills, curve
+
+
+def _currency_load(open_: list, t: Trade) -> int:
+    """Largest same-direction count on either of t's currencies if t is added (base gets +side, quote gets -side)."""
+    load = {}
+    for p in open_ + [{"t": t}]:
+        base, quote = p["t"].instrument.split("_")
+        load[base] = load.get(base, 0) + p["t"].side
+        load[quote] = load.get(quote, 0) - p["t"].side
+    base, quote = t.instrument.split("_")
+    return max(abs(load[base]), abs(load[quote]))
 
 
 def _usd_notional(instrument: str, price: float) -> float:

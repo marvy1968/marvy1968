@@ -275,3 +275,22 @@ class MaCrossBigBuild:
         fr = _frame(m.index, up & (r < 70), dn & (r > 30), dn, up, pd.Series(self.stop_pips * pip, index=m.index))
         fr["target"] = self.target_pips * pip
         return fr
+
+
+class F0Reversion:
+    """The owner's F0 (H4, frozen as recorded): z = (close - SMA100) / std100. Long when z reclaims -2.5 (previous bar <= -2.5, this bar
+    > -2.5), stop at the signal bar's SMA100 - 3.5 std, exit when the close returns to SMA100; short mirrors. Not in the record, declared
+    here: a 120-bar (20 trading days) time stop. Recorded result: 628 events, +0.101R, PF 1.16 (no filters; adding filters made it worse)."""
+
+    def __init__(self, n: int = 100, entry_z: float = 2.5, stop_z: float = 3.5, max_bars: int = 120):
+        self.n, self.entry_z, self.stop_z, self.max_bars = n, entry_z, stop_z, max_bars
+        self.name = f"f0_reversion sma{n} {entry_z}/{stop_z} (owner's)"
+
+    def frame(self, m):
+        c = m["close"]
+        mu, sd = c.rolling(self.n).mean(), c.rolling(self.n).std()
+        z = (c - mu) / sd
+        long_ = (z.shift(1) <= -self.entry_z) & (z > -self.entry_z)
+        short = (z.shift(1) >= self.entry_z) & (z < self.entry_z)
+        stop = pd.Series(np.where(long_, c - (mu - self.stop_z * sd), (mu + self.stop_z * sd) - c), index=m.index)
+        return _frame(m.index, long_, short, c >= mu, c <= mu, stop, z.shift(1).abs())

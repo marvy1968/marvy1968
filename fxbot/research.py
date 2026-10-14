@@ -4,7 +4,7 @@ PRE-DECLARED (2026-10-14, before any run): train 2016-01-01..2020-12-31 picks ON
 sets with 100+ trades and a positive total); validate 2021-01-01..2022-12-31 is looked at once. A family PASSES only if on validation:
 50+ trades, profit factor >= 1.2, total return > 0, still > 0 with the spread doubled, and it beats random entries (same count, same
 exits/stops) in >= 90% of 20 seeds by profit factor. The 2023-today final test is not run here. Portfolio: 0.5% risk per trade,
-max 4 positions, one per pair, leverage cap 20:1, financing 0.01%/night on notional.
+max 4 positions, one per pair, at most 2 same-side trades per currency, leverage cap 20:1, financing 0.01%/night on notional.
 """
 
 import itertools
@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import AsianBreakout, ConsensusMR, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -38,6 +38,8 @@ FAMILIES = {
     # the owner's "Big Build" as recalled (MA20/60, 80/160-pip SL/TP, RSI filter): one frozen setting per timeframe
     "fx_bigbuild_h4": ("H4", MaCrossBigBuild, {"fast": [20]}),
     "fx_bigbuild_d": ("D", MaCrossBigBuild, {"fast": [20]}),
+    # the owner's F0 (H4 SMA100 +-2.5 sigma reclaim, 3.5 sigma stop, mean target): the best recorded FX result, frozen
+    "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
 }
 
 

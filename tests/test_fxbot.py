@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fxbot.engine import Book, _nights, metrics, portfolio, simulate
-from fxbot.strategies import MaCrossBigBuild, LienFader, AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
+from fxbot.strategies import F0Reversion, MaCrossBigBuild, LienFader, AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
 
 
 def bars(mid, spread=0.0002, freq="D", start="2016-01-04 22:00"):
@@ -77,6 +77,16 @@ class EngineTests(unittest.TestCase):
         self.assertLessEqual(len(p), int(real["long"].sum() + real["short"].sum()))
 
 
+class FirewallTests(unittest.TestCase):
+    def test_third_trade_against_usd_is_refused(self):
+        from fxbot.engine import Trade
+        t0 = pd.Timestamp("2020-01-06 10:00", tz="UTC")
+        mk = lambda inst, side, px, k: Trade(inst, side, t0 + pd.Timedelta(hours=k), t0 + pd.Timedelta(days=5), px, px, px * 0.01, "time", 10, 0)  # noqa: E731
+        trades = [mk("EUR_USD", 1, 1.1, 0), mk("USD_JPY", -1, 150.0, 1), mk("GBP_USD", 1, 1.3, 2), mk("USD_CAD", 1, 1.35, 3)]
+        fills, _ = portfolio(trades, Book(max_positions=4, max_per_currency=2))
+        self.assertEqual(list(fills["instrument"]), ["EUR_USD", "USD_JPY", "USD_CAD"])   # GBP_USD would be a 3rd short-USD bet
+
+
 class TargetTests(unittest.TestCase):
     def test_target_fills_at_its_level_after_the_stop_check(self):
         class T(Always):
@@ -125,7 +135,7 @@ class StrategyTests(unittest.TestCase):
     def test_families_produce_both_sides_and_finite_stops(self):
         rng = np.random.default_rng(5)
         m = self._m(1.1 * np.exp(np.cumsum(rng.normal(0, 0.006, 900))))
-        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR(), EmaPullback(100), NR7Breakout(), MaCrossBigBuild()):
+        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR(), EmaPullback(100), NR7Breakout(), MaCrossBigBuild(), F0Reversion(50)):
             f = s.frame(m)
             self.assertGreater(int(f["long"].sum()), 0, s.name)
             self.assertGreater(int(f["short"].sum()), 0, s.name)
