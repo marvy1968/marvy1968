@@ -267,7 +267,7 @@ class PaperRunner:
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
-                                "reason": reason, "opened": pos["opened"]}) + "\n")
+                                "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat()}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -553,6 +553,35 @@ def _jl(path: Path) -> list[dict]:
     return [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
 
 
+SCALP_MINUTES = 30
+
+
+def trade_style(t: dict) -> str:
+    """'scalp' (held <= 30 min), 'day' (longer, same session), or 'unclassified' (older records without a close time)."""
+    try:
+        held = (datetime.fromisoformat(t["closed"]) - datetime.fromisoformat(t["opened"])).total_seconds() / 60
+    except (KeyError, TypeError, ValueError):
+        return "unclassified"
+    return "scalp" if held <= SCALP_MINUTES else "day"
+
+
+def _style_lines(trades: list, today: list) -> list:
+    """Scalps vs day trades (the swing runner has its own section below)."""
+    out = ["", f"BY STYLE (scalp = held <= {SCALP_MINUTES} min, day = longer, flat by 3:50 pm)"]
+    for style in ("scalp", "day", "unclassified"):
+        allt = [t for t in trades if trade_style(t) == style]
+        if not allt:
+            continue
+        tod = [t for t in today if trade_style(t) == style]
+        w = sum(t["pnl"] > 0 for t in allt)
+        gl = -sum(t["pnl"] for t in allt if t["pnl"] <= 0)
+        pf = sum(t["pnl"] for t in allt if t["pnl"] > 0) / gl if gl else float("inf")
+        label = "unclassified (before close times were logged)" if style == "unclassified" else style
+        out.append(f"  {label}: today {len(tod)} trades ${sum(t['pnl'] for t in tod):+,.0f} | all {len(allt)}, {w}W/{len(allt) - w}L, "
+                   f"P&L ${sum(t['pnl'] for t in allt):+,.0f}, profit factor {pf:.2f}")
+    return out
+
+
 def report_card(state_dir, day=None) -> str:
     """Win/loss, ROI, drawdown, SPY comparison and the go-live gate, from the trade ledger and the daily equity snapshots."""
     d = Path(state_dir)
@@ -603,6 +632,7 @@ def report_card(state_dir, day=None) -> str:
         best = sorted(by.items(), key=lambda x: -x[1])
         shown = best if len(best) <= 5 else best[:3] + best[-2:]
         lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in shown))
+    lines += _style_lines(trades, today)
     if gate:
         lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")

@@ -1332,3 +1332,21 @@ class FrozenSystemsTests(unittest.TestCase):
     def test_spec_is_predeclared(self):
         from alpacabot.research import FROZEN_SPEC
         self.assertEqual((FROZEN_SPEC["min_pf"], FROZEN_SPEC["beat_share"], FROZEN_SPEC["risk_pct"], FROZEN_SPEC["max_positions"]), (1.2, 0.9, 0.005, 3))
+
+
+class StyleSplitTests(unittest.TestCase):
+    def test_scalp_day_split_on_the_report_card(self):
+        import tempfile
+        from alpacabot import paper
+        mk = lambda o, c, pnl: {"date": "2026-10-14", "symbol": "NVDA", "side": "long", "qty": 1, "entry": 1, "exit": 1, "pnl": pnl, "r": 0.1,  # noqa: E731
+                                "reason": "x", "opened": o, **({"closed": c} if c else {})}
+        rows = [mk("2026-10-14T10:00:00-04:00", "2026-10-14T10:20:00-04:00", 10.0),
+                mk("2026-10-14T10:00:00-04:00", "2026-10-14T13:00:00-04:00", -4.0),
+                mk("2026-10-13T10:00:00-04:00", None, 2.0)]
+        self.assertEqual([paper.trade_style(r) for r in rows], ["scalp", "day", "unclassified"])
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "trades.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+            txt = paper.report_card(d, date(2026, 10, 14))
+        self.assertIn("BY STYLE", txt)
+        self.assertIn("scalp: today 1 trades $+10", txt)
+        self.assertIn("day: today 1 trades $-4", txt)
