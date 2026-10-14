@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import DirectionZoneMap, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -114,3 +114,13 @@ for _name, _style in ZONE_STYLE.items():
     _gran, _cls, _params = FAMILIES[_name]
     FAMILIES[_name + "_dirmap"] = (_gran, (lambda c, st: (lambda **p: DirectionZoneMap(Zoned(c(**p), profile=st), style=st)))(_cls, _style),
                                    _params)
+
+
+# The owner's drawn exits on the three LIVE practice strategies (2026-10-14), with the same pre-declared alternatives as the stock bot:
+# grid parameter "variant" picks the exit plan; walk_forward chooses on train and checks validation as for every family.
+from alpacabot.research import LADDER_VARIANTS  # noqa: E402
+
+for _name in ("fx_lien_fader_h1", "fx_f0_h4", "fx_box200_h1"):
+    _gran, _cls, _params = FAMILIES[_name]
+    FAMILIES[_name + "_ladder"] = (_gran, (lambda c, p0: (lambda variant, **p: Laddered(c(**{**p0, **p}), LADDER_VARIANTS[variant])))(
+        _cls, {k: v[0] for k, v in _params.items()}), {"variant": list(LADDER_VARIANTS)})

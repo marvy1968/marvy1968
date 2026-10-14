@@ -997,6 +997,37 @@ class DayGuardRestartTests(unittest.TestCase):
             self.assertTrue(r.exec.breaker.entries_allowed(now))
 
 
+class LadderWalkTests(unittest.TestCase):
+    """The backtest's version of the owner's scaled exits (engine.ladder_walk)."""
+    LAD = {"cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75], "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],
+           "lock": ["breakeven", "tp"], "trail_atr": 1.0}
+
+    def walk(self, bars, lad=None, stop=98.0, ztgt=102.0):
+        from alpacabot.engine import ladder_walk
+        o, h, l, c = (np.array([b[k] for b in bars], float) for k in range(4))
+        return ladder_walk(o, h, l, c, 0, len(bars), 100.0, stop, ztgt, 1.0, 2.0, lad or self.LAD, lambda px: px)
+
+    def test_tp_steps_then_trail(self):
+        bars = [(100, 100.5, 99.8, 100.2), (100.2, 102.4, 100.1, 102.3), (102.3, 105.0, 102.2, 104.8), (104.8, 104.9, 103.5, 103.6)]
+        j, pnl, why = self.walk(bars)
+        # 25% at 102, 25% at 102.25, then the rider trails 1 ATR behind 105 -> stopped at 104 on the last bar
+        self.assertEqual(j, 3)
+        self.assertAlmostEqual(pnl, 0.25 * 2 + 0.25 * 2.25 + 0.5 * 4.0)
+        self.assertEqual(why, "lock")
+
+    def test_cut_steps_then_stop(self):
+        bars = [(100, 100.2, 99.0, 99.1), (99.1, 99.2, 98.5, 98.6), (98.6, 98.7, 97.5, 97.6)]
+        j, pnl, why = self.walk(bars)
+        self.assertAlmostEqual(pnl, 0.25 * -1.0 + 0.25 * -1.5 + 0.5 * -2.0)        # cuts at -0.5R, -0.75R, the stop takes the rest
+        self.assertEqual((j, why), (2, "stop"))
+
+    def test_breakeven_lock_after_first_step(self):
+        bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
+        j, pnl, why = self.walk(bars)
+        self.assertAlmostEqual(pnl, 0.25 * 2.0 + 0.75 * 0.0)                       # 25% banked, the rest out at break-even
+        self.assertEqual(why, "lock")
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")

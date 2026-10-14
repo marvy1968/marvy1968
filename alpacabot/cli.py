@@ -181,6 +181,13 @@ def run_all(a) -> int:
                     from .zonemap import attach
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = zones_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}_zones.json")
+                elif fam == "ladder_intraday":  # owner's drawn exit plan vs alternatives (research.LADDER_VARIANTS), chosen by train ROI
+                    from .research import ladder_intraday_study
+                    from .zonemap import attach
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
+                    res = ladder_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}_ladder.json")
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -200,6 +207,12 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
+        if fam == "ladder_intraday":
+            for per, rows_ in res.get("periods", {}).items():
+                for name, m_ in rows_.items():
+                    lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "
+                                 f"avgR {m_.get('avg_r') or 0:+.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% CAGR {m_.get('cagr') or 0:+.1%} "
+                                 f"maxDD {m_.get('max_drawdown') or 0:.1%}")
         if fam in ("zones_intraday", "zones_swing"):
             for r in res.get("rows", []):
                 w, o = r["with"], r["without"]

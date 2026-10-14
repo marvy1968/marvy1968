@@ -309,3 +309,32 @@ class StrategyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FxLadderSimTests(unittest.TestCase):
+    def test_scaled_exits_on_bid_ask(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.research import LADDER_VARIANTS
+        from fxbot.engine import simulate
+        from fxbot.strategies import Laddered, _frame
+
+        class One:
+            max_bars, name = 500, "one long"
+
+            def frame(self, m):
+                L = pd.Series(False, index=m.index)
+                L.iloc[30] = True
+                none = pd.Series(False, index=m.index)
+                f = _frame(m.index, L, none, none, none, pd.Series(0.0030, index=m.index))
+                f["zone_px"] = np.where(L, float(m["close"].iloc[30]) + 0.0030, np.nan)
+                return f
+        n = 120
+        idx = pd.date_range("2026-01-05", periods=n, freq="1h", tz="UTC")
+        mid = np.r_[np.full(31, 1.1000), 1.1000 + np.arange(1, n - 30) * 0.0002]     # flat, then a steady climb
+        df = pd.DataFrame({"bo": mid - 0.00005, "bh": mid + 0.0001, "bl": mid - 0.0002, "bc": mid - 0.00005,
+                           "ao": mid + 0.00005, "ah": mid + 0.0002, "al": mid - 0.0001, "ac": mid + 0.00005, "volume": 1.0}, index=idx)
+        t = simulate("EUR_USD", df, Laddered(One(), LADDER_VARIANTS["owner (cut 25/50, TP 25/50, trail 1 ATR)"]))
+        self.assertEqual(len(t), 1)
+        self.assertGreater(t[0].exit_px, t[0].entry_px + 0.0030 * 0.5)               # banked at the zone, the rest rode higher
+        self.assertTrue(t[0].reason in ("eod", "lock", "time"))

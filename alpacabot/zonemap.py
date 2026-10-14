@@ -88,6 +88,7 @@ def attach(days: dict, daily_by_symbol: dict) -> dict:
             k = int(np.searchsorted(dates, dd))           # daily bars strictly before the session
             f.attrs["bias"] = int(b[k - 1]) if k >= warm else 0
             f.attrs["levels"] = level_map(dly.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else []
+            f.attrs["stage"] = stage(dly.iloc[max(0, k - STAGE_RULES["ma"] - STAGE_RULES["slope_bars"] - 5):k]) if k else 0
     return days
 
 

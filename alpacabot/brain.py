@@ -137,3 +137,20 @@ class DirectionFirst:
     def signals(self, day):
         b = int(day.attrs.get("bias", 0))
         return [s for s in self.brain.signals(day) if self.keep(s, b)]
+
+
+class StageFilter:
+    """Weinstein's stage on top of any brain: longs only in stage 2, shorts only in stage 4 (day.attrs["stage"], from completed daily bars;
+    0 = unknown history -> no filter)."""
+
+    def __init__(self, brain):
+        self.brain = brain
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        st = int(day.attrs.get("stage", 0))
+        if not st:
+            return self.brain.signals(day)
+        return [s for s in self.brain.signals(day) if (s.side == 1 and st == 2) or (s.side == -1 and st == 4)]

@@ -613,3 +613,57 @@ def zones_swing_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
     winners = [v for v, ok in passed.items() if ok]
     return {"family": "zones_swing", "rows": rows, "passes": bool(winners), "variant_passes": passed,
             "verdict": (f"PASS for the swing bot: {'; '.join(winners)}" if winners else "zones did not pass for the swing bot: keep them in shadow mode")}
+
+
+# The owner's drawn exit plan (2026-10-14) and its pre-declared alternatives, for the live paper brain with direction first + zones + map.
+# Chosen by ROI (mean daily return) on the train years; adopted only if the validation years agree (no lower expectancy and PF than
+# the plain zones, max drawdown no more than 1 point worse). Nothing else is tuned.
+_OWNER_LADDER = {"cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75], "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],
+                 "lock": ["breakeven", "tp"], "trail_atr": 1.0}
+LADDER_VARIANTS = {
+    "owner (cut 25/50, TP 25/50, trail 1 ATR)": _OWNER_LADDER,
+    "no cut steps (one stop)": {**_OWNER_LADDER, "cut_fracs": [], "cut_depth_r": []},
+    "trail 0.5 ATR": {**_OWNER_LADDER, "trail_atr": 0.5},
+    "trail 2 ATR": {**_OWNER_LADDER, "trail_atr": 2.0},
+    "TP 50/75 (bank more)": {**_OWNER_LADDER, "tp_fracs": [0.5, 0.75]},
+    "TP 25/50 at zone/+0.5 ATR": {**_OWNER_LADDER, "tp_depth_atr": [0.0, 0.5]},
+}
+
+
+def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
+                          ckpt=None) -> dict:
+    """Live configuration (direction first + per-expert zones + daily zone map) with the owner's scaled exits and the alternatives, plus
+    the Weinstein stage filter and the repeat cap (10 trades per stock per day) on the chosen exits."""
+    from .brain import DirectionFirst, StageFilter
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    kw = {"experts": list(ALL_EXPERTS), "short_experts": list(ALL_EXPERTS), "sector_filter": True, "short_gate": "red"}
+    cp = Checkpoint(ckpt)
+
+    def run(ladder, a, b, stage=False, repeat=None):
+        br = Brain(**{**kw, **({"max_trades": repeat} if repeat else {})})
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, **({"ladder": ladder} if ladder else {})}
+        br = DirectionFirst(br)
+        if stage:
+            br = StageFilter(br)
+        r = run_intraday(br, days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        rows = {"zones, single exit (before today)": cp.get(f"{per}-base", lambda a=a, b=b: run(None, a, b))}
+        for name, lad in LADDER_VARIANTS.items():
+            rows[name] = cp.get(f"{per}-{name}", lambda a=a, b=b, lad=lad: run(lad, a, b))
+        out["periods"][per] = rows
+    roi = lambda m: m.get("daily_ret_pct_mean") if m.get("daily_ret_pct_mean") is not None else -9   # noqa: E731
+    best = max(LADDER_VARIANTS, key=lambda v: roi(out["periods"]["train"][v]))
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        lad = LADDER_VARIANTS[best]
+        out["periods"][per][f"{best} + stage filter"] = cp.get(f"{per}-stage", lambda a=a, b=b: run(lad, a, b, stage=True))
+        out["periods"][per][f"{best} + stage + repeat 10/day"] = cp.get(f"{per}-stage-repeat", lambda a=a, b=b: run(lad, a, b, True, 10))
+    base_v, best_v = out["periods"]["validate"]["zones, single exit (before today)"], out["periods"]["validate"][best]
+    ok = _zone_verdict([{"without": base_v, "with": best_v}])
+    out.update({"family": "ladder_intraday", "chosen_on_train": best, "passes": ok,
+                "verdict": (f"ADOPT '{best}': best train ROI and it holds on the validation years" if ok else
+                            f"'{best}' had the best train ROI but did not hold on the validation years vs the single exit")})
+    return out

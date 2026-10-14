@@ -75,6 +75,10 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
     if zones:
         zh, zl, zc, za = (f[k].to_numpy(float) for k in ("zone_hi", "zone_lo", "zone_close", "zone_atr"))
         zm = f["zone_mean"].to_numpy(float) if "zone_mean" in f else zc
+    if getattr(strat, "ladder", None):
+        from alpacabot.indicators import atr as _atr
+        atr_arr, mc = _atr(m, 14).to_numpy(float), m["close"].to_numpy(float)
+        zone_px = f["zone_px"].to_numpy(float) if "zone_px" in f else None
     out, i = [], 0
     while i < n - 1:
         side = 1 if lg[i] else -1 if sh[i] else 0
@@ -94,6 +98,24 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
             zt = zm[i] if zones.get("target") == "mean" else (zh[i] if side == 1 else zl[i])
             ztgt = zt if np.isfinite(zt) and side * (zt - fill) >= zones["min_r"] * sd else fill + side * zones["default_r"] * sd
             tgt = ztgt if tgt is None else (min(tgt, ztgt) if side == 1 else max(tgt, ztgt))
+        lad = getattr(strat, "ladder", None)
+        if lad:                                    # owner's scaled exits, walked on the exit side (bid for longs, ask for shorts)
+            from alpacabot.engine import ladder_walk
+            a_i = float(atr_arr[i]) if np.isfinite(atr_arr[i]) else sd
+            zpx = float(zone_px[i]) if zone_px is not None and np.isfinite(zone_px[i]) else np.nan
+            if not np.isfinite(zpx):
+                mean20 = float(np.mean(mc[max(0, i - 19):i + 1]))
+                zpx = mean20 if side * (mean20 - fill) >= 0.75 * sd else fill + side * 1.5 * sd
+                if tgt is not None:
+                    zpx = min(zpx, tgt) if side == 1 else max(zpx, tgt)
+            O, H, L, C = (bo, bh, bl, df["bc"].to_numpy(float)) if side == 1 else (-ao, -al, -ah, -df["ac"].to_numpy(float))
+            ex_arr = ex_l if side == 1 else ex_s
+            j, pnl, why = ladder_walk(O, H, L, C, j0, n, side * fill, side * stop, side * zpx, a_i, sd, lad, lambda px: px,
+                                      strat.max_bars, lambda j: bool(ex_arr[j]))
+            out.append(Trade(instrument, side, df.index[j0], df.index[j], float(fill), float(side * (side * fill + pnl)), sd, why, j - j0 + 1,
+                             _nights(df.index[j0], df.index[j]), float(rank[i]) if np.isfinite(rank[i]) else 0.0))
+            i = max(j, i + 1)
+            continue
         lock = getattr(strat, "lock", None)        # (be_at_r, trail_after_r, trail_r): profit lock, applied from the NEXT bar
         best = fill
         k, px, why = j0, None, ""

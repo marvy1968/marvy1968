@@ -413,3 +413,16 @@ class DirectionZoneMap:
                 tgt[i] = dist if not np.isfinite(tgt[i]) else min(tgt[i], dist)
         f["target"] = tgt
         return f
+
+
+class Laddered:
+    """Any strategy plus the owner's scaled exits (drawing, 2026-10-14): cut steps toward the stop, take-profit steps at the zone with
+    stop locks, the rest rides behind a trailing stop. The take-profit zone is the strategy's own drawn line (zone_px) if it has one,
+    else the nearer of its target and the 20-bar mean (>= 0.75R, else 1.5R), as in the live runner (without the daily map)."""
+
+    def __init__(self, base, ladder: dict):
+        self.base, self.ladder = base, ladder
+        self.max_bars, self.name = base.max_bars, getattr(base, "name", type(base).__name__) + " +ladder"
+
+    def frame(self, m):
+        return self.base.frame(m)

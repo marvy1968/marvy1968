@@ -64,6 +64,50 @@ def zone_profile(zones: dict | None, tag: str) -> dict | None:
     return zones["profiles"]["range" if name in RANGE_STYLE else "trend"]
 
 
+def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: float, atr_i: float, risk: float, lad: dict, sell,
+                max_bars: int = 0, exit_at=None, state=None):
+    """The owner's scaled exits on one long-side (or mirrored short) trade, bar by bar, conservative inside a bar (stop, then the cut
+    lines, then the take-profit lines; a lock or trail set on a bar acts from the next bar). Returns (exit bar, P&L per share as a
+    fraction-weighted sum over every partial exit, last reason). lad: cut_fracs/cut_depth_r (R toward the stop), tp_fracs/tp_depth_atr
+    (ATR beyond the zone), lock ("breakeven" / "tp" per TP step), trail_atr (the rider's stop behind its best high). exit_at(j) -> True when
+    the expert's own exit fires at bar j's close (filled at the next open); state = ExitState for a managed (trailing) expert."""
+    cuts = [(fill - d * risk, f) for d, f in zip(lad.get("cut_depth_r", []), lad.get("cut_fracs", []))]
+    tps = [(ztgt + d * atr_i, f) for d, f in zip(lad.get("tp_depth_atr", []), lad.get("tp_fracs", []))] if np.isfinite(ztgt) else []
+    locks, trail = lad.get("lock") or [], lad.get("trail_atr")
+    sold, pnl, steps, best, why = 0.0, 0.0, 0, fill, ""
+    for j in range(j0, n):
+        if state is not None:
+            stop = max(stop, state.stop)
+        if l[j] <= stop:
+            px = sell(min(stop, o[j]))
+            return j, pnl + (1 - sold) * (px - fill), "stop" if px < fill else "lock"
+        for lv, f in cuts:
+            if l[j] <= lv and f > sold:
+                pnl += (f - sold) * (sell(min(lv, o[j])) - fill)
+                sold, why = f, f"cut{int(f * 100)}"
+        for k, (lv, f) in enumerate(tps):
+            if h[j] >= lv:
+                if f > sold:
+                    pnl += (f - sold) * (max(lv, o[j]) - fill)
+                    sold, why = f, f"zone{int(f * 100)}"
+                for step in range(steps, k + 1):
+                    how = locks[step] if step < len(locks) else None
+                    stop = max(stop, fill if how == "breakeven" else ztgt if how == "tp" else stop)
+                steps = max(steps, k + 1)
+        if sold >= 1 - 1e-9:
+            return j, pnl, why
+        if (max_bars and j - j0 + 1 >= max_bars) or j == n - 1:
+            return j, pnl + (1 - sold) * (sell(c[j]) - fill), "time" if j < n - 1 else "eod"
+        if exit_at is not None and j + 1 < n and exit_at(j):
+            return j + 1, pnl + (1 - sold) * (sell(o[j + 1]) - fill), "signal"
+        best = max(best, h[j])
+        if state is not None:
+            state.ratchet(h[j])
+        if trail and tps and steps >= len(tps):
+            stop = max(stop, best - trail * atr_i)
+    return n - 1, pnl + (1 - sold) * (sell(c[n - 1]) - fill), "eod"
+
+
 def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0,
                  zones: dict | None = None) -> list[Trade]:
     """Shorts are simulated as longs on the mirrored series (open -> -open, high -> -low, low -> -high, close -> -close): every level, stop,
@@ -108,6 +152,17 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                 if lv is not None:
                     ztgt = side * lv
             tgt = min(tgt, ztgt)
+
+        lad = zones.get("ladder") if (zp and zones) else None
+        if lad:                                   # owner's scaled exits: the expert's fixed target is off, the zones take profit
+            atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
+            st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale) if s.managed else None
+            ex = (lambda j: bool(df[xcol].iloc[j])) if (xcol and not s.managed) else None
+            j, pnl, why = ladder_walk(o, h, l, c, j0, n, fill, stop if not s.managed else st.stop, ztgt, atr_l, s.stop_dist, lad, sell,
+                                      s.max_bars, ex, st)
+            trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(fill + pnl), s.stop_dist, why, j - j0 + 1, s.tag, side))
+            busy = j
+            continue
 
         def exhausted(j):                         # +exhaust_r reached and this bar closed under the previous bar's low
             return (zp and j > j0 and j + 1 < n and np.max(h[j0:j + 1]) - fill >= zp["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])

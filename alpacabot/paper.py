@@ -544,7 +544,7 @@ class PaperRunner:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason,
                                 "opened": pos["opened"], "closed": self.clock().isoformat(), "partial": True,
-                                "zone_profile": (pos.get("zone") or {}).get("profile")}) + "\n")
+                                "zone_profile": (pos.get("zone") or {}).get("profile"), "stage": (pos.get("zone") or {}).get("stage")}) + "\n")
 
     def zone_entry_block(self, sym: str, sig, ref: float, zcfg: dict) -> str:
         """'' to allow the entry; otherwise why the zones block it (against the stock's direction, or chasing past the entry zone)."""
@@ -960,6 +960,34 @@ def _zone_lines(trades: list) -> list:
     return out
 
 
+def _ladder_lines(raw: list, day: str) -> list:
+    """The owner's drawn plan at work (raw ledger rows, partial exits included): P&L by exit step, and by Weinstein stage."""
+    def block(rows, label):
+        if not rows:
+            return []
+        kinds = {"sell zone cuts (25/50% before the stop)": lambda t: t["reason"].startswith("cut"),
+                 "take-profit steps (25/50% in the zone)": lambda t: t["reason"].startswith("zone"),
+                 "stops (full stop / locked stop / trail)": lambda t: t["reason"] in ("stop", "trail", "lock"),
+                 "other exits (time, signal, close)": lambda t: not (t["reason"].startswith("cut") or t["reason"].startswith("zone")
+                                                                    or t["reason"] in ("stop", "trail", "lock"))}
+        out = [f"  {label}:"]
+        for name, f in kinds.items():
+            ts = [t for t in rows if f(t)]
+            if ts:
+                out.append(f"    {name}: {len(ts)} fills, ${sum(t['pnl'] for t in ts):+,.0f}")
+        st = {}
+        for t in rows:
+            if t.get("stage"):
+                st.setdefault(t["stage"], []).append(t["pnl"])
+        if st:
+            out.append("    by stage: " + ", ".join(f"stage {k} ${sum(v):+,.0f} ({len(v)})" for k, v in sorted(st.items())))
+        return out
+    if not any(t.get("partial") or t.get("stage") for t in raw):
+        return []
+    return ["", "ZONE PLAN (owner's drawing: 1% risk, cut 25/50%, take profit 25/50%, the rest rides a trailing stop)"] + \
+        block([t for t in raw if t["date"] == day], "today") + block(raw, "all time")
+
+
 def _giveback_lines(trades: list, today: list) -> list:
     """How much open profit was kept: peak open profit (R) vs the result (R), and trades that were +1R up but closed at <= 0."""
     def block(ts, label):
@@ -1047,6 +1075,7 @@ def report_card(state_dir, day=None) -> str:
     lines += _style_lines(trades, today)
     lines += _giveback_lines(trades, today)
     lines += _zone_lines(trades)
+    lines += _ladder_lines(_jl(d / "trades.jsonl"), day)
     if gate:
         lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")
