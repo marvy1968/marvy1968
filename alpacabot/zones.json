@@ -1,0 +1,40 @@
+{
+ "_note": "Live trade-zone settings for the STOCK bot (owner 2026-10-14: live, forward-tested). The 2-hour optimizer edits this file (values only within the frozen grid), then deploys. intraday = ab- scalp/day bot, swing = sw- bot.",
+ "intraday": {
+  "live": true,
+  "direction_first": true,
+  "use_map": true,
+  "profiles": {
+   "trend": {
+    "chase_atr": 0.5,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 1.5,
+    "target": "extreme"
+   },
+   "range": {
+    "chase_atr": 0.5,
+    "lookback": 20,
+    "min_r": 0.75,
+    "default_r": 1.5,
+    "exhaust_r": 1.5,
+    "target": "mean"
+   }
+  }
+ },
+ "swing": {
+  "live": true,
+  "use_map": true,
+  "profiles": {
+   "trend": {
+    "chase_atr": 0.5,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 1.5,
+    "target": "extreme"
+   }
+  }
+ }
+}

@@ -113,7 +113,7 @@ class ReplayTest(unittest.TestCase):
 
         # ---------------- paper bot, bar by bar
         cls.tmp = tempfile.TemporaryDirectory()
-        (Path(cls.tmp.name) / "zones.json").write_text('{"live": %s}' % ("true" if cls.ZONES_LIVE else "false"))   # parity: zone-free
+        (Path(cls.tmp.name) / "zones_override.json").write_text('{"live": %s}' % ("true" if cls.ZONES_LIVE else "false"))   # parity: zone-free
         broker = SimBroker(cls.daily)
         for s in SYMS:
             broker.px[s] = float(cls.minute[s]["open"].iloc[0])

@@ -342,12 +342,15 @@ class PaperRunner:
         """Live zone settings: <state>/zones.json (written with the defaults on first use; the 2-hour optimizer edits it). LIVE by the
         owner's decision 2026-10-14 (forward-tested instead of backtest-gated)."""
         from .engine import ZONE_PROFILES
-        p = self.dir / "zones.json"
+        p = self.dir / "zones_override.json"
         default = {"live": True, "direction_first": True, "use_map": True, "profiles": ZONE_PROFILES}
         try:
-            if not p.exists():
-                p.write_text(json.dumps(default, indent=1))
-            cfg = {**default, **json.loads(p.read_text())}
+            repo = Path(__file__).with_name("zones.json")              # source of truth, edited by the optimizer and deployed
+            cfg = {**default, **(json.loads(repo.read_text()).get("intraday", {}) if repo.exists() else {})}
+            if p.exists():                                             # a local override in the state folder wins (manual switch-off)
+                cfg.update(json.loads(p.read_text()))
+            else:
+                p.write_text(json.dumps({"_note": "local override (e.g. {\"live\": false} to switch zones off here); otherwise alpacabot/zones.json rules"}, indent=1))
             cfg["profiles"] = {k: {**ZONE_PROFILES[k], **cfg["profiles"].get(k, {})} for k in ZONE_PROFILES}
             return cfg
         except Exception:

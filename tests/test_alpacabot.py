@@ -1572,12 +1572,12 @@ class LiveZoneTests(unittest.TestCase):
             r = self._runner(tmp)
             cfg = r.zone_config()
             self.assertTrue(cfg["live"] and cfg["direction_first"])
-            self.assertTrue((Path(tmp) / "zones.json").exists())
-            (Path(tmp) / "zones.json").write_text(json.dumps({"live": True, "profiles": {"trend": {"min_r": 1.5}}}))
+            self.assertTrue((Path(tmp) / "zones_override.json").exists())
+            (Path(tmp) / "zones_override.json").write_text(json.dumps({"live": True, "profiles": {"trend": {"min_r": 1.5}}}))
             cfg = r.zone_config()
             self.assertEqual(cfg["profiles"]["trend"]["min_r"], 1.5)
             self.assertEqual(cfg["profiles"]["trend"]["default_r"], 2.0)          # untouched keys keep their defaults
-            (Path(tmp) / "zones.json").write_text("{not json")
+            (Path(tmp) / "zones_override.json").write_text("{not json")
             self.assertFalse(r.zone_config()["live"])                              # a broken file switches zones off, never crashes
 
     def test_entry_block_direction_then_chase(self):
@@ -1651,3 +1651,12 @@ class SwingZoneLiveTests(unittest.TestCase):
         d = pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=idx)
         z = swing_zone(d, 100.0, 95.0, {"use_map": False, "profiles": ZONE_PROFILES})
         self.assertEqual(z["zone_tp"], 110.0)                                               # prior 20-day high 101 < 1R away -> 2R
+
+
+class RepoZoneConfigTests(unittest.TestCase):
+    def test_repo_file_is_valid_and_matches_the_engine_profiles(self):
+        from alpacabot.engine import ZONE_PROFILES
+        cfg = json.loads((Path(__file__).resolve().parents[1] / "alpacabot" / "zones.json").read_text())
+        self.assertTrue(cfg["intraday"]["live"] and cfg["swing"]["live"])
+        for k in ("trend", "range"):
+            self.assertEqual(set(cfg["intraday"]["profiles"][k]), set(ZONE_PROFILES[k]))
