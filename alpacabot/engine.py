@@ -64,6 +64,36 @@ def zone_profile(zones: dict | None, tag: str) -> dict | None:
     return zones["profiles"]["range" if name in RANGE_STYLE else "trend"]
 
 
+# Each expert's own exits, written from their published rules on 2026-10-14 before any test (the owner asked for each master's
+# philosophy to set its own take-profit and sell zones). No cut steps: every one of these traders uses a single hard stop.
+EXPERT_LADDERS = {
+    "velez_elephant": {"tp_fracs": [0.33, 0.66], "tp_depth_atr": [0.0, 0.5], "lock": ["breakeven", "tp"], "trail_atr": 0.75},  # Velez: 1/3 at
+    # the first target, stop to break-even, trail the rest tight under the bars
+    "velez_180": {"tp_fracs": [0.5, 1.0], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven"]},          # a fast reversal: bank it quickly
+    "raschke_grail": {"tp_fracs": [0.5, 0.75], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven", "tp"], "trail_atr": 1.0},  # Raschke:
+    # exit most at the prior swing high, keep a small runner
+    "brooks_pullback": {"tp_fracs": [0.5], "tp_depth_atr": [0.0], "lock": ["breakeven"], "trail_atr": 1.0},   # Brooks: scalp half at the
+    # target, swing the rest with a break-even stop
+    "connors_rsi2": {"tp_fracs": [1.0], "tp_depth_atr": [0.0]},                                          # Connors: all out at the mean
+    "bollinger_bounce": {"tp_fracs": [0.5, 1.0], "tp_depth_atr": [0.0, 1.0], "lock": ["breakeven"]},     # Bollinger: half at the middle
+    # band, the rest toward the far side
+    "williams_r": {"tp_fracs": [1.0], "tp_depth_atr": [0.0]},                                            # Williams: take the first profit
+    "vwap_dev": {"tp_fracs": [1.0], "tp_depth_atr": [0.0]},                                              # back to VWAP: all out
+    "donchian_turtle": {"tp_fracs": [], "tp_depth_atr": [], "trail_atr": 2.0},                           # Turtles: no target, 2N trail
+    "dual_regime": {"tp_fracs": [0.25], "tp_depth_atr": [0.0], "lock": ["breakeven"], "trail_atr": 1.5},  # trend-mode default: small bank,
+    # long runner
+}
+
+
+def ladder_for(lad: dict | None, tag: str) -> dict | None:
+    """A ladder may hold per-expert plans ({"by_expert": {name: plan}, ...default plan keys}); the signal's expert picks its own."""
+    if not lad or "by_expert" not in lad:
+        return lad
+    name = (tag or "").removeprefix("S:")
+    base = {k: v for k, v in lad.items() if k != "by_expert"}
+    return {**base, **lad["by_expert"].get(name, {})} if name in lad["by_expert"] else base
+
+
 def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: float, atr_i: float, risk: float, lad: dict, sell,
                 max_bars: int = 0, exit_at=None, state=None):
     """The owner's scaled exits on one long-side (or mirrored short) trade, bar by bar, conservative inside a bar (stop, then the cut
@@ -104,7 +134,7 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
         best = max(best, h[j])
         if state is not None:
             state.ratchet(h[j])
-        if trail and tps and steps >= len(tps):
+        if trail and steps >= len(tps):                              # (no TP steps at all: the trail runs from the entry)
             stop = max(stop, best - trail * atr_i)
         if lad.get("trail_from_entry_r") and best > fill:            # trail from the first profit: trail_from_entry_r x the risk behind
             stop = max(stop, best - lad["trail_from_entry_r"] * risk)
@@ -156,7 +186,7 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                     ztgt = side * lv
             tgt = min(tgt, ztgt)
 
-        lad = zones.get("ladder") if (zp and zones) else None
+        lad = ladder_for(zones.get("ladder"), s.tag) if (zp and zones) else None
         if lad:                                   # owner's scaled exits: the expert's fixed target is off, the zones take profit
             atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale) if s.managed else None

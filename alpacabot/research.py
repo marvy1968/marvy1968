@@ -632,6 +632,10 @@ LADDER_VARIANTS = {
     "TP 25% then +50% (75% banked)": {**_OWNER_LADDER, "tp_fracs": [0.25, 0.75]},
     "trail 0.5R from entry, one stop": {**_OWNER_LADDER, "cut_fracs": [], "cut_depth_r": [], "trail_from_entry_r": 0.5},
 }
+# owner (2026-10-14): let each master's own philosophy set its take-profit and sell zones (engine.EXPERT_LADDERS, one stop each)
+from .engine import EXPERT_LADDERS  # noqa: E402
+LADDER_VARIANTS["each expert's own exits"] = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],
+                                              "lock": ["breakeven", "tp"], "trail_atr": 1.0, "by_expert": EXPERT_LADDERS}
 
 
 def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
@@ -663,8 +667,8 @@ def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Por
     best = max(LADDER_VARIANTS, key=lambda v: roi(out["periods"]["train"][v]))
     for per, (a, b) in (("train", train), ("validate", validate)):
         lad = LADDER_VARIANTS[best]
-        out["periods"][per][f"{best} + stage filter"] = cp.get(f"{per}-stage", lambda a=a, b=b: run(lad, a, b, stage=True))
-        out["periods"][per][f"{best} + stage + repeat 10/day"] = cp.get(f"{per}-stage-repeat", lambda a=a, b=b: run(lad, a, b, True, 10))
+        out["periods"][per][f"{best} + stage filter"] = cp.get(f"{per}-stage-{best}", lambda a=a, b=b: run(lad, a, b, stage=True))
+        out["periods"][per][f"{best} + stage + repeat 10/day"] = cp.get(f"{per}-stage-repeat-{best}", lambda a=a, b=b: run(lad, a, b, True, 10))
     base_v, best_v = out["periods"]["validate"]["zones, single exit (before today)"], out["periods"]["validate"][best]
     ok = _zone_verdict([{"without": base_v, "with": best_v}])
     out.update({"family": "ladder_intraday", "chosen_on_train": best, "passes": ok,

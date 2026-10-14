@@ -1028,6 +1028,22 @@ class LadderWalkTests(unittest.TestCase):
         self.assertAlmostEqual(pnl, 0.5)
         self.assertEqual((j, why), (1, "lock"))
 
+    def test_each_expert_picks_its_own_exits(self):
+        from alpacabot.engine import EXPERT_LADDERS, ladder_for
+        from alpacabot.research import LADDER_VARIANTS
+        lad = LADDER_VARIANTS["each expert's own exits"]
+        self.assertEqual(ladder_for(lad, "connors_rsi2")["tp_fracs"], [1.0])
+        self.assertEqual(ladder_for(lad, "S:donchian_turtle")["tp_fracs"], [])          # shorts use the same expert's plan
+        self.assertEqual(ladder_for(lad, "unknown")["tp_fracs"], [0.25, 0.5])            # default plan
+        self.assertEqual(set(EXPERT_LADDERS), set(__import__("alpacabot.experts", fromlist=["x"]).ALL_EXPERTS))
+        bars = [(100, 102.1, 99.9, 102.0), (102.0, 103.0, 101.9, 102.9)]
+        j, pnl, why = self.walk(bars, ladder_for(lad, "connors_rsi2"))
+        self.assertEqual((j, pnl, why), (0, 2.0, "zone100"))                            # Connors: all out at the zone
+        turtle = ladder_for(lad, "donchian_turtle")
+        bars = [(100, 106, 99.9, 105.5), (105.5, 105.6, 101.8, 102.0)]                   # no target; 2 ATR trail behind 106 -> 104
+        j, pnl, why = self.walk(bars, turtle)
+        self.assertEqual((j, pnl, why), (1, 4.0, "lock"))
+
     def test_breakeven_lock_after_first_step(self):
         bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
         j, pnl, why = self.walk(bars)

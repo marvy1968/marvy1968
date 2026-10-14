@@ -717,8 +717,9 @@ class PaperRunner:
                     if lad_cfg and tier is not None:
                         side_ = -1 if sig.side == -1 else 1
                         atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
+                        from .engine import ladder_for
                         pos["ladder"] = {"ref": ref, "atr": atr_i, "tier": tier, "stop_px": fill - side_ * sig.stop_dist, "fill": fill,
-                                         "peak_qty": qty, "sold": 0, "tp_steps": 0, "cfg": lad_cfg}
+                                         "peak_qty": qty, "sold": 0, "tp_steps": 0, "cfg": ladder_for(lad_cfg, sig.tag)}
                         if lad_cfg.get("ride"):                  # the zones take profit; the expert's fixed target would close it all
                             pos["state"].tp = float("inf")
                         self.journal("ladder_open", symbol=sym, tier=tier, risk_pct=lad_cfg["entry_risk"][tier], qty=qty)
