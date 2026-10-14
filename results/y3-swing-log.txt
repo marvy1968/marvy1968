@@ -1,3 +1,3 @@
 $ show alpaca_swing/swing.log
-started 2026-10-13 20:49:34 EDT
-RUNNING...
+started 2026-10-13 20:49:34 EDT, took 0s, exit 0
+
