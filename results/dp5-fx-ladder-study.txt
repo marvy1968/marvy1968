@@ -1,0 +1,3 @@
+$ alpaca run-all --families fx_lien_fader_h1_ladder fx_f0_h4_ladder fx_box200_h1 fx_box200_h1_ladder
+started 2026-10-14 12:58:17 EDT
+RUNNING...
