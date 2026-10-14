@@ -1,3 +1,2099 @@
 $ read-bot-reports /home/moonrider1968/MasterBot_Center
-started 2026-10-14 06:38:55 EDT
-RUNNING...
+started 2026-10-14 06:38:55 EDT, took 3s, exit 0
+
+
+===== /home/moonrider1968/MasterBot_Center/API_CHANGES.txt (135 lines, 2026-03-04)
+.. -*- rest -*-
+
+==================================================
+API changes in the new masked array implementation
+==================================================
+
+Masked arrays are subclasses of ndarray
+---------------------------------------
+
+Contrary to the original implementation, masked arrays are now regular
+ndarrays::
+
+  >>> x = masked_array([1,2,3],mask=[0,0,1])
+  >>> print isinstance(x, numpy.ndarray)
+  True
+
+
+``_data`` returns a view of the masked array
+--------------------------------------------
+
+Masked arrays are composed of a ``_data`` part and a ``_mask``. Accessing the
+``_data`` part will return a regular ndarray or any of its subclass, depending
+on the initial data::
+
+  >>> x = masked_array(numpy.matrix([[1,2],[3,4]]),mask=[[0,0],[0,1]])
+  >>> print x._data
+  [[1 2]
+   [3 4]]
+  >>> print type(x._data)
+  <class 'numpy.matrixlib.defmatrix.matrix'>
+
+
+In practice, ``_data`` is implemented as a property, not as an attribute.
+Therefore, you cannot access it directly, and some simple tests such as the
+following one will fail::
+
+  >>>x._data is x._data
+  False
+
+
+``filled(x)`` can return a subclass of ndarray
+----------------------------------------------
+The function ``filled(a)`` returns an array of the same type as ``a._data``::
+
+  >>> x = masked_array(numpy.matrix([[1,2],[3,4]]),mask=[[0,0],[0,1]])
+  >>> y = filled(x)
+  >>> print type(y)
+  <class 'numpy.matrixlib.defmatrix.matrix'>
+  >>> print y
+  matrix([[     1,      2],
+          [     3, 999999]])
+
+
+``put``, ``putmask`` behave like their ndarray counterparts
+-----------------------------------------------------------
+
+Previously, ``putmask`` was used like this::
+
+  mask = [False,True,True]
+  x = array([1,4,7],mask=mask)
+  putmask(x,mask,[3])
+
+which translated to::
+
+  x[~mask] = [3]
+
+(Note that a ``True``-value in a mask suppresses a value.)
+
+In other words, the mask had the same length as ``x``, whereas
+``values`` had ``sum(~mask)`` elements.
+
+===== /home/moonrider1968/MasterBot_Center/Betting_AJ/betting.log (4 lines, 2026-04-16)
+Traceback (most recent call last):
+  File "/home/moonrider1968/MasterBot_Center/Betting_AJ/aj_edge_bot.py", line 7, in <module>
+    import pytz
+ModuleNotFoundError: No module named 'pytz'
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/aj_master.log (355 lines, 2026-04-12)
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:57:01,819 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:57:02,338 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:57:02,888 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:57:03,688 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:57:04,191 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    if resp.status_code == 429:
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1028, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_bot.log (4077 lines, 2026-04-10)
+2026-04-10 11:38:24,309 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:39:24,322 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:40:24,381 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:41:24,441 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:42:24,497 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:43:24,553 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:44:24,573 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:45:24,633 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:46:24,697 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:47:24,757 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:48:24,772 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:49:24,810 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:50:24,822 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:51:24,881 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:52:24,922 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:53:24,981 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:54:25,042 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:55:25,093 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:56:25,153 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:57:25,213 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:58:25,273 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 11:59:25,334 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:00:25,347 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:01:25,397 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:02:25,422 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:03:25,472 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:04:25,529 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:05:25,590 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:06:25,617 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:07:25,677 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:08:25,737 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:09:25,797 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:10:25,845 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:11:25,905 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:12:25,947 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:13:25,997 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:14:26,022 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:15:26,081 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:16:26,141 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:17:26,147 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:18:26,205 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:19:26,261 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:20:26,321 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:21:26,377 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 12:22:26,437 | INFO | 💓 ALPACA WEEKLY | PnL: 0.00% | Step: 0
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_dual.log (2829 lines, 2026-04-12)
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:52:56,903 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:53:56,931 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:54:56,960 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:55:56,989 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:56:57,018 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_hybrid.log (5904 lines, 2026-04-16)
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,101 | starting data websocket connection
+2026-04-16 03:02:54,101 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,276 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,277 | starting data websocket connection
+2026-04-16 03:02:54,277 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,468 | data websocket error, restarting connection: server rejected WebSocket connection: HTTP 429
+2026-04-16 03:02:54,468 | starting data websocket connection
+2026-04-16 03:02:54,468 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,639 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,640 | starting data websocket connection
+2026-04-16 03:02:54,640 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,830 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,831 | starting data websocket connection
+2026-04-16 03:02:54,831 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,017 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:55,018 | starting data websocket connection
+2026-04-16 03:02:55,018 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,212 | data websocket error, restarting connection: server rejected WebSocket connection: HTTP 429
+2026-04-16 03:02:55,212 | starting data websocket connection
+2026-04-16 03:02:55,212 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,389 | connected to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,426 | subscribed to bars: ['AAPL', 'MSFT', 'NVDA', 'TSLA']
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_masters.log (33 lines, 2026-04-12)
+2026-04-10 22:03:32,693 | INFO | 📊 Warming up Strategic Masters (Velez/Weinstein)...
+2026-04-10 22:03:32,935 | INFO | ✅ TSLA Indicators Primed.
+2026-04-10 22:03:33,055 | INFO | ✅ NVDA Indicators Primed.
+2026-04-10 22:03:33,122 | INFO | ✅ AAPL Indicators Primed.
+2026-04-10 22:03:33,204 | INFO | ✅ MSFT Indicators Primed.
+2026-04-10 22:03:33,358 | INFO | ✅ AMZN Indicators Primed.
+2026-04-10 22:03:33,420 | INFO | ✅ META Indicators Primed.
+2026-04-10 22:03:33,479 | INFO | ✅ GOOGL Indicators Primed.
+2026-04-10 22:03:33,480 | INFO | 🧠 ALPACA MASTER CONVOY ACTIVE
+2026-04-10 22:03:33,498 | INFO | 💤 NYSE Closed. Sleeping.
+2026-04-10 23:03:33,504 | INFO | 💤 NYSE Closed. Sleeping.
+2026-04-12 10:25:27,762 | INFO | 📊 Warming up Alpaca Beast...
+2026-04-12 10:25:28,010 | INFO | ✅ TSLA Indicators Primed.
+2026-04-12 10:25:28,064 | INFO | ✅ NVDA Indicators Primed.
+2026-04-12 10:25:28,119 | INFO | ✅ AAPL Indicators Primed.
+2026-04-12 10:25:28,172 | INFO | ✅ MSFT Indicators Primed.
+2026-04-12 10:25:28,238 | INFO | ✅ AMZN Indicators Primed.
+2026-04-12 10:25:28,282 | INFO | ✅ META Indicators Primed.
+2026-04-12 10:25:28,325 | INFO | ✅ GOOGL Indicators Primed.
+2026-04-12 10:25:28,326 | INFO | 🧠 ALPACA BEAST v9.1 ACTIVE | Dynamic Risk Sizing
+2026-04-12 10:25:28,351 | INFO | 💤 NYSE Closed. Sleeping.
+2026-04-12 10:32:06,994 | INFO | 🧠 v9.3 VIRTUAL BEAST ACTIVE | Staircase & Dynamic Trail
+2026-04-12 10:39:10,922 | INFO | 📊 Warming up Alpaca Beast...
+2026-04-12 10:39:11,170 | INFO | ✅ TSLA Indicators Primed.
+2026-04-12 10:39:11,254 | INFO | ✅ NVDA Indicators Primed.
+2026-04-12 10:39:11,317 | INFO | ✅ AAPL Indicators Primed.
+2026-04-12 10:39:11,371 | INFO | ✅ MSFT Indicators Primed.
+2026-04-12 10:39:11,421 | INFO | ✅ AMZN Indicators Primed.
+2026-04-12 10:39:11,475 | INFO | ✅ META Indicators Primed.
+2026-04-12 10:39:11,522 | INFO | ✅ GOOGL Indicators Primed.
+2026-04-12 10:39:11,523 | INFO | 🧠 v9.3 VIRTUAL BEAST ACTIVE | Staircase & Dynamic Trail
+2026-04-12 10:39:11,539 | INFO | 💤 NYSE Closed. Sleeping.
+2026-04-12 11:39:11,544 | INFO | 💤 NYSE Closed. Sleeping.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_velez.log (2802 lines, 2026-04-12)
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:52:56,903 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:53:56,931 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:54:56,960 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:55:56,989 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+2026-04-12 22:56:57,018 | ERROR | Loop Error: <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_velez_trade_log.csv (1 lines, 2026-04-07)
+timestamp,symbol,side,entry,exit,qty,pnl,reason,system
+...
+timestamp,symbol,side,entry,exit,qty,pnl,reason,system
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/basketball.log (1 lines, 2026-04-04)
+-bash: [2]+: command not found
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/basketball_80.log (419837 lines, 2026-04-12)
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:13,456 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:14,166 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:14,687 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:15,204 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:15,714 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:16,224 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-12 22:15:16,743 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/basketball_stealth.log (757 lines, 2026-04-08)
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:04,569 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:05,155 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:05,981 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:06,541 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:07,065 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+2026-04-08 16:44:07,573 | ERROR | Telegram send failed: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/telegram_sender.py", line 195, in _send_message
+    resp.raise_for_status()
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api.telegram.org/botREDACTED_TELEGRAM_TOKEN/sendMessage
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/clean.log (7570 lines, 2026-04-16)
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+Error fetching: Could not find a suitable TLS CA certificate bundle, invalid path: /home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/certifi/cacert.pem
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/historical_prop_studies.csv (16 lines, 2026-03-31)
+date,sport,market,subject_name,line,odds,confidence,edge,result
+2026-03-01,basketball_ncaab,player_points,Zach Edey,24.5,1.87,82.0,0.08,WIN
+2026-03-05,basketball_ncaab,player_rebounds,Hunter Dickinson,10.5,1.91,75.0,0.05,WIN
+2026-03-10,basketball_ncaab,player_assists,Tyler Kolek,7.5,1.83,70.0,0.04,LOSS
+...
+2026-03-05,basketball_wnba,team_total_points,New York Liberty,84.5,1.83,75.0,0.05,WIN
+2026-03-10,basketball_ncaab,team_total_points,UConn Huskies,81.5,1.95,83.0,0.08,WIN
+2026-03-01,basketball_ncaab,team_total_points,Houston Cougars,72.5,1.91,82.0,0.08,WIN
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/hybrid.log (5786 lines, 2026-04-16)
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,101 | starting data websocket connection
+2026-04-16 03:02:54,101 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,276 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,277 | starting data websocket connection
+2026-04-16 03:02:54,277 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,468 | data websocket error, restarting connection: server rejected WebSocket connection: HTTP 429
+2026-04-16 03:02:54,468 | starting data websocket connection
+2026-04-16 03:02:54,468 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,639 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,640 | starting data websocket connection
+2026-04-16 03:02:54,640 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:54,830 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:54,831 | starting data websocket connection
+2026-04-16 03:02:54,831 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,017 | error during websocket communication: connection limit exceeded
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 343, in _run_forever
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 135, in _start_ws
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/venv/lib/python3.11/site-packages/alpaca/data/live/websocket.py", line 126, in _auth
+ValueError: connection limit exceeded
+2026-04-16 03:02:55,018 | starting data websocket connection
+2026-04-16 03:02:55,018 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,212 | data websocket error, restarting connection: server rejected WebSocket connection: HTTP 429
+2026-04-16 03:02:55,212 | starting data websocket connection
+2026-04-16 03:02:55,212 | connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,389 | connected to wss://stream.data.alpaca.markets/v2/iex
+2026-04-16 03:02:55,426 | subscribed to bars: ['AAPL', 'MSFT', 'NVDA', 'TSLA']
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/aj_edge_tracker.csv (29 lines, 2026-04-03)
+timestamp_utc,game,market,selection,bot_win_pct,book_win_pct,display_edge,ev_percent,confidence,kelly_quarter,leader,leader_win_prob,minutes_left,seconds_left,score_diff,pace,pressure,suspicious,recommended_bankroll_pct
+2026-03-22T19:08:24.958206,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+2026-03-22T19:15:48.059004,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+2026-04-03T06:46:35.546124,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+...
+2026-04-03T07:09:45.300922,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+2026-04-03T07:10:45.315621,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+2026-04-03T07:11:45.330461,NC State Wolfpack @ Michigan Wolverines,moneyline,Michigan Wolverines,88.5,61.2,27.3,36.4,0.885,0.06,Michigan Wolverines,0.885,4.0,20.0,14.0,normal,normal,False,2.0
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/historical_results.json (59 lines, 2026-03-31)
+[
+  {
+    "game": "Illinois St Redbirds @ Wake Forest Demon Deacons",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Wake Forest Demon Deacons",
+    "away_team": "Illinois St Redbirds",
+    "home_score": 75,
+    "away_score": 78,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "St. John's Red Storm @ Kansas Jayhawks",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Kansas Jayhawks",
+    "away_team": "St. John's Red Storm",
+    "home_score": 65,
+    "away_score": 67,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "Tennessee Volunteers @ Virginia Cavaliers",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Virginia Cavaliers",
+    "away_team": "Tennessee Volunteers",
+    "home_score": 72,
+    "away_score": 79,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "Seattle Redhawks @ Auburn Tigers",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Auburn Tigers",
+    "away_team": "Seattle Redhawks",
+    "home_score": null,
+    "away_score": null,
+    "completed": false,
+    "status_detail": "NEEDS_RESULT"
+  },
+  {
+    "game": "UNLV Rebels @ Tulsa Golden Hurricane",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Tulsa Golden Hurricane",
+    "away_team": "UNLV Rebels",
+    "home_score": null,
+    "away_score": null,
+    "completed": false,
+    "status_detail": "NEEDS_RESULT"
+  },
+  {
+    "home_team": "Virginia Cavaliers",
+    "away_team": "Tennessee Volunteers",
+    "home_score": 72,
+    "away_score": 79,
+    "completed": true,
+    "status": "Final"
+  }
+]
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/marchedge_bets.csv (6445 lines, 2026-03-31)
+timestamp,game,market,side,line,odds,edge,display_edge,confidence,kelly_quarter,score,strength,suspicious,summary
+1773939364,South Florida Bulls @ Louisville Cardinals,total,under,154.5,-110,0.357,0.3035,87.0,0.1171,54.08,A,True,South Florida Bulls @ Louisville Cardinals | TOTAL | under 154.5 | edge=0.3570 | conf=87.0% | kelly_q=0.1
+1773939364,South Florida Bulls @ Louisville Cardinals,spread,South Florida Bulls,5.5,-110,0.1325,0.1325,87.0,0.0435,44.79,A,False,South Florida Bulls @ Louisville Cardinals | SPREAD | South Florida Bulls 5.5 | edge=0.132
+1773939364,South Florida Bulls @ Louisville Cardinals,moneyline,Louisville Cardinals,,-220,0.061,0.061,60.9,0.0305,28.18,D,False,South Florida Bulls @ Louisville Cardinals | MONEYLINE | Louisville Cardinals | edge=0.0610
+...
+1774223940,Tennessee Volunteers @ Virginia Cavaliers,moneyline,Tennessee Volunteers,,-400,0.1396,0.1396,89.9,0.1745,49.79,A,False,Tennessee Volunteers @ Virginia Cavaliers | MONEYLINE | Tennessee Volunteers | edge=0.1396
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,spread,Tennessee Volunteers,-3.5,-130,0.4048,0.325,95.0,0.2327,64.55,A,True,Tennessee Volunteers @ Virginia Cavaliers | SPREAD | Tennessee Volunteers -3.5 | edge=0.404
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,total,under,151.5,-120,0.2508,0.2504,95.0,0.138,61.78,A,False,Tennessee Volunteers @ Virginia Cavaliers | TOTAL | under 151.5 | edge=0.2508 | conf=95.0% | kelly_q=0.13
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/matcher_near_miss.log (109 lines, 2026-03-31)
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Alabama Crimson Tide @ Michigan Wolverines --> Alabama Crimson Tide @ Louisville Cardinals | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Michigan St Spartans @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Stanford Cardinal @ West Virginia Mountaineers --> Kentucky Wildcats @ West Virginia Mountaineers | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Notre Dame Fighting Irish @ Vanderbilt Commodores --> Illinois Fighting Illini @ Vanderbilt Commodores | score=1.192 | min_leg=0.192 | sport=basketball_wncaab
+North Carolina Tar Heels @ UConn Huskies --> Syracuse Orange @ UConn Huskies | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+Minnesota Golden Gophers @ UCLA Bruins --> Oklahoma State Cowgirls @ UCLA Bruins | score=1.0 | min_leg=0.0 | sport=basketball_wncaab
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/performance_tracker.csv (6 lines, 2026-03-31)
+timestamp_utc,game,market,selection,strength,bot_win_pct,book_win_pct,display_edge,ev_percent,confidence,kelly_quarter,recommended_bankroll_pct,leader,leader_win_prob,minutes_left,seconds_left,score_diff,pace,pressure,su
+2026-03-22T21:36:37.635694,Illinois St Redbirds @ Wake Forest Demon Deacons,moneyline,Wake Forest Demon Deacons,B,80.0,71.43,0.0,17.14,0.8,0.06,6.0,,0.8,5.0,0.0,14.0,normal,normal,0,standard
+2026-03-22T21:36:37.644373,St. John's Red Storm @ Kansas Jayhawks,moneyline,Kansas Jayhawks,B,37.97,33.9,0.0,8.14,0.3797,0.0407,4.07,,0.3797,5.0,0.0,14.0,normal,normal,0,standard
+2026-03-22T21:36:37.650855,Tennessee Volunteers @ Virginia Cavaliers,moneyline,Virginia Cavaliers,B,57.44,51.28,0.0,12.31,0.5744,0.06,6.0,,0.5744,5.0,0.0,14.0,normal,normal,0,standard
+...
+2026-03-22T21:36:37.650855,Tennessee Volunteers @ Virginia Cavaliers,moneyline,Virginia Cavaliers,B,57.44,51.28,0.0,12.31,0.5744,0.06,6.0,,0.5744,5.0,0.0,14.0,normal,normal,0,standard
+2026-03-22T21:36:37.658654,Seattle Redhawks @ Auburn Tigers,moneyline,Auburn Tigers,B,103.7,92.59,0.0,22.22,1.037,0.06,6.0,,1.037,5.0,0.0,14.0,normal,normal,0,standard
+2026-03-22T21:36:37.667801,UNLV Rebels @ Tulsa Golden Hurricane,moneyline,Tulsa Golden Hurricane,B,77.24,68.97,0.0,16.55,0.7724,0.06,6.0,,0.7724,5.0,0.0,14.0,normal,normal,0,standard
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/settled_results.json (94 lines, 2026-03-31)
+[
+  {
+    "id": 1,
+    "timestamp_utc": "2026-03-22T21:36:37.635694",
+    "game": "Illinois St Redbirds @ Wake Forest Demon Deacons",
+    "sport_key": "basketball_ncaab",
+    "market": "moneyline",
+    "selection": "Wake Forest Demon Deacons",
+    "strength": "B",
+    "bot_win_pct": 80.0,
+    "book_win_pct": 71.43,
+    "display_edge": 0.0,
+    "ev_percent": 17.14,
+    "confidence": 0.8,
+    "kelly_quarter": 0.06,
+    "recommended_bankroll_pct": 6.0,
+    "leader": "",
+    "leader_win_prob": 0.8,
+    "minutes_left": 5.0,
+    "seconds_left": 0.0,
+    "score_diff": 14.0,
+    "pace": "normal",
+    "pressure": "normal",
+    "suspicious": 0,
+    "tag": "standard",
+    "result": "loss",
+    "profit_units": -6.0,
+    "final_home_score": 75,
+    "final_away_score": 78,
+    "settled_at_utc": "2026-03-24T05:38:35.267857+00:00",
+    "bucket_key": "basketball_ncaab|moneyline"
+  },
+  {
+    "id": 2,
+    "timestamp_utc": "2026-03-22T21:36:37.644373",
+    "game": "St. John's Red Storm @ Kansas Jayhawks",
+    "sport_key": "basketball_ncaab",
+    "market": "moneyline",
+    "selection": "Kansas Jayhawks",
+    "strength": "B",
+    "bot_win_pct": 37.97,
+    "book_win_pct": 33.9,
+    "display_edge": 0.0,
+    "ev_percent": 8.14,
+    "confidence": 0.3797,
+    "kelly_quarter": 0.0407,
+    "recommended_bankroll_pct": 4.07,
+    "leader": "",
+    "leader_win_prob": 0.3797,
+    "minutes_left": 5.0,
+    "seconds_left": 0.0,
+    "score_diff": 14.0,
+    "pace": "normal",
+    "pressure": "normal",
+    "suspicious": 0,
+    "tag": "standard",
+    "result": "loss",
+    "profit_units": -4.07,
+    "final_home_score": 65,
+    "final_away_score": 67,
+    "settled_at_utc": "2026-03-24T05:38:35.275146+00:00",
+    "bucket_key": "basketball_ncaab|moneyline"
+  },
+  {
+    "id": 3,
+    "timestamp_utc": "2026-03-22T21:36:37.650855",
+    "game": "Tennessee Volunteers @ Virginia Cavaliers",
+    "sport_key": "basketball_ncaab",
+    "market": "moneyline",
+    "selection": "Virginia Cavaliers",
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/logs/team_props_bets.csv (5420 lines, 2026-03-31)
+timestamp,game,home_team,away_team,market,team,side,line,odds,projected_final_raw,projected_final_calibrated,model_prob,implied_prob,edge,confidence,kelly_quarter,strength,suspicious,phase,pace_bucket,one_possession_game
+1773712070,Auburn @ Duke,Duke,Auburn,team_total,Auburn,over,53.5,-110,55.57,55.57,0.7654,0.5238,0.2416,90.0,0.07,A,False,2h,normal,False,False,Auburn team total over 53.5 | proj=55.57 | edge=0.2416 | conf=90.0% | suspici
+1773712070,Auburn @ Duke,Duke,Auburn,team_total,Duke,over,59.5,-110,60.98,60.98,0.6897,0.5238,0.1659,86.6,0.07,A,False,2h,normal,False,False,Duke team total over 59.5 | proj=60.98 | edge=0.1659 | conf=86.6% | suspicious=
+1773713393,Auburn @ Duke,Duke,Auburn,team_total,Auburn,over,53.5,-110,55.57,55.57,0.7654,0.5238095238095238,0.2416,90.0,0.07,A,False,2h,normal,False,False,Auburn team total over 53.5 | proj=55.57 | edge=0.2416 | conf=90.
+...
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Tennessee Volunteers,under,77.5,-110,75.75,75.75,0.6823,0.5238095238095238,0.1585,85.4,0.07,A,False,2h,normal,False,
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Virginia Cavaliers,under,74.0,-110,71.0,71.0,0.7859,0.5238095238095238,0.2621,90.0,0.07,A,False,2h,normal,False,Fals
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Tennessee Volunteers,under,77.5,-110,75.75,75.75,0.6823,0.5238095238095238,0.1585,85.4,0.07,A,False,2h,normal,False,
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/middles.log (3 lines, 2026-04-04)
+nohup: ignoring input
+🚀 Running AJ Middle Test...
+✅ Success: 🎯 *[AJ MIDDLE - GRADE A]*
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba.log (5 lines, 2026-04-05)
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 6, in <module>
+    from edge_alert_deduper import deduper
+ImportError: cannot import name 'deduper' from 'edge_alert_deduper' (/home/moonrider1968/bots/oanda_active/MarchEdge/edge_alert_deduper.py)
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_80.log (4 lines, 2026-04-12)
+nohup: ignoring input
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 7
+    print(f"Alert found: {len(alerts)} props identified")
+IndentationError: unexpected indent
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_final.log (5 lines, 2026-04-05)
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 6, in <module>
+    from edge_alert_deduper import deduper
+ImportError: cannot import name 'deduper' from 'edge_alert_deduper' (/home/moonrider1968/bots/oanda_active/MarchEdge/edge_alert_deduper.py)
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_reboot.log (5 lines, 2026-04-05)
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 6, in <module>
+    from edge_alert_deduper import deduper
+ImportError: cannot import name 'deduper' from 'edge_alert_deduper' (/home/moonrider1968/bots/oanda_active/MarchEdge/edge_alert_deduper.py)
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_shadow_70.log (4 lines, 2026-04-12)
+nohup: ignoring input
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 7
+    print(f"Alert found: {len(alerts)} props identified")
+IndentationError: unexpected indent
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/nba_stealth.log (5 lines, 2026-04-08)
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/moonrider1968/bots/oanda_active/MarchEdge/nba_team_props.py", line 6, in <module>
+    from edge_alert_deduper import deduper
+ImportError: cannot import name 'deduper' from 'edge_alert_deduper' (/home/moonrider1968/bots/oanda_active/MarchEdge/edge_alert_deduper.py)
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_beast.log (1 lines, 2026-04-16)
+2026-04-16 12:41:43,532 | 🚀 OANDA MASTER BEAST v10.7 (BOX MASTER + CHOP) STARTING...
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_bot.log (17237 lines, 2026-04-10)
+2026-04-10 13:58:38,476 | INFO | ⚡ EXECUTING: buy USD_CHF
+2026-04-10 13:58:38,616 | INFO | ✅ ORDER FILLED: USD_CHF
+2026-04-10 13:58:38,792 | INFO | ⚡ EXECUTING: buy AUD_USD
+2026-04-10 13:58:38,926 | INFO | ✅ ORDER FILLED: AUD_USD
+2026-04-10 13:58:39,071 | INFO | ⚡ EXECUTING: buy NZD_USD
+2026-04-10 13:58:39,190 | INFO | ✅ ORDER FILLED: NZD_USD
+2026-04-10 13:58:39,192 | INFO | 💓 OANDA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 13:59:10,157 | INFO | ⚡ EXECUTING: buy EUR_USD
+2026-04-10 13:59:10,952 | INFO | ✅ ORDER FILLED: EUR_USD
+2026-04-10 13:59:11,412 | INFO | ⚡ EXECUTING: buy GBP_USD
+2026-04-10 13:59:12,031 | INFO | ✅ ORDER FILLED: GBP_USD
+2026-04-10 13:59:12,245 | INFO | ⚡ EXECUTING: buy USD_JPY
+2026-04-10 13:59:12,519 | INFO | ✅ ORDER FILLED: USD_JPY
+2026-04-10 13:59:12,907 | INFO | ⚡ EXECUTING: buy USD_CAD
+2026-04-10 13:59:13,265 | INFO | ✅ ORDER FILLED: USD_CAD
+2026-04-10 13:59:13,496 | INFO | ⚡ EXECUTING: buy USD_CHF
+2026-04-10 13:59:13,754 | INFO | ✅ ORDER FILLED: USD_CHF
+2026-04-10 13:59:13,995 | INFO | ⚡ EXECUTING: buy AUD_USD
+2026-04-10 13:59:14,288 | INFO | ✅ ORDER FILLED: AUD_USD
+2026-04-10 13:59:14,739 | INFO | ⚡ EXECUTING: buy NZD_USD
+2026-04-10 13:59:14,966 | INFO | ✅ ORDER FILLED: NZD_USD
+2026-04-10 13:59:14,969 | INFO | 💓 OANDA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 13:59:45,265 | INFO | ⚡ EXECUTING: buy EUR_USD
+2026-04-10 13:59:45,763 | INFO | ✅ ORDER FILLED: EUR_USD
+2026-04-10 13:59:46,746 | INFO | ⚡ EXECUTING: buy GBP_USD
+2026-04-10 13:59:47,730 | INFO | ✅ ORDER FILLED: GBP_USD
+2026-04-10 13:59:48,257 | INFO | ⚡ EXECUTING: buy USD_JPY
+2026-04-10 13:59:48,528 | INFO | ✅ ORDER FILLED: USD_JPY
+2026-04-10 13:59:48,768 | INFO | ⚡ EXECUTING: buy USD_CAD
+2026-04-10 13:59:48,987 | INFO | ✅ ORDER FILLED: USD_CAD
+2026-04-10 13:59:49,237 | INFO | ⚡ EXECUTING: buy USD_CHF
+2026-04-10 13:59:49,440 | INFO | ✅ ORDER FILLED: USD_CHF
+2026-04-10 13:59:49,579 | INFO | ⚡ EXECUTING: buy AUD_USD
+2026-04-10 13:59:49,777 | INFO | ✅ ORDER FILLED: AUD_USD
+2026-04-10 13:59:50,007 | INFO | ⚡ EXECUTING: buy NZD_USD
+2026-04-10 13:59:50,244 | INFO | ✅ ORDER FILLED: NZD_USD
+2026-04-10 13:59:50,246 | INFO | 💓 OANDA WEEKLY | PnL: 0.00% | Step: 0
+2026-04-10 14:00:20,247 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 15:00:20,328 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 16:00:20,448 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 17:00:20,530 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 18:00:20,644 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 19:00:20,752 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 20:00:20,803 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+2026-04-10 21:00:20,879 | INFO | 🛡️ FRIDAY SHUTDOWN: Locking the vault for the weekend.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_master.log (6 lines, 2026-04-15)
+nohup: ignoring input
+2026-04-13 21:44:32,317 | 🚀 FX MASTER BEAST RUNNING 24/5 | SCANNING PAIRS...
+2026-04-13 21:48:38,186 | 🎯 FX BASE ENTRY LONG: USD_CHF @ 0.78346
+2026-04-13 21:48:38,316 | ⚡ FX EXECUTION: LONG 40000 USD_CHF | Stage 2 Confirmed + Bull Masters Aligned
+2026-04-14 22:38:47,908 | Data fetch error for USD_CHF: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+2026-04-15 01:30:46,701 | Data fetch error for USD_CAD: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_masters.log (88 lines, 2026-04-11)
+2026-04-11 06:20:49,763 | ERROR | request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles failed [401,{"errorMessage":"Insufficient authorization to perform request."}]
+2026-04-11 06:20:49,764 | ERROR | Warmup NZD_USD: {"errorMessage":"Insufficient authorization to perform request."}
+2026-04-11 06:20:49,786 | INFO | 💤 Weekend Mode.
+2026-04-11 07:07:07,875 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-11 07:07:08,569 | INFO | 📊 EUR_USD warmed up (300 bars)
+2026-04-11 07:07:08,569 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-11 07:07:08,699 | INFO | 📊 GBP_USD warmed up (300 bars)
+2026-04-11 07:07:08,699 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-11 07:07:09,232 | INFO | 📊 USD_JPY warmed up (300 bars)
+2026-04-11 07:07:09,232 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-11 07:07:09,272 | INFO | 📊 USD_CAD warmed up (300 bars)
+2026-04-11 07:07:09,273 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-04-11 07:07:09,314 | INFO | 📊 USD_CHF warmed up (300 bars)
+2026-04-11 07:07:09,314 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-11 07:07:09,372 | INFO | 📊 AUD_USD warmed up (300 bars)
+2026-04-11 07:07:09,372 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-11 07:07:09,457 | INFO | 📊 NZD_USD warmed up (300 bars)
+2026-04-11 07:07:09,494 | INFO | 💤 Weekend Mode.
+2026-04-11 07:10:59,208 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles
+2026-04-11 07:10:59,383 | INFO | 📊 EUR_USD warmed up (300 bars)
+2026-04-11 07:10:59,384 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_USD/candles
+2026-04-11 07:10:59,443 | INFO | 📊 GBP_USD warmed up (300 bars)
+2026-04-11 07:10:59,443 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_JPY/candles
+2026-04-11 07:10:59,503 | INFO | 📊 USD_JPY warmed up (300 bars)
+2026-04-11 07:10:59,503 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CAD/candles
+2026-04-11 07:10:59,567 | INFO | 📊 USD_CAD warmed up (300 bars)
+2026-04-11 07:10:59,568 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/USD_CHF/candles
+2026-04-11 07:10:59,672 | INFO | 📊 USD_CHF warmed up (300 bars)
+2026-04-11 07:10:59,672 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_USD/candles
+2026-04-11 07:10:59,768 | INFO | 📊 AUD_USD warmed up (300 bars)
+2026-04-11 07:10:59,768 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/NZD_USD/candles
+2026-04-11 07:10:59,807 | INFO | 📊 NZD_USD warmed up (300 bars)
+2026-04-11 07:10:59,808 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_GBP/candles
+2026-04-11 07:10:59,849 | INFO | 📊 EUR_GBP warmed up (300 bars)
+2026-04-11 07:10:59,850 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_JPY/candles
+2026-04-11 07:10:59,906 | INFO | 📊 EUR_JPY warmed up (300 bars)
+2026-04-11 07:10:59,907 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/GBP_JPY/candles
+2026-04-11 07:10:59,965 | INFO | 📊 GBP_JPY warmed up (300 bars)
+2026-04-11 07:10:59,966 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_AUD/candles
+2026-04-11 07:11:00,005 | INFO | 📊 EUR_AUD warmed up (300 bars)
+2026-04-11 07:11:00,006 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/EUR_CAD/candles
+2026-04-11 07:11:00,064 | INFO | 📊 EUR_CAD warmed up (300 bars)
+2026-04-11 07:11:00,064 | INFO | performing request https://api-fxpractice.oanda.com/v3/instruments/AUD_JPY/candles
+2026-04-11 07:11:00,123 | INFO | 📊 AUD_JPY warmed up (300 bars)
+2026-04-11 07:11:00,144 | INFO | 💤 Weekend Mode.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_velez.log (102429 lines, 2026-04-16)
+2026-04-16 06:38:57,437 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:07,438 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:17,439 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:27,441 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:37,442 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:47,443 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:39:57,445 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:07,446 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:17,448 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:27,450 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:37,451 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:47,453 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:40:57,454 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:07,456 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:17,457 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:27,458 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:37,459 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:47,460 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:41:57,462 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:07,464 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:17,465 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:27,466 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:37,468 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:47,469 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:42:57,471 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:07,472 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:17,474 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:27,475 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:37,477 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:47,478 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:43:57,480 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:07,481 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:17,482 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:27,484 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:37,485 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:47,487 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:44:57,488 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:07,489 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:17,491 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:27,492 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:37,494 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:47,495 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:45:57,497 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:46:07,498 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+2026-04-16 06:46:17,500 | INFO | performing request https://api-fxpractice.oanda.com/v3/accounts/REDACTED_OANDA_ACCOUNT/pricing
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_velez_bot.log (11421 lines, 2026-04-08)
+2026-04-08 15:06:27,254 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:07:27,369 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:08:27,588 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:09:27,706 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:10:27,841 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:11:27,877 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:12:28,069 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:13:28,309 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:14:28,536 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:15:28,696 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:16:28,725 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:17:28,958 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:18:29,163 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:19:29,225 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:20:29,409 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:21:29,513 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:22:29,866 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:23:30,040 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:24:30,137 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:25:30,255 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:26:30,497 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:27:30,604 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:28:30,857 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:29:31,028 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:30:31,191 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:31:31,547 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:32:31,725 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:33:31,855 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:34:32,029 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:35:32,184 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:36:32,201 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:37:32,451 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:38:32,555 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:39:32,565 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:40:32,728 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:41:32,933 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:42:33,085 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:43:33,276 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:44:33,347 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:45:33,804 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:46:34,066 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:47:34,081 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:48:34,263 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:49:34,426 | INFO | 💓 HUNTING | Today: $-89.53
+2026-04-08 15:50:34,537 | INFO | 💓 HUNTING | Today: $-89.53
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_velez_trade_log.csv (29 lines, 2026-04-07)
+timestamp,instrument,side,entry_price,exit_price,qty,pnl,reason,system
+2026-04-07T04:54:27.534908,EUR_USD,closed,,,,,VIRTUAL STOP HIT by OpeningDrive,
+2026-04-07T04:55:37.238941,AUD_CAD,closed,,,,,VIRTUAL STOP HIT by Minervini,
+2026-04-07T04:56:00.071346,GBP_CAD,closed,,,,,VIRTUAL STOP HIT by OpeningDrive,
+...
+2026-04-07T18:00:29.696300,USD_JPY,buy,159.651,159.419,500,-0.77,VIRTUAL STOP by OpeningDrive,OpeningDrive
+2026-04-07T18:05:27.730868,EUR_USD,buy,1.15646,1.16172,3881,20.41,PROFIT TARGET by OpeningDrive,OpeningDrive
+2026-04-07T18:57:51.273054,CAD_JPY,buy,114.778,114.553,500,-0.75,VIRTUAL STOP by OpeningDrive,OpeningDrive
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/phase_28_30_search_report.txt (3513 lines, 2026-03-31)
+==================================================
+ MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT
+==================================================
+Generated: Fri Mar 20 04:12:38 EDT 2026
+Root: /home/moonrider1968/bots/oanda_fifo_practice/MarchEdge
+
+--------------------------------------------------
+1) Exact Phase Mentions
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:24:# Phase 30 multi-sport
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:17:  echo " MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:27:    -E 'Phase 28|Phase 29|Phase 30|PHASE 28|PHASE 29|PHASE 30' \
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+
+--------------------------------------------------
+2) Broad Phase Mentions
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/review_feedback.py:267:    print("PHASE 16 REVIEW REPORT")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/outcome_tracker.py:206:    print("PHASE 17 RESULTS")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:9:# ODDS API (PHASE 9 LIVE FEED)
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:24:# Phase 30 multi-sport
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/manual_live_eval.pyk:471:    # Phase 4 stats
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/manual_live_eval.pyk:524:    # Phase 5: blend raw matchup stats first
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/signal_filter.py.bak:2:Phase 12 — Signal Quality Filter
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:17:  echo " MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:27:    -E 'Phase 28|Phase 29|Phase 30|PHASE 28|PHASE 29|PHASE 30' \
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/live_engine/payload_builder.py:266:    4. enriches the payload with Phase 4 team stats
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:142:    print_section(f"PHASE 26 LOG ANALYZER — {analysis['label']}")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:182:        recs.append("Average CLV is negative. Entry timing may be poor — Phase 27 should focus on timing filters.")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:203:    print_section("PHASE 26 RECOMMENDATIONS")
+
+--------------------------------------------------
+3) Likely Related Keywords
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/review_feedback.py:220:        feedback.append("Signal mix looks stable. Continue collecting data and move toward CLV/outcome tracking.")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/outcome_tracker.py:134:        # Moneyline CLV is more reliable in implied probability space
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:5:OUT="$ROOT/phase_28_30_search_report.txt"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:55:    -E 'self-learning|self learning|win rate|settlement|closing line|CLV|result tracking|results logger|production orchestrator|orchestrato
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:119:        "settlement_status": str(final_game.get("status_detail", "")),
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:123:async def run_settlement() -> dict[str, Any]:
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:171:    summary = asyncio.run(run_settlement())
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/venv/lib/python3.11/site-packages/pytz-2026.1.post1.dist-info/RECORD:355:pytz/zoneinfo/Asia/Yerevan,sha256=FM0pUA4NbTWBb_CsJ5KCLVrLoNmad7njBKqFrJBDoxE,1137
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/venv/lib64/python3.11/site-packages/pytz-2026.1.post1.dist-info/RECORD:355:pytz/zoneinfo/Asia/Yerevan,sha256=FM0pUA4NbTWBb_CsJ5KCLVrLoNmad7njBKqFrJBDoxE,1137
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:182:        recs.append("Average CLV is negative. Entry timing may be poor — Phase 27 should focus on timing filters.")
+
+--------------------------------------------------
+4) Files Most Likely To Contain Phase Notes
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/dispatcher.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/formatter.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/telegram_bot.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/all_engines_live.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/app.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/best_bet_bridge.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/bet_intelligence.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/bet_tracker.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/calibration_layer.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/config.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/build_alias_cache.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/dynamic_alias_loader.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/game_matcher.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_aliases.json
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_stat_lookup.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_stats_cache.json
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_detector.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_engine/ev.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_engine/model_edge.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/entry_timing_filter.py
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/shopper.log (1 lines, 2026-04-05)
+nohup: ignoring input
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/shopper_reboot.log (729 lines, 2026-04-08)
+🛒 [LINE SHOPPER] 01:27 — No targets yet
+🛒 [LINE SHOPPER] 01:32 — No targets yet
+🛒 [LINE SHOPPER] 01:37 — No targets yet
+🛒 [LINE SHOPPER] 01:42 — No targets yet
+🛒 [LINE SHOPPER] 01:47 — No targets yet
+🛒 [LINE SHOPPER] 01:52 — No targets yet
+🛒 [LINE SHOPPER] 01:57 — No targets yet
+🛒 [LINE SHOPPER] 02:02 — No targets yet
+🛒 [LINE SHOPPER] 02:07 — No targets yet
+🛒 [LINE SHOPPER] 02:12 — No targets yet
+🛒 [LINE SHOPPER] 02:17 — No targets yet
+🛒 [LINE SHOPPER] 02:22 — No targets yet
+🛒 [LINE SHOPPER] 02:27 — No targets yet
+🛒 [LINE SHOPPER] 02:32 — No targets yet
+🛒 [LINE SHOPPER] 02:37 — No targets yet
+🛒 [LINE SHOPPER] 02:42 — No targets yet
+🛒 [LINE SHOPPER] 02:47 — No targets yet
+🛒 [LINE SHOPPER] 02:52 — No targets yet
+🛒 [LINE SHOPPER] 02:57 — No targets yet
+🛒 [LINE SHOPPER] 03:02 — No targets yet
+🛒 [LINE SHOPPER] 03:07 — No targets yet
+🛒 [LINE SHOPPER] 03:12 — No targets yet
+🛒 [LINE SHOPPER] 03:17 — No targets yet
+🛒 [LINE SHOPPER] 03:22 — No targets yet
+🛒 [LINE SHOPPER] 03:27 — No targets yet
+🛒 [LINE SHOPPER] 03:32 — No targets yet
+🛒 [LINE SHOPPER] 03:37 — No targets yet
+🛒 [LINE SHOPPER] 03:42 — No targets yet
+🛒 [LINE SHOPPER] 03:47 — No targets yet
+🛒 [LINE SHOPPER] 03:52 — No targets yet
+🛒 [LINE SHOPPER] 03:57 — No targets yet
+🛒 [LINE SHOPPER] 04:02 — No targets yet
+🛒 [LINE SHOPPER] 04:07 — No targets yet
+🛒 [LINE SHOPPER] 04:12 — No targets yet
+🛒 [LINE SHOPPER] 04:17 — No targets yet
+🛒 [LINE SHOPPER] 04:22 — No targets yet
+🛒 [LINE SHOPPER] 04:27 — No targets yet
+🛒 [LINE SHOPPER] 04:32 — No targets yet
+🛒 [LINE SHOPPER] 04:37 — No targets yet
+🛒 [LINE SHOPPER] 04:42 — No targets yet
+🛒 [LINE SHOPPER] 04:47 — No targets yet
+🛒 [LINE SHOPPER] 04:52 — No targets yet
+🛒 [LINE SHOPPER] 04:57 — No targets yet
+🛒 [LINE SHOPPER] 05:02 — No targets yet
+🛒 [LINE SHOPPER] 05:07 — No targets yet
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/storage/tracker/game_results.json (13 lines, 2026-03-31)
+{
+  "North Carolina Tar Heels @ UConn Huskies": {
+    "home_score": 78.0,
+    "away_score": 61.0
+  },
+  "Minnesota Golden Gophers @ UCLA Bruins": {
+    "home_score": 79.0,
+    "away_score": 66.0
+  },
+  "Iowa Hawkeyes @ Nebraska Cornhuskers": {
+    "home_score": 72.0,
+    "away_score": 79.0
+  }
+}
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/team_props.log (1385 lines, 2026-04-01)
+2026-04-01 22:59:46,287 | INFO | Telegram alert sent.
+2026-04-01 22:59:46,800 | INFO | Telegram alert sent.
+2026-04-01 22:59:47,340 | INFO | Telegram alert sent.
+2026-04-01 22:59:47,860 | INFO | Telegram alert sent.
+2026-04-01 22:59:48,404 | INFO | Telegram alert sent.
+2026-04-01 22:59:49,380 | INFO | Telegram alert sent.
+2026-04-01 22:59:49,906 | INFO | Telegram alert sent.
+2026-04-01 22:59:50,426 | INFO | Telegram alert sent.
+2026-04-01 22:59:50,946 | INFO | Telegram alert sent.
+2026-04-01 22:59:54,027 | INFO | Telegram alert sent.
+2026-04-01 22:59:54,551 | INFO | Telegram alert sent.
+2026-04-01 22:59:55,092 | INFO | Telegram alert sent.
+2026-04-01 22:59:55,630 | INFO | Telegram alert sent.
+2026-04-01 22:59:56,310 | INFO | Telegram alert sent.
+2026-04-01 22:59:56,820 | INFO | Telegram alert sent.
+2026-04-01 22:59:57,336 | INFO | Telegram alert sent.
+2026-04-01 22:59:57,849 | INFO | Telegram alert sent.
+2026-04-01 22:59:58,362 | INFO | Telegram alert sent.
+2026-04-01 22:59:58,880 | INFO | Telegram alert sent.
+2026-04-01 22:59:59,410 | INFO | Telegram alert sent.
+2026-04-01 22:59:59,932 | INFO | Telegram alert sent.
+2026-04-01 23:00:00,778 | INFO | Telegram alert sent.
+2026-04-01 23:00:01,297 | INFO | Telegram alert sent.
+2026-04-01 23:00:01,833 | INFO | Telegram alert sent.
+2026-04-01 23:00:02,384 | INFO | Telegram alert sent.
+2026-04-01 23:00:02,942 | INFO | Telegram alert sent.
+2026-04-01 23:00:03,457 | INFO | Telegram alert sent.
+2026-04-01 23:00:03,985 | INFO | Telegram alert sent.
+2026-04-01 23:00:04,501 | INFO | Telegram alert sent.
+2026-04-01 23:00:06,200 | INFO | Telegram alert sent.
+2026-04-01 23:00:06,715 | INFO | Telegram alert sent.
+2026-04-01 23:00:07,229 | INFO | Telegram alert sent.
+2026-04-01 23:00:07,751 | INFO | Telegram alert sent.
+2026-04-01 23:00:08,269 | INFO | Telegram alert sent.
+2026-04-01 23:00:08,804 | INFO | Telegram alert sent.
+2026-04-01 23:00:09,325 | INFO | Telegram alert sent.
+2026-04-01 23:00:09,836 | INFO | Telegram alert sent.
+2026-04-01 23:00:10,973 | INFO | Telegram alert sent.
+2026-04-01 23:00:11,496 | INFO | Telegram alert sent.
+2026-04-01 23:00:12,012 | INFO | Telegram alert sent.
+2026-04-01 23:00:12,547 | INFO | Telegram alert sent.
+2026-04-01 23:00:13,060 | INFO | Telegram alert sent.
+2026-04-01 23:00:13,612 | INFO | Telegram alert sent.
+2026-04-01 23:00:14,177 | INFO | Telegram alert sent.
+2026-04-01 23:00:14,691 | INFO | Telegram alert sent.
+
+===== /home/moonrider1968/MasterBot_Center/Trading_Oanda/wnba_draft.log (2 lines, 2026-04-08)
+nohup: ignoring input
+./venv/bin/python3: can't open file '/home/moonrider1968/bots/oanda_active/MarchEdge/wnba_draft_sniper.py': [Errno 2] No such file or directory
+
+===== /home/moonrider1968/MasterBot_Center/alpaca_beast.log (119074 lines, 2026-04-27)
+2026-04-27 10:47:08,952 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:47:23,967 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:47:24,256 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:47:39,271 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:47:39,451 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:47:54,465 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:47:54,672 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:48:09,685 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:48:10,125 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:48:25,133 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:48:25,197 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:48:40,217 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:48:41,118 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:48:56,133 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:48:56,194 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:49:11,209 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:49:11,253 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:49:26,261 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:49:26,462 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:49:41,473 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:49:42,216 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:49:57,229 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:49:57,484 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:50:12,497 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:50:12,545 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:50:27,547 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:50:27,604 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:50:42,617 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:50:42,662 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:50:57,677 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:50:57,928 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:51:12,941 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:51:12,986 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:51:28,001 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:51:28,221 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:51:43,222 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:51:43,264 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:51:58,277 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:51:58,786 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:52:13,802 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:52:14,204 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:52:29,217 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:52:29,588 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+2026-04-27 10:52:44,597 | 📊 Scanning Sector Heat Map...
+2026-04-27 10:52:44,654 | ❌ Sniper Loop Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=5Min&adjustment=raw&limit=20
+
+===== /home/moonrider1968/MasterBot_Center/alpaca_hybrid.log (170984 lines, 2026-05-18)
+2026-05-18 16:28:19,611 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:28:34,653 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:28:49,695 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:29:04,726 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:29:19,761 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:29:34,806 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:29:49,851 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:30:04,896 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:30:19,941 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:30:34,989 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:30:50,026 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:31:05,071 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:31:20,115 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:31:35,150 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:31:50,195 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:32:05,236 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:32:20,277 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:32:35,313 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:32:50,351 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:33:05,395 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:33:20,425 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:33:35,470 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:33:50,513 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:34:05,558 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:34:20,600 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:34:35,633 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:34:50,676 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:35:05,719 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:35:20,764 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:35:35,808 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:35:50,863 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:36:05,901 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:36:20,944 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:36:35,988 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:36:51,031 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:37:06,075 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:37:21,120 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:37:36,150 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:37:51,185 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:38:06,226 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:38:21,270 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:38:36,301 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:38:51,345 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:39:06,386 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+2026-05-18 16:39:21,430 | ❌ Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&adjustment=raw&limit=25
+
+===== /home/moonrider1968/MasterBot_Center/alpaca_swing.log (41417 lines, 2026-05-18)
+2026-05-18 15:55:18,950 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 15:56:19,042 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 15:57:19,130 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 15:58:19,179 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 15:59:19,252 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:00:19,441 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:01:19,524 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:02:19,609 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:03:19,696 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:04:19,776 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:05:19,828 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:06:19,875 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:07:19,926 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:08:19,979 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:09:20,024 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:10:20,092 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:11:20,181 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:12:20,269 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:13:20,365 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:14:20,399 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:15:20,522 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:16:20,576 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:17:20,627 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:18:20,688 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:19:20,775 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:20:20,862 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:21:20,924 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:22:21,018 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:23:21,106 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:24:21,150 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:25:21,236 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:26:21,308 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:27:21,392 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:28:21,481 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:29:21,524 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:30:21,610 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:31:21,657 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:32:21,745 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:33:21,836 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:34:21,875 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:35:21,937 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:36:22,025 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:37:22,102 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:38:22,146 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+2026-05-18 16:39:22,189 | ❌ Swing Engine Error: 401 Client Error: Unauthorized for url: https://data.alpaca.markets/v2/stocks/NVDA/bars?timeframe=1Day&adjustment=raw&limit=60
+
+===== /home/moonrider1968/MasterBot_Center/crypto_beast.log (2039 lines, 2026-04-17)
+2026-04-17 19:02:41,540 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:02:41,581 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:02:41,620 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:03:41,736 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:03:41,773 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:03:41,812 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:04:41,939 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:04:41,976 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:04:42,017 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:05:42,123 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:05:42,174 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:05:42,213 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:06:42,336 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:06:42,375 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:06:42,417 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:07:42,547 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:07:42,587 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:07:42,627 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:08:42,884 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:08:42,921 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:08:42,962 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:09:43,092 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:09:43,129 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:09:43,170 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:10:43,269 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:10:43,314 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:10:43,355 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:11:43,490 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:11:43,530 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:11:43,570 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:12:43,685 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:12:43,723 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:12:43,772 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:13:43,906 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:13:43,944 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:13:43,987 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:14:44,091 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:14:44,129 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:14:44,167 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:15:44,293 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:15:44,330 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:15:44,370 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+2026-04-17 19:16:44,483 | 🔍 BTC/USD | Price: 74812.99 | Box: [74651.34 - 75179.96]
+2026-04-17 19:16:44,533 | 🔍 ETH/USD | Price: 2336.05 | Box: [2330.27 - 2352.24]
+2026-04-17 19:16:44,579 | 🔍 SOL/USD | Price: 88.40 | Box: [88.15 - 89.30]
+
+===== /home/moonrider1968/MasterBot_Center/crypto_v2.log (135 lines, 2026-04-17)
+2026-04-17 20:49:24,550 | 🔍 BTC/USD | Price: 77159.75 | Hunt Mode: Trailing
+2026-04-17 20:50:24,750 | 🔍 BTC/USD | Price: 77196.34 | Hunt Mode: Trailing
+2026-04-17 20:51:24,948 | 🔍 BTC/USD | Price: 77185.90 | Hunt Mode: Trailing
+2026-04-17 20:52:25,166 | 🔍 BTC/USD | Price: 77154.13 | Hunt Mode: Trailing
+2026-04-17 20:53:25,390 | 🔍 BTC/USD | Price: 77192.19 | Hunt Mode: Trailing
+2026-04-17 20:54:25,622 | 🔍 BTC/USD | Price: 77192.94 | Hunt Mode: Trailing
+2026-04-17 20:55:25,834 | 🔍 BTC/USD | Price: 77204.04 | Hunt Mode: Trailing
+2026-04-17 20:56:26,009 | 🔍 BTC/USD | Price: 77253.31 | Hunt Mode: Trailing
+2026-04-17 20:57:26,176 | 🔍 BTC/USD | Price: 77214.32 | Hunt Mode: Trailing
+2026-04-17 20:58:26,405 | 🔍 BTC/USD | Price: 77202.18 | Hunt Mode: Trailing
+2026-04-17 20:59:26,628 | 🔍 BTC/USD | Price: 77168.53 | Hunt Mode: Trailing
+2026-04-17 21:00:26,838 | 🔍 BTC/USD | Price: 77191.35 | Hunt Mode: Trailing
+2026-04-17 21:01:26,992 | 🔍 BTC/USD | Price: 77196.68 | Hunt Mode: Trailing
+2026-04-17 21:02:27,146 | 🔍 BTC/USD | Price: 77166.45 | Hunt Mode: Trailing
+2026-04-17 21:03:27,338 | 🔍 BTC/USD | Price: 77188.98 | Hunt Mode: Trailing
+2026-04-17 21:04:27,532 | 🔍 BTC/USD | Price: 77181.40 | Hunt Mode: Trailing
+2026-04-17 21:05:27,727 | 🔍 BTC/USD | Price: 77221.83 | Hunt Mode: Trailing
+2026-04-17 21:06:27,916 | 🔍 BTC/USD | Price: 77226.10 | Hunt Mode: Trailing
+2026-04-17 21:07:28,123 | 🔍 BTC/USD | Price: 77228.07 | Hunt Mode: Trailing
+2026-04-17 21:08:28,351 | 🔍 BTC/USD | Price: 77241.34 | Hunt Mode: Trailing
+2026-04-17 21:09:28,531 | 🔍 BTC/USD | Price: 77236.82 | Hunt Mode: Trailing
+2026-04-17 21:10:28,711 | 🔍 BTC/USD | Price: 77234.71 | Hunt Mode: Trailing
+2026-04-17 21:11:28,952 | 🔍 BTC/USD | Price: 77284.01 | Hunt Mode: Trailing
+2026-04-17 21:12:29,154 | 🔍 BTC/USD | Price: 77271.63 | Hunt Mode: Trailing
+2026-04-17 21:13:29,342 | 🔍 BTC/USD | Price: 77319.45 | Hunt Mode: Trailing
+2026-04-17 21:14:29,501 | 🔍 BTC/USD | Price: 77316.70 | Hunt Mode: Trailing
+2026-04-17 21:15:29,713 | 🔍 BTC/USD | Price: 77335.90 | Hunt Mode: Trailing
+2026-04-17 21:16:29,958 | 🔍 BTC/USD | Price: 77339.02 | Hunt Mode: Trailing
+2026-04-17 21:17:30,148 | 🔍 BTC/USD | Price: 77326.73 | Hunt Mode: Trailing
+2026-04-17 21:18:30,338 | 🔍 BTC/USD | Price: 77318.18 | Hunt Mode: Trailing
+2026-04-17 21:19:30,523 | 🔍 BTC/USD | Price: 77336.74 | Hunt Mode: Trailing
+2026-04-17 21:20:30,722 | 🔍 BTC/USD | Price: 77368.82 | Hunt Mode: Trailing
+2026-04-17 21:21:30,932 | 🔍 BTC/USD | Price: 77350.90 | Hunt Mode: Trailing
+2026-04-17 21:22:31,127 | 🔍 BTC/USD | Price: 77323.95 | Hunt Mode: Trailing
+2026-04-17 21:23:31,295 | 🔍 BTC/USD | Price: 77332.59 | Hunt Mode: Trailing
+2026-04-17 21:24:31,481 | 🔍 BTC/USD | Price: 77315.34 | Hunt Mode: Trailing
+2026-04-17 21:25:31,663 | 🔍 BTC/USD | Price: 77325.88 | Hunt Mode: Trailing
+2026-04-17 21:26:31,888 | 🔍 BTC/USD | Price: 77304.36 | Hunt Mode: Trailing
+2026-04-17 21:27:32,103 | 🔍 BTC/USD | Price: 77330.01 | Hunt Mode: Trailing
+2026-04-17 21:28:32,289 | 🔍 BTC/USD | Price: 77329.45 | Hunt Mode: Trailing
+2026-04-17 21:29:32,463 | 🔍 BTC/USD | Price: 77325.78 | Hunt Mode: Trailing
+2026-04-17 21:30:32,684 | 🔍 BTC/USD | Price: 77314.87 | Hunt Mode: Trailing
+2026-04-17 21:31:32,908 | 🔍 BTC/USD | Price: 77320.04 | Hunt Mode: Trailing
+2026-04-17 21:32:33,123 | 🔍 BTC/USD | Price: 77312.41 | Hunt Mode: Trailing
+2026-04-17 21:33:33,316 | 🔍 BTC/USD | Price: 77330.49 | Hunt Mode: Trailing
+
+===== /home/moonrider1968/MasterBot_Center/crypto_v3.1.log (38559 lines, 2026-05-18)
+2026-05-18 15:54:50,993 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 15:55:51,182 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 15:56:51,368 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 15:57:51,593 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 15:58:51,894 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 15:59:52,066 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:00:52,297 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:01:52,528 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:02:52,763 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:03:52,982 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:04:53,171 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:05:53,425 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:06:53,667 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:07:53,879 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:08:54,103 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:09:54,286 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:10:54,504 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:11:54,756 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:12:54,966 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:13:55,162 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:14:55,359 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:15:55,595 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:16:55,796 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:17:55,977 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:18:56,222 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:19:56,488 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:20:56,743 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:21:56,908 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:22:57,122 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:23:57,356 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:24:57,628 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:25:57,837 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:26:58,046 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:27:58,221 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:28:58,395 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:29:58,621 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:30:58,904 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:31:59,142 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:32:59,335 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:33:59,617 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:34:59,841 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:36:00,015 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:37:00,242 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:38:00,452 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+2026-05-18 16:39:00,730 | 🔍 BTC/USD | $76,959.25 | Hunt Mode: Active
+
+===== /home/moonrider1968/MasterBot_Center/futures_v1.1.log (2 lines, 2026-04-18)
+nohup: ignoring input
+2026-04-18 18:03:23,584 | 🚀 SYNTHETIC FUTURES v1.1 ACTIVE | OVERNIGHT FEED | ATR SIZING
+
+===== /home/moonrider1968/MasterBot_Center/historical_prop_studies.csv (16 lines, 2026-03-24)
+date,sport,market,subject_name,line,odds,confidence,edge,result
+2026-03-01,basketball_ncaab,player_points,Zach Edey,24.5,1.87,82.0,0.08,WIN
+2026-03-05,basketball_ncaab,player_rebounds,Hunter Dickinson,10.5,1.91,75.0,0.05,WIN
+2026-03-10,basketball_ncaab,player_assists,Tyler Kolek,7.5,1.83,70.0,0.04,LOSS
+...
+2026-03-05,basketball_wnba,team_total_points,New York Liberty,84.5,1.83,75.0,0.05,WIN
+2026-03-10,basketball_ncaab,team_total_points,UConn Huskies,81.5,1.95,83.0,0.08,WIN
+2026-03-01,basketball_ncaab,team_total_points,Houston Cougars,72.5,1.91,82.0,0.08,WIN
+
+===== /home/moonrider1968/MasterBot_Center/live_beast.log (34 lines, 2026-04-19)
+nohup: ignoring input
+STORAGE MANAGER: free_mb_before=28974.22 | final_free_mb=28974.22
+2026-04-19 16:26:54,639 | INFO | Telegram alert sent.
+[odds] baseball_ncaa_softball status=404
+=== LIVE ENGINE ===
+ events=4 | scoreboard_games=4
+ lanes | live_candidates=1 | pregame_candidates=2
+
+--- Phoenix Suns @ Oklahoma City Thunder ---
+STATE: {'home_team': 'Oklahoma City Thunder', 'away_team': 'Phoenix Suns', 'home_score': 40, 'away_score': 24, 'minutes_left': 9, 'seconds_left': 52, 'display_clock': '9:52', 'mode': '4q', 'half': 'Q2', 'period_label': '
+ FEATURE PROJECTION: {'league': 'nba', 'away_expected_score': 116.16, 'home_expected_score': 114.59, 'tempo_blend': 113.1, 'pace_adjustment': -21.18, 'system_proj_total': 218.86, 'away_minus_home_margin': -6.4, 'system_p
+ INJURY PROJECTION: {'away_team_impact_score': 0.0, 'home_team_impact_score': 0.0, 'away_off_penalty': 0.0, 'home_off_penalty': 0.0, 'away_def_giveback': 0.0, 'home_def_giveback': 0.0, 'adjusted_away_expected': 116.16, '
+
+--- Orlando Magic @ Detroit Pistons ---
+ FEATURE PROJECTION: {'league': 'nba', 'away_expected_score': 113.34, 'home_expected_score': 122.5, 'tempo_blend': 115.6, 'pace_adjustment': -21.64, 'system_proj_total': 223.62, 'away_minus_home_margin': -2.4, 'system_pr
+ INJURY PROJECTION: {'away_team_impact_score': 0.04, 'home_team_impact_score': 0.0, 'away_off_penalty': 0.48, 'home_off_penalty': 0.0, 'away_def_giveback': 0.0, 'home_def_giveback': 0.16, 'adjusted_away_expected': 112.86
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- Portland Trail Blazers @ San Antonio Spurs ---
+ FEATURE PROJECTION: {'league': 'nba', 'away_expected_score': 114.62, 'home_expected_score': 122.75, 'tempo_blend': 117.8, 'pace_adjustment': -21.52, 'system_proj_total': 225.33, 'away_minus_home_margin': -0.8, 'system_p
+ INJURY PROJECTION: {'away_team_impact_score': 0.0, 'home_team_impact_score': 0.0, 'away_off_penalty': 0.0, 'home_off_penalty': 0.0, 'away_def_giveback': 0.0, 'home_def_giveback': 0.0, 'adjusted_away_expected': 114.62, '
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+EDGE: {'game': 'Phoenix Suns @ Oklahoma City Thunder', 'sport_key': 'basketball_nba', 'market_total': 216.0, 'home_spread_line': -25.0, 'period': 2, 'minutes_left': 9, 'seconds_left': 52, 'score_diff': 16.0, 'home_team':
+INTEL: {'signal_count': 0, 'status': 'no_signals'}
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=1 | total_alerts=0
+
+===== /home/moonrider1968/MasterBot_Center/marchedge_bets.csv (6445 lines, 2026-03-22)
+timestamp,game,market,side,line,odds,edge,display_edge,confidence,kelly_quarter,score,strength,suspicious,summary
+1773939364,South Florida Bulls @ Louisville Cardinals,total,under,154.5,-110,0.357,0.3035,87.0,0.1171,54.08,A,True,South Florida Bulls @ Louisville Cardinals | TOTAL | under 154.5 | edge=0.3570 | conf=87.0% | kelly_q=0.1
+1773939364,South Florida Bulls @ Louisville Cardinals,spread,South Florida Bulls,5.5,-110,0.1325,0.1325,87.0,0.0435,44.79,A,False,South Florida Bulls @ Louisville Cardinals | SPREAD | South Florida Bulls 5.5 | edge=0.132
+1773939364,South Florida Bulls @ Louisville Cardinals,moneyline,Louisville Cardinals,,-220,0.061,0.061,60.9,0.0305,28.18,D,False,South Florida Bulls @ Louisville Cardinals | MONEYLINE | Louisville Cardinals | edge=0.0610
+...
+1774223940,Tennessee Volunteers @ Virginia Cavaliers,moneyline,Tennessee Volunteers,,-400,0.1396,0.1396,89.9,0.1745,49.79,A,False,Tennessee Volunteers @ Virginia Cavaliers | MONEYLINE | Tennessee Volunteers | edge=0.1396
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,spread,Tennessee Volunteers,-3.5,-130,0.4048,0.325,95.0,0.2327,64.55,A,True,Tennessee Volunteers @ Virginia Cavaliers | SPREAD | Tennessee Volunteers -3.5 | edge=0.404
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,total,under,151.5,-120,0.2508,0.2504,95.0,0.138,61.78,A,False,Tennessee Volunteers @ Virginia Cavaliers | TOTAL | under 151.5 | edge=0.2508 | conf=95.0% | kelly_q=0.13
+
+===== /home/moonrider1968/MasterBot_Center/marchedge_live.log (15164 lines, 2026-08-18)
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- New York Liberty @ Chicago Sky ---
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+=== LIVE ENGINE ===
+ events=6 | scoreboard_games=4
+ lanes | live_candidates=0 | pregame_candidates=4
+
+--- Atlanta Dream @ Las Vegas Aces ---
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- Indiana Fever @ Toronto Tempo ---
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- Los Angeles Sparks @ Connecticut Sun ---
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- New York Liberty @ Chicago Sky ---
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+
+===== /home/moonrider1968/MasterBot_Center/marchedge_live.pre_11f_20260815T223953Z.log (299 lines, 2026-08-15)
+
+--- Los Angeles Sparks @ Washington Mystics ---
+ FEATURE ERROR: "No mapping found for team 'Los Angeles Sparks' (normalized='los angeles sparks')"
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- Minnesota Lynx @ Las Vegas Aces ---
+ FEATURE ERROR: "No mapping found for team 'Minnesota Lynx' (normalized='minnesota lynx')"
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+STORAGE MANAGER: free_mb_before=6780.24 | final_free_mb=6780.24
+2026-08-15 18:38:46,275 | INFO | Telegram alert sent.
+=== LIVE ENGINE ===
+ events=5 | scoreboard_games=3
+ lanes | live_candidates=0 | pregame_candidates=2
+
+--- Los Angeles Sparks @ Washington Mystics ---
+ FEATURE ERROR: "No mapping found for team 'Los Angeles Sparks' (normalized='los angeles sparks')"
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+--- Minnesota Lynx @ Las Vegas Aces ---
+ FEATURE ERROR: "No mapping found for team 'Minnesota Lynx' (normalized='minnesota lynx')"
+ INJURY ERROR: missing feature_projection
+ PRE-GAME ALERTS: none
+ status=SCOREBOARD_FOUND_BUT_NOT_LIVE
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+
+===== /home/moonrider1968/MasterBot_Center/marchedge_live.pre_wnba_20260815T214031Z.log (756 lines, 2026-08-15)
+STORAGE MANAGER: free_mb_before=6718.5 | final_free_mb=6718.5
+2026-08-15 17:32:14,651 | INFO | Telegram alert sent.
+[odds] baseball_ncaa_softball status=404
+=== LIVE ENGINE ===
+ events=0 | scoreboard_games=1
+ lanes | live_candidates=0 | pregame_candidates=0
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+[odds] baseball_ncaa_softball status=404
+=== LIVE ENGINE ===
+ events=0 | scoreboard_games=1
+ lanes | live_candidates=0 | pregame_candidates=0
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+STORAGE MANAGER: free_mb_before=6706.66 | final_free_mb=6706.66
+2026-08-15 17:38:18,165 | INFO | Telegram alert sent.
+=== LIVE ENGINE ===
+ events=5 | scoreboard_games=0
+ lanes | live_candidates=0 | pregame_candidates=0
+
+--- Los Angeles Sparks @ Washington Mystics ---
+ status=ODDS_ONLY_WAITING_FOR_SCOREBOARD_MATCH
+
+--- Minnesota Lynx @ Las Vegas Aces ---
+ status=ODDS_ONLY_WAITING_FOR_SCOREBOARD_MATCH
+
+💰 [BANKROLL DASHBOARD]
+--------------------------
+💵 ACTIVE RISK:   0% Bankroll
+🟢 DAILY P/L:    0.0 Units
+📈 TOTAL PLAYS:  0
+--------------------------
+POLL SUMMARY: live_ready=0 | total_alerts=0
+
+===== /home/moonrider1968/MasterBot_Center/oanda.log (764981 lines, 2026-02-18)
+2026-02-18 02:28:43,531 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:28:43,569 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:28:43,570 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:28:43,570 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:28:43,570 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:28:53,726 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:28:53,771 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:28:53,771 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:28:53,771 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:28:53,771 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:03,942 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:03,981 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:03,981 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:03,981 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:03,981 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:14,367 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:14,405 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:14,405 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:14,405 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:14,405 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:24,585 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:24,625 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:24,625 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:24,625 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:24,625 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:34,776 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:34,814 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:34,814 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:34,814 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:34,814 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:44,951 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:44,992 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:44,992 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:44,992 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:44,992 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:29:55,181 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18392 lt=1.18484 st=1.18384 rawL=False rawS=False buf=0.00020 regime=range bias=neutral
+2026-02-18 02:29:55,219 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=23.9
+2026-02-18 02:29:55,219 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=23.90137960009178 regime=range atr=0.00029642857142851497 spr_pips=7.699999999999374
+2026-02-18 02:29:55,219 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:29:55,219 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+2026-02-18 02:30:05,646 | INFO | oanda_practice_bot.py:844 | EXPERT|RAWBREAK v2 price=1.18352 lt=1.18484 st=1.18372 rawL=False rawS=True buf=0.00020 regime=range bias=neutral
+2026-02-18 02:30:05,690 | INFO | oanda_practice_bot.py:923 | EXPERT|RISK v2 risk_pct=0.25 loss_streak=0 spread_pips=7.699999999999374 adx=21.6
+2026-02-18 02:30:05,691 | INFO | oanda_practice_bot.py:768 | EXPERT|DYNDBG adx=21.551653964253145 regime=range atr=0.0003142857142856638 spr_pips=7.699999999999374
+2026-02-18 02:30:05,691 | INFO | oanda_practice_bot.py:933 | EXPERT|DYN v2 mult=1.00 block=True
+2026-02-18 02:30:05,691 | INFO | oanda_practice_bot.py:940 | EXPERT|DYN v2 HARD BLOCK → skipping entry
+
+===== /home/moonrider1968/MasterBot_Center/oanda_beast.log (1 lines, 2026-04-17)
+nohup: ignoring input
+
+===== /home/moonrider1968/MasterBot_Center/oanda_macro.log (79 lines, 2026-04-17)
+2026-04-17 10:19:06,843 | 🔍 USD_CAD | State: TRENDING | Price: 1.36599
+2026-04-17 10:19:07,001 | 🔍 NZD_USD | State: TRENDING | Price: 0.59194
+2026-04-17 10:19:07,153 | 🔍 USD_CHF | State: TRENDING | Price: 0.77834
+2026-04-17 10:20:07,430 | 🔍 EUR_USD | State: TRENDING | Price: 1.18252
+2026-04-17 10:20:08,047 | 🔍 GBP_USD | State: TRENDING | Price: 1.35786
+2026-04-17 10:20:08,225 | 🔍 USD_JPY | State: TRENDING | Price: 157.90900
+2026-04-17 10:20:08,408 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72089
+2026-04-17 10:20:08,561 | 🔍 USD_CAD | State: TRENDING | Price: 1.36588
+2026-04-17 10:20:08,705 | 🔍 NZD_USD | State: TRENDING | Price: 0.59210
+2026-04-17 10:20:08,859 | 🔍 USD_CHF | State: TRENDING | Price: 0.77818
+2026-04-17 10:21:09,069 | 🔍 EUR_USD | State: TRENDING | Price: 1.18244
+2026-04-17 10:21:09,197 | 🔍 GBP_USD | State: TRENDING | Price: 1.35794
+2026-04-17 10:21:09,348 | 🔍 USD_JPY | State: TRENDING | Price: 157.95400
+2026-04-17 10:21:09,499 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72092
+2026-04-17 10:21:09,625 | 🔍 USD_CAD | State: TRENDING | Price: 1.36591
+2026-04-17 10:21:09,935 | 🔍 NZD_USD | State: TRENDING | Price: 0.59219
+2026-04-17 10:21:10,061 | 🔍 USD_CHF | State: TRENDING | Price: 0.77848
+2026-04-17 10:22:10,300 | 🔍 EUR_USD | State: TRENDING | Price: 1.18250
+2026-04-17 10:22:10,497 | 🔍 GBP_USD | State: TRENDING | Price: 1.35793
+2026-04-17 10:22:10,642 | 🔍 USD_JPY | State: TRENDING | Price: 157.93000
+2026-04-17 10:22:10,783 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72091
+2026-04-17 10:22:10,910 | 🔍 USD_CAD | State: TRENDING | Price: 1.36558
+2026-04-17 10:22:11,068 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59231
+2026-04-17 10:22:11,222 | 🔍 USD_CHF | State: TRENDING | Price: 0.77840
+2026-04-17 10:23:11,423 | 🔍 EUR_USD | State: TRENDING | Price: 1.18263
+2026-04-17 10:23:11,610 | 🔍 GBP_USD | State: TRENDING | Price: 1.35804
+2026-04-17 10:23:11,769 | 🔍 USD_JPY | State: TRENDING | Price: 157.92900
+2026-04-17 10:23:11,913 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72087
+2026-04-17 10:23:12,053 | 🔍 USD_CAD | State: TRENDING | Price: 1.36551
+2026-04-17 10:23:12,200 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59228
+2026-04-17 10:23:12,328 | 🔍 USD_CHF | State: TRENDING | Price: 0.77830
+2026-04-17 10:24:12,479 | 🔍 EUR_USD | State: TRENDING | Price: 1.18299
+2026-04-17 10:24:12,684 | 🔍 GBP_USD | State: TRENDING | Price: 1.35866
+2026-04-17 10:24:12,888 | 🔍 USD_JPY | State: TRENDING | Price: 157.88000
+2026-04-17 10:24:13,067 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72123
+2026-04-17 10:24:13,265 | 🔍 USD_CAD | State: TRENDING | Price: 1.36529
+2026-04-17 10:24:13,437 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59256
+2026-04-17 10:24:13,631 | 🔍 USD_CHF | State: TRENDING | Price: 0.77796
+2026-04-17 10:25:13,846 | 🔍 EUR_USD | State: TRENDING | Price: 1.18300
+2026-04-17 10:25:13,980 | 🔍 GBP_USD | State: TRENDING | Price: 1.35870
+2026-04-17 10:25:14,140 | 🔍 USD_JPY | State: TRENDING | Price: 157.88800
+2026-04-17 10:25:14,311 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72118
+2026-04-17 10:25:14,471 | 🔍 USD_CAD | State: TRENDING | Price: 1.36538
+2026-04-17 10:25:14,634 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59244
+2026-04-17 10:25:14,846 | 🔍 USD_CHF | State: TRENDING | Price: 0.77780
+
+===== /home/moonrider1968/MasterBot_Center/oanda_macro_beast_v14.log (78 lines, 2026-04-17)
+2026-04-17 10:19:06,843 | 🔍 USD_CAD | State: TRENDING | Price: 1.36599
+2026-04-17 10:19:07,001 | 🔍 NZD_USD | State: TRENDING | Price: 0.59194
+2026-04-17 10:19:07,153 | 🔍 USD_CHF | State: TRENDING | Price: 0.77834
+2026-04-17 10:20:07,430 | 🔍 EUR_USD | State: TRENDING | Price: 1.18252
+2026-04-17 10:20:08,047 | 🔍 GBP_USD | State: TRENDING | Price: 1.35786
+2026-04-17 10:20:08,225 | 🔍 USD_JPY | State: TRENDING | Price: 157.90900
+2026-04-17 10:20:08,408 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72089
+2026-04-17 10:20:08,561 | 🔍 USD_CAD | State: TRENDING | Price: 1.36588
+2026-04-17 10:20:08,705 | 🔍 NZD_USD | State: TRENDING | Price: 0.59210
+2026-04-17 10:20:08,859 | 🔍 USD_CHF | State: TRENDING | Price: 0.77818
+2026-04-17 10:21:09,069 | 🔍 EUR_USD | State: TRENDING | Price: 1.18244
+2026-04-17 10:21:09,197 | 🔍 GBP_USD | State: TRENDING | Price: 1.35794
+2026-04-17 10:21:09,348 | 🔍 USD_JPY | State: TRENDING | Price: 157.95400
+2026-04-17 10:21:09,499 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72092
+2026-04-17 10:21:09,625 | 🔍 USD_CAD | State: TRENDING | Price: 1.36591
+2026-04-17 10:21:09,935 | 🔍 NZD_USD | State: TRENDING | Price: 0.59219
+2026-04-17 10:21:10,061 | 🔍 USD_CHF | State: TRENDING | Price: 0.77848
+2026-04-17 10:22:10,300 | 🔍 EUR_USD | State: TRENDING | Price: 1.18250
+2026-04-17 10:22:10,497 | 🔍 GBP_USD | State: TRENDING | Price: 1.35793
+2026-04-17 10:22:10,642 | 🔍 USD_JPY | State: TRENDING | Price: 157.93000
+2026-04-17 10:22:10,783 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72091
+2026-04-17 10:22:10,910 | 🔍 USD_CAD | State: TRENDING | Price: 1.36558
+2026-04-17 10:22:11,068 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59231
+2026-04-17 10:22:11,222 | 🔍 USD_CHF | State: TRENDING | Price: 0.77840
+2026-04-17 10:23:11,423 | 🔍 EUR_USD | State: TRENDING | Price: 1.18263
+2026-04-17 10:23:11,610 | 🔍 GBP_USD | State: TRENDING | Price: 1.35804
+2026-04-17 10:23:11,769 | 🔍 USD_JPY | State: TRENDING | Price: 157.92900
+2026-04-17 10:23:11,913 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72087
+2026-04-17 10:23:12,053 | 🔍 USD_CAD | State: TRENDING | Price: 1.36551
+2026-04-17 10:23:12,200 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59228
+2026-04-17 10:23:12,328 | 🔍 USD_CHF | State: TRENDING | Price: 0.77830
+2026-04-17 10:24:12,479 | 🔍 EUR_USD | State: TRENDING | Price: 1.18299
+2026-04-17 10:24:12,684 | 🔍 GBP_USD | State: TRENDING | Price: 1.35866
+2026-04-17 10:24:12,888 | 🔍 USD_JPY | State: TRENDING | Price: 157.88000
+2026-04-17 10:24:13,067 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72123
+2026-04-17 10:24:13,265 | 🔍 USD_CAD | State: TRENDING | Price: 1.36529
+2026-04-17 10:24:13,437 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59256
+2026-04-17 10:24:13,631 | 🔍 USD_CHF | State: TRENDING | Price: 0.77796
+2026-04-17 10:25:13,846 | 🔍 EUR_USD | State: TRENDING | Price: 1.18300
+2026-04-17 10:25:13,980 | 🔍 GBP_USD | State: TRENDING | Price: 1.35870
+2026-04-17 10:25:14,140 | 🔍 USD_JPY | State: TRENDING | Price: 157.88800
+2026-04-17 10:25:14,311 | 🔍 AUD_USD | State: CHOPPY | Price: 0.72118
+2026-04-17 10:25:14,471 | 🔍 USD_CAD | State: TRENDING | Price: 1.36538
+2026-04-17 10:25:14,634 | 🔍 NZD_USD | State: CHOPPY | Price: 0.59244
+2026-04-17 10:25:14,846 | 🔍 USD_CHF | State: TRENDING | Price: 0.77780
+
+===== /home/moonrider1968/MasterBot_Center/oanda_macro_v14.log (1907 lines, 2026-04-17)
+2026-04-17 19:28:10,671 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:28:10,949 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:28:11,192 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:28:11,591 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:28:11,869 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:29:14,085 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:29:14,395 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:29:14,652 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:29:14,903 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:29:15,195 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:29:15,452 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:29:15,699 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:29:15,941 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:30:17,940 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:30:18,237 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:30:18,486 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:30:18,723 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:30:19,039 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:30:19,304 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:30:19,568 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:30:19,811 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:31:21,207 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:31:21,451 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:31:21,716 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:31:21,980 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:31:22,228 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:31:22,566 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:31:22,894 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:31:23,142 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:32:25,982 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:32:26,226 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:32:26,474 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:32:26,718 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:32:27,053 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:32:27,367 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:32:27,663 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:32:27,920 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:33:29,369 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:33:29,629 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:33:29,886 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:33:30,161 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:33:30,404 | 🪜 STAIRCASE DOWN: NZD_USD SL moved to 0.58840
+2026-04-17 19:33:30,677 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:33:30,941 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+2026-04-17 19:33:31,189 | 🪜 STAIRCASE DOWN: EUR_USD SL moved to 1.17690
+
+===== /home/moonrider1968/MasterBot_Center/oanda_v15.log (3077 lines, 2026-04-23)
+2026-04-23 06:11:44,716 | 🔍 EUR_USD | Price: 1.16856 | Balance: $70,000.00
+2026-04-23 06:11:45,189 | 🔍 AUD_USD | Price: 0.71426 | Balance: $70,000.00
+2026-04-23 06:11:45,430 | 🔍 USD_CAD | Price: 1.36733 | Balance: $70,000.00
+2026-04-23 06:11:45,673 | 🔍 NZD_USD | Price: 0.58742 | Balance: $70,000.00
+2026-04-23 06:11:45,929 | 🔍 USD_CHF | Price: 0.78568 | Balance: $70,000.00
+2026-04-23 06:12:46,714 | 🔍 EUR_USD | Price: 1.16862 | Balance: $70,000.00
+2026-04-23 06:12:47,210 | 🔍 AUD_USD | Price: 0.71420 | Balance: $70,000.00
+2026-04-23 06:12:47,569 | 🔍 USD_CAD | Price: 1.36728 | Balance: $70,000.00
+2026-04-23 06:12:47,853 | 🔍 NZD_USD | Price: 0.58736 | Balance: $70,000.00
+2026-04-23 06:12:48,220 | 🔍 USD_CHF | Price: 0.78568 | Balance: $70,000.00
+2026-04-23 06:13:48,610 | 🔍 EUR_USD | Price: 1.16860 | Balance: $70,000.00
+2026-04-23 06:13:49,081 | 🔍 AUD_USD | Price: 0.71416 | Balance: $70,000.00
+2026-04-23 06:13:49,316 | 🔍 USD_CAD | Price: 1.36727 | Balance: $70,000.00
+2026-04-23 06:13:49,609 | 🔍 NZD_USD | Price: 0.58732 | Balance: $70,000.00
+2026-04-23 06:13:49,840 | 🔍 USD_CHF | Price: 0.78577 | Balance: $70,000.00
+2026-04-23 06:14:50,154 | 🔍 EUR_USD | Price: 1.16865 | Balance: $70,000.00
+2026-04-23 06:14:50,628 | 🔍 AUD_USD | Price: 0.71424 | Balance: $70,000.00
+2026-04-23 06:14:50,986 | 🔍 USD_CAD | Price: 1.36716 | Balance: $70,000.00
+2026-04-23 06:14:51,239 | 🔍 NZD_USD | Price: 0.58740 | Balance: $70,000.00
+2026-04-23 06:14:51,494 | 🔍 USD_CHF | Price: 0.78568 | Balance: $70,000.00
+2026-04-23 06:15:52,222 | 🔍 EUR_USD | Price: 1.16866 | Balance: $70,000.00
+2026-04-23 06:15:52,697 | 🔍 AUD_USD | Price: 0.71428 | Balance: $70,000.00
+2026-04-23 06:15:52,959 | 🔍 USD_CAD | Price: 1.36710 | Balance: $70,000.00
+2026-04-23 06:15:53,232 | 🔍 NZD_USD | Price: 0.58750 | Balance: $70,000.00
+2026-04-23 06:15:53,494 | 🔍 USD_CHF | Price: 0.78565 | Balance: $70,000.00
+2026-04-23 06:16:53,766 | 🔍 EUR_USD | Price: 1.16836 | Balance: $70,000.00
+2026-04-23 06:16:54,304 | 🔍 AUD_USD | Price: 0.71412 | Balance: $70,000.00
+2026-04-23 06:16:54,567 | 🔍 USD_CAD | Price: 1.36734 | Balance: $70,000.00
+2026-04-23 06:16:54,836 | 🔍 NZD_USD | Price: 0.58742 | Balance: $70,000.00
+2026-04-23 06:16:55,079 | 🔍 USD_CHF | Price: 0.78575 | Balance: $70,000.00
+2026-04-23 06:17:55,638 | 🔍 EUR_USD | Price: 1.16824 | Balance: $70,000.00
+2026-04-23 06:17:56,129 | 🔍 AUD_USD | Price: 0.71398 | Balance: $70,000.00
+2026-04-23 06:17:56,374 | 🔍 USD_CAD | Price: 1.36744 | Balance: $70,000.00
+2026-04-23 06:17:56,620 | 🔍 NZD_USD | Price: 0.58732 | Balance: $70,000.00
+2026-04-23 06:17:56,856 | 🔍 USD_CHF | Price: 0.78589 | Balance: $70,000.00
+2026-04-23 06:18:57,176 | 🔍 EUR_USD | Price: 1.16852 | Balance: $70,000.00
+2026-04-23 06:18:57,672 | 🔍 AUD_USD | Price: 0.71415 | Balance: $70,000.00
+2026-04-23 06:18:58,092 | 🔍 USD_CAD | Price: 1.36734 | Balance: $70,000.00
+2026-04-23 06:18:58,336 | 🔍 NZD_USD | Price: 0.58756 | Balance: $70,000.00
+2026-04-23 06:18:58,583 | 🔍 USD_CHF | Price: 0.78560 | Balance: $70,000.00
+2026-04-23 06:19:59,019 | 🔍 EUR_USD | Price: 1.16856 | Balance: $70,000.00
+2026-04-23 06:19:59,501 | 🔍 AUD_USD | Price: 0.71408 | Balance: $70,000.00
+2026-04-23 06:19:59,829 | 🔍 USD_CAD | Price: 1.36743 | Balance: $70,000.00
+2026-04-23 06:20:00,074 | 🔍 NZD_USD | Price: 0.58753 | Balance: $70,000.00
+2026-04-23 06:20:00,585 | 🔍 USD_CHF | Price: 0.78558 | Balance: $70,000.00
+
+===== /home/moonrider1968/MasterBot_Center/phase_28_30_search_report.txt (3513 lines, 2026-03-20)
+==================================================
+ MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT
+==================================================
+Generated: Fri Mar 20 04:12:38 EDT 2026
+Root: /home/moonrider1968/bots/oanda_fifo_practice/MarchEdge
+
+--------------------------------------------------
+1) Exact Phase Mentions
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:24:# Phase 30 multi-sport
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:17:  echo " MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:27:    -E 'Phase 28|Phase 29|Phase 30|PHASE 28|PHASE 29|PHASE 30' \
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+
+--------------------------------------------------
+2) Broad Phase Mentions
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/review_feedback.py:267:    print("PHASE 16 REVIEW REPORT")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/outcome_tracker.py:206:    print("PHASE 17 RESULTS")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:9:# ODDS API (PHASE 9 LIVE FEED)
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/.env:24:# Phase 30 multi-sport
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/manual_live_eval.pyk:471:    # Phase 4 stats
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/manual_live_eval.pyk:524:    # Phase 5: blend raw matchup stats first
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/signal_filter.py.bak:2:Phase 12 — Signal Quality Filter
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:17:  echo " MARCH EDGE BOT - PHASE 28/29/30 SEARCH REPORT"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:27:    -E 'Phase 28|Phase 29|Phase 30|PHASE 28|PHASE 29|PHASE 30' \
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/live_engine/payload_builder.py:266:    4. enriches the payload with Phase 4 team stats
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:142:    print_section(f"PHASE 26 LOG ANALYZER — {analysis['label']}")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:182:        recs.append("Average CLV is negative. Entry timing may be poor — Phase 27 should focus on timing filters.")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:203:    print_section("PHASE 26 RECOMMENDATIONS")
+
+--------------------------------------------------
+3) Likely Related Keywords
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/review_feedback.py:220:        feedback.append("Signal mix looks stable. Continue collecting data and move toward CLV/outcome tracking.")
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/outcome_tracker.py:134:        # Moneyline CLV is more reliable in implied probability space
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:5:OUT="$ROOT/phase_28_30_search_report.txt"
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:55:    -E 'self-learning|self learning|win rate|settlement|closing line|CLV|result tracking|results logger|production orchestrator|orchestrato
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/search_phases_28_30.sh:96:grep -nE 'Phase 28|Phase 29|Phase 30|phase_28|phase_29|phase_30' "$OUT" || true
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:119:        "settlement_status": str(final_game.get("status_detail", "")),
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:123:async def run_settlement() -> dict[str, Any]:
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/settlement_engine.py:171:    summary = asyncio.run(run_settlement())
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/venv/lib/python3.11/site-packages/pytz-2026.1.post1.dist-info/RECORD:355:pytz/zoneinfo/Asia/Yerevan,sha256=FM0pUA4NbTWBb_CsJ5KCLVrLoNmad7njBKqFrJBDoxE,1137
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/venv/lib64/python3.11/site-packages/pytz-2026.1.post1.dist-info/RECORD:355:pytz/zoneinfo/Asia/Yerevan,sha256=FM0pUA4NbTWBb_CsJ5KCLVrLoNmad7njBKqFrJBDoxE,1137
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/log_analyzer.py:182:        recs.append("Average CLV is negative. Entry timing may be poor — Phase 27 should focus on timing filters.")
+
+--------------------------------------------------
+4) Files Most Likely To Contain Phase Notes
+--------------------------------------------------
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/dispatcher.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/formatter.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/alerts/telegram_bot.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/all_engines_live.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/app.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/best_bet_bridge.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/bet_intelligence.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/bet_tracker.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/calibration_layer.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/config.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/build_alias_cache.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/dynamic_alias_loader.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/game_matcher.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_aliases.json
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_stat_lookup.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/data_engine/team_stats_cache.json
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_detector.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_engine/ev.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/edge_engine/model_edge.py
+/home/moonrider1968/bots/oanda_fifo_practice/MarchEdge/entry_timing_filter.py
+
+===== /home/moonrider1968/MasterBot_Center/system_noise/LICENSE.txt (284 lines, 2026-02-15)
+A. HISTORY OF THE SOFTWARE
+==========================
+
+Python was created in the early 1990s by Guido van Rossum at Stichting
+Mathematisch Centrum (CWI, see http://www.cwi.nl) in the Netherlands
+as a successor of a language called ABC.  Guido remains Python's
+principal author, although it includes many contributions from others.
+
+In 1995, Guido continued his work on Python at the Corporation for
+National Research Initiatives (CNRI, see http://www.cnri.reston.va.us)
+in Reston, Virginia where he released several versions of the
+software.
+
+In May 2000, Guido and the Python core development team moved to
+BeOpen.com to form the BeOpen PythonLabs team.  In October of the same
+year, the PythonLabs team moved to Digital Creations (now Zope
+Corporation, see http://www.zope.com).  In 2001, the Python Software
+Foundation (PSF, see http://www.python.org/psf/) was formed, a
+non-profit organization created specifically to own Python-related
+Intellectual Property.  Zope Corporation is a sponsoring member of
+the PSF.
+
+All Python releases are Open Source (see http://www.opensource.org for
+the Open Source Definition).  Historically, most, but not all, Python
+releases have also been GPL-compatible; the table below summarizes
+the various releases.
+
+    Release         Derived     Year        Owner       GPL-
+                    from                                compatible? (1)
+
+    0.9.0 thru 1.2              1991-1995   CWI         yes
+    1.3 thru 1.5.2  1.2         1995-1999   CNRI        yes
+    1.6             1.5.2       2000        CNRI        no
+    2.0             1.6         2000        BeOpen.com  no
+    1.6.1           1.6         2001        CNRI        yes (2)
+    2.1             2.0+1.6.1   2001        PSF         no
+    2.0.1           2.0+1.6.1   2001        PSF         yes
+    2.1.1           2.1+2.0.1   2001        PSF         yes
+    2.2             2.1.1       2001        PSF         yes
+    2.1.2           2.1.1       2002        PSF         yes
+    2.1.3           2.1.2       2002        PSF         yes
+    2.2.1           2.2         2002        PSF         yes
+    2.2.2           2.2.1       2002        PSF         yes
+    2.2.3           2.2.2       2003        PSF         yes
+    2.3             2.2.2       2002-2003   PSF         yes
+    2.3.1           2.3         2002-2003   PSF         yes
+    2.3.2           2.3.1       2002-2003   PSF         yes
+    2.3.3           2.3.2       2002-2003   PSF         yes
+    2.3.4           2.3.3       2004        PSF         yes
+    2.3.5           2.3.4       2005        PSF         yes
+    2.4             2.3         2004        PSF         yes
+    2.4.1           2.4         2005        PSF         yes
+    2.4.2           2.4.1       2005        PSF         yes
+    2.4.3           2.4.2       2006        PSF         yes
+    2.4.4           2.4.3       2006        PSF         yes
+    2.5             2.4         2006        PSF         yes
+    2.5.1           2.5         2007        PSF         yes
+    2.5.2           2.5.1       2008        PSF         yes
+    2.5.3           2.5.2       2008        PSF         yes
+    2.6             2.5         2008        PSF         yes
+    2.6.1           2.6         2008        PSF         yes
+    2.6.2           2.6.1       2009        PSF         yes
+    2.6.3           2.6.2       2009        PSF         yes
+    2.6.4           2.6.3       2009        PSF         yes
+    2.6.5           2.6.4       2010        PSF         yes
+    3.0             2.6         2008        PSF         yes
+    3.0.1           3.0         2009        PSF         yes
+    3.1             3.0.1       2009        PSF         yes
+    3.1.1           3.1         2009        PSF         yes
+    3.1.2           3.1         2010        PSF         yes
+
+===== /home/moonrider1968/MasterBot_Center/team_props_bets.csv (5420 lines, 2026-03-22)
+timestamp,game,home_team,away_team,market,team,side,line,odds,projected_final_raw,projected_final_calibrated,model_prob,implied_prob,edge,confidence,kelly_quarter,strength,suspicious,phase,pace_bucket,one_possession_game
+1773712070,Auburn @ Duke,Duke,Auburn,team_total,Auburn,over,53.5,-110,55.57,55.57,0.7654,0.5238,0.2416,90.0,0.07,A,False,2h,normal,False,False,Auburn team total over 53.5 | proj=55.57 | edge=0.2416 | conf=90.0% | suspici
+1773712070,Auburn @ Duke,Duke,Auburn,team_total,Duke,over,59.5,-110,60.98,60.98,0.6897,0.5238,0.1659,86.6,0.07,A,False,2h,normal,False,False,Duke team total over 59.5 | proj=60.98 | edge=0.1659 | conf=86.6% | suspicious=
+1773713393,Auburn @ Duke,Duke,Auburn,team_total,Auburn,over,53.5,-110,55.57,55.57,0.7654,0.5238095238095238,0.2416,90.0,0.07,A,False,2h,normal,False,False,Auburn team total over 53.5 | proj=55.57 | edge=0.2416 | conf=90.
+...
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Tennessee Volunteers,under,77.5,-110,75.75,75.75,0.6823,0.5238095238095238,0.1585,85.4,0.07,A,False,2h,normal,False,
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Virginia Cavaliers,under,74.0,-110,71.0,71.0,0.7859,0.5238095238095238,0.2621,90.0,0.07,A,False,2h,normal,False,Fals
+1774223993,Tennessee Volunteers @ Virginia Cavaliers,Virginia Cavaliers,Tennessee Volunteers,team_total,Tennessee Volunteers,under,77.5,-110,75.75,75.75,0.6823,0.5238095238095238,0.1585,85.4,0.07,A,False,2h,normal,False,
+
+===== /home/moonrider1968/MasterBot_Center/top_level.txt (1 lines, 2026-02-28)
+propcache
