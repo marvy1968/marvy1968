@@ -95,6 +95,7 @@ class ReplayTest(unittest.TestCase):
     BRAIN = dict(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
     EXPECT_FLATTEN = False
     CALM_AFTER = None
+    ZONES_LIVE = False
 
     @classmethod
     def setUpClass(cls):
@@ -112,6 +113,7 @@ class ReplayTest(unittest.TestCase):
 
         # ---------------- paper bot, bar by bar
         cls.tmp = tempfile.TemporaryDirectory()
+        (Path(cls.tmp.name) / "zones.json").write_text('{"live": %s}' % ("true" if cls.ZONES_LIVE else "false"))   # parity: zone-free
         broker = SimBroker(cls.daily)
         for s in SYMS:
             broker.px[s] = float(cls.minute[s]["open"].iloc[0])
@@ -231,3 +233,19 @@ class ReplayHoldToCloseTest(ReplayTest):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class ReplayZonesLiveTest(ReplayTest):
+    """The same day with the owner's zones LIVE: no trade-for-trade parity with the zone-free backtest (by design), but the books must still
+    balance with the broker, everything is flat by 3:50, and zone take-profits / exhaustion exits really fire."""
+    ZONES_LIVE = True
+
+    def test_1_paper_trades_equal_backtest_trades(self):
+        reasons = {t["reason"] for t in self.ledger}
+        self.assertTrue(reasons & {"zone", "exhausted"}, f"zone exits never fired: {reasons}")
+        self.assertTrue(all("zone_profile" in t for t in self.ledger), "every trade logs its zone profile")
+
+    def test_2_ledger_pnl_equals_broker_pnl(self):
+        self.assertEqual(self.broker.positions(), {}, "flat at the end of the day")
+        self.assertAlmostEqual(sum(t["pnl"] for t in self.ledger), self.broker.equity() - self.start_equity, places=0)

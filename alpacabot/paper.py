@@ -80,6 +80,17 @@ class RestBroker:
         r.raise_for_status()
         return r.json()
 
+    def submit_oco(self, symbol: str, qty: int, limit_price: float, stop_price: float, client_order_id: str) -> dict:
+        """Exit bracket for a held long: a GTC take-profit limit and a GTC stop, one-cancels-other (Alpaca order_class "oco")."""
+        body = {"symbol": symbol, "qty": str(qty), "side": "sell", "type": "limit", "time_in_force": "gtc", "order_class": "oco",
+                "client_order_id": client_order_id, "take_profit": {"limit_price": f"{limit_price:.2f}"},
+                "stop_loss": {"stop_price": f"{stop_price:.2f}"}}
+        r = self._req("POST", f"{TRADE_URL}/orders", json=body)
+        if r.status_code == 422 and "client_order_id" in r.text:
+            return self._req("GET", f"{TRADE_URL}/orders:by_client_order_id", params={"client_order_id": client_order_id}).json()
+        r.raise_for_status()
+        return r.json()
+
     def cancel_order(self, order_id: str):
         return self._req("DELETE", f"{TRADE_URL}/orders/{order_id}")
 
@@ -88,7 +99,7 @@ class RestBroker:
         return any(c.get("date") == day.isoformat() for c in cal)
 
     def order(self, order_id: str) -> dict:
-        return self._req("GET", f"{TRADE_URL}/orders/{order_id}").json()
+        return self._req("GET", f"{TRADE_URL}/orders/{order_id}", params={"nested": "true"}).json()    # nested: OCO legs included
 
     def positions(self) -> dict[str, int]:
         """symbol -> signed quantity (negative = short)."""
@@ -302,6 +313,10 @@ class PaperRunner:
             self.last_px[sym] = px
             side = pos.get("side", 1)                         # best exit-side price seen while open (peak open profit)
             pos["best_px"] = px if pos.get("best_px") is None else (max(pos["best_px"], px) if side == 1 else min(pos["best_px"], px))
+            tp = pos.get("zone_tp")
+            if tp is not None and side * (px - tp) >= 0:     # LIVE zone take-profit: price reached this trade's exhaustion zone
+                self.close_now(sym, "zone", bar_start(now_et) + pd.Timedelta(minutes=5))
+                continue
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
@@ -322,6 +337,38 @@ class PaperRunner:
         self.heat, self.heat_day = gates.heat_map(daily), now_et.date()
         self.refresh_zonemap(now_et)
         self.journal("heat_map", **{k: gates.state_on(v, now_et.date()) for k, v in self.heat.items()})
+
+    def zone_config(self) -> dict:
+        """Live zone settings: <state>/zones.json (written with the defaults on first use; the 2-hour optimizer edits it). LIVE by the
+        owner's decision 2026-10-14 (forward-tested instead of backtest-gated)."""
+        from .engine import ZONE_PROFILES
+        p = self.dir / "zones.json"
+        default = {"live": True, "direction_first": True, "use_map": True, "profiles": ZONE_PROFILES}
+        try:
+            if not p.exists():
+                p.write_text(json.dumps(default, indent=1))
+            cfg = {**default, **json.loads(p.read_text())}
+            cfg["profiles"] = {k: {**ZONE_PROFILES[k], **cfg["profiles"].get(k, {})} for k in ZONE_PROFILES}
+            return cfg
+        except Exception:
+            log.exception("zones.json unreadable: zones off until fixed")
+            return {**default, "live": False}
+
+    def zone_entry_block(self, sym: str, sig, ref: float, zcfg: dict) -> str:
+        """'' to allow the entry; otherwise why the zones block it (against the stock's direction, or chasing past the entry zone)."""
+        from .brain import DirectionFirst
+        from .engine import zone_profile
+        zm = getattr(self, "zonemap", {}).get(sym)
+        if zcfg.get("direction_first") and zm is not None and not DirectionFirst(None).keep(sig, zm.get("bias", 0)):
+            return f"against direction (bias {zm.get('bias', 0):+d})"
+        zp = zone_profile({"profiles": zcfg["profiles"]}, sig.tag)
+        bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
+        px = ask if sig.side == 1 else bid
+        atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
+        side = -1 if sig.side == -1 else 1
+        if atr_i > 0 and side * (px - ref) > zp["chase_atr"] * atr_i:
+            return f"chase: {px:.2f} is past the entry zone ({ref:.2f} + {zp['chase_atr']} ATR)"
+        return ""
 
     def refresh_zonemap(self, now_et: datetime):
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
@@ -377,6 +424,14 @@ class PaperRunner:
         if pos.get("max_bars") and held >= pos["max_bars"]:
             self.close_now(sym, "time", day.index[-1])
             return
+        if pos.get("exhaust_r") and pos.get("risk") and len(day) >= 2 and held >= 2:   # LIVE exhaustion bar: a +exhaust_r trade
+            side, entry = pos.get("side", 1), self.entry_px(pos)                         # closes past the previous bar's extreme
+            best = pos.get("best_px")
+            gained = side * ((best if best is not None else entry) - entry) >= pos["exhaust_r"] * pos["risk"]
+            rev = day["close"].iloc[-1] < day["low"].iloc[-2] if side == 1 else day["close"].iloc[-1] > day["high"].iloc[-2]
+            if gained and rev:
+                self.close_now(sym, "exhausted", day.index[-1] + pd.Timedelta(minutes=5))
+                return
         col = pos.get("exit_col") or ""
         col = col if pos.get("side", 1) == 1 or not col else "m_" + col
         if col and col in day and bool(day[col].iloc[-1]):
@@ -417,6 +472,12 @@ class PaperRunner:
             elif retry_call(self.broker.positions, sleep=self.sleep).get(sym, 0) < 0:
                 self.journal("signal", symbol=sym, side="long", tag=sig.tag, ref=ref, result="another bot is short this symbol")
                 continue
+            zcfg = self.zone_config()
+            if zcfg["live"]:                                            # owner's zones, LIVE: direction first, then no chasing
+                why = self.zone_entry_block(sym, sig, ref, zcfg)
+                if why:
+                    self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
+                    continue
             verdict = self.exec.try_enter(sym, sig, ref, now_et)       # risk 1% of equity, spread guard, window, breaker, duplicate-id guard
             self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=verdict)
             if verdict == "ordered":
@@ -435,9 +496,14 @@ class PaperRunner:
                     slip_bps = (price - ref_px) / ref_px * 1e4 * sig.side         # + = we paid more / sold for less than the quote
                     self.journal("fill", symbol=sym, side=sig.side, qty=filled_qty, quote=ref_px, fill=price, slip_bps=round(slip_bps, 2))
                 self.exits.open_signal(sym, qty, fill, sig, now_et, (day.index[-1] + pd.Timedelta(minutes=5)).isoformat())
-                zone = shadow_zone(day, sig, fill, ref)                                   # trade zones, SHADOW only: logged, not traded
-                zone.update(shadow_direction(getattr(self, "zonemap", {}).get(sym), sig, fill))
-                self.exits.positions[sym]["zone"] = zone
+                zcfg = self.zone_config()
+                zone = shadow_zone(day, sig, fill, ref, zcfg["profiles"])                 # this trade's zones (logged always)
+                zone.update(shadow_direction(getattr(self, "zonemap", {}).get(sym), sig, fill, zcfg["profiles"]))
+                pos = self.exits.positions[sym]
+                pos["zone"], pos["risk"] = zone, float(sig.stop_dist)
+                if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
+                    pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
+                    pos["exhaust_r"] = float(zcfg["profiles"][zone.get("profile", "trend")]["exhaust_r"])
                 self.store.save(self.exits.positions)
                 self.entries_today += 1
                 self.trades_today[sym] = self.trades_today.get(sym, 0) + 1
@@ -625,12 +691,12 @@ def _style_lines(trades: list, today: list) -> list:
     return out
 
 
-def shadow_zone(day, sig, fill: float, ref: float) -> dict:
+def shadow_zone(day, sig, fill: float, ref: float, profiles: dict | None = None) -> dict:
     """The owner's trade zones for a live trade (engine.ZONES rules), recorded for comparison only: would the entry zone have skipped it
     as a chase, and where is its exhaustion take-profit (prior 20-bar high/low if >= 1R away, else 2R)."""
     from .engine import ZONE_PROFILES, zone_profile
     side = -1 if sig.side == -1 else 1
-    zp = zone_profile({"profiles": ZONE_PROFILES}, sig.tag)          # this expert's style decides the profile; levels are this stock's
+    zp = zone_profile({"profiles": profiles or ZONE_PROFILES}, sig.tag)   # this expert's style decides the profile; levels are this stock's
     atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
     bars = day.iloc[-zp["lookback"]:]
     if zp.get("target") == "mean":
@@ -643,7 +709,7 @@ def shadow_zone(day, sig, fill: float, ref: float) -> dict:
             "profile": "range" if zp.get("target") == "mean" else "trend"}
 
 
-def shadow_direction(zm: dict | None, sig, fill: float) -> dict:
+def shadow_direction(zm: dict | None, sig, fill: float, profiles: dict | None = None) -> dict:
     """Direction-first check and the zone-map take-profit for a live trade (shadow only)."""
     if not zm:
         return {}
@@ -651,7 +717,7 @@ def shadow_direction(zm: dict | None, sig, fill: float) -> dict:
     from .engine import ZONE_PROFILES, zone_profile
     from .zonemap import zone_target
     side = -1 if sig.side == -1 else 1
-    zp = zone_profile({"profiles": ZONE_PROFILES}, sig.tag)
+    zp = zone_profile({"profiles": profiles or ZONE_PROFILES}, sig.tag)
     tgt = zone_target(zm.get("levels") or [], fill, side, sig.stop_dist, zp["min_r"])
     return {"bias": zm.get("bias", 0), "against": not DirectionFirst(None).keep(sig, zm.get("bias", 0)),
             "map_target": round(tgt, 4) if tgt is not None else None}
@@ -666,7 +732,7 @@ def _zone_lines(trades: list) -> list:
     hit = [t for t in zs if t.get("zone_hit")]
     actual_hit = sum(t["pnl"] for t in hit)
     zone_hit = sum(t["zone_pnl"] or 0 for t in hit)
-    out = ["", "TRADE ZONES (shadow mode: logged, not traded)",
+    out = ["", "TRADE ZONES (logged on every trade; LIVE when zones.json says live)",
            f"  entry zone: {len(chase)} of {len(zs)} trades were chases the zone would have skipped (their P&L ${sum(t['pnl'] for t in chase):+,.0f})",
            f"  exhaustion zone: {len(hit)} trades reached it; taking profit there would have made ${zone_hit:+,.0f} vs ${actual_hit:+,.0f} actual"]
     dz = [t for t in zs if "against" in t]

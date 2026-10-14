@@ -1459,7 +1459,7 @@ class ShadowZoneTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             (Path(d) / "trades.jsonl").write_text(json.dumps(rows[0]) + "\n")
             txt = paper.report_card(d, date(2026, 10, 14))
-        self.assertIn("TRADE ZONES (shadow mode", txt)
+        self.assertIn("TRADE ZONES (logged on every trade", txt)
         self.assertIn("would have made $+41 vs $-10 actual", txt)
 
 
@@ -1553,3 +1553,101 @@ class LiveZoneMapTests(unittest.TestCase):
         self.assertEqual(Raw.calls, 2)
         self.assertEqual(saved["stocks"]["AAA"]["bias"], 1)
         self.assertIn("levels", saved["stocks"]["BBB"])
+
+
+class LiveZoneTests(unittest.TestCase):
+    def _runner(self, tmp, quote=(100.0, 100.02)):
+        from alpacabot import paper
+        r = paper.PaperRunner.__new__(paper.PaperRunner)
+        r.dir, r.sleep = Path(tmp), (lambda *_: None)
+
+        class B:
+            def quote(self, s): return quote
+        r.broker = B()
+        return r
+
+    def test_zone_config_defaults_to_live_and_is_editable(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            cfg = r.zone_config()
+            self.assertTrue(cfg["live"] and cfg["direction_first"])
+            self.assertTrue((Path(tmp) / "zones.json").exists())
+            (Path(tmp) / "zones.json").write_text(json.dumps({"live": True, "profiles": {"trend": {"min_r": 1.5}}}))
+            cfg = r.zone_config()
+            self.assertEqual(cfg["profiles"]["trend"]["min_r"], 1.5)
+            self.assertEqual(cfg["profiles"]["trend"]["default_r"], 2.0)          # untouched keys keep their defaults
+            (Path(tmp) / "zones.json").write_text("{not json")
+            self.assertFalse(r.zone_config()["live"])                              # a broken file switches zones off, never crashes
+
+    def test_entry_block_direction_then_chase(self):
+        import tempfile
+        from alpacabot.strategies import Signal
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp, quote=(100.6, 100.62))
+            cfg = r.zone_config()
+            r.zonemap = {"UP": {"bias": 1, "levels": []}}
+            short = Signal(i=1, side=-1, stop_dist=1.0, atr=1.0, tag="S:donchian_turtle")
+            self.assertTrue(r.zone_entry_block("UP", short, 100.0, cfg).startswith("against direction"))
+            long_ = Signal(i=1, side=1, stop_dist=1.0, atr=1.0, tag="donchian_turtle")
+            self.assertTrue(r.zone_entry_block("UP", long_, 100.0, cfg).startswith("chase"))   # ask 0.62 above the bar close > 0.5 ATR
+            self.assertEqual(r.zone_entry_block("UP", long_, 100.5, cfg), "")
+
+
+class SwingZoneLiveTests(unittest.TestCase):
+    class B:
+        def __init__(self, ask=101.0):
+            self.sent, self.oco, self.orders, self.ask = [], [], {}, ask
+        def equity(self): return 50000.0
+        def is_session(self, day): return True
+        def quote(self, s): return (self.ask - 0.02, self.ask)
+        def submit_order(self, *a, **k):
+            self.sent.append(a)
+            return {"id": a[0], "status": "filled", "filled_qty": str(a[1]), "filled_avg_price": "100"}
+        def submit_oco(self, sym, qty, limit, stop, coid):
+            self.oco.append((sym, qty, limit, stop))
+            o = {"id": "oco-" + sym, "status": "new", "legs": [{"id": "leg-" + sym, "status": "new"}]}
+            self.orders[o["id"]] = o
+            return o
+        def order(self, oid): return self.orders.get(oid, {"id": oid, "status": "filled", "filled_qty": "5", "filled_avg_price": "100"})
+        def cancel_order(self, oid): pass
+
+    def _runner(self, b, tmp):
+        from alpacabot.swing_paper import SwingRunner
+        r = SwingRunner(b, state_dir=tmp, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+        r.state["plan"] = {"made": "2025-10-13", "exits": [], "entries": [
+            {"symbol": "AMD", "qty": 5, "stop": 95.0, "rs": 0.1, "signal_close": 100.0, "zone_tp": 110.0, "atr": 2.0}]}
+        return r
+
+    def test_entry_places_an_oco_with_the_zone_take_profit_and_settles_both_ways(self):
+        import tempfile
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B(ask=100.5)
+            r = self._runner(b, d)
+            r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+            self.assertEqual(b.oco, [("AMD", 5, 110.0, 95.0)])
+            self.assertTrue(r.state["positions"]["AMD"]["oco"])
+            b.orders["oco-AMD"].update(status="filled", filled_avg_price="110.0")      # the take-profit leg fills
+            r.settle_stops(datetime(2025, 10, 15, 16, 20, tzinfo=et))
+            t = json.loads((Path(d) / "trades.jsonl").read_text().splitlines()[-1])
+            self.assertEqual((t["reason"], t["exit"]), ("zone", 110.0))
+
+    def test_gap_past_the_entry_zone_is_skipped(self):
+        import tempfile
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B(ask=102.5)                                                          # 2.5 above the signal close > 0.5 x ATR 2
+            r = self._runner(b, d)
+            r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+            self.assertEqual(b.sent, [])
+            self.assertNotIn("AMD", r.state["positions"])
+
+    def test_swing_zone_helper(self):
+        from alpacabot.engine import ZONE_PROFILES
+        from alpacabot.swing_paper import swing_zone
+        idx = pd.bdate_range("2025-01-02", periods=60, tz="America/New_York")
+        c = np.r_[np.full(30, 120.0), np.full(30, 100.0)]
+        d = pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=idx)
+        z = swing_zone(d, 100.0, 95.0, {"use_map": False, "profiles": ZONE_PROFILES})
+        self.assertEqual(z["zone_tp"], 110.0)                                               # prior 20-day high 101 < 1R away -> 2R

@@ -85,6 +85,21 @@ class SwingRunner:
         return sum(json.loads(x)["pnl"] for x in p.read_text().splitlines() if x.strip()) if p.exists() else 0.0
 
     # ---------------------------------------------------------------- after the close
+    def zone_config(self) -> dict:
+        """<state>/zones.json (written with defaults on first use; edited by the 2-hour optimizer). LIVE by the owner's decision."""
+        from .engine import ZONE_PROFILES
+        p = Path(self.dir) / "zones.json"
+        default = {"live": True, "use_map": True, "profiles": ZONE_PROFILES}
+        try:
+            if not p.exists():
+                p.write_text(json.dumps(default, indent=1))
+            cfg = {**default, **json.loads(p.read_text())}
+            cfg["profiles"] = {k: {**ZONE_PROFILES[k], **cfg["profiles"].get(k, {})} for k in ZONE_PROFILES}
+            return cfg
+        except Exception:
+            log.exception("swing zones.json unreadable: zones off until fixed")
+            return {**default, "live": False}
+
     def settle_stops(self, now: datetime):
         """Positions whose broker stop filled are closed in our books at the broker's fill price."""
         for sym, pos in list(self.state["positions"].items()):
@@ -92,8 +107,14 @@ class SwingRunner:
             if not oid:
                 continue
             o = self.b.order(oid)
-            if o.get("status") == "filled":
-                self.record(sym, pos, float(o.get("filled_avg_price") or pos["stop"]), "stop", now)
+            if o.get("status") == "filled":                       # plain stop, or the OCO's take-profit (zone) leg
+                why = "zone" if pos.get("oco") else "stop"
+                self.record(sym, pos, float(o.get("filled_avg_price") or (pos.get("zone_tp") if pos.get("oco") else pos["stop"])), why, now)
+                del self.state["positions"][sym]
+                continue
+            leg = next((x for x in (o.get("legs") or []) if x.get("status") == "filled"), None)
+            if pos.get("oco") and leg:                            # the OCO's stop leg filled
+                self.record(sym, pos, float(leg.get("filled_avg_price") or pos["stop"]), "stop", now)
                 del self.state["positions"][sym]
         self._save()
 
@@ -105,11 +126,12 @@ class SwingRunner:
             self.journal("scan_skipped", now, reason="no completed daily bar for today (holiday or data not ready)")
             return {}
         strat = SectorTopDown(spy["close"])
-        frames, closes = {}, {}
+        frames, closes, bars_ = {}, {}, {}
         for sym in self.universe:
             d = daily_bars(sym, now, self.fetch)
             if len(d) and d.index[-1].date() == today:
                 frames[sym], closes[sym] = strat.frame(d), float(d["close"].iloc[-1])
+                bars_[sym] = d
         held = self.state["positions"]
         exits = [s for s in held if s in frames and bool(frames[s]["exit"].iloc[-1])]
         free = MAX_POS - (len(held) - len(exits))
@@ -139,7 +161,8 @@ class SwingRunner:
             if qty < 1:
                 continue
             cash -= qty * px
-            entries.append({"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px})
+            entries.append({"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px,
+                            **swing_zone(bars_[s], px, stop, self.zone_config())})
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
@@ -173,7 +196,16 @@ class SwingRunner:
                 except Exception:
                     log.exception("cancel stop %s", sym)
             sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell", "market", "day", f"sw-x-{sym}-{tag}"))
+        zcfg = self.zone_config()
         for e in plan["entries"]:
+            if zcfg["live"] and e.get("atr") and hasattr(self.b, "quote"):        # entry zone: no chasing a gap past signal close + 0.5 ATR
+                try:
+                    ask = float(self.b.quote(e["symbol"])[1])
+                    if ask > e["signal_close"] + zcfg["profiles"]["trend"]["chase_atr"] * e["atr"]:
+                        self.journal("chase_skip", now, symbol=e["symbol"], ask=ask, signal_close=e["signal_close"], atr=e["atr"])
+                        continue
+                except Exception:
+                    log.exception("chase check %s (entering anyway)", e["symbol"])
             sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy", "market", "day", f"sw-e-{e['symbol']}-{tag}"))
         plan["done"] = True
         self._save()
@@ -224,10 +256,39 @@ class SwingRunner:
             self.b.submit_order(sym, qty, "sell", "market", "day", f"sw-g-{sym}-{now.astimezone(ET):%Y%m%d}")
             self.record(sym, pos, px, "gap_below_stop", now)
             return
+        tp = e.get("zone_tp")
+        if tp and self.zone_config()["live"]:
+            if px >= tp:                                   # opened at/above its take-profit zone: take the profit now
+                self.b.submit_order(sym, qty, "sell", "market", "day", f"sw-z-{sym}-{now.astimezone(ET):%Y%m%d}")
+                self.record(sym, pos, px, "zone", now)
+                return
+            if hasattr(self.b, "submit_oco"):              # stop + take-profit zone at the broker, one cancels the other
+                so = self.b.submit_oco(sym, qty, round(tp, 2), round(e["stop"], 2), f"sw-o-{sym}-{now.astimezone(ET):%Y%m%d}")
+                pos.update(stop_order_id=so.get("id") if isinstance(so, dict) else None, oco=True, zone_tp=round(tp, 2))
+                self.state["positions"][sym] = pos
+                self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"], zone_tp=round(tp, 2))
+                return
         so = self.b.submit_order(sym, qty, "sell", "stop", "gtc", f"sw-s-{sym}-{now.astimezone(ET):%Y%m%d}", stop_price=round(e["stop"], 2))
         pos["stop_order_id"] = so.get("id") if isinstance(so, dict) else None
         self.state["positions"][sym] = pos
         self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"])
+
+
+def swing_zone(d, close: float, stop: float, zcfg: dict) -> dict:
+    """The swing trade's take-profit zone (owner's zones, trend profile): the nearest strong zone of the stock's daily zone map at least
+    min_r x risk above the signal close; else the prior 20-day high if far enough; else default_r x risk. Plus ATR for the chase check."""
+    from .indicators import atr
+    from .zonemap import LEVEL_RULES, level_map, zone_target
+    zp = zcfg["profiles"]["trend"]
+    risk = close - stop
+    if risk <= 0 or d is None or len(d) < 20:
+        return {}
+    a = float(atr(d, 14).iloc[-1])
+    tgt = zone_target(level_map(d.iloc[-LEVEL_RULES["lookback"]:]), close, 1, risk, zp["min_r"]) if zcfg.get("use_map") else None
+    if tgt is None:
+        hi = float(d["high"].iloc[-zp["lookback"]:].max())
+        tgt = hi if hi - close >= zp["min_r"] * risk else close + zp["default_r"] * risk
+    return {"zone_tp": round(float(tgt), 2), "atr": round(a, 4)}
 
 
 def _alert(text: str):
