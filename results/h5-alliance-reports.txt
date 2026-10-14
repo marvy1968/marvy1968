@@ -1,3 +1,1272 @@
 $ read-bot-reports /home/moonrider1968/oanda_master_alliance
-started 2026-10-14 06:38:49 EDT
-RUNNING...
+started 2026-10-14 06:38:49 EDT, took 1s, exit 0
+
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_backup_systemd.log (7380 lines, 2026-10-01)
+    "run_segment4_alerts.py",
+    "verify_segment4b4_part3.py",
+    "run_segment4_backup.py",
+    "run_segment2_guarded.py",
+    "run_segment4_recovery.py",
+    "run_segment3.py",
+    "verify_segment4b1_part3.py",
+    "verify_segment4b2.py",
+    "run_foundation_snapshot.py",
+    "verify_segment4a3_part1.py",
+    "verify_source_review_engine.py",
+    "build_segment4b3_report.py",
+    "build_segment4a3_report.py",
+    "verify_segment4a2.py",
+    "build_segment4b1_report.py",
+    "build_segment3_report.py",
+    "run_segment2.py",
+    "run_segment4b4_checkpoint_alerts.py",
+    "run_segment4b4_health.py",
+    "build_segment4b4_report.py",
+    "verify_segment4b1_part2.py",
+    "run_segment4b4_systemd_inspection.py",
+    "run_segment4b3.py",
+    "requirements.txt"
+  ],
+  "excluded_paths": [
+    ".venv",
+    "__pycache__",
+    ".git",
+    "*.pyc",
+    "*.pyo",
+    "*.tmp",
+    ".env",
+    "*.key",
+    "*.pem",
+    "*token*",
+    "*credential*"
+  ],
+  "removed_archives": [],
+  "free_disk_mb_before": 34080.38,
+  "free_disk_mb_after": 34079.79,
+  "error": "PermissionError: [Errno 13] Permission denied: '/home/moonrider1968/oanda_master_alliance/logs/segment4_backup_systemd.log'",
+  "automatic_execution": false,
+  "order_submission": false
+}
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_backup_systemd_error.log (72 lines, 2026-08-29)
+    main()
+  File "/home/moonrider1968/oanda_master_alliance/run_segment4_backup.py", line 27, in main
+    result = BackupManager().run()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/oanda_master_alliance/segment4/backup_manager.py", line 472, in run
+    archive_path.unlink(
+  File "/usr/lib/python3.11/pathlib.py", line 1148, in unlink
+    os.unlink(self)
+IsADirectoryError: [Errno 21] Is a directory: '.'
+Traceback (most recent call last):
+  File "/home/moonrider1968/oanda_master_alliance/segment4/backup_manager.py", line 373, in run
+    raise RuntimeError(
+RuntimeError: Insufficient free disk space: 583.61 MB
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/moonrider1968/oanda_master_alliance/run_segment4_backup.py", line 43, in <module>
+    main()
+  File "/home/moonrider1968/oanda_master_alliance/run_segment4_backup.py", line 27, in main
+    result = BackupManager().run()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/oanda_master_alliance/segment4/backup_manager.py", line 472, in run
+    archive_path.unlink(
+  File "/usr/lib/python3.11/pathlib.py", line 1148, in unlink
+    os.unlink(self)
+IsADirectoryError: [Errno 21] Is a directory: '.'
+Traceback (most recent call last):
+  File "/home/moonrider1968/oanda_master_alliance/segment4/backup_manager.py", line 373, in run
+    raise RuntimeError(
+RuntimeError: Insufficient free disk space: 321.32 MB
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/moonrider1968/oanda_master_alliance/run_segment4_backup.py", line 43, in <module>
+    main()
+  File "/home/moonrider1968/oanda_master_alliance/run_segment4_backup.py", line 27, in main
+    result = BackupManager().run()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/moonrider1968/oanda_master_alliance/segment4/backup_manager.py", line 472, in run
+    archive_path.unlink(
+  File "/usr/lib/python3.11/pathlib.py", line 1148, in unlink
+    os.unlink(self)
+IsADirectoryError: [Errno 21] Is a directory: '.'
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_health_systemd.log (2128968 lines, 2026-10-02)
+      "message": "Segment 2 shortlist is missing or stale.",
+      "value": 6687601.738696,
+      "threshold": 1800.0,
+      "metadata": {
+        "required": false,
+        "exists": true
+      }
+    },
+    {
+      "name": "segment3_status",
+      "passed": false,
+      "severity": "warning",
+      "message": "Segment 3 status is missing, stale or unsafe.",
+      "value": {
+        "age_seconds": 6687601.334718,
+        "practice_only": true,
+        "automatic_execution": false,
+        "submission_enabled": false
+      },
+      "threshold": 1800.0,
+      "metadata": {}
+    },
+    {
+      "name": "free_disk_space",
+      "passed": true,
+      "severity": "info",
+      "message": "Free disk space is sufficient.",
+      "value": 33160.75,
+      "threshold": 1024.0,
+      "metadata": {}
+    },
+    {
+      "name": "log_file_sizes",
+      "passed": true,
+      "severity": "info",
+      "message": "Log files are within limits.",
+      "value": [],
+      "threshold": 100.0,
+      "metadata": {}
+    }
+  ],
+  "automatic_restart_enabled": false,
+  "automatic_execution": false,
+  "order_submission": false
+}
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_maintenance_systemd.log (7844 lines, 2026-10-02)
+      {
+        "name": "yaml_configuration",
+        "passed": true,
+        "message": "YAML configuration is valid.",
+        "metadata": {
+          "errors": {}
+        }
+      },
+      {
+        "name": "python_compilation",
+        "passed": true,
+        "message": "Python compilation passed.",
+        "metadata": {}
+      },
+      {
+        "name": "safety_configuration",
+        "passed": true,
+        "message": "Safety configuration passed.",
+        "metadata": {
+          "passed": true,
+          "checks": {
+            "practice_only": true,
+            "live_environment_blocked": true,
+            "automatic_execution_disabled": true,
+            "order_submission_disabled": true
+          }
+        }
+      },
+      {
+        "name": "integrity_manifest",
+        "passed": true,
+        "message": "Integrity manifest generated.",
+        "metadata": {
+          "path": "/home/moonrider1968/oanda_master_alliance/state/segment4a3/integrity_manifest.json",
+          "file_count": 16
+        }
+      }
+    ],
+    "automatic_execution": false,
+    "order_submission": false
+  },
+  "free_disk_mb": 33248.03,
+  "automatic_execution": false,
+  "order_submission": false
+}
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_recovery_systemd.log (62 lines, 2026-07-16)
+      "name": "segment3_safety",
+      "passed": true,
+      "blocking": true,
+      "message": "Segment 3 safety settings passed.",
+      "metadata": {
+        "practice_only": true,
+        "automatic_execution": false,
+        "submission_enabled": false,
+        "kill_switch": false,
+        "paused": false
+      }
+    },
+    {
+      "name": "open_position_reconciliation",
+      "passed": true,
+      "blocking": true,
+      "message": "Open-position state is structurally valid.",
+      "metadata": {
+        "position_count": 0,
+        "malformed_count": 0
+      }
+    },
+    {
+      "name": "pending_order_reconciliation",
+      "passed": true,
+      "blocking": true,
+      "message": "Pending-order state is structurally valid.",
+      "metadata": {
+        "order_count": 0,
+        "malformed_count": 0
+      }
+    }
+  ],
+  "open_positions": 0,
+  "pending_orders": 0,
+  "duplicate_registry": {
+    "timestamp": "2026-07-16T01:54:05.969078-04:00",
+    "enabled": true,
+    "signals": 0,
+    "authorizations": 0,
+    "orders": 0
+  },
+  "automatic_execution": false,
+  "order_submission": false
+}
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_report_systemd.log (42906 lines, 2026-10-02)
+- Automatic execution: **False**
+- Practice-order submission: **False**
+
+## Services and timers
+
+| Unit | Active | Enabled |
+|---|---|---|
+| oanda-master-ai.service | inactive | disabled |
+| oanda-master-ai-watchdog.service | inactive | disabled |
+| oanda-master-ai-health.timer | inactive | Failed to get unit file state for oanda-master-ai-health.timer: No such file or directory |
+| oanda-master-ai-maintenance.timer | active | enabled |
+| oanda-master-ai-backup.timer | inactive | Failed to get unit file state for oanda-master-ai-backup.timer: No such file or directory |
+| oanda-master-ai-report.timer | active | enabled |
+
+## Latest backup
+
+- Successful: **False**
+- Archive: **/home/moonrider1968/oanda_master_alliance_backups/oanda_master_alliance_20261001_034535.tar.gz**
+- Size: **0 bytes**
+- Error: **PermissionError: [Errno 13] Permission denied: '/home/moonrider1968/oanda_master_alliance/logs/segment4_backup_systemd.log'**
+
+## Latest maintenance
+
+- Successful: **False**
+- Actions: **6**
+- Free disk: **33248.03 MB**
+
+## Latest alert
+
+- Event: **maintenance_failure**
+- Severity: **error**
+- Delivered: **True**
+- Suppressed: **False**
+
+## Operational guardrails
+
+- Systemd installation does not enable the daemon automatically.
+- Automatic restart inside the watchdog remains disabled.
+- The main systemd service uses on-failure restart with a burst limit.
+- Recovery validation can block unsafe runtime startup.
+- Credentials are excluded from application backups.
+- Backups include checksums and archive validation.
+- Alerts do not authorize or submit trades.
+- Automatic execution and order submission remain disabled.
+
+
+===== /home/moonrider1968/oanda_master_alliance/logs/segment4_systemd.log (2 lines, 2026-07-16)
+Segment 4A-1 graceful shutdown requested.
+Segment 4A-1 graceful shutdown requested.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/expert_library/expert_library_report.md (123 lines, 2026-07-15)
+# OANDA Master Alliance — Expert Library
+
+## Coverage
+
+- Experts: **7**
+- Sources registered: **7**
+- Sources fully reviewed: **0**
+- Doctrine rules: **17**
+- Mechanical rules: **17**
+- Strategy specifications: **7**
+- Production enabled: **no**
+
+## Expert profiles
+
+### John Bollinger
+
+**Philosophy:** Use volatility-relative bands as a framework; a band touch alone is not a signal.
+
+**Edge hypothesis:** Volatility envelopes identify relative extremes, contractions and expansion when independently confirmed.
+
+- Registered sources: 1
+- Doctrine rules: 2
+- Research strategies: 1
+
+**Compatible regimes:** ranging, compression, breakout_transition
+
+**Incompatible regimes:** unfiltered_strong_trend
+
+### Al Brooks
+
+**Philosophy:** Read price action in context, distinguishing trends, ranges, breakouts and failed breakouts.
+
+**Edge hypothesis:** Context, signal-bar quality and follow-through separate useful price action from noise.
+
+- Registered sources: 1
+- Doctrine rules: 3
+- Research strategies: 1
+
+**Compatible regimes:** trending, ranging, breakout_transition
+
+**Incompatible regimes:** unclassified
+
+### Larry Connors
+
+**Philosophy:** Exploit short-term mean reversion while respecting broader directional context.
+
+**Edge hypothesis:** Short-term extremes can revert when the higher-timeframe environment is not hostile.
+
+- Registered sources: 1
+- Doctrine rules: 2
+- Research strategies: 1
+
+**Compatible regimes:** ranging, weak_trend_pullback
+
+**Incompatible regimes:** strong_trending, news_spike
+
+### Toby Crabel
+
+**Philosophy:** Trade volatility expansion after measurable contraction and opening-range structure.
+
+**Edge hypothesis:** Narrow-range compression can precede directional expansion that is testable with breakout rules.
+
+- Registered sources: 1
+- Doctrine rules: 2
+- Research strategies: 1
+
+**Compatible regimes:** compression, breakout_transition
+
+**Incompatible regimes:** already_extended
+
+
+===== /home/moonrider1968/oanda_master_alliance/reports/expert_library/research_queue.csv (14 lines, 2026-07-15)
+expert,title,source_type,priority,status,reference,notes
+velez,Tools and Tactics for the Master Day Trader,book,1,pending,,
+velez,Official video library,video_library,2,pending,,
+raschke,Street Smarts,book,1,pending,,
+...
+bollinger,Bollinger on Bollinger Bands,book,1,pending,,
+crabel,Day Trading with Short Term Price Patterns,book,1,pending,,
+williams,Long-Term Secrets to Short-Term Trading,book,1,pending,,
+
+===== /home/moonrider1968/oanda_master_alliance/reports/expert_library/source_review_report.md (42 lines, 2026-07-15)
+# OANDA Master Alliance — Source Review Engine
+
+## Summary
+
+- Reviews: **2**
+- Completed reviews: **0**
+- Extracted findings: **2**
+- Contradictions: **0**
+- Open contradictions: **0**
+- Promotion candidates: **0**
+- Findings on hold: **2**
+- Rejected findings: **0**
+- Automatic trading enabled: **no**
+
+## Source reviews
+
+| Expert | Source | Section | Status | Progress |
+|---|---|---|---|---:|
+| raschke | Street Smarts | Source review pending | in_progress | 0.0% |
+| velez | Tools and Tactics for the Master Day Trader | Initial doctrine registration | in_progress | 5.0% |
+
+## Findings
+
+| Expert | Type | Evidence | Confidence | Score | Decision | Finding |
+|---|---|---|---:|---:|---|---|
+| raschke | entry | primary | 0.45 | 67.5 | hold | Enter only after volatility expansion confirms direction. |
+| velez | confirmation | primary | 0.60 | 72.0 | hold | Use multiple timeframes to confirm directional structure. |
+
+## Open contradictions
+
+No unresolved contradictions.
+
+## Promotion standard
+
+A rule can become a candidate only when it has strong primary or official evidence, confidence of at least 0.80, a mechanical definition, independent corroboration and no unresolved contradiction.
+
+## Guardrails
+
+- Research records do not place orders.
+- Candidate status does not mean production approval.
+- Every candidate still requires pair-specific backtesting, walk-forward testing and Monte Carlo analysis.
+- No OANDA or Alpaca settings are modified by this engine.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/readiness/segment4b3_report.md (83 lines, 2026-07-16)
+# OANDA Master AI — Segment 4B-3
+
+## Readiness summary
+
+- Generated: **2026-07-16T12:46:00.395142+00:00**
+- Closed shadow trades: **0**
+- Open shadow trades: **0**
+- Promotion checkpoint: **data_collection**
+- Readiness state: **collecting_shadow_data**
+- Eligible for manual review: **False**
+
+## Performance
+
+- Win rate: **0.00%**
+- Profit factor: **0.00**
+- Expectancy: **0.000R**
+- Net result: **0.00R**
+- Maximum drawdown: **0.00R**
+- Longest loss streak: **0**
+- Recovery factor: **0.00**
+
+## Monte Carlo
+
+- Source trades: **0**
+- Simulations: **10000**
+- Probability profitable: **0.00%**
+- Probability positive expectancy: **0.00%**
+- Probability of ruin: **0.00%**
+- 95th-percentile drawdown: **0.00R**
+- Monte Carlo passed: **False**
+- Monte Carlo blockers: **no_closed_shadow_trades**
+
+## Walk-forward
+
+- Eligible: **False**
+- Windows: **0**
+- Profitable-window ratio: **0.00%**
+- Positive-expectancy-window ratio: **0.00%**
+- Failed windows: **0**
+- Walk-forward passed: **False**
+- Walk-forward blockers: **insufficient_trades_for_walk_forward**
+
+## Stability and degradation
+
+- Stability status: **insufficient_data**
+- Stability passed: **True**
+- Warnings: **none**
+- Critical reasons: **none**
+
+## Promotion decision
+
+- Passed: **False**
+- Current trades: **0**
+- Required checkpoint trades: **30**
+- Blocking reasons: **expectancy_below_minimum, insufficient_trades_for_observation_checkpoint, net_r_below_minimum, no_closed_shadow_trades, profit_factor_below_minimum, walk_forward_not_yet_eligible, win_rate_below_min
+- Automatically promoted: **False**
+
+## Hall of Fame
+
+| Category | Name | Score | Trades | PF | Expectancy | Net R |
+|---|---|---:|---:|---:|---:|---:|
+| None | — | — | — | — | — | — |
+
+## Retirement watchlist
+
+| Category | Name | Score | Trades | PF | Expectancy | Status |
+|---|---|---:|---:|---:|---:|---|
+| None | — | — | — | — | — | — |
+
+## Guardrails
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment2/segment2_report.md (25 lines, 2026-07-15)
+# OANDA Master AI — Segment 2
+
+## Summary
+
+- Alliance decisions: **6**
+- Candidate decisions: **2**
+- Correlation-approved shortlist: **2**
+- Automatic execution: **disabled**
+- Environment: **practice research**
+
+## Shortlist
+
+| Instrument | Side | Score | Experts | RR | Regime |
+|---|---:|---:|---:|---:|---|
+| EUR_USD | buy | 85.02 | 4 | 1.96 | strong_trending |
+| USD_CHF | sell | 80.46 | 3 | 1.96 | strong_trending |
+
+## Guardrails
+
+- Segment 2 produces research signals only.
+- No order endpoint is called.
+- Overextended lower-timeframe moves are penalized.
+- Mixed regimes may be blocked.
+- Currency correlation and exposure are limited.
+- Segment 3 must provide risk, execution and trade-management authorization.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment3/segment3_report.md (28 lines, 2026-07-15)
+# OANDA Master AI — Segment 3
+
+## Runtime
+
+- Environment: **practice**
+- Practice only: **True**
+- Automatic execution: **False**
+- Practice order submission enabled: **False**
+- Submit requested: **False**
+- Candidates evaluated: **1**
+- Risk approved: **0**
+- Orders submitted: **0**
+
+## Candidate decisions
+
+| Instrument | Side | Score | Risk approved | Units | Authorization | Reasons |
+|---|---|---:|---|---:|---|---|
+| GBP_USD | buy | 70.91 | False | 0 | False | alliance_score_below_minimum, risk_not_approved |
+
+## Guardrails
+
+- Segment 2 candidates are revalidated before authorization.
+- Position size uses account equity, risk percentage and stop distance.
+- Daily, weekly, total-open-risk and currency-exposure limits remain active.
+- Broker stop-loss and take-profit attachments are required.
+- Duplicate signals and duplicate instrument positions are blocked.
+- Practice submission requires both `automatic_execution` and `practice_order_submission_enabled`.
+- The kill-switch file blocks every new authorization.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment4/segment4a1_report.md (33 lines, 2026-10-02)
+# OANDA Master AI — Segment 4A-1
+
+## Runtime
+
+- Installed mode: **research_daemon**
+- Practice only: **True**
+- Automatic execution: **False**
+- Practice order submission: **False**
+- Daemon state: **stopped**
+- Daemon running: **False**
+- Heartbeat state: **stopped**
+
+## Cycle statistics
+
+- Recorded cycles: **0**
+- Successful cycles: **0**
+- Failed cycles: **0**
+- Total shortlist observations: **0**
+- Orders submitted: **0**
+
+## Latest cycle
+
+Segment 4A-1 has not recorded a cycle.
+
+## Safety
+
+- Segment 4A-1 orchestrates Segments 1–3 only.
+- It does not independently authorize a trade.
+- Automatic execution remains disabled.
+- Practice-order submission remains disabled.
+- Live-environment operation is blocked.
+- The Segment 3 kill switch and risk pause remain authoritative.
+- A daemon lock prevents duplicate runtime instances.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment4/segment4a2_report.md (73 lines, 2026-10-02)
+# OANDA Master AI — Segment 4A-2
+
+## Operations configuration
+
+- Watchdog enabled: **True**
+- Automatic restart enabled: **False**
+- Recovery enabled: **True**
+- Block unresolved recovery: **True**
+- Automatic execution: **False**
+- Order submission: **False**
+
+## Watchdog
+
+- State: **stopped**
+- Watchdog running: **False**
+- Main process running: **False**
+- Heartbeat fresh: **False**
+- Action: **none**
+- Action reason: **none**
+
+## Health
+
+- Healthy: **False**
+- Critical failures: **1**
+- Warnings: **1**
+
+| Check | Passed | Severity | Message |
+|---|---:|---|---|
+| segment4_process | True | info | Segment 4 daemon is not running. |
+| heartbeat_freshness | True | info | Daemon is stopped; stale heartbeat is not treated as a failure. |
+| status_freshness | True | info | Daemon is stopped; status age is informational. |
+| foundation_snapshot | False | critical | Foundation snapshot is missing or data quality failed. |
+| segment2_shortlist | True | info | Segment 2 shortlist is missing or stale. |
+| segment3_status | False | warning | Segment 3 status is missing, stale or unsafe. |
+| free_disk_space | True | info | Free disk space is sufficient. |
+| log_file_sizes | True | info | Log files are within limits. |
+
+## Recovery
+
+- Recovery required: **False**
+- Recovery passed: **True**
+- Unresolved blockers: **0**
+- Open positions recorded: **0**
+- Pending orders recorded: **0**
+- Unresolved-recovery file: **False**
+
+| Check | Passed | Blocking | Message |
+|---|---:|---|---|
+| prior_shutdown_state | True | False | Prior runtime ended cleanly. |
+| segment3_safety | True | True | Segment 3 safety settings passed. |
+| open_position_reconciliation | True | True | Open-position state is structurally valid. |
+| pending_order_reconciliation | True | True | Pending-order state is structurally valid. |
+
+## Duplicate protection
+
+- Registered signals: **0**
+- Registered authorizations: **0**
+- Registered orders: **0**
+
+## Restart history
+
+- Restart attempts in stored history: **0**
+- Automatic restart remains: **disabled**
+
+## Guardrails
+
+- Watchdog health checks do not authorize trades.
+- Automatic restart is disabled by default.
+- Unresolved recovery can block daemon startup.
+- Segment 3 kill switch and pause remain authoritative.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment4/segment4a3_report.md (59 lines, 2026-10-02)
+# OANDA Master AI — Segment 4A-3
+
+## Deployment
+
+- Generated: **2026-10-02T04:16:28.901811-04:00**
+- Deployment mode: **research_services**
+- Installer completed: **True**
+- Systemd units copied: **True**
+- Services automatically enabled: **False**
+
+## Safety
+
+- Safety passed: **True**
+- Practice only: **True**
+- Live environment allowed: **False**
+- Automatic execution: **False**
+- Practice-order submission: **False**
+
+## Services and timers
+
+| Unit | Active | Enabled |
+|---|---|---|
+| oanda-master-ai.service | inactive | disabled |
+| oanda-master-ai-watchdog.service | inactive | disabled |
+| oanda-master-ai-health.timer | inactive | Failed to get unit file state for oanda-master-ai-health.timer: No such file or directory |
+| oanda-master-ai-maintenance.timer | active | enabled |
+| oanda-master-ai-backup.timer | inactive | Failed to get unit file state for oanda-master-ai-backup.timer: No such file or directory |
+| oanda-master-ai-report.timer | active | enabled |
+
+## Latest backup
+
+- Successful: **False**
+- Archive: **/home/moonrider1968/oanda_master_alliance_backups/oanda_master_alliance_20261001_034535.tar.gz**
+- Size: **0 bytes**
+- Error: **PermissionError: [Errno 13] Permission denied: '/home/moonrider1968/oanda_master_alliance/logs/segment4_backup_systemd.log'**
+
+## Latest maintenance
+
+- Successful: **False**
+- Actions: **6**
+- Free disk: **33248.03 MB**
+
+## Latest alert
+
+- Event: **maintenance_failure**
+- Severity: **error**
+- Delivered: **True**
+- Suppressed: **False**
+
+## Operational guardrails
+
+- Systemd installation does not enable the daemon automatically.
+- Automatic restart inside the watchdog remains disabled.
+- The main systemd service uses on-failure restart with a burst limit.
+- Recovery validation can block unsafe runtime startup.
+- Credentials are excluded from application backups.
+- Backups include checksums and archive validation.
+- Alerts do not authorize or submit trades.
+- Automatic execution and order submission remain disabled.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/segment4b/segment4b1_report.md (53 lines, 2026-07-16)
+# OANDA Master AI — Segment 4B-1
+
+## Runtime
+
+- Generated: **2026-07-16T07:56:11.443788+00:00**
+- Environment: **practice**
+- Mode: **simulation_only**
+- Execution gate allowed: **False**
+- Automatic execution: **False**
+- Practice-order submission: **False**
+- Orders submitted: **0**
+
+## Broker reconciliation
+
+- Passed: **True**
+- Open positions: **0**
+- Open trades: **0**
+- Pending orders: **0**
+
+## Simulation results
+
+- Segment 3 candidates: **0**
+- Evaluated candidates: **0**
+- Simulated acceptances: **0**
+- Verified simulated fills: **0**
+- Rejected candidates: **0**
+
+## Execution counters
+
+- Hourly simulations: **0**
+- Hourly maximum: **4**
+- Daily simulations: **0**
+- Daily maximum: **8**
+
+## Candidate lifecycle
+
+| Instrument | Side | Candidate | Market | Counter | Simulated receipt | Fill verified | Rejected |
+|---|---|---:|---:|---:|---:|---:|---:|
+| None | — | — | — | — | — | — | — |
+
+## Guardrails
+
+- The market validator uses read-only OANDA pricing.
+- Broker reconciliation uses read-only OANDA account endpoints.
+- Simulated receipts are locally generated and are not broker receipts.
+- Fill verification operates against simulated lifecycle data.
+- Duplicate intent and authorization protection remains active.
+- Hourly, daily and per-cycle counters remain enforced.
+- The activation gate remains blocked.
+- Automatic execution remains disabled.
+- Practice-order submission remains disabled.
+- No OANDA order endpoint is present in the simulated router.
+- Orders submitted remain zero.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/shadow/segment4b2_report.md (69 lines, 2026-07-16)
+# OANDA Master AI — Segment 4B-2
+
+## Shadow runtime
+
+- Generated: **2026-07-16T12:22:16.152323+00:00**
+- Latest cycle successful: **True**
+- Candidates loaded: **0**
+- Candidates approved: **0**
+- Shadow trades opened: **0**
+- Open trades checked: **0**
+- Shadow trades closed: **0**
+- Current open trades: **0**
+- Total closed trades: **0**
+
+## Overall performance
+
+- Trades: **0**
+- Wins: **0**
+- Losses: **0**
+- Pushes: **0**
+- Win rate: **0.00%**
+- Profit factor: **0.00**
+- Expectancy: **0.000R**
+- Net result: **0.00R**
+- Maximum drawdown: **0.00R**
+- Longest loss streak: **0**
+- Ending shadow equity: **$10000.00**
+
+## Open shadow trades
+
+| Instrument | Side | Entry | Stop | Target | Score | Experts | Unrealized R |
+|---|---|---:|---:|---:|---:|---:|---:|
+| None | — | — | — | — | — | — | — |
+
+## Expert performance
+
+| Name | Trades | Win rate | Profit factor | Expectancy R | Net R | Drawdown R |
+|---|---:|---:|---:|---:|---:|---:|
+| None | 0 | 0.00% | 0.00 | 0.000 | 0.00 | 0.00 |
+
+## Pair performance
+
+| Name | Trades | Win rate | Profit factor | Expectancy R | Net R | Drawdown R |
+|---|---:|---:|---:|---:|---:|---:|
+| None | 0 | 0.00% | 0.00 | 0.000 | 0.00 | 0.00 |
+
+## Setup performance
+
+| Name | Trades | Win rate | Profit factor | Expectancy R | Net R | Drawdown R |
+|---|---:|---:|---:|---:|---:|---:|
+| None | 0 | 0.00% | 0.00 | 0.000 | 0.00 | 0.00 |
+
+## Promotion review
+
+- Eligible for next review: **False**
+- Minimum required trades: **30**
+- Blocking reasons: **insufficient_shadow_trades, profit_factor_below_minimum, expectancy_below_minimum**
+
+## Guardrails
+
+- Segment 4B-2 records hypothetical shadow trades only.
+- OANDA pricing access is read-only.
+- No broker order endpoint is called.
+- No trade, position or pending order is created at OANDA.
+- Shadow profits and losses are simulated research results.
+- Automatic execution remains disabled.
+- Practice-order submission remains disabled.
+- Live-environment execution remains blocked.
+- Promotion eligibility does not automatically enable trading.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/shadow_campaign/segment4b4_part3_report.md (58 lines, 2026-07-16)
+# OANDA Master AI — Segment 4B-4 Part 3
+
+## Long-running campaign operations
+
+- Generated: **2026-07-16T17:37:19.514013+00:00**
+- Campaign state: **cycle_complete**
+- Campaign running: **False**
+- Cycle number: **1**
+- Checkpoint: **data_collection**
+- Closed shadow trades: **0**
+- Target closed trades: **250**
+
+## Campaign health
+
+- Health present: **True**
+- Healthy: **True**
+- Stalled: **False**
+- Severity: **info**
+- Status age: **7909.121012 seconds**
+- Reasons: **none**
+- Warnings: **none**
+
+## Progress snapshot
+
+- Snapshot present: **True**
+- Completion: **0.0%**
+- Remaining trades: **250**
+- Checkpoint changed: **False**
+- Alert created: **False**
+
+## Latest checkpoint alert
+
+- Alert present: **False**
+- Event: **none**
+- Severity: **none**
+- Delivered: **False**
+
+## Services and timers
+
+| Unit | Active | Enabled |
+|---|---|---|
+| oanda-master-ai-shadow-campaign.service | inactive | Failed to get unit file state for oanda-master-ai-shadow-campaign.service: No such file or directory |
+| oanda-master-ai-shadow-campaign-health.timer | inactive | Failed to get unit file state for oanda-master-ai-shadow-campaign-health.timer: No such file or directory |
+| oanda-master-ai-shadow-campaign-snapshot.timer | inactive | Failed to get unit file state for oanda-master-ai-shadow-campaign-snapshot.timer: No such file or directory |
+| oanda-master-ai-shadow-campaign-alert.timer | inactive | Failed to get unit file state for oanda-master-ai-shadow-campaign-alert.timer: No such file or directory |
+
+## Guardrails
+
+- The campaign remains research-only.
+- Shadow trades remain hypothetical.
+- Campaign alerts are operational notifications only.
+- Checkpoint alerts do not promote strategies.
+- Health checks do not authorize execution.
+- Automatic promotion remains disabled.
+- Automatic execution remains disabled.
+- Practice-order submission remains disabled.
+- Live trading remains blocked.
+- Orders submitted remain zero.
+
+===== /home/moonrider1968/oanda_master_alliance/reports/shadow_campaign/segment4b4_report.md (60 lines, 2026-07-16)
+# OANDA Master AI — Segment 4B-4
+
+## Shadow campaign runtime
+
+- Generated: **2026-07-16T15:26:46.267505+00:00**
+- State: **cycle_complete**
+- Running: **False**
+- Cycle number: **1**
+- Last cycle successful: **True**
+- Consecutive errors: **0**
+- Paused: **False**
+- Shutdown requested: **False**
+
+## Campaign progress
+
+- Current checkpoint: **data_collection**
+- Open shadow trades: **0**
+- Closed shadow trades: **0**
+- Target closed trades: **250**
+- Campaign complete: **False**
+- Checkpoint stop requested: **False**
+- Checkpoint reason: **continue_campaign**
+
+## Latest cycle
+
+- Candidates loaded: **0**
+- Candidates approved: **0**
+- Shadow trades opened: **0**
+- Open trades checked: **0**
+- Shadow trades closed: **0**
+- Errors: **none**
+
+## Pipeline stages
+
+| Stage | Attempted | Successful | Return code | Runtime seconds | Error |
+|---|---:|---:|---:|---:|---|
+| segment2_refresh | True | True | 0 | 6.2641 | none |
+| segment3_research_preview | True | True | 0 | 6.3513 | none |
+| segment4b2_shadow_cycle | True | True | 0 | 0.2454 | none |
+| segment4b3_readiness | True | True | 0 | 0.1111 | none |
+
+## Campaign controls
+
+- Campaign enabled: **True**
+- Manual pause: **False**
+- Stop at observation checkpoint: **False**
+- Stop at provisional checkpoint: **False**
+- Stop at advanced checkpoint: **False**
+- Stop at production-review checkpoint: **True**
+
+## Guardrails
+
+- Segment 4B-4 orchestrates research and shadow-analysis stages only.
+- Shadow trades are hypothetical and do not create broker positions.
+- Campaign checkpoints do not authorize practice or live execution.
+- Automatic promotion remains disabled.
+- Automatic execution remains disabled.
+- Practice-order submission remains disabled.
+- Live-environment execution remains blocked.
+- Orders submitted remain zero.
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/AUD_USD_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,0.70182,0.70321,0.70182,0.70228,4017.0
+2026-06-18 01:00:00+00:00,0.7023,0.70353,0.70225,0.70318,3274.0
+2026-06-18 02:00:00+00:00,0.70322,0.70402,0.70308,0.7036,2338.0
+...
+2026-07-16 16:00:00+00:00,0.70016,0.70022,0.69924,0.6994,3091.0
+2026-07-16 17:00:00+00:00,0.6994,0.69956,0.69902,0.6993,2535.0
+2026-07-16 18:00:00+00:00,0.6993,0.69958,0.69916,0.69953,2802.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/AUD_USD_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,0.71329,0.71483,0.71329,0.7144,12896.0
+2026-04-15 09:00:00+00:00,0.7144,0.7148,0.71296,0.71388,18227.0
+2026-04-15 13:00:00+00:00,0.71389,0.71684,0.71389,0.71664,20996.0
+...
+2026-07-16 05:00:00+00:00,0.69992,0.70015,0.69942,0.69987,11002.0
+2026-07-16 09:00:00+00:00,0.69988,0.70105,0.69951,0.69977,12322.0
+2026-07-16 13:00:00+00:00,0.69978,0.70126,0.69924,0.6994,17871.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/AUD_USD_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,0.69594,0.69595,0.69548,0.6955,354.0
+2026-07-07 00:00:00+00:00,0.69548,0.69559,0.69538,0.69544,586.0
+2026-07-07 00:15:00+00:00,0.69543,0.69556,0.6952,0.69529,581.0
+...
+2026-07-16 18:15:00+00:00,0.69946,0.69956,0.69941,0.69947,663.0
+2026-07-16 18:30:00+00:00,0.69946,0.69946,0.69923,0.69944,669.0
+2026-07-16 18:45:00+00:00,0.69943,0.69957,0.69938,0.69953,694.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/AUD_USD_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,0.69311,0.6934,0.6931,0.69335,345.0
+2026-07-13 07:50:00+00:00,0.69336,0.69374,0.6933,0.69372,284.0
+2026-07-13 07:55:00+00:00,0.69372,0.69374,0.69358,0.69374,330.0
+...
+2026-07-16 18:45:00+00:00,0.69943,0.6995,0.69942,0.69944,214.0
+2026-07-16 18:50:00+00:00,0.69944,0.69948,0.69938,0.69947,286.0
+2026-07-16 18:55:00+00:00,0.69946,0.69957,0.69945,0.69953,194.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/EUR_USD_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,1.15069,1.15208,1.15068,1.15155,6765.0
+2026-06-18 01:00:00+00:00,1.15154,1.15224,1.15154,1.15166,4120.0
+2026-06-18 02:00:00+00:00,1.15166,1.15209,1.15131,1.15179,2645.0
+...
+2026-07-16 16:00:00+00:00,1.1447,1.14472,1.14342,1.14348,4573.0
+2026-07-16 17:00:00+00:00,1.14348,1.14384,1.1431,1.14365,3422.0
+2026-07-16 18:00:00+00:00,1.14366,1.14392,1.1435,1.14385,3512.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/EUR_USD_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,1.17886,1.17993,1.17828,1.17894,21654.0
+2026-04-15 09:00:00+00:00,1.17895,1.1793,1.1772,1.17882,34002.0
+2026-04-15 13:00:00+00:00,1.17881,1.1808,1.17842,1.1801,35035.0
+...
+2026-07-16 05:00:00+00:00,1.14664,1.14764,1.14622,1.1466,19788.0
+2026-07-16 09:00:00+00:00,1.1466,1.14706,1.1447,1.14476,23051.0
+2026-07-16 13:00:00+00:00,1.14477,1.14592,1.14342,1.14348,27824.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/EUR_USD_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,1.14445,1.14446,1.14412,1.14415,500.0
+2026-07-07 00:00:00+00:00,1.14414,1.14424,1.14404,1.14412,1071.0
+2026-07-07 00:15:00+00:00,1.1441,1.14411,1.14382,1.14388,723.0
+...
+2026-07-16 18:15:00+00:00,1.14377,1.14392,1.14365,1.14366,907.0
+2026-07-16 18:30:00+00:00,1.14366,1.14378,1.14358,1.14377,996.0
+2026-07-16 18:45:00+00:00,1.14378,1.14388,1.14368,1.14385,715.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/EUR_USD_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,1.14166,1.14224,1.14166,1.14218,626.0
+2026-07-13 07:50:00+00:00,1.14218,1.14262,1.14212,1.14258,854.0
+2026-07-13 07:55:00+00:00,1.14257,1.14261,1.1423,1.14247,774.0
+...
+2026-07-16 18:45:00+00:00,1.14378,1.14387,1.14372,1.14372,246.0
+2026-07-16 18:50:00+00:00,1.14373,1.14379,1.14368,1.14376,211.0
+2026-07-16 18:55:00+00:00,1.14374,1.14388,1.14372,1.14385,258.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/GBP_USD_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,1.33007,1.3318,1.33004,1.33065,11491.0
+2026-06-18 01:00:00+00:00,1.33066,1.33188,1.3306,1.33103,8311.0
+2026-06-18 02:00:00+00:00,1.33102,1.33158,1.33067,1.33122,5757.0
+...
+2026-07-16 16:00:00+00:00,1.3483,1.34836,1.34654,1.3466,8054.0
+2026-07-16 17:00:00+00:00,1.3466,1.34718,1.34597,1.34696,7651.0
+2026-07-16 18:00:00+00:00,1.34696,1.34714,1.34649,1.34706,7877.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/GBP_USD_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,1.35676,1.35789,1.35557,1.35644,30294.0
+2026-04-15 09:00:00+00:00,1.35644,1.357,1.35435,1.35551,41582.0
+2026-04-15 13:00:00+00:00,1.35552,1.35792,1.35528,1.35736,53116.0
+...
+2026-07-16 05:00:00+00:00,1.35326,1.35425,1.3519,1.35208,36947.0
+2026-07-16 09:00:00+00:00,1.35208,1.35212,1.34938,1.34976,38240.0
+2026-07-16 13:00:00+00:00,1.34978,1.35174,1.34654,1.3466,48752.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/GBP_USD_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,1.33982,1.33985,1.33938,1.33942,664.0
+2026-07-07 00:00:00+00:00,1.3394,1.33958,1.33931,1.33944,2582.0
+2026-07-07 00:15:00+00:00,1.33944,1.33945,1.3391,1.33914,1749.0
+...
+2026-07-16 18:15:00+00:00,1.34674,1.34698,1.34672,1.34682,2159.0
+2026-07-16 18:30:00+00:00,1.3468,1.3469,1.34667,1.34686,1235.0
+2026-07-16 18:45:00+00:00,1.34687,1.34714,1.34675,1.34706,1980.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/GBP_USD_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,1.33856,1.33876,1.33846,1.33856,1535.0
+2026-07-13 07:50:00+00:00,1.33855,1.3393,1.33852,1.33921,1534.0
+2026-07-13 07:55:00+00:00,1.33922,1.33958,1.33914,1.33932,1275.0
+...
+2026-07-16 18:45:00+00:00,1.34687,1.34704,1.34685,1.34687,721.0
+2026-07-16 18:50:00+00:00,1.34685,1.34696,1.34675,1.34688,491.0
+2026-07-16 18:55:00+00:00,1.34686,1.34714,1.34684,1.34706,768.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/NZD_USD_H1.csv (501 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-17 23:00:00+00:00,0.5776,0.57776,0.57732,0.57741,1200.0
+2026-06-18 00:00:00+00:00,0.57742,0.5786,0.57742,0.57782,4201.0
+2026-06-18 01:00:00+00:00,0.57782,0.5792,0.57781,0.57893,3896.0
+...
+2026-07-16 16:00:00+00:00,0.5844,0.58452,0.58354,0.58376,2252.0
+2026-07-16 17:00:00+00:00,0.58374,0.58402,0.58336,0.58386,2241.0
+2026-07-16 18:00:00+00:00,0.58386,0.58426,0.58374,0.58424,2152.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/NZD_USD_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,0.59012,0.59094,0.58994,0.59062,12326.0
+2026-04-15 09:00:00+00:00,0.59062,0.5908,0.58918,0.58964,14463.0
+2026-04-15 13:00:00+00:00,0.58966,0.59136,0.5892,0.59124,16829.0
+...
+2026-07-16 05:00:00+00:00,0.58484,0.58583,0.58472,0.58508,11787.0
+2026-07-16 09:00:00+00:00,0.58508,0.58574,0.58453,0.58458,12148.0
+2026-07-16 13:00:00+00:00,0.58459,0.58554,0.58354,0.58376,14891.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/NZD_USD_M15.csv (751 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:30:00+00:00,0.5704,0.5704,0.57032,0.57036,104.0
+2026-07-06 23:45:00+00:00,0.57034,0.57036,0.57002,0.57008,250.0
+2026-07-07 00:00:00+00:00,0.57005,0.57026,0.57,0.57014,781.0
+...
+2026-07-16 18:15:00+00:00,0.58405,0.5842,0.584,0.58404,618.0
+2026-07-16 18:30:00+00:00,0.58403,0.58418,0.5839,0.58415,514.0
+2026-07-16 18:45:00+00:00,0.58416,0.58426,0.5841,0.58424,281.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/NZD_USD_M5.csv (1001 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:40:00+00:00,0.57676,0.57682,0.5765,0.5765,266.0
+2026-07-13 07:45:00+00:00,0.5765,0.57682,0.5765,0.57676,282.0
+2026-07-13 07:50:00+00:00,0.57676,0.57725,0.57674,0.57724,417.0
+...
+2026-07-16 18:45:00+00:00,0.58416,0.58422,0.58414,0.58416,101.0
+2026-07-16 18:50:00+00:00,0.58415,0.58416,0.5841,0.58415,110.0
+2026-07-16 18:55:00+00:00,0.58416,0.58426,0.58414,0.58424,70.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CAD_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,1.4102,1.4103,1.40945,1.40975,6736.0
+2026-06-18 01:00:00+00:00,1.40976,1.41049,1.40952,1.41036,5264.0
+2026-06-18 02:00:00+00:00,1.41036,1.41096,1.40965,1.41016,3875.0
+...
+2026-07-16 16:00:00+00:00,1.40346,1.40516,1.40334,1.40506,4225.0
+2026-07-16 17:00:00+00:00,1.40505,1.40584,1.40498,1.40535,4232.0
+2026-07-16 18:00:00+00:00,1.40534,1.40566,1.40483,1.40486,3183.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CAD_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,1.37753,1.37764,1.3761,1.37663,15100.0
+2026-04-15 09:00:00+00:00,1.37664,1.37886,1.37652,1.37746,19819.0
+2026-04-15 13:00:00+00:00,1.37746,1.37762,1.37337,1.37344,29628.0
+...
+2026-07-16 05:00:00+00:00,1.4047,1.40518,1.40404,1.4042,15502.0
+2026-07-16 09:00:00+00:00,1.4042,1.40482,1.40206,1.40286,16329.0
+2026-07-16 13:00:00+00:00,1.40286,1.40516,1.40103,1.40506,22194.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CAD_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,1.42062,1.4209,1.42046,1.42083,508.0
+2026-07-07 00:00:00+00:00,1.42084,1.4211,1.42081,1.42087,845.0
+2026-07-07 00:15:00+00:00,1.42086,1.42121,1.42086,1.42111,599.0
+...
+2026-07-16 18:15:00+00:00,1.40516,1.40538,1.40497,1.4053,942.0
+2026-07-16 18:30:00+00:00,1.40531,1.4054,1.40506,1.40506,617.0
+2026-07-16 18:45:00+00:00,1.40507,1.40512,1.40483,1.40486,468.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CAD_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,1.41497,1.41502,1.41456,1.41464,496.0
+2026-07-13 07:50:00+00:00,1.41464,1.41464,1.41427,1.41442,373.0
+2026-07-13 07:55:00+00:00,1.41443,1.41464,1.41438,1.41438,275.0
+...
+2026-07-16 18:45:00+00:00,1.40507,1.40508,1.40494,1.40496,141.0
+2026-07-16 18:50:00+00:00,1.40498,1.40512,1.40494,1.40499,149.0
+2026-07-16 18:55:00+00:00,1.40498,1.405,1.40483,1.40486,178.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CHF_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,0.79944,0.79944,0.7982,0.79886,3302.0
+2026-06-18 01:00:00+00:00,0.79885,0.7989,0.79828,0.7988,2487.0
+2026-06-18 02:00:00+00:00,0.7988,0.79908,0.79863,0.79882,1875.0
+...
+2026-07-16 16:00:00+00:00,0.80795,0.8095,0.80788,0.8094,2324.0
+2026-07-16 17:00:00+00:00,0.80942,0.80972,0.80874,0.8089,1793.0
+2026-07-16 18:00:00+00:00,0.80892,0.8091,0.80875,0.80887,1501.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CHF_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,0.78128,0.78146,0.77986,0.78086,9924.0
+2026-04-15 09:00:00+00:00,0.78085,0.78318,0.78072,0.7824,13878.0
+2026-04-15 13:00:00+00:00,0.78239,0.78242,0.78066,0.78168,15050.0
+...
+2026-07-16 05:00:00+00:00,0.80607,0.80715,0.80555,0.80691,9858.0
+2026-07-16 09:00:00+00:00,0.80692,0.80822,0.80626,0.80817,12813.0
+2026-07-16 13:00:00+00:00,0.80816,0.8095,0.80736,0.8094,15178.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CHF_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,0.80483,0.80514,0.80481,0.80513,302.0
+2026-07-07 00:00:00+00:00,0.80514,0.80528,0.80508,0.8052,542.0
+2026-07-07 00:15:00+00:00,0.8052,0.80559,0.8052,0.80555,563.0
+...
+2026-07-16 18:15:00+00:00,0.80878,0.809,0.80875,0.80897,408.0
+2026-07-16 18:30:00+00:00,0.80898,0.8091,0.80894,0.80901,366.0
+2026-07-16 18:45:00+00:00,0.80898,0.80906,0.80884,0.80887,325.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_CHF_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,0.80941,0.80941,0.809,0.80902,505.0
+2026-07-13 07:50:00+00:00,0.80902,0.80906,0.80854,0.80857,490.0
+2026-07-13 07:55:00+00:00,0.80858,0.80876,0.8085,0.80867,445.0
+...
+2026-07-16 18:45:00+00:00,0.80898,0.809,0.80895,0.809,76.0
+2026-07-16 18:50:00+00:00,0.809,0.809,0.80891,0.80898,106.0
+2026-07-16 18:55:00+00:00,0.80898,0.80906,0.80884,0.80887,143.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_JPY_H1.csv (500 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-06-18 00:00:00+00:00,160.608,160.75,160.537,160.7,9623.0
+2026-06-18 01:00:00+00:00,160.7,160.701,160.625,160.638,5333.0
+2026-06-18 02:00:00+00:00,160.637,160.664,160.564,160.581,5034.0
+...
+2026-07-16 16:00:00+00:00,162.426,162.549,162.418,162.48,6638.0
+2026-07-16 17:00:00+00:00,162.479,162.508,162.398,162.416,4034.0
+2026-07-16 18:00:00+00:00,162.414,162.428,162.372,162.392,5094.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_JPY_H4.csv (400 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-04-15 05:00:00+00:00,158.986,159.03,158.644,158.78,32948.0
+2026-04-15 09:00:00+00:00,158.78,159.153,158.718,159.108,47799.0
+2026-04-15 13:00:00+00:00,159.108,159.122,158.752,158.884,47260.0
+...
+2026-07-16 05:00:00+00:00,162.096,162.182,161.982,162.146,34778.0
+2026-07-16 09:00:00+00:00,162.146,162.301,162.111,162.295,32655.0
+2026-07-16 13:00:00+00:00,162.296,162.549,162.215,162.48,30643.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_JPY_M15.csv (750 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-06 23:45:00+00:00,162.068,162.111,162.052,162.096,786.0
+2026-07-07 00:00:00+00:00,162.096,162.13,162.082,162.13,1587.0
+2026-07-07 00:15:00+00:00,162.13,162.182,162.128,162.169,1805.0
+...
+2026-07-16 18:15:00+00:00,162.382,162.42,162.372,162.389,1054.0
+2026-07-16 18:30:00+00:00,162.39,162.414,162.386,162.394,1410.0
+2026-07-16 18:45:00+00:00,162.392,162.406,162.384,162.392,1014.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/candles/USD_JPY_M5.csv (1000 lines, 2026-07-16)
+timestamp,open,high,low,close,volume
+2026-07-13 07:45:00+00:00,162.224,162.232,162.188,162.206,918.0
+2026-07-13 07:50:00+00:00,162.207,162.214,162.106,162.115,1366.0
+2026-07-13 07:55:00+00:00,162.116,162.141,162.089,162.104,1418.0
+...
+2026-07-16 18:45:00+00:00,162.392,162.405,162.385,162.399,320.0
+2026-07-16 18:50:00+00:00,162.4,162.406,162.398,162.4,311.0
+2026-07-16 18:55:00+00:00,162.399,162.4,162.384,162.392,383.0
+
+===== /home/moonrider1968/oanda_master_alliance/state/shadow/promotion_report.json (30 lines, 2026-07-16)
+{
+  "automatic_execution": false,
+  "current_metrics": {
+    "average_mae_r": 0.0,
+    "average_mfe_r": 0.0,
+    "expectancy_r": 0.0,
+    "gross_loss_r": 0,
+    "gross_profit_r": 0,
+    "longest_loss_streak": 0,
+    "longest_win_streak": 0,
+    "losses": 0,
+    "maximum_drawdown_r": 0.0,
+    "net_r": 0,
+    "profit_factor": 0.0,
+    "pushes": 0,
+    "trades": 0,
+    "win_rate": 0.0,
+    "wins": 0
+  },
+  "eligible_for_next_review": false,
+  "message": "This report does not enable practice or live trading.",
+  "minimum_required_trades": 30,
+  "order_submission": false,
+  "reasons": [
+    "insufficient_shadow_trades",
+    "profit_factor_below_minimum",
+    "expectancy_below_minimum"
+  ],
+  "timestamp": "2026-07-16T15:25:29.689249+00:00"
+}
