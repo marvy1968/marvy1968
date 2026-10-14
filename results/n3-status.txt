@@ -1,3 +1,102 @@
 $ status
-started 2026-10-14 11:51:10 EDT
-RUNNING...
+started 2026-10-14 11:51:10 EDT, took 1s, exit 0
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-10-12 23:53:19 EDT; 1 day 11h ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Oct 12 23:53:19 instance-stockbot systemd[1]: Started marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-live.service.d
+             └─tf.conf
+     Active: active (running) since Wed 2026-10-14 11:51:05 EDT; 9s ago
+   Main PID: 176568 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 85.5M
+        CPU: 2.491s
+     CGroup: /system.slice/marv-live.service
+             └─176568 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 14 11:51:05 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+
+● marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run)
+     Loaded: loaded (/etc/systemd/system/marv-soccer.timer; enabled; preset: enabled)
+     Active: active (waiting) since Mon 2026-10-12 23:53:19 EDT; 1 day 11h ago
+    Trigger: Wed 2026-10-14 12:10:25 EDT; 19min left
+   Triggers: ● marv-soccer.service
+
+Oct 12 23:53:19 instance-stockbot systemd[1]: Started marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run).
+
+● marv-vmlink.service - Marv VM link: run jobs from the vm-link branch
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.service; static)
+     Active: activating (start) since Wed 2026-10-14 11:50:25 EDT; 49s ago
+TriggeredBy: ● marv-vmlink.timer
+   Main PID: 175289 (python3)
+      Tasks: 4 (limit: 4617)
+     Memory: 168.4M
+        CPU: 24.044s
+     CGroup: /system.slice/marv-vmlink.service
+             ├─175289 /usr/bin/python3 /opt/marv-bot/deploy/vm_link.py
+             ├─176704 bash -c "systemctl --no-pager status 'marv-*' | head -80; systemctl list-timers 'marv-*' --no-pager; git -c safe.directory=/opt/marv-bot -C /opt/marv-bot log -3 --oneline; df -h /"
+             ├─176705 systemctl --no-pager status "marv-*"
+             └─176706 head -80
+
+Oct 14 11:50:25 instance-stockbot systemd[1]: Starting marv-vmlink.service - Marv VM link: run jobs from the vm-link branch...
+
+● marv-master.timer - Marv MASTER tracker every 15 min
+     Loaded: loaded (/etc/systemd/system/marv-master.timer; enabled; preset: enabled)
+     Active: active (waiting) since Tue 2026-10-13 12:46:33 EDT; 23h ago
+    Trigger: Wed 2026-10-14 12:03:56 EDT; 12min left
+   Triggers: ● marv-master.service
+
+Oct 13 12:46:33 instance-stockbot systemd[1]: Started marv-master.timer - Marv MASTER tracker every 15 min.
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Mon 2026-10-12 23:53:19 EDT; 1 day 11h ago
+    Trigger: Wed 2026-10-14 17:30:00 EDT; 5h 38min left
+   Triggers: ● marv-bot-late.service
+
+Oct 12 23:53:19 instance-stockbot systemd[1]: Started marv-bot-late.timer - Re-check injuries and stats shortly before games.
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-bridge.service.d
+             └─tf.conf
+     Active: active (running) since Wed 2026-10-14 11:51:05 EDT; 9s ago
+   Main PID: 176569 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 89.0M
+        CPU: 2.662s
+     CGroup: /system.slice/marv-bridge.service
+             └─176569 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 14 11:51:05 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+
+● marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record)
+     Loaded: loaded (/etc/systemd/system/marv-edges.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-edges.service.d
+             └─tf.conf
+NEXT                        LEFT          LAST                        PASSED       UNIT                  ACTIVATES
+Wed 2026-10-14 11:52:00 EDT 44s left      Wed 2026-10-14 11:37:00 EDT 14min ago    marv-clvinj.timer     marv-clvinj.service
+Wed 2026-10-14 12:03:56 EDT 12min left    Wed 2026-10-14 11:48:56 EDT 2min 18s ago marv-master.timer     marv-master.service
+Wed 2026-10-14 12:10:25 EDT 19min left    Wed 2026-10-14 09:10:25 EDT 2h 40min ago marv-soccer.timer     marv-soccer.service
+Wed 2026-10-14 12:12:59 EDT 21min left    Wed 2026-10-14 11:42:59 EDT 8min ago     marv-health.timer     marv-health.service
+Wed 2026-10-14 16:20:00 EDT 4h 28min left Tue 2026-10-13 16:20:05 EDT 19h ago      marv-swing-scan.timer marv-swing-scan.service
+Wed 2026-10-14 17:30:00 EDT 5h 38min left Tue 2026-10-13 17:30:05 EDT 18h ago      marv-bot-late.timer   marv-bot-late.service
+Thu 2026-10-15 08:40:00 EDT 20h left      Wed 2026-10-14 08:40:01 EDT 3h 11min ago marv-dailypicks.timer marv-dailypicks.service
+Thu 2026-10-15 09:20:00 EDT 21h left      Wed 2026-10-14 09:20:05 EDT 2h 31min ago marv-swing-open.timer marv-swing-open.service
+Thu 2026-10-15 10:00:00 EDT 22h left      Wed 2026-10-14 10:00:00 EDT 1h 51min ago marv-bot.timer        marv-bot.service
+-                           -             Wed 2026-10-14 11:50:25 EDT 50s ago      marv-vmlink.timer     marv-vmlink.service
+
+10 timers listed.
+Pass --all to see loaded but inactive timers, too.
+0a6dbf5 Stock bot: the daily breaker and profit lock survive a restart
+028f712 Forex: our own OANDA practice runner with the scaling zones; fix replay test placement
+2512506 Stock bot: dynamic scaling zones (owner's ladder)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   62G   33G  66% /
