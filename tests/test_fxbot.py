@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fxbot.engine import Book, _nights, metrics, portfolio, simulate
-from fxbot.strategies import AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
+from fxbot.strategies import LienFader, AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
 
 
 def bars(mid, spread=0.0002, freq="D", start="2016-01-04 22:00"):
@@ -75,6 +75,42 @@ class EngineTests(unittest.TestCase):
         p = simulate("EUR_USD", d, Donchian(20, 10, 2.0), placebo_seed=1)
         self.assertGreater(len(p), 0)
         self.assertLessEqual(len(p), int(real["long"].sum() + real["short"].sum()))
+
+
+class TargetTests(unittest.TestCase):
+    def test_target_fills_at_its_level_after_the_stop_check(self):
+        class T(Always):
+            def frame(self, m):
+                f = super().frame(m)
+                f["exit_long"] = False
+                f["target"] = 0.01
+                return f
+        d = bars([1.10, 1.10, 1.105, 1.12, 1.12, 1.12])
+        t = simulate("EUR_USD", d, T(1, stop=0.05))[0]
+        self.assertEqual(t.reason, "target")
+        self.assertAlmostEqual(t.exit_px, t.entry_px + 0.01)
+
+
+class LienFaderTests(unittest.TestCase):
+    def test_fades_a_false_break_of_yesterdays_low(self):
+        idx = pd.date_range("2016-01-04 22:00", periods=24 * 40, freq="h", tz="UTC")
+        c = pd.Series(1.1000 + np.random.default_rng(1).normal(0, 0.0004, len(idx)), index=idx)   # noise: flat prices make ADX undefined
+        ny = idx.tz_convert("America/New_York")
+        day = (ny - pd.Timedelta(hours=17)).normalize()
+        days = sorted(set(day))
+        last = days[-1]
+        prev = days[-2]
+        c[day == prev] = np.linspace(1.0990, 1.1010, int((day == prev).sum()))      # yesterday: 1.0990..1.1010
+        k = np.flatnonzero(day == last)
+        c.iloc[k[:5]] = 1.0970                                                      # dips 20 pips under yesterday's low
+        c.iloc[k[5:]] = 1.1030                                                      # then closes 20 pips over yesterday's high
+        m = pd.DataFrame({"open": c.shift(1).fillna(c.iloc[0]), "high": c + 0.0001, "low": c - 0.0001, "close": c})
+        f = LienFader(adx_max=101).frame(m)
+        hits = f.index[f["long"]]
+        self.assertEqual(list(hits), [idx[k[5]]])
+        self.assertAlmostEqual(f.loc[hits[0], "stop"], 0.0030)
+        self.assertAlmostEqual(f.loc[hits[0], "target"], 0.0060)
+        self.assertFalse(f["short"][day == last].any())
 
 
 class StrategyTests(unittest.TestCase):

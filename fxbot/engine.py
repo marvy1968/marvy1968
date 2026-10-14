@@ -68,6 +68,7 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
                 arr[rng.choice(ok, size=min(cnt, len(ok)), replace=False)] = True
         lg, sh = newl, news
     xl, xs, stop_d, rank = (f[k].to_numpy() for k in ("exit_long", "exit_short", "stop", "rank"))
+    tgt_d = f["target"].to_numpy(float) if "target" in f else np.full(n, np.nan)    # optional take-profit distance (checked after the stop)
     fam = f["family"].to_numpy() if "family" in f else None          # RegimeSwitch: a range trade exits by the range rule
     xlr, xsr = (f["exit_long_range"].to_numpy(), f["exit_short_range"].to_numpy()) if fam is not None else (xl, xs)
     out, i = [], 0
@@ -81,6 +82,7 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
         ex_l, ex_s = (xlr, xsr) if fam is not None and fam[i] == "range" else (xl, xs)
         fill = ao[j0] if side == 1 else bo[j0]
         stop = fill - side * sd
+        tgt = fill + side * tgt_d[i] if np.isfinite(tgt_d[i]) and tgt_d[i] > 0 else None
         k, px, why = j0, None, ""
         while k < n:
             lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
@@ -88,6 +90,10 @@ def simulate(instrument: str, df: pd.DataFrame, strat, spread_mult: float = 1.0,
                 px, why = op, "stop"                # gapped through
             elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
                 px, why = stop, "stop"
+            elif tgt is not None and k > j0 and side * (op - tgt) >= 0:
+                px, why = op, "target"              # gapped through the target: the better open
+            elif tgt is not None and ((side == 1 and bh[k] >= tgt) or (side == -1 and al[k] <= tgt)):
+                px, why = tgt, "target"
             elif (ex_l[k] if side == 1 else ex_s[k]) or (k - j0 + 1) >= strat.max_bars:
                 if k + 1 < n:
                     why = "signal" if (ex_l[k] if side == 1 else ex_s[k]) else "time"

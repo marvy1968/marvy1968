@@ -219,3 +219,37 @@ class NR7Breakout:
         stop = pd.Series(np.where(long_, c - pl, ph - c), index=m.index)
         hold_h, hold_l = ph.where(long_ | short).ffill(), pl.where(long_ | short).ffill()
         return _frame(m.index, long_, short, c < hold_h, c > hold_l, stop, (r.shift(1) / atr(m, 14)))
+
+
+class LienFader:
+    """Kathy Lien's 'Fader' (Day Trading and Swing Trading the Currency Market), as frozen in the owner's fx-experts bot: daily ADX14 < 35;
+    long after price first breaks the previous NY day's low by 15 pips and then trades 15 pips above the previous day's high (short mirrors);
+    stop 30 pips, target 60 pips; entry orders good for the day. Run on H1 bars: the trigger is a bar CLOSE beyond the level, filled at the
+    next bar's open (a stop order would fill at the level itself, so this is a conservative stand-in). One entry per side per day."""
+
+    def __init__(self, break_pips: float = 15, stop_pips: float = 30, target_pips: float = 60, adx_max: float = 35, max_bars: int = 72):
+        self.break_pips, self.stop_pips, self.target_pips, self.adx_max, self.max_bars = break_pips, stop_pips, target_pips, adx_max, max_bars
+        self.name = "lien_fader (owner's fx-experts)"
+
+    def frame(self, m):
+        pip = 0.01 if float(m["close"].iloc[-1]) > 20 else 0.0001             # JPY pairs quote around 100+
+        ny = m.index.tz_convert("America/New_York")
+        day = pd.Series((ny - pd.Timedelta(hours=17)).normalize(), index=m.index)  # trading day starts 17:00 NY
+        dh, dl = m["high"].groupby(day).max(), m["low"].groupby(day).min()
+        dc = m["close"].groupby(day).last()
+        daily = pd.DataFrame({"open": m["open"].groupby(day).first(), "high": dh, "low": dl, "close": dc})
+        dadx = adx(daily, 14).shift(1)                                         # yesterday's completed daily ADX
+        pdh, pdl = dh.shift(1).reindex(day).to_numpy(), dl.shift(1).reindex(day).to_numpy()
+        ok = (dadx < self.adx_max).reindex(day).to_numpy()
+        lo_today = m["low"].groupby(day).cummin().to_numpy()
+        hi_today = m["high"].groupby(day).cummax().to_numpy()
+        c, b = m["close"].to_numpy(), self.break_pips * pip
+        long_ = ok & (lo_today <= pdl - b) & (c >= pdh + b)
+        short = ok & (hi_today >= pdh + b) & (c <= pdl - b)
+        L, S = pd.Series(long_, index=m.index), pd.Series(short, index=m.index)
+        L = L & (L.astype(int).groupby(day).cumsum() == 1)
+        S = S & (S.astype(int).groupby(day).cumsum() == 1)
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, L, S, none, none, pd.Series(self.stop_pips * pip, index=m.index))
+        f["target"] = self.target_pips * pip
+        return f
