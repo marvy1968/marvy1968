@@ -1,3 +1,44 @@
 $ tests
-started 2026-10-13 22:16:25 EDT
-RUNNING...
+started 2026-10-13 22:16:25 EDT, took 552s, exit 1
+
+
+parity: 50 trades identical (31 shorts); reasons {'flatten': 5, 'stop': 35, 'target': 10}
+
+parity: 30 trades identical (22 shorts); reasons {'signal': 3, 'stop': 21, 'target': 5, 'time': 1}
+intraday entries PAUSED (the running service picks this up within 15 s)
+intraday entries RESUMED (the running service picks this up within 15 s)
+
+swing parity: 30 closed trades identical; reasons ['signal', 'stop']
+
+swing parity: 27 closed trades identical; reasons ['signal', 'stop']
+
+--- stderr ---
+..............................retry 1/4 after 0.4s: E429()
+retry 2/4 after 1.0s: E429()
+retry 1/2 after 0.4s: E429()
+retry 2/2 after 1.2s: E429()
+.....................................................telegram refused the message: HTTP 403
+telegram refused the message: HTTP 403
+.................................................................................................................................................................................................F.Ftelegram mirror failed: blocked
+........upset alert send failed: down
+.........
+======================================================================
+FAIL: test_blocked_once_note_then_quiet_then_recovers (test_telegram_blocked.BlockedTests.test_blocked_once_note_then_quiet_then_recovers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/opt/marv-bot/tests/test_telegram_blocked.py", line 43, in test_blocked_once_note_then_quiet_then_recovers
+    self.assertTrue(telegram.blocked_since("1:MARV", "123"))
+AssertionError: None is not true
+
+======================================================================
+FAIL: test_other_errors_raise_without_token (test_telegram_blocked.BlockedTests.test_other_errors_raise_without_token)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/opt/marv-bot/tests/test_telegram_blocked.py", line 62, in test_other_errors_raise_without_token
+    with self.assertRaises(telegram.TelegramError) as cm:
+AssertionError: TelegramError not raised
+
+----------------------------------------------------------------------
+Ran 296 tests in 532.477s
+
+FAILED (failures=2)
