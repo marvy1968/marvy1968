@@ -1,3 +1,33 @@
 $ alpaca paper-report
-started 2026-10-14 08:10:23 EDT
-RUNNING...
+started 2026-10-14 08:10:23 EDT, took 3s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-14
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 0 trades, 0W/0L (0%), P&L $+0
+Equity $53,968  day -0.35%
+ROI since start (2026-10-12): -0.83% over 2 days   SPY +0.00%   avg daily -0.42% (goal 0.75-1.0%)
+Max drawdown 0.8%
+
+All trades: 74, 29W/45L (39%), profit factor 0.56, avg R -0.17
+  longs: 47, 18W/29L (38%), P&L $-146, profit factor 0.75
+  shorts: 27, 11W/16L (41%), P&L $-304, profit factor 0.32
+By symbol: AMD $+86, NVDA $+33, IWM $+4, AMZN $-132, META $-270
+
+BY STYLE (scalp = held <= 30 min, day = longer, flat by 3:50 pm)
+  unclassified (before close times were logged): today 0 trades $+0 | all 74, 29W/45L, P&L $-451, profit factor 0.56
+
+GO-LIVE GATE (every line must pass, then it is your decision):
+  wait  30+ trading days: 2
+  wait  100+ trades: 74
+  wait  net ROI > 0: -0.83%
+  wait  profit factor >= 1.3: 0.56
+  PASS  max drawdown <= 10%: 0.8%
+  wait  beats SPY: -0.83% vs +0.00%
+  wait  avg daily >= 0.75%: -0.42%
+GATE NOT MET: keep paper trading.
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 0, 0W/0L, P&L $+0
+  holding: nothing
+  next open: buy ['AMD', 'META', 'MSFT'], sell nothing
