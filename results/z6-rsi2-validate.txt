@@ -1,3 +1,14 @@
 $ alpaca run-all --phase validate --families rsi2_validate
-started 2026-10-13 22:25:45 EDT
-RUNNING...
+started 2026-10-13 22:25:45 EDT, took 144s, exit 0
+
+daily data ready
+## rsi2_validate: none of the pre-declared candidates passed validation
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY {'cagr': 0.033184479164266145, 'sharpe': 0.265366351266136, 'max_drawdown': -0.24496487119437949}
+- target 0.75-1.0%/day met: False
+
+- connors_rsi2 hold<=10d: 262t win 67% exp +0.318% PF 1.13 sharpe 0.40 cagr +3.2% maxDD -9.8% | 2.5x slip exp +0.101% | placebo mean exp -0.015%, real beats 100% | PASS False
+- SPY buy-and-hold (same years): {'cagr': 0.033184479164266145, 'sharpe': 0.265366351266136, 'max_drawdown': -0.24496487119437949}
+ALL DONE
