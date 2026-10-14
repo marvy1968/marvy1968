@@ -1,3 +1,199 @@
 $ read-bot-reports /opt/xp-combo
-started 2026-10-14 06:50:16 EDT
-RUNNING...
+started 2026-10-14 06:50:16 EDT, took 0s, exit 0
+
+
+===== /opt/xp-combo/docs/COMBO.md (61 lines, 2026-10-09)
+# Expert combos (PAPER) with a hard 1% stop and a 1% take-profit (built Fri 2026-10-09)
+
+Marvin asked for complementary experts combined, with "a hard 1% virtual stop on each trade and a TP on each".
+There are two combos, kept separate from the existing bots:
+
+| combo | where | members | broker |
+|---|---|---|---|
+| **xp-combo** (stocks) | `/opt/xp-combo`, `xp-combo.service` | crabel-orb, velez-mr, velez-rbi, qull-bo | **Alpaca PAPER**: the same paper account as xp-test, orders prefixed `xc-` |
+| **fx-combo** (FX) | `/opt/fx-combo`, `fx-combo.timer` (every 2 min) | faith-turtle, lien-zeros, tharp-random | **SHADOW**: live OANDA practice prices, virtual book, never writes to OANDA |
+
+Live money is not enabled anywhere. Alpaca is limited to the paper URL by `safety.assert_paper`. The FX shadow
+overrides every OANDA write method, and its `_write` raises an error.
+
+## Why these members (xp-test ledger + OANDA closed trades, Oct 2 to Oct 9)
+Daily realized P&L, plus today's open marks, from the xp-test ledger:
+- **crabel-orb** (ORB breakout, intraday): -243 / +56 / +242 / +258 (open, Oct 9). This is the only xp system with
+  positive realized P&L.
+- **velez-mr** (mean reversion, intraday): +29 on Oct 2, the day crabel lost 243. Its correlation with crabel is negative.
+- **velez-rbi** (intraday): +11 on Oct 9, while velez-mr was -30. Correlation is about -0.5 with velez-mr and +0.2 with crabel.
+- **qull-bo** (Kullamagi swing breakout): it holds for days, so its P&L comes on different days from the intraday
+  systems. Realized -17, but about +590 open, the best of all systems.
+- FX: **faith-turtle** (daily trend breakout), **lien-zeros** (round-figure mean reversion, the only FX winner at +295)
+  and **tharp-random** (random entry with a volatility trail, +178 open). These have different edge types, and Tharp
+  trades crosses that the other two never touch.
+- Caveat: there are only 4 stock sessions and 11 closed FX trades. The correlations are directional hints, not
+  statistics. Re-check after 3 to 4 weeks.
+
+## Hard stop / take-profit rules (both combos)
+- **Stop:** the tighter of the expert's book stop and entry ∓ **1.0%**, measured from the actual fill.
+- **Take-profit:** the nearer of the book target and entry ± **1.0%**. This gives 1:1 R:R when the book stop is wider
+  than 1%, and better than 1:1 when the book stop is tighter (for example lien-zeros: 20-pip stop, 40-pip target).
+  Book partials beyond the take-profit are dropped.
+- **Sizing:** uses the effective stop, so risk stays at 0.25% of equity per trade, capped at 10% notional.
+- Trailing stops still move, but only tighter. The stop is never loosened past the hard level.
+- **Enforcement:**
+  - xp-combo places the stop and the target OCO at Alpaca, and also runs `Engine.enforce_hard()` on every price
+    update (about every 10 s). If the last price is through the stop or the take-profit, it cancels the broker orders
+    and exits at market. A failed exit is retried every 15 s, then every 60 s.
+  - fx-combo replays every M1 bar since the last run. A stop or target touched between runs is filled at its level,
+    or at the bar open if price gapped through it. If one bar touches both, the stop is assumed to fill first.
+- Settings: `hard_exit:` in `/opt/xp-combo/config/config.yaml`, and env `FXC_HARD_STOP_PCT` / `FXC_HARD_TP_PCT` for fx-combo.
+
+## Monitor
+- `sudo systemctl status xp-combo`, then `tail -f /opt/xp-combo/logs/xp-combo.log`.
+- `cd /opt/xp-combo && XP_PREFIX=xc- /opt/xp-test/venv/bin/python -m xp.main --config config/config.yaml --status`
+- Ledger: `sqlite3 /opt/xp-combo/state/xp_ledger.sqlite "select day,system,symbol,reason,round(pnl,2) from exits order by id desc limit 20"`
+- Hard-exit events: `... "select ts,system,msg from events where msg like '%HARD%' order by id desc limit 20"`
+- `cd /opt/fx-combo && /opt/fx-experts/venv/bin/python -m fxexp.combo --status --book state/shadow_book.json`
+- `tail -f /opt/fx-combo/logs/runner.log`
+- Pause or stop: `XP_PREFIX=xc- python -m xp.ctl pause|stop <system|ALL> --config /opt/xp-combo/config/config.yaml`.
+  To stop fx-combo: `sudo systemctl disable --now fx-combo.timer`.
+- Telegram is **off** for xp-combo (`telegram.enabled: false`) until Marvin approves the messages.
+
+## Coexistence
+- xp-combo shares xp-test's Alpaca paper account. Each bot treats the other's symbols as "busy with another bot":
+  xp-test skips anything with non-`xp-` orders or shares it does not own, and xp-combo does the same for non-`xc-`.
+  The two never trade the same symbol at once. Because crabel-orb and velez-* run in both, the first to fire on a
+  symbol takes it.
+- xp-test and fx-experts were not modified or restarted.
+- To trade the FX combo with real practice orders, create a second OANDA practice sub-account and give it its own
+  token/account. The current token sees only the account fx-experts uses, which is FIFO and no-hedge.
+
+===== /opt/xp-combo/docs/OPERATIONS.md (16 lines, 2026-10-09)
+# xp-test operations (VM instance-stockbot, /opt/xp-test) — PAPER ONLY
+
+- Service: `xp-test.service` (one process, all 25 systems: the original 20 + 5 daily swing-book systems added 2026-10-02, trading from Mon 2026-10-05). Safety-net timer: `xp-test-flatten.timer` (15:57 ET weekdays,
+  flattens only xp intraday positions still open).
+- Daily schedule (ET): 08:45 prep (daily SIP bars, watchlists, earnings) · 09:20 + 09:31 gapper scans · 09:31-15:30 entries ·
+  15:44 on-the-close decisions -> market-on-close orders · 15:55 intraday flatten · 16:05 MOC fills/EOD marks ·
+  16:15 Telegram scorecard ([xp PAPER], chat ***, send-only) + reports; weekly summary on the last trading day of the week.
+- Status: `cd /opt/xp-test && venv/bin/python -m xp.main --status` · `venv/bin/python -m xp.ctl list`
+- Logs: `/opt/xp-test/logs/xp-test.log` (rotates daily) · `journalctl -u xp-test -f`
+- Ledger (SQLite, every row tagged by system): `/opt/xp-test/state/xp_ledger.sqlite` (signals, orders, fills, positions, exits
+  with P&L / R / slippage, daily, events). Reports: `/opt/xp-test/reports/` (scorecard_<day>.md/.csv, trades_all.csv, weekly_<day>.md).
+- Stop ONE system: `venv/bin/python -m xp.ctl stop <system>` (flattens that system within ~10 s, no new entries);
+  `pause <system>` = no new entries, positions managed; `resume <system>` undoes. `ALL` works for every system.
+- Stop everything: `venv/bin/python -m xp.ctl stop ALL` (flattens), then `sudo systemctl disable --now xp-test xp-test-flatten.timer`.
+  With the service down: `venv/bin/python -m xp.ctl flatten [--system S]` (direct, xp-owned quantities only).
+- Disable a system permanently: set `enabled: false` under `systems:` in config/config.yaml, `sudo systemctl restart xp-test`.
+
+===== /opt/xp-combo/docs/SYSTEMS.md (237 lines, 2026-10-09)
+# xp-test systems: rules, timeframe, universe, sources
+
+All systems: PAPER only; risk 0.25% of total account equity per trade (stop distance sets shares), notional <= 10% of equity, xp gross <= 1.5x equity (overnight <= 0.6x), last 25% of shared buying power reserved; one xp 
+
+**Gorilla Trades**: SKIPPED. GorillaTrades.com publishes only that picks must pass "all 14 technical parameters" of a "proprietary stock picking formula... known only by the Gorilla" (https://www.gorillatrades.com/techni
+
+## velez-eb - Oliver Velez: Elephant / ignition bar at the 20
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. FIRST bull EB (>=2x avg range, >=70% body, clears 5 bars, no elephant in the prior 10 bars) originating near the 20 (low <= SMA20 + 0.25 ATR), either in the picture of power (SMA20 rising, close > SMA
+- **Approximations / DEFAULTs:** EB size (2x avg range, 70% body, 0.25% min), "near the 20" (0.25 ATR), first-EB lookback (10 bars) and wide state (|SMA20-SMA200| > 1.0%) are DEFAULT numbers; Velez gives no fixed values.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-2020 - Oliver Velez: 20/200 flat-and-narrow open + elephant bar (20-Minute Trader / 90% pattern)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. At the open the SMA20 and SMA200 are flat-and-narrow (within 0.3% and at least one flat). In the first 10 bars (20 minutes) a bull EB closes above both MAs -> buy 1c over its high on the next bar only
+- **Approximations / DEFAULTs:** F&N thresholds (0.3% gap, 0.05% slope) and the 10:30 time exit are DEFAULT. "20-Minute Trader" mechanics are from secondary summaries.
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-rbi - Oliver Velez: Red Bar Ignored / Green Bar Ignored (pullback in a picture of power)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Picture of power (SMA20 rising, price & 20 above the 200), not in a wide state. The 1st or 2nd small red bar (range <= median of prior 10) right after green, pulling back near the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** "Small" bar = <= median of last 10; near-20 = 0.5 ATR; wide state > 1.0% (DEFAULT). Velez uses RBI mostly as an add-on after a power event ("the first RBI is mandatory"); here it is a sta
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-180 - Oliver Velez: Bullish / bearish 180 (two-bar U-turn)
+
+- **Style / timeframe:** intraday, 2-min bars for triggers
+- **Universe:** core
+- **Rules:** 2-min. Bar1 = fat red bar (body >= 70% of range, range >= avg range) at/near the SMA20 or SMA200. Buy stop 1c over bar1 high valid for the NEXT bar only (the green bar must immediately wipe out the red, entr
+- **Approximations / DEFAULTs:** Definition now from Velez's own talk ("The Bull 180" https://www.youtube.com/watch?v=A8WREc0hL20 ; "Trade Every 8 Minutes" https://www.youtube.com/watch?v=XxhON6lgs_U). Fat = body >= 70% 
+- **Sources:** Oliver Velez YouTube (@OliverVelezTrading): "The Powerful Elephant Bar" https://www.youtube.com/watch?v=a373O-g99iQ ; "The 90% Pattern" https://www.youtube.com/watch?v=-CwI_lWtZr4 ; "From $50K to $500K Wit
+
+## velez-tail - Oliver Velez: Bottoming / topping tail after 3-5 bars (Pristine micro)
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. A 3-5 bar drop (3-5 consecutive red bars OR 3-5 consecutive lower highs), then a bar that makes a lower low but leaves a lower tail >= 50% of its range -> buy stop 1c over the tail bar; stop 1c under 
+- **Approximations / DEFAULTs:** "Relatively long tail" coded as >= 50% of range (DEFAULT; a third-party summary says "ideally two-thirds", unverified). 3-5 bar drop = red bars or lower highs (Tools & Tactics ch.11 "3 to
+- **Sources:** Velez, "Options Trading the Pristine Way / Pristine Combinations" (3-5 bar rule; bottoming & topping tails) https://vdoc.pub/documents/option-trading-tactics-with-oliver-velez-28md05thning ; Velez & Capra,
+
+## velez-mr - Oliver Velez: Momentum reversal: Green Bar Reversal / Red Bar Reversal after a 3-5 bar run
+
+- **Style / timeframe:** intraday, 5-min bars for triggers
+- **Universe:** core
+- **Rules:** 5-min. After a steady 3-5 bar decline (consecutive red bars) a green bar closes above the prior red bar's open (it 'corrects' the red bar) -> buy when the next bar exceeds its high; stop 1c under the lower o
+- **Approximations / DEFAULTs:** Reversal = 3-5 consecutive red bars + green bar closing above the prior bar's open (DEFAULT reading of "corrects the previous red bar"; Pristine's "+COG" only needs a green bar after 3+ r
+- **Sources:** Oliver Velez method summary: Ignition bars / Green Bar Reversal / Red Bar Reversal https://www.scribd.com/document/967353484/Summary-Oliver-Velez-Method-pdf ; Velez "Trade for Wealth" (igniting elephant ba
+
+## velez-guer - Oliver Velez: Guerrilla tactics: Gap-n-Snap / Gap-n-Crap / 20-20 plays (1-3 day)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily setup: down 2 days in a row, wide-range day (>= $1.00) that opened in the top 20% and closed in the bottom 20% of its range. Gap-n-Snap: next day gaps down >= $0.50 under that low -> buy $0.07 over the
+- **Approximations / DEFAULTs:** Gap-n-Snap gap measured vs the prior LOW (rule text: "gaps open to the downside by $0.50"); buffers $0.07 (rule: $0.05-$0.10); NASDAQ>$20/NYSE>$40 coded as >= $20; day 3 = exit at day-3 c
+- **Sources:** Pristine seminar "Guerrilla Trading Tactics with Oliver Velez" (Gap-n-Snap, Gap-n-Crap, 20/20 plays; exact entries/stops/targets) https://pdfcoffee.com/pristine-guerrilla-trading-tactics-with-oliver-velezp
+
+## velez-pbs - Oliver Velez: Pristine Buy/Sell Setup swing (Key Buy / PBS action steps)
+
+- **Style / timeframe:** swing, 1-min bars for triggers (daily setup)
+- **Universe:** scanner/watchlist (see rules)
+- **Rules:** Daily. 20-day SMA rising and above the 40-day; a recent new high (highest high of the prior 20 days, made <= 8 bars ago) followed by 3-5 consecutive lower-high days pulling back into the 20 (low <= SMA20 + 0
+- **Approximations / DEFAULTs:** Near-20 = 0.25 ATR and new-high lookback 20 days are DEFAULT; "new high within 8 bars" and "1/16 above the high / below the low" ($0.06) are Tools & Tactics ch.14; stop / minimum target /
+- **Sources:** Velez & Capra, Tools and Tactics for the Master DayTrader (McGraw-Hill 2000), ch.14 pp.293-299 (Key Buy, 30-Minute Buy; public USPTO exhibit CQG Ex.1007) and ch.7 Secret #9 (TOC) ; T3Live/Pristine "Variati
+
+
+===== /opt/xp-combo/logs/xp-combo.log (6 lines, 2026-10-12)
+2026-10-12 08:47:40,582 INFO xp.main daily bars 1506 symbols in 151s
+2026-10-12 08:48:01,389 INFO xp.main warm-up minute bars for 5 symbols
+2026-10-12 08:48:01,390 INFO xp.main prep done: active symbols 70, watchlists {'qull-bo': ['CORT', 'CRWD', 'DELL', 'DINO', 'ELF', 'HPE', 'MPC', 'NSIT', 'PAYC', 'PRGO', 'RNG', 'VLO', 'ZBRA']}
+2026-10-12 09:20:02,506 INFO xp.main gappers (09:20): {'WFF': (17.01, True), 'PDSB': (6.52, False), 'CRM': (3.87, True), 'BMY': (3.06, True), 'MDT': (2.28, True)}
+2026-10-12 09:20:03,212 INFO xp.main warm-up minute bars for 5 symbols
+2026-10-12 09:31:07,483 INFO xp.main gappers (09:31): {'YMAT': (102.33, True), 'DAIC': (19.25, True), 'ASTX': (10.09, False), 'CCC': (9.62, True), 'LQDA': (7.12, False), 'DHT': (4.16, True), 'BIIB': (3.58, True), 'CORD':
+
+===== /opt/xp-combo/reports/scorecard_2026-10-09.csv (13 lines, 2026-10-09)
+system,scope,trades,win_pct,pnl,profit_factor,avg_r,max_dd,max_dd_pct
+crabel-orb,today,0,0.0,0,0.00,0.0,0.0,0.0
+crabel-orb,cum,0,0.0,0,0.00,0.0,0.0,0.0
+crabel-orb,week,0,0.0,0,0.00,0.0,0.0,0.0
+...
+qull-bo,today,0,0.0,0,0.00,0.0,0.0,0.0
+qull-bo,cum,0,0.0,0,0.00,0.0,0.0,0.0
+qull-bo,week,0,0.0,0,0.00,0.0,0.0,0.0
+
+===== /opt/xp-combo/reports/scorecard_2026-10-09.md (8 lines, 2026-10-09)
+# xp PAPER scorecard 2026-10-09 (equity $54,074)
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | crabel-orb | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 2 | velez-mr | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 3 | velez-rbi | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 4 | qull-bo | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+
+===== /opt/xp-combo/reports/trades_all.csv (1 lines, 2026-10-09)
+ts,day,system,symbol,side,pid,qty,entry_px,exit_px,ref_px,pnl,r_mult,entry_slip,exit_slip,reason,final
+...
+ts,day,system,symbol,side,pid,qty,entry_px,exit_px,ref_px,pnl,r_mult,entry_slip,exit_slip,reason,final
+
+===== /opt/xp-combo/reports/weekly_2026-10-09.md (8 lines, 2026-10-09)
+# xp PAPER weekly summary, week ending 2026-10-09
+
+| # | system | trades | win% | P&L $ | PF | avg R | maxDD $ | today trades | today P&L $ | open |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | crabel-orb | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 2 | velez-mr | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 3 | velez-rbi | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
+| 4 | qull-bo | 0 | 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | 0 |
