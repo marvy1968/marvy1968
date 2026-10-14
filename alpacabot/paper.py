@@ -378,6 +378,9 @@ class PaperRunner:
                     continue
             if sym not in self.exits.positions:
                 continue
+            if lad and lad["cfg"].get("trail_atr") and lad.get("tp_steps", 0) >= len(lad["cfg"]["tp_fracs"]):
+                # owner: what is left rides the trend, followed by a virtual stop for safety (trail_atr x ATR behind the best price)
+                self.lock_stop(sym, pos, pos["best_px"] - side * lad["cfg"]["trail_atr"] * lad["atr"], quiet=True)
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
@@ -522,13 +525,14 @@ class PaperRunner:
         self.store.save(self.exits.positions)
         return False
 
-    def lock_stop(self, sym: str, pos: dict, level: float):
+    def lock_stop(self, sym: str, pos: dict, level: float, quiet: bool = False):
         """Move the virtual stop to `level` (real price) if that tightens it; never loosens."""
         st, side = pos["state"], pos.get("side", 1)
         new = side * level                                       # shorts are tracked on -price
         if new > st.stop:
             st.stop = new
-            self.journal("stop_locked", symbol=sym, stop=round(level, 4))
+            if not quiet:
+                self.journal("stop_locked", symbol=sym, stop=round(level, 4))
 
     def record_partial(self, sym: str, pos: dict, px: float, qty: int, reason: str):
         """A partial take-profit: its own ledger row (partial=true) so realized P&L and the report card stay exact."""

@@ -25,7 +25,7 @@
    }
   },
   "ladder": {
-   "_note": "owner 2026-10-14 (drawing): buy once risking 1% of equity (the stop = the 'All' line); against the trade sell 25% half way to the stop and 50% in all at three quarters, the stop takes the rest; in the take-profit zone sell 25% at the zone (stop to break-even) and 50% in all 0.25 ATR beyond (stop locked at the zone); the rest rides the trend (expert's fixed target off). Repeats while the stock trends (up to 3 trades per stock per day).",
+   "_note": "owner 2026-10-14 (drawing): buy once risking 1% of equity (the stop = the 'All' line); against the trade sell 25% half way to the stop and 50% in all at three quarters, the stop takes the rest; in the take-profit zone sell 25% at the zone (stop to break-even) and 50% in all 0.25 ATR beyond (stop locked at the zone); the rest rides the trend (expert's fixed target off). Repeats while the stock trends (up to 3 trades per stock per day). The riding part is followed by a virtual stop 1 ATR behind its best price.",
    "entry_risk": [
     0.01
    ],
@@ -52,7 +52,8 @@
     "breakeven",
     "tp"
    ],
-   "ride": true
+   "ride": true,
+   "trail_atr": 1.0
   }
  },
  "swing": {

@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import DirectionZoneMap, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import DirectionZoneMap, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -40,6 +40,8 @@ FAMILIES = {
     "fx_bigbuild_d": ("D", MaCrossBigBuild, {"fast": [20]}),
     # the owner's F0 (H4 SMA100 +-2.5 sigma reclaim, 3.5 sigma stop, mean target): the best recorded FX result, frozen
     "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
+    # the owner's range box (20/200 MA flat = ranging; buy the bottom, sell the top), drawn 2026-10-14; live on practice from day one
+    "fx_box200_h1": ("H1", RangeBox200, {"lookback": [100]}),
 }
 
 # 24/5 scalpers on M15 (added 2026-10-14, owner asked for a forex scalper): the range fade restricted to the quiet Asian session, and the

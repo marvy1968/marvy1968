@@ -165,6 +165,34 @@ class FxLiveTests(unittest.TestCase):
             self.assertEqual(g["sold"], int(round(total * 0.5)))
             self.assertIn(gid, r.groups)                                               # OANDA's stop takes the rest
 
+    def test_rider_trails_at_oanda(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            a, z = g["atr"], g["zone_tp"]
+            for px in (z, z + 0.3 * a, z + 2 * a):
+                api.px["EUR_USD"] = (px, px + 0.0001)
+                r.manage(gid, 58000.0, "")
+            self.assertAlmostEqual(g["stop_px"], z + 1 * a, places=6)                  # 1 ATR behind the best price, at OANDA
+            self.assertEqual(api.stops[-1][1], f"{z + a:.5f}")
+
+    def test_range_box_strategy(self):
+        from fxbot.strategies import RangeBox200
+        n = 800
+        idx = pd.date_range("2026-01-05", periods=n, freq="1h", tz="UTC")
+        c = 1.1000 + 0.0040 * np.sin(np.arange(n) * 2 * np.pi / 50)             # sideways: up and down in a repeating pattern
+        m = pd.DataFrame({"open": c, "high": c + 0.0004, "low": c - 0.0004, "close": c}, index=idx)
+        f = RangeBox200().frame(m)
+        self.assertTrue(f["long"].iloc[400:].any() and f["short"].iloc[400:].any())
+        i = int(np.flatnonzero(f["long"].to_numpy())[-1])
+        self.assertLess(f["zone_px"].iloc[i], m["high"].iloc[i - 100:i].max())    # first TP line just inside the box top
+        trend = pd.DataFrame({"open": 1.1 + np.arange(n) * 0.0005}, index=idx)
+        trend["high"], trend["low"], trend["close"] = trend["open"] + 0.0004, trend["open"] - 0.0004, trend["open"]
+        f2 = RangeBox200().frame(trend)
+        self.assertFalse(f2["long"].any() or f2["short"].any())                     # trending: MAs apart, no box trades
+
     def test_broker_closed_trade_goes_to_ledger(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()

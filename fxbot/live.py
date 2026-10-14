@@ -33,17 +33,19 @@ import pandas as pd
 
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
-from .strategies import F0Reversion, LienFader
+from .strategies import F0Reversion, LienFader, RangeBox200
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
 PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"]
 STRATS = {"lien_h1": {"make": LienFader, "gran": "H1", "count": 1500, "minutes": 60},
-          "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240}}
+          "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
+          "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs)
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75],          # against the trade: 25% half way, 50% at 3/4, stop = all
                      "tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25],          # TP zone: 25% at the zone, 50% a little beyond
-                     "lock": ["breakeven", "tp"], "ride_tp_atr": 3.0},              # stop to BE, then to the zone; the rest rides
+                     "lock": ["breakeven", "tp"], "ride_tp_atr": 3.0,               # stop to BE, then to the zone; the rest rides,
+                     "trail_atr": 1.0, "trail_step_atr": 0.25},                     # followed by a stop 1 ATR behind the best price
           "zone": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "map_min_r": 1.0},
           "max_groups": 4, "max_per_ccy_side": 2, "breaker": 0.02, "max_notional_x": 10.0, "max_spread_frac": 0.25,
           "book_cap": 100_000.0, "strategies": list(STRATS)}
@@ -237,10 +239,11 @@ class FxPaper:
         if not side:
             return
         sd = float(row["stop"])
-        res = self.try_open(name, inst, side, sd, float(row.get("target", float("nan"))), m, eq, why, trades, last)
+        res = self.try_open(name, inst, side, sd, float(row.get("target", float("nan"))), m, eq, why, trades, last,
+                            zone_px=float(row.get("zone_px", float("nan"))))
         self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=res)
 
-    def try_open(self, name, inst, side, sd, own_tgt, m, eq, why, trades, bar) -> str:
+    def try_open(self, name, inst, side, sd, own_tgt, m, eq, why, trades, bar, zone_px: float = float("nan")) -> str:
         if why:
             return why
         if not (sd > 0 and math.isfinite(sd)):
@@ -285,6 +288,8 @@ class FxPaper:
         if mt is not None:
             cands.append(mt)
         zone_tp = min(cands) if side == 1 else max(cands)
+        if math.isfinite(zone_px) and side * (zone_px - px) > 0:         # a strategy with its own drawn take-profit line (range box)
+            zone_tp = zone_px
         tp_px = zone_tp + side * lad.get("ride_tp_atr", lad["tp_depth_atr"][-1]) * a   # OANDA take-profit for what rides the trend
         units = self.size(inst, eq, lad["entry_risk"][tier], 0.0, px, stop_px)
         if units < 1:
@@ -350,6 +355,18 @@ class FxPaper:
         cuts = [k for k, d in enumerate(lad.get("cut_depth_r", [])) if against >= d]
         if cuts and self.scale_to(gid, lad["cut_fracs"][max(cuts)], px_out, f"cut{int(lad['cut_fracs'][max(cuts)] * 100)}"):
             return
+        # what rides the trend: trail the OANDA stop trail_atr behind the best price (moved in trail_step_atr steps, never loosened)
+        g["best"] = max(g.get("best", px_out), px_out) if side == 1 else min(g.get("best", px_out), px_out)
+        if lad.get("trail_atr") and g.get("tp_steps", 0) >= len(lad["tp_fracs"]):
+            lvl = g["best"] - side * lad["trail_atr"] * g["atr"]
+            if side * (lvl - g["stop_px"]) >= lad.get("trail_step_atr", 0.25) * g["atr"]:
+                for tid in g["trades"]:
+                    try:
+                        self.api.set_stop(tid, fmt(inst, lvl))
+                    except OandaError as exc:
+                        self.journal("error", where="trail", trade=tid, error=str(exc)[:300])
+                g["stop_px"] = lvl
+                self.journal("stop_trailed", group=gid, stop=fmt(inst, lvl))
         # take-profit zone: scale out, lock the stop at OANDA after each step, let the rest ride
         beyond = side * (px_out - g["zone_tp"]) / g["atr"] if g["atr"] > 0 else 99.0
         steps = [k for k, d in enumerate(lad["tp_depth_atr"]) if beyond >= d]

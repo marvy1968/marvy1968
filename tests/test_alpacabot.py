@@ -1727,6 +1727,22 @@ class LadderTests(unittest.TestCase):
             self.assertEqual([(t["qty"], t["reason"]) for t in rows], [(25, "zone25"), (25, "zone50")])
             self.assertAlmostEqual(rows[0]["pnl"], 50.0)
 
+    def test_rider_is_followed_by_a_trailing_virtual_stop(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
+            pos = r.exits.positions["X"]
+            pos["ladder"]["cfg"] = {**self.CFG, "trail_atr": 1.0}
+            r.ladder_take("X", pos, 102.0, now)
+            r.ladder_take("X", pos, 102.3, now)                              # both TP steps done: stop at the zone (102)
+            pos["best_px"] = 104.5
+            lad = pos["ladder"]
+            r.lock_stop("X", pos, pos["best_px"] - lad["cfg"]["trail_atr"] * lad["atr"], quiet=True)
+            self.assertEqual(pos["state"].stop, 103.5)                      # 1 ATR behind the best price
+            r.lock_stop("X", pos, 103.0, quiet=True)
+            self.assertEqual(pos["state"].stop, 103.5)                      # never loosens
+
     def test_against_the_trade_cuts_in_steps(self):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:

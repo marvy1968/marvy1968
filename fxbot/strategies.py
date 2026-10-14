@@ -183,6 +183,40 @@ class RangeBoxFade:
                       c >= mid_box, c <= mid_box, self.stop_atr * a, (w / a))
 
 
+class RangeBox200:
+    """The owner's OANDA range box (drawing, 2026-10-14), for pairs moving sideways: the pair is RANGING when its 200 moving average is flat
+    (moved <= flat_atr x ATR14 over 20 bars on at least 80% of the box's bars) and the 20 MA crossed it at least min_crosses times in the
+    box, i.e. price keeps swinging up and down around the same level in a repeating pattern. The BOX is the high/low of those `lookback` bars
+    (height 2-20 ATR). Buy the bottom (a bar that dips into the bottom 15% of the box and closes back above the box low), sell the top
+    (mirror). Sell stop 0.5 ATR outside the box ("ALL" line). Take-profit lines: 25% at 0.25 ATR inside the far edge, 50% at the edge
+    (zone_px = the first line); the rest rides with the locked stop. Time stop max_bars."""
+
+    def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72):
+        self.lookback, self.min_crosses, self.flat_atr, self.stop_atr, self.max_bars = lookback, min_crosses, flat_atr, stop_atr, max_bars
+        self.name = f"range_box_200_20 (owner's) lb{lookback}"
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        c, a = m["close"], atr(m, 14)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a                     # the 200 MA is flat ...
+        side = np.sign(s20 - s200)
+        crosses = (side != side.shift(1)).astype(float).where(side.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)   # ... and the 20 MA keeps
+        # crossing it back and forth: price swings up and down around the same level in a repeating pattern
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = ranging & (h >= 2 * a) & (h <= 20 * a)
+        long_ = ok & (m["low"] <= bot + 0.15 * h) & (c > bot) & (c <= bot + 0.33 * h)
+        short = ok & (m["high"] >= top - 0.15 * h) & (c < top) & (c >= top - 0.33 * h)
+        stop = pd.Series(np.where(long_, c - (bot - self.stop_atr * a), (top + self.stop_atr * a) - c), index=m.index)
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, long_, short, none, none, stop, h / a)
+        f["zone_px"] = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))
+        f["target"] = np.where(long_, top - c, np.where(short, c - bot, np.nan))     # backtests: one exit at the far edge
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,
