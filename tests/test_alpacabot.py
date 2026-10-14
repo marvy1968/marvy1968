@@ -1021,6 +1021,13 @@ class LadderWalkTests(unittest.TestCase):
         self.assertAlmostEqual(pnl, 0.25 * -1.0 + 0.25 * -1.5 + 0.5 * -2.0)        # cuts at -0.5R, -0.75R, the stop takes the rest
         self.assertEqual((j, why), (2, "stop"))
 
+    def test_trail_from_entry_option(self):
+        lad = {**self.LAD, "cut_fracs": [], "cut_depth_r": [], "trail_from_entry_r": 0.5}
+        bars = [(100, 101.5, 99.9, 101.4), (101.4, 101.45, 100.4, 100.5)]          # +1.5 then back: trail 1R (0.5 x 2) behind 101.5
+        j, pnl, why = self.walk(bars, lad)
+        self.assertAlmostEqual(pnl, 0.5)
+        self.assertEqual((j, why), (1, "lock"))
+
     def test_breakeven_lock_after_first_step(self):
         bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
         j, pnl, why = self.walk(bars)

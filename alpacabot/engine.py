@@ -69,7 +69,8 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
     """The owner's scaled exits on one long-side (or mirrored short) trade, bar by bar, conservative inside a bar (stop, then the cut
     lines, then the take-profit lines; a lock or trail set on a bar acts from the next bar). Returns (exit bar, P&L per share as a
     fraction-weighted sum over every partial exit, last reason). lad: cut_fracs/cut_depth_r (R toward the stop), tp_fracs/tp_depth_atr
-    (ATR beyond the zone), lock ("breakeven" / "tp" per TP step), trail_atr (the rider's stop behind its best high). exit_at(j) -> True when
+    (ATR beyond the zone), lock ("breakeven" / "tp" per TP step), trail_atr (the rider's stop behind its best high), trail_from_entry_r
+    (optional: trail that many R behind the best price from the first tick in profit). exit_at(j) -> True when
     the expert's own exit fires at bar j's close (filled at the next open); state = ExitState for a managed (trailing) expert."""
     cuts = [(fill - d * risk, f) for d, f in zip(lad.get("cut_depth_r", []), lad.get("cut_fracs", []))]
     tps = [(ztgt + d * atr_i, f) for d, f in zip(lad.get("tp_depth_atr", []), lad.get("tp_fracs", []))] if np.isfinite(ztgt) else []
@@ -105,6 +106,8 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
             state.ratchet(h[j])
         if trail and tps and steps >= len(tps):
             stop = max(stop, best - trail * atr_i)
+        if lad.get("trail_from_entry_r") and best > fill:            # trail from the first profit: trail_from_entry_r x the risk behind
+            stop = max(stop, best - lad["trail_from_entry_r"] * risk)
     return n - 1, pnl + (1 - sold) * (sell(c[n - 1]) - fill), "eod"
 
 

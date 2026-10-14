@@ -627,6 +627,10 @@ LADDER_VARIANTS = {
     "trail 2 ATR": {**_OWNER_LADDER, "trail_atr": 2.0},
     "TP 50/75 (bank more)": {**_OWNER_LADDER, "tp_fracs": [0.5, 0.75]},
     "TP 25/50 at zone/+0.5 ATR": {**_OWNER_LADDER, "tp_depth_atr": [0.0, 0.5]},
+    # two ideas from the owner's Gemini review (2026-10-14): read the TP lines as additive (25% then 50% more = 75% banked) and trail
+    # half the risk behind price from the first profit (with one stop, no cut steps, as Gemini wrote it)
+    "TP 25% then +50% (75% banked)": {**_OWNER_LADDER, "tp_fracs": [0.25, 0.75]},
+    "trail 0.5R from entry, one stop": {**_OWNER_LADDER, "cut_fracs": [], "cut_depth_r": [], "trail_from_entry_r": 0.5},
 }
 
 

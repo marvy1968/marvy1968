@@ -357,8 +357,13 @@ class FxPaper:
             return
         # what rides the trend: trail the OANDA stop trail_atr behind the best price (moved in trail_step_atr steps, never loosened)
         g["best"] = max(g.get("best", px_out), px_out) if side == 1 else min(g.get("best", px_out), px_out)
+        lvl = None
         if lad.get("trail_atr") and g.get("tp_steps", 0) >= len(lad["tp_fracs"]):
             lvl = g["best"] - side * lad["trail_atr"] * g["atr"]
+        if lad.get("trail_from_entry_r") and side * (g["best"] - g.get("fill", g["avg"])) > 0:    # optional: trail from the first profit
+            t2 = g["best"] - side * lad["trail_from_entry_r"] * abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+            lvl = t2 if lvl is None else (max(lvl, t2) if side == 1 else min(lvl, t2))
+        if lvl is not None:
             if side * (lvl - g["stop_px"]) >= lad.get("trail_step_atr", 0.25) * g["atr"]:
                 for tid in g["trades"]:
                     try:

@@ -381,6 +381,8 @@ class PaperRunner:
             if lad and lad["cfg"].get("trail_atr") and lad.get("tp_steps", 0) >= len(lad["cfg"]["tp_fracs"]):
                 # owner: what is left rides the trend, followed by a virtual stop for safety (trail_atr x ATR behind the best price)
                 self.lock_stop(sym, pos, pos["best_px"] - side * lad["cfg"]["trail_atr"] * lad["atr"], quiet=True)
+            if lad and lad["cfg"].get("trail_from_entry_r") and side * (pos["best_px"] - lad["fill"]) > 0:    # optional: trail from the first profit
+                self.lock_stop(sym, pos, pos["best_px"] - side * lad["cfg"]["trail_from_entry_r"] * abs(lad["fill"] - lad["stop_px"]), quiet=True)
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
