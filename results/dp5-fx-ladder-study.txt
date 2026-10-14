@@ -1,3 +1,119 @@
 $ alpaca run-all --families fx_lien_fader_h1_ladder fx_f0_h4_ladder fx_box200_h1 fx_box200_h1_ladder
-started 2026-10-14 12:58:17 EDT
-RUNNING...
+started 2026-10-14 12:58:17 EDT, took 1149s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_lien_fader_h1_ladder: did not pass validation
+- chosen {'variant': 'no cut steps (one stop)'}
+- train: 202t PF 1.09 total +6.0% maxDD -12.6% avg/day +0.005%
+- validate: 67t win 36% PF 0.81 total -3.9% CAGR -2.0% maxDD(closed trades) -8.2% avg/day -0.008% financing $1,099
+- spread x2 total -4.0% | placebo PF 0.83, real beats 60% | PASS False
+
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_lien_fader_h1_ladder: did not pass validation
+- chosen {'variant': 'no cut steps (one stop)'}
+- train: 202t PF 1.09 total +6.0% maxDD -12.6% avg/day +0.005%
+- validate: 67t win 36% PF 0.81 total -3.9% CAGR -2.0% maxDD(closed trades) -8.2% avg/day -0.008% financing $1,099
+- spread x2 total -4.0% | placebo PF 0.83, real beats 60% | PASS False
+
+## fx_lien_fader_h1_ladder: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H4 87160 bars
+## fx_f0_h4_ladder: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'variant': 'no cut steps (one stop)'}: 476t PF 0.89 total -13.3% maxDD(closed) -16.9%
+  - train {'variant': 'owner (cut 25/50, TP 25/50, trail 1 ATR)'}: 476t PF 0.82 total -18.2% maxDD(closed) -20.1%
+  - train {'variant': 'trail 2 ATR'}: 476t PF 0.82 total -18.3% maxDD(closed) -20.2%
+  - train {'variant': 'trail 0.5 ATR'}: 476t PF 0.82 total -18.4% maxDD(closed) -20.1%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_f0_h4_ladder: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'variant': 'no cut steps (one stop)'}: 476t PF 0.89 total -13.3% maxDD(closed) -16.9%
+  - train {'variant': 'owner (cut 25/50, TP 25/50, trail 1 ATR)'}: 476t PF 0.82 total -18.2% maxDD(closed) -20.1%
+  - train {'variant': 'trail 2 ATR'}: 476t PF 0.82 total -18.3% maxDD(closed) -20.2%
+  - train {'variant': 'trail 0.5 ATR'}: 476t PF 0.82 total -18.4% maxDD(closed) -20.1%
+## fx_f0_h4_ladder: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_box200_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100}: 833t PF 0.60 total -75.6% maxDD(closed) -76.8%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_box200_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100}: 833t PF 0.60 total -75.6% maxDD(closed) -76.8%
+## fx_box200_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H1 348214 bars
+## fx_box200_h1_ladder: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'variant': 'no cut steps (one stop)'}: 819t PF 0.61 total -73.9% maxDD(closed) -75.4%
+  - train {'variant': 'trail 2 ATR'}: 810t PF 0.56 total -74.6% maxDD(closed) -75.7%
+  - train {'variant': 'owner (cut 25/50, TP 25/50, trail 1 ATR)'}: 819t PF 0.56 total -75.1% maxDD(closed) -76.1%
+  - train {'variant': 'TP 25% then +50% (75% banked)'}: 819t PF 0.56 total -75.2% maxDD(closed) -76.2%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_box200_h1_ladder: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'variant': 'no cut steps (one stop)'}: 819t PF 0.61 total -73.9% maxDD(closed) -75.4%
+  - train {'variant': 'trail 2 ATR'}: 810t PF 0.56 total -74.6% maxDD(closed) -75.7%
+  - train {'variant': 'owner (cut 25/50, TP 25/50, trail 1 ATR)'}: 819t PF 0.56 total -75.1% maxDD(closed) -76.1%
+  - train {'variant': 'TP 25% then +50% (75% banked)'}: 819t PF 0.56 total -75.2% maxDD(closed) -76.2%
+## fx_box200_h1_ladder: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
