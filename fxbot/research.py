@@ -42,6 +42,11 @@ FAMILIES = {
     "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
 }
 
+# 24/5 scalpers on M15 (added 2026-10-14, owner asked for a forex scalper): the range fade restricted to the quiet Asian session, and the
+# Asian-range breakout at the London open, both on 15-minute bars with real bid/ask. Small pre-declared grids.
+FAMILIES["fx_scalp_asia_range_m15"] = ("M15", RangeMR, {"bb_k": [2.0, 2.5], "stop_atr": [1.5, 2.5], "asian_only": [True], "max_bars": [8]})
+FAMILIES["fx_scalp_london_break_m15"] = ("M15", AsianBreakout, {"buffer_atr": [0.0, 0.5], "exit_hour": [9, 12], "max_bars": [16]})
+
 # Profit-lock variants (added 2026-10-14, owner: "secure profits"): the same frozen strategies with stop -> break-even at +1R and a
 # 1R trail after +2R. Same pass bar; compare each with its unlocked twin. Nothing here is tuned.
 LOCK = {"be_at": 1.0, "trail_after": 2.0, "trail_r": 1.0}
