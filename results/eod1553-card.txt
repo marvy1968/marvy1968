@@ -1,3 +1,44 @@
 $ alpaca paper-report
-started 2026-10-14 18:15:25 EDT
-RUNNING...
+started 2026-10-14 18:15:25 EDT, took 12s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-14
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 10 trades, 6W/4L (60%), P&L $+196
+Equity $54,164  day +0.36%
+ROI since start (2026-10-12): -0.47% over 3 days   SPY -1.11%   avg daily -0.16% (goal 0.75-1.0%)
+Max drawdown 0.8%
+
+All trades: 84, 35W/49L (42%), profit factor 0.78, avg R -0.11
+  longs: 48, 18W/30L (38%), P&L $-190, profit factor 0.70
+  shorts: 36, 17W/19L (47%), P&L $-65, profit factor 0.87
+By symbol: NFLX $+122, AMD $+86, GOOGL $+71, AMZN $-90, META $-270
+
+BY STYLE (scalp = held <= 30 min, day = longer, flat by 3:50 pm)
+  scalp: today 7 trades $+8 | all 7, 3W/4L, P&L $+8, profit factor 1.07
+  day: today 3 trades $+188 | all 3, 3W/0L, P&L $+188, profit factor inf
+  unclassified (before close times were logged): today 0 trades $+0 | all 74, 29W/45L, P&L $-451, profit factor 0.56
+
+PROFIT GIVEBACK (peak open profit vs what was kept)
+  today: 10 trades, avg peak open profit +0.83R, avg kept +0.39R, gave back 0.44R; 0 of 5 trades that reached +1R closed at break-even or a loss
+  all: 10 trades, avg peak open profit +0.83R, avg kept +0.39R, gave back 0.44R; 0 of 5 trades that reached +1R closed at break-even or a loss
+
+TRADE ZONES (logged on every trade; LIVE when zones.json says live)
+  entry zone: 0 of 10 trades were chases the zone would have skipped (their P&L $+0)
+  exhaustion zone: 1 trades reached it; taking profit there would have made $+86 vs $+71 actual
+  direction first: 0 of 3 trades went against their stock's daily direction (their P&L $+0; with the direction $-78)
+
+GO-LIVE GATE (every line must pass, then it is your decision):
+  wait  30+ trading days: 3
+  wait  100+ trades: 84
+  wait  net ROI > 0: -0.47%
+  wait  profit factor >= 1.3: 0.78
+  PASS  max drawdown <= 10%: 0.8%
+  PASS  beats SPY: -0.47% vs -1.11%
+  wait  avg daily >= 0.75%: -0.16%
+GATE NOT MET: keep paper trading.
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 1, 0W/1L, P&L $-75
+  holding: META 2 @ 755.19 (stop 692.95), MSFT 5 @ 543.40 (stop 507.14)
+  next open: buy ['COST'], sell nothing
