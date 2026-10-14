@@ -1,3 +1,178 @@
 $ find-trading-bot
-started 2026-10-14 06:35:08 EDT
-RUNNING...
+started 2026-10-14 06:35:08 EDT, took 128s, exit 0
+
+== Python/JS/shell files mentioning Alpaca or other brokers (paths only, no code)
+/home/moonrider1968/test_youtube_6mo.py
+/home/moonrider1968/install_oanda_master_ai_4b1.sh
+/home/moonrider1968/complete_oanda_part3.sh
+/home/moonrider1968/install_oanda_master_ai_4a3.sh
+/home/moonrider1968/resume_marchedgepro_3pack_COMPAT_REPAIR.sh
+/home/moonrider1968/install_panda_s31_practice_exit_guard.sh
+/home/moonrider1968/test_calibrated_trend.py
+/home/moonrider1968/run_adaptive_auto_short_backtest.py
+/home/moonrider1968/unified_trading_bot.py
+/home/moonrider1968/repair_oanda_h4_limit.sh
+/home/moonrider1968/stock_daemon_v3_2_production.py
+/home/moonrider1968/fix_oanda_paper_execution.sh
+/home/moonrider1968/backtest_hybrid_mtf.py
+/home/moonrider1968/backtest_oanda_combos.py
+/home/moonrider1968/check_oanda_status.py
+/home/moonrider1968/repair_oanda_segment2_quality_gate.sh
+/home/moonrider1968/install_alpaca_part1b.sh
+/home/moonrider1968/panda_master_ai_s7_pack/panda_master_ai_s7_oanda_readonly_pack_v1.0.0/scripts/01_check_s6_status.sh
+/home/moonrider1968/panda_master_ai_s7_pack/panda_master_ai_s7_oanda_readonly_pack_v1.0.0/scripts/02_install_s7_oanda_readonly.sh
+/home/moonrider1968/panda_master_ai_s7_pack/panda_master_ai_s7_oanda_readonly_pack_v1.0.0/scripts/03_verify_s7.sh
+/home/moonrider1968/panda_master_ai_s7_pack/panda_master_ai_s7_oanda_readonly_pack_v1.0.0/scripts/04_show_oanda_status.sh
+/home/moonrider1968/clean_slate_fleet.py
+/home/moonrider1968/diagnose_marchedge_service_ownership.sh
+/home/moonrider1968/install_oanda_master_ai_4b4_part3.sh
+/home/moonrider1968/stock_universe_55.py
+/home/moonrider1968/patch_oanda_closed_results.sh
+/home/moonrider1968/install_oanda_master_ai_4b4_part1.sh
+/home/moonrider1968/alpaca_stock_weinstein_hybrid_v3.2.py
+/home/moonrider1968/backtest_forex_10experts.py
+/home/moonrider1968/compare_stop_strategies.py
+/home/moonrider1968/oanda_v1_velez.py
+/home/moonrider1968/install_oanda_master_ai_4a2.sh
+/home/moonrider1968/crypto_bot.py
+/home/moonrider1968/master_trade_ai_quick_audit.py
+/home/moonrider1968/finalization61.sh
+/home/moonrider1968/staircase_module.py
+/home/moonrider1968/run_stock_backtest_all_green_final.py
+/home/moonrider1968/velez-bot/velez_modular_bot.py
+/home/moonrider1968/velez-bot/velez-bot/velez_modular_bot.py
+/home/moonrider1968/velez-bot/velez-bot/oanda_velez_modular_bot.py
+/home/moonrider1968/velez-bot/velez-bot/sector_analysis.py
+/home/moonrider1968/alpaca_swing_velez_weinstein.py
+/home/moonrider1968/backtest_oanda_optimized_sr.py
+/home/moonrider1968/run_full_hybrid_test.py
+/home/moonrider1968/stock_universe_daemon.py
+/home/moonrider1968/fix_forex_churn.py
+/home/moonrider1968/resume_marchedgepro_3pack_after_phase5_1.sh
+/home/moonrider1968/forex_bot/forex_zone_bot.py
+/home/moonrider1968/forex_bot/backtest_engine.py
+/home/moonrider1968/complete_oanda_part2.sh
+/home/moonrider1968/scalp_bot/execute_trades.py
+/home/moonrider1968/scalp_bot/zone_filter.py
+/home/moonrider1968/scalp_bot/weinstein.py
+/home/moonrider1968/scalp_bot/live_bot.py
+/home/moonrider1968/scalp_bot/backtest.py
+/home/moonrider1968/scalp_bot/data.py
+/home/moonrider1968/scalp_bot/zones_bot.py
+/home/moonrider1968/scalp_bot/backtest_zones.py
+/home/moonrider1968/scalp_bot/bot.py
+/home/moonrider1968/scalp_bot/report_bot.py
+/home/moonrider1968/scalp_bot/broker.py
+/home/moonrider1968/scalp_bot/stress_test.py
+/home/moonrider1968/scalp_bot/swing.py
+/home/moonrider1968/scalp_bot/run_rolling_engine.py
+/home/moonrider1968/scalp_bot/news_engine.py
+/home/moonrider1968/scalp_bot/config.py
+/home/moonrider1968/backtest_weinstein_stage2.py
+/home/moonrider1968/backtest_velez_elephant.py
+/home/moonrider1968/oanda_forex_v8.3.py
+/home/moonrider1968/install_part2h_compact.sh
+/home/moonrider1968/backtest_sr_killzones.py
+/home/moonrider1968/install_range_patch2.sh
+/home/moonrider1968/fix_forex_indicators.py
+/home/moonrider1968/~/stock_titan_v5.3.py
+/home/moonrider1968/~/parked_projects/sector_trend_bot_v2/alpaca_velez_modular_bot.py
+/home/moonrider1968/~/parked_projects/sector_trend_bot_v2/~/parked_projects/sector_trend_bot_v2/alpaca_velez_modular_bot.py
+/home/moonrider1968/~/bots/final_sp500_top10_scalper.py
+/home/moonrider1968/~/bots/oanda_active/MarchEdge/oanda_velez_staircase_bot.py
+/home/moonrider1968/install_part2i_compact.sh
+/home/moonrider1968/install_range_patch1.sh
+/home/moonrider1968/install_oanda_expert_library_3.sh
+/home/moonrider1968/install_alpaca_stock_edge_lab_v1.sh
+/home/moonrider1968/install_alpaca_stock_part1.sh
+/home/moonrider1968/oanda_hybrid_v7.3.py
+/home/moonrider1968/install_marchedge_api_capability_auditor.sh
+/home/moonrider1968/backtest_expert_fx_fleet.py
+/home/moonrider1968/install_oanda_master_ai_4b4_part2.sh
+/home/moonrider1968/install_panda_s57_true_signal_vote_attribution_prep.sh
+/home/moonrider1968/patch_swing.py
+/home/moonrider1968/repair_oanda_segment1_exact.sh
+/home/moonrider1968/patch_alpaca_part2b_diagnostics.sh
+/home/moonrider1968/run_news.sh
+/home/moonrider1968/panda_master_ai_s12_pack/panda_master_ai_s12_readiness_gate_pack_v1.0.0/scripts/02_install_s12_readiness_gate.sh
+/home/moonrider1968/run_exit_strategy_comparison.py
+/home/moonrider1968/report7.py
+/home/moonrider1968/report.py
+/home/moonrider1968/install_alpaca_part1a.sh
+/home/moonrider1968/install_panda_s35_master_performance_dashboard.sh
+/home/moonrider1968/repair_oanda_daemon.py
+/home/moonrider1968/install_part2jb_repair.sh
+/home/moonrider1968/run_alpha_core_3_backtest.py
+/home/moonrider1968/backtest_vwap_combo.py
+/home/moonrider1968/sync_oanda_broker.py
+/home/moonrider1968/run_11_sector_master_backtest.py
+/home/moonrider1968/backtest_atr_ratchet_vs_velez.py
+/home/moonrider1968/fleet_live_dashboard.py
+/home/moonrider1968/purge_alpaca.py
+/home/moonrider1968/fix_syntax_oanda.py
+/home/moonrider1968/patch_oanda_result_backfill.sh
+/home/moonrider1968/install_alpaca_part2f.sh
+/home/moonrider1968/install_oanda_expert_library_2.sh
+/home/moonrider1968/backtest_sr_v2.py
+/home/moonrider1968/backtest_10expert_7pillar_ratchet.py
+/home/moonrider1968/MasterBot_Center/stoporder.py
+/home/moonrider1968/MasterBot_Center/alpaca_velez_modular_bot.py
+/home/moonrider1968/MasterBot_Center/beast_bot.py
+/home/moonrider1968/MasterBot_Center/system_noise/requests.py
+/home/moonrider1968/MasterBot_Center/system_noise/types.py
+/home/moonrider1968/MasterBot_Center/alpaca_beast.py
+/home/moonrider1968/MasterBot_Center/oandapyV20.py
+/home/moonrider1968/MasterBot_Center/oanda_master_beast_v12.1.py
+/home/moonrider1968/MasterBot_Center/alpaca_swing.py
+/home/moonrider1968/MasterBot_Center/oanda_master_beast_v15.py
+/home/moonrider1968/MasterBot_Center/Betting_AJ/aj_edge_bot.py
+/home/moonrider1968/MasterBot_Center/oanda_microbeast_v6_1.py
+/home/moonrider1968/MasterBot_Center/trailingstoplossorder.py
+/home/moonrider1968/MasterBot_Center/oanda_macro_beast_v14.4.py
+/home/moonrider1968/MasterBot_Center/oanda_microbeast_v5.py
+/home/moonrider1968/MasterBot_Center/oanda_macro_beast_v14.py
+/home/moonrider1968/MasterBot_Center/oanda_microbeast_v8_1.py
+/home/moonrider1968/MasterBot_Center/patch_oanda_A.sh
+/home/moonrider1968/MasterBot_Center/limitorder.py
+/home/moonrider1968/MasterBot_Center/crypto_beast_v3.1.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_velez_modular_bot.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_velez_modular_bot.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_master_beast_v10.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/alpaca_velez_hybrid_beast.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_velez_staircase_bot.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/storage_manager.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/oanda_master_beast.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/auth_test.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/telegram_commands.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/search_phases_28_30.sh
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/debug_auth.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/aj_module_engine.py
+/home/moonrider1968/MasterBot_Center/Trading_Oanda/run_auto_loop.sh
+/home/moonrider1968/MasterBot_Center/crypto_beast_v2.py
+/home/moonrider1968/MasterBot_Center/futures_beast_v1.1.py
+/home/moonrider1968/MasterBot_Center/oanda_practice_bot.PARKED_20260301_100359.py
+/home/moonrider1968/MasterBot_Center/patch_oanda_A12_fix_v2_helpers.sh
+
+== Folders (file count) containing them
+    243 /home/moonrider1968/bots/killer_beast_sniper/archive
+    213 /home/moonrider1968/bots
+    150 /home/moonrider1968
+    103 /home/moonrider1968/bots/killer_beast_sniper
+     42 /home/moonrider1968/MasterBot_Center
+     41 /home/moonrider1968/oanda_master_alliance
+     29 /home/moonrider1968/bots/oanda_active
+     18 /home/moonrider1968/bots/RangeBox_Master
+     17 /home/moonrider1968/orchestrator
+     16 /home/moonrider1968/scalp_bot
+
+== systemd services / cron / processes that look like trading bots
+  alpaca-stock-expert.service                            loaded    inactive   dead          Alpaca H1 Institutional Stock Trend Expert Daemon
+  haveged.service                                        loaded    active     running       Entropy Daemon based on the HAVEGE algorithm
+  master-trade-bot.service                               loaded    active     running       Master Trade Bot Unified Telegram Command & Fleet Listener
+  scorecard-sector-scalp-bot.service                     loaded    inactive   dead          [PAPER] sector-scalp-bot daily Telegram scorecard (send-only)
+  scorecard-sx-swing.service                             loaded    inactive   dead          [PAPER] sx-swing daily Telegram scorecard (send-only)
+  sector-scalp-bot-flatten@moonrider1968.service         loaded    inactive   dead          sector-scalp-bot safety net: flatten ONLY sx- positions
+  stockbot_open.service                                  loaded    inactive   dead          Sector Top-Down Daily Market Open Execution (09:30:30 ET)
+15 16 * * 1-5 cd /home/moonrider1968/scalp_bot && /home/moonrider1968/scalp_bot/venv/bin/python3 live_bot.py >> /home/moonrider1968/scalp_bot/bot_log.txt 2>&1
+
+Next: read the folder with the read-odds-bot job (secrets are stripped).
