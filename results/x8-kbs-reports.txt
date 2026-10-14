@@ -1,0 +1,3 @@
+$ read-bot-reports /home/moonrider1968/bots/killer_beast_sniper
+started 2026-10-13 20:48:05 EDT
+RUNNING...
