@@ -1,3 +1,13 @@
 $ alpaca run-all --phase validate --families fx_nr7_d
-started 2026-10-14 07:28:15 EDT
-RUNNING...
+started 2026-10-14 07:28:15 EDT, took 16s, exit 0
+
+daily data ready
+WAITING FOR KEYS: add OANDA_API_TOKEN=<practice token> to /opt/marv-bot/.env (practice account only)
+## fx_nr7_d: WAITING FOR KEYS (OANDA_API_TOKEN)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
