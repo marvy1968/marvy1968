@@ -1,0 +1,3 @@
+$ alpaca swing status
+started 2026-10-13 20:45:03 EDT
+RUNNING...
