@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families breadth_gate
-started 2026-10-14 18:15:58 EDT
-RUNNING...
+started 2026-10-14 18:15:58 EDT, took 481s, exit 0
+
+daily data ready
+## breadth_gate: did not pass the pre-declared bar: the gate is not added
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- 2016 large caps (control) | train: gated 164t PF 1.21 CAGR +1.6% maxDD -5.1% vs ungated 167t PF 1.09 CAGR +0.8% maxDD -6.3% | PASS True
+- 2016 large caps (control) | validate: gated 134t PF 0.87 CAGR -0.8% maxDD -4.5% vs ungated 157t PF 0.98 CAGR -0.2% maxDD -5.1% | placebo PF 0.94, beats 40% | PASS False
+- top 5 per sector (2026-10-14 caps) | train: gated 160t PF 1.56 CAGR +2.6% maxDD -3.4% vs ungated 164t PF 1.45 CAGR +2.3% maxDD -4.2% | PASS True
+- top 5 per sector (2026-10-14 caps) | validate: gated 138t PF 1.90 CAGR +4.4% maxDD -4.4% vs ungated 142t PF 1.50 CAGR +2.7% maxDD -5.9% | placebo PF 1.30, beats 100% | PASS True
+ALL DONE
