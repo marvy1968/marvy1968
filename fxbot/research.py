@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import AsianBreakout, ConsensusMR, LienFader, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
+from .strategies import AsianBreakout, ConsensusMR, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -35,6 +35,9 @@ FAMILIES = {
     "fx_nr7_d": ("D", NR7Breakout, {"max_bars": [5]}),
     # the one system the owner's fx-experts backtest found positive after costs (PF 1.18, 2016-26): book rules, one setting
     "fx_lien_fader_h1": ("H1", LienFader, {"break_pips": [15]}),
+    # the owner's "Big Build" as recalled (MA20/60, 80/160-pip SL/TP, RSI filter): one frozen setting per timeframe
+    "fx_bigbuild_h4": ("H4", MaCrossBigBuild, {"fast": [20]}),
+    "fx_bigbuild_d": ("D", MaCrossBigBuild, {"fast": [20]}),
 }
 
 

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fxbot.engine import Book, _nights, metrics, portfolio, simulate
-from fxbot.strategies import LienFader, AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
+from fxbot.strategies import MaCrossBigBuild, LienFader, AsianBreakout, ConsensusMR, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeMR, RegimeSwitch, TsMom, efficiency_ratio
 
 
 def bars(mid, spread=0.0002, freq="D", start="2016-01-04 22:00"):
@@ -125,7 +125,7 @@ class StrategyTests(unittest.TestCase):
     def test_families_produce_both_sides_and_finite_stops(self):
         rng = np.random.default_rng(5)
         m = self._m(1.1 * np.exp(np.cumsum(rng.normal(0, 0.006, 900))))
-        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR(), EmaPullback(100), NR7Breakout()):
+        for s in (Donchian(), TsMom(63, 21), RangeMR(adx_max=30), RegimeSwitch(), ConsensusMR(), EmaPullback(100), NR7Breakout(), MaCrossBigBuild()):
             f = s.frame(m)
             self.assertGreater(int(f["long"].sum()), 0, s.name)
             self.assertGreater(int(f["short"].sum()), 0, s.name)

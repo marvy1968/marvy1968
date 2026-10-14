@@ -253,3 +253,25 @@ class LienFader:
         f = _frame(m.index, L, S, none, none, pd.Series(self.stop_pips * pip, index=m.index))
         f["target"] = self.target_pips * pip
         return f
+
+
+class MaCrossBigBuild:
+    """The owner's 'Big Build' OANDA system as recalled (no code survives): enter on a fresh SMA20/SMA60 cross, with an RSI14 filter
+    (no buy when RSI >= 70, no sell when RSI <= 30); fixed 80-pip stop and 160-pip target. Frozen exactly; the reported PF 1.59-1.77 came
+    from tuning on the same data, so this is the out-of-sample check."""
+
+    def __init__(self, fast: int = 20, slow: int = 60, stop_pips: float = 80, target_pips: float = 160, max_bars: int = 10 ** 6):
+        self.fast, self.slow, self.stop_pips, self.target_pips, self.max_bars = fast, slow, stop_pips, target_pips, max_bars
+        self.name = f"ma{fast}/{slow} sl{stop_pips} tp{target_pips} (Big Build)"
+
+    def frame(self, m):
+        from alpacabot.indicators import rsi, sma
+        pip = 0.01 if float(m["close"].iloc[-1]) > 20 else 0.0001
+        c = m["close"]
+        f_, s_ = sma(c, self.fast), sma(c, self.slow)
+        up = (f_ > s_) & (f_.shift(1) <= s_.shift(1))
+        dn = (f_ < s_) & (f_.shift(1) >= s_.shift(1))
+        r = rsi(c, 14)
+        fr = _frame(m.index, up & (r < 70), dn & (r > 30), dn, up, pd.Series(self.stop_pips * pip, index=m.index))
+        fr["target"] = self.target_pips * pip
+        return fr
