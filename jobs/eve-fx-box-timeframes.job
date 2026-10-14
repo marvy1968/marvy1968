@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --families fx_box200_m15 fx_box200_h4
