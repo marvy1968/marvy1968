@@ -263,11 +263,14 @@ class PaperRunner:
         qty, side, entry = pos["qty"], pos.get("side", 1), self.entry_px(pos)
         risk = pos["state"].atr * pos["state"].trail * qty
         pnl = side * (px - entry) * qty
+        best = pos.get("best_px")
+        peak = max(side * ((best if best is not None else px) - entry) * qty, pnl, 0.0)    # peak open profit ($), never below the result
         self.journal("exit", symbol=sym, reason=reason, px=px, side=side)
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
-                                "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat()}) + "\n")
+                                "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(),
+                                "peak_r": round(peak / risk, 3) if risk else 0.0}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -286,6 +289,8 @@ class PaperRunner:
             pos = self.exits.positions.get(sym)
             px = bid if pos.get("side", 1) == 1 else ask
             self.last_px[sym] = px
+            side = pos.get("side", 1)                         # best exit-side price seen while open (peak open profit)
+            pos["best_px"] = px if pos.get("best_px") is None else (max(pos["best_px"], px) if side == 1 else min(pos["best_px"], px))
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
                 self.exec.opened.pop(sym, None)
@@ -582,6 +587,22 @@ def _style_lines(trades: list, today: list) -> list:
     return out
 
 
+def _giveback_lines(trades: list, today: list) -> list:
+    """How much open profit was kept: peak open profit (R) vs the result (R), and trades that were +1R up but closed at <= 0."""
+    def block(ts, label):
+        ts = [t for t in ts if "peak_r" in t]
+        if not ts:
+            return []
+        peak = sum(t["peak_r"] for t in ts) / len(ts)
+        kept = sum(t["r"] for t in ts) / len(ts)
+        flipped = [t for t in ts if t["peak_r"] >= 1.0 and t["r"] <= 0]
+        up = [t for t in ts if t["peak_r"] >= 1.0]
+        return [f"  {label}: {len(ts)} trades, avg peak open profit {peak:+.2f}R, avg kept {kept:+.2f}R, gave back {peak - kept:.2f}R; "
+                f"{len(flipped)} of {len(up)} trades that reached +1R closed at break-even or a loss"]
+    out = block(today, "today") + block(trades, "all")
+    return (["", "PROFIT GIVEBACK (peak open profit vs what was kept)"] + out) if out else []
+
+
 def report_card(state_dir, day=None) -> str:
     """Win/loss, ROI, drawdown, SPY comparison and the go-live gate, from the trade ledger and the daily equity snapshots."""
     d = Path(state_dir)
@@ -633,6 +654,7 @@ def report_card(state_dir, day=None) -> str:
         shown = best if len(best) <= 5 else best[:3] + best[-2:]
         lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in shown))
     lines += _style_lines(trades, today)
+    lines += _giveback_lines(trades, today)
     if gate:
         lines += ["", "GO-LIVE GATE (every line must pass, then it is your decision):"] + [f"  {'PASS' if ok else 'wait'}  {name}: {val}" for name, ok, val in gate]
         lines.append("GATE MET: eligible to consider a small live test." if all(ok for _, ok, _ in gate) else "GATE NOT MET: keep paper trading.")

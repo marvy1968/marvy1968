@@ -1350,3 +1350,18 @@ class StyleSplitTests(unittest.TestCase):
         self.assertIn("BY STYLE", txt)
         self.assertIn("scalp: today 1 trades $+10", txt)
         self.assertIn("day: today 1 trades $-4", txt)
+
+
+class GivebackTests(unittest.TestCase):
+    def test_giveback_section_counts_trades_that_were_up_1r_and_closed_red(self):
+        import tempfile
+        from alpacabot import paper
+        mk = lambda r, peak: {"date": "2026-10-14", "symbol": "NVDA", "side": "long", "qty": 1, "entry": 1, "exit": 1, "pnl": r * 10,  # noqa: E731
+                              "r": r, "peak_r": peak, "reason": "x", "opened": "2026-10-14T10:00:00-04:00", "closed": "2026-10-14T10:10:00-04:00"}
+        rows = [mk(-1.0, 1.5), mk(2.0, 2.4), mk(-1.0, 0.2)]
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "trades.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+            txt = paper.report_card(d, date(2026, 10, 14))
+        self.assertIn("PROFIT GIVEBACK", txt)
+        self.assertIn("1 of 2 trades that reached +1R closed at break-even or a loss", txt)
+        self.assertIn("avg peak open profit +1.37R, avg kept +0.00R", txt)
