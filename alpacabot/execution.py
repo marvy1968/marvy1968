@@ -25,14 +25,25 @@ log = logging.getLogger("alpacabot")
 
 
 # ------------------------------------------------------------------ logging
-def setup_logging(path: str | Path, max_bytes: int = 10_000_000, backups: int = 5, level: int = logging.INFO) -> logging.Logger:
-    """Rotating file log: at most (backups + 1) x max_bytes on disk (default 60 MB)."""
+def setup_logging(path: str | Path, max_bytes: int = 10_000_000, backups: int = 5, level: int = logging.INFO,
+                  stream: bool = True) -> logging.Logger:
+    """Rotating file log: at most (backups + 1) x max_bytes on disk (default 60 MB). Also to stderr (= the systemd journal, so the
+    newest lines can be read with `journalctl -u <unit> -n N` / the VM link's `logs` job); journald caps its own size."""
+    import sys
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(path, maxBytes=max_bytes, backupCount=backups)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    handler.setFormatter(fmt)
     log.setLevel(level)
-    log.handlers = [h for h in log.handlers if not isinstance(h, logging.handlers.RotatingFileHandler)] + [handler]
+    keep = [h for h in log.handlers if not isinstance(h, (logging.handlers.RotatingFileHandler, logging.StreamHandler))]
+    extra = []
+    if stream:
+        sh = logging.StreamHandler(sys.stderr)
+        sh.setFormatter(logging.Formatter("%(levelname)s %(message)s"))
+        extra.append(sh)
+    log.handlers = keep + [handler] + extra
+    log.propagate = False
     return log
 
 
