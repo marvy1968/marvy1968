@@ -1,0 +1,3 @@
+$ show alpaca_paper/zones.json
+started 2026-10-14 10:07:19 EDT
+RUNNING...
