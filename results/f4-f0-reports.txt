@@ -1,3 +1,195 @@
 $ read-bot-reports /home/moonrider1968/bots/f0_stage3
-started 2026-10-14 06:24:50 EDT
-RUNNING...
+started 2026-10-14 06:24:50 EDT, took 0s, exit 0
+
+
+===== /home/moonrider1968/bots/f0_stage3/f0_canonical_628_events.csv (629 lines, 2026-09-15)
+pair,side,signal_time,entry_time,exit_time,entry_px,exit_px,stop_px,target_px,stop_dist_quote,r_mult,exit_reason,bars_held,entry_idx
+USD_CHF,BUY,2023-07-10 01:00:00+00:00,2023-07-10 01:00:00+00:00,2023-07-10 13:00:00+00:00,0.89092,0.88718,0.8872800000000001,0.895783,0.00364,-1.0274725274725482,STOP_HIT,3,106
+USD_CHF,BUY,2023-07-10 09:00:00+00:00,2023-07-10 09:00:00+00:00,2023-07-10 13:00:00+00:00,0.8916200000000001,0.88699,0.88709,0.8957612,0.00453,-1.0220750551876676,STOP_HIT,1,108
+EUR_USD,SELL,2023-07-11 05:00:00+00:00,2023-07-11 05:00:00+00:00,2023-07-12 09:00:00+00:00,1.1002049999999999,1.10587,1.1057949999999999,1.0918949,0.00559,-1.0134168157424026,STOP_HIT,7,113
+...
+GBP_USD,SELL,2026-08-21 09:00:00+00:00,2026-08-21 09:00:00+00:00,2026-09-01 09:00:00+00:00,1.3642450000000002,1.353075,1.372905,1.3503225,0.00866,1.2898383371824624,DATASET_END,43,4956
+NZD_USD,SELL,2026-08-24 01:00:00+00:00,2026-08-24 01:00:00+00:00,2026-09-01 09:00:00+00:00,0.5973849999999999,0.5892226,0.6009749999999999,0.5891176,0.00359,2.273649025069611,TARGET_HIT,38,4960
+AUD_USD,SELL,2026-08-24 01:00:00+00:00,2026-08-24 01:00:00+00:00,2026-09-01 09:00:00+00:00,0.716635,0.715465,0.721305,0.706995,0.0046700000000000005,0.2505353319057825,DATASET_END,39,4960
+
+===== /home/moonrider1968/bots/f0_stage3/f0_canonical_manifest.txt (9 lines, 2026-09-15)
+engine=/home/moonrider1968/bots/run_f0_hardened_portfolio_v2.py
+engine_sha256=fff76188cc77d0a742cfdb5f1694e6ea8f10bcc4c18234383508b96eeafd3ab6
+module_object=events_df
+trades=628
+r_column=r_mult
+mean_r=0.100840049
+profit_factor=1.164920764
+events_csv=/home/moonrider1968/bots/f0_stage3/f0_canonical_628_events.csv
+events_csv_sha256=ba6d4f896443a0d16d1d9d0e59daa409155d319af654ddaabcb32f19e876933a
+
+===== /home/moonrider1968/bots/f0_stage3/f0_g1_friction_escalation.csv (6 lines, 2026-09-15)
+friction_multiplier,trades,mean_r,profit_factor,final_nav,cagr_pct,max_dd_pct
+1.0,225,0.11284593527446364,1.1856710672700495,112580.08316921008,3.752096761225876,16.269551486965604
+1.25,225,0.11134593527446365,1.1832030421681468,112580.08316921008,3.752096761225876,16.269551486965604
+1.5,225,0.1098459352744637,1.180735017066244,112580.08316921008,3.752096761225876,16.269551486965604
+...
+1.5,225,0.1098459352744637,1.180735017066244,112580.08316921008,3.752096761225876,16.269551486965604
+2.0,225,0.10684593527446368,1.1757989668624385,112580.08316921008,3.752096761225876,16.269551486965604
+3.0,225,0.1008459352744637,1.1659268664548272,112580.08316921008,3.752096761225876,16.269551486965604
+
+===== /home/moonrider1968/bots/f0_stage3/f0_g1_friction_escalation_v3.csv (6 lines, 2026-09-15)
+friction_mult,trades,mean_r,profit_factor,final_nav,cagr_pct,max_dd_pct
+1.0x,225,0.112845935274465,1.1856710672700517,112580.08316921008,3.752096761225876,16.269551486965604
+1.5x,225,0.09941986130779715,1.161460153987163,110895.06326376302,3.266868896592112,16.55941447218788
+2.0x,225,0.08599378734115308,1.1378688505377832,109235.0078407544,2.7838355507399104,16.848320388475678
+...
+2.0x,225,0.08599378734115308,1.1378688505377832,109235.0078407544,2.7838355507399104,16.848320388475678
+3.0x,225,0.05914163940782572,1.0924523043296297,105988.33130276192,1.8243140608850572,17.423273074409693
+5.0x,225,0.005437343541201923,1.008095633522737,99778.7948655516,-0.06881432815514232,18.97659820524794
+
+===== /home/moonrider1968/bots/f0_stage3/f0_stage3c_sequential_accepted_events.csv (470 lines, 2026-09-15)
+pair,side,signal_time,entry_time,exit_time,entry_px,exit_px,stop_px,target_px,stop_dist_quote,r_mult,exit_reason,bars_held,entry_idx,year,atr_pctile,abs_sma200_slope,stage3c_accept
+USD_CHF,BUY,2023-07-10 01:00:00+00:00,2023-07-10 01:00:00+00:00,2023-07-10 13:00:00+00:00,0.89092,0.88718,0.8872800000000001,0.895783,0.00364,-1.0274725274725482,STOP_HIT,3,106,2023,0.5,0.0,True
+USD_CHF,BUY,2023-07-10 09:00:00+00:00,2023-07-10 09:00:00+00:00,2023-07-10 13:00:00+00:00,0.8916200000000001,0.88699,0.88709,0.8957612,0.00453,-1.0220750551876676,STOP_HIT,1,108,2023,0.5,0.0,True
+EUR_USD,SELL,2023-07-11 05:00:00+00:00,2023-07-11 05:00:00+00:00,2023-07-12 09:00:00+00:00,1.100205,1.10587,1.105795,1.0918949,0.00559,-1.0134168157424026,STOP_HIT,7,113,2023,0.5,0.0,True
+...
+GBP_USD,SELL,2026-08-21 09:00:00+00:00,2026-08-21 09:00:00+00:00,2026-09-01 09:00:00+00:00,1.3642450000000002,1.353075,1.372905,1.3503225,0.00866,1.2898383371824624,DATASET_END,43,4956,2026,0.805,0.8291347074102369,True
+NZD_USD,SELL,2026-08-24 01:00:00+00:00,2026-08-24 01:00:00+00:00,2026-09-01 09:00:00+00:00,0.5973849999999999,0.5892226,0.6009749999999999,0.5891176,0.00359,2.273649025069611,TARGET_HIT,38,4960,2026,0.44,1.58428930045846
+AUD_USD,SELL,2026-08-24 01:00:00+00:00,2026-08-24 01:00:00+00:00,2026-09-01 09:00:00+00:00,0.716635,0.715465,0.721305,0.706995,0.00467,0.2505353319057825,DATASET_END,39,4960,2026,0.72,1.0685387255399592,True
+
+===== /home/moonrider1968/bots/f0_stage3/paper_logs/cron_stdout.log (134 lines, 2026-10-13)
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Oanda H4 scheduled evaluation executed and logged.
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+[SUCCESS] Elite-20 production manifest locked and paper scheduler initialized.
+Manifest Path: /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+
+===== /home/moonrider1968/bots/f0_stage3/paper_logs/h4_scheduled_eval.log (196 lines, 2026-10-02)
+2026-09-29 00:05:03,806 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-29 04:05:01,656 [INFO] H4 scheduled evaluation triggered.
+2026-09-29 04:05:03,143 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-29 08:05:02,319 [INFO] H4 scheduled evaluation triggered.
+2026-09-29 08:05:03,755 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-29 12:05:02,419 [INFO] H4 scheduled evaluation triggered.
+2026-09-29 12:05:04,786 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-29 16:05:02,797 [INFO] H4 scheduled evaluation triggered.
+2026-09-29 16:05:05,416 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-29 20:05:02,559 [INFO] H4 scheduled evaluation triggered.
+2026-09-29 20:05:04,240 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 00:05:01,952 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 00:05:03,810 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 04:05:01,622 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 04:05:04,232 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 08:05:03,150 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 08:05:09,891 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 12:05:02,339 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 12:05:04,797 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 16:05:02,852 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 16:05:05,347 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-09-30 20:05:02,643 [INFO] H4 scheduled evaluation triggered.
+2026-09-30 20:05:04,492 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 00:05:02,354 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 00:05:03,914 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 04:05:01,628 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 04:05:04,277 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 08:05:01,772 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 08:05:03,124 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 12:05:02,526 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 12:05:04,831 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 16:05:02,234 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 16:05:05,219 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-01 20:05:01,748 [INFO] H4 scheduled evaluation triggered.
+2026-10-01 20:05:04,367 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-02 00:05:02,543 [INFO] H4 scheduled evaluation triggered.
+2026-10-02 00:05:04,875 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-02 04:05:02,177 [INFO] H4 scheduled evaluation triggered.
+2026-10-02 04:05:04,595 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-02 08:05:02,408 [INFO] H4 scheduled evaluation triggered.
+2026-10-02 08:05:04,922 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-02 12:05:02,452 [INFO] H4 scheduled evaluation triggered.
+2026-10-02 12:05:05,246 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+2026-10-02 16:05:02,546 [INFO] H4 scheduled evaluation triggered.
+2026-10-02 16:05:05,155 [INFO] Loaded Oanda production bundle successfully. Threshold: 0.40
+
+===== /home/moonrider1968/bots/f0_stage3/paper_logs/paper_scheduler.log (76 lines, 2026-10-13)
+2026-09-24 16:10:01,820 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-09-25 16:10:01,433 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-09-25 16:10:01,439 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-09-25 16:10:01,439 [INFO] Engine Hash: 546d7fc1df1112c430beffec214aea09954038247b154e67597c6890af7856ce
+2026-09-25 16:10:01,439 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-09-28 16:10:01,274 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-09-28 16:10:01,277 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-09-28 16:10:01,277 [INFO] Engine Hash: 546d7fc1df1112c430beffec214aea09954038247b154e67597c6890af7856ce
+2026-09-28 16:10:01,277 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-09-29 16:10:01,832 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-09-29 16:10:01,843 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-09-29 16:10:01,844 [INFO] Engine Hash: 546d7fc1df1112c430beffec214aea09954038247b154e67597c6890af7856ce
+2026-09-29 16:10:01,844 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-09-30 16:10:01,748 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-09-30 16:10:01,752 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-09-30 16:10:01,752 [INFO] Engine Hash: 546d7fc1df1112c430beffec214aea09954038247b154e67597c6890af7856ce
+2026-09-30 16:10:01,752 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-01 16:10:01,688 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-01 16:10:01,690 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-01 16:10:01,690 [INFO] Engine Hash: 314357de8c07cb51aff815670f9121600d660f07dab352b9388f312e128b92f8
+2026-10-01 16:10:01,690 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-02 16:10:01,565 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-02 16:10:01,569 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-02 16:10:01,570 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-02 16:10:01,570 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-07 16:10:01,711 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-07 16:10:01,720 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-07 16:10:01,720 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-07 16:10:01,720 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-08 16:10:01,795 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-08 16:10:01,820 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-08 16:10:01,821 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-08 16:10:01,821 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-09 16:10:02,249 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-09 16:10:02,387 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-09 16:10:02,388 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-09 16:10:02,389 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-12 16:10:01,573 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-12 16:10:01,580 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-12 16:10:01,580 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-12 16:10:01,581 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
+2026-10-13 16:10:01,624 [INFO] Elite-20 Paper Scheduler initialization sequence triggered.
+2026-10-13 16:10:01,632 [INFO] Immutable production manifest successfully locked at /home/moonrider1968/bots/f0_stage3/elite20_production_manifest.json
+2026-10-13 16:10:01,632 [INFO] Engine Hash: 99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced
+2026-10-13 16:10:01,632 [INFO] Certified CSV Hash: ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f
