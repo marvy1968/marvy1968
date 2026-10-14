@@ -42,6 +42,9 @@ FAMILIES = {
     "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
     # the owner's range box (20/200 MA flat = ranging; buy the bottom, sell the top), drawn 2026-10-14; live on practice from day one
     "fx_box200_h1": ("H1", RangeBox200, {"lookback": [100]}),
+    # same rules on other timeframes (owner asked "is hourly the best?"): 100 bars each, nothing else changed; judged like every family
+    "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
+    "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
 
 # 24/5 scalpers on M15 (added 2026-10-14, owner asked for a forex scalper): the range fade restricted to the quiet Asian session, and the
