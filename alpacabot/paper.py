@@ -343,7 +343,7 @@ class PaperRunner:
                                 "peak_r": round(peak / risk, 3) if risk else 0.0,
                                 **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit, "zone_profile": z.get("profile"),
                                     "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {}),
-                                **({"bias": z["bias"], "against": bool(z["against"]), "map_target": z.get("map_target")} if "bias" in z else {})}) + "\n")
+                                **({"bias": z["bias"], "against": bool(z["against"]), "map_target": z.get("map_target"), "stage": z.get("stage")} if "bias" in z else {})}) + "\n")
 
     def reconcile(self):
         """After a restart: forget virtual positions the broker no longer holds."""
@@ -549,6 +549,10 @@ class PaperRunner:
         zm = getattr(self, "zonemap", {}).get(sym)
         if zcfg.get("direction_first") and zm is not None and not DirectionFirst(None).keep(sig, zm.get("bias", 0)):
             return f"against direction (bias {zm.get('bias', 0):+d})"
+        if zcfg.get("stage_filter") and zm is not None and zm.get("stage"):            # Weinstein: longs in stage 2, shorts in stage 4
+            want = 4 if sig.side == -1 else 2
+            if zm["stage"] != want:
+                return f"stage {zm['stage']} (needs {want})"
         zp = zone_profile({"profiles": zcfg["profiles"]}, sig.tag)
         bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
         px = ask if sig.side == 1 else bid
@@ -561,15 +565,15 @@ class PaperRunner:
     def refresh_zonemap(self, now_et: datetime):
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
         history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
-        from .zonemap import bias_for_session, level_map
+        from .zonemap import bias_for_session, level_map, stage
         zm = {}
         for sym in self.symbols:
             try:
-                d = self.raw.daily_history(sym) if hasattr(self.raw, "daily_history") else None
+                d = self.raw.daily_history(sym, days=330) if hasattr(self.raw, "daily_history") else None
                 if d is None or not len(d):
                     continue
                 prior = d[d.index.date < now_et.date()]
-                zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior)}
+                zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior), "stage": stage(prior)}
             except Exception:
                 log.exception("zone map: %s skipped", sym)
         self.zonemap = zm
@@ -578,7 +582,8 @@ class PaperRunner:
         except Exception:
             log.exception("zone map not saved")
         n = {b: sum(1 for v in zm.values() if v["bias"] == b) for b in (1, -1, 0)}
-        self.journal("zonemap", up=n[1], down=n[-1], range=n[0], stocks=len(zm))
+        st = {k: sum(1 for v in zm.values() if v.get("stage") == k) for k in (1, 2, 3, 4)}
+        self.journal("zonemap", up=n[1], down=n[-1], range=n[0], stocks=len(zm), stage2=st[2], stage4=st[4], stage1=st[1], stage3=st[3])
 
     def can_short(self, sym: str) -> str:
         """'' when shorting sym is allowed; otherwise the reason."""
@@ -647,7 +652,9 @@ class PaperRunner:
             sig = next((s for s in self.brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
-            if self.trades_today.get(sym, 0) >= self.brain.max_trades:
+            zcfg = self.zone_config()
+            cap = int(zcfg.get("repeat_max", self.brain.max_trades)) if zcfg["live"] else self.brain.max_trades
+            if self.trades_today.get(sym, 0) >= cap:      # owner: repeat through the day while the stock clears trend + stage + filters
                 continue
             if sym in self.last_exit and day.index[-1] < self.last_exit[sym] + pd.Timedelta(minutes=5 * self.brain.cooldown):
                 continue
@@ -696,6 +703,7 @@ class PaperRunner:
                 zone = shadow_zone(day, sig, fill, ref, zcfg["profiles"])                 # this trade's zones (logged always)
                 zone.update(shadow_direction(getattr(self, "zonemap", {}).get(sym), sig, fill, zcfg["profiles"]))
                 pos = self.exits.positions[sym]
+                zone["stage"] = (getattr(self, "zonemap", {}).get(sym) or {}).get("stage")
                 pos["zone"], pos["risk"] = zone, float(sig.stop_dist)
                 if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]

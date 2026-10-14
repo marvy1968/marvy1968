@@ -1576,7 +1576,7 @@ class LiveZoneMapTests(unittest.TestCase):
 
         class Raw:
             calls = 0
-            def daily_history(self, sym):
+            def daily_history(self, sym, days=220):
                 Raw.calls += 1
                 return d
         r = paper.PaperRunner.__new__(paper.PaperRunner)
@@ -1589,6 +1589,37 @@ class LiveZoneMapTests(unittest.TestCase):
         self.assertEqual(Raw.calls, 2)
         self.assertEqual(saved["stocks"]["AAA"]["bias"], 1)
         self.assertIn("levels", saved["stocks"]["BBB"])
+        self.assertEqual(saved["stocks"]["AAA"]["stage"], 0)            # 150 bars: not enough for the 30-week stage
+
+    def test_weinstein_stage(self):
+        from alpacabot.zonemap import stage
+        idx = pd.bdate_range("2025-01-02", periods=200, tz="America/New_York")
+        up = pd.DataFrame({"close": 100 + np.arange(200) * 0.5}, index=idx)
+        down = pd.DataFrame({"close": 300 - np.arange(200) * 0.5}, index=idx)
+        top = pd.DataFrame({"close": np.r_[100 + np.arange(150) * 1.0, 250 - np.arange(50) * 2.2]}, index=idx)
+        self.assertEqual(stage(up), 2)
+        self.assertEqual(stage(down), 4)
+        self.assertEqual(stage(top), 1)          # broke below a still-rising average
+        self.assertEqual(stage(up.iloc[:100]), 0)
+
+    def test_stage_filter_and_repeat_cap(self):
+        import tempfile
+        from alpacabot import paper
+        from alpacabot.strategies import Signal
+        with tempfile.TemporaryDirectory() as tmp:
+            r = paper.PaperRunner.__new__(paper.PaperRunner)
+            r.dir, r.sleep = Path(tmp), (lambda *_: None)
+
+            class B:
+                def quote(self, s): return (100.0, 100.0)
+            r.broker = B()
+            cfg = r.zone_config()
+            self.assertTrue(cfg["stage_filter"])
+            self.assertEqual(cfg["repeat_max"], 10)
+            r.zonemap = {"S3": {"bias": 1, "stage": 3, "levels": []}, "S2": {"bias": 1, "stage": 2, "levels": []}}
+            long_ = Signal(i=1, side=1, stop_dist=1.0, atr=1.0, tag="donchian_turtle")
+            self.assertEqual(r.zone_entry_block("S3", long_, 100.0, cfg), "stage 3 (needs 2)")
+            self.assertEqual(r.zone_entry_block("S2", long_, 100.0, cfg), "")
 
 
 class LiveZoneTests(unittest.TestCase):

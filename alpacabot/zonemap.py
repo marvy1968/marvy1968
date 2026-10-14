@@ -16,6 +16,7 @@ import pandas as pd
 from .indicators import adx, atr, ema, sma
 
 BIAS_RULES = {"ema": 20, "sma": 50, "adx_min": 20.0}
+STAGE_RULES = {"ma": 150, "slope_bars": 20}          # Weinstein: the 30-week moving average = 150 trading days
 LEVEL_RULES = {"lookback": 120, "wing": 2, "merge_atr": 0.5, "strong": 2}
 
 
@@ -88,3 +89,16 @@ def attach(days: dict, daily_by_symbol: dict) -> dict:
             f.attrs["bias"] = int(b[k - 1]) if k >= warm else 0
             f.attrs["levels"] = level_map(dly.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else []
     return days
+
+
+def stage(daily: pd.DataFrame) -> int:
+    """Stan Weinstein's stage from completed daily bars (pass only bars before the session): the 30-week (150-day) average and its
+    direction over the last 20 days. 2 = advancing (close above a rising average), 4 = declining (below a falling one), 3 = topping
+    (above a falling average), 1 = basing (below a rising one). 0 = not enough history."""
+    n, k = STAGE_RULES["ma"], STAGE_RULES["slope_bars"]
+    if daily is None or len(daily) < n + k:
+        return 0
+    c = daily["close"].astype(float)
+    ma = c.rolling(n).mean()
+    up, above = ma.iloc[-1] > ma.iloc[-1 - k], c.iloc[-1] > ma.iloc[-1]
+    return 2 if above and up else 4 if not above and not up else 3 if above else 1

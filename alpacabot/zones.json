@@ -4,6 +4,8 @@
   "live": true,
   "direction_first": true,
   "use_map": true,
+  "stage_filter": true,
+  "repeat_max": 10,
   "profiles": {
    "trend": {
     "chase_atr": 0.5,
