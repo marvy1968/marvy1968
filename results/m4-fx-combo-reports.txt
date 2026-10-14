@@ -1,3 +1,113 @@
 $ read-bot-reports /opt/fx-combo
-started 2026-10-14 06:52:38 EDT
-RUNNING...
+started 2026-10-14 06:52:38 EDT, took 0s, exit 0
+
+
+===== /opt/fx-combo/COMBO.md (61 lines, 2026-10-09)
+# Expert combos (PAPER) with a hard 1% stop and a 1% take-profit (built Fri 2026-10-09)
+
+Marvin asked for complementary experts combined, with "a hard 1% virtual stop on each trade and a TP on each".
+There are two combos, kept separate from the existing bots:
+
+| combo | where | members | broker |
+|---|---|---|---|
+| **xp-combo** (stocks) | `/opt/xp-combo`, `xp-combo.service` | crabel-orb, velez-mr, velez-rbi, qull-bo | **Alpaca PAPER**: the same paper account as xp-test, orders prefixed `xc-` |
+| **fx-combo** (FX) | `/opt/fx-combo`, `fx-combo.timer` (every 2 min) | faith-turtle, lien-zeros, tharp-random | **SHADOW**: live OANDA practice prices, virtual book, never writes to OANDA |
+
+Live money is not enabled anywhere. Alpaca is limited to the paper URL by `safety.assert_paper`. The FX shadow
+overrides every OANDA write method, and its `_write` raises an error.
+
+## Why these members (xp-test ledger + OANDA closed trades, Oct 2 to Oct 9)
+Daily realized P&L, plus today's open marks, from the xp-test ledger:
+- **crabel-orb** (ORB breakout, intraday): -243 / +56 / +242 / +258 (open, Oct 9). This is the only xp system with
+  positive realized P&L.
+- **velez-mr** (mean reversion, intraday): +29 on Oct 2, the day crabel lost 243. Its correlation with crabel is negative.
+- **velez-rbi** (intraday): +11 on Oct 9, while velez-mr was -30. Correlation is about -0.5 with velez-mr and +0.2 with crabel.
+- **qull-bo** (Kullamagi swing breakout): it holds for days, so its P&L comes on different days from the intraday
+  systems. Realized -17, but about +590 open, the best of all systems.
+- FX: **faith-turtle** (daily trend breakout), **lien-zeros** (round-figure mean reversion, the only FX winner at +295)
+  and **tharp-random** (random entry with a volatility trail, +178 open). These have different edge types, and Tharp
+  trades crosses that the other two never touch.
+- Caveat: there are only 4 stock sessions and 11 closed FX trades. The correlations are directional hints, not
+  statistics. Re-check after 3 to 4 weeks.
+
+## Hard stop / take-profit rules (both combos)
+- **Stop:** the tighter of the expert's book stop and entry ∓ **1.0%**, measured from the actual fill.
+- **Take-profit:** the nearer of the book target and entry ± **1.0%**. This gives 1:1 R:R when the book stop is wider
+  than 1%, and better than 1:1 when the book stop is tighter (for example lien-zeros: 20-pip stop, 40-pip target).
+  Book partials beyond the take-profit are dropped.
+- **Sizing:** uses the effective stop, so risk stays at 0.25% of equity per trade, capped at 10% notional.
+- Trailing stops still move, but only tighter. The stop is never loosened past the hard level.
+- **Enforcement:**
+  - xp-combo places the stop and the target OCO at Alpaca, and also runs `Engine.enforce_hard()` on every price
+    update (about every 10 s). If the last price is through the stop or the take-profit, it cancels the broker orders
+    and exits at market. A failed exit is retried every 15 s, then every 60 s.
+  - fx-combo replays every M1 bar since the last run. A stop or target touched between runs is filled at its level,
+    or at the bar open if price gapped through it. If one bar touches both, the stop is assumed to fill first.
+- Settings: `hard_exit:` in `/opt/xp-combo/config/config.yaml`, and env `FXC_HARD_STOP_PCT` / `FXC_HARD_TP_PCT` for fx-combo.
+
+## Monitor
+- `sudo systemctl status xp-combo`, then `tail -f /opt/xp-combo/logs/xp-combo.log`.
+- `cd /opt/xp-combo && XP_PREFIX=xc- /opt/xp-test/venv/bin/python -m xp.main --config config/config.yaml --status`
+- Ledger: `sqlite3 /opt/xp-combo/state/xp_ledger.sqlite "select day,system,symbol,reason,round(pnl,2) from exits order by id desc limit 20"`
+- Hard-exit events: `... "select ts,system,msg from events where msg like '%HARD%' order by id desc limit 20"`
+- `cd /opt/fx-combo && /opt/fx-experts/venv/bin/python -m fxexp.combo --status --book state/shadow_book.json`
+- `tail -f /opt/fx-combo/logs/runner.log`
+- Pause or stop: `XP_PREFIX=xc- python -m xp.ctl pause|stop <system|ALL> --config /opt/xp-combo/config/config.yaml`.
+  To stop fx-combo: `sudo systemctl disable --now fx-combo.timer`.
+- Telegram is **off** for xp-combo (`telegram.enabled: false`) until Marvin approves the messages.
+
+## Coexistence
+- xp-combo shares xp-test's Alpaca paper account. Each bot treats the other's symbols as "busy with another bot":
+  xp-test skips anything with non-`xp-` orders or shares it does not own, and xp-combo does the same for non-`xc-`.
+  The two never trade the same symbol at once. Because crabel-orb and velez-* run in both, the first to fire on a
+  symbol takes it.
+- xp-test and fx-experts were not modified or restarted.
+- To trade the FX combo with real practice orders, create a second OANDA practice sub-account and give it its own
+  token/account. The current token sees only the account fx-experts uses, which is FIFO and no-hedge.
+
+===== /opt/fx-combo/logs/runner.log (6454 lines, 2026-10-14)
+2026-10-13 18:00:55 EDT [lien-zeros] GBP_JPY SELL limit 98973u @ 210.050 SL 210.250 TP 209.650
+2026-10-13 18:00:55 EDT [shadow] heartbeat NAV 50,010.79 realized +122.30 open 8 pending 15
+2026-10-13 18:30:48 EDT [shadow] heartbeat NAV 50,006.46 realized +122.30 open 8 pending 15
+2026-10-13 18:33:08 EDT [shadow] GBP_JPY order 114 expired (GTD)
+2026-10-13 19:00:56 EDT [shadow] heartbeat NAV 50,010.22 realized +122.30 open 8 pending 14
+2026-10-13 19:30:58 EDT [shadow] heartbeat NAV 50,008.02 realized +122.30 open 8 pending 14
+2026-10-13 20:00:51 EDT [shadow] heartbeat NAV 50,003.57 realized +122.30 open 8 pending 14
+2026-10-13 20:30:58 EDT [shadow] heartbeat NAV 49,997.34 realized +122.30 open 8 pending 14
+2026-10-13 21:01:02 EDT [shadow] heartbeat NAV 49,992.04 realized +122.30 open 8 pending 14
+2026-10-13 21:31:02 EDT [shadow] heartbeat NAV 49,985.09 realized +122.30 open 8 pending 14
+2026-10-13 22:00:47 EDT [shadow] heartbeat NAV 49,979.73 realized +122.30 open 8 pending 14
+2026-10-13 22:30:42 EDT [shadow] heartbeat NAV 49,982.93 realized +122.30 open 8 pending 14
+2026-10-13 23:00:40 EDT [lien-zeros] GBP_USD signal SELL limit {'sma20': 1.32602, 'close': 1.32714, 'figure': 1.33}
+2026-10-13 23:00:40 EDT [lien-zeros] GBP_USD SELL limit 62460u @ 1.33050 SL 1.33250 TP 1.32650
+2026-10-13 23:00:40 EDT [shadow] heartbeat NAV 49,968.31 realized +122.30 open 8 pending 15
+2026-10-13 23:16:41 EDT [lien-zeros] USD_JPY signal BUY limit {'sma20': 158.3675, 'close': 158.236, 'figure': 158.0}
+2026-10-13 23:16:41 EDT [lien-zeros] USD_JPY BUY limit 98812u @ 157.950 SL 157.750 TP 158.350
+2026-10-13 23:31:02 EDT [shadow] heartbeat NAV 49,968.16 realized +122.30 open 8 pending 16
+2026-10-14 00:00:48 EDT [shadow] heartbeat NAV 49,981.42 realized +122.30 open 8 pending 16
+2026-10-14 00:03:08 EDT [shadow] GBP_USD order 115 expired (GTD)
+2026-10-14 00:18:48 EDT [shadow] USD_JPY order 116 expired (GTD)
+2026-10-14 00:21:16 EDT [lien-zeros] USD_JPY signal BUY limit {'sma20': 158.3402, 'close': 158.177, 'figure': 158.0}
+2026-10-14 00:21:16 EDT [lien-zeros] USD_JPY BUY limit 98809u @ 157.950 SL 157.750 TP 158.350
+2026-10-14 00:31:02 EDT [shadow] heartbeat NAV 49,974.26 realized +122.30 open 8 pending 15
+2026-10-14 01:01:02 EDT [shadow] AUD_JPY M1 fetch failed: GET /v3/instruments/AUD_JPY/candles -> 401: {"errorMessage":"Insufficient authorization to perform request."}
+2026-10-14 01:01:02 EDT [shadow] AUD_NZD M1 fetch failed: GET /v3/instruments/AUD_NZD/candles -> 401: {"errorMessage":"Insufficient authorization to perform request."}
+2026-10-14 01:01:02 EDT [lien-zeros] EUR_JPY signal BUY limit {'sma20': 177.42275, 'close': 177.274, 'figure': 177.0}
+2026-10-14 01:01:02 EDT [lien-zeros] EUR_JPY BUY limit 98774u @ 176.950 SL 176.750 TP 177.350
+2026-10-14 01:01:02 EDT [shadow] heartbeat NAV 49,968.06 realized +122.30 open 8 pending 16
+2026-10-14 01:23:13 EDT [shadow] USD_JPY order 117 expired (GTD)
+2026-10-14 01:25:01 EDT [lien-zeros] USD_JPY signal BUY limit {'sma20': 158.3101, 'close': 158.174, 'figure': 158.0}
+2026-10-14 01:25:01 EDT [lien-zeros] USD_JPY BUY limit 98861u @ 157.950 SL 157.750 TP 158.350
+2026-10-14 01:30:48 EDT [shadow] heartbeat NAV 49,986.07 realized +122.30 open 8 pending 16
+2026-10-14 02:00:42 EDT [shadow] heartbeat NAV 49,999.86 realized +122.30 open 8 pending 16
+2026-10-14 02:03:08 EDT [shadow] EUR_JPY order 118 expired (GTD)
+2026-10-14 02:27:16 EDT [shadow] USD_JPY order 119 expired (GTD)
+2026-10-14 02:30:58 EDT [shadow] heartbeat NAV 49,998.55 realized +122.30 open 8 pending 14
+2026-10-14 03:00:40 EDT [shadow] heartbeat NAV 49,980.08 realized +122.30 open 8 pending 14
+2026-10-14 03:31:02 EDT [shadow] heartbeat NAV 49,981.02 realized +122.30 open 8 pending 14
+2026-10-14 04:00:50 EDT [shadow] heartbeat NAV 50,007.82 realized +122.30 open 8 pending 14
+2026-10-14 04:31:01 EDT [shadow] heartbeat NAV 50,002.94 realized +122.30 open 8 pending 14
+2026-10-14 05:00:48 EDT [shadow] heartbeat NAV 50,024.81 realized +122.30 open 8 pending 14
+2026-10-14 05:30:49 EDT [shadow] heartbeat NAV 50,038.87 realized +122.30 open 8 pending 14
+2026-10-14 06:01:02 EDT [shadow] heartbeat NAV 50,038.18 realized +122.30 open 8 pending 14
+2026-10-14 06:30:41 EDT [shadow] heartbeat NAV 50,042.19 realized +122.30 open 8 pending 14
