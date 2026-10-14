@@ -1,0 +1,3 @@
+$ read-odds-bot /opt/xp-test
+started 2026-10-14 06:50:06 EDT
+RUNNING...
