@@ -1,3 +1,18 @@
 $ alpaca run-all --phase validate --year --families mtf_confirm
-started 2026-10-15 18:21:22 EDT
-RUNNING...
+started 2026-10-15 18:21:22 EDT, took 1903s, exit 0
+
+daily data ready
+## mtf_confirm: multi-timeframe confirmation did not beat the live brain in both periods: switch it off in zones.json (mtf.entry / mtf.trend_exit)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live brain without confirmation: 2388t win 36% PF 0.61 avgR -0.23 daily -0.300% CAGR -53.1% maxDD -31.0%
+- train | + entry confirmed on weekly/1h/15m: 1769t win 34% PF 0.62 avgR -0.23 daily -0.216% CAGR -41.9% maxDD -23.7%
+- train | + entry and in-trade re-check: 1769t win 34% PF 0.62 avgR -0.23 daily -0.216% CAGR -41.9% maxDD -23.7%
+- validate | live brain without confirmation: 1701t win 41% PF 0.76 avgR -0.10 daily -0.208% CAGR -40.9% maxDD -22.4%
+- validate | + entry confirmed on weekly/1h/15m: 1257t win 40% PF 0.75 avgR -0.10 daily -0.175% CAGR -35.7% maxDD -18.2%
+- validate | + entry and in-trade re-check: 1257t win 40% PF 0.75 avgR -0.10 daily -0.175% CAGR -35.7% maxDD -18.2%
+ALL DONE
