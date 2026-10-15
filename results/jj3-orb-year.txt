@@ -1,3 +1,18 @@
 $ alpaca run-all --phase validate --year --families orb_candidate
-started 2026-10-15 17:54:35 EDT
-RUNNING...
+started 2026-10-15 17:54:35 EDT, took 1601s, exit 0
+
+daily data ready
+## orb_candidate: ADD opening_range_breakout as an 11th expert: better than the live ten in the train and validation years
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | ten experts (live): 3194t win 40% PF 0.65 avgR -0.21 daily -0.382% CAGR -61.8% maxDD -38.7%
+- train | ten + opening-range breakout: 3170t win 40% PF 0.66 avgR -0.20 daily -0.373% CAGR -61.0% maxDD -38.1%
+- train | opening-range breakout alone: 163t win 41% PF 1.17 avgR +0.01 daily +0.021% CAGR +6.3% maxDD -2.6%
+- validate | ten experts (live): 2943t win 44% PF 0.78 avgR -0.11 daily -0.352% CAGR -59.3% maxDD -35.8%
+- validate | ten + opening-range breakout: 2888t win 45% PF 0.82 avgR -0.10 daily -0.280% CAGR -51.4% maxDD -29.9%
+- validate | opening-range breakout alone: 249t win 35% PF 0.84 avgR -0.06 daily -0.072% CAGR -18.0% maxDD -6.8%
+ALL DONE
