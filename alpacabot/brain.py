@@ -156,6 +156,36 @@ class StageFilter:
         return [s for s in self.brain.signals(day) if (s.side == 1 and st == 2) or (s.side == -1 and st == 4)]
 
 
+class BoxRangeBrain:
+    """Owner's range box for stocks (OANDA drawing applied to Alpaca; the paper plan 2026-10-16 reads Weinstein -> trend indicators -> range box).
+    Every signal keeps the stage rule (longs in stage 2, shorts in stage 4) and the multi-timeframe check that wraps this brain; the mean-reversion
+    experts must in addition pass the box: the stock's daily BOX must be valid (day.attrs["box"] = valid, top, bot) and the entry in the right part
+    of it - position "valid": anywhere in the box; "half": a long in the lower half (the buy zone), a short in the upper half; "edge": the outer third."""
+
+    def __init__(self, brain, position: str = "half"):
+        self.brain, self.position = brain, position
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        st = int(day.attrs.get("stage", 0))
+        valid, top, bot = day.attrs.get("box", (False, 0.0, 0.0))
+        frac = {"valid": 1.0, "half": 0.5, "edge": 1.0 / 3.0}[self.position]
+        out = []
+        for s in self.brain.signals(day):
+            if st and not ((s.side == 1 and st == 2) or (s.side == -1 and st == 4)):
+                continue
+            if (s.tag or "").removeprefix("S:") in RANGE_EXPERTS:
+                if not valid or top <= bot:
+                    continue
+                pos = (float(day["close"].iloc[s.i]) - bot) / (top - bot)
+                if self.position != "valid" and not ((s.side == 1 and pos <= frac) or (s.side == -1 and pos >= 1 - frac)):
+                    continue
+            out.append(s)
+        return out
+
+
 MTF = {"adx_min": 20.0, "range_adx_max": 25.0}
 
 

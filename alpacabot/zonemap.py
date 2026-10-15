@@ -19,6 +19,8 @@ BIAS_RULES = {"ema": 20, "sma": 50, "adx_min": 20.0}
 STAGE_RULES = {"ma": 150, "slope_bars": 20}
 WEEKLY_RULES = {"fast": 10, "slow": 30}              # weekly EMA10 vs EMA30 (about the 50- and 150-day averages)          # Weinstein: the 30-week moving average = 150 trading days
 LEVEL_RULES = {"lookback": 120, "wing": 2, "merge_atr": 0.5, "strong": 2}
+# The owner's OANDA range box (2026-10-14) scaled from 200 / 20 MA and 100 hourly bars to a stock's daily bars: 50 / 10 MA and 40 days.
+BOX_RULES = {"lookback": 40, "slow": 50, "fast": 10, "flat_atr": 0.5, "flat_share": 0.8, "min_crosses": 2, "min_h_atr": 2.0, "max_h_atr": 20.0}
 
 
 def bias(daily: pd.DataFrame) -> pd.Series:
@@ -27,6 +29,23 @@ def bias(daily: pd.DataFrame) -> pd.Series:
     up = (c > e) & (e > s) & (a >= BIAS_RULES["adx_min"])
     dn = (c < e) & (e < s) & (a >= BIAS_RULES["adx_min"])
     return pd.Series(np.where(up, 1, np.where(dn, -1, 0)), index=daily.index)
+
+
+def range_box(daily: pd.DataFrame) -> pd.DataFrame:
+    """The owner's range box on daily bars, as of each date's close (columns valid, top, bot): RANGING = the 50-day average is flat (moved <= 0.5 ATR
+    over 10 days) on at least 80% of the last 40 days and the 10-day average crossed it at least twice in them; the BOX = the high / low of the
+    prior 40 days, 2-20 ATR14 tall. Use the previous date's row for a session (no look-ahead)."""
+    r = BOX_RULES
+    c, a = daily["close"], atr(daily, 14)
+    slow, fast = sma(c, r["slow"]), sma(c, r["fast"])
+    flat = (slow - slow.shift(10)).abs() <= r["flat_atr"] * a
+    side = np.sign(fast - slow)
+    crosses = (side != side.shift(1)).astype(float).where(side.shift(1).notna(), 0.0).rolling(r["lookback"]).sum()
+    ranging = (flat.astype(float).rolling(r["lookback"]).mean() >= r["flat_share"]) & (crosses >= r["min_crosses"])
+    top, bot = daily["high"].shift(1).rolling(r["lookback"]).max(), daily["low"].shift(1).rolling(r["lookback"]).min()
+    h = top - bot
+    valid = (ranging & (h >= r["min_h_atr"] * a) & (h <= r["max_h_atr"] * a)).fillna(False)
+    return pd.DataFrame({"valid": valid, "top": top, "bot": bot}, index=daily.index)
 
 
 def bias_for_session(daily: pd.DataFrame, session_date) -> int:
@@ -75,7 +94,7 @@ def zone_target(levels: list[dict], fill: float, side: int, risk: float, min_r: 
     return min(cands) if side == 1 else max(cands)
 
 
-def attach(days: dict, daily_by_symbol: dict) -> dict:
+def attach(days: dict, daily_by_symbol: dict, with_box: bool = False) -> dict:
     """Backtests: put each session's bias and level map on its intraday frame (df.attrs), computed from earlier daily bars only."""
     warm = BIAS_RULES["sma"] + 15
     for sym, frames in days.items():
@@ -84,6 +103,7 @@ def attach(days: dict, daily_by_symbol: dict) -> dict:
             continue
         b = bias(dly).to_numpy()
         wb = weekly_bias(dly).to_numpy()
+        bx = range_box(dly) if with_box else None
         dates = np.array(dly.index.date)
         for f in frames:
             dd = f.index[0].date()
@@ -92,6 +112,8 @@ def attach(days: dict, daily_by_symbol: dict) -> dict:
             f.attrs["wbias"] = int(wb[k - 1]) if k >= 160 else 0
             f.attrs["levels"] = level_map(dly.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else []
             f.attrs["stage"] = stage(dly.iloc[max(0, k - STAGE_RULES["ma"] - STAGE_RULES["slope_bars"] - 5):k]) if k else 0
+            if bx is not None:
+                f.attrs["box"] = ((bool(bx["valid"].iloc[k - 1]), float(bx["top"].iloc[k - 1]), float(bx["bot"].iloc[k - 1])) if k >= warm + 10 else (False, 0.0, 0.0))
     return days
 
 

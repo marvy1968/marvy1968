@@ -1300,6 +1300,52 @@ class ProfileAssignStudyTests(unittest.TestCase):
             engine.RANGE_STYLE.discard("dual_regime")
 
 
+class StockRangeBoxTests(unittest.TestCase):
+    def _daily(self, sideways=True, n=260):
+        idx = pd.bdate_range("2023-01-02", periods=n, tz="America/New_York")
+        rng = np.random.default_rng(11)
+        base = 100 + (2 * np.sin(np.arange(n) / 6.0) if sideways else 0.35 * np.arange(n))
+        c = base + rng.normal(0, 0.3, n)
+        o = np.r_[c[0], c[:-1]]
+        return pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.6, "low": np.minimum(o, c) - 0.6, "close": c, "volume": 1e6}, index=idx)
+
+    def test_box_is_valid_for_a_sideways_stock_and_not_for_a_trending_one(self):
+        from alpacabot.zonemap import range_box
+        side, trend = range_box(self._daily(True)), range_box(self._daily(False))
+        self.assertTrue(side["valid"].iloc[-1])
+        self.assertLess(side["bot"].iloc[-1], side["top"].iloc[-1])
+        self.assertFalse(trend["valid"].iloc[-30:].any())
+
+    def test_attach_puts_the_box_on_each_session_from_earlier_days_only(self):
+        from alpacabot.zonemap import attach
+        d = self._daily(True)
+        sess = d.index[200]
+        f = pd.DataFrame({"close": [100.0, 100.5]}, index=pd.DatetimeIndex([sess + pd.Timedelta(hours=10), sess + pd.Timedelta(hours=11)]))
+        out = attach({"AAA": [f]}, {"AAA": d}, with_box=True)["AAA"][0]
+        valid, top, bot = out.attrs["box"]
+        prior = d.iloc[:200]
+        self.assertAlmostEqual(top, float(prior["high"].iloc[-40:].max()))        # the box is the prior 40 days, not including the session itself
+        self.assertAlmostEqual(bot, float(prior["low"].iloc[-40:].min()))
+        g = pd.DataFrame({"close": [100.0, 100.5]}, index=f.index)
+        self.assertNotIn("box", attach({"AAA": [g]}, {"AAA": d})["AAA"][0].attrs)            # off unless asked for
+
+    def test_every_expert_keeps_the_stage_rule_and_range_experts_also_need_the_box(self):
+        from alpacabot.brain import BoxRangeBrain
+        from alpacabot.strategies import Signal
+        day = pd.DataFrame({"close": [95.0, 105.0]})
+        day.attrs.update(stage=2, box=(True, 110.0, 90.0))                  # an advancing stock with a valid box: 90-110
+        sigs = [Signal(i=0, side=1, tag="connors_rsi2"), Signal(i=1, side=1, tag="connors_rsi2"),    # long low in the box / long high in the box
+                Signal(i=1, side=-1, tag="S:williams_r"), Signal(i=0, side=1, tag="velez_elephant")]  # short high (stage 2 forbids shorts) / a trend expert
+        class Stub:
+            def signals(self, d):
+                return sigs
+        got = [(s.tag, s.i) for s in BoxRangeBrain(Stub(), "half").signals(day)]
+        self.assertEqual(got, [("connors_rsi2", 0), ("velez_elephant", 0)])         # the short is dropped by the stage rule, the high long by the box half
+        self.assertEqual(len(BoxRangeBrain(Stub(), "valid").signals(day)), 3)
+        day.attrs["box"] = (False, 110.0, 90.0)                                      # no valid box: no range-expert trades at all
+        self.assertEqual([x.tag for x in BoxRangeBrain(Stub(), "valid").signals(day)], ["velez_elephant"])   # only the trend expert is left
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")

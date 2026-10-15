@@ -830,6 +830,37 @@ def profile_assign_study(days, train, validate, costs: Costs = Costs(), pf: Port
     return out
 
 
+def box_range_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The owner's OANDA range box applied to the stock range experts (2026-10-16): the five mean-reversion experts keep the Weinstein stage filter
+    (owner's paper plan: Weinstein, trend indicators, then the box) and in addition need the stock's daily range box (valid box; "half" = buy the lower
+    half / sell the upper half; "edge" = outer third). Judged against
+    the live configuration (direction first + stage + multi-timeframe confirmation + the drawn exits + zone map); a variant must beat it in the
+    train AND validation years (_zone_verdict). Needs days attached with with_box=True."""
+    from .brain import BoxRangeBrain, DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(position, a, b):
+        br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+        br = StageFilter(DirectionFirst(br)) if position is None else BoxRangeBrain(DirectionFirst(br), position)
+        r = run_intraday(TrendConfirm(br), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live (no box)": None, "range experts on the box: valid": "valid",
+                "range experts on the box: lower/upper half": "half", "range experts on the box: outer third": "edge"}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"br-{per}-{k}", lambda p=pos, a=a, b=b: run(p, a, b)) for k, (name, pos) in enumerate(variants.items())}
+    base = "live (no box)"
+    verdicts = {v: _zone_verdict([{"without": out["periods"][p][base], "with": out["periods"][p][v]} for p in out["periods"]]) for v in variants if v != base}
+    winners = [v for v, ok in verdicts.items() if ok]
+    out.update({"family": "box_range", "passes": bool(winners), "variant_passes": verdicts,
+                "verdict": (f"ADOPT: {'; '.join(winners)} beat the live configuration in train and validation" if winners else
+                            "the range box did not beat the live configuration for the range experts in both periods: leave the stock range experts as they are")})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 
