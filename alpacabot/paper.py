@@ -343,7 +343,7 @@ class PaperRunner:
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
-                                "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(),
+                                "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(), "expert": pos.get("expert"),
                                 "peak_r": round(peak / risk, 3) if risk else 0.0,
                                 **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit, "zone_profile": z.get("profile"),
                                     "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {}),
@@ -549,7 +549,7 @@ class PaperRunner:
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": self.clock().date().isoformat(), "symbol": sym, "side": "short" if side == -1 else "long", "qty": qty,
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0, "reason": reason,
-                                "opened": pos["opened"], "closed": self.clock().isoformat(), "partial": True,
+                                "opened": pos["opened"], "closed": self.clock().isoformat(), "partial": True, "expert": pos.get("expert"),
                                 "zone_profile": (pos.get("zone") or {}).get("profile"), "stage": (pos.get("zone") or {}).get("stage")}) + "\n")
 
     def zone_entry_block(self, sym: str, sig, ref: float, zcfg: dict) -> str:
@@ -754,6 +754,7 @@ class PaperRunner:
                 pos = self.exits.positions[sym]
                 zone["stage"] = (getattr(self, "zonemap", {}).get(sym) or {}).get("stage")
                 pos["zone"], pos["risk"] = zone, float(sig.stop_dist)
+                pos["expert"] = str(sig.tag)
                 if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
                     pos["exhaust_r"] = float(zcfg["profiles"][zone.get("profile", "trend")]["exhaust_r"])
@@ -1118,6 +1119,15 @@ def report_card(state_dir, day=None) -> str:
         best = sorted(by.items(), key=lambda x: -x[1])
         shown = best if len(best) <= 5 else best[:3] + best[-2:]
         lines.append("By symbol: " + ", ".join(f"{k} ${v:+,.0f}" for k, v in shown))
+    ex = {}
+    for t in trades:
+        if t.get("expert"):
+            ex.setdefault(t["expert"], []).append(t)
+    if ex:
+        lines.append("BY EXPERT (trades opened since the expert was logged)")
+        for k, ts in sorted(ex.items(), key=lambda x: -len(x[1])):
+            n_, w_, l_, wr_, pf_, ar_ = stats(ts)
+            lines.append(f"  {k}: {n_}, {w_}W/{l_}L, P&L ${sum(t['pnl'] for t in ts):+,.0f}, profit factor {pf_:.2f}")
     lines += _style_lines(trades, today)
     lines += _giveback_lines(trades, today)
     lines += _zone_lines(trades)
