@@ -38,7 +38,8 @@ from .strategies import F0Reversion, LienFader, RangeBox200
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
 PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"]
-STRATS = {"lien_h1": {"make": LienFader, "gran": "H1", "count": 1500, "minutes": 60},
+STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "count": 1500, "minutes": 60},   # break 20 pips (was 15): best of the 27-point
+          # grid (2016-20 PF 1.46, 2021-22 PF 1.27); narrowly missed the 90% placebo bar (85%), so PROVISIONAL on paper money, 2026-10-15
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
           "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
