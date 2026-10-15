@@ -1,0 +1,22 @@
+{
+ "passed": false,
+ "params": {
+  "decay": 0.98,
+  "lg_goals": 3.05,
+  "home": 0.03,
+  "sh_k": 900.0,
+  "sv_k": 1500.0,
+  "w_shot": 0.55,
+  "b2b": 0.06,
+  "tz": 0.012,
+  "tf": 0.025,
+  "en_p": 0.42,
+  "ot_home": 0.52
+ },
+ "thresholds": {
+  "ml": 0.05,
+  "tot": 0.5,
+  "pl": 0.03
+ },
+ "test": "Jan-Jun 2026 unseen: ML 77-85 -2.5% ROI, totals 48-42 -4.8%, PL 118-194 -10.7%"
+}
