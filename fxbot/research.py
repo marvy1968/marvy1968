@@ -43,6 +43,10 @@ FAMILIES = {
     # the owner's range box (20/200 MA flat = ranging; buy the bottom, sell the top), drawn 2026-10-14; live on practice from day one
     "fx_box200_h1": ("H1", RangeBox200, {"lookback": [100]}),
     # same rules on other timeframes (owner asked "is hourly the best?"): 100 bars each, nothing else changed; judged like every family
+    # Gemini's "statistical range box" (owner's paste, 2026-10-15): SMA200 +- 2 sigma envelope, buy when price reclaims the lower band
+    # (stop 3 sigma, exit at the mean) = F0's mechanics with 200 bars / 2.0 sigma, one frozen setting per timeframe
+    "fx_zbox200_h1": ("H1", F0Reversion, {"n": [200], "entry_z": [2.0], "stop_z": [3.0]}),
+    "fx_zbox200_h4": ("H4", F0Reversion, {"n": [200], "entry_z": [2.0], "stop_z": [3.0]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
