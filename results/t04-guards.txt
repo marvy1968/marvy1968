@@ -1,0 +1,3 @@
+$ show alpaca_paper/day_guards.json
+started 2026-10-15 14:07:25 EDT
+RUNNING...
