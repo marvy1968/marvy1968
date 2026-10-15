@@ -631,6 +631,11 @@ LADDER_VARIANTS = {
     # half the risk behind price from the first profit (with one stop, no cut steps, as Gemini wrote it)
     "TP 25% then +50% (75% banked)": {**_OWNER_LADDER, "tp_fracs": [0.25, 0.75]},
     "trail 0.5R from entry, one stop": {**_OWNER_LADDER, "cut_fracs": [], "cut_depth_r": [], "trail_from_entry_r": 0.5},
+    # the owner's thought 2026-10-15: "make the sale zone a little tighter so we don't lose too much, and loosen the take-profit zones so
+    # it can run" - each half separately and together (pre-declared)
+    "tighter cuts (0.35R / 0.6R)": {**_OWNER_LADDER, "cut_depth_r": [0.35, 0.6]},
+    "looser take-profit (0.5 / 1.0 ATR beyond the zone)": {**_OWNER_LADDER, "tp_depth_atr": [0.5, 1.0]},
+    "tighter cuts + looser take-profit (owner's idea)": {**_OWNER_LADDER, "cut_depth_r": [0.35, 0.6], "tp_depth_atr": [0.5, 1.0]},
 }
 # owner (2026-10-14): let each master's own philosophy set its take-profit and sell zones (engine.EXPERT_LADDERS, one stop each)
 from .engine import EXPERT_LADDERS  # noqa: E402
@@ -639,7 +644,8 @@ LADDER_VARIANTS["each expert's own exits"] = {"cut_fracs": [], "cut_depth_r": []
 
 
 QUICK_VARIANTS = ["owner (cut 25/50, TP 25/50, trail 1 ATR)", "no cut steps (one stop)", "TP 25% then +50% (75% banked)",
-                  "each expert's own exits"]
+                  "each expert's own exits", "tighter cuts (0.35R / 0.6R)", "looser take-profit (0.5 / 1.0 ATR beyond the zone)",
+                  "tighter cuts + looser take-profit (owner's idea)"]
 
 
 def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
