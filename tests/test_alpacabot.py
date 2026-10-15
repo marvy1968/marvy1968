@@ -1283,6 +1283,23 @@ class ZoneParamStudyTests(unittest.TestCase):
                 self.assertIn(ZONE_PROFILES[prof][par], vals)
 
 
+class ProfileAssignStudyTests(unittest.TestCase):
+    def test_moving_an_expert_to_the_range_profile_is_undone_after_the_run(self):
+        from alpacabot import engine, research
+        from alpacabot.engine import ZONE_PROFILES, zone_profile
+        before = set(engine.RANGE_STYLE)
+        self.assertIs(zone_profile({"profiles": ZONE_PROFILES}, "dual_regime"), ZONE_PROFILES["trend"])
+        res = research.profile_assign_study({}, ("2021-07-01", "2021-12-31"), ("2022-01-01", "2022-06-30"), ckpt=None)
+        self.assertEqual(set(engine.RANGE_STYLE), before)                                 # the study never leaves the live sets changed
+        self.assertEqual(res["family"], "profile_assign")
+        self.assertEqual(len(res["periods"]["train"]), 4)
+        engine.RANGE_STYLE.add("dual_regime")
+        try:
+            self.assertIs(zone_profile({"profiles": ZONE_PROFILES}, "S:dual_regime"), ZONE_PROFILES["range"])
+        finally:
+            engine.RANGE_STYLE.discard("dual_regime")
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")

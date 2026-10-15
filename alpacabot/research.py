@@ -793,6 +793,43 @@ def mtf_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
     return out
 
 
+def profile_assign_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Which zone profile suits the two experts that sit on the trend profile only by default (owner's question, 2026-10-15): dual_regime and
+    opening_range_breakout. The live configuration (direction first + stage + multi-timeframe confirmation + the drawn exit plan + zone map),
+    with the expert(s) moved to the range profile (20-bar mean target) by adding them to engine.RANGE_STYLE for the run. Each variant must beat
+    the live assignment in the train AND validation years (_zone_verdict)."""
+    from . import engine
+    from .brain import DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(moved, a, b):
+        before = set(engine.RANGE_STYLE)
+        engine.RANGE_STYLE.update(moved)
+        try:
+            br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+            br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+            r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(br))), days, costs, pf, a, b)
+        finally:
+            engine.RANGE_STYLE.clear()
+            engine.RANGE_STYLE.update(before)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live (both on the trend profile)": [], "dual_regime on the range profile": ["dual_regime"],
+                "opening_range_breakout on the range profile": ["opening_range_breakout"],
+                "both on the range profile": ["dual_regime", "opening_range_breakout"]}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"pa-{per}-{k}", lambda m=moved, a=a, b=b: run(m, a, b)) for k, (name, moved) in enumerate(variants.items())}
+    base = "live (both on the trend profile)"
+    verdicts = {v: _zone_verdict([{"without": out["periods"][p][base], "with": out["periods"][p][v]} for p in out["periods"]]) for v in variants if v != base}
+    winners = [v for v, ok in verdicts.items() if ok]
+    out.update({"family": "profile_assign", "passes": bool(winners), "variant_passes": verdicts,
+                "verdict": (f"MOVE: {'; '.join(winners)} beat the live assignment in train and validation" if winners else
+                            "no move beat the live assignment in both periods: leave dual_regime and opening_range_breakout on the trend profile")})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 
