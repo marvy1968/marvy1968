@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --year --families orb_candidate
+started 2026-10-15 17:54:35 EDT
+RUNNING...
