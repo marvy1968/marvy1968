@@ -269,6 +269,39 @@ class SectorTopDown:
         return float(f["rs"].iloc[i])
 
 
+class SectorTopDownShort:
+    """The owner's 'follow the trend down' (2026-10-15): the live Sector Top-Down rules mirrored for SHORTS (daily bars).
+    ENTRY (completed daily bar, sold short at the NEXT open): close < EMA20 < SMA50 and the stock's 20-day return trails SPY's by >= 3 points.
+    STOP: signal-bar EMA20 + 1 x ATR14 (a fixed price; a gap through it fills at the open). EXIT: a daily close above EMA20, covered at the next open.
+    Optional pre-declared gates: stage4 (Weinstein: close below a falling 150-day average), market_weak (SPY below its own 50-day average)."""
+
+    def __init__(self, bench: pd.Series, rs_margin: float = 0.03, ema_n: int = 20, sma_n: int = 50, atr_mult: float = 1.0,
+                 stage4: bool = False, market_weak: bool = False):
+        self.bench, self.rs_margin, self.ema_n, self.sma_n, self.atr_mult = bench, rs_margin, ema_n, sma_n, atr_mult
+        self.stage4, self.market_weak = stage4, market_weak
+        self.max_days = 10 ** 6
+        self.name = "sector_top_down_short" + ("+stage4" if stage4 else "") + ("+weak_market" if market_weak else "")
+
+    def frame(self, d: pd.DataFrame) -> pd.DataFrame:
+        c = d["close"]
+        e, sm, a = ema(c, self.ema_n), sma(c, self.sma_n), atr(d, 14)
+        spy20 = self.bench.pct_change(20).reindex(d.index, method="ffill")
+        rs = c.pct_change(20) - spy20
+        entry = (c < e) & (e < sm) & (rs <= -self.rs_margin) & a.notna() & spy20.notna()
+        if self.stage4:
+            ma = c.rolling(150).mean()
+            entry = entry & (c < ma) & (ma < ma.shift(20))
+        if self.market_weak:
+            b = self.bench.reindex(d.index, method="ffill")
+            entry = entry & (b < b.rolling(50).mean())
+        f = pd.DataFrame(index=d.index)
+        f["entry"] = entry.fillna(False)
+        f["exit"] = (c > e).fillna(False)
+        f["stop"] = e + self.atr_mult * a
+        f["rs"] = -rs                                   # the weakest stock first
+        return f
+
+
 class GatedSectorTopDown:
     """SectorTopDown with an extra entry gate (bool Series by date, True = entries allowed); exits and stops are unchanged."""
 

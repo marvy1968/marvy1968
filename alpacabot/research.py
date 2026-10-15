@@ -712,3 +712,43 @@ def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portf
                 "verdict": ("ADD opening_range_breakout as an 11th expert: better than the live ten in the train and validation years" if ok else
                             "do not add it: the ten experts without it did as well or better in the train or validation years")})
     return out
+
+
+def swing_short_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
+    """Owner's 'follow the trend down' for the SWING bot (2026-10-15): does adding a short side to Sector Top-Down help the live long-only
+    book? Short rules = the live rules mirrored (strategies.SectorTopDownShort), with the pre-declared gates Weinstein stage 4 and a
+    weak market (SPY below its 50-day average). Per universe, train 2016-03..2019 and validate 2020-2022. A variant PASSES when the
+    combined long+short book beats the long-only book in every row (research._zone_verdict). Shorts alone are reported for information.
+    Note the top-5-per-sector list is a list of 2026's winners, which is hard on shorts; the 2016 control list is the fairer row."""
+    from .engine import simulate_swing_short
+    from .strategies import SectorTopDown, SectorTopDownShort
+    pf = Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333)
+    periods = {"train": (date(2016, 3, 1), date(2019, 12, 31)), "validate": (date(2020, 1, 1), date(2022, 12, 31))}
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
+    shorts = {"short mirror": dict(), "short + stage 4": dict(stage4=True), "short + weak market": dict(market_weak=True),
+              "short + stage 4 + weak market": dict(stage4=True, market_weak=True)}
+
+    def book(data, a, b, with_long=True, short_kw=None):
+        trades = []
+        for sym, d in data.items():
+            if with_long:
+                trades += simulate_swing(sym, d, SectorTopDown(spy["close"]), costs, all_signals=True)
+            if short_kw is not None:
+                trades += simulate_swing_short(sym, d, SectorTopDownShort(spy["close"], **short_kw), costs)
+        trades = [t for t in trades if a <= t.entry_time.date() <= b]
+        closes = {sym: d["close"] for sym, d in data.items()}
+        fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), closes, costs, pf, a, b)
+        return {**{k: metrics(fills, curve, pf.equity).get(k) for k in keys}, **_curve_stats(curve, pf.equity)}
+    rows = []
+    for name, data in universes.items():
+        for per, (a, b) in periods.items():
+            base = book(data, a, b)
+            for vname, kw in shorts.items():
+                rows.append({"universe": name, "period": per, "variant": f"long + {vname}", "without": base, "with": book(data, a, b, True, kw)})
+                rows.append({"universe": name, "period": per, "variant": f"(info) {vname} alone", "without": base, "with": book(data, a, b, False, kw)})
+    names = [f"long + {v}" for v in shorts]
+    passed = {v: _zone_verdict([r for r in rows if r["variant"] == v]) for v in names}
+    winners = [v for v, ok in passed.items() if ok]
+    return {"family": "swing_short", "rows": rows, "passes": bool(winners), "variant_passes": passed,
+            "verdict": (f"PASS: {'; '.join(winners)} beat long-only in every row - propose adding the short side to the swing bot" if winners
+                        else "no short variant beat the long-only swing book in every row: the swing bot stays long-only")}

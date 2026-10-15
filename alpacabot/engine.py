@@ -407,6 +407,47 @@ def simulate_swing(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signal
     return out
 
 
+def simulate_swing_short(symbol: str, d: pd.DataFrame, strat, costs: Costs, all_signals: bool = True) -> list[Trade]:
+    """Daily-bar SHORT trades for a strategy whose frame() has entry / exit / stop (a real price ABOVE the entry) / rs. Sold short at the next
+    open less slippage, stopped at the fixed stop price (a gap through it covers at the open, plus slippage), covered at the next open after
+    the exit flag. Trade prices are real prices with side=-1."""
+    f = strat.frame(d)
+    o, h, c = (d[k].to_numpy(float) for k in ("open", "high", "close"))
+    entry, exit_, n, slip = f["entry"].to_numpy(bool), f["exit"].to_numpy(bool), len(d), costs.slip_bps / 1e4
+    out, i = [], 0
+    while i < n - 1:
+        if not entry[i]:
+            i += 1
+            continue
+        j0 = i + 1
+        stop = float(f["stop"].iloc[i])
+        fill = o[j0] * (1 - slip)
+        sd = stop - fill
+        if not np.isfinite(sd) or sd <= 0:
+            i += 1
+            continue
+        k, px, why = j0, None, ""
+        while k < n:
+            if k > j0 and o[k] >= stop:
+                px, why = o[k] * (1 + slip), "stop"
+            elif h[k] >= stop:
+                px, why = stop * (1 + slip), "stop"
+            elif exit_[k] or (k - j0 + 1) >= strat.max_days:
+                if k + 1 < n:
+                    why = "signal" if exit_[k] else "time"
+                    k, px = k + 1, o[k + 1] * (1 + slip)
+                else:
+                    px, why = c[k] * (1 + slip), "end"
+            elif k == n - 1:
+                px, why = c[k] * (1 + slip), "end"
+            if px is not None:
+                break
+            k += 1
+        out.append(Trade(symbol, d.index[j0], d.index[min(k, n - 1)], fill, px, sd, why, k - j0 + 1, side=-1, rank=float(f["rs"].iloc[i])))
+        i = i + 1 if all_signals else max(k, i + 1)
+    return out
+
+
 def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, pf: Portfolio, start: date, end: date,
                group_of: dict | None = None) -> tuple[pd.DataFrame, pd.Series]:
     """Daily portfolio with mark-to-market equity. closes: symbol -> daily close series (same index type as trade times).
@@ -420,7 +461,10 @@ def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, 
     for d in days:
         def realize(p):
             nonlocal cash
-            cash += p["qty"] * (p["t"].exit_px - p["t"].exit_px * costs.fee_bps_sell / 1e4) - 2 * costs.commission * p["qty"]
+            if p["t"].side == 1:
+                cash += p["qty"] * (p["t"].exit_px - p["t"].exit_px * costs.fee_bps_sell / 1e4) - 2 * costs.commission * p["qty"]
+            else:                                         # short: buy back (the sell-leg fee was taken when it was sold short)
+                cash -= p["qty"] * p["t"].exit_px + 2 * costs.commission * p["qty"]
             pnl = p["qty"] * p["t"].pnl_per_share(costs)
             rows.append({"symbol": p["t"].symbol, "entry": p["t"].entry_time, "exit": p["t"].exit_time, "qty": p["qty"], "entry_px": p["t"].entry_px,
                          "exit_px": p["t"].exit_px, "pnl": pnl, "r": p["t"].pnl_per_share(costs) / p["t"].stop_dist, "reason": p["t"].reason,
@@ -439,14 +483,17 @@ def size_swing(trades: list[Trade], closes: dict[str, pd.Series], costs: Costs, 
             if group_of and any(group_of.get(p["t"].symbol) == group_of.get(t.symbol) for p in open_pos):
                 continue                                  # one position per sector
             risk_ps = t.stop_dist + t.entry_px * costs.slip_bps / 1e4
-            qty = int(min(last_eq * pf.risk_pct / risk_ps, last_eq * pf.max_pos_frac / t.entry_px, cash / t.entry_px))
+            qty = int(min(last_eq * pf.risk_pct / risk_ps, last_eq * pf.max_pos_frac / t.entry_px, (cash if t.side == 1 else float("inf")) / t.entry_px))
             if qty < pf.min_qty:
                 continue
-            cash -= qty * t.entry_px
+            if t.side == 1:
+                cash -= qty * t.entry_px
+            else:                                         # sold short: the proceeds come in now, the sell-leg fee goes out
+                cash += qty * (t.entry_px - t.entry_px * costs.fee_bps_sell / 1e4)
             open_pos.append({"t": t, "qty": qty})
         for p in [p for p in open_pos if p["t"].exit_time == d and p["t"].reason == "stop"]:
             realize(p)
-        mv = sum(p["qty"] * float(closes[p["t"].symbol].get(d, p["t"].entry_px)) for p in open_pos)
+        mv = sum(p["t"].side * p["qty"] * float(closes[p["t"].symbol].get(d, p["t"].entry_px)) for p in open_pos)
         last_eq = cash + mv
         curve[d] = last_eq
     return pd.DataFrame(rows), pd.Series(curve)

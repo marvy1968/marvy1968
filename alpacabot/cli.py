@@ -139,6 +139,21 @@ def run_all(a) -> int:
                             print(f"skip {sym}: {exc}")
                     unis[name] = {k: v for k, v in d_.items() if len(v)}
                 res = zones_swing_study(unis, spy2, Costs(slip_bps=5.0))
+            elif fam == "swing_short":           # owner's "follow the trend down": a short side for the swing bot (research.swing_short_study)
+                from .research import swing_short_study
+                from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
+                end2 = date(2022, 12, 31)
+                spy2 = load("SPY", "1Day", date(2015, 1, 2), end2, cache)
+                unis = {}
+                for name, smap in (("2016 large caps (control)", CONTROL_SECTOR_OF), (f"top 5 per sector ({UNIVERSE_AS_OF} caps)", TOP5_SECTOR_OF)):
+                    d_ = {}
+                    for sym in smap:
+                        try:
+                            d_[sym] = load(sym, "1Day", date(2015, 1, 2), end2, cache)
+                        except Exception as exc:
+                            print(f"skip {sym}: {exc}")
+                    unis[name] = {k: v for k, v in d_.items() if len(v)}
+                res = swing_short_study(unis, spy2, Costs(slip_bps=5.0))
             elif fam == "frozen_systems":        # the owner's frozen Book A and Elite-20, pre-declared (research.FROZEN_SPEC)
                 from .research import frozen_systems_study
                 from .universe import CONTROL_SECTOR_OF, SECTOR_OF as TOP5_SECTOR_OF
@@ -228,7 +243,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "
                                  f"avgR {m_.get('avg_r') or 0:+.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% CAGR {m_.get('cagr') or 0:+.1%} "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
-        if fam in ("zones_intraday", "zones_swing"):
+        if fam in ("zones_intraday", "zones_swing", "swing_short"):
             for r in res.get("rows", []):
                 w, o = r["with"], r["without"]
                 lines.append(f"- {r.get('universe', 'paper brain')} [{r.get('variant', 'zones')}] | {r['period']}: WITH {w.get('trades')}t PF {w.get('profit_factor') or 0:.2f} "

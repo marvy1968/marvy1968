@@ -1088,6 +1088,64 @@ class OpeningRangeBreakoutTests(unittest.TestCase):
         self.assertTrue(any(s.side == 1 for s in sig) or any(s.side == -1 for s in sig))
 
 
+class SwingShortTests(unittest.TestCase):
+    """The swing bot's short side (owner: follow the trend down): strategy, simulator, and portfolio accounting that balances to the cent."""
+    def _down(self, n=260, seed=5, drift=-0.003):
+        idx = pd.bdate_range("2023-01-02", periods=n, tz="America/New_York")
+        rng = np.random.default_rng(seed)
+        c = 100 * np.exp(np.cumsum(drift + rng.normal(0, 0.008, n)))
+        o = np.r_[c[0], c[:-1]]
+        return pd.DataFrame({"open": o, "high": np.maximum(o, c) * 1.004, "low": np.minimum(o, c) * 0.996, "close": c, "volume": 1e6}, index=idx)
+
+    def test_entry_is_the_mirror_of_the_long_rule_and_gates_only_remove(self):
+        from alpacabot.strategies import SectorTopDownShort
+        d = self._down()
+        spy = self._down(seed=9, drift=-0.0005)["close"]
+        f = SectorTopDownShort(spy).frame(d)
+        c = d["close"]
+        e = c.ewm(span=20, adjust=False).mean()
+        self.assertTrue(f["entry"].any())
+        ok = f["entry"]
+        self.assertTrue((c[ok] < e[ok]).all())                                  # below its 20-day average
+        self.assertTrue((f["stop"][ok] > c[ok]).all())                          # the stop sits above the entry for a short
+        gated = SectorTopDownShort(spy, stage4=True, market_weak=True).frame(d)
+        self.assertTrue((gated["entry"] <= f["entry"]).all())                   # gates never add entries
+
+    def test_simulator_stop_gap_and_signal_cover(self):
+        from alpacabot.engine import Costs, simulate_swing_short
+
+        class S:
+            max_days = 10 ** 6
+
+            def __init__(self, entry, exit_, stop):
+                self.f = pd.DataFrame({"entry": entry, "exit": exit_, "stop": stop, "rs": 1.0})
+
+            def frame(self, d): return self.f.set_index(d.index)
+        idx = pd.bdate_range("2023-01-02", periods=6, tz="America/New_York")
+        d = pd.DataFrame({"open": [100, 100, 99, 98, 103, 99.0], "high": [101, 101, 100, 99, 104, 100.0], "low": [99, 98, 97, 96, 100, 98.0],
+                          "close": [100, 99, 98, 97, 102, 99.0], "volume": 1.0}, index=idx)
+        # short signalled on day 0, sold at day 1's open (100); stop 102: day 4 gaps to 103 -> covered at the open
+        t = simulate_swing_short("X", d, S([True, 0, 0, 0, 0, 0], [False] * 6, 102.0), Costs(0, 0, 0))[0]
+        self.assertEqual((t.side, t.entry_px, t.exit_px, t.reason), (-1, 100.0, 103.0, "stop"))
+        self.assertAlmostEqual(t.pnl_per_share(Costs(0, 0, 0)), -3.0)
+        # same entry, no stop hit, the exit flag fires on day 3 -> covered at day 4's open (103), slippage worsens both legs
+        t2 = simulate_swing_short("X", d, S([True, 0, 0, 0, 0, 0], [False, False, False, True, False, False], 110.0), Costs(100, 0, 0))[0]
+        self.assertAlmostEqual(t2.entry_px, 99.0)                                # sold 1% worse (lower)
+        self.assertAlmostEqual(t2.exit_px, 104.03)                               # bought back 1% worse (higher)
+
+    def test_portfolio_books_balance_with_shorts(self):
+        from alpacabot.engine import Costs, Portfolio, Trade, size_swing
+        idx = pd.bdate_range("2023-01-02", periods=8, tz="America/New_York")
+        closes = {"S": pd.Series([100, 100, 98, 96, 95, 97, 99, 99.0], index=idx), "L": pd.Series([50, 50, 51, 52, 53, 53, 53, 53.0], index=idx)}
+        trades = [Trade("S", idx[1], idx[5], 100.0, 97.0, 3.0, "signal", 5, side=-1), Trade("L", idx[1], idx[4], 50.0, 53.0, 2.0, "signal", 4, side=1)]
+        pf = Portfolio(risk_pct=0.01, max_positions=3, max_pos_frac=0.5, equity=100_000.0)
+        fills, curve = size_swing(trades, closes, Costs(0, 0, 0), pf, idx[0].date(), idx[-1].date())
+        self.assertEqual(len(fills), 2)
+        short = fills[fills.symbol == "S"].iloc[0]
+        self.assertAlmostEqual(short.pnl, short.qty * 3.0)                       # sold 100, bought back 97
+        self.assertAlmostEqual(curve.iloc[-1] - 100_000.0, fills.pnl.sum(), places=6)   # the equity curve equals the realized P&L when flat
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")
