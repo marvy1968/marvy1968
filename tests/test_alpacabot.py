@@ -1267,6 +1267,22 @@ class MultiTimeframeConfirmTests(unittest.TestCase):
         self.assertNotEqual(simulate_day("X", d, [sig], Costs(0, 0, 0), zones=z2)[0].reason, "trend_lost")
 
 
+class ZoneParamStudyTests(unittest.TestCase):
+    def test_variants_cover_the_frozen_grid_without_repeating_the_live_default(self):
+        from alpacabot.engine import ZONE_PROFILES
+        from alpacabot.research import ZONE_GRID, zone_param_variants
+        v = zone_param_variants()
+        self.assertEqual(len(v), len({x[0] for x in v}))                                # no duplicates
+        for label, prof, par, val in v:
+            self.assertIn(val, ZONE_GRID[par])
+            self.assertNotEqual(val, ZONE_PROFILES[prof][par])                           # the live default is the baseline, not a variant
+        trend_only = [x for x in v if x[1] == "trend"]
+        self.assertEqual(len(trend_only), sum(len([g for g in vals if g != ZONE_PROFILES["trend"][par]]) for par, vals in ZONE_GRID.items()))
+        for prof in ("trend", "range"):                                                  # every live setting is itself on the frozen grid
+            for par, vals in ZONE_GRID.items():
+                self.assertIn(ZONE_PROFILES[prof][par], vals)
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")

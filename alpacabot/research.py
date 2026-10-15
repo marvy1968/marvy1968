@@ -785,3 +785,66 @@ def mtf_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
                 "verdict": (f"PASS: {'; '.join(winners)} beat the unconfirmed brain in train and validation" if winners else
                             "multi-timeframe confirmation did not beat the live brain in both periods: switch it off in zones.json (mtf.entry / mtf.trend_exit)")})
     return out
+
+
+ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
+             "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
+
+
+def zone_param_variants() -> list:
+    """(label, profile, parameter, value) for the one-at-a-time sweep: every grid value of every parameter, separately for the trend and the
+    range profile, the other settings left at the live defaults. The live default of each parameter is the baseline and is not repeated."""
+    from .engine import ZONE_PROFILES
+    out = []
+    for prof in ("trend", "range"):
+        for par, vals in ZONE_GRID.items():
+            for v in vals:
+                if v != ZONE_PROFILES[prof][par]:
+                    out.append((f"{prof}.{par}={v}", prof, par, v))
+    return out
+
+
+def zones_params_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The take-profit / buy zones' own settings, optimized on the live configuration (direction first + Weinstein stage + multi-timeframe
+    confirmation + zone map + the owner's drawn exit plan). Sweep one setting at a time per profile (ZONE_GRID); for each setting keep the
+    value with the best TRAIN return (mean daily %), then test the combined winners. ADOPT only if the combination beats the live zones in
+    BOTH the train and the validation period (_zone_verdict); otherwise the live zones stay."""
+    import copy
+
+    from .brain import DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(profiles, a, b):
+        br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": profiles, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(br))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+
+    def profiles_with(changes: dict):
+        pr = copy.deepcopy(ZONE_PROFILES)
+        for (prof, par), v in changes.items():
+            pr[prof][par] = v
+        return pr
+    roi = lambda m: m.get("daily_ret_pct_mean") if m.get("daily_ret_pct_mean") is not None else -9   # noqa: E731
+    periods = {"train": train, "validate": validate}
+    res = {per: {"live zones": cp.get(f"zp-{per}-base", lambda a=a, b=b: run(profiles_with({}), a, b))} for per, (a, b) in periods.items()}
+    sweep = {}
+    for label, prof, par, v in zone_param_variants():
+        a, b = train
+        sweep[label] = (prof, par, v, cp.get(f"zp-train-{label}", lambda a=a, b=b, prof=prof, par=par, v=v: run(profiles_with({(prof, par): v}), a, b)))
+    chosen = {}
+    for prof in ("trend", "range"):
+        for par in ZONE_GRID:
+            cands = [(roi(res["train"]["live zones"]), ZONE_PROFILES[prof][par])] + [(roi(m), v) for lab, (pp, pa, v, m) in sweep.items() if pp == prof and pa == par]
+            chosen[(prof, par)] = max(cands, key=lambda x: x[0])[1]
+    changed = {k: v for k, v in chosen.items() if v != ZONE_PROFILES[k[0]][k[1]]}
+    for per, (a, b) in periods.items():
+        res[per]["combined winners"] = cp.get(f"zp-{per}-combo", lambda a=a, b=b: run(profiles_with(changed), a, b))
+    ok = bool(changed) and _zone_verdict([{"without": res[p]["live zones"], "with": res[p]["combined winners"]} for p in periods])
+    return {"family": "zones_params", "periods": res, "sweep_train": {k: v[3] for k, v in sweep.items()},
+            "chosen_changes": {f"{k[0]}.{k[1]}": v for k, v in changed.items()}, "passes": ok,
+            "verdict": ("ADOPT the zone settings " + ", ".join(f"{k[0]}.{k[1]}={v}" for k, v in changed.items()) + ": better in train and validation" if ok else
+                        ("no setting beat the live zones on the train years" if not changed else
+                         "the best settings (" + ", ".join(f"{k[0]}.{k[1]}={v}" for k, v in changed.items()) + ") did not beat the live zones in both periods: the live zones stay"))}
