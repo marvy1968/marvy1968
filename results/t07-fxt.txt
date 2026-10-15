@@ -1,3 +1,4 @@
 $ show fx_paper/trades.jsonl
-started 2026-10-15 14:07:35 EDT
-RUNNING...
+started 2026-10-15 14:07:35 EDT, took 0s, exit 0
+
+{"date": "2026-10-14", "closed": "2026-10-15T14:20:34+00:00", "group": "box_h1-GBP_USD-2026-10-15T1100", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492019", "units": 157342, "entry": 1.32455, "exit": 1.32622, "pl": -262.76, "reason": "broker_sl", "partial": false, "opened": "2026-10-15T11:00:00+00:00", "tier": 0}
