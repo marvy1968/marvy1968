@@ -1045,6 +1045,41 @@ class LadderWalkTests(unittest.TestCase):
         j, pnl, why = self.walk(bars, turtle)
         self.assertEqual((j, pnl, why), (1, 4.0, "lock"))
 
+    def test_the_drawn_plan_on_a_short(self):
+        """The mirror image of the drawing: sell short, cover 25%/50% if price rises toward the stop, cover 25%/50% in the take-profit zone BELOW
+        (stop moves down to break-even, then to the zone), the rest rides with a stop 1 ATR above its lowest price."""
+        import tempfile
+        from alpacabot.exits import FixedState
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
+            r.exits.positions = {"X": {"state": FixedState(entry=-100.0, stop=-102.0, tp=-90.0, atr=1.0, trail=2.0), "qty": 100, "side": -1,
+                                       "opened": "t0", "zone_tp": 98.0, "best_px": 100.0,
+                                       "ladder": {"ref": 100.0, "atr": 1.0, "tier": 0, "stop_px": 102.0, "fill": 100.0, "peak_qty": 100, "sold": 0,
+                                                  "tp_steps": 0, "cfg": {**self.CFG, "trail_atr": 1.0}}}}
+            pos = r.exits.positions["X"]
+            self.assertFalse(r.ladder_cut("X", pos, 100.9, now))                  # a quarter of the way to the stop: hold
+            self.assertEqual(pos["qty"], 100)
+            self.assertFalse(r.ladder_cut("X", pos, 101.0, now))                  # half way: cover 25%
+            self.assertEqual(pos["qty"], 75)
+            pos["ladder"]["sold"], pos["qty"] = 0, 100                            # (reset: the same trade, now in the profit zone instead)
+            self.assertFalse(r.ladder_take("X", pos, 98.0, now))                  # at the zone: cover 25%, stop to break-even
+            self.assertEqual(pos["qty"], 75)
+            self.assertEqual(pos["state"].stop, -100.0)                           # (shorts are tracked on -price: stop = 100)
+            self.assertFalse(r.ladder_take("X", pos, 97.7, now))                  # 0.3 ATR beyond: 50% covered, stop locked at the zone
+            self.assertEqual(pos["qty"], 50)
+            self.assertEqual(pos["state"].stop, -98.0)
+            pos["best_px"] = 95.0                                                 # the rest rides down: stop 1 ATR above the lowest price
+            r.lock_stop("X", pos, pos["best_px"] + 1.0, quiet=True)
+            self.assertEqual(pos["state"].stop, -96.0)
+            r.lock_stop("X", pos, 99.0, quiet=True)
+            self.assertEqual(pos["state"].stop, -96.0)                            # never loosens
+            sides = [t for t in r.sent if t[2] == "close"]
+            self.assertTrue(sides)
+            rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
+            self.assertTrue(all(t["side"] == "short" for t in rows))
+            self.assertAlmostEqual(rows[1]["pnl"], 25 * (100.0 - 98.0))           # covered 25 shares at 98 after selling at 100
+
     def test_breakeven_lock_after_first_step(self):
         bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
         j, pnl, why = self.walk(bars)
