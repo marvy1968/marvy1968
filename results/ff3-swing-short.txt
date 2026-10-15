@@ -1,3 +1,44 @@
 $ alpaca run-all --phase validate --families swing_short
-started 2026-10-15 07:14:08 EDT
-RUNNING...
+started 2026-10-15 07:14:08 EDT, took 221s, exit 0
+
+daily data ready
+## swing_short: no short variant beat the long-only swing book in every row: the swing bot stays long-only
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- 2016 large caps (control) [long + short mirror] | train: WITH 182t PF 0.71 exp -0.531% maxDD -9.9% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [(info) short mirror alone] | train: WITH 251t PF 0.41 exp -0.840% maxDD -19.7% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [long + short + stage 4] | train: WITH 165t PF 0.83 exp -0.205% maxDD -8.0% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [(info) short + stage 4 alone] | train: WITH 126t PF 0.32 exp -0.678% maxDD -11.3% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [long + short + weak market] | train: WITH 172t PF 0.69 exp -0.538% maxDD -9.6% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [(info) short + weak market alone] | train: WITH 76t PF 0.27 exp -1.411% maxDD -7.7% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [long + short + stage 4 + weak market] | train: WITH 166t PF 0.83 exp -0.160% maxDD -8.2% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [(info) short + stage 4 + weak market alone] | train: WITH 46t PF 0.37 exp -0.610% maxDD -3.8% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [long + short mirror] | validate: WITH 160t PF 0.80 exp -0.332% maxDD -10.5% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [(info) short mirror alone] | validate: WITH 172t PF 0.83 exp -0.140% maxDD -12.0% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [long + short + stage 4] | validate: WITH 164t PF 0.77 exp -0.713% maxDD -11.2% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [(info) short + stage 4 alone] | validate: WITH 119t PF 0.95 exp -0.355% maxDD -13.7% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [long + short + weak market] | validate: WITH 161t PF 0.89 exp -0.257% maxDD -6.3% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [(info) short + weak market alone] | validate: WITH 70t PF 0.63 exp -0.785% maxDD -5.8% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [long + short + stage 4 + weak market] | validate: WITH 159t PF 0.86 exp -0.299% maxDD -6.6% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- 2016 large caps (control) [(info) short + stage 4 + weak market alone] | validate: WITH 60t PF 0.73 exp -0.550% maxDD -4.8% | WITHOUT 157t PF 0.98 exp -0.075% maxDD -5.1%
+- top 5 per sector (2026-10-14 caps) [long + short mirror] | train: WITH 165t PF 1.11 exp -0.145% maxDD -4.1% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [(info) short mirror alone] | train: WITH 271t PF 0.39 exp -1.281% maxDD -19.5% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [long + short + stage 4] | train: WITH 161t PF 1.17 exp -0.056% maxDD -5.7% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [(info) short + stage 4 alone] | train: WITH 191t PF 0.42 exp -1.114% maxDD -14.0% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [long + short + weak market] | train: WITH 158t PF 1.29 exp +0.222% maxDD -5.1% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [(info) short + weak market alone] | train: WITH 77t PF 0.33 exp -1.981% maxDD -8.2% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [long + short + stage 4 + weak market] | train: WITH 160t PF 1.16 exp -0.044% maxDD -6.6% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [(info) short + stage 4 + weak market alone] | train: WITH 57t PF 0.38 exp -0.988% maxDD -4.5% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [long + short mirror] | validate: WITH 134t PF 1.61 exp +0.828% maxDD -2.9% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [(info) short mirror alone] | validate: WITH 209t PF 0.88 exp -0.941% maxDD -17.2% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [long + short + stage 4] | validate: WITH 137t PF 1.58 exp +0.927% maxDD -4.5% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [(info) short + stage 4 alone] | validate: WITH 164t PF 0.96 exp -0.679% maxDD -15.0% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [long + short + weak market] | validate: WITH 137t PF 1.40 exp +0.336% maxDD -3.9% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [(info) short + weak market alone] | validate: WITH 67t PF 1.69 exp +0.405% maxDD -4.2% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [long + short + stage 4 + weak market] | validate: WITH 142t PF 1.43 exp +0.380% maxDD -4.7% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [(info) short + stage 4 + weak market alone] | validate: WITH 67t PF 1.28 exp -0.350% maxDD -5.6% | WITHOUT 142t PF 1.50 exp +1.700% maxDD -5.9%
+ALL DONE
