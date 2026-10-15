@@ -1,3 +1,30 @@
 $ alpaca run-all --families fx_lien_fader_grid_h1
-started 2026-10-15 08:03:41 EDT
-RUNNING...
+started 2026-10-15 08:03:41 EDT, took 181s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_lien_fader_grid_h1: did not pass validation
+- chosen {'break_pips': 20, 'stop_pips': 30, 'target_pips': 60}
+- train: 110t PF 1.46 total +16.6% maxDD -6.2% avg/day +0.013%
+- validate: 35t win 40% PF 1.27 total +2.9% CAGR +1.5% maxDD(closed trades) -4.8% avg/day +0.006% financing $483
+- spread x2 total +0.4% | placebo PF 0.93, real beats 85% | PASS False
+
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_lien_fader_grid_h1: did not pass validation
+- chosen {'break_pips': 20, 'stop_pips': 30, 'target_pips': 60}
+- train: 110t PF 1.46 total +16.6% maxDD -6.2% avg/day +0.013%
+- validate: 35t win 40% PF 1.27 total +2.9% CAGR +1.5% maxDD(closed trades) -4.8% avg/day +0.006% financing $483
+- spread x2 total +0.4% | placebo PF 0.93, real beats 85% | PASS False
+
+## fx_lien_fader_grid_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
