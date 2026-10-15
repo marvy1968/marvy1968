@@ -42,7 +42,11 @@ def run_all(a) -> int:
     out.mkdir(parents=True, exist_ok=True)
     start = date(2016, 1, 4)
     qtag = "_quick" if getattr(a, "quick", False) else ""
-    if a.phase == "validate" and qtag:             # --quick: 2019-2022 only (provisional, about a third of the time); own checkpoints
+    mstart = start                                   # first day of 1-minute data (the memory-heavy part)
+    if a.phase == "validate" and getattr(a, "year", False):   # --year: one year of 5-minute data (~1/7 of the memory), provisional
+        qtag, start, mstart = "_year", date(2020, 6, 1), date(2021, 4, 1)
+        train, test, end = (date(2021, 7, 1), date(2021, 12, 31)), (date(2022, 1, 3), date(2022, 6, 30)), date(2022, 6, 30)
+    elif a.phase == "validate" and qtag:             # --quick: 2019-2022 only (provisional, about a third of the time); own checkpoints
         start = date(2018, 7, 2)
         train, test, end = (date(2019, 1, 1), date(2020, 12, 31)), (date(2021, 1, 1), date(2022, 12, 31)), date(2022, 12, 31)
     elif a.phase == "validate":
@@ -162,7 +166,7 @@ def run_all(a) -> int:
                 res = walk_forward(fam, data, train, test, costs, Portfolio(risk_pct=0.01), spy_daily=spy)
             else:
                 if not minute:
-                    minute = {s: load(s, "1Min", start, end, cache) for s in intraday_syms}
+                    minute = {s: load(s, "1Min", mstart, end, cache) for s in intraday_syms}
                 if fam == "brain":
                     days = split_days(minute, minutes=5, feature_fn=features_all)
                     res = brain_walk_forward(days, train, test, costs, Portfolio(risk_pct=0.01, max_positions=6), spy_daily=spy)
@@ -317,6 +321,7 @@ def main(argv=None) -> int:
     ra.add_argument("--out", default="state/reports")
     ra.add_argument("--phase", choices=["validate", "final"], default="validate",
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
+    ra.add_argument("--year", action="store_true", help="validate phase: ONE year of data (train 2021-H2, validate 2022-H1); small memory, provisional")
     ra.add_argument("--quick", action="store_true", help="validate phase: 2019-2022 only and fewer exit variants (provisional, ~1/3 of the time)")
     ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"])
     ra.add_argument("--slip-bps", type=float, default=2.0)
