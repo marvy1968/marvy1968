@@ -295,7 +295,7 @@ def run_all(a) -> int:
             for k, v in res["table"].items():
                 f = lambda r: f"{r.get('trades')}, {r.get('win_rate') or 0:.0%}, {r.get('expectancy_pct_notional') or 0:+.3f}"   # noqa: E731
                 lines.append(f"| {k} | {f(v['own'])} | {f(v['staircase'])} |")
-        (out / f"alpaca_{a.phase}_summary{suffix}.md").write_text("\n".join(lines))
+        (out / f"alpaca_{a.phase}{qtag}_summary{suffix}.md").write_text("\n".join(lines))
         print("\n".join(lines[first:]), flush=True)
     print("ALL DONE")
     return 0
