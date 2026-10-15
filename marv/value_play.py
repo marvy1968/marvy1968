@@ -6,7 +6,7 @@ EV = P*B - (1-P) -> quarter-Kelly capped at 2% bankroll -> feed stake multiplier
 Sides (spread/ML) need EV > THR and the key-number rule; totals use ONLY the extremes rule (|proj - line| >= 3).
 Prices: Bovada snapshot (state/bovada_prices.json, read-only). No win % is ever printed.
 """
-import json, math, os
+import json, math, os, sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from . import edges as E
@@ -42,6 +42,73 @@ def classify(sline, sproj, home):
     return "Value Zone (No Key Number)", cross
 
 
+def _pred(sport, home, away, P=None):
+    if P is None:
+        try: P = json.loads((ST / "predictions.json").read_text())
+        except Exception: return None, None
+    for key, v in P.items():
+        if v.get("sport") == sport and _w(v.get("home")) == _w(home) and _w(v.get("away")) == _w(away):
+            return key, v
+    return None, None
+
+
+def evaluate(key, v, b, cfg=None):
+    """All value plays for one game from Marv's CURRENT prediction v and a price dict b
+    {spread:[home_line, home_px, away_px], ml:{home,away}, total:[line, over_px, under_px]}."""
+    cfg = cfg or dict(CFG, **(validation().get("cfg") or {}))
+    sp = v.get("sport"); out = []
+    if sp not in SD or v.get("home_win") is None or not b: return out
+    uf = int(v.get("master_uf", v.get("uf", 1)))
+    mm, mt = float(v.get("model_margin") or 0), v.get("model_total")
+    hw = float(v.get("master_home_win") or v["home_win"])
+    notes = [n for n in v.get("notes", []) if n.startswith("TCI/PPE")]
+    base = dict(sport=sp, key=key, game=f"{v['away']} @ {v['home']}", home=v["home"], away=v["away"], start=v["start"],
+                market_line=dict(spread_home=(b.get("spread") or [None])[0], ml_home=(b.get("ml") or {}).get("home"),
+                                 ml_away=(b.get("ml") or {}).get("away"), total=(b.get("total") or [None])[0]),
+                proj=dict(home_margin=round(mm, 1), total=mt), uf=uf, price_at=b.get("at"), price_src=b.get("src"))
+    cands = []
+    if b.get("spread") and None not in b["spread"]:
+        hl, hp, ap = b["spread"]
+        ph = 1 - _ncdf((-hl - mm) / SD[sp])
+        for side, team, sl, pr, p, home in ((1, v["home"], hl, hp, ph, True), (-1, v["away"], -hl, ap, 1 - ph, False)):
+            nv = E.devig([hp, ap], "proportional")[0 if side > 0 else 1]
+            cands.append(("spread", team, sl, pr, p, nv, home, mm if side > 0 else -mm))
+    ml = b.get("ml") or {}
+    if ml.get("home") and ml.get("away"):
+        nvh = E.devig([ml["home"], ml["away"]], "proportional")[0]
+        cands += [("ml", v["home"], None, ml["home"], hw, nvh, True, mm), ("ml", v["away"], None, ml["away"], 1 - hw, 1 - nvh, False, -mm)]
+    for mkt, team, sl, pr, p, nv, home, sproj in cands:
+        P_ = E.blend(p, nv, cfg["w"]); ev = E.edge(P_, pr); k = E.kelly(P_, pr, cfg["kelly_frac"], cfg["cap"])
+        if mkt == "spread":
+            tier, cross = classify(sl, sproj, home)
+            if cfg["key_rule"] == "cross" and not cross: continue
+        else:
+            tier, cross = ("Value Zone (Moneyline)", [])
+        if ev <= cfg["thr"] or uf == 0: continue
+        why = f"Marv margin {sproj:+.1f} for {team} vs market {('+' if sl > 0 else '') + str(sl) if sl is not None else 'ML'}"
+        if cross: why += f" (crosses {', '.join(map(str, sorted(set(cross))))})"
+        if notes: why += "; " + notes[0].split(";")[0]
+        out.append(dict(base, market=mkt, pick=f"{team} {('+' if sl > 0 else '') + str(sl)}" if sl is not None else f"{team} ML",
+                        price=pr, ev=round(ev, 4), kelly=round(k, 4), stake=1.0 if k >= 0.015 else 0.5, tier=tier, why=why))
+    if b.get("total") and None not in b["total"] and mt is not None:
+        L, op, up = b["total"]; d = float(mt) - float(L)
+        if abs(d) >= cfg["tot_ext"] and uf:
+            pr = op if d > 0 else up; p = 1 - _ncdf(-abs(d) / 13.0)
+            nv = E.devig([op, up], "proportional")[0 if d > 0 else 1]
+            P_ = E.blend(p, nv, cfg["w"]); ev = E.edge(P_, pr); k = E.kelly(P_, pr, cfg["kelly_frac"], cfg["cap"])
+            if ev > cfg["thr"]:
+                out.append(dict(base, market="total", pick=f"{'Over' if d > 0 else 'Under'} {L}", price=pr, ev=round(ev, 4),
+                                kelly=round(k, 4), stake=1.0 if k >= 0.015 else 0.5,
+                                tier="High Shootout" if d > 0 else "Defensive Grind",
+                                why=f"Marv total {float(mt):.1f} vs {L} ({d:+.1f}, extremes rule)"))
+    return sorted(out, key=lambda x: -x["ev"])
+
+
+def _bov_at(sport):
+    try: return json.loads((ST / "bovada_prices.json").read_text())[sport].get("at")
+    except Exception: return None
+
+
 def plays(now=None):
     now = now or datetime.now(timezone.utc); cfg = dict(CFG, **(validation().get("cfg") or {}))
     try: P = json.loads((ST / "predictions.json").read_text())
@@ -49,57 +116,38 @@ def plays(now=None):
     out = []
     for key, v in P.items():
         sp = v.get("sport")
-        if sp not in SD or v.get("home_win") is None: continue
+        if sp not in SD: continue
         try: st = datetime.fromisoformat(str(v["start"]).replace("Z", "+00:00"))
         except Exception: continue
         if not (now < st <= now + timedelta(days=7)): continue
         b = _bov(sp, v["home"], v["away"])
-        if not b: continue
-        uf = int(v.get("master_uf", v.get("uf", 1)))
-        mm, mt = float(v.get("model_margin") or 0), v.get("model_total")
-        hw = float(v.get("master_home_win") or v["home_win"])
-        notes = [n for n in v.get("notes", []) if n.startswith("TCI/PPE")]
-        base = dict(sport=sp, key=key, game=f"{v['away']} @ {v['home']}", home=v["home"], away=v["away"], start=v["start"],
-                    market_line=dict(spread_home=(b.get("spread") or [None])[0], ml_home=(b.get("ml") or {}).get("home"),
-                                     ml_away=(b.get("ml") or {}).get("away"), total=(b.get("total") or [None])[0]),
-                    proj=dict(home_margin=round(mm, 1), total=mt), uf=uf)
-        cands = []
-        if b.get("spread"):
-            hl, hp, ap = b["spread"]
-            ph = 1 - _ncdf((-hl - mm) / SD[sp])
-            for side, team, sl, pr, p, home in ((1, v["home"], hl, hp, ph, True), (-1, v["away"], -hl, ap, 1 - ph, False)):
-                nv = E.devig([hp, ap], "proportional")[0 if side > 0 else 1]
-                cands.append(("spread", team, sl, pr, p, nv, home, mm if side > 0 else -mm))
-        ml = b.get("ml") or {}
-        if ml.get("home") and ml.get("away"):
-            nvh = E.devig([ml["home"], ml["away"]], "proportional")[0]
-            cands += [("ml", v["home"], None, ml["home"], hw, nvh, True, mm), ("ml", v["away"], None, ml["away"], 1 - hw, 1 - nvh, False, -mm)]
-        for mkt, team, sl, pr, p, nv, home, sproj in cands:
-            P_ = E.blend(p, nv, cfg["w"]); ev = E.edge(P_, pr); k = E.kelly(P_, pr, cfg["kelly_frac"], cfg["cap"])
-            if mkt == "spread":
-                tier, cross = classify(sl, sproj, home)
-                if cfg["key_rule"] == "cross" and not cross: continue
-            else:
-                tier, cross = ("Value Zone (Moneyline)", [])
-            if ev <= cfg["thr"] or uf == 0: continue
-            why = f"Marv margin {sproj:+.1f} for {team} vs market {('+' if sl > 0 else '') + str(sl) if sl is not None else 'ML'}"
-            if cross: why += f" (crosses {', '.join(map(str, sorted(set(cross))))})"
-            if notes: why += "; " + notes[0].split(";")[0]
-            out.append(dict(base, market=mkt, pick=f"{team} {('+' if sl > 0 else '') + str(sl)}" if sl is not None else f"{team} ML",
-                            price=pr, ev=round(ev, 4), kelly=round(k, 4), stake=1.0 if k >= 0.015 else 0.5, tier=tier, why=why))
-        if b.get("total") and mt is not None:
-            L, op, up = b["total"]; d = float(mt) - float(L)
-            if abs(d) >= cfg["tot_ext"] and uf:
-                pr = op if d > 0 else up; p = 1 - _ncdf(-abs(d) / 13.0)
-                nv = E.devig([op, up], "proportional")[0 if d > 0 else 1]
-                P_ = E.blend(p, nv, cfg["w"]); ev = E.edge(P_, pr); k = E.kelly(P_, pr, cfg["kelly_frac"], cfg["cap"])
-                if ev > 0:
-                    out.append(dict(base, market="total", pick=f"{'Over' if d > 0 else 'Under'} {L}", price=pr, ev=round(ev, 4),
-                                    kelly=round(k, 4), stake=1.0 if k >= 0.015 else 0.5,
-                                    tier="High Shootout" if d > 0 else "Defensive Grind",
-                                    why=f"Marv total {float(mt):.1f} vs {L} ({d:+.1f}, extremes rule)"))
+        if b: out += evaluate(key, v, dict(b, at=_bov_at(sp), src="marv bovada snapshot"), cfg)
     out.sort(key=lambda x: -x["ev"])
     return out
+
+
+def log_shown(rows, where):
+    """Append every shown play to the tracking ledger (one row per show; dedupe at grading time)."""
+    try:
+        with open(OUT / "shown.jsonl", "a") as f:
+            for r in rows:
+                f.write(json.dumps(dict(r, shown_in=where, shown_at=datetime.now(timezone.utc).isoformat())) + "\n")
+    except Exception: pass
+
+
+def cli_eval():
+    """stdin: [{"sport","home","away","prices":{...,"at","src"}}] -> stdout: [best play or null]. Live, per query."""
+    req = json.load(sys.stdin); cfg = dict(CFG, **(validation().get("cfg") or {}))
+    try: P = json.loads((ST / "predictions.json").read_text())
+    except Exception: P = {}
+    res, shown = [], []
+    for q in req:
+        key, v = _pred(q["sport"], q["home"], q["away"], P)
+        best = (evaluate(key, v, q.get("prices"), cfg) or [None])[0] if v else None
+        res.append(best)
+        if best: shown.append(best)
+    log_shown(shown, req[0].get("where", "query") if req else "query")
+    json.dump(res, sys.stdout)
 
 
 def card_lines(sports_excl=()):
@@ -126,3 +174,7 @@ def card_lines(sports_excl=()):
         L.append(f"    {p['tier']} → Value Play: {p['pick']} ({p['price']:+}) · EV {p['ev']*100:+.1f}% · stake ×{p['stake']} (unproven)")
         L.append(f"    Why: {p['why']}")
     return L
+
+
+if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "eval":
+    cli_eval()
