@@ -1,3 +1,33 @@
 $ logs marv-alpaca-paper 30
-started 2026-10-15 11:13:12 EDT
-RUNNING...
+started 2026-10-15 11:13:12 EDT, took 0s, exit 0
+
+Oct 15 10:14:48 instance-stockbot python[15017]: INFO virtual stop exit long COP at 141.22 (level crossed)
+Oct 15 10:50:50 instance-stockbot python[15017]: INFO ordered LONG ABBV x47 stop 287.54 target 289.03
+Oct 15 10:51:51 instance-stockbot python[15017]: INFO virtual stop exit long ABBV at 287.37 (level crossed)
+Oct 15 11:05:21 instance-stockbot python[15017]: INFO ordered LONG GOOGL x38 stop 348.10 target None
+Oct 15 11:05:24 instance-stockbot python[15017]: ERROR paper loop error (continuing)
+Oct 15 11:05:24 instance-stockbot python[15017]: Traceback (most recent call last):
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/paper.py", line 894, in run
+Oct 15 11:05:24 instance-stockbot python[15017]:     self.on_bar_close(now)
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/paper.py", line 710, in on_bar_close
+Oct 15 11:05:24 instance-stockbot python[15017]:     verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
+Oct 15 11:05:24 instance-stockbot python[15017]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/execution.py", line 262, in try_enter
+Oct 15 11:05:24 instance-stockbot python[15017]:     self.last_order = retry_call(self.submit, symbol, qty, stop, target, coid, side, sleep=self.sleep)
+Oct 15 11:05:24 instance-stockbot python[15017]:                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/execution.py", line 67, in retry_call
+Oct 15 11:05:24 instance-stockbot python[15017]:     return fn(*args, **kwargs)
+Oct 15 11:05:24 instance-stockbot python[15017]:            ^^^^^^^^^^^^^^^^^^^
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/execution.py", line 212, in submit
+Oct 15 11:05:24 instance-stockbot python[15017]:     return self.broker.submit_market(symbol, qty, coid)
+Oct 15 11:05:24 instance-stockbot python[15017]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/paper.py", line 125, in submit_market
+Oct 15 11:05:24 instance-stockbot python[15017]:     r = self._req("POST", f"{TRADE_URL}/orders", json=body)
+Oct 15 11:05:24 instance-stockbot python[15017]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/alpacabot/paper.py", line 44, in _req
+Oct 15 11:05:24 instance-stockbot python[15017]:     r.raise_for_status()
+Oct 15 11:05:24 instance-stockbot python[15017]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/models.py", line 1167, in raise_for_status
+Oct 15 11:05:24 instance-stockbot python[15017]:     raise HTTPError(http_error_msg, response=self)
+Oct 15 11:05:24 instance-stockbot python[15017]: requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://paper-api.alpaca.markets/v2/orders
+Oct 15 11:10:35 instance-stockbot python[15017]: INFO ordered LONG ABBV x46 stop 287.65 target 289.6
+Oct 15 11:10:45 instance-stockbot python[15017]: INFO ordered LONG XOM x77 stop 174.07 target None
