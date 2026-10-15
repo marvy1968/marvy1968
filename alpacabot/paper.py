@@ -41,7 +41,7 @@ class RestBroker:
         if r.status_code in (429,) or r.status_code >= 500:
             raise requests.ConnectionError(f"HTTP {r.status_code}")
         if r.status_code >= 400 and r.status_code != 422:      # 401/403 = wrong or live keys: fail loudly
-            r.raise_for_status()
+            raise requests.HTTPError(f"{r.status_code} {r.text[:200]} for {method} {url}", response=r)      # (with Alpaca's reason)
         return r
 
     def equity(self) -> float:
@@ -572,6 +572,15 @@ class PaperRunner:
             return f"chase: {px:.2f} is past the entry zone ({ref:.2f} + {zp['chase_atr']} ATR)"
         return ""
 
+    def swing_symbols(self) -> set:
+        """Stocks the swing bot holds (or has stops resting on). Trading the same stock intraday would hit Alpaca's wash-trade rule (403) and
+        mix the two books, so the intraday bot leaves them alone."""
+        try:
+            st = json.loads((self.dir.parent / "alpaca_swing" / "state.json").read_text())
+            return set((st.get("positions") or {}).keys())
+        except Exception:
+            return set()
+
     def mtf_block(self, sym: str, sig, day, zcfg: dict) -> str:
         """Owner (2026-10-15): the trend's direction AND strength confirmed on several timeframes before entry (weekly, 1 hour, 15 minutes;
         brain.tf_confirm_reason). '' = confirmed or switched off."""
@@ -687,6 +696,9 @@ class PaperRunner:
             if sym in self.last_exit and day.index[-1] < self.last_exit[sym] + pd.Timedelta(minutes=5 * self.brain.cooldown):
                 continue
             ref = float(day["close"].iloc[-1])
+            if sym in self.swing_symbols():
+                self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result="swing bot holds this stock")
+                continue
             if sig.side == -1:
                 why = self.can_short(sym)
                 if why:
@@ -712,6 +724,11 @@ class PaperRunner:
                 self.exec.risk_pct = lad_cfg["entry_risk"][tier]
             try:
                 verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
+            except requests.HTTPError as exc:                          # a rejected order must not abort the rest of this bar's symbols
+                self.exec.opened.pop(sym, None)
+                self.journal("order_rejected", symbol=sym, side="short" if sig.side == -1 else "long", error=str(exc)[:300])
+                log.warning("order for %s rejected: %s", sym, str(exc)[:200])
+                continue
             finally:
                 self.exec.risk_pct = risk_before
             self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=verdict)

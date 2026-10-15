@@ -207,7 +207,9 @@ class FxPaper:
                 except OandaError as exc:
                     self.journal("error", where="sync", trade=tid, error=str(exc)[:300])
                     continue
-                why = "broker_tp" if g["side"] * (px - g["tp_px"]) >= -1e-9 else "broker_sl" if px else "broker"
+                near = lambda a, b: abs(a - b) <= 0.15 * g["atr"]                            # noqa: E731
+                why = ("broker_tp" if px and (g["side"] * (px - g["tp_px"]) >= -1e-9 or near(px, g["tp_px"])) else
+                       "broker_sl" if px and near(px, g["stop_px"]) else "closed_outside_runner" if px else "broker")   # (e.g. closed by hand)
                 self.record(g, tid, units, px, pl, why, partial=False)
                 g["trades"].remove(tid)
                 g["units"].pop(tid, None)
