@@ -747,7 +747,7 @@ class EngagedConfigTests(unittest.TestCase):
                 b = paper.default_brain(d)
             self.assertEqual((b.experts, b.short_experts, b.route, b.consensus), (["connors_rsi2"], [], False, 2))
             b = paper.default_brain(d)                      # no engaged file: the default (all experts both ways, gated)
-            self.assertEqual(len(b.experts), 10)
+            self.assertEqual(len(b.experts), 11)
 
 
 class StaircaseModeTests(unittest.TestCase):
@@ -1101,7 +1101,7 @@ class OpeningRangeBreakoutTests(unittest.TestCase):
 
     def test_signals_only_after_the_opening_range_and_before_11_30(self):
         from alpacabot.experts import Experts, CANDIDATE_EXPERTS, ALL_EXPERTS
-        self.assertNotIn("opening_range_breakout", ALL_EXPERTS)                    # not live until the study passes
+        self.assertIn("opening_range_breakout", ALL_EXPERTS)                       # live since the 2026-10-15 study verdict (ADD)
         f = self._day()
         sigs = Experts(("09:50", "15:30")).signals(f, ["opening_range_breakout"])
         self.assertTrue(sigs)

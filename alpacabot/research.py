@@ -17,7 +17,7 @@ import pandas as pd
 
 from .engine import Costs, Portfolio, metrics, raw_intraday, simulate_swing, size_intraday, size_swing, split_days
 from .brain import Brain
-from .experts import ALL_EXPERTS
+from .experts import ALL_EXPERTS, TEN_EXPERTS
 from .strategies import Breakout, DualRegime, OpeningRangeBreak, RsiPullback, VwapReversion
 
 GRIDS = {
@@ -709,8 +709,8 @@ def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portf
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
         out["periods"][per] = {
-            "ten experts (live)": cp.get(f"orb-{per}-base", lambda a=a, b=b: run(ALL_EXPERTS, a, b)),
-            "ten + opening-range breakout": cp.get(f"orb-{per}-with", lambda a=a, b=b: run(list(ALL_EXPERTS) + ["opening_range_breakout"], a, b)),
+            "ten experts (live)": cp.get(f"orb-{per}-base", lambda a=a, b=b: run(TEN_EXPERTS, a, b)),
+            "ten + opening-range breakout": cp.get(f"orb-{per}-with", lambda a=a, b=b: run(list(TEN_EXPERTS) + ["opening_range_breakout"], a, b)),
             "opening-range breakout alone": cp.get(f"orb-{per}-alone", lambda a=a, b=b: run(["opening_range_breakout"], a, b))}
     rows = [{"without": out["periods"][p]["ten experts (live)"], "with": out["periods"][p]["ten + opening-range breakout"]} for p in out["periods"]]
     ok = _zone_verdict(rows)
