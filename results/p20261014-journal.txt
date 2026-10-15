@@ -1,3 +1,6 @@
 $ show alpaca_paper/journal-20261014.jsonl
-started 2026-10-15 11:43:38 EDT
-RUNNING...
+started 2026-10-15 11:43:38 EDT, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_paper/journal-20261014.jsonl' for reading: No such file or directory
