@@ -1,3 +1,6 @@
 $ show alpaca_paper/equity.jsonl
-started 2026-10-15 14:45:52 EDT
-RUNNING...
+started 2026-10-15 14:45:52 EDT, took 0s, exit 0
+
+{"date": "2026-10-12", "equity": 54158.69, "account_equity": 53193.81, "spy": 778.0}
+{"date": "2026-10-13", "equity": 53967.79, "account_equity": 53087.68, "spy": 778.0}
+{"date": "2026-10-14", "equity": 54163.71, "account_equity": 53100.1, "spy": 769.34}
