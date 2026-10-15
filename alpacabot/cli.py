@@ -41,7 +41,11 @@ def run_all(a) -> int:
     cache, out = Path(a.cache), Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     start = date(2016, 1, 4)
-    if a.phase == "validate":
+    qtag = "_quick" if getattr(a, "quick", False) else ""
+    if a.phase == "validate" and qtag:             # --quick: 2019-2022 only (provisional, about a third of the time); own checkpoints
+        start = date(2018, 7, 2)
+        train, test, end = (date(2019, 1, 1), date(2020, 12, 31)), (date(2021, 1, 1), date(2022, 12, 31)), date(2022, 12, 31)
+    elif a.phase == "validate":
         train, test, end = (start, date(2020, 12, 31)), (date(2021, 1, 1), date(2022, 12, 31)), date(2022, 12, 31)
     else:
         train, test, end = (start, date(2022, 12, 31)), (date(2023, 1, 1), date.today()), date.today()
@@ -187,14 +191,14 @@ def run_all(a) -> int:
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
-                    res = ladder_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}_ladder.json")
+                    res = ladder_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ladder.json", quick=bool(qtag))
                 elif fam == "orb_candidate":    # owner's "trading the open": opening-range breakout as an 11th expert
                     from .research import orb_candidate_study
                     from .zonemap import attach
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
-                    res = orb_candidate_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}_orb.json")
+                    res = orb_candidate_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_orb.json")
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -208,7 +212,7 @@ def run_all(a) -> int:
             res.setdefault("verdict", verdict(res))
         except Exception as exc:  # one family failing must not lose the others
             res = {"family": fam, "verdict": f"ERROR {exc!r}"}
-        (out / f"alpaca_{a.phase}_{fam}.json").write_text(json.dumps(res, indent=1, default=str))
+        (out / f"alpaca_{a.phase}{qtag}_{fam}.json").write_text(json.dumps(res, indent=1, default=str))
         m = res.get("test_metrics") or {}
         daily = m.get("daily_ret_pct_mean")
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
@@ -313,6 +317,7 @@ def main(argv=None) -> int:
     ra.add_argument("--out", default="state/reports")
     ra.add_argument("--phase", choices=["validate", "final"], default="validate",
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
+    ra.add_argument("--quick", action="store_true", help="validate phase: 2019-2022 only and fewer exit variants (provisional, ~1/3 of the time)")
     ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"])
     ra.add_argument("--slip-bps", type=float, default=2.0)
     pp = sub.add_parser("paper", help="run the PAPER trading loop (Alpaca paper account only)")

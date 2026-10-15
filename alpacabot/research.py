@@ -638,8 +638,12 @@ LADDER_VARIANTS["each expert's own exits"] = {"cut_fracs": [], "cut_depth_r": []
                                               "lock": ["breakeven", "tp"], "trail_atr": 1.0, "by_expert": EXPERT_LADDERS}
 
 
+QUICK_VARIANTS = ["owner (cut 25/50, TP 25/50, trail 1 ATR)", "no cut steps (one stop)", "TP 25% then +50% (75% banked)",
+                  "each expert's own exits"]
+
+
 def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
-                          ckpt=None) -> dict:
+                          ckpt=None, quick: bool = False) -> dict:
     """Live configuration (direction first + per-expert zones + daily zone map) with the owner's scaled exits and the alternatives, plus
     the Weinstein stage filter and the repeat cap (10 trades per stock per day) on the chosen exits."""
     from .brain import DirectionFirst, StageFilter
@@ -661,17 +665,19 @@ def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Por
     for per, (a, b) in (("train", train), ("validate", validate)):
         rows = {"zones, single exit (before today)": cp.get(f"{per}-base", lambda a=a, b=b: run(None, a, b))}
         for name, lad in LADDER_VARIANTS.items():
+            if quick and name not in QUICK_VARIANTS:
+                continue
             rows[name] = cp.get(f"{per}-{name}", lambda a=a, b=b, lad=lad: run(lad, a, b))
         out["periods"][per] = rows
     roi = lambda m: m.get("daily_ret_pct_mean") if m.get("daily_ret_pct_mean") is not None else -9   # noqa: E731
-    best = max(LADDER_VARIANTS, key=lambda v: roi(out["periods"]["train"][v]))
+    best = max((v for v in LADDER_VARIANTS if v in out["periods"]["train"]), key=lambda v: roi(out["periods"]["train"][v]))
     for per, (a, b) in (("train", train), ("validate", validate)):
         lad = LADDER_VARIANTS[best]
         out["periods"][per][f"{best} + stage filter"] = cp.get(f"{per}-stage-{best}", lambda a=a, b=b: run(lad, a, b, stage=True))
         out["periods"][per][f"{best} + stage + repeat 10/day"] = cp.get(f"{per}-stage-repeat-{best}", lambda a=a, b=b: run(lad, a, b, True, 10))
     base_v, best_v = out["periods"]["validate"]["zones, single exit (before today)"], out["periods"]["validate"][best]
     ok = _zone_verdict([{"without": base_v, "with": best_v}])
-    out.update({"family": "ladder_intraday", "chosen_on_train": best, "passes": ok,
+    out.update({"family": "ladder_intraday", "chosen_on_train": best, "passes": ok, "quick": quick,
                 "verdict": (f"ADOPT '{best}': best train ROI and it holds on the validation years" if ok else
                             f"'{best}' had the best train ROI but did not hold on the validation years vs the single exit")})
     return out
