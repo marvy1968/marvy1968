@@ -187,13 +187,15 @@ class RangeBox200:
     """The owner's OANDA range box (drawing, 2026-10-14), for pairs moving sideways: the pair is RANGING when its 200 moving average is flat
     (moved <= flat_atr x ATR14 over 20 bars on at least 80% of the box's bars) and the 20 MA crossed it at least min_crosses times in the
     box, i.e. price keeps swinging up and down around the same level in a repeating pattern. The BOX is the high/low of those `lookback` bars
-    (height 2-20 ATR). Buy the bottom (a bar that dips into the bottom 15% of the box and closes back above the box low), sell the top
+    (height 2-20 ATR; levels="zscore": the box is SMA200 +- z standard deviations instead of the bar high/low). Buy the bottom (a bar that dips into the bottom 15% of the box and closes back above the box low), sell the top
     (mirror). Sell stop 0.5 ATR outside the box ("ALL" line). Take-profit lines: 25% at 0.25 ATR inside the far edge, 50% at the edge
     (zone_px = the first line); the rest rides with the locked stop. Time stop max_bars."""
 
-    def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72):
+    def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72,
+                 levels: str = "hilo", z: float = 2.0):
         self.lookback, self.min_crosses, self.flat_atr, self.stop_atr, self.max_bars = lookback, min_crosses, flat_atr, stop_atr, max_bars
-        self.name = f"range_box_200_20 (owner's) lb{lookback}"
+        self.levels, self.z = levels, z
+        self.name = f"range_box_200_20 (owner's) lb{lookback}" + (f" z{z}" if levels == "zscore" else "")
 
     def frame(self, m):
         from alpacabot.indicators import sma
@@ -204,7 +206,11 @@ class RangeBox200:
         crosses = (side != side.shift(1)).astype(float).where(side.shift(1).notna(), 0.0).rolling(self.lookback).sum()
         ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)   # ... and the 20 MA keeps
         # crossing it back and forth: price swings up and down around the same level in a repeating pattern
-        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        if self.levels == "zscore":        # owner (2026-10-15): the box = the statistical envelope, SMA200 +- z x the 200-bar standard deviation
+            mu, sd = c.shift(1).rolling(200).mean(), c.shift(1).rolling(200).std()
+            top, bot = mu + self.z * sd, mu - self.z * sd
+        else:                              # the box = the high / low of the last `lookback` bars
+            top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
         h = top - bot
         ok = ranging & (h >= 2 * a) & (h <= 20 * a)
         long_ = ok & (m["low"] <= bot + 0.15 * h) & (c > bot) & (c <= bot + 0.33 * h)

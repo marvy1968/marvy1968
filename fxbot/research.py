@@ -47,6 +47,8 @@ FAMILIES = {
     # (stop 3 sigma, exit at the mean) = F0's mechanics with 200 bars / 2.0 sigma, one frozen setting per timeframe
     "fx_zbox200_h1": ("H1", F0Reversion, {"n": [200], "entry_z": [2.0], "stop_z": [3.0]}),
     "fx_zbox200_h4": ("H4", F0Reversion, {"n": [200], "entry_z": [2.0], "stop_z": [3.0]}),
+    # the owner's range box with its levels from the statistical envelope (SMA200 +- 2 sigma) instead of the 100-bar high/low
+    "fx_box200z_h1": ("H1", RangeBox200, {"lookback": [100], "levels": ["zscore"], "z": [2.0]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }

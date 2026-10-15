@@ -201,6 +201,13 @@ class FxLiveTests(unittest.TestCase):
         self.assertTrue(f["long"].iloc[400:].any() and f["short"].iloc[400:].any())
         i = int(np.flatnonzero(f["long"].to_numpy())[-1])
         self.assertLess(f["zone_px"].iloc[i], m["high"].iloc[i - 100:i].max())    # first TP line just inside the box top
+        fz = RangeBox200(levels="zscore").frame(m)                                  # statistical envelope levels also fire in a sideways market
+        self.assertTrue(fz["long"].iloc[400:].any() or fz["short"].iloc[400:].any())
+        from alpacabot.indicators import atr as _atr
+        j = int(np.flatnonzero(fz["long"].to_numpy())[-1]) if fz["long"].any() else None
+        if j is not None:                                                          # a long: first take-profit line = envelope top - 0.25 ATR
+            mu, sd = m["close"].shift(1).rolling(200).mean().iloc[j], m["close"].shift(1).rolling(200).std().iloc[j]
+            self.assertAlmostEqual(float(fz["zone_px"].iloc[j]), float(mu + 2 * sd - 0.25 * _atr(m, 14).iloc[j]), places=9)
         trend = pd.DataFrame({"open": 1.1 + np.arange(n) * 0.0005}, index=idx)
         trend["high"], trend["low"], trend["close"] = trend["open"] + 0.0004, trend["open"] - 0.0004, trend["open"]
         f2 = RangeBox200().frame(trend)
