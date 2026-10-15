@@ -218,6 +218,13 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = orb_candidate_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_orb.json")
+                elif fam == "mtf_confirm":      # owner's multi-timeframe trend confirmation (research.mtf_confirm_study)
+                    from .research import mtf_confirm_study
+                    from .zonemap import attach
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
+                    res = mtf_confirm_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_mtf.json")
                 elif fam == "brain_ls":       # long + short brain with the sector/market heat map gate
                     days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
@@ -237,7 +244,7 @@ def run_all(a) -> int:
         lines.append(f"## {fam}: {res['verdict']}\n- chosen: {res.get('chosen') or res.get('selected_experts')}\n- test trades {m.get('trades')}, win {m.get('win_rate')}, "
                      f"avg R {m.get('avg_r')}, sharpe {m.get('sharpe')}, cagr {m.get('cagr')}, max DD {m.get('max_drawdown')}, avg daily % {daily}\n"
                      f"- placebo {res.get('placebo')}\n- SPY {res.get('benchmark_buy_hold_SPY')}\n- target 0.75-1.0%/day met: {bool(daily is not None and daily >= 0.75)}\n")
-        if fam in ("ladder_intraday", "orb_candidate"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

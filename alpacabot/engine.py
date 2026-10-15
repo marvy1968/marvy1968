@@ -53,6 +53,7 @@ ZONE_PROFILES = {
     "trend": dict(ZONES, target="extreme"),
     "range": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "exhaust_r": 1.5, "target": "mean"},
 }
+TREND_STYLE = {"velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"}     # = experts.TREND_EXPERTS
 RANGE_STYLE = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180"}     # = experts.RANGE_EXPERTS
 
 
@@ -188,11 +189,17 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                     ztgt = side * lv
             tgt = min(tgt, ztgt)
 
+        tl = None                                 # owner: re-confirm the trend while the trade runs - exit when the 1-hour trend turns against it
+        if zones and zones.get("trend_exit") and (s.tag or "").removeprefix("S:") in TREND_STYLE:
+            col = "f_h1_dir" if side == 1 else "m_f_h1_dir"
+            if col in df:
+                tl = (df[col].to_numpy() == -1)
         lad = ladder_for(zones.get("ladder"), s.tag) if (zp and zones) else None
         if lad:                                   # owner's scaled exits: the expert's fixed target is off, the zones take profit
             atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale) if s.managed else None
-            ex = (lambda j: bool(df[xcol].iloc[j])) if (xcol and not s.managed) else None
+            ex = (lambda j: bool(df[xcol].iloc[j]) or (tl is not None and bool(tl[j]))) if (xcol and not s.managed) else \
+                 ((lambda j: bool(tl[j])) if tl is not None else None)
             j, pnl, why = ladder_walk(o, h, l, c, j0, n, fill, stop if not s.managed else st.stop, ztgt, atr_l, s.stop_dist, lad, sell,
                                       s.max_bars, ex, st)
             trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(fill + pnl), s.stop_dist, why, j - j0 + 1, s.tag, side))
@@ -213,6 +220,8 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                     px, why = sell(c[j]), "time" if j < n - 1 else "eod"
                 elif exhausted(j):
                     j, px, why = j + 1, sell(o[j + 1]), "exhausted"
+                elif tl is not None and tl[j] and j + 1 < n:
+                    j, px, why = j + 1, sell(o[j + 1]), "trend_lost"
                 else:
                     st.ratchet(h[j])
                     continue
@@ -231,6 +240,8 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                 j, px, why = j + 1, sell(o[j + 1]), "signal"
             elif exhausted(j):
                 j, px, why = j + 1, sell(o[j + 1]), "exhausted"
+            elif tl is not None and tl[j] and j + 1 < n:
+                j, px, why = j + 1, sell(o[j + 1]), "trend_lost"
             else:
                 continue
             trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(px), s.stop_dist, why, j - j0 + 1, s.tag, side))

@@ -54,6 +54,13 @@
    ],
    "ride": true,
    "trail_atr": 1.0
+  },
+  "mtf": {
+   "_note": "owner 2026-10-15: trend direction AND strength confirmed on weekly / 1-hour / 15-minute before entry, and re-checked while the trade runs (the 1-hour trend turning against a trend-expert trade exits it at the next open). Range experts need a NON-trending 1-hour market. Set entry / trend_exit to false to switch a part off.",
+   "entry": true,
+   "trend_exit": true,
+   "adx_min": 20,
+   "range_adx_max": 25
   }
  },
  "swing": {

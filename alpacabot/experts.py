@@ -57,6 +57,15 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     e = ema(r15["close"], 21)
     up15 = ((r15["close"] > e) & (e > e.shift(1))).shift(1)
     f["f_mtf_up"] = up15.reindex(df.index, method="ffill").fillna(False).astype(bool)
+    # multi-timeframe trend DIRECTION (+1 / -1 / 0) and STRENGTH (ADX) on the last COMPLETED 1-hour and 15-minute bars (owner, 2026-10-15):
+    # direction = EMA9 vs EMA21 with the close on the same side of EMA21; strength = Wilder ADX(14) of that timeframe
+    for tag, rule in (("h1", "60min"), ("m15", "15min")):
+        r = df.resample(rule, label="left", closed="left", origin="start_day").agg(
+            {"open": "first", "high": "max", "low": "min", "close": "last"}).dropna()
+        e9, e21, cr = ema(r["close"], 9), ema(r["close"], 21), r["close"]
+        d = pd.Series(np.where((e9 > e21) & (cr > e21), 1, np.where((e9 < e21) & (cr < e21), -1, 0)), index=r.index).shift(1)
+        f[f"f_{tag}_dir"] = d.reindex(df.index, method="ffill").fillna(0).astype(int)
+        f[f"f_{tag}_adx"] = adx(r, 14).shift(1).reindex(df.index, method="ffill")
     # indicator exits ("sell when they say sell"): decided at a close, filled at the next open
     f["x_connors"] = (c > f["f_sma5"]) | (f["f_rsi2"] > 70)
     f["x_boll"] = c >= f["f_bb_mid"]

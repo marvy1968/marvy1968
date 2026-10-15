@@ -568,10 +568,20 @@ class PaperRunner:
             return f"chase: {px:.2f} is past the entry zone ({ref:.2f} + {zp['chase_atr']} ATR)"
         return ""
 
+    def mtf_block(self, sym: str, sig, day, zcfg: dict) -> str:
+        """Owner (2026-10-15): the trend's direction AND strength confirmed on several timeframes before entry (weekly, 1 hour, 15 minutes;
+        brain.tf_confirm_reason). '' = confirmed or switched off."""
+        m = zcfg.get("mtf") or {}
+        if not (zcfg.get("live") and m.get("entry")):
+            return ""
+        from .brain import MTF, tf_confirm_reason
+        wb = int((getattr(self, "zonemap", {}).get(sym) or {}).get("wbias", 0))
+        return tf_confirm_reason(day, sig, wb, float(m.get("adx_min", MTF["adx_min"])), float(m.get("range_adx_max", MTF["range_adx_max"])))
+
     def refresh_zonemap(self, now_et: datetime):
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
         history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
-        from .zonemap import bias_for_session, level_map, stage
+        from .zonemap import bias_for_session, level_map, stage, weekly_for_session
         zm = {}
         for sym in self.symbols:
             try:
@@ -579,7 +589,8 @@ class PaperRunner:
                 if d is None or not len(d):
                     continue
                 prior = d[d.index.date < now_et.date()]
-                zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior), "stage": stage(prior)}
+                zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior), "stage": stage(prior),
+                         "wbias": weekly_for_session(d, now_et.date())}
             except Exception:
                 log.exception("zone map: %s skipped", sym)
         self.zonemap = zm
@@ -631,6 +642,13 @@ class PaperRunner:
             if gained and rev:
                 self.close_now(sym, "exhausted", day.index[-1] + pd.Timedelta(minutes=5))
                 return
+        zc = self.zone_config()
+        if zc.get("live") and (zc.get("mtf") or {}).get("trend_exit"):                 # re-confirm the trend while the trade runs (owner)
+            from .experts import TREND_EXPERTS
+            tcol = "f_h1_dir" if pos.get("side", 1) == 1 else "m_f_h1_dir"
+            if (pos.get("tag") or "").removeprefix("S:") in TREND_EXPERTS and tcol in day and int(day[tcol].iloc[-1]) == -1:
+                self.close_now(sym, "trend_lost", day.index[-1] + pd.Timedelta(minutes=5))   # the 1-hour trend turned against it
+                return
         col = pos.get("exit_col") or ""
         col = col if pos.get("side", 1) == 1 or not col else "m_" + col
         if col and col in day and bool(day[col].iloc[-1]):
@@ -676,6 +694,10 @@ class PaperRunner:
             zcfg = self.zone_config()
             if zcfg["live"]:                                            # owner's zones, LIVE: direction first, then no chasing
                 why = self.zone_entry_block(sym, sig, ref, zcfg)
+                if why:
+                    self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
+                    continue
+                why = self.mtf_block(sym, sig, day, zcfg)
                 if why:
                     self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
                     continue

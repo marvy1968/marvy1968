@@ -16,7 +16,8 @@ import pandas as pd
 from .indicators import adx, atr, ema, sma
 
 BIAS_RULES = {"ema": 20, "sma": 50, "adx_min": 20.0}
-STAGE_RULES = {"ma": 150, "slope_bars": 20}          # Weinstein: the 30-week moving average = 150 trading days
+STAGE_RULES = {"ma": 150, "slope_bars": 20}
+WEEKLY_RULES = {"fast": 10, "slow": 30}              # weekly EMA10 vs EMA30 (about the 50- and 150-day averages)          # Weinstein: the 30-week moving average = 150 trading days
 LEVEL_RULES = {"lookback": 120, "wing": 2, "merge_atr": 0.5, "strong": 2}
 
 
@@ -82,11 +83,13 @@ def attach(days: dict, daily_by_symbol: dict) -> dict:
         if dly is None or not len(dly):
             continue
         b = bias(dly).to_numpy()
+        wb = weekly_bias(dly).to_numpy()
         dates = np.array(dly.index.date)
         for f in frames:
             dd = f.index[0].date()
             k = int(np.searchsorted(dates, dd))           # daily bars strictly before the session
             f.attrs["bias"] = int(b[k - 1]) if k >= warm else 0
+            f.attrs["wbias"] = int(wb[k - 1]) if k >= 160 else 0
             f.attrs["levels"] = level_map(dly.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else []
             f.attrs["stage"] = stage(dly.iloc[max(0, k - STAGE_RULES["ma"] - STAGE_RULES["slope_bars"] - 5):k]) if k else 0
     return days
@@ -103,3 +106,21 @@ def stage(daily: pd.DataFrame) -> int:
     ma = c.rolling(n).mean()
     up, above = ma.iloc[-1] > ma.iloc[-1 - k], c.iloc[-1] > ma.iloc[-1]
     return 2 if above and up else 4 if not above and not up else 3 if above else 1
+
+
+def weekly_bias(daily: pd.DataFrame) -> pd.Series:
+    """+1 / -1 / 0 per DAILY date: the weekly trend as of the last COMPLETED week (EMA10 > EMA30 of weekly closes with the weekly close above
+    EMA10; mirror for -1). A day's value never includes its own (incomplete) week; consumers still use the previous row, like bias()."""
+    c = daily["close"].astype(float)
+    w = c.resample("W-FRI").last().dropna()
+    e1, e2 = ema(w, WEEKLY_RULES["fast"]), ema(w, WEEKLY_RULES["slow"])
+    wd = pd.Series(np.where((e1 > e2) & (w > e1), 1, np.where((e1 < e2) & (w < e1), -1, 0)), index=w.index)
+    wd[: WEEKLY_RULES["slow"]] = 0                               # not enough weeks yet
+    return wd.reindex(c.index, method="ffill").fillna(0).astype(int)
+
+
+def weekly_for_session(daily: pd.DataFrame, session_date) -> int:
+    if daily is None or len(daily) < 160:
+        return 0
+    prior = daily[daily.index.date < session_date]
+    return int(weekly_bias(prior).iloc[-1]) if len(prior) >= 160 else 0

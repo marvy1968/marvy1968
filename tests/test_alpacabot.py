@@ -1045,18 +1045,25 @@ class LadderWalkTests(unittest.TestCase):
         j, pnl, why = self.walk(bars, turtle)
         self.assertEqual((j, pnl, why), (1, 4.0, "lock"))
 
+    def test_breakeven_lock_after_first_step(self):
+        bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
+        j, pnl, why = self.walk(bars)
+        self.assertAlmostEqual(pnl, 0.25 * 2.0 + 0.75 * 0.0)                       # 25% banked, the rest out at break-even
+        self.assertEqual(why, "lock")
+
     def test_the_drawn_plan_on_a_short(self):
         """The mirror image of the drawing: sell short, cover 25%/50% if price rises toward the stop, cover 25%/50% in the take-profit zone BELOW
         (stop moves down to break-even, then to the zone), the rest rides with a stop 1 ATR above its lowest price."""
         import tempfile
         from alpacabot.exits import FixedState
         with tempfile.TemporaryDirectory() as tmp:
-            r = self._runner(tmp)
+            lt = LadderTests("test_tier_from_depth")
+            r = lt._runner(tmp)
             now = datetime(2026, 10, 14, 11, 0, tzinfo=paper_ET())
             r.exits.positions = {"X": {"state": FixedState(entry=-100.0, stop=-102.0, tp=-90.0, atr=1.0, trail=2.0), "qty": 100, "side": -1,
                                        "opened": "t0", "zone_tp": 98.0, "best_px": 100.0,
                                        "ladder": {"ref": 100.0, "atr": 1.0, "tier": 0, "stop_px": 102.0, "fill": 100.0, "peak_qty": 100, "sold": 0,
-                                                  "tp_steps": 0, "cfg": {**self.CFG, "trail_atr": 1.0}}}}
+                                                  "tp_steps": 0, "cfg": {**LadderTests.CFG, "trail_atr": 1.0}}}}
             pos = r.exits.positions["X"]
             self.assertFalse(r.ladder_cut("X", pos, 100.9, now))                  # a quarter of the way to the stop: hold
             self.assertEqual(pos["qty"], 100)
@@ -1079,12 +1086,6 @@ class LadderWalkTests(unittest.TestCase):
             rows = [json.loads(l) for l in (Path(tmp) / "trades.jsonl").read_text().splitlines()]
             self.assertTrue(all(t["side"] == "short" for t in rows))
             self.assertAlmostEqual(rows[1]["pnl"], 25 * (100.0 - 98.0))           # covered 25 shares at 98 after selling at 100
-
-    def test_breakeven_lock_after_first_step(self):
-        bars = [(100, 102.1, 100.0, 101.9), (101.9, 102.0, 99.5, 99.6)]
-        j, pnl, why = self.walk(bars)
-        self.assertAlmostEqual(pnl, 0.25 * 2.0 + 0.75 * 0.0)                       # 25% banked, the rest out at break-even
-        self.assertEqual(why, "lock")
 
 
 class OpeningRangeBreakoutTests(unittest.TestCase):
@@ -1179,6 +1180,91 @@ class SwingShortTests(unittest.TestCase):
         short = fills[fills.symbol == "S"].iloc[0]
         self.assertAlmostEqual(short.pnl, short.qty * 3.0)                       # sold 100, bought back 97
         self.assertAlmostEqual(curve.iloc[-1] - 100_000.0, fills.pnl.sum(), places=6)   # the equity curve equals the realized P&L when flat
+
+
+class MultiTimeframeConfirmTests(unittest.TestCase):
+    """Owner (2026-10-15): trend direction AND strength confirmed on several timeframes, and re-checked while the trade runs."""
+    def _frame(self, n=150):
+        idx = pd.date_range("2026-09-01 09:30", periods=n, freq="5min", tz="America/New_York")
+        d = pd.DataFrame({"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1e6}, index=idx)
+        # real uptrend: f_* read +1. The mirrored (m_*) columns are the trend of the UPSIDE-DOWN series, so a real uptrend reads -1 there;
+        # a short is confirmed when m_* reads +1 (the real trend is down)
+        for c, v in (("f_h1_dir", 1), ("f_m15_dir", 1), ("f_h1_adx", 30.0), ("m_f_h1_dir", -1), ("m_f_m15_dir", -1), ("m_f_h1_adx", 30.0)):
+            d[c] = v
+        return d
+
+    def _downtrend(self, d):
+        d = d.copy()
+        for c, v in (("f_h1_dir", -1), ("f_m15_dir", -1), ("m_f_h1_dir", 1), ("m_f_m15_dir", 1)):
+            d[c] = v
+        return d
+
+    def test_features_exist_and_are_causal(self):
+        from alpacabot.experts import features_both
+        idx = pd.DatetimeIndex([t for d in pd.bdate_range("2026-09-01", periods=8) for t in pd.date_range(f"{d.date()} 09:30", f"{d.date()} 15:55", freq="5min", tz="America/New_York")])
+        rng = np.random.default_rng(2)
+        c = 100 + np.cumsum(rng.normal(0.02, 0.15, len(idx)))
+        o = np.r_[100, c[:-1]]
+        df = pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.05, "low": np.minimum(o, c) - 0.05, "close": c, "volume": 1e6}, index=idx)
+        f = features_both(df)
+        for col in ("f_h1_dir", "f_h1_adx", "f_m15_dir", "f_m15_adx", "m_f_h1_dir", "m_f_m15_dir"):
+            self.assertIn(col, f)
+        self.assertTrue(set(f["f_h1_dir"].unique()) <= {-1, 0, 1})
+        self.assertTrue((f["f_h1_dir"] == -f["m_f_h1_dir"]).all())                   # the short view is the exact mirror
+        cut = df.iloc[:300].copy()                                                    # changing the FUTURE never changes the past
+        self.assertTrue((features_both(cut)["f_h1_dir"] == f["f_h1_dir"].iloc[:300]).all())
+
+    def test_reason_trend_expert_long_and_short(self):
+        from alpacabot.brain import tf_confirm_reason
+        from alpacabot.strategies import Signal
+        d = self._frame()
+        lg = Signal(i=100, side=1, stop_dist=1.0, tag="donchian_turtle")
+        sh = Signal(i=100, side=-1, stop_dist=1.0, tag="S:donchian_turtle")
+        self.assertEqual(tf_confirm_reason(d, lg), "")
+        self.assertNotEqual(tf_confirm_reason(d, sh), "")                             # an uptrend never confirms a short
+        dn = self._downtrend(d)
+        self.assertEqual(tf_confirm_reason(dn, sh), "")                               # a downtrend confirms it (mirrored columns)
+        self.assertNotEqual(tf_confirm_reason(dn, lg), "")
+        d.loc[d.index[100], "f_m15_dir"] = 0
+        self.assertEqual(tf_confirm_reason(d, lg), "15-minute trend not confirmed")
+        d.loc[d.index[100], "f_h1_adx"] = 12.0
+        d.loc[d.index[100], "f_m15_dir"] = 1
+        self.assertIn("strength too weak", tf_confirm_reason(d, lg))
+        d.loc[d.index[100], "f_h1_adx"] = 30.0
+        self.assertEqual(tf_confirm_reason(d, lg, wbias=-1), "against the weekly trend")   # weekly down: no longs
+        self.assertEqual(tf_confirm_reason(dn, sh, wbias=-1), "")                         # ... but shorts are fine
+        self.assertEqual(tf_confirm_reason(dn, sh, wbias=1), "against the weekly trend")  # weekly up: no shorts
+        d.loc[d.index[100], "f_h1_dir"] = -1
+        self.assertEqual(tf_confirm_reason(d, lg), "1-hour trend not confirmed")
+
+    def test_range_experts_need_a_non_trending_hour(self):
+        from alpacabot.brain import tf_confirm_reason
+        from alpacabot.strategies import Signal
+        d = self._frame()
+        rs = Signal(i=100, side=1, stop_dist=1.0, tag="connors_rsi2")
+        self.assertIn("trending", tf_confirm_reason(d, rs))                          # 1-hour ADX 30: not a range
+        d["f_h1_adx"] = 15.0
+        self.assertEqual(tf_confirm_reason(d, rs), "")
+
+    def test_weekly_bias_and_trend_lost_exit(self):
+        from alpacabot.engine import Costs, ZONE_PROFILES, simulate_day
+        from alpacabot.strategies import Signal
+        from alpacabot.zonemap import weekly_bias
+        idx = pd.bdate_range("2024-01-02", periods=400, tz="America/New_York")
+        up = pd.DataFrame({"close": 100 * np.exp(np.arange(400) * 0.002)}, index=idx)
+        self.assertEqual(int(weekly_bias(up).iloc[-1]), 1)
+        self.assertEqual(int(weekly_bias(up.iloc[:100]).iloc[-1]), 0)                  # not enough weeks yet
+        self.assertEqual(int(weekly_bias(up[::-1].set_axis(idx)).iloc[-1]), -1)
+        d = self._frame(60)
+        d["f_h1_dir"] = 1
+        d.loc[d.index[20:], "f_h1_dir"] = -1                                           # the 1-hour trend turns against the long at bar 20
+        sig = Signal(i=5, side=1, stop_dist=10.0, tag="donchian_turtle", max_bars=0)
+        z = {"profiles": ZONE_PROFILES, "trend_exit": True}
+        t = simulate_day("X", d, [sig], Costs(0, 0, 0), zones=z)[0]
+        self.assertEqual(t.reason, "trend_lost")
+        self.assertEqual(d.index.get_loc(t.exit_time), 21)                             # decided at bar 20's close, out at the next open
+        z2 = {"profiles": ZONE_PROFILES}
+        self.assertNotEqual(simulate_day("X", d, [sig], Costs(0, 0, 0), zones=z2)[0].reason, "trend_lost")
 
 
 class SectorTopDownTests(unittest.TestCase):

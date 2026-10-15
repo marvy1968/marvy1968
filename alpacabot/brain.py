@@ -154,3 +154,45 @@ class StageFilter:
         if not st:
             return self.brain.signals(day)
         return [s for s in self.brain.signals(day) if (s.side == 1 and st == 2) or (s.side == -1 and st == 4)]
+
+
+MTF = {"adx_min": 20.0, "range_adx_max": 25.0}
+
+
+def tf_confirm_reason(day: pd.DataFrame, s, wbias: int = 0, adx_min: float = MTF["adx_min"], range_adx_max: float = MTF["range_adx_max"]) -> str:
+    """'' when the signal's trend is CONFIRMED on several timeframes, else why not (owner, 2026-10-15). Timeframes: weekly (not against the
+    trade), 1 hour and 15 minutes (the trade's direction, from the EMA9/EMA21 + close rule), 1-hour strength (ADX >= adx_min). Trend experts
+    need all of that. Mean-reversion experts need the opposite: the 1-hour market must NOT be trending (ADX < range_adx_max). Shorts read the
+    mirrored columns (m_*), so the same code is the downtrend check."""
+    from .experts import RANGE_EXPERTS, TREND_EXPERTS
+    name = (s.tag or "").removeprefix("S:")
+    pre = "m_" if s.side == -1 else ""
+    if wbias and wbias == -s.side:
+        return "against the weekly trend"
+    col = lambda c: day[pre + c].iloc[s.i] if (pre + c) in day else float("nan")     # noqa: E731
+    h1, m15, adx1 = col("f_h1_dir"), col("f_m15_dir"), col("f_h1_adx")
+    if name in TREND_EXPERTS:
+        if h1 != 1:
+            return "1-hour trend not confirmed"
+        if m15 != 1:
+            return "15-minute trend not confirmed"
+        if not (adx1 >= adx_min):
+            return f"1-hour strength too weak (ADX {adx1:.0f} < {adx_min:.0f})" if np.isfinite(adx1) else "1-hour strength unknown"
+    elif name in RANGE_EXPERTS:
+        if np.isfinite(adx1) and adx1 >= range_adx_max:
+            return f"1-hour market is trending (ADX {adx1:.0f}), not a range"
+    return ""
+
+
+class TrendConfirm:
+    """Backtest wrapper: keep only the signals whose trend is confirmed on weekly / 1-hour / 15-minute (tf_confirm_reason)."""
+
+    def __init__(self, brain, **kw):
+        self.brain, self.kw = brain, kw
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        wb = int(day.attrs.get("wbias", 0))
+        return [s for s in self.brain.signals(day) if not tf_confirm_reason(day, s, wb, **self.kw)]

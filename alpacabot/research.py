@@ -752,3 +752,36 @@ def swing_short_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
     return {"family": "swing_short", "rows": rows, "passes": bool(winners), "variant_passes": passed,
             "verdict": (f"PASS: {'; '.join(winners)} beat long-only in every row - propose adding the short side to the swing bot" if winners
                         else "no short variant beat the long-only swing book in every row: the swing bot stays long-only")}
+
+
+def mtf_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner's multi-timeframe trend confirmation (2026-10-15) on the live configuration (direction first + Weinstein stage + zones + zone map +
+    the drawn exit plan): (a) entries confirmed on weekly / 1-hour / 15-minute, (b) plus the in-trade re-check (1-hour trend turns against a
+    trend-expert trade -> exit). Each variant must beat the unconfirmed brain in the train AND validation years (_zone_verdict)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(confirm, trend_exit, a, b):
+        br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": trend_exit}
+        br = StageFilter(DirectionFirst(br))
+        if confirm:
+            br = TrendConfirm(br)
+        r = run_intraday(br, days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {
+            "live brain without confirmation": cp.get(f"mtf-{per}-base", lambda a=a, b=b: run(False, False, a, b)),
+            "+ entry confirmed on weekly/1h/15m": cp.get(f"mtf-{per}-entry", lambda a=a, b=b: run(True, False, a, b)),
+            "+ entry and in-trade re-check": cp.get(f"mtf-{per}-both", lambda a=a, b=b: run(True, True, a, b))}
+    verdicts = {}
+    for v in ("+ entry confirmed on weekly/1h/15m", "+ entry and in-trade re-check"):
+        verdicts[v] = _zone_verdict([{"without": out["periods"][p]["live brain without confirmation"], "with": out["periods"][p][v]} for p in out["periods"]])
+    winners = [v for v, ok in verdicts.items() if ok]
+    out.update({"family": "mtf_confirm", "passes": bool(winners), "variant_passes": verdicts,
+                "verdict": (f"PASS: {'; '.join(winners)} beat the unconfirmed brain in train and validation" if winners else
+                            "multi-timeframe confirmation did not beat the live brain in both periods: switch it off in zones.json (mtf.entry / mtf.trend_exit)")})
+    return out
