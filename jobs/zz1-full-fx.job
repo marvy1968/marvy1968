@@ -1,2 +1,0 @@
-# timeout 21600
-alpaca run-all --phase validate --families fx
