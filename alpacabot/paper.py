@@ -304,8 +304,12 @@ class PaperRunner:
         self._guards_saved = g
 
     def journal(self, kind: str, **kw):
+        now = self.clock()
+        line = json.dumps({"t": now.isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n"
         with open(self.dir / "journal.jsonl", "a") as f:
-            f.write(json.dumps({"t": self.clock().isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n")
+            f.write(line)
+        with open(self.dir / f"journal-{now:%Y%m%d}.jsonl", "a") as f:        # one small file per day (the VM link can only read a file's start)
+            f.write(line)
 
     def realized(self) -> float:
         return sum(t["pnl"] for t in _jl(self.dir / "trades.jsonl"))
