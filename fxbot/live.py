@@ -484,10 +484,10 @@ def run_forever(poll: float = 30.0):
     while True:
         try:
             bot.step()
-        except Exception:
+        except Exception as exc:
             log.exception("step failed")
             try:
-                bot.journal("error", where="step")
+                bot.journal("error", where="step", error=f"{type(exc).__name__}: {str(exc)[:200]}")   # (the reason, not just that it failed)
             except Exception:
                 pass
         time.sleep(poll)
