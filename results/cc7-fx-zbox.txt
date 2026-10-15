@@ -1,3 +1,59 @@
 $ alpaca run-all --families fx_zbox200_h1 fx_zbox200_h4
-started 2026-10-15 07:00:18 EDT
-RUNNING...
+started 2026-10-15 07:00:18 EDT, took 14s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_zbox200_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'n': 200, 'entry_z': 2.0, 'stop_z': 3.0}: 1508t PF 0.84 total -53.4% maxDD(closed) -57.9%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_zbox200_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'n': 200, 'entry_z': 2.0, 'stop_z': 3.0}: 1508t PF 0.84 total -53.4% maxDD(closed) -57.9%
+## fx_zbox200_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H4 87160 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_zbox200_h4: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'n': 200, 'entry_z': 2.0, 'stop_z': 3.0}: 371t PF 0.85 total -16.1% maxDD(closed) -19.7%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_zbox200_h4: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'n': 200, 'entry_z': 2.0, 'stop_z': 3.0}: 371t PF 0.85 total -16.1% maxDD(closed) -19.7%
+## fx_zbox200_h4: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
