@@ -1,2 +1,0 @@
-# timeout 10800
-alpaca run-all --phase validate --quick --families ladder_intraday
