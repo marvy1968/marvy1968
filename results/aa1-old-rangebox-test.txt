@@ -1,3 +1,32 @@
 $ alpaca run-all --families fx_rangebox_h1
-started 2026-10-15 06:50:03 EDT
-RUNNING...
+started 2026-10-15 06:50:03 EDT, took 13s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_rangebox_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'stop_atr': 1.2}: 0t PF 0.00 total +0.0% maxDD(closed) 0.0%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_rangebox_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'stop_atr': 1.2}: 0t PF 0.00 total +0.0% maxDD(closed) 0.0%
+## fx_rangebox_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
