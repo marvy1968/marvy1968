@@ -40,6 +40,9 @@ FAMILIES = {
     "fx_bigbuild_d": ("D", MaCrossBigBuild, {"fast": [20]}),
     # the owner's F0 (H4 SMA100 +-2.5 sigma reclaim, 3.5 sigma stop, mean target): the best recorded FX result, frozen
     "fx_f0_h4": ("H4", F0Reversion, {"n": [100]}),
+    # owner 2026-10-15 "optimize oanda": Lien Fader's own knobs on a small PRE-DECLARED grid (27 points); chosen on train 2016-20 only,
+    # then judged on validation 2021-22 with the usual 2x-spread and placebo checks. Nothing is adopted unless it passes.
+    "fx_lien_fader_grid_h1": ("H1", LienFader, {"break_pips": [10, 15, 20], "stop_pips": [20, 30, 40], "target_pips": [40, 60, 90]}),
     # the owner's range box (20/200 MA flat = ranging; buy the bottom, sell the top), drawn 2026-10-14; live on practice from day one
     "fx_box200_h1": ("H1", RangeBox200, {"lookback": [100]}),
     # same rules on other timeframes (owner asked "is hourly the best?"): 100 bars each, nothing else changed; judged like every family
