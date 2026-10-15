@@ -40,8 +40,8 @@ NY = "America/New_York"
 PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"]
 STRATS = {"lien_h1": {"make": LienFader, "gran": "H1", "count": 1500, "minutes": 60},
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
-          "box_h1": {"make": lambda: RangeBox200(levels="zscore", z=2.0), "gran": "H1", "count": 600, "minutes": 60}}   # owner's range box
-    # (ranging pairs); its levels = SMA200 +- 2 sigma, the owner's choice 2026-10-15 (was the 100-bar high/low)
+          "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
+    # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
                                                                                       # more than one stop on all three strategies, 2016-22)
