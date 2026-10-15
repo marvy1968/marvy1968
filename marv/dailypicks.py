@@ -699,6 +699,11 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
             record_line = record_line + "\n" + ufp_uvf.record_line(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")))
     except Exception:  # noqa: BLE001
         pass
+    try:  # 2026-10-15 Value Plays (tracking only unless state/value_play/validation.json passed)
+        from . import value_play
+        L += value_play.card_lines(TG_EXCLUDE)
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: value plays")
     L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked best → least by leg "
           "strength, not a probability; no model % (only proven backtests print one). Paper only.", record_line]
     try:
