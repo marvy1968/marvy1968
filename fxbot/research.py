@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -55,6 +55,16 @@ FAMILIES = {
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
+
+# The owner's range box as a FILTER on the range experts (owner, 2026-10-16: "test the range experts with the range box I designed for OANDA"):
+# each range expert plain vs gated by the box (valid = pair is ranging per the box; half = fade only from the correct half; edge = outer third).
+# One frozen setting per expert (Lien Fader at the provisional 20-pip break), same pass bar, compared with its plain twin.
+BOX_GATE_EXPERTS = {"lienf20": ("H1", LienFader, {"break_pips": [20]}), "rangemr": ("H1", RangeMR, {"bb_k": [2.0], "stop_atr": [1.5], "asian_only": [False]}),
+                    "consensus": ("H1", ConsensusMR, {"votes": [3]}), "f0": ("H4", F0Reversion, {"n": [100]})}
+for _n, (_g, _c, _p) in BOX_GATE_EXPERTS.items():
+    FAMILIES[f"fx_boxgate_{_n}_plain"] = (_g, _c, _p)
+    for _pos in ("valid", "half", "edge"):
+        FAMILIES[f"fx_boxgate_{_n}_{_pos}"] = (_g, (lambda c, pos: (lambda **p: BoxGated(c(**p), position=pos)))(_c, _pos), _p)
 
 # 24/5 scalpers on M15 (added 2026-10-14, owner asked for a forex scalper): the range fade restricted to the quiet Asian session, and the
 # Asian-range breakout at the London open, both on 15-minute bars with real bid/ask. Small pre-declared grids.

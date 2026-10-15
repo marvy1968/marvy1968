@@ -223,6 +223,41 @@ class RangeBox200:
         return f
 
 
+class BoxGated:
+    """A range expert filtered by the owner's OANDA range box (drawing, 2026-10-14; the box test asked for 2026-10-16): the expert's signal counts only
+    while the pair is RANGING per the box (200 MA flat on 80% of the last `lookback` bars, the 20 MA crossing it at least twice, box height 2-20 ATR;
+    levels = the high/low of those bars). position="valid": that is the only gate; "half": a long also needs the close in the lower half of the box and a
+    short in the upper half (fade from the right side of the range); "edge": the outer third. The expert's own exits, stop and target are untouched."""
+
+    def __init__(self, base, lookback: int = 100, position: str = "valid", min_crosses: int = 2, flat_atr: float = 0.5):
+        self.base, self.lookback, self.position, self.min_crosses, self.flat_atr = base, lookback, position, min_crosses, flat_atr
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + f" +box:{position}"
+        for k in ("lock", "ladder", "zones"):
+            if hasattr(base, k):
+                setattr(self, k, getattr(base, k))
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        f = self.base.frame(m).copy()
+        c, a = m["close"], atr(m, 14)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+        side = np.sign(s20 - s200)
+        crosses = (side != side.shift(1)).astype(float).where(side.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (ranging & (h >= 2 * a) & (h <= 20 * a)).fillna(False)
+        frac = {"valid": 1.0, "half": 0.5, "edge": 1.0 / 3.0}[self.position]
+        pos = (c - bot) / h.where(h > 0)
+        long_ok = ok & (pos <= frac) if self.position != "valid" else ok
+        short_ok = ok & (pos >= 1 - frac) if self.position != "valid" else ok
+        f["long"] = f["long"] & long_ok.fillna(False)
+        f["short"] = f["short"] & short_ok.fillna(False)
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,

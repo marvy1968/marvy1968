@@ -338,3 +338,33 @@ class FxLadderSimTests(unittest.TestCase):
         self.assertEqual(len(t), 1)
         self.assertGreater(t[0].exit_px, t[0].entry_px + 0.0030 * 0.5)               # banked at the zone, the rest rode higher
         self.assertTrue(t[0].reason in ("eod", "lock", "time"))
+
+
+class BoxGatedTests(unittest.TestCase):
+    def _bars(self, n=700, seed=3):
+        import numpy as np
+        import pandas as pd
+        rng = np.random.default_rng(seed)
+        idx = pd.date_range("2022-01-03", periods=n, freq="h", tz="UTC")
+        c = 1.10 + 0.004 * np.sin(np.arange(n) / 9.0) + rng.normal(0, 0.0004, n)           # a sideways pair: swings around one level
+        return pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.0005, "low": c - 0.0005, "close": c, "volume": 1.0}, index=idx)
+
+    def test_gate_only_removes_signals_never_adds_and_keeps_exits(self):
+        from fxbot.strategies import BoxGated, RangeMR
+        m = self._bars()
+        base = RangeMR(bb_k=1.0, adx_max=100.0)
+        f0 = base.frame(m)
+        for pos in ("valid", "half", "edge"):
+            g = BoxGated(base, position=pos).frame(m)
+            self.assertFalse((g["long"] & ~f0["long"]).any())
+            self.assertFalse((g["short"] & ~f0["short"]).any())
+            self.assertTrue((g["exit_long"] == f0["exit_long"]).all())
+        valid = BoxGated(base, position="valid").frame(m)
+        edge = BoxGated(base, position="edge").frame(m)
+        self.assertLessEqual(int(edge["long"].sum()), int(valid["long"].sum()))              # a tighter gate keeps no more signals
+
+    def test_families_register_a_plain_twin_for_every_gate(self):
+        from fxbot.research import BOX_GATE_EXPERTS, FAMILIES
+        for n in BOX_GATE_EXPERTS:
+            for suffix in ("plain", "valid", "half", "edge"):
+                self.assertIn(f"fx_boxgate_{n}_{suffix}", FAMILIES)
