@@ -13,6 +13,7 @@ Ask the Marv bot in Telegram:
   /gaps                  college/NFL games where Bovado's spread or total is off Pinnacle's
   /upset                 the most likely upset: heavy favourite whose metrics fall furthest short of the price
   /parlay                best 2- and 3-leg NFL/CFB parlays (upset score, H2H, proven O/U legs) at Bovada prices
+  /report [days]         report card for the stock and forex paper bots: current status, or the last N days (/report 7)
   /help
 Only the configured TELEGRAM_CHAT_ID gets answers. Every refresh, new RECOMMENDED entries are pushed
 as alerts (set ALERT_LEANS=true to also alert leans with edge >= ALERT_EDGE, default 6%).
@@ -94,6 +95,9 @@ def answer(settings, text: str) -> str:
     parts = text.strip().split()
     cmd = parts[0].split("@")[0].lower() if parts else ""
     try:
+        if cmd in ("/report", "/reportcard", "/card"):
+            from . import botreport
+            return botreport.report(state, botreport.parse_days(text))
         if cmd in ("/board", "/edges"):
             data = json.loads((state / "board.json").read_text()) if (state / "board.json").exists() else {"entries": []}
             return board.text(data["entries"], h2h=lambda e: _board_h2h(state, e)) + f"\n(built {data.get('built', 'never')[:16]} UTC)"
