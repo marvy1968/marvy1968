@@ -1,3 +1,26 @@
 $ show alpaca_paper/journal-20261015.jsonl
-started 2026-10-15 11:43:41 EDT
-RUNNING...
+started 2026-10-15 11:43:41 EDT, took 0s, exit 0
+
+{"t": "2026-10-15T11:34:53-04:00", "kind": "zonemap", "up": 11, "down": 11, "range": 36, "stocks": 58, "stage2": 26, "stage4": 17, "stage1": 7, "stage3": 8}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 1, "SPY": 1, "XLB": 0, "XLC": 0, "XLE": 1, "XLF": -1, "XLI": 0, "XLK": 1, "XLP": 1, "XLRE": -1, "XLU": 0, "XLV": 1, "XLY": 0}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "vwap_dev", "ref": 344.015, "result": "1-hour market is trending (ADX 34), not a range"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "ORCL", "side": "long", "tag": "dual_regime", "ref": 132.82, "result": "against direction (bias +0)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "brooks_pullback", "ref": 243.695, "result": "against direction (bias -1)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "raschke_grail", "ref": 119.29, "result": "against direction (bias +0)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "vwap_dev", "ref": 92.84, "result": "1-hour market is trending (ADX 83), not a range"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "vwap_dev", "ref": 89.75, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "vwap_dev", "ref": 119.76, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:vwap_dev", "ref": 982.4, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-15T11:34:53-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "connors_rsi2", "ref": 493.695, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-15T11:36:16-04:00", "kind": "signal", "symbol": "UNH", "side": "long", "tag": "donchian_turtle", "ref": 413.05, "result": "against direction (bias +0)"}
+{"t": "2026-10-15T11:36:16-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "vwap_dev", "ref": 92.94, "result": "1-hour market is trending (ADX 83), not a range"}
+{"t": "2026-10-15T11:36:16-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "dual_regime", "ref": 153.37, "result": "against direction (bias +0)"}
+{"t": "2026-10-15T11:36:16-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "williams_r", "ref": 119.795, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-15T11:36:16-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:williams_r", "ref": 980.22, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-15T11:38:47-04:00", "kind": "exit", "symbol": "XOM", "reason": "stop", "px": 174.775, "side": 1}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "IWM", "side": "short", "tag": "S:dual_regime", "ref": 273.67, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "bollinger_bounce", "ref": 343.27, "result": "1-hour market is trending (ADX 34), not a range"}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "connors_rsi2", "ref": 186.87, "result": "against direction (bias -1)"}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "COST", "side": "long", "tag": "vwap_dev", "ref": 988.3, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "NEE", "side": "long", "tag": "vwap_dev", "ref": 78.62, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-15T11:40:18-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "williams_r", "ref": 494.4, "result": "stage 4 (needs 2)"}
