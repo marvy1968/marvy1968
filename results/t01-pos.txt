@@ -1,3 +1,12 @@
 $ alpaca positions
-started 2026-10-15 14:07:13 EDT
-RUNNING...
+started 2026-10-15 14:07:13 EDT, took 2s, exit 0
+
+equity $53,107.23  cash $22,249.99  long mv $30,857.24  short mv $0.00
+4 open positions:
+  NVDA       long  qty           62  value $ 13,466.40  unrealized $    26.66
+  GOOGL      long  qty           38  value $ 13,227.04  unrealized $    17.32
+  MSFT       long  qty            5  value $  2,697.78  unrealized $   -19.21
+  META       long  qty            2  value $  1,466.02  unrealized $   -44.36
+2 open orders:
+  MSFT       sell 5 stop new  id sw-s-MSFT-20261014
+  META       sell 2 stop new  id sw-s-META-20261014
