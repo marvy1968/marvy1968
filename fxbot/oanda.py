@@ -25,7 +25,7 @@ class Oanda:
         h = {"Authorization": f"Bearer {tok}", "Content-Type": "application/json", "Accept-Datetime-Format": "RFC3339"}
         for k in range(tries):
             r = self.s.request(method, PRACTICE + path, headers=h, timeout=30, **kw)
-            if r.status_code == 429 or r.status_code >= 500:
+            if r.status_code == 429 or r.status_code >= 500 or (r.status_code == 401 and k < 2):   # 401s are intermittent on the shared practice token: retry twice before raising
                 time.sleep(2 ** k)
                 continue
             if r.status_code >= 400:
