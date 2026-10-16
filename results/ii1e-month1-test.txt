@@ -1,3 +1,31 @@
 $ alpaca run-all --phase validate --month1 --families reversal_confirm trend_continuation
-started 2026-10-16 11:53:48 EDT
-RUNNING...
+started 2026-10-16 11:53:48 EDT, took 445s, exit 0
+
+daily data ready
+## reversal_confirm: the reversal check did not beat live in both halves
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no reversal check): 109t win 36% PF 0.52 avgR -0.25 daily -0.154% CAGR -29.4% maxDD -1.7%
+- train | mean reversion needs 2 of 4 (incl. Velez tail / 180 / rubber band): 108t win 36% PF 0.51 avgR -0.25 daily -0.153% CAGR -30.0% maxDD -1.7%
+- train | mean reversion needs 3 of 4: 93t win 31% PF 0.43 avgR -0.32 daily -0.177% CAGR -33.7% maxDD -1.9%
+- validate | live (no reversal check): 149t win 36% PF 0.48 avgR -0.26 daily -0.249% CAGR -48.0% maxDD -2.5%
+- validate | mean reversion needs 2 of 4 (incl. Velez tail / 180 / rubber band): 148t win 32% PF 0.44 avgR -0.29 daily -0.283% CAGR -51.9% maxDD -2.8%
+- validate | mean reversion needs 3 of 4: 133t win 30% PF 0.42 avgR -0.33 daily -0.271% CAGR -51.7% maxDD -2.7%
+## trend_continuation: the continuation check did not beat live in both periods
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no continuation check): 109t win 36% PF 0.52 avgR -0.25 daily -0.154% CAGR -29.4% maxDD -1.7%
+- train | trend experts need 60% (3 of 5): 107t win 36% PF 0.55 avgR -0.24 daily -0.140% CAGR -27.1% maxDD -1.5%
+- train | trend experts need 80% (4 of 5): 108t win 35% PF 0.52 avgR -0.25 daily -0.155% CAGR -29.6% maxDD -1.7%
+- validate | live (no continuation check): 149t win 36% PF 0.48 avgR -0.26 daily -0.249% CAGR -48.0% maxDD -2.5%
+- validate | trend experts need 60% (3 of 5): 149t win 36% PF 0.48 avgR -0.26 daily -0.252% CAGR -48.3% maxDD -2.5%
+- validate | trend experts need 80% (4 of 5): 148t win 36% PF 0.48 avgR -0.27 daily -0.251% CAGR -48.2% maxDD -2.5%
+ALL DONE
