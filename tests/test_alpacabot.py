@@ -1599,6 +1599,42 @@ class RiskByExpertTests(unittest.TestCase):
         self.assertLess(src.index("risk_by_expert"), src.index("try_enter(sym"))   # applied before the order is sized
 
 
+class ReversalConfirmTests(unittest.TestCase):
+    def _day(self):
+        idx = pd.date_range("2024-05-01 09:30", periods=40, freq="5min", tz="America/New_York")
+        n = len(idx)
+        c = np.linspace(101, 100, n)                                 # a slow drift down
+        o = c + 0.02
+        d = pd.DataFrame({"open": o, "high": o + 0.05, "low": c - 0.05, "close": c, "volume": 1000.0, "f_atr": 0.1}, index=idx)
+        k = 30                                                        # a bullish reversal bar: body 0.15 of a 0.2 range, closes near the high
+        d.iloc[k, [0, 1, 2, 3]] = [100.20, 100.37, 100.17, 100.35]
+        j = 31                                                        # a crash bar: big body down on heavy volume, ATR exploding
+        d.iloc[j, [0, 1, 2, 3, 4, 5]] = [100.35, 100.36, 99.30, 99.32, 5000.0, 0.6]
+        return d, k, j
+
+    def test_a_turning_dip_passes_and_a_falling_knife_does_not(self):
+        from alpacabot.confirm import reversal_votes
+        d, k, j = self._day()
+        self.assertEqual(reversal_votes(d, k, 1)[0], 3)
+        n, failed = reversal_votes(d, j, 1)
+        self.assertLessEqual(n, 1)
+        self.assertIn("reversal candle", failed)
+
+    def test_only_mean_reversion_experts_are_gated(self):
+        from alpacabot.brain import ReversalConfirm
+        from alpacabot.strategies import Signal
+        d, k, j = self._day()
+        sigs = [Signal(i=j, side=1, tag="connors_rsi2"), Signal(i=k, side=1, tag="williams_r"), Signal(i=j, side=1, tag="range_box"),
+                Signal(i=j, side=1, tag="velez_elephant")]
+        class Stub:
+            def signals(self, x):
+                return sigs
+        self.assertEqual([s.tag for s in ReversalConfirm(Stub(), 2).signals(d)], ["williams_r", "range_box", "velez_elephant"])
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(LadderTests("test_tier_from_depth")._runner(tmp).zone_config()["reversal_confirm"]["live"])
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

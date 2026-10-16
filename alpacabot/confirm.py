@@ -113,3 +113,24 @@ def trend_votes(day, i: int, side: int, vol_mult: float = 1.2) -> tuple[int, lis
     else:
         ok.append(False)
     return sum(ok), [n for n, x in zip(names, ok) if not x]
+
+
+
+def reversal_votes(day, i: int, side: int, vola_max: float = 1.2) -> tuple[int, list[str]]:
+    """Owner 2026-10-16 ("does trend ID help the mean reversion? fix it"): a MEAN-REVERSION entry must show the move against it FAILING,
+    not just stretched. Three checks for a trade in direction `side`:
+    reversal candle - the signal bar closes the trade's way with a body >= 40% of its range, closing in the outer half;
+    push weakening   - none of the last 3 bars shows a strong continuation AGAINST the trade (trend_votes(-side) <= 2 of 5 on each);
+    no panic         - 5-minute ATR <= vola_max x its session average (mean reversion works in calm tape, not in a crash).
+    Returns (how many agree, the names of those that failed)."""
+    o, h, l, c = (float(day[k].iloc[i]) for k in ("open", "high", "low", "close"))
+    rng = max(h - l, 1e-12)
+    names, ok = ["reversal candle", "push weakening", "no panic"], []
+    loc = (c - l) / rng if side == 1 else (h - c) / rng
+    ok.append(side * (c - o) >= 0.4 * rng and loc >= 0.5)
+    ok.append(all(trend_votes(day, j, -side)[0] <= 2 for j in range(max(1, i - 3), i)))
+    if "f_atr" in day and i >= 12:
+        ok.append(float(day["f_atr"].iloc[i]) <= vola_max * float(day["f_atr"].iloc[:i].mean()))
+    else:
+        ok.append(True)
+    return sum(ok), [n for n, x in zip(names, ok) if not x]

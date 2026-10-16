@@ -745,6 +745,16 @@ class PaperRunner:
                 if why:
                     self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
                     continue
+                rc = zcfg.get("reversal_confirm") or {}
+                from .experts import BOX_STRATEGIES, RANGE_EXPERTS
+                _nm = (sig.tag or "").removeprefix("S:")
+                if rc.get("live") and _nm in RANGE_EXPERTS and _nm not in BOX_STRATEGIES:   # owner: a mean-reversion entry needs the
+                    from .confirm import reversal_votes                                       # move against it to be failing, not just stretched
+                    k, failed = reversal_votes(day, len(day) - 1, -1 if sig.side == -1 else 1, float(rc.get("vola_max", 1.2)))
+                    if k < int(rc.get("need", 2)):
+                        self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
+                                     result=f"reversal not confirmed ({k}/3; failed: {', '.join(failed)})")
+                        continue
                 tc = zcfg.get("trend_confirm") or {}
                 from .experts import TREND_EXPERTS
                 if tc.get("live") and (sig.tag or "").removeprefix("S:") in TREND_EXPERTS:   # owner: candles / volume / volatility must

@@ -234,6 +234,12 @@
    "vwap_dev": 0.005,
    "opening_range_breakout": 0.005,
    "donchian_turtle": 0.005
+  },
+  "reversal_confirm": {
+   "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only when the move against them is FAILING: at least `need` of 3 checks (reversal candle; the last 3 bars show no strong continuation against the trade; 5-minute ATR <= vola_max x session average). A filter only. Set live to false to switch it off.",
+   "live": true,
+   "need": 2,
+   "vola_max": 1.2
   }
  },
  "swing": {

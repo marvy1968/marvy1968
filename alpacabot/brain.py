@@ -365,6 +365,29 @@ class TrendContinuation:
         return out
 
 
+class ReversalConfirm:
+    """Backtest wrapper for the owner's mean-reversion fix (confirm.reversal_votes): a RANGE expert's signal survives only when at least
+    `need` of the 3 reversal checks agree. Box strategies and trend experts pass untouched."""
+
+    def __init__(self, brain, need: int = 2):
+        self.brain, self.need = brain, need
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        from .confirm import reversal_votes
+        out = []
+        for s in self.brain.signals(day):
+            nm = (s.tag or "").removeprefix("S:")
+            if nm in RANGE_EXPERTS and nm not in BOX_STRATEGIES:
+                k, _ = reversal_votes(day, s.i, -1 if s.side == -1 else 1)
+                if k < self.need:
+                    continue
+            out.append(s)
+        return out
+
+
 class BoxRangeBrain:
     """Owner's range box for stocks (OANDA drawing applied to Alpaca; the paper plan 2026-10-16 reads Weinstein -> trend indicators -> range box).
     Every signal keeps the stage rule (longs in stage 2, shorts in stage 4) and the multi-timeframe check that wraps this brain; the mean-reversion
