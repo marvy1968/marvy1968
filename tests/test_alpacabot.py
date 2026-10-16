@@ -1567,6 +1567,23 @@ class ExpertZoneTests(unittest.TestCase):
         self.assertEqual(zone_profile({"profiles": cfg["profiles"]}, "connors_rsi2")["target"], "mean")
 
 
+class TrendGateOrderTests(unittest.TestCase):
+    def test_trend_experts_pass_every_trend_gate_in_order(self):
+        """Owner 2026-10-16: a trend expert enters only after trend recognition (heat map, direction first, Weinstein stage, multi-timeframe
+        direction + strength) AND the continuation check (candle / volume / volatility); then its own zones apply."""
+        import inspect
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = LadderTests("test_tier_from_depth")._runner(tmp).zone_config()
+        self.assertTrue(cfg["live"] and cfg["direction_first"] and cfg["stage_filter"])
+        self.assertTrue(cfg["mtf"]["entry"] and cfg["mtf"]["trend_exit"] and cfg["mtf"]["adx_min"] >= 20)
+        self.assertTrue(cfg["trend_confirm"]["live"])
+        src = inspect.getsource(paper.PaperRunner.on_bar_close)
+        order = [src.index(x) for x in ("gates.apply(day", "zone_entry_block(sym", "mtf_block(sym", "trend_votes(day", "try_enter(sym")]
+        self.assertEqual(order, sorted(order))                       # heat map -> direction/stage/chase -> multi-timeframe -> continuation -> order
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research
