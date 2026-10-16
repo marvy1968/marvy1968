@@ -1,3 +1,18 @@
 $ alpaca run-all --phase validate --year --families box_strategy
-started 2026-10-15 22:17:38 EDT
-RUNNING...
+started 2026-10-15 22:17:38 EDT, took 1209s, exit 0
+
+daily data ready
+## box_strategy: the range box strategy did not beat the live configuration in both periods: not added
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no box strategy): 1760t win 35% PF 0.65 avgR -0.22 daily -0.207% CAGR -40.6% maxDD -22.9%
+- train | live + range box strategy: 1760t win 35% PF 0.65 avgR -0.22 daily -0.207% CAGR -40.6% maxDD -22.9%
+- train | range box strategy alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | live (no box strategy): 1250t win 39% PF 0.76 avgR -0.08 daily -0.174% CAGR -35.6% maxDD -18.1%
+- validate | live + range box strategy: 1250t win 39% PF 0.76 avgR -0.08 daily -0.174% CAGR -35.6% maxDD -18.1%
+- validate | range box strategy alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+ALL DONE
