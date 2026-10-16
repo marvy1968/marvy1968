@@ -861,6 +861,42 @@ def box_range_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio
     return out
 
 
+def box_strategy_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The owner's range box as a standalone stock strategy (BoxSignals), on the live configuration (direction first + Weinstein stage + multi-
+    timeframe confirmation + the drawn exit plan + zone map). Variants: live; live + the box strategy as an extra expert; the box strategy alone.
+    "+ box strategy" must beat live in the train AND validation years (_zone_verdict). Needs days attached with with_box=True."""
+    from . import engine
+    from . import experts as ex
+    from .brain import BoxSignals, DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(mode, a, b):
+        before_s, before_e = set(engine.RANGE_STYLE), set(ex.RANGE_EXPERTS)
+        engine.RANGE_STYLE.add("range_box")                      # a mean-reversion strategy: range profile, no trend-style checks
+        ex.RANGE_EXPERTS.add("range_box")
+        try:
+            br = Brain(experts=[] if mode == "alone" else list(ALL_EXPERTS), short_experts=[] if mode == "alone" else list(ALL_EXPERTS),
+                       sector_filter=True, short_gate="red")
+            br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+            inner = BoxSignals(br) if mode in ("with", "alone") else br
+            r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        finally:
+            engine.RANGE_STYLE.clear(); engine.RANGE_STYLE.update(before_s)
+            ex.RANGE_EXPERTS.clear(); ex.RANGE_EXPERTS.update(before_e)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live (no box strategy)": "live", "live + range box strategy": "with", "range box strategy alone": "alone"}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"bs-{per}-{mode}", lambda m=mode, a=a, b=b: run(m, a, b)) for name, mode in variants.items()}
+    ok = _zone_verdict([{"without": out["periods"][p]["live (no box strategy)"], "with": out["periods"][p]["live + range box strategy"]} for p in out["periods"]])
+    out.update({"family": "box_strategy", "passes": bool(ok),
+                "verdict": ("ADD: the range box as a stock strategy beat the live configuration in train and validation" if ok else
+                            "the range box strategy did not beat the live configuration in both periods: not added")})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 

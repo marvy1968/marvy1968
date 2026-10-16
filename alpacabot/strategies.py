@@ -32,6 +32,7 @@ class Signal:
     trail: float = 1.5      # ATR multiple for the initial stop and the trailing stop
     tp_scale: float = 1.0   # research knob on the regime-scaled take-profit
     exit_col: str = ""      # optional boolean column of the bar frame: when true at a bar's close, sell at the next open
+    target_px: float = 0.0  # optional absolute take-profit price (the range box's far edge); with zones on it replaces the zone-map target
 
 
 @dataclass

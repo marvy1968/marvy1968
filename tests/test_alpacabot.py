@@ -1346,6 +1346,72 @@ class StockRangeBoxTests(unittest.TestCase):
         self.assertEqual([x.tag for x in BoxRangeBrain(Stub(), "valid").signals(day)], ["velez_elephant"])   # only the trend expert is left
 
 
+class BoxStrategyTests(unittest.TestCase):
+    def _day(self, bot_dip_at=60, top_poke_at=None):
+        idx = pd.date_range("2024-05-01 09:30", periods=390, freq="5min", tz="America/New_York")[:78]
+        c = np.full(len(idx), 100.0)                                   # a quiet stock mid-box (box 90-110, 100 is the middle)
+        o, hi, lo = c.copy(), c + 0.1, c - 0.1
+        if bot_dip_at is not None:                                     # one bar dips to the bottom of the box and closes up inside the bottom third
+            o[bot_dip_at], lo[bot_dip_at], c[bot_dip_at], hi[bot_dip_at] = 91.0, 90.5, 93.0, 93.2
+        if top_poke_at is not None:                                    # one bar pokes the top and closes down inside the top third
+            o[top_poke_at], hi[top_poke_at], c[top_poke_at], lo[top_poke_at] = 109.0, 109.6, 107.0, 106.8
+        d = pd.DataFrame({"open": o, "high": hi, "low": lo, "close": c, "volume": 1e5, "f_atr": 0.3}, index=idx)
+        d.attrs.update(box=(True, 110.0, 90.0), box_atr=2.0)
+        return d
+
+    def test_buys_the_bottom_of_a_valid_box_with_the_drawn_stop_and_the_far_edge_target(self):
+        from alpacabot.brain import BoxSignals
+        class Empty:
+            def signals(self, d):
+                return []
+        got = BoxSignals(Empty()).signals(self._day())
+        self.assertEqual(len(got), 1)
+        s = got[0]
+        self.assertEqual((s.i, s.side, s.tag), (60, 1, "range_box"))
+        self.assertAlmostEqual(s.stop_dist, 93.0 - (90.0 - 0.5 * 2.0))             # Sell ALL = 0.5 daily ATR under the box low
+        self.assertAlmostEqual(s.target_px, 110.0 - 0.25 * 2.0)                    # TP at the far edge less a quarter ATR
+
+    def test_sells_the_top_and_nothing_without_a_valid_box_or_outside_the_window(self):
+        from alpacabot.brain import BoxSignals
+        class Empty:
+            def signals(self, d):
+                return []
+        d = self._day(bot_dip_at=None, top_poke_at=60)
+        got = BoxSignals(Empty()).signals(d)
+        self.assertEqual([(x.side, x.tag) for x in got], [(-1, "S:range_box")])
+        d.attrs["box"] = (False, 110.0, 90.0)
+        self.assertEqual(BoxSignals(Empty()).signals(d), [])                       # no valid box, no trade
+        early = self._day(bot_dip_at=3)                                            # 09:45 is before the 10:00 window
+        self.assertEqual(BoxSignals(Empty()).signals(early), [])
+
+    def test_engine_takes_profit_at_the_boxs_far_edge_when_zones_are_on(self):
+        from alpacabot.engine import ZONE_PROFILES, Costs, simulate_day
+        d = self._day()
+        n = len(d)
+        # price walks up from the dip to the box top region after the entry
+        path = np.linspace(93.0, 109.5, n - 61)
+        d.iloc[61:, d.columns.get_loc("close")] = path
+        d.iloc[61:, d.columns.get_loc("open")] = path
+        d.iloc[61:, d.columns.get_loc("high")] = path + 0.2
+        d.iloc[61:, d.columns.get_loc("low")] = path - 0.2
+        sig = Signal(i=60, side=1, stop_dist=5.5, tag="range_box", atr=0.3, target_px=109.5)
+        tr = simulate_day("X", d, [sig], Costs(slip_bps=0.0, fee_bps_sell=0.0), zones={"profiles": ZONE_PROFILES, "levels": False})
+        self.assertEqual(len(tr), 1)
+        self.assertGreaterEqual(tr[0].exit_px, 109.4)                               # sold at the box target, not at a zone-map level
+
+
+class BoxStrategyStudyTests(unittest.TestCase):
+    def test_study_runs_and_restores_the_live_style_sets(self):
+        from alpacabot import engine, research
+        from alpacabot import experts as ex
+        a, b = set(engine.RANGE_STYLE), set(ex.RANGE_EXPERTS)
+        res = research.box_strategy_study({}, ("2021-07-01", "2021-12-31"), ("2022-01-01", "2022-06-30"), ckpt=None)
+        self.assertEqual((set(engine.RANGE_STYLE), set(ex.RANGE_EXPERTS)), (a, b))
+        self.assertNotIn("range_box", ex.RANGE_EXPERTS)
+        self.assertEqual(len(res["periods"]["train"]), 3)
+        self.assertEqual(res["family"], "box_strategy")
+
+
 class SectorTopDownTests(unittest.TestCase):
     def _data(self):
         idx = pd.bdate_range("2024-01-02", periods=160, tz="America/New_York")

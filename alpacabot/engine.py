@@ -187,6 +187,8 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                 lv = zone_target(df.attrs["levels"], side * fill, side, s.stop_dist, zp["min_r"])
                 if lv is not None:
                     ztgt = side * lv
+            if s.target_px > 0:                   # the range box's far edge (owner's drawing) replaces the zone-map target
+                ztgt = side * s.target_px
             tgt = min(tgt, ztgt)
 
         tl = None                                 # owner: re-confirm the trend while the trade runs - exit when the 1-hour trend turns against it

@@ -156,6 +156,52 @@ class StageFilter:
         return [s for s in self.brain.signals(day) if (s.side == 1 and st == 2) or (s.side == -1 and st == 4)]
 
 
+class BoxSignals:
+    """The owner's range box as its OWN strategy for stocks (paper drawing 2026-10-16: Weinstein -> trend indicators -> range box; buy zone, TP1 /
+    TP2 above it, Sell 1 / Sell 2 / Sell ALL below it, breakout beyond either edge). Adds "range_box" (long) and "S:range_box" (short) signals to
+    any brain and lets the wrappers around it (direction first, stage, multi-timeframe) filter them like every other expert. The BOX is the stock's
+    daily box (day.attrs["box"] = valid, top, bot; day.attrs["box_atr"] = daily ATR14). Long: between 10:00 and 15:00 a 5-minute bar dips into
+    the bottom 15% of the box, closes back above the box low and inside the bottom third, and closes up; stop ("Sell ALL") 0.5 daily ATR below the
+    box low; take-profit = the far edge less 0.25 daily ATR (the live ladder's TP steps and cuts apply). Short = mirror. One entry per side per
+    day, and only when the stop is at most 3 daily ATR away and the target at least 0.75R away."""
+
+    TAG = "range_box"
+
+    def __init__(self, brain):
+        self.brain = brain
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def box_signals(self, day) -> list:
+        valid, top, bot = day.attrs.get("box", (False, 0.0, 0.0))
+        datr = float(day.attrs.get("box_atr", 0.0))
+        if not valid or top <= bot or datr <= 0 or not len(day):
+            return []
+        h = top - bot
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "10:00") & (t <= "15:00"))
+        o, hi, lo, c = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        fa = day["f_atr"].to_numpy(float) if "f_atr" in day else np.full(len(day), datr / 6.0)
+        out = []
+        buy = win & (lo <= bot + 0.15 * h) & (c > bot) & (c <= bot + 0.33 * h) & (c > o)
+        sell = win & (hi >= top - 0.15 * h) & (c < top) & (c >= top - 0.33 * h) & (c < o)
+        for side, mask in ((1, buy), (-1, sell)):
+            for i in np.flatnonzero(mask):
+                stop = (c[i] - (bot - 0.5 * datr)) if side == 1 else ((top + 0.5 * datr) - c[i])
+                tgt = (top - 0.25 * datr) if side == 1 else (bot + 0.25 * datr)
+                if not (0 < stop <= 3 * datr) or side * (tgt - c[i]) < 0.75 * stop:
+                    continue
+                a = float(fa[i]) if np.isfinite(fa[i]) and fa[i] > 0 else datr / 6.0
+                out.append(Signal(i=int(i), side=side, stop_dist=float(stop), tag=self.TAG if side == 1 else "S:" + self.TAG, atr=a,
+                                  target_px=float(tgt)))
+                break                                          # one entry per side per day
+        return out
+
+    def signals(self, day):
+        return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+
+
 class BoxRangeBrain:
     """Owner's range box for stocks (OANDA drawing applied to Alpaca; the paper plan 2026-10-16 reads Weinstein -> trend indicators -> range box).
     Every signal keeps the stage rule (longs in stage 2, shorts in stage 4) and the multi-timeframe check that wraps this brain; the mean-reversion

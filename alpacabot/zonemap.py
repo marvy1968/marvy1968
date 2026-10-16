@@ -45,7 +45,7 @@ def range_box(daily: pd.DataFrame) -> pd.DataFrame:
     top, bot = daily["high"].shift(1).rolling(r["lookback"]).max(), daily["low"].shift(1).rolling(r["lookback"]).min()
     h = top - bot
     valid = (ranging & (h >= r["min_h_atr"] * a) & (h <= r["max_h_atr"] * a)).fillna(False)
-    return pd.DataFrame({"valid": valid, "top": top, "bot": bot}, index=daily.index)
+    return pd.DataFrame({"valid": valid, "top": top, "bot": bot, "atr": a}, index=daily.index)
 
 
 def bias_for_session(daily: pd.DataFrame, session_date) -> int:
@@ -113,6 +113,7 @@ def attach(days: dict, daily_by_symbol: dict, with_box: bool = False) -> dict:
             f.attrs["levels"] = level_map(dly.iloc[max(0, k - LEVEL_RULES["lookback"]):k]) if k else []
             f.attrs["stage"] = stage(dly.iloc[max(0, k - STAGE_RULES["ma"] - STAGE_RULES["slope_bars"] - 5):k]) if k else 0
             if bx is not None:
+                f.attrs["box_atr"] = float(bx["atr"].iloc[k - 1]) if k >= warm + 10 else 0.0
                 f.attrs["box"] = ((bool(bx["valid"].iloc[k - 1]), float(bx["top"].iloc[k - 1]), float(bx["bot"].iloc[k - 1])) if k >= warm + 10 else (False, 0.0, 0.0))
     return days
 
