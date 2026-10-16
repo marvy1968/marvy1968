@@ -1,0 +1,3 @@
+$ show fx/reports/summary.md
+started 2026-10-15 22:41:03 EDT
+RUNNING...
