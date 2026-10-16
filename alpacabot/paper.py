@@ -741,6 +741,15 @@ class PaperRunner:
                 if why:
                     self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
                     continue
+                tc = zcfg.get("trend_confirm") or {}
+                from .experts import TREND_EXPERTS
+                if tc.get("live") and (sig.tag or "").removeprefix("S:") in TREND_EXPERTS:   # owner: candles / volume / volatility must
+                    from .confirm import trend_votes                                          # show the trend continuing on the signal bar
+                    k, failed = trend_votes(day, len(day) - 1, -1 if sig.side == -1 else 1, float(tc.get("vol_mult", 1.2)))
+                    if k / 5.0 < float(tc.get("vote", 0.6)) - 1e-9:
+                        self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
+                                     result=f"trend not confirmed ({k}/5; failed: {', '.join(failed)})")
+                        continue
             risk_before, tier = self.exec.risk_pct, None
             lad_cfg = zcfg.get("ladder") if zcfg["live"] else None
             if lad_cfg:                                                  # owner's scaling: size by how deep price is into the entry zone

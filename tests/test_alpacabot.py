@@ -1518,6 +1518,39 @@ class BoxConfirmStockTests(unittest.TestCase):
         self._t.cleanup()
 
 
+class TrendContinuationTests(unittest.TestCase):
+    def _day(self):
+        idx = pd.date_range("2024-05-01 09:30", periods=40, freq="5min", tz="America/New_York")
+        n = len(idx)
+        c = np.linspace(100, 101, n)
+        o = c - 0.02
+        d = pd.DataFrame({"open": o, "high": c + 0.05, "low": o - 0.05, "close": c, "volume": 1000.0, "f_atr": 0.1}, index=idx)
+        k = 30                                                     # a strong up bar: big body closing at its high, heavy volume, wider range
+        d.iloc[k, [0, 1, 2, 3, 4, 5]] = [100.70, 101.21, 100.69, 101.20, 3000.0, 0.2]
+        j = 31                                                     # a weak bar: small body, long upper wick, light volume
+        d.iloc[j, [0, 1, 2, 3, 4, 5]] = [101.20, 101.60, 101.10, 101.22, 500.0, 0.05]
+        return d, k, j
+
+    def test_votes_tell_a_continuing_bar_from_a_failing_one(self):
+        from alpacabot.confirm import trend_votes
+        d, k, j = self._day()
+        self.assertEqual(trend_votes(d, k, 1)[0], 5)
+        n, failed = trend_votes(d, j, 1)
+        self.assertLessEqual(n, 2)
+        self.assertIn("volume", failed)
+
+    def test_only_trend_experts_are_filtered(self):
+        from alpacabot.brain import TrendContinuation
+        from alpacabot.strategies import Signal
+        d, k, j = self._day()
+        sigs = [Signal(i=j, side=1, tag="velez_elephant"), Signal(i=k, side=1, tag="raschke_grail"), Signal(i=j, side=1, tag="connors_rsi2")]
+        class Stub:
+            def signals(self, x):
+                return sigs
+        got = [s.tag for s in TrendContinuation(Stub(), 0.6).signals(d)]
+        self.assertEqual(got, ["raschke_grail", "connors_rsi2"])                  # the weak-bar trend entry is dropped, the range expert kept
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

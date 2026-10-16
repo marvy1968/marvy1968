@@ -343,6 +343,28 @@ def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
     return {**cfg, "tp_depth_atr": d}
 
 
+class TrendContinuation:
+    """Backtest wrapper for the owner's trend-continuation check (confirm.trend_votes): a TREND expert's signal survives only when at least
+    `vote` of the five candle / volume / volatility checks agree on its signal bar. Other experts pass untouched."""
+
+    def __init__(self, brain, vote: float = 0.6, vol_mult: float = 1.2):
+        self.brain, self.vote, self.vol_mult = brain, vote, vol_mult
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        from .confirm import trend_votes
+        out = []
+        for s in self.brain.signals(day):
+            if (s.tag or "").removeprefix("S:") in TREND_EXPERTS:
+                k, _ = trend_votes(day, s.i, -1 if s.side == -1 else 1, self.vol_mult)
+                if k / 5.0 < self.vote - 1e-9:
+                    continue
+            out.append(s)
+        return out
+
+
 class BoxRangeBrain:
     """Owner's range box for stocks (OANDA drawing applied to Alpaca; the paper plan 2026-10-16 reads Weinstein -> trend indicators -> range box).
     Every signal keeps the stage rule (longs in stage 2, shorts in stage 4) and the multi-timeframe check that wraps this brain; the mean-reversion

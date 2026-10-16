@@ -964,6 +964,33 @@ def box_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
     return out
 
 
+def trend_continuation_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner's trend-continuation check on the trend experts (brain.TrendContinuation) on the live configuration: live vs vote 60% vs 80%.
+    A vote must beat live in the train AND validation years (_zone_verdict) to count as an improvement."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendContinuation
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(vote, a, b):
+        br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+        inner = TrendContinuation(br, vote) if vote else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live (no continuation check)": None, "trend experts need 60% (3 of 5)": 0.6, "trend experts need 80% (4 of 5)": 0.8}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"tc-{per}-{k}", lambda vt=vt, a=a, b=b: run(vt, a, b)) for k, (name, vt) in enumerate(variants.items())}
+    base = "live (no continuation check)"
+    verdicts = {v: _zone_verdict([{"without": out["periods"][p][base], "with": out["periods"][p][v]} for p in out["periods"]]) for v in variants if v != base}
+    winners = [v for v, ok in verdicts.items() if ok]
+    out.update({"family": "trend_continuation", "passes": bool(winners), "variant_passes": verdicts,
+                "verdict": (f"IMPROVES: {'; '.join(winners)} beat live in train and validation" if winners else
+                            "the continuation check did not beat live in both periods")})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 

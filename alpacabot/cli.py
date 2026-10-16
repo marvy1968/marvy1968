@@ -274,6 +274,13 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = profile_assign_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_pa.json")
+                elif fam == "trend_continuation":   # candle / volume / volatility check on the trend experts (research.trend_continuation_study)
+                    from .research import trend_continuation_study
+                    from .zonemap import attach
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
+                    res = trend_continuation_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tcont.json")
                 elif fam == "box_confirm":      # candle + volume + volatility box on stocks (research.box_confirm_study)
                     from .research import box_confirm_study
                     from .zonemap import attach
@@ -334,7 +341,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

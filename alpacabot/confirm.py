@@ -85,3 +85,31 @@ def confirm_signals(o, h, l, c, v, atr_s, atr_l, top, bot, ok, mode: str = "both
                 if (side == 1 and c[i] < edge - hh / 3) or (side == -1 and c[i] > edge + hh / 3):
                     break
     return out
+
+
+
+def trend_votes(day, i: int, side: int, vol_mult: float = 1.2) -> tuple[int, list[str]]:
+    """Owner 2026-10-16: a TREND expert's entry must show the trend continuing on its signal bar. Five checks (in the trade's direction):
+    body (|close-open| >= 50% of the bar's range, closing the right way), close location (outer 25% of the bar), volume (>= vol_mult x the
+    prior 20 bars), volatility (5-minute ATR >= its session average so far), follow-through (close beyond the previous bar's high / low).
+    Returns (how many agree, the names of those that failed)."""
+    o, h, l, c = (float(day[k].iloc[i]) for k in ("open", "high", "low", "close"))
+    rng = max(h - l, 1e-12)
+    names, ok = ["body", "close", "volume", "volatility", "follow-through"], []
+    ok.append(side * (c - o) >= 0.5 * rng)
+    ok.append(((c - l) / rng >= 0.75) if side == 1 else ((h - c) / rng >= 0.75))
+    if "volume" in day and i >= 20:
+        avg = float(day["volume"].iloc[i - 20:i].mean())
+        ok.append(avg > 0 and float(day["volume"].iloc[i]) >= vol_mult * avg)
+    else:
+        ok.append(False)
+    if "f_atr" in day and i >= 12:
+        a = day["f_atr"].iloc[:i]
+        ok.append(float(day["f_atr"].iloc[i]) >= float(a.mean()))
+    else:
+        ok.append(False)
+    if i >= 1:
+        ok.append(c > float(day["high"].iloc[i - 1]) if side == 1 else c < float(day["low"].iloc[i - 1]))
+    else:
+        ok.append(False)
+    return sum(ok), [n for n, x in zip(names, ok) if not x]

@@ -84,6 +84,12 @@
    "vol_mult": 1.5,
    "atr_ratio": 1.1,
    "vote": 1.0
+  },
+  "trend_confirm": {
+   "_note": "owner 2026-10-16: trend experts (velez_elephant, raschke_grail, brooks_pullback, donchian_turtle) enter only when the signal bar shows the trend continuing: at least `vote` of 5 checks agree (body, close location, volume >= vol_mult x 20-bar avg, volatility >= session average, follow-through past the previous bar). A filter only: it removes entries, never adds them. Set live to false to switch it off.",
+   "live": true,
+   "vote": 0.6,
+   "vol_mult": 1.2
   }
  },
  "swing": {
