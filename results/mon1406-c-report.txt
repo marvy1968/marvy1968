@@ -1,3 +1,73 @@
 $ alpaca paper-report
-started 2026-10-16 14:06:53 EDT
-RUNNING...
+started 2026-10-16 14:06:53 EDT, took 1s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-16
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 24 trades, 12W/12L (50%), P&L $-29
+Equity $54,186  day +0.04%
+ROI since start (2026-10-12): -0.43% over 4 days   SPY -0.76%   avg daily -0.11% (goal 0.75-1.0%)
+Max drawdown 0.8%
+
+All trades: 120, 53W/67L (44%), profit factor 0.85, avg R -0.14
+  longs: 73, 29W/44L (40%), P&L $-394, profit factor 0.64
+  shorts: 47, 24W/23L (51%), P&L $+133, profit factor 1.21
+By symbol: PLD $+138, NFLX $+122, AMD $+86, AMZN $-164, META $-270
+BY EXPERT (trades opened since the expert was logged)
+  dual_regime: 7, 2W/5L, P&L $-54, profit factor 0.44
+  williams_r: 3, 2W/1L, P&L $+4, profit factor 1.10
+  S:dual_regime: 3, 2W/1L, P&L $+88, profit factor 6.59
+  connors_rsi2: 2, 1W/1L, P&L $-22, profit factor 0.61
+  S:brooks_pullback: 2, 2W/0L, P&L $+124, profit factor inf
+  bollinger_bounce: 2, 1W/1L, P&L $-21, profit factor 0.43
+  donchian_turtle: 2, 1W/1L, P&L $-50, profit factor 0.11
+  S:williams_r: 2, 1W/1L, P&L $-34, profit factor 0.36
+  S:bollinger_bounce: 2, 1W/1L, P&L $+6, profit factor 1.44
+  S:donchian_turtle: 1, 0W/1L, P&L $-37, profit factor 0.00
+  S:opening_range_breakout: 1, 1W/0L, P&L $+52, profit factor inf
+  velez_180: 1, 0W/1L, P&L $-52, profit factor 0.00
+  brooks_pullback: 1, 1W/0L, P&L $+57, profit factor inf
+  opening_range_breakout: 1, 1W/0L, P&L $+10, profit factor inf
+  vwap_dev: 1, 1W/0L, P&L $+40, profit factor inf
+
+BY STYLE (scalp = held <= 30 min, day = longer, flat by 3:50 pm)
+  scalp: today 14 trades $-185 | all 27, 10W/17L, P&L $-241, profit factor 0.54
+  day: today 10 trades $+156 | all 19, 14W/5L, P&L $+430, profit factor 3.55
+  unclassified (before close times were logged): today 0 trades $+0 | all 74, 29W/45L, P&L $-451, profit factor 0.56
+
+PROFIT GIVEBACK (peak open profit vs what was kept)
+  today: 24 trades, avg peak open profit +0.69R, avg kept -0.22R, gave back 0.91R; 0 of 7 trades that reached +1R closed at break-even or a loss
+  all: 46 trades, avg peak open profit +0.86R, avg kept -0.10R, gave back 0.96R; 0 of 15 trades that reached +1R closed at break-even or a loss
+
+TRADE ZONES (logged on every trade; LIVE when zones.json says live)
+  entry zone: 1 of 46 trades were chases the zone would have skipped (their P&L $+19)
+  exhaustion zone: 5 trades reached it; taking profit there would have made $+217 vs $+289 actual
+  direction first: 0 of 39 trades went against their stock's daily direction (their P&L $+0; with the direction $-85)
+
+ZONE PLAN (owner's drawing: 1% risk, cut 25/50%, take profit 25/50%, the rest rides a trailing stop)
+  today:
+    sell zone cuts (25/50% before the stop): 10 fills, $-119
+    take-profit steps (25/50% in the zone): 3 fills, $+71
+    stops (full stop / locked stop / trail): 14 fills, $-209
+    other exits (time, signal, close): 10 fills, $+228
+    by stage: stage 2 $-141 (25), stage 4 $+112 (12)
+  all time:
+    sell zone cuts (25/50% before the stop): 19 fills, $-192
+    take-profit steps (25/50% in the zone): 4 fills, $+96
+    stops (full stop / locked stop / trail): 65 fills, $-1,225
+    other exits (time, signal, close): 55 fills, $+1,060
+    by stage: stage 2 $-205 (41), stage 4 $+198 (18)
+
+GO-LIVE GATE (every line must pass, then it is your decision):
+  wait  30+ trading days: 4
+  PASS  100+ trades: 120
+  wait  net ROI > 0: -0.43%
+  wait  profit factor >= 1.3: 0.85
+  PASS  max drawdown <= 10%: 0.8%
+  PASS  beats SPY: -0.43% vs -0.76%
+  wait  avg daily >= 0.75%: -0.11%
+GATE NOT MET: keep paper trading.
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 4, 1W/3L, P&L $-254
+  holding: nothing
