@@ -116,21 +116,38 @@ def trend_votes(day, i: int, side: int, vol_mult: float = 1.2) -> tuple[int, lis
 
 
 
-def reversal_votes(day, i: int, side: int, vola_max: float = 1.2) -> tuple[int, list[str]]:
-    """Owner 2026-10-16 ("does trend ID help the mean reversion? fix it"): a MEAN-REVERSION entry must show the move against it FAILING,
-    not just stretched. Three checks for a trade in direction `side`:
-    reversal candle - the signal bar closes the trade's way with a body >= 40% of its range, closing in the outer half;
-    push weakening   - none of the last 3 bars shows a strong continuation AGAINST the trade (trend_votes(-side) <= 2 of 5 on each);
-    no panic         - 5-minute ATR <= vola_max x its session average (mean reversion works in calm tape, not in a crash).
+def reversal_votes(day, i: int, side: int, vola_max: float = 1.2, stretch_atr: float = 1.0) -> tuple[int, list[str]]:
+    """Owner 2026-10-16 ("does trend ID help the mean reversion? fix it" + "use Velez's philosophy on mean reversion"): a MEAN-REVERSION
+    entry must show the move against it FAILING, not just stretched. Four checks for a trade in direction `side`:
+    reversal candle - Velez: a BOTTOMING TAIL (lower wick >= 50% of the bar, close in its upper third), a 180 (the previous bar a wide
+                      red bar, this one green and closing above its middle), or a plain reversal bar (body >= 40% the trade's way, close
+                      in the outer half);
+    push weakening  - none of the last 3 bars was a strong continuation AGAINST the trade (trend_votes(-side) <= 2 of 5 on each);
+    no panic        - 5-minute ATR <= vola_max x its session average (Velez: never catch a wide-range "elephant" falling);
+    stretched       - Velez's rubber band: the close is at least stretch_atr ATR beyond the 20 EMA against the trade (room to snap back).
     Returns (how many agree, the names of those that failed)."""
     o, h, l, c = (float(day[k].iloc[i]) for k in ("open", "high", "low", "close"))
     rng = max(h - l, 1e-12)
-    names, ok = ["reversal candle", "push weakening", "no panic"], []
+    names, ok = ["reversal candle", "push weakening", "no panic", "stretched"], []
     loc = (c - l) / rng if side == 1 else (h - c) / rng
-    ok.append(side * (c - o) >= 0.4 * rng and loc >= 0.5)
+    plain = side * (c - o) >= 0.4 * rng and loc >= 0.5
+    tail = ((min(o, c) - l) if side == 1 else (h - max(o, c))) >= 0.5 * rng and loc >= 2 / 3
+    v180 = False
+    if i >= 1:
+        po, ph, pl, pc = (float(day[k].iloc[i - 1]) for k in ("open", "high", "low", "close"))
+        prng = max(ph - pl, 1e-12)
+        avg_rng = float((day["high"] - day["low"]).iloc[max(0, i - 20):i].mean()) if i >= 2 else prng
+        v180 = side * (po - pc) >= 0.5 * prng and prng >= avg_rng and side * (c - o) > 0 and side * (c - (ph + pl) / 2) > 0
+    ok.append(plain or tail or v180)
     ok.append(all(trend_votes(day, j, -side)[0] <= 2 for j in range(max(1, i - 3), i)))
+    a_i = float(day["f_atr"].iloc[i]) if "f_atr" in day else float("nan")
     if "f_atr" in day and i >= 12:
-        ok.append(float(day["f_atr"].iloc[i]) <= vola_max * float(day["f_atr"].iloc[:i].mean()))
+        ok.append(a_i <= vola_max * float(day["f_atr"].iloc[:i].mean()))
     else:
         ok.append(True)
+    if "f_ema20" in day and a_i == a_i and a_i > 0:
+        ref = float(day["low"].iloc[i]) if side == 1 else float(day["high"].iloc[i])
+        ok.append(side * (float(day["f_ema20"].iloc[i]) - ref) >= stretch_atr * a_i)
+    else:
+        ok.append(False)
     return sum(ok), [n for n, x in zip(names, ok) if not x]

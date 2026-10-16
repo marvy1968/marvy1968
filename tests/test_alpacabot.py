@@ -1615,7 +1615,7 @@ class ReversalConfirmTests(unittest.TestCase):
     def test_a_turning_dip_passes_and_a_falling_knife_does_not(self):
         from alpacabot.confirm import reversal_votes
         d, k, j = self._day()
-        self.assertEqual(reversal_votes(d, k, 1)[0], 3)
+        self.assertGreaterEqual(reversal_votes(d, k, 1)[0], 3)
         n, failed = reversal_votes(d, j, 1)
         self.assertLessEqual(n, 1)
         self.assertIn("reversal candle", failed)
@@ -1633,6 +1633,39 @@ class ReversalConfirmTests(unittest.TestCase):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(LadderTests("test_tier_from_depth")._runner(tmp).zone_config()["reversal_confirm"]["live"])
+
+
+class VelezReversalTests(unittest.TestCase):
+    def test_bottoming_tail_and_180_count_as_reversal_candles(self):
+        from alpacabot.confirm import reversal_votes
+        idx = pd.date_range("2024-05-01 09:30", periods=30, freq="5min", tz="America/New_York")
+        c = np.full(len(idx), 100.0)
+        d = pd.DataFrame({"open": c + 0.02, "high": c + 0.05, "low": c - 0.05, "close": c, "volume": 1000.0, "f_atr": 0.1,
+                          "f_ema20": c + 0.3}, index=idx)
+        d.iloc[20, [0, 1, 2, 3]] = [99.80, 99.85, 99.40, 99.83]      # bottoming tail: long lower wick, closes near the high
+        n, failed = reversal_votes(d, 20, 1)
+        self.assertNotIn("reversal candle", failed)
+        self.assertNotIn("stretched", failed)                           # 0.3+ below the 20 EMA with ATR 0.1: stretched
+        d.iloc[24, [0, 1, 2, 3]] = [100.30, 100.32, 99.70, 99.72]      # a wide red bar ...
+        d.iloc[25, [0, 1, 2, 3]] = [99.72, 100.10, 99.70, 100.08]      # ... then a green bar closing above its middle: a 180
+        self.assertNotIn("reversal candle", reversal_votes(d, 25, 1)[1])
+
+    def test_flatten_now_closes_the_bots_own_positions(self):
+        import tempfile
+        from datetime import datetime as _dt
+        from alpacabot.paper import ET
+        with tempfile.TemporaryDirectory() as tmp:
+            r = LadderTests("test_tier_from_depth")._runner(tmp)
+            closed = []
+            r.close_now = lambda sym, why, bar: (closed.append((sym, why)), r.exits.positions.pop(sym))
+            class Ex:
+                positions = {"AAA": {"qty": 5}, "BBB": {"qty": 3}}
+            r.exits, r.journal, r.weekly_guard = Ex(), (lambda *a, **k: None), (lambda now: None)
+            r.exec = type("E", (), {"kill_switch": False})()
+            (Path(tmp) / "FLATTEN_NOW").write_text("x")
+            r.check_session(_dt(2026, 10, 16, 11, 0, tzinfo=ET))
+            self.assertEqual(sorted(closed), [("AAA", "flatten_owner"), ("BBB", "flatten_owner")])
+            self.assertFalse((Path(tmp) / "FLATTEN_NOW").exists())
 
 
 class BoxStrategyStudyTests(unittest.TestCase):

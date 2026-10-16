@@ -43,7 +43,12 @@ def run_all(a) -> int:
     start = date(2016, 1, 4)
     qtag = "_quick" if getattr(a, "quick", False) else ""
     mstart = start                                   # first day of 1-minute data (the memory-heavy part)
-    if a.phase == "validate" and getattr(a, "months3", False):   # --months3 (owner 2026-10-16: "keep tests short, like 3 months"):
+    if a.phase == "validate" and getattr(a, "month1", False):   # --month1 (owner: "a quick one-month test"): the last month, two halves
+        from datetime import timedelta as _td
+        today = date.today()
+        qtag, start, mstart = "_m1", today - _td(days=400), today - _td(days=45)
+        train, test, end = (today - _td(days=31), today - _td(days=16)), (today - _td(days=15), today - _td(days=1)), today
+    elif a.phase == "validate" and getattr(a, "months3", False):   # --months3 (owner 2026-10-16: "keep tests short, like 3 months"):
         # the most recent 3 months, first half = train, second half = validate; daily history for the boxes / stages before that
         from datetime import timedelta as _td
         today = date.today()
@@ -461,6 +466,7 @@ def main(argv=None) -> int:
     ra.add_argument("--out", default="state/reports")
     ra.add_argument("--phase", choices=["validate", "final"], default="validate",
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
+    ra.add_argument("--month1", action="store_true", help="validate phase: the last month only (two halves); quickest look, provisional")
     ra.add_argument("--months3", action="store_true", help="validate phase: the last 3 months only (train = first half, validate = second half); fast, provisional")
     ra.add_argument("--year", action="store_true", help="validate phase: ONE year of data (train 2021-H2, validate 2022-H1); small memory, provisional")
     ra.add_argument("--quick", action="store_true", help="validate phase: 2019-2022 only and fewer exit variants (provisional, ~1/3 of the time)")
@@ -491,6 +497,8 @@ def main(argv=None) -> int:
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("paper-flatten", help="close the intraday bot's own positions now (the running service does it within 15 s)").add_argument(
+        "--state", default="state/alpaca_paper")
     pz = sub.add_parser("paper-pause", help="on: the intraday bot takes no new entries (open trades keep their exits); off: resume")
     pz.add_argument("mode", choices=["on", "off"])
     pz.add_argument("--state", default="state/alpaca_paper")
@@ -623,6 +631,12 @@ def main(argv=None) -> int:
     if a.cmd == "paper":
         from .paper import main as paper_main
         return paper_main(a)
+    if a.cmd == "paper-flatten":
+        f = Path(a.state) / "FLATTEN_NOW"
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text("flatten this bot's own intraday positions now (owner)\n")
+        print("intraday bot will close its own positions within 15 s (swing positions are not touched)")
+        return 0
     if a.cmd == "paper-pause":
         k = Path(a.state) / "KILL_SWITCH"
         if a.mode == "on":

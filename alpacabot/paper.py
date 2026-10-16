@@ -750,10 +750,11 @@ class PaperRunner:
                 _nm = (sig.tag or "").removeprefix("S:")
                 if rc.get("live") and _nm in RANGE_EXPERTS and _nm not in BOX_STRATEGIES:   # owner: a mean-reversion entry needs the
                     from .confirm import reversal_votes                                       # move against it to be failing, not just stretched
-                    k, failed = reversal_votes(day, len(day) - 1, -1 if sig.side == -1 else 1, float(rc.get("vola_max", 1.2)))
+                    k, failed = reversal_votes(day, len(day) - 1, -1 if sig.side == -1 else 1, float(rc.get("vola_max", 1.2)),
+                                               float(rc.get("stretch_atr", 1.0)))
                     if k < int(rc.get("need", 2)):
                         self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
-                                     result=f"reversal not confirmed ({k}/3; failed: {', '.join(failed)})")
+                                     result=f"reversal not confirmed ({k}/4; failed: {', '.join(failed)})")
                         continue
                 tc = zcfg.get("trend_confirm") or {}
                 from .experts import TREND_EXPERTS
@@ -889,6 +890,15 @@ class PaperRunner:
     def check_session(self, now_et: datetime):
         """Kill switch file and today's real close (early-close days), from the broker's clock."""
         self.weekly_guard(now_et)
+        fl = self.dir / "FLATTEN_NOW"
+        if fl.exists():                              # owner's "flatten now" (python -m alpacabot paper-flatten): close this bot's own positions
+            fl.unlink()
+            for sym in list(self.exits.positions):
+                try:
+                    self.close_now(sym, "flatten_owner", bar_start(now_et) + pd.Timedelta(minutes=5))
+                except Exception:
+                    log.exception("owner flatten: %s", sym)
+            self.journal("owner_flatten", left=list(self.exits.positions))
         killed = (self.dir / "KILL_SWITCH").exists()
         if killed != self.exec.kill_switch:
             self.exec.kill_switch = killed

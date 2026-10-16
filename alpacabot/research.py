@@ -1027,7 +1027,7 @@ def expert_breakdown(days, train, validate, costs: Costs = Costs(), pf: Portfoli
 
 
 def reversal_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
-    """The owner's mean-reversion fix (brain.ReversalConfirm) on the live configuration: live vs need 2 of 3 vs need 3 of 3."""
+    """The owner's mean-reversion fix (brain.ReversalConfirm, 4 checks incl. Velez) on the live configuration: live vs need 2 vs 3 of 4."""
     from .brain import DirectionFirst, ReversalConfirm, StageFilter, TrendConfirm
     from .engine import ZONE_PROFILES
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
@@ -1039,7 +1039,8 @@ def reversal_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Po
         inner = ReversalConfirm(br, need) if need else br
         r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
-    variants = {"live (no reversal check)": None, "mean reversion needs 2 of 3": 2, "mean reversion needs 3 of 3": 3}
+    variants = {"live (no reversal check)": None, "mean reversion needs 2 of 4 (incl. Velez tail / 180 / rubber band)": 2,
+                "mean reversion needs 3 of 4": 3}
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
         out["periods"][per] = {name: cp.get(f"rc-{per}-{k}", lambda nd=nd, a=a, b=b: run(nd, a, b)) for k, (name, nd) in enumerate(variants.items())}
