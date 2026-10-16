@@ -33,6 +33,7 @@ class Signal:
     tp_scale: float = 1.0   # research knob on the regime-scaled take-profit
     exit_col: str = ""      # optional boolean column of the bar frame: when true at a bar's close, sell at the next open
     target_px: float = 0.0  # optional absolute take-profit price (the range box's far edge); with zones on it replaces the zone-map target
+    target2_px: float = 0.0  # optional second take-profit price (Fibonacci box: TP1 = target_px at the 0.5 level, TP2 here at 0.236)
 
 
 @dataclass

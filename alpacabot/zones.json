@@ -65,6 +65,11 @@
   "box": {
    "_note": "owner 2026-10-16: the range box as its own strategy, LIVE without waiting for the test (paper). Weinstein stage, direction and multi-timeframe checks apply as for every expert; buy zone = bottom third of the daily box, stop 0.5 daily ATR outside it, take-profit = far edge less 0.25 daily ATR, cuts and TP steps as drawn. Set live to false to switch it off.",
    "live": true
+  },
+  "fib": {
+   "_note": "owner 2026-10-16: the range box with Fibonacci zones, LIVE on paper at reduced size without a backtest (his decision). Buy zone 0.618-0.786 retracement of the daily box, stop 0.25 daily ATR beyond the box edge, TP1 at the 0.5 level, TP2 at the 0.236 level, drawn cuts and rider. risk_pct = share of equity risked per trade (0.005 = 0.5%, half the normal 1%). Set live to false to switch it off.",
+   "live": true,
+   "risk_pct": 0.005
   }
  },
  "swing": {

@@ -202,6 +202,54 @@ class BoxSignals:
         return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
 
 
+class FibBoxSignals(BoxSignals):
+    """The owner's range box with FIBONACCI zones (his idea 2026-10-16, live on paper at reduced size without a backtest, by his decision).
+    Levels from the daily box (low = the 1.0 retracement, high = 0.0): BUY ZONE = the 0.618-0.786 retracement (bot + 0.214h .. bot + 0.382h);
+    a 5-minute bar between 10:00 and 15:00 trades into it and closes up inside it. STOP ("Sell ALL") 0.25 daily ATR below the box low.
+    TP1 = the 0.5 level (box middle), TP2 = the 0.236 level (bot + 0.764h); the drawn cuts and the trailing rider apply. Needs TP2 at least
+    1R away. Short = mirror. One entry per side per day. Tag "fib_box" so its record is kept apart from the plain box."""
+
+    TAG = "fib_box"
+
+    def box_signals(self, day) -> list:
+        valid, top, bot = day.attrs.get("box", (False, 0.0, 0.0))
+        datr = float(day.attrs.get("box_atr", 0.0))
+        if not valid or top <= bot or datr <= 0 or not len(day):
+            return []
+        h = top - bot
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "10:00") & (t <= "15:00"))
+        o, hi, lo, c = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        fa = day["f_atr"].to_numpy(float) if "f_atr" in day else np.full(len(day), datr / 6.0)
+        z0, z1 = bot + 0.214 * h, bot + 0.382 * h                    # long buy zone (0.786 .. 0.618 retracement)
+        s0, s1 = top - 0.382 * h, top - 0.214 * h                    # short sell zone (mirror)
+        buy = win & (lo <= z1) & (c >= z0) & (c <= z1) & (c > o)
+        sell = win & (hi >= s0) & (c >= s0) & (c <= s1) & (c < o)
+        out = []
+        for side, mask in ((1, buy), (-1, sell)):
+            for i in np.flatnonzero(mask):
+                stop = (c[i] - (bot - 0.25 * datr)) if side == 1 else ((top + 0.25 * datr) - c[i])
+                tp1 = bot + 0.5 * h
+                tp2 = (bot + 0.764 * h) if side == 1 else (top - 0.764 * h)
+                if not (0 < stop <= 3 * datr) or side * (tp2 - c[i]) < stop or side * (tp1 - c[i]) <= 0:
+                    continue
+                a = float(fa[i]) if np.isfinite(fa[i]) and fa[i] > 0 else datr / 6.0
+                out.append(Signal(i=int(i), side=side, stop_dist=float(stop), tag=self.TAG if side == 1 else "S:" + self.TAG, atr=a,
+                                  target_px=float(tp1), target2_px=float(tp2)))
+                break
+        return out
+
+
+def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
+    """Per-trade ladder for a Fibonacci box trade: the first take-profit step at TP1 (the zone itself) and the second at TP2, written as
+    ATRs beyond TP1 so the live ladder code needs no change."""
+    if not cfg or atr <= 0 or len(cfg.get("tp_depth_atr", [])) < 2:
+        return cfg
+    d = list(cfg["tp_depth_atr"])
+    d[0], d[1] = 0.0, abs(tp2 - tp1) / atr
+    return {**cfg, "tp_depth_atr": d}
+
+
 class BoxRangeBrain:
     """Owner's range box for stocks (OANDA drawing applied to Alpaca; the paper plan 2026-10-16 reads Weinstein -> trend indicators -> range box).
     Every signal keeps the stage rule (longs in stage 2, shorts in stage 4) and the multi-timeframe check that wraps this brain; the mean-reversion

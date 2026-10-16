@@ -1400,6 +1400,52 @@ class BoxStrategyTests(unittest.TestCase):
         self.assertGreaterEqual(tr[0].exit_px, 109.4)                               # sold at the box target, not at a zone-map level
 
 
+class FibBoxTests(unittest.TestCase):
+    def _day(self, o_, lo_, c_, hi_, at=60, top=104.0, bot=96.0):
+        idx = pd.date_range("2024-05-01 09:30", periods=78, freq="5min", tz="America/New_York")
+        c = np.full(len(idx), 100.0)
+        o, hi, lo = c.copy(), c + 0.1, c - 0.1
+        o[at], lo[at], c[at], hi[at] = o_, lo_, c_, hi_
+        d = pd.DataFrame({"open": o, "high": hi, "low": lo, "close": c, "volume": 1e5, "f_atr": 0.3}, index=idx)
+        d.attrs.update(box=(True, top, bot), box_atr=2.0)
+        return d
+
+    class Empty:
+        def signals(self, d):
+            return []
+
+    def test_buys_the_618_786_zone_with_tp1_at_half_and_tp2_at_0236(self):
+        from alpacabot.brain import FibBoxSignals
+        got = FibBoxSignals(self.Empty()).signals(self._day(98.0, 97.6, 98.5, 98.6))   # box 96-104: buy zone 97.71 .. 99.06
+        self.assertEqual(len(got), 1)
+        s = got[0]
+        self.assertEqual((s.tag, s.side), ("fib_box", 1))
+        self.assertAlmostEqual(s.stop_dist, 98.5 - (96.0 - 0.25 * 2.0))
+        self.assertAlmostEqual(s.target_px, 100.0)                                 # TP1: the 0.5 level
+        self.assertAlmostEqual(s.target2_px, 96.0 + 0.764 * 8.0)                    # TP2: the 0.236 retracement
+
+    def test_no_trade_above_the_zone_or_without_a_valid_box(self):
+        from alpacabot.brain import FibBoxSignals
+        self.assertEqual(FibBoxSignals(self.Empty()).signals(self._day(99.2, 99.1, 99.5, 99.6)), [])   # closes above the 0.618 level
+        d = self._day(98.0, 97.6, 98.5, 98.6)
+        d.attrs["box"] = (False, 104.0, 96.0)
+        self.assertEqual(FibBoxSignals(self.Empty()).signals(d), [])
+
+    def test_short_is_the_mirror(self):
+        from alpacabot.brain import FibBoxSignals
+        got = FibBoxSignals(self.Empty()).signals(self._day(102.0, 101.4, 101.5, 102.5))        # sell zone 100.94 .. 102.29
+        self.assertEqual([(x.tag, x.side) for x in got], [("S:fib_box", -1)])
+        self.assertAlmostEqual(got[0].target2_px, 104.0 - 0.764 * 8.0)
+
+    def test_per_trade_ladder_puts_tp2_at_the_0236_level(self):
+        from alpacabot.brain import fib_ladder_cfg
+        cfg = {"tp_fracs": [0.25, 0.5], "tp_depth_atr": [0.0, 0.25], "cut_fracs": [0.25, 0.5]}
+        out = fib_ladder_cfg(cfg, 100.0, 105.28, 0.5)
+        self.assertAlmostEqual(out["tp_depth_atr"][1], 5.28 / 0.5)
+        self.assertEqual(cfg["tp_depth_atr"], [0.0, 0.25])                           # the shared plan is not changed
+        self.assertTrue((LadderTests("test_tier_from_depth")._runner(".").zone_config().get("fib") or {}).get("live"))
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

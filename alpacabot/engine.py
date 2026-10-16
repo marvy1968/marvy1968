@@ -54,7 +54,7 @@ ZONE_PROFILES = {
     "range": {"chase_atr": 0.5, "lookback": 20, "min_r": 0.75, "default_r": 1.5, "exhaust_r": 1.5, "target": "mean"},
 }
 TREND_STYLE = {"velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"}     # = experts.TREND_EXPERTS
-RANGE_STYLE = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180", "range_box"}     # = experts.RANGE_EXPERTS
+RANGE_STYLE = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180", "range_box", "fib_box"}     # = experts.RANGE_EXPERTS
 
 
 def zone_profile(zones: dict | None, tag: str) -> dict | None:

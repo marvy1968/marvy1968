@@ -696,9 +696,11 @@ class PaperRunner:
             brain = self.brain
             zbox = getattr(self, "zonemap", {}).get(sym) or {}
             if (self.zone_config().get("box") or {}).get("live") and zbox.get("box"):   # the owner's range box strategy (live by his decision 2026-10-16)
-                from .brain import BoxSignals
+                from .brain import BoxSignals, FibBoxSignals
                 day.attrs["box"], day.attrs["box_atr"] = tuple(zbox["box"]), float(zbox.get("box_atr", 0.0))
                 brain = BoxSignals(self.brain)
+                if (self.zone_config().get("fib") or {}).get("live"):           # the Fibonacci box beside it (owner, 2026-10-16)
+                    brain = FibBoxSignals(brain)
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
@@ -735,6 +737,8 @@ class PaperRunner:
             if lad_cfg:                                                  # owner's scaling: size by how deep price is into the entry zone
                 tier = self.ladder_tier(sym, sig, ref, lad_cfg)
                 self.exec.risk_pct = lad_cfg["entry_risk"][tier]
+            if (sig.tag or "").removeprefix("S:") == "fib_box":         # the Fibonacci box trades at reduced size (owner: "decrease equity use")
+                self.exec.risk_pct = float((zcfg.get("fib") or {}).get("risk_pct", 0.005))
             try:
                 verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
             except requests.HTTPError as exc:                          # a rejected order must not abort the rest of this bar's symbols
@@ -777,8 +781,12 @@ class PaperRunner:
                         side_ = -1 if sig.side == -1 else 1
                         atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)
                         from .engine import ladder_for
+                        lcfg = ladder_for(lad_cfg, sig.tag)
+                        if getattr(sig, "target2_px", 0) > 0:             # Fibonacci box: TP1 at the 0.5 level, TP2 at the 0.236 level
+                            from .brain import fib_ladder_cfg
+                            lcfg = fib_ladder_cfg(lcfg, float(sig.target_px), float(sig.target2_px), atr_i)
                         pos["ladder"] = {"ref": ref, "atr": atr_i, "tier": tier, "stop_px": fill - side_ * sig.stop_dist, "fill": fill,
-                                         "peak_qty": qty, "sold": 0, "tp_steps": 0, "cfg": ladder_for(lad_cfg, sig.tag)}
+                                         "peak_qty": qty, "sold": 0, "tp_steps": 0, "cfg": lcfg}
                         if lad_cfg.get("ride"):                  # the zones take profit; the expert's fixed target would close it all
                             pos["state"].tp = float("inf")
                         self.journal("ladder_open", symbol=sym, tier=tier, risk_pct=lad_cfg["entry_risk"][tier], qty=qty)
