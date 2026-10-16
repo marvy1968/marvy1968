@@ -1,0 +1,412 @@
+{
+ "generated": "2026-10-16T18:41:55.303304+00:00",
+ "version": "soccer-live-props-1.0",
+ "fit_on_train": {
+  "f2": 0.523,
+  "beta_lead": -0.024,
+  "beta_trail": 0.1022,
+  "end_minute": 93.0
+ },
+ "train": {
+  "n": 17771,
+  "end": "2026-08-21"
+ },
+ "test": {
+  "n": 416,
+  "start": "2026-08-21",
+  "end": "2026-09-20",
+  "leagues": {
+   "eng.1": 50,
+   "eng.2": 83,
+   "esp.1": 62,
+   "fra.1": 45,
+   "ger.1": 36,
+   "ita.1": 50,
+   "ned.1": 45,
+   "por.1": 45
+  }
+ },
+ "test_scores": {
+  "marv_fit": {
+   "markets": {
+    "total_o1.5": {
+     "n": 248,
+     "brier": 0.1898,
+     "logloss": 0.5598,
+     "mean_p": 0.6173,
+     "hit": 0.6492
+    },
+    "total_o2.5": {
+     "n": 346,
+     "brier": 0.193,
+     "logloss": 0.5719,
+     "mean_p": 0.4588,
+     "hit": 0.5318
+    },
+    "total_o3.5": {
+     "n": 395,
+     "brier": 0.1631,
+     "logloss": 0.4951,
+     "mean_p": 0.3015,
+     "hit": 0.3772
+    },
+    "home_tt_o0.5": {
+     "n": 204,
+     "brier": 0.2334,
+     "logloss": 0.6589,
+     "mean_p": 0.5368,
+     "hit": 0.5539
+    },
+    "home_tt_o1.5": {
+     "n": 344,
+     "brier": 0.1867,
+     "logloss": 0.5563,
+     "mean_p": 0.3422,
+     "hit": 0.3837
+    },
+    "away_tt_o0.5": {
+     "n": 232,
+     "brier": 0.2465,
+     "logloss": 0.6873,
+     "mean_p": 0.4843,
+     "hit": 0.5431
+    },
+    "away_tt_o1.5": {
+     "n": 351,
+     "brier": 0.1819,
+     "logloss": 0.5434,
+     "mean_p": 0.2695,
+     "hit": 0.3077
+    },
+    "btts_yes": {
+     "n": 322,
+     "brier": 0.2261,
+     "logloss": 0.6455,
+     "mean_p": 0.4202,
+     "hit": 0.4752
+    }
+   },
+   "pooled_brier": 0.1982,
+   "pooled_logloss": 0.5799,
+   "pooled_n": 2442,
+   "reliability": [
+    {
+     "bin": "0.0-0.2",
+     "n": 591,
+     "pred": 0.127,
+     "obs": 0.161
+    },
+    {
+     "bin": "0.2-0.4",
+     "n": 534,
+     "pred": 0.3,
+     "obs": 0.354
+    },
+    {
+     "bin": "0.4-0.6",
+     "n": 857,
+     "pred": 0.498,
+     "obs": 0.554
+    },
+    {
+     "bin": "0.6-0.8",
+     "n": 342,
+     "pred": 0.703,
+     "obs": 0.763
+    },
+    {
+     "bin": "0.8-1.0",
+     "n": 118,
+     "pred": 0.835,
+     "obs": 0.898
+    }
+   ]
+  },
+  "marv_overlay_93": {
+   "markets": {
+    "total_o1.5": {
+     "n": 248,
+     "brier": 0.191,
+     "logloss": 0.5635,
+     "mean_p": 0.6059,
+     "hit": 0.6492
+    },
+    "total_o2.5": {
+     "n": 346,
+     "brier": 0.196,
+     "logloss": 0.5787,
+     "mean_p": 0.445,
+     "hit": 0.5318
+    },
+    "total_o3.5": {
+     "n": 395,
+     "brier": 0.1659,
+     "logloss": 0.5026,
+     "mean_p": 0.2886,
+     "hit": 0.3772
+    },
+    "home_tt_o0.5": {
+     "n": 204,
+     "brier": 0.2372,
+     "logloss": 0.6665,
+     "mean_p": 0.5167,
+     "hit": 0.5539
+    },
+    "home_tt_o1.5": {
+     "n": 344,
+     "brier": 0.1885,
+     "logloss": 0.5617,
+     "mean_p": 0.3306,
+     "hit": 0.3837
+    },
+    "away_tt_o0.5": {
+     "n": 232,
+     "brier": 0.2493,
+     "logloss": 0.6928,
+     "mean_p": 0.4629,
+     "hit": 0.5431
+    },
+    "away_tt_o1.5": {
+     "n": 351,
+     "brier": 0.183,
+     "logloss": 0.5466,
+     "mean_p": 0.2578,
+     "hit": 0.3077
+    },
+    "btts_yes": {
+     "n": 322,
+     "brier": 0.2305,
+     "logloss": 0.6545,
+     "mean_p": 0.3936,
+     "hit": 0.4752
+    }
+   },
+   "pooled_brier": 0.2008,
+   "pooled_logloss": 0.586,
+   "pooled_n": 2442,
+   "reliability": [
+    {
+     "bin": "0.0-0.2",
+     "n": 641,
+     "pred": 0.123,
+     "obs": 0.168
+    },
+    {
+     "bin": "0.2-0.4",
+     "n": 552,
+     "pred": 0.306,
+     "obs": 0.382
+    },
+    {
+     "bin": "0.4-0.6",
+     "n": 837,
+     "pred": 0.491,
+     "obs": 0.568
+    },
+    {
+     "bin": "0.6-0.8",
+     "n": 319,
+     "pred": 0.709,
+     "obs": 0.777
+    },
+    {
+     "bin": "0.8-1.0",
+     "n": 93,
+     "pred": 0.831,
+     "obs": 0.903
+    }
+   ]
+  },
+  "marv_fit_bayes": {
+   "markets": {
+    "total_o1.5": {
+     "n": 248,
+     "brier": 0.1898,
+     "logloss": 0.5598,
+     "mean_p": 0.6173,
+     "hit": 0.6492
+    },
+    "total_o2.5": {
+     "n": 346,
+     "brier": 0.193,
+     "logloss": 0.5719,
+     "mean_p": 0.4588,
+     "hit": 0.5318
+    },
+    "total_o3.5": {
+     "n": 395,
+     "brier": 0.1631,
+     "logloss": 0.4951,
+     "mean_p": 0.3015,
+     "hit": 0.3772
+    },
+    "home_tt_o0.5": {
+     "n": 204,
+     "brier": 0.2334,
+     "logloss": 0.6589,
+     "mean_p": 0.5368,
+     "hit": 0.5539
+    },
+    "home_tt_o1.5": {
+     "n": 344,
+     "brier": 0.1867,
+     "logloss": 0.5563,
+     "mean_p": 0.3422,
+     "hit": 0.3837
+    },
+    "away_tt_o0.5": {
+     "n": 232,
+     "brier": 0.2465,
+     "logloss": 0.6873,
+     "mean_p": 0.4843,
+     "hit": 0.5431
+    },
+    "away_tt_o1.5": {
+     "n": 351,
+     "brier": 0.1819,
+     "logloss": 0.5434,
+     "mean_p": 0.2695,
+     "hit": 0.3077
+    },
+    "btts_yes": {
+     "n": 322,
+     "brier": 0.2261,
+     "logloss": 0.6455,
+     "mean_p": 0.4202,
+     "hit": 0.4752
+    }
+   },
+   "pooled_brier": 0.1982,
+   "pooled_logloss": 0.5799,
+   "pooled_n": 2442,
+   "reliability": [
+    {
+     "bin": "0.0-0.2",
+     "n": 591,
+     "pred": 0.127,
+     "obs": 0.161
+    },
+    {
+     "bin": "0.2-0.4",
+     "n": 534,
+     "pred": 0.3,
+     "obs": 0.354
+    },
+    {
+     "bin": "0.4-0.6",
+     "n": 857,
+     "pred": 0.498,
+     "obs": 0.554
+    },
+    {
+     "bin": "0.6-0.8",
+     "n": 342,
+     "pred": 0.703,
+     "obs": 0.763
+    },
+    {
+     "bin": "0.8-1.0",
+     "n": 118,
+     "pred": 0.835,
+     "obs": 0.898
+    }
+   ]
+  },
+  "league_avg_fit": {
+   "markets": {
+    "total_o1.5": {
+     "n": 248,
+     "brier": 0.1906,
+     "logloss": 0.5642,
+     "mean_p": 0.61,
+     "hit": 0.6492
+    },
+    "total_o2.5": {
+     "n": 346,
+     "brier": 0.1981,
+     "logloss": 0.5837,
+     "mean_p": 0.4451,
+     "hit": 0.5318
+    },
+    "total_o3.5": {
+     "n": 395,
+     "brier": 0.17,
+     "logloss": 0.5129,
+     "mean_p": 0.285,
+     "hit": 0.3772
+    },
+    "home_tt_o0.5": {
+     "n": 204,
+     "brier": 0.2465,
+     "logloss": 0.686,
+     "mean_p": 0.5591,
+     "hit": 0.5539
+    },
+    "home_tt_o1.5": {
+     "n": 344,
+     "brier": 0.1962,
+     "logloss": 0.5786,
+     "mean_p": 0.3407,
+     "hit": 0.3837
+    },
+    "away_tt_o0.5": {
+     "n": 232,
+     "brier": 0.2512,
+     "logloss": 0.6955,
+     "mean_p": 0.4942,
+     "hit": 0.5431
+    },
+    "away_tt_o1.5": {
+     "n": 351,
+     "brier": 0.1863,
+     "logloss": 0.5574,
+     "mean_p": 0.2609,
+     "hit": 0.3077
+    },
+    "btts_yes": {
+     "n": 322,
+     "brier": 0.233,
+     "logloss": 0.659,
+     "mean_p": 0.4418,
+     "hit": 0.4752
+    }
+   },
+   "pooled_brier": 0.2045,
+   "pooled_logloss": 0.5949,
+   "pooled_n": 2442,
+   "reliability": [
+    {
+     "bin": "0.0-0.2",
+     "n": 655,
+     "pred": 0.145,
+     "obs": 0.179
+    },
+    {
+     "bin": "0.2-0.4",
+     "n": 372,
+     "pred": 0.286,
+     "obs": 0.358
+    },
+    {
+     "bin": "0.4-0.6",
+     "n": 1081,
+     "pred": 0.505,
+     "obs": 0.56
+    },
+    {
+     "bin": "0.6-0.8",
+     "n": 274,
+     "pred": 0.736,
+     "obs": 0.781
+    },
+    {
+     "bin": "0.8-1.0",
+     "n": 60,
+     "pred": 0.816,
+     "obs": 0.95
+    }
+   ]
+  }
+ },
+ "note": "HT state only (football-data has no in-play minute data); unseen = last 30 days of walk-forward preds"
+}

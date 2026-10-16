@@ -534,6 +534,11 @@ def cmd_serve(s: Settings, args) -> int:
                     o = bridge.game_h2h(state, q.get("sport", ""), q.get("team") or None, q.get("other") or None,
                                         q.get("text") or None)
                     body, code = bridge.overlay_json(o), 200
+                elif url.path == "/soccer_live":  # in-game soccer prop probabilities (March_edge SHADOW tracker; no Telegram)
+                    from .soccer_max import live_props as _slp
+                    body, code = json.dumps(_slp.live_prices(
+                        state, q.get("league", ""), q.get("team") or None, q.get("other") or None, int(q["hg"]),
+                        int(q["ag"]), float(q["minute"]), q.get("ht", "").lower() in ("1", "true", "yes"))), 200
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200

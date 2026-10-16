@@ -1,0 +1,91 @@
+id,ts,league,game,state,bet,price,sent,marv_ev,profit,final_total,dup
+776,2026-10-09T14:33,por.1,Gil Vicente @ Moreirense,0-0 45',over 1,-130.0,1,-0.0182,0.0,1,False
+777,2026-10-09T15:10,ned.1,Heerenveen @ PSV Eindhoven,0-1 49',over 2.5,-190.0,1,-0.0694,-1.0,2,False
+778,2026-10-09T15:12,ger.1,Werder Bremen @ Dortmund,0-0 43',over 1.5,-160.0,1,-0.1587,0.625,4,False
+779,2026-10-09T15:15,por.1,Gil Vicente @ Moreirense,0-0 68',over 0.5,-112.0,1,-0.0989,0.8928571428571428,1,False
+780,2026-10-09T15:23,fra.1,Lyon @ Lens,0-1 38',over 1.5,-188.0,1,0.3094,0.5319148936170213,3,False
+781,2026-10-09T16:00,ger.1,Werder Bremen @ Dortmund,0-0 70',over 0.5,-220.0,1,-0.1995,0.4545454545454546,4,False
+782,2026-10-09T17:06,por.1,Sp Lisbon @ Sp Braga,3-1 85',under 4.5,-190.0,1,0.1795,0.5263157894736841,4,False
+834,2026-10-10T08:50,eng.2,Norwich @ Swansea,1-2 62',under 4,-125.0,1,0.0307,0.8,3,False
+835,2026-10-10T09:18,ita.1,Fiorentina @ Genoa,0-2 16',under 4.5,-185.0,1,0.0311,0.5405405405405406,3,False
+836,2026-10-10T10:14,eng.1,Brentford @ Aston Villa,1-1 14',under 4.5,-110.0,1,0.0185,0.9090909090909092,4,False
+847,2026-10-10T10:25,eng.2,Burnley @ Watford,2-0 24',under 4.25,-115.0,1,0.233,0.4347826086956521,4,False
+848,2026-10-10T10:38,eng.2,Burnley @ Watford,3-0 36',under 5,105.0,1,0.3828,1.0499999999999998,4,False
+849,2026-10-10T10:52,ger.1,Elversberg @ Union Berlin,0-0 63',over 0.5,-250.0,1,-0.1063,0.3999999999999999,1,False
+854,2026-10-10T11:02,ger.1,Stuttgart @ Paderborn,1-0 73',over 1.5,-200.0,1,-0.2718,0.5,2,False
+855,2026-10-10T11:12,eng.1,Bournemouth @ Chelsea,1-3 54',under 5.5,-160.0,1,-0.0079,-1.0,6,False
+856,2026-10-10T11:13,eng.2,Cardiff @ Blackburn,1-2 57',under 4.5,-160.0,1,0.1896,0.625,3,False
+857,2026-10-10T11:20,eng.2,Millwall @ Preston,0-0 60',over 0.5,-222.0,1,-0.13,0.4504504504504505,1,False
+858,2026-10-10T11:35,eng.1,Bournemouth @ Chelsea,1-5 76',under 6.5,-110.0,1,0.0616,0.9090909090909092,6,False
+859,2026-10-10T11:54,ned.1,Sparta Rotterdam @ Go Ahead Eagles,2-2 65',under 5.5,-230.0,1,0.0119,-1.0,6,False
+862,2026-10-10T12:06,ned.1,Sparta Rotterdam @ Go Ahead Eagles,2-3 76',under 6.5,-850.0,1,-0.0466,0.11764705882352944,6,False
+867,2026-10-10T12:37,ger.1,Ein Frankfurt @ RB Leipzig,0-2 7',under 5.5,102.0,1,0.0434,-1.0,6,False
+871,2026-10-10T12:38,ita.1,Parma @ Inter,0-3 37',under 5.5,-148.0,1,0.2264,0.6756756756756757,3,False
+881,2026-10-10T13:11,eng.1,Tottenham @ Man United,0-0 41',over 1.5,-160.0,1,-0.1298,0.625,2,False
+885,2026-10-10T13:19,ger.1,Ein Frankfurt @ RB Leipzig,0-4 45',under 6.5,-170.0,1,0.0618,0.5882352941176472,6,False
+902,2026-10-10T13:52,usa.1,CF Montreal @ Toronto FC,0-0 41',over 1.5,-188.0,1,-0.2715,0.5319148936170213,3,False
+967,2026-10-10T15:15,fra.1,Angers @ Brest,0-3 30',under 4.5,-188.0,0,-0.3333,-1.0,6,False
+972,2026-10-10T15:24,ned.1,Nijmegen @ Ajax,1-1 21',under 5.5,-162.0,1,0.0901,0.617283950617284,2,False
+974,2026-10-10T15:37,fra.1,Angers @ Brest,0-4 45',under 5.5,-110.0,0,0.0951,-1.0,6,False
+975,2026-10-10T15:37,fra.1,Le Mans @ Paris SG,0-1 45',over 2.5,-202.0,1,-0.0578,0.49504950495049505,4,False
+991,2026-10-10T15:57,fra.1,Toulouse @ Monaco,1-2 51',under 4.5,-122.0,0,0.0517,0.819672131147541,4,False
+992,2026-10-10T15:57,fra.1,Angers @ Brest,1-4 52',under 6.5,-148.0,0,0.0855,0.6756756756756757,6,False
+993,2026-10-10T15:57,fra.1,Paris FC @ Lorient,0-0 56',over 0.5,-188.0,0,-0.0285,0.5319148936170213,1,False
+998,2026-10-10T16:02,fra.1,Angers @ Brest,1-5 57',under 7.5,-188.0,0,0.0766,0.5319148936170213,6,False
+1002,2026-10-10T16:09,fra.1,Angers @ Brest,1-5 64',under 7.5,-188.0,1,0.1957,0.5319148936170213,6,True
+1004,2026-10-10T16:11,fra.1,Paris FC @ Lorient,0-1 69',over 0.5,-110.0,1,0.9091,0.9090909090909092,1,True
+1120,2026-10-10T19:50,usa.1,Columbus Crew @ Orlando City,1-1 10',under 5.5,-140.0,0,0.0404,0.7142857142857144,5,False
+1124,2026-10-10T20:10,usa.1,San Diego FC @ New York Red Bulls,0-3 30',under 5.5,108.0,0,0.3153,1.08,5,False
+1129,2026-10-10T20:18,usa.1,FC Cincinnati @ Atlanta Utd,0-0 38',over 1.5,-188.0,0,-0.1019,0.5319148936170213,4,False
+1141,2026-10-10T20:26,usa.1,Columbus Crew @ Orlando City,1-2 45',under 5.5,-160.0,1,0.1309,0.625,5,True
+1142,2026-10-10T20:26,usa.1,San Diego FC @ New York Red Bulls,0-3 45',under 5.5,-160.0,1,0.2478,0.625,5,True
+1156,2026-10-11T07:01,ned.1,Willem II @ Utrecht,0-0 44',over 1.5,-177.0,0,-0.1356,0.5649717514124295,4,False
+1160,2026-10-11T08:02,ita.1,Roma @ Como,0-0 69',over 0.5,-220.0,0,-0.301,-1.0,0,False
+1162,2026-10-11T09:00,ned.1,Den Haag @ Telstar,2-1 30',under 5.5,-128.0,0,0.112,0.78125,4,False
+1163,2026-10-11T09:11,ned.1,Den Haag @ Telstar,2-2 40',under 6.5,-162.0,0,0.199,0.617283950617284,4,False
+1164,2026-10-11T09:15,esp.1,Celta @ Elche,0-0 56',over 0.5,-220.0,0,-0.0134,-1.0,0,False
+1165,2026-10-11T09:15,ned.1,Cambuur @ Zwolle,0-0 45',over 1.5,-155.0,0,-0.1179,-1.0,1,False
+1166,2026-10-11T09:23,ita.1,Monza @ Lazio,0-1 23',under 4.5,-170.0,1,0.3357,0.5882352941176472,4,False
+1171,2026-10-11T09:52,eng.1,Nott'm Forest @ Crystal Palace,1-2 45',under 4.5,-122.0,0,0.0466,0.819672131147541,4,False
+1172,2026-10-11T10:02,ned.1,Cambuur @ Zwolle,0-0 71',over 0.5,-190.0,0,-0.1436,0.5263157894736841,1,False
+1175,2026-10-11T10:27,eng.1,Nott'm Forest @ Crystal Palace,1-3 65',under 5.5,-220.0,1,0.1528,0.4545454545454546,4,False
+1177,2026-10-11T10:38,eng.1,Everton @ Hull,2-2 76',under 4.5,102.0,0,0.3256,1.02,4,False
+1202,2026-10-11T11:23,ned.1,Groningen @ Excelsior,1-1 39',under 6.5,-600.0,1,0.1296,0.16666666666666674,6,False
+1203,2026-10-11T11:32,esp.1,La Coruna @ Sociedad,0-3 57',under 4.5,-185.0,0,0.0755,-1.0,5,False
+1212,2026-10-11T11:53,esp.1,La Coruna @ Sociedad,2-3 78',under 5.5,102.0,0,0.276,1.02,5,False
+1213,2026-10-11T11:54,por.1,Nacional @ Rio Ave,1-2 59',under 4,-143.0,0,-0.0657,-1.0,5,False
+1214,2026-10-11T12:01,ger.1,Schalke 04 @ Freiburg,1-1 31',under 4.5,-160.0,1,0.1142,0.625,3,False
+1215,2026-10-11T12:04,por.1,Nacional @ Rio Ave,2-2 70',under 4.75,-122.0,0,0.0706,-0.5,5,False
+1216,2026-10-11T12:14,por.1,Nacional @ Rio Ave,2-3 80',under 5.5,-150.0,0,0.0962,0.6666666666666665,5,False
+1235,2026-10-11T13:46,esp.1,Osasuna @ Betis,0-3 52',under 4.5,-122.0,0,0.1015,-1.0,7,False
+1237,2026-10-11T13:56,esp.1,Osasuna @ Betis,2-3 62',under 5.5,178.0,0,-0.0066,-1.0,7,False
+1244,2026-10-11T14:07,esp.1,Osasuna @ Betis,2-4 73',under 6.5,112.0,0,0.0914,-1.0,7,False
+1333,2026-10-11T16:18,esp.1,Valencia @ Santander,1-2 58',under 4.5,-170.0,1,0.0178,0.5882352941176472,4,False
+1475,2026-10-11T19:20,usa.1,Los Angeles Galaxy @ St. Louis City,0-2 8',under 5.5,-140.0,1,0.0593,-1.0,8,False
+1476,2026-10-11T19:48,usa.1,Los Angeles Galaxy @ St. Louis City,1-3 36',under 6.5,-150.0,1,0.0757,-1.0,8,False
+1477,2026-10-11T20:09,usa.1,Los Angeles Galaxy @ St. Louis City,1-5 45',under 7.5,115.0,1,0.0021,-1.0,8,False
+1538,2026-10-12T12:40,ita.1,Venezia @ Atalanta,0-2 8',under 4.5,122.0,1,0.1516,1.2199999999999998,4,False
+1539,2026-10-12T13:08,ita.1,Venezia @ Atalanta,0-3 37',under 5.5,-170.0,1,0.1918,0.5882352941176472,4,False
+1543,2026-10-12T16:35,por.1,Alverca @ Famalicao,2-1 58',under 4,-130.0,1,0.0045,-1.0,5,False
+1544,2026-10-12T16:40,eng.1,Newcastle @ Coventry,1-3 83',under 4.5,-160.0,0,0.1812,-1.0,5,False
+1545,2026-10-12T16:47,eng.1,Newcastle @ Coventry,1-4 90',under 5.5,-400.0,0,0.1359,0.25,5,False
+1546,2026-10-12T16:56,por.1,Alverca @ Famalicao,3-1 80',under 4.5,-150.0,0,0.1402,-1.0,5,False
+1547,2026-10-12T16:57,esp.1,Sevilla @ Levante,3-2 90',under 4.5,-575.0,0,-1.0,-1.0,6,False
+1548,2026-10-12T17:04,por.1,Alverca @ Famalicao,4-1 87',under 5.5,-250.0,0,0.175,0.3999999999999999,5,False
+1575,2026-10-13T15:28,eng.2,Watford @ Cardiff,0-3 43',under 5,-108.0,1,0.2668,-1.0,6,False
+1578,2026-10-13T15:36,eng.2,Watford @ Cardiff,0-4 45',under 5.75,108.0,1,0.2584,-0.5,6,False
+1579,2026-10-13T15:36,eng.2,West Brom @ Wrexham,0-0 45',over 1,-134.0,1,-0.008,0.7462686567164178,3,False
+1581,2026-10-13T15:50,eng.2,Preston @ Birmingham,0-3 45',under 4.5,-105.0,1,0.1504,0.9523809523809523,4,False
+1583,2026-10-13T15:57,eng.2,Swansea @ Millwall,0-0 57',over 1,102.0,1,-0.088,0.0,1,False
+1584,2026-10-13T16:04,eng.2,Charlton @ Burnley,1-2 60',under 4,-110.0,1,0.1653,0.0,4,False
+1585,2026-10-13T16:12,eng.2,Swansea @ Millwall,0-0 71',over 0.5,-125.0,1,-0.1686,0.8,1,False
+1588,2026-10-13T16:26,eng.2,Bolton @ Wolves,3-1 84',under 4.5,-170.0,0,0.1293,0.5882352941176472,4,False
+1592,2026-10-13T16:41,eng.2,Watford @ Cardiff,1-5 90',under 6.5,-1400.0,0,-0.027,0.0714285714285714,6,False
+1594,2026-10-13T16:48,eng.2,Middlesbrough @ Stoke,2-2 90',under 4.5,-850.0,0,0.0239,-1.0,5,False
+1622,2026-10-14T15:09,eng.2,Derby @ QPR,0-2 24',under 4,-125.0,1,-0.002,-1.0,5,False
+1623,2026-10-14T15:24,eng.2,Southampton @ Norwich,0-0 39',over 1.75,-115.0,1,-0.0549,-1.0,1,False
+1624,2026-10-14T15:32,eng.2,Southampton @ Norwich,0-0 45',over 1.5,-115.0,1,-0.0523,-1.0,1,False
+1625,2026-10-14T15:32,eng.2,Derby @ QPR,0-3 45',under 4.75,-122.0,1,0.1932,-0.5,5,False
+1631,2026-10-14T16:10,eng.2,West Ham @ Lincoln,3-0 51',under 5,102.0,1,0.4608,-1.0,6,False
+1632,2026-10-14T16:18,eng.2,Sheffield United @ Portsmouth,2-2 73',under 4.5,105.0,1,0.1597,-1.0,5,False
+1635,2026-10-14T16:40,eng.2,West Ham @ Lincoln,5-0 82',under 5.75,-105.0,0,0.492,-0.5,6,False
