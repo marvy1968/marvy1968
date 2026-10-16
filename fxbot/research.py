@@ -233,3 +233,23 @@ def box_diagnosis(data: dict, a=None, b=None) -> list[str]:
     anatomy("VOLUME: z-score band (SMA200 +- 2 sigma) + volume >= 1.5x, target the middle", RangeBox200(levels="zscore", vol_mult=1.5, target="mid"))
     anatomy("VOLUME: failed breakout + volume >= 1.5x, target the middle", RangeBoxFailed(target="mid", vol_mult=1.5))
     return lines
+
+
+
+def confirm_check(data: dict) -> list[str]:
+    """Confirmed-breakout (continuation) settings from the fx_boxconfirm_h1 grid, train 2016-20 vs validate 2021-22, real bid/ask costs,
+    portfolio as in walk_forward (Book defaults), plus 2x spread and 20 placebos on validation."""
+    import datetime as _d
+    out = []
+    for vm, ar in ((1.5, 1.2), (1.5, 1.1), (1.5, 1.0), (1.2, 1.2)):
+        strat = BoxConfirm(mode="continuation", vol_mult=vm, atr_ratio=ar)
+        tr = run(strat, data, *TRAIN)
+        va = run(strat, data, *VALIDATE)
+        x2 = run(strat, data, *VALIDATE, spread_mult=2.0)
+        plc = [run(strat, data, *VALIDATE, placebo_seed=s_).get("profit_factor") or 0 for s_ in range(20)]
+        beat = float(np.mean([(va.get("profit_factor") or 0) > p for p in plc]))
+        out.append(f"- continuation vol {vm}x ATR {ar}x | train {tr.get('trades')}t PF {tr.get('profit_factor') or 0:.2f} total {tr.get('total_return') or 0:+.1%} "
+                   f"maxDD {tr.get('max_drawdown') or 0:.1%} | validate {va.get('trades')}t win {va.get('win_rate') or 0:.0%} PF {va.get('profit_factor') or 0:.2f} "
+                   f"total {va.get('total_return') or 0:+.1%} maxDD {va.get('max_drawdown') or 0:.1%} | 2x spread {x2.get('total_return') or 0:+.1%} | "
+                   f"placebo PF {np.mean(plc):.2f}, real beats {beat:.0%}")
+    return out

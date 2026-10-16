@@ -68,6 +68,15 @@ def run_all(a) -> int:
     for fam in a.families:
         first = len(lines)
         try:
+            if fam == "confirmcheck_fx":           # confirmed-breakout settings, train vs validate (fxbot.research.confirm_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import confirm_check
+                fxd = {i: fx_load(i, "H1", _dt.date(2015, 1, 1), _dt.date(2022, 12, 31), Path("state/fx/cache")) for i in MAJORS}
+                lines += ["## confirmcheck_fx: confirmed box breakouts (H1)"] + confirm_check(fxd)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "boxdiag_fx":                # why the owner's OANDA range box loses (fxbot.research.box_diagnosis)
                 import datetime as _dt
                 from fxbot.data import MAJORS
