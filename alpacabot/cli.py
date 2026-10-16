@@ -235,6 +235,13 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = profile_assign_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_pa.json")
+                elif fam == "box_diag":         # where the range box strategy's signals go (research.box_diag)
+                    from .research import box_diag
+                    from .zonemap import attach
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms}, with_box=True)
+                    res = {"family": "box_diag", "verdict": "counts: " + json.dumps(box_diag(days, train[0], test[1]))}
                 elif fam == "box_strategy":     # the owner's range box as its own stock strategy (research.box_strategy_study)
                     from .research import box_strategy_study
                     from .zonemap import attach

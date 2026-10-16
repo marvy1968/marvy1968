@@ -897,6 +897,44 @@ def box_strategy_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def box_diag(days, a, b) -> dict:
+    """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
+    signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""
+    from .brain import BoxSignals, DirectionFirst, FibBoxSignals, StageFilter, TrendConfirm
+    import datetime as _d
+    a, b = _d.date.fromisoformat(str(a)), _d.date.fromisoformat(str(b))
+    out = {"sessions": 0, "box_attr": 0, "valid_box": 0, "atr_bad": 0}
+    for gen in ("box", "fib"):
+        for k in ("raw", "direction", "stage", "mtf"):
+            out[f"{gen}_{k}"] = 0
+    class Empty:
+        def signals(self, d):
+            return []
+    for sym, frames in days.items():
+        for f in frames:
+            dd = f.index[0].date()
+            if not (a <= dd <= b):
+                continue
+            out["sessions"] += 1
+            bx = f.attrs.get("box")
+            if bx is None:
+                continue
+            out["box_attr"] += 1
+            if not bx[0]:
+                continue
+            out["valid_box"] += 1
+            at = f.attrs.get("box_atr", 0.0)
+            if not (at == at) or at <= 0:
+                out["atr_bad"] += 1
+            for gen, cls in (("box", BoxSignals), ("fib", FibBoxSignals)):
+                raw = cls(Empty())
+                out[f"{gen}_raw"] += len(raw.signals(f))
+                out[f"{gen}_direction"] += len(DirectionFirst(raw).signals(f))
+                out[f"{gen}_stage"] += len(StageFilter(DirectionFirst(raw)).signals(f))
+                out[f"{gen}_mtf"] += len(TrendConfirm(StageFilter(DirectionFirst(raw))).signals(f))
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 
