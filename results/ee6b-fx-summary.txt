@@ -1,3 +1,12 @@
 $ show fx/reports/summary.md
-started 2026-10-15 22:41:03 EDT
-RUNNING...
+started 2026-10-15 22:41:03 EDT, took 0s, exit 0
+
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxgate_f0_half: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'n': 100}: 55t PF 0.79 total -3.9% maxDD(closed) -5.2%
