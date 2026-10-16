@@ -27,7 +27,7 @@ from .indicators import adx, atr, bollinger, ema, rsi, session_vwap, sma
 from .strategies import DualRegime, Signal
 
 TREND_EXPERTS = {"velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"}
-RANGE_EXPERTS = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180", "range_box", "fib_box"}   # range_box = the owner's box strategy (brain.BoxSignals)
+RANGE_EXPERTS = {"connors_rsi2", "bollinger_bounce", "williams_r", "vwap_dev", "velez_180", "range_box", "fib_box", "hybrid_box"}   # range_box = the owner's box strategy (brain.BoxSignals)
 # Candidate expert (owner's idea, 2026-10-14: "trading the open"). Study verdict ADD (2026-10-15, one-year provisional: PF 0.66 vs 0.65 on train,
 # 0.82 vs 0.78 on validate with the ten, max drawdown 29.9% vs 35.8%), so it is the 11th live expert. Alone it still loses on validation (PF 0.84).
 CANDIDATE_EXPERTS = ["opening_range_breakout"]

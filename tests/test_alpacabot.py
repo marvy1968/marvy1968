@@ -1448,6 +1448,36 @@ class FibBoxTests(unittest.TestCase):
             self.assertTrue((LadderTests("test_tier_from_depth")._runner(tmp).zone_config().get("fib") or {}).get("live"))
 
 
+class HybridBoxTests(unittest.TestCase):
+    def test_buys_the_confluence_level_with_two_take_profit_lines(self):
+        from alpacabot.brain import HybridBoxSignals
+        idx = pd.date_range("2024-05-01 09:30", periods=78, freq="5min", tz="America/New_York")
+        c = np.full(len(idx), 100.0)
+        o, hi, lo = c.copy(), c + 0.1, c - 0.1
+        o[60], lo[60], c[60], hi[60] = 97.7, 97.4, 98.0, 98.1          # dips to the strong 97.5 swing level, closes up
+        d = pd.DataFrame({"open": o, "high": hi, "low": lo, "close": c, "volume": 1e5, "f_atr": 0.3}, index=idx)
+        d.attrs.update(box=(True, 104.0, 94.0), box_atr=1.0,
+                       levels=[{"price": 97.5, "touches": 3, "strong": True}, {"price": 101.5, "touches": 2, "strong": True}])
+        class Empty:
+            def signals(self, x):
+                return []
+        got = HybridBoxSignals(Empty()).signals(d)
+        self.assertEqual(len(got), 1)
+        s = got[0]
+        self.assertEqual((s.tag, s.side, s.i), ("hybrid_box", 1, 60))
+        self.assertGreater(s.target_px, 98.0 + s.stop_dist - 1e-9)                 # TP1 at least 1R away
+        self.assertTrue(s.target2_px == 0.0 or s.target2_px > s.target_px)
+        self.assertTrue((LadderTests("test_tier_from_depth")._runner(self.tmp).zone_config().get("hybrid") or {}).get("live"))
+
+    def setUp(self):
+        import tempfile
+        self._t = tempfile.TemporaryDirectory()
+        self.tmp = self._t.name
+
+    def tearDown(self):
+        self._t.cleanup()
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

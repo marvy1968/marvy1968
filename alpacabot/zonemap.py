@@ -147,3 +147,56 @@ def weekly_for_session(daily: pd.DataFrame, session_date) -> int:
         return 0
     prior = daily[daily.index.date < session_date]
     return int(weekly_bias(prior).iloc[-1]) if len(prior) >= 160 else 0
+
+
+FIBS = (0.236, 0.382, 0.5, 0.618, 0.786)
+HYBRID_RULES = {"tol_atr": 0.25, "zone_atr": 0.25, "chase_atr": 0.5, "stop_atr": 0.5, "min_r1": 1.0, "min_r2": 0.5,
+                "deep": 0.382}
+
+
+def hybrid_plan(top: float, bot: float, atr: float, levels: list | None, side: int) -> dict | None:
+    """The owner's HYBRID zones (2026-10-16): where the range box, its Fibonacci levels and the stock's / pair's own swing levels agree.
+    Long: candidate supports are the box low, the 0.618 and 0.786 retracements and every swing level in the lower `deep` part of the box; each
+    scores 1 + the number of OTHER candidates within tol_atr x ATR (+1 more for a strong swing level). The best-scored support is the ENTRY
+    level L (ties: nearest the 0.618 level). Targets = the 0.5 / 0.382 / 0.236 levels, the box top and the swing levels above the deep part,
+    sorted outward. Short = mirror. Returns {"entry", "score", "targets"} or None."""
+    h = top - bot
+    if not (h > 0 and atr > 0):
+        return None
+    r = HYBRID_RULES
+    lv = [(float(x["price"]), bool(x.get("strong"))) for x in (levels or []) if bot - 0.5 * atr <= float(x["price"]) <= top + 0.5 * atr]
+    if side == 1:
+        fib_lo = [top - f * h for f in (0.618, 0.786)]
+        sup = [(bot, False), *[(p, False) for p in fib_lo], *[(p, st) for p, st in lv if p <= bot + r["deep"] * h]]
+        tg = sorted({top - f * h for f in (0.5, 0.382, 0.236)} | {top} | {p for p, _ in lv if p > bot + r["deep"] * h})
+        anchor = top - 0.618 * h
+    else:
+        fib_hi = [bot + f * h for f in (0.618, 0.786)]
+        sup = [(top, False), *[(p, False) for p in fib_hi], *[(p, st) for p, st in lv if p >= top - r["deep"] * h]]
+        tg = sorted({bot + f * h for f in (0.5, 0.382, 0.236)} | {bot} | {p for p, _ in lv if p < top - r["deep"] * h}, reverse=True)
+        anchor = bot + 0.618 * h
+    tol = r["tol_atr"] * atr
+    best = None
+    for k, (p, strong) in enumerate(sup):
+        score = 1 + sum(1 for j, (q, _) in enumerate(sup) if j != k and abs(q - p) <= tol) + (1 if strong else 0)
+        key = (score, -abs(p - anchor))
+        if best is None or key > best[0]:
+            best = (key, p, score)
+    return {"entry": best[1], "score": best[2], "targets": tg}
+
+
+def hybrid_trade(plan: dict, bot: float, top: float, atr: float, side: int, close: float) -> dict | None:
+    """Stop and the two take-profit lines for a trade entered at `close` from a hybrid plan: stop = 0.5 ATR past the entry level (the level
+    the zones agree on is the "Sell ALL" line; past it the confluence has failed); TP1 = the first target at least 1R away, TP2 = the next
+    target at least 0.5R beyond TP1 (0 = none). None when no target is far enough."""
+    r = HYBRID_RULES
+    L = plan["entry"]
+    stop_px = L - r["stop_atr"] * atr if side == 1 else L + r["stop_atr"] * atr
+    risk = side * (close - stop_px)
+    if risk <= 0:
+        return None
+    t1 = next((t for t in plan["targets"] if side * (t - close) >= r["min_r1"] * risk), None)
+    if t1 is None:
+        return None
+    t2 = next((t for t in plan["targets"] if side * (t - t1) >= r["min_r2"] * risk), None)
+    return {"stop_dist": risk, "tp1": float(t1), "tp2": float(t2) if t2 is not None else 0.0}

@@ -246,6 +246,61 @@ class RangeBox200:
         return f
 
 
+class HybridBox:
+    """The owner's HYBRID zones on forex (2026-10-16, live on practice at reduced size without a backtest, by his decision): the range box of
+    RangeBox200 (100 hourly bars, pair ranging), its Fibonacci retracements and the pair's own swing levels inside the box (zonemap.level_map
+    on those bars); the entry level is where they agree (zonemap.hybrid_plan). Buy when a bar trades down to the entry level (within 0.25 ATR),
+    closes back above it by no more than 0.5 ATR and closes up; stop / TP1 / TP2 from zonemap.hybrid_trade (zone_px = TP1, zone2_px = TP2).
+    Short = mirror."""
+
+    def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, max_bars: int = 72):
+        self.lookback, self.min_crosses, self.flat_atr, self.max_bars = lookback, min_crosses, flat_atr, max_bars
+        self.name = f"hybrid_box (owner's) lb{lookback}"
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        from alpacabot.zonemap import HYBRID_RULES, hybrid_plan, hybrid_trade, level_map
+        c, a = m["close"], atr(m, 14)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+        side_ = np.sign(s20 - s200)
+        crosses = (side_ != side_.shift(1)).astype(float).where(side_.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (ranging & (h >= 2 * a) & (h <= 20 * a)).fillna(False).to_numpy()
+        o, hi, lo, cl = (m[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        T, B, A, H = top.to_numpy(), bot.to_numpy(), a.to_numpy(), h.to_numpy()
+        n = len(m)
+        L_, S_ = np.zeros(n, bool), np.zeros(n, bool)
+        stop, z1, z2 = np.full(n, np.nan), np.full(n, np.nan), np.full(n, np.nan)
+        r = HYBRID_RULES
+        near = ok & ((cl <= B + 0.5 * H + 0.5 * A) | (cl >= T - 0.5 * H - 0.5 * A))       # only bars in the box's outer halves can trigger
+        for j in np.flatnonzero(near):
+            lv = level_map(m.iloc[max(0, j - self.lookback):j])
+            for side in (1, -1):
+                plan = hybrid_plan(T[j], B[j], A[j], lv, side)
+                if not plan:
+                    continue
+                Lv, z = plan["entry"], r["zone_atr"] * A[j]
+                hit = ((lo[j] <= Lv + z) and (cl[j] >= Lv) and (cl[j] <= Lv + r["chase_atr"] * A[j]) and (cl[j] > o[j])) if side == 1 else \
+                      ((hi[j] >= Lv - z) and (cl[j] <= Lv) and (cl[j] >= Lv - r["chase_atr"] * A[j]) and (cl[j] < o[j]))
+                if not hit:
+                    continue
+                tr = hybrid_trade(plan, B[j], T[j], A[j], side, float(cl[j]))
+                if not tr:
+                    continue
+                (L_ if side == 1 else S_)[j] = True
+                stop[j], z1[j] = tr["stop_dist"], tr["tp1"]
+                z2[j] = tr["tp2"] if tr["tp2"] else np.nan
+                break
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, pd.Series(L_, index=m.index), pd.Series(S_, index=m.index), none, none, pd.Series(stop, index=m.index), h / a)
+        f["zone_px"], f["zone2_px"] = z1, z2
+        f["target"] = np.where(L_, z1 - cl, np.where(S_, cl - z1, np.nan))           # backtests: one exit at TP1
+        return f
+
+
 class BoxGated:
     """A range expert filtered by the owner's OANDA range box (drawing, 2026-10-14; the box test asked for 2026-10-16): the expert's signal counts only
     while the pair is RANGING per the box (200 MA flat on 80% of the last `lookback` bars, the 20 MA crossing it at least twice, box height 2-20 ATR;

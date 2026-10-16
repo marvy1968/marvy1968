@@ -70,6 +70,11 @@
    "_note": "owner 2026-10-16: the range box with Fibonacci zones, LIVE on paper at reduced size without a backtest (his decision). Buy zone 0.618-0.786 retracement of the daily box, stop 0.25 daily ATR beyond the box edge, TP1 at the 0.5 level, TP2 at the 0.236 level, drawn cuts and rider. risk_pct = share of equity risked per trade (0.005 = 0.5%, half the normal 1%). Set live to false to switch it off.",
    "live": true,
    "risk_pct": 0.005
+  },
+  "hybrid": {
+   "_note": "owner 2026-10-16: HYBRID zones (range box + Fibonacci levels + the stock's swing levels; the entry is where they agree), LIVE on paper at reduced size without a backtest (his decision). Rules in zonemap.HYBRID_RULES; stop 0.5 ATR past the entry level, TP1 the first target >= 1R, TP2 the next >= 0.5R beyond. Tag hybrid_box. Set live to false to switch it off.",
+   "live": true,
+   "risk_pct": 0.005
   }
  },
  "swing": {

@@ -701,6 +701,10 @@ class PaperRunner:
                 brain = BoxSignals(self.brain)
                 if (self.zone_config().get("fib") or {}).get("live"):           # the Fibonacci box beside it (owner, 2026-10-16)
                     brain = FibBoxSignals(brain)
+                if (self.zone_config().get("hybrid") or {}).get("live"):        # hybrid zones: box + Fibonacci + swing levels (owner, 2026-10-16)
+                    from .brain import HybridBoxSignals
+                    day.attrs["levels"] = zbox.get("levels") or []
+                    brain = HybridBoxSignals(brain)
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
@@ -739,6 +743,8 @@ class PaperRunner:
                 self.exec.risk_pct = lad_cfg["entry_risk"][tier]
             if (sig.tag or "").removeprefix("S:") == "fib_box":         # the Fibonacci box trades at reduced size (owner: "decrease equity use")
                 self.exec.risk_pct = float((zcfg.get("fib") or {}).get("risk_pct", 0.005))
+            if (sig.tag or "").removeprefix("S:") == "hybrid_box":      # the hybrid zones, also at reduced size
+                self.exec.risk_pct = float((zcfg.get("hybrid") or {}).get("risk_pct", 0.005))
             try:
                 verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
             except requests.HTTPError as exc:                          # a rejected order must not abort the rest of this bar's symbols

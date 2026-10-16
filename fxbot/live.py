@@ -33,7 +33,7 @@ import pandas as pd
 
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
-from .strategies import F0Reversion, LienFader, RangeBox200
+from .strategies import F0Reversion, HybridBox, LienFader, RangeBox200
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
@@ -41,7 +41,9 @@ PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_
 STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "count": 1500, "minutes": 60},   # break 20 pips (was 15): best of the 27-point
           # grid (2016-20 PF 1.46, 2021-22 PF 1.27); narrowly missed the 90% placebo bar (85%), so PROVISIONAL on paper money, 2026-10-15
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
-          "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
+          "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60},
+          # owner 2026-10-16: HYBRID zones (box + Fibonacci + swing levels agree), live on practice at half size without a backtest
+          "hybrid_h1": {"make": HybridBox, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -54,7 +56,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           "book_cap": 100_000.0, "strategies": list(STRATS),
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
-          "trade": ["lien_h1", "box_h1"]}
+          "trade": ["lien_h1", "box_h1", "hybrid_h1"],
+          "risk_by_strategy": {"hybrid_h1": 0.005}}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
@@ -252,10 +255,11 @@ class FxPaper:
                          close=float(m["close"].iloc[-1]), stop_dist=sd, result="paused (signal logged)")
             return
         res = self.try_open(name, inst, side, sd, float(row.get("target", float("nan"))), m, eq, why, trades, last,
-                            zone_px=float(row.get("zone_px", float("nan"))))
+                            zone_px=float(row.get("zone_px", float("nan"))), zone2_px=float(row.get("zone2_px", float("nan"))))
         self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=res)
 
-    def try_open(self, name, inst, side, sd, own_tgt, m, eq, why, trades, bar, zone_px: float = float("nan")) -> str:
+    def try_open(self, name, inst, side, sd, own_tgt, m, eq, why, trades, bar, zone_px: float = float("nan"),
+                 zone2_px: float = float("nan")) -> str:
         if why:
             return why
         if not (sd > 0 and math.isfinite(sd)):
@@ -303,7 +307,10 @@ class FxPaper:
         if math.isfinite(zone_px) and side * (zone_px - px) > 0:         # a strategy with its own drawn take-profit line (range box)
             zone_tp = zone_px
         tp_px = zone_tp + side * lad.get("ride_tp_atr", lad["tp_depth_atr"][-1]) * a   # OANDA take-profit for what rides the trend
-        units = self.size(inst, eq, lad["entry_risk"][tier], 0.0, px, stop_px)
+        if math.isfinite(zone2_px) and side * (zone2_px + side * a - tp_px) > 0:          # never let OANDA's own TP close before the hybrid's TP2
+            tp_px = zone2_px + side * a
+        risk_pct = float(self.cfg.get("risk_by_strategy", {}).get(name, lad["entry_risk"][tier]))
+        units = self.size(inst, eq, risk_pct, 0.0, px, stop_px)
         if units < 1:
             return "size 0"
         gid = f"{name}-{inst}-{bar[:16].replace(':', '')}"
@@ -315,8 +322,10 @@ class FxPaper:
                             "atr": a, "stop_px": stop_px, "stop0": stop_px, "fill": fill, "tp_steps": 0, "zone_tp": zone_tp, "tp_px": tp_px, "tier": tier, "avg": fill,
                             "trades": [got["trade_id"]], "units": {got["trade_id"]: abs(got["units"])}, "peak_units": abs(got["units"]),
                             "sold": 0, "be": False, "bias": bias}
+        if math.isfinite(zone2_px) and side * (zone2_px - zone_tp) > 0 and a > 0:     # hybrid: the second take-profit step at its own line
+            self.groups[gid]["tp_depth"] = [0.0, side * (zone2_px - zone_tp) / a]
         self.journal("open", group=gid, side=side, units=got["units"], fill=fill, stop=fmt(inst, stop_px), zone_tp=fmt(inst, zone_tp),
-                     tp=fmt(inst, tp_px), tier=tier, risk_pct=lad["entry_risk"][tier], bias=bias)
+                     tp=fmt(inst, tp_px), tier=tier, risk_pct=risk_pct, bias=bias)
         self.save()
         return "opened"
 
@@ -386,7 +395,7 @@ class FxPaper:
                 self.journal("stop_trailed", group=gid, stop=fmt(inst, lvl))
         # take-profit zone: scale out, lock the stop at OANDA after each step, let the rest ride
         beyond = side * (px_out - g["zone_tp"]) / g["atr"] if g["atr"] > 0 else 99.0
-        steps = [k for k, d in enumerate(lad["tp_depth_atr"]) if beyond >= d]
+        steps = [k for k, d in enumerate(g.get("tp_depth") or lad["tp_depth_atr"]) if beyond >= d]
         if not steps:
             self.save()
             return

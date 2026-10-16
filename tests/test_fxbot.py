@@ -394,3 +394,35 @@ class RangeBoxBreakoutTests(unittest.TestCase):
         m = self._bars(drift=0.0006)
         none = RangeBox200(breakout="only", adx_min=1000.0).frame(m)
         self.assertFalse((none["long"] | none["short"]).any())
+
+
+class HybridZoneTests(unittest.TestCase):
+    def test_plan_picks_the_level_where_box_fib_and_swings_agree(self):
+        from alpacabot.zonemap import hybrid_plan, hybrid_trade
+        top, bot, a = 110.0, 90.0, 1.0                     # 0.618 retracement = 97.64, 0.786 = 94.28
+        levels = [{"price": 97.5, "touches": 3, "strong": True}, {"price": 104.0, "touches": 2, "strong": True}]
+        p = hybrid_plan(top, bot, a, levels, 1)
+        self.assertAlmostEqual(p["entry"], 97.5)                     # the strong swing level next to the 0.618 level (97.64) scores highest
+        self.assertGreaterEqual(p["score"], 3)
+        self.assertIn(104.0, p["targets"])
+        tr = hybrid_trade(p, bot, top, a, 1, 98.0)
+        self.assertAlmostEqual(tr["stop_dist"], 98.0 - (97.5 - 0.5))   # Sell ALL = 0.5 ATR under the agreed level
+        self.assertTrue(tr["tp1"] - 98.0 >= tr["stop_dist"])            # TP1 at least 1R away
+        self.assertTrue(tr["tp2"] == 0.0 or tr["tp2"] > tr["tp1"])
+        s = hybrid_plan(top, bot, a, levels, -1)
+        self.assertGreater(s["entry"], 100.0)                           # the short's entry level is in the upper part of the box
+
+    def test_hybrid_frame_signals_carry_two_take_profit_lines(self):
+        from fxbot.strategies import HybridBox
+        rng = np.random.default_rng(9)
+        idx = pd.date_range("2022-01-03", periods=700, freq="h", tz="UTC")
+        c = 1.10 + 0.004 * np.sin(np.arange(700) / 9.0) + rng.normal(0, 0.0004, 700)
+        m = pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.0006, "low": c - 0.0006, "close": c, "volume": 1.0}, index=idx)
+        f = HybridBox().frame(m)
+        sig = f["long"] | f["short"]
+        self.assertTrue(sig.any())
+        self.assertTrue((f["stop"][sig] > 0).all())
+        lng = f["long"]
+        self.assertTrue((f["zone_px"][lng] > m["close"][lng]).all())   # TP1 above a long's entry
+        ok2 = lng & f["zone2_px"].notna()
+        self.assertTrue((f["zone2_px"][ok2] > f["zone_px"][ok2]).all())

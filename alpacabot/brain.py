@@ -240,6 +240,46 @@ class FibBoxSignals(BoxSignals):
         return out
 
 
+class HybridBoxSignals(BoxSignals):
+    """The owner's HYBRID zones on stocks (2026-10-16, live on paper at reduced size without a backtest, by his decision): the entry level is
+    where the daily range box, its Fibonacci retracements and the stock's own swing levels agree (zonemap.hybrid_plan, day.attrs "box",
+    "box_atr", "levels"). A 5-minute bar between 10:00 and 15:00 trades down to the entry level (within 0.25 daily ATR), closes back above it
+    by no more than 0.5 ATR, and closes up. Stop, TP1 and TP2 from zonemap.hybrid_trade. Short = mirror. One entry per side per day."""
+
+    TAG = "hybrid_box"
+
+    def box_signals(self, day) -> list:
+        from .zonemap import HYBRID_RULES, hybrid_plan, hybrid_trade
+        valid, top, bot = day.attrs.get("box", (False, 0.0, 0.0))
+        datr = float(day.attrs.get("box_atr", 0.0))
+        if not valid or top <= bot or not (datr > 0) or not len(day):
+            return []
+        r = HYBRID_RULES
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "10:00") & (t <= "15:00"))
+        o, hi, lo, c = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        fa = day["f_atr"].to_numpy(float) if "f_atr" in day else np.full(len(day), datr / 6.0)
+        out = []
+        for side in (1, -1):
+            plan = hybrid_plan(top, bot, datr, day.attrs.get("levels"), side)
+            if not plan:
+                continue
+            L, z = plan["entry"], r["zone_atr"] * datr
+            if side == 1:
+                mask = win & (lo <= L + z) & (c >= L) & (c <= L + r["chase_atr"] * datr) & (c > o)
+            else:
+                mask = win & (hi >= L - z) & (c <= L) & (c >= L - r["chase_atr"] * datr) & (c < o)
+            for i in np.flatnonzero(mask):
+                tr = hybrid_trade(plan, bot, top, datr, side, float(c[i]))
+                if not tr or tr["stop_dist"] > 3 * datr:
+                    continue
+                a = float(fa[i]) if np.isfinite(fa[i]) and fa[i] > 0 else datr / 6.0
+                out.append(Signal(i=int(i), side=side, stop_dist=float(tr["stop_dist"]), tag=self.TAG if side == 1 else "S:" + self.TAG,
+                                  atr=a, target_px=tr["tp1"], target2_px=tr["tp2"]))
+                break
+        return out
+
+
 def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
     """Per-trade ladder for a Fibonacci box trade: the first take-profit step at TP1 (the zone itself) and the second at TP2, written as
     ATRs beyond TP1 so the live ladder code needs no change."""
