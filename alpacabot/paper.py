@@ -594,7 +594,7 @@ class PaperRunner:
     def refresh_zonemap(self, now_et: datetime):
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
         history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
-        from .zonemap import bias_for_session, level_map, stage, weekly_for_session
+        from .zonemap import bias_for_session, level_map, range_box, stage, weekly_for_session
         zm = {}
         for sym in self.symbols:
             try:
@@ -604,6 +604,13 @@ class PaperRunner:
                 prior = d[d.index.date < now_et.date()]
                 zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior), "stage": stage(prior),
                          "wbias": weekly_for_session(d, now_et.date())}
+                try:                                                  # the owner's daily range box (as of the last completed day)
+                    bx = range_box(d)
+                    bx = bx[bx.index.date < now_et.date()].iloc[-1]
+                    zm[sym]["box"] = [bool(bx["valid"]), float(bx["top"]), float(bx["bot"])]
+                    zm[sym]["box_atr"] = float(bx["atr"])
+                except Exception:
+                    zm[sym]["box"], zm[sym]["box_atr"] = [False, 0.0, 0.0], 0.0
             except Exception:
                 log.exception("zone map: %s skipped", sym)
         self.zonemap = zm
@@ -686,7 +693,13 @@ class PaperRunner:
                 self.bar_exits(sym, day, now_et)
                 if sym in self.exits.positions:
                     continue
-            sig = next((s for s in self.brain.signals(day) if s.i == len(day) - 1), None)
+            brain = self.brain
+            zbox = getattr(self, "zonemap", {}).get(sym) or {}
+            if (self.zone_config().get("box") or {}).get("live") and zbox.get("box"):   # the owner's range box strategy (live by his decision 2026-10-16)
+                from .brain import BoxSignals
+                day.attrs["box"], day.attrs["box_atr"] = tuple(zbox["box"]), float(zbox.get("box_atr", 0.0))
+                brain = BoxSignals(self.brain)
+            sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
             zcfg = self.zone_config()
@@ -757,6 +770,8 @@ class PaperRunner:
                 pos["expert"] = str(sig.tag)
                 if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
+                    if getattr(sig, "target_px", 0) > 0:                  # the range box's far edge is this trade's take-profit zone
+                        pos["zone_tp"] = float(sig.target_px)
                     pos["exhaust_r"] = float(zcfg["profiles"][zone.get("profile", "trend")]["exhaust_r"])
                     if lad_cfg and tier is not None:
                         side_ = -1 if sig.side == -1 else 1

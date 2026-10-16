@@ -61,6 +61,10 @@
    "trend_exit": true,
    "adx_min": 20,
    "range_adx_max": 25
+  },
+  "box": {
+   "_note": "owner 2026-10-16: the range box as its own strategy, LIVE without waiting for the test (paper). Weinstein stage, direction and multi-timeframe checks apply as for every expert; buy zone = bottom third of the daily box, stop 0.5 daily ATR outside it, take-profit = far edge less 0.25 daily ATR, cuts and TP steps as drawn. Set live to false to switch it off.",
+   "live": true
   }
  },
  "swing": {

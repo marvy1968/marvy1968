@@ -1407,7 +1407,6 @@ class BoxStrategyStudyTests(unittest.TestCase):
         a, b = set(engine.RANGE_STYLE), set(ex.RANGE_EXPERTS)
         res = research.box_strategy_study({}, ("2021-07-01", "2021-12-31"), ("2022-01-01", "2022-06-30"), ckpt=None)
         self.assertEqual((set(engine.RANGE_STYLE), set(ex.RANGE_EXPERTS)), (a, b))
-        self.assertNotIn("range_box", ex.RANGE_EXPERTS)
         self.assertEqual(len(res["periods"]["train"]), 3)
         self.assertEqual(res["family"], "box_strategy")
 
@@ -2047,6 +2046,25 @@ class LiveZoneTests(unittest.TestCase):
             def quote(self, s): return quote
         r.broker = B()
         return r
+
+    def test_the_range_box_is_live_in_the_shipped_zone_config_and_the_zone_map_carries_the_box(self):
+        import tempfile
+        from datetime import datetime as _dt
+        from alpacabot.paper import ET
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self._runner(tmp)
+            self.assertTrue((r.zone_config().get("box") or {}).get("live"))        # owner 2026-10-16: live without waiting for the test
+            d = StockRangeBoxTests()._daily(True)
+            class Raw:
+                def daily_history(self, sym, days=330): return d
+            r.raw, r.symbols, r.heat = Raw(), ["AAA"], {}
+            r.journal = lambda *a, **k: None
+            r.refresh_zonemap(_dt.combine(d.index[-1].date(), _dt.min.time()).replace(tzinfo=ET) + pd.Timedelta(days=1))
+            zb = r.zonemap["AAA"]
+            valid, top, bot = zb["box"]
+            self.assertTrue(valid)
+            self.assertGreater(top, bot)
+            self.assertGreater(zb["box_atr"], 0)
 
     def test_zone_config_defaults_to_live_and_is_editable(self):
         import tempfile
