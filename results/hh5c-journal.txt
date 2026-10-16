@@ -1,3 +1,29 @@
 $ show alpaca_paper/journal-20261016.jsonl
-started 2026-10-16 09:58:27 EDT
-RUNNING...
+started 2026-10-16 09:58:27 EDT, took 0s, exit 0
+
+{"t": "2026-10-16T09:30:33-04:00", "kind": "zonemap", "up": 15, "down": 7, "range": 36, "stocks": 58, "stage2": 26, "stage4": 17, "stage1": 7, "stage3": 8}
+{"t": "2026-10-16T09:30:33-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 0, "SPY": 1, "XLB": 0, "XLC": 0, "XLE": 1, "XLF": 0, "XLI": 0, "XLK": 0, "XLP": 1, "XLRE": 0, "XLU": 0, "XLV": 1, "XLY": 1}
+{"t": "2026-10-16T09:48:33-04:00", "kind": "zonemap", "up": 15, "down": 7, "range": 36, "stocks": 58, "stage2": 26, "stage4": 17, "stage1": 7, "stage3": 8}
+{"t": "2026-10-16T09:48:33-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 0, "SPY": 1, "XLB": 0, "XLC": 0, "XLE": 1, "XLF": 0, "XLI": 0, "XLK": 0, "XLP": 1, "XLRE": 0, "XLU": 0, "XLV": 1, "XLY": 1}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:velez_180", "ref": 771.6, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "NVDA", "side": "long", "tag": "bollinger_bounce", "ref": 216.19, "result": "1-hour market is trending (ADX 60), not a range"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_180", "ref": 345.525, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "donchian_turtle", "ref": 532.15, "result": "trend not confirmed (1/5; failed: body, close, volume, volatility)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "MRK", "side": "short", "tag": "S:brooks_pullback", "ref": 147.04, "result": "against direction (bias +0)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "WMB", "side": "short", "tag": "S:williams_r", "ref": 69.73, "result": "against the weekly trend"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "dual_regime", "ref": 120.28, "result": "against direction (bias +0)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "AMT", "side": "short", "tag": "S:dual_regime", "ref": 182.55, "result": "against direction (bias +1)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_180", "ref": 992.42, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-16T09:55:15-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "dual_regime", "ref": 500.08, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "zonemap", "up": 15, "down": 7, "range": 36, "stocks": 58, "stage2": 26, "stage4": 17, "stage1": 7, "stage3": 8}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "heat_map", "IWM": -1, "QQQ": 0, "SPY": 1, "XLB": 0, "XLC": 0, "XLE": 1, "XLF": 0, "XLI": 0, "XLK": 0, "XLP": 1, "XLRE": 0, "XLU": 0, "XLV": 1, "XLY": 1}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:velez_180", "ref": 771.6, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "NVDA", "side": "long", "tag": "bollinger_bounce", "ref": 216.19, "result": "1-hour market is trending (ADX 60), not a range"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_180", "ref": 345.525, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "donchian_turtle", "ref": 532.15, "result": "trend not confirmed (1/5; failed: body, close, volume, volatility)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "MRK", "side": "short", "tag": "S:brooks_pullback", "ref": 147.04, "result": "against direction (bias +0)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "WMB", "side": "short", "tag": "S:williams_r", "ref": 69.73, "result": "against the weekly trend"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "dual_regime", "ref": 120.28, "result": "against direction (bias +0)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "AMT", "side": "short", "tag": "S:dual_regime", "ref": 182.55, "result": "against direction (bias +1)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_180", "ref": 992.42, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-16T09:57:14-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "dual_regime", "ref": 500.08, "result": "stage 4 (needs 2)"}
