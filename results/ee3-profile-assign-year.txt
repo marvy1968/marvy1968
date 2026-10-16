@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --year --families profile_assign
+started 2026-10-15 21:35:52 EDT
+RUNNING...
