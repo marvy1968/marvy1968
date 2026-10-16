@@ -1,3 +1,5 @@
 $ alpaca run-all --families boxdiag_fx
-started 2026-10-16 04:57:42 EDT
-RUNNING...
+started 2026-10-16 04:57:42 EDT, took 34s, exit 0
+
+daily data ready
+ALL DONE
