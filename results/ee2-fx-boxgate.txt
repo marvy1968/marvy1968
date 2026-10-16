@@ -1,0 +1,3 @@
+$ alpaca run-all --families fx_boxgate_lienf20_plain fx_boxgate_lienf20_valid fx_boxgate_lienf20_half fx_boxgate_rangemr_plain fx_boxgate_rangemr_valid fx_boxgate_rangemr_half fx_boxgate_consensus_plain fx_boxgate_consensus_valid fx_boxgate_consensus_half fx_boxgate_f0_plain fx_boxgate_f0_valid fx_boxgate_f0_half
+started 2026-10-15 21:35:06 EDT
+RUNNING...
