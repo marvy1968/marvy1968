@@ -20,7 +20,7 @@ import numpy as np
 
 
 def confirm_signals(o, h, l, c, v, atr_s, atr_l, top, bot, ok, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1,
-                    body_min: float = 0.6, look: int = 6, target: str = "mid", stop_buf: float = 0.25, allow=None) -> dict:
+                    body_min: float = 0.6, look: int = 6, target: str = "mid", stop_buf: float = 0.25, allow=None, vote: float = 0.0) -> dict:
     """Arrays in, arrays out: long, short (bool), stop (distance), tp1 (price), tgt (distance), kind ("cont"/"fail"/"")."""
     n = len(c)
     o, h, l, c = (np.asarray(x, float) for x in (o, h, l, c))
@@ -50,7 +50,13 @@ def confirm_signals(o, h, l, c, v, atr_s, atr_l, top, bot, ok, mode: str = "both
         strong = body[b] >= body_min and loc >= 0.75
         vol_up = np.isfinite(vavg[b]) and vavg[b] > 0 and v[b] >= vol_mult * vavg[b]
         vola_up = np.isfinite(AL[b]) and AL[b] > 0 and A[b] / AL[b] >= atr_ratio
-        if mode in ("continuation", "both") and strong and vol_up and vola_up and allow[b]:
+        if vote > 0:   # owner 2026-10-16: continuing when at least `vote` of the 5 indicators agree (body, close location, volume,
+            #            volatility, a decisive close >= 0.25 ATR beyond the edge) instead of requiring all of them
+            votes = [body[b] >= body_min, loc >= 0.75, vol_up, vola_up, side * (c[b] - edge) >= 0.25 * A[b]]
+            confirmed = sum(bool(x) for x in votes) / 5.0 >= vote - 1e-9
+        else:
+            confirmed = strong and vol_up and vola_up
+        if mode in ("continuation", "both") and confirmed and allow[b]:
             stop_px = edge - side * stop_buf * A[b]
             sd = side * (c[b] - stop_px)
             if sd > 0:

@@ -501,3 +501,18 @@ class BoxConfirmTests(unittest.TestCase):
             i = k[0]
             self.assertEqual(("long" if r["long"][i] else "short", r["kind"][i]), want)
             self.assertGreater(r["stop"][i], 0)
+
+
+class VoteTests(unittest.TestCase):
+    def test_a_lower_vote_never_confirms_fewer_breakouts(self):
+        from alpacabot.confirm import confirm_signals
+        m, _ = BoxConfirmTests()._frame(True, 1000.0, False)
+        top = m["high"].shift(1).rolling(100).max().to_numpy()
+        bot = m["low"].shift(1).rolling(100).min().to_numpy()
+        a = (m["high"] - m["low"]).rolling(14).mean().to_numpy()
+        al = np.full(len(m), np.nanmean(a))
+        ok = np.ones(len(m), bool)
+        n = {vt: int(confirm_signals(m["open"], m["high"], m["low"], m["close"], m["volume"], a, al, top, bot, ok, mode="continuation",
+                                     vote=vt)["long"].sum()) for vt in (0.6, 0.8, 1.0)}
+        self.assertGreaterEqual(n[0.6], n[0.8])
+        self.assertGreaterEqual(n[0.8], n[1.0])

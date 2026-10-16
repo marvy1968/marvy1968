@@ -253,3 +253,21 @@ def confirm_check(data: dict) -> list[str]:
                    f"total {va.get('total_return') or 0:+.1%} maxDD {va.get('max_drawdown') or 0:.1%} | 2x spread {x2.get('total_return') or 0:+.1%} | "
                    f"placebo PF {np.mean(plc):.2f}, real beats {beat:.0%}")
     return out
+
+
+
+def vote_check(data: dict) -> list[str]:
+    """Owner's question 2026-10-16: does a 60% vote of the continuation indicators (3 of 5) beat requiring all of them?"""
+    out = []
+    for vote in (0.6, 0.8, 1.0):
+        for ar in (1.1, 1.2):
+            strat = BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=ar, vote=vote)
+            tr, va = run(strat, data, *TRAIN), run(strat, data, *VALIDATE)
+            x2 = run(strat, data, *VALIDATE, spread_mult=2.0)
+            plc = [run(strat, data, *VALIDATE, placebo_seed=s_).get("profit_factor") or 0 for s_ in range(20)]
+            beat = float(np.mean([(va.get("profit_factor") or 0) > p for p in plc]))
+            out.append(f"- vote {vote:.0%} (ATR {ar}x) | train {tr.get('trades')}t win {tr.get('win_rate') or 0:.0%} PF {tr.get('profit_factor') or 0:.2f} "
+                       f"total {tr.get('total_return') or 0:+.1%} maxDD {tr.get('max_drawdown') or 0:.1%} | validate {va.get('trades')}t win {va.get('win_rate') or 0:.0%} "
+                       f"PF {va.get('profit_factor') or 0:.2f} total {va.get('total_return') or 0:+.1%} maxDD {va.get('max_drawdown') or 0:.1%} | "
+                       f"2x spread {x2.get('total_return') or 0:+.1%} | placebo PF {np.mean(plc):.2f}, real beats {beat:.0%}")
+    return out

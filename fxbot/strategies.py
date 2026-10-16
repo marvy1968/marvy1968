@@ -328,8 +328,9 @@ class BoxConfirm:
     (weak candle / no volume, and price closes back inside -> fade it). mode / vol_mult / atr_ratio come from a pre-declared grid."""
 
     def __init__(self, lookback: int = 100, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1, body_min: float = 0.6,
-                 look: int = 6, target: str = "mid", max_bars: int = 72, min_crosses: int = 2, flat_atr: float = 0.5):
+                 look: int = 6, target: str = "mid", max_bars: int = 72, min_crosses: int = 2, flat_atr: float = 0.5, vote: float = 0.0):
         self.lookback, self.mode, self.vol_mult, self.atr_ratio, self.body_min = lookback, mode, vol_mult, atr_ratio, body_min
+        self.vote = vote
         self.look, self.target, self.max_bars, self.min_crosses, self.flat_atr = look, target, max_bars, min_crosses, flat_atr
         self.name = f"box_confirm {mode} vol{vol_mult} atr{atr_ratio}"
 
@@ -348,7 +349,7 @@ class BoxConfirm:
         ok = (ranging.shift(1).fillna(False).astype(bool) & (h >= 2 * a) & (h <= 20 * a)).fillna(False)   # the box as it stood before the bar
         r = confirm_signals(m["open"], m["high"], m["low"], c, m["volume"] if "volume" in m else None, a, al, top, bot, ok,
                             mode=self.mode, vol_mult=self.vol_mult, atr_ratio=self.atr_ratio, body_min=self.body_min, look=self.look,
-                            target=self.target)
+                            target=self.target, vote=self.vote)
         none = pd.Series(False, index=m.index)
         f = _frame(m.index, pd.Series(r["long"], index=m.index), pd.Series(r["short"], index=m.index), none, none,
                    pd.Series(r["stop"], index=m.index), h / a)
