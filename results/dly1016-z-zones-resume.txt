@@ -1,3 +1,17 @@
 $ alpaca run-all --phase validate --year --families zones_params
-started 2026-10-15 20:53:10 EDT
-RUNNING...
+started 2026-10-15 20:53:10 EDT, took 42s, exit 0
+
+daily data ready
+## zones_params: the best settings (trend.min_r=0.75, trend.default_r=1.5, trend.chase_atr=0.25, range.lookback=10, range.min_r=1.5, range.default_r=3.0, range.chase_atr=0.25) did not beat the live zones in both periods: the live zones stay
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live zones: 1769t PF 0.62 daily -0.216% maxDD -23.7%
+- train | combined winners: 1621t PF 0.64 daily -0.199% maxDD -22.2%
+- validate | live zones: 1257t PF 0.75 daily -0.175% maxDD -18.2%
+- validate | combined winners: 1254t PF 0.75 daily -0.177% maxDD -18.4%
+- chosen on train: {'trend.min_r': 0.75, 'trend.default_r': 1.5, 'trend.chase_atr': 0.25, 'range.lookback': 10, 'range.min_r': 1.5, 'range.default_r': 3.0, 'range.chase_atr': 0.25}
+ALL DONE
