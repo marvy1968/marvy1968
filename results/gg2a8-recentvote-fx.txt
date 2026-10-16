@@ -1,3 +1,10 @@
 $ alpaca run-all --families recentvote_fx
-started 2026-10-16 07:48:10 EDT
-RUNNING...
+started 2026-10-16 07:48:10 EDT, took 40s, exit 0
+
+daily data ready
+## recentvote_fx: confirmed box breakouts, last 3 months (2026-07-16 to 2026-10-16, H1, bid/ask)
+- vote 60%: 13 trades, win 15%, PF 0.54, total -2.23%, maxDD -4.5%
+- vote 80%: 7 trades, win 0%, PF 0.00, total -3.26%, maxDD -3.0%
+- vote 100%: 5 trades, win 0%, PF 0.00, total -2.47%, maxDD -2.0%
+- PICK (pre-declared rule): vote 100% (no vote was profitable with 10+ trades: all-indicators rule)
+ALL DONE
