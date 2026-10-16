@@ -991,6 +991,41 @@ def trend_continuation_study(days, train, validate, costs: Costs = Costs(), pf: 
     return out
 
 
+def expert_breakdown(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Why the stock bot loses (owner 2026-10-16 "analyze why and fix"): each expert ALONE (long and short) through the live configuration
+    (direction first + Weinstein stage + multi-timeframe + the drawn exits + zone map), in both periods. Pre-declared rule: DROP an expert
+    whose profit factor is below 0.9 in BOTH periods (with 5+ trades in each); keep the rest. Then the kept set must beat the live set in
+    both periods (_zone_verdict) for the change to count."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(experts, a, b):
+        br = Brain(experts=list(experts), short_experts=list(experts), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(br))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    per_exp = {}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {"live (all experts)": cp.get(f"eb-{per}-all", lambda a=a, b=b: run(ALL_EXPERTS, a, b))}
+        for name in ALL_EXPERTS:
+            m = cp.get(f"eb-{per}-{name}", lambda name=name, a=a, b=b: run([name], a, b))
+            out["periods"][per][f"{name} alone"] = m
+            per_exp.setdefault(name, {})[per] = m
+    drop = [n for n, d in per_exp.items() if all((d[p].get("trades") or 0) >= 5 and (d[p].get("profit_factor") or 0) < 0.9 for p in d)]
+    keep = [n for n in ALL_EXPERTS if n not in drop]
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per]["kept experts"] = cp.get(f"eb-{per}-keep-{'-'.join(sorted(drop))}", lambda a=a, b=b: run(keep, a, b)) if keep else {}
+    ok = bool(drop) and bool(keep) and _zone_verdict([{"without": out["periods"][p]["live (all experts)"], "with": out["periods"][p]["kept experts"]} for p in out["periods"]])
+    out.update({"family": "expert_breakdown", "drop": drop, "keep": keep, "passes": bool(ok),
+                "verdict": (f"FIX: drop {', '.join(drop)} (PF < 0.9 in both periods); the kept set beat live in both periods" if ok else
+                            (f"drop candidates {', '.join(drop)}, but the kept set did not beat live in both periods" if drop else
+                             "no expert lost clearly (PF < 0.9) in both periods"))})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 
