@@ -1,3 +1,4 @@
 $ alpaca paper-flatten
-started 2026-10-16 12:02:22 EDT
-RUNNING...
+started 2026-10-16 12:02:22 EDT, took 1s, exit 0
+
+intraday bot will close its own positions within 15 s (swing positions are not touched)
