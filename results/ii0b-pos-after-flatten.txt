@@ -1,3 +1,16 @@
 $ alpaca positions
-started 2026-10-16 12:02:26 EDT
-RUNNING...
+started 2026-10-16 12:02:26 EDT, took 1s, exit 0
+
+equity $53,122.07  cash $39,230.62  long mv $14,050.39  short mv $-158.94
+5 open positions:
+  KO         long  qty           75  value $  7,020.00  unrealized $     5.25
+  MSFT       long  qty            5  value $  2,642.65  unrealized $   -74.34
+  WMT        long  qty           17  value $  2,013.31  unrealized $    -5.07
+  META       long  qty            2  value $  1,438.28  unrealized $   -72.10
+  TMUS       short qty           -1  value $   -158.94  unrealized $     0.20
+5 open orders:
+  TMUS       buy  85 market partially_filled  id ab-x-TMUS-1792166546805
+  KO         sell 144 market partially_filled  id ab-x-KO-1792166546559
+  WMT        sell 17 limit new  id sw-o-WMT-20261016
+  MSFT       sell 5 stop new  id sw-s-MSFT-20261014
+  META       sell 2 stop new  id sw-s-META-20261014
