@@ -1,0 +1,2 @@
+# timeout 1800
+alpaca run-all --families recentvote_fx
