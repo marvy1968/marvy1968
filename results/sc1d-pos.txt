@@ -1,3 +1,11 @@
 $ alpaca positions
-started 2026-10-16 13:24:59 EDT
-RUNNING...
+started 2026-10-16 13:24:59 EDT, took 2s, exit 0
+
+equity $53,040.80  cash $15,102.76  long mv $51,209.20  short mv $-13,271.16
+5 open positions:
+  JNJ        long  qty           53  value $ 13,516.33  unrealized $    36.84
+  PM         long  qty           66  value $ 13,475.22  unrealized $    11.88
+  GE         short qty          -42  value $-13,271.16  unrealized $    -8.82
+  COP        long  qty           89  value $ 13,016.25  unrealized $    16.91
+  XOM        long  qty           63  value $ 11,201.40  unrealized $    28.35
+0 open orders:
