@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --months3 --families box_confirm trend_continuation
+started 2026-10-16 07:50:14 EDT
+RUNNING...
