@@ -184,8 +184,14 @@ def main():
     if not os.access(D, os.W_OK): raise SystemExit(f"state dir {D} not writable; refusing to alert (dedupe would be lost)")
     L = jl(LED, []); have = {r["key"]: r for r in L}
     save(L)  # fail fast BEFORE any Telegram send if the ledger can't be written
-    for c in candidates():
-        if c["uf"] != 1 or c["ev"] <= 0 or abs(c["d"]) < TH[c["sport"]]: continue
+    cands = candidates()
+    try:  # 2026-10-16 CFB Line-Level O/U: TRACKING ONLY (own ledger); picks join here only if MARV_OU_LINELEVEL_LIVE=1 (default off)
+        import ou_linelevel
+        cands = cands + ou_linelevel.run(sys.modules[__name__], cands, TH["cfb"])
+    except Exception as ex:
+        print("linelevel tracker error:", str(ex)[:200])
+    for c in cands:
+        if c.get("tier") != "line_level" and (c["uf"] != 1 or c["ev"] <= 0 or abs(c["d"]) < TH[c["sport"]]): continue
         nba = c.get("sport") == "nba" or "nba" in str(c.get("key", "")).lower()
         r = have.get(c["key"])
         if r is not None:  # already alerted this game/side: only a >=1.5 favourable line move re-alerts
@@ -200,7 +206,7 @@ def main():
             print("REALERT", c["key"], base, "->", c["line"]); continue
         opp = c["key"].rsplit(":", 1)[0] + (":under" if c["side"] > 0 else ":over")
         if opp in have: continue
-        c.update(status="pending", tier="extreme", created=now.isoformat(), close=None, clv=None, units=None, alert_line=c["line"], alerted=None)
+        c.update(status="pending", tier=c.get("tier", "extreme"), created=now.isoformat(), close=None, clv=None, units=None, alert_line=c["line"], alerted=None)
         L.append(c); have[c["key"]] = c
         save(L)  # persist the dedupe record first, then send
         c["alerted"] = False if nba else _send(c, alert(c))
