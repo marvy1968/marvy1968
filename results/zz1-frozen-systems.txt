@@ -1,3 +1,22 @@
 $ alpaca run-all --phase validate --families frozen_systems
-started 2026-10-15 22:41:06 EDT
-RUNNING...
+started 2026-10-15 22:41:06 EDT, took 890s, exit 0
+
+daily data ready
+## frozen_systems: neither frozen system passed the pre-declared bar
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+### Book A (55/20 Donchian, 1.5 ATR stop): FAIL
+- 2016 large caps (control) | train: 74t win 34% avgR +0.49 PF 1.60 CAGR +5.8% maxDD -15.1% | 2.5x slip exp +0.699% | PASS True
+- 2016 large caps (control) | validate: 60t win 27% avgR +0.07 PF 1.08 CAGR +0.5% maxDD -10.6% | 2.5x slip exp -0.012% | placebo PF 1.14, beats 35% | PASS False
+- top 5 per sector (2026-10-14 caps) | train: 74t win 35% avgR +0.51 PF 1.70 CAGR +8.9% maxDD -12.4% | 2.5x slip exp +0.749% | PASS True
+- top 5 per sector (2026-10-14 caps) | validate: 81t win 26% avgR -0.10 PF 0.84 CAGR -1.5% maxDD -12.3% | 2.5x slip exp -0.754% | placebo PF 1.27, beats 0% | PASS False
+### Elite-20 (-2.5 sigma reclaim, MA50 target): FAIL
+- 2016 large caps (control) | train: 115t win 52% avgR +0.15 PF 1.42 CAGR +2.7% maxDD -4.1% | 2.5x slip exp +0.444% | PASS True
+- 2016 large caps (control) | validate: 106t win 42% avgR -0.02 PF 1.01 CAGR +0.1% maxDD -7.2% | 2.5x slip exp +0.124% | placebo PF 1.10, beats 45% | PASS False
+- top 5 per sector (2026-10-14 caps) | train: 176t win 49% avgR +0.14 PF 1.31 CAGR +3.3% maxDD -4.9% | 2.5x slip exp +0.392% | PASS True
+- top 5 per sector (2026-10-14 caps) | validate: 150t win 45% avgR -0.11 PF 0.82 CAGR -2.3% maxDD -12.1% | 2.5x slip exp +0.454% | placebo PF 1.22, beats 25% | PASS False
+ALL DONE
