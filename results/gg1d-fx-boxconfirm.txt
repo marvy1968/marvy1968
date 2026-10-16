@@ -1,3 +1,36 @@
 $ alpaca run-all --families fx_boxconfirm_h1
-started 2026-10-16 06:55:55 EDT
-RUNNING...
+started 2026-10-16 06:55:55 EDT, took 20s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+## fx_boxconfirm_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'mode': 'continuation', 'vol_mult': 1.5, 'atr_ratio': 1.2}: 45t PF 1.32 total +5.0% maxDD(closed) -5.4%
+  - train {'mode': 'continuation', 'vol_mult': 1.2, 'atr_ratio': 1.2}: 50t PF 1.16 total +2.8% maxDD(closed) -6.0%
+  - train {'mode': 'continuation', 'vol_mult': 1.5, 'atr_ratio': 1.0}: 99t PF 1.01 total +0.3% maxDD(closed) -13.9%
+  - train {'mode': 'continuation', 'vol_mult': 1.2, 'atr_ratio': 1.0}: 121t PF 0.96 total -1.7% maxDD(closed) -14.3%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxconfirm_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'mode': 'continuation', 'vol_mult': 1.5, 'atr_ratio': 1.2}: 45t PF 1.32 total +5.0% maxDD(closed) -5.4%
+  - train {'mode': 'continuation', 'vol_mult': 1.2, 'atr_ratio': 1.2}: 50t PF 1.16 total +2.8% maxDD(closed) -6.0%
+  - train {'mode': 'continuation', 'vol_mult': 1.5, 'atr_ratio': 1.0}: 99t PF 1.01 total +0.3% maxDD(closed) -13.9%
+  - train {'mode': 'continuation', 'vol_mult': 1.2, 'atr_ratio': 1.0}: 121t PF 0.96 total -1.7% maxDD(closed) -14.3%
+## fx_boxconfirm_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
