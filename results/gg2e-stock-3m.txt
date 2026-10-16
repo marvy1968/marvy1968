@@ -1,3 +1,35 @@
 $ alpaca run-all --phase validate --months3 --families box_confirm trend_continuation
-started 2026-10-16 07:50:14 EDT
-RUNNING...
+started 2026-10-16 07:50:14 EDT, took 1214s, exit 0
+
+daily data ready
+## box_confirm: best on train was + confirm continuation; it did not beat the live configuration in both periods
+- chosen: + confirm continuation
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live: 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | + confirm continuation: 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | + confirm failure: 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | + confirm both: 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | confirm both alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | live: 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | + confirm continuation: 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | + confirm failure: 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | + confirm both: 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | confirm both alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+## trend_continuation: the continuation check did not beat live in both periods
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no continuation check): 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | trend experts need 60% (3 of 5): 341t win 34% PF 0.50 avgR -0.32 daily -0.177% CAGR -37.7% maxDD -5.3%
+- train | trend experts need 80% (4 of 5): 340t win 34% PF 0.52 avgR -0.31 daily -0.164% CAGR -35.7% maxDD -4.9%
+- validate | live (no continuation check): 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | trend experts need 60% (3 of 5): 367t win 35% PF 0.51 avgR -0.26 daily -0.185% CAGR -36.8% maxDD -5.8%
+- validate | trend experts need 80% (4 of 5): 367t win 34% PF 0.50 avgR -0.27 daily -0.190% CAGR -37.6% maxDD -5.9%
+ALL DONE
