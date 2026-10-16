@@ -560,9 +560,9 @@ class PaperRunner:
         if zcfg.get("direction_first") and zm is not None and not DirectionFirst(None).keep(sig, zm.get("bias", 0)):
             return f"against direction (bias {zm.get('bias', 0):+d})"
         if zcfg.get("stage_filter") and zm is not None and zm.get("stage"):            # Weinstein: longs in stage 2, shorts in stage 4
-            want = 4 if sig.side == -1 else 2
-            if zm["stage"] != want:
-                return f"stage {zm['stage']} (needs {want})"
+            from .brain import stage_ok                                                # (box strategies also in the sideways stages 1 / 3)
+            if not stage_ok(sig, int(zm["stage"])):
+                return f"stage {zm['stage']} (needs {4 if sig.side == -1 else 2})"
         zp = zone_profile({"profiles": zcfg["profiles"]}, sig.tag)
         bid, ask = retry_call(self.broker.quote, sym, sleep=self.sleep)
         px = ask if sig.side == 1 else bid
@@ -701,6 +701,10 @@ class PaperRunner:
                 brain = BoxSignals(self.brain)
                 if (self.zone_config().get("fib") or {}).get("live"):           # the Fibonacci box beside it (owner, 2026-10-16)
                     brain = FibBoxSignals(brain)
+                bc = self.zone_config().get("box_confirm") or {}
+                if bc.get("live"):                                               # candle + volume + volatility box (owner, 2026-10-16)
+                    from .brain import BoxConfirmSignals
+                    brain = BoxConfirmSignals(brain, bc.get("mode", "both"), float(bc.get("vol_mult", 1.5)), float(bc.get("atr_ratio", 1.1)))
                 if (self.zone_config().get("hybrid") or {}).get("live"):        # hybrid zones: box + Fibonacci + swing levels (owner, 2026-10-16)
                     from .brain import HybridBoxSignals
                     day.attrs["levels"] = zbox.get("levels") or []
@@ -743,6 +747,8 @@ class PaperRunner:
                 self.exec.risk_pct = lad_cfg["entry_risk"][tier]
             if (sig.tag or "").removeprefix("S:") == "fib_box":         # the Fibonacci box trades at reduced size (owner: "decrease equity use")
                 self.exec.risk_pct = float((zcfg.get("fib") or {}).get("risk_pct", 0.005))
+            if (sig.tag or "").removeprefix("S:") == "box_confirm":     # the confirmed box, at reduced size
+                self.exec.risk_pct = float((zcfg.get("box_confirm") or {}).get("risk_pct", 0.005))
             if (sig.tag or "").removeprefix("S:") == "hybrid_box":      # the hybrid zones, also at reduced size
                 self.exec.risk_pct = float((zcfg.get("hybrid") or {}).get("risk_pct", 0.005))
             try:

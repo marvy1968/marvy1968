@@ -935,6 +935,35 @@ def box_diag(days, a, b) -> dict:
     return out
 
 
+def box_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The owner's box with candlestick + volume + volatility confirmation on stocks (BoxConfirmSignals) on the live configuration. Pre-declared
+    variants: live; live + box_confirm in each mode (continuation / failure / both, vol 1.5x, ATR 1.1x); box_confirm alone (both). The best
+    "+" variant by TRAIN daily return must also beat live in validation (_zone_verdict) to count. Needs days attached with with_box=True."""
+    from .brain import BoxConfirmSignals, DirectionFirst, StageFilter, TrendConfirm
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(mode, alone, a, b):
+        br = Brain(experts=[] if alone else list(ALL_EXPERTS), short_experts=[] if alone else list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": ZONE_PROFILES, "levels": True, "ladder": dict(_OWNER_LADDER), "trend_exit": True}
+        inner = BoxConfirmSignals(br, mode) if mode else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live": (None, False), "+ confirm continuation": ("continuation", False), "+ confirm failure": ("failure", False),
+                "+ confirm both": ("both", False), "confirm both alone": ("both", True)}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"bc-{per}-{k}", lambda md=md, al=al, a=a, b=b: run(md, al, a, b)) for k, (name, (md, al)) in enumerate(variants.items())}
+    roi = lambda m: m.get("daily_ret_pct_mean") if m.get("daily_ret_pct_mean") is not None else -9   # noqa: E731
+    best = max(("+ confirm continuation", "+ confirm failure", "+ confirm both"), key=lambda v: roi(out["periods"]["train"][v]))
+    ok = _zone_verdict([{"without": out["periods"][p]["live"], "with": out["periods"][p][best]} for p in out["periods"]])
+    out.update({"family": "box_confirm", "chosen": best, "passes": bool(ok),
+                "verdict": (f"ADD: {best} beat the live configuration in train and validation" if ok else
+                            f"best on train was {best}; it did not beat the live configuration in both periods")})
+    return out
+
+
 ZONE_GRID = {"lookback": [10, 20, 40], "min_r": [0.75, 1.0, 1.5], "default_r": [1.5, 2.0, 3.0], "exhaust_r": [1.0, 1.5, 2.0],
              "chase_atr": [0.25, 0.5, 1.0]}                                  # the frozen grid (owner's zones, 2026-10-14)
 

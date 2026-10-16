@@ -244,6 +244,13 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = profile_assign_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_pa.json")
+                elif fam == "box_confirm":      # candle + volume + volatility box on stocks (research.box_confirm_study)
+                    from .research import box_confirm_study
+                    from .zonemap import attach
+                    days = add_gates(split_days(minute, minutes=5, feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms}, with_box=True)
+                    res = box_confirm_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_boxc.json")
                 elif fam == "box_diag":         # where the range box strategy's signals go (research.box_diag)
                     from .research import box_diag
                     from .zonemap import attach
@@ -297,7 +304,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

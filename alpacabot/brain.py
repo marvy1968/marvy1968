@@ -22,7 +22,7 @@ import pandas as pd
 
 from dataclasses import replace
 
-from .experts import ALL_EXPERTS, RANGE_EXPERTS, TREND_EXPERTS, Experts, short_view
+from .experts import ALL_EXPERTS, BOX_STRATEGIES, RANGE_EXPERTS, TREND_EXPERTS, Experts, short_view
 from .strategies import Signal
 
 
@@ -132,7 +132,7 @@ class DirectionFirst:
             return s.side == 1
         if b == -1:
             return s.side == -1
-        return name in RANGE_EXPERTS
+        return name in RANGE_EXPERTS or name in BOX_STRATEGIES
 
     def signals(self, day):
         b = int(day.attrs.get("bias", 0))
@@ -153,7 +153,16 @@ class StageFilter:
         st = int(day.attrs.get("stage", 0))
         if not st:
             return self.brain.signals(day)
-        return [s for s in self.brain.signals(day) if (s.side == 1 and st == 2) or (s.side == -1 and st == 4)]
+        return [s for s in self.brain.signals(day) if stage_ok(s, st)]
+
+
+def stage_ok(s, st: int) -> bool:
+    """Weinstein: longs in stage 2, shorts in stage 4; the owner's box strategies also in the sideways stages (longs 1-2, shorts 3-4)."""
+    if not st:
+        return True
+    if (s.tag or "").removeprefix("S:") in BOX_STRATEGIES:
+        return st in ((1, 2) if s.side == 1 else (3, 4))
+    return (s.side == 1 and st == 2) or (s.side == -1 and st == 4)
 
 
 class BoxSignals:
@@ -280,6 +289,50 @@ class HybridBoxSignals(BoxSignals):
         return out
 
 
+class BoxConfirmSignals(BoxSignals):
+    """The owner's range box with candlestick + volume + volatility confirmation on stocks (alpacabot.confirm, 2026-10-16): each 5-minute
+    close outside the stock's daily box is read as CONTINUING (strong candle, volume >= vol_mult x the prior 20 bars, 5-minute ATR >=
+    atr_ratio x its session average -> trade the breakout) or FAILING (weak candle / no volume, price closes back inside -> fade it).
+    Between 10:00 and 15:00; one entry per side per day. Tag "box_confirm"."""
+
+    TAG = "box_confirm"
+
+    def __init__(self, brain, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1):
+        super().__init__(brain)
+        self.mode, self.vol_mult, self.atr_ratio = mode, vol_mult, atr_ratio
+
+    def box_signals(self, day) -> list:
+        from .confirm import confirm_signals
+        valid, top, bot = day.attrs.get("box", (False, 0.0, 0.0))
+        if not valid or top <= bot or len(day) < 22:
+            return []
+        n = len(day)
+        t = day.index.strftime("%H:%M")
+        allow = np.asarray((t >= "10:00") & (t <= "15:00"))
+        hi, lo, cl = (day[k].to_numpy(float) for k in ("high", "low", "close"))
+        if "f_atr" in day:
+            a = day["f_atr"].to_numpy(float)
+        else:
+            tr = np.maximum(hi - lo, np.abs(hi - np.r_[cl[0], cl[:-1]]))
+            a = pd.Series(tr).rolling(14, min_periods=5).mean().to_numpy()
+        al = pd.Series(a).expanding(min_periods=12).mean().shift(1).to_numpy()        # the session's average so far
+        r = confirm_signals(day["open"], hi, lo, cl, day["volume"] if "volume" in day else None, a, al, np.full(n, top), np.full(n, bot),
+                            np.ones(n, bool), mode=self.mode, vol_mult=self.vol_mult, atr_ratio=self.atr_ratio, allow=allow)
+        out, seen = [], set()
+        for i in np.flatnonzero(r["long"] | r["short"]):
+            side = 1 if r["long"][i] else -1
+            if side in seen:
+                continue
+            seen.add(side)
+            tp1 = float(r["tp1"][i])
+            tp2 = float(cl[i] + side * r["tgt"][i]) if np.isfinite(r["tgt"][i]) else 0.0
+            if side * (tp2 - tp1) <= 0:
+                tp2 = 0.0
+            out.append(Signal(i=int(i), side=side, stop_dist=float(r["stop"][i]), tag=self.TAG if side == 1 else "S:" + self.TAG,
+                              atr=float(a[i]) if np.isfinite(a[i]) else 0.0, target_px=tp1, target2_px=tp2))
+        return out
+
+
 def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
     """Per-trade ladder for a Fibonacci box trade: the first take-profit step at TP1 (the zone itself) and the second at TP2, written as
     ATRs beyond TP1 so the live ladder code needs no change."""
@@ -308,7 +361,7 @@ class BoxRangeBrain:
         frac = {"valid": 1.0, "half": 0.5, "edge": 1.0 / 3.0}[self.position]
         out = []
         for s in self.brain.signals(day):
-            if st and not ((s.side == 1 and st == 2) or (s.side == -1 and st == 4)):
+            if not stage_ok(s, st):
                 continue
             if (s.tag or "").removeprefix("S:") in RANGE_EXPERTS:
                 if not valid or top <= bot:

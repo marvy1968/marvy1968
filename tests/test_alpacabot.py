@@ -1478,6 +1478,46 @@ class HybridBoxTests(unittest.TestCase):
         self._t.cleanup()
 
 
+class BoxConfirmStockTests(unittest.TestCase):
+    def test_stage_rule_lets_box_strategies_trade_the_sideways_stages_only(self):
+        from alpacabot.brain import stage_ok
+        from alpacabot.strategies import Signal
+        box_l, box_s = Signal(i=0, side=1, tag="box_confirm"), Signal(i=0, side=-1, tag="S:range_box")
+        other = Signal(i=0, side=1, tag="velez_elephant")
+        self.assertTrue(stage_ok(box_l, 1) and stage_ok(box_l, 2) and not stage_ok(box_l, 3))
+        self.assertTrue(stage_ok(box_s, 3) and stage_ok(box_s, 4) and not stage_ok(box_s, 2))
+        self.assertTrue(stage_ok(other, 2) and not stage_ok(other, 1))          # every other expert keeps the strict rule
+
+    def test_strong_breakout_on_volume_is_bought(self):
+        from alpacabot.brain import BoxConfirmSignals
+        idx = pd.date_range("2024-05-01 09:30", periods=78, freq="5min", tz="America/New_York")
+        n = len(idx)
+        c = 100 + 0.2 * np.sin(np.arange(n) / 3.0)
+        o = np.r_[c[0], c[:-1]]
+        hi, lo, v = np.maximum(o, c) + 0.05, np.minimum(o, c) - 0.05, np.full(n, 1000.0)
+        k = 40                                                                       # 12:50: a big up bar closing at its high above the box top
+        o[k], c[k], lo[k], hi[k], v[k] = 100.9, 102.0, 100.85, 102.02, 5000.0
+        d = pd.DataFrame({"open": o, "high": hi, "low": lo, "close": c, "volume": v}, index=idx)
+        d["f_atr"] = (d["high"] - d["low"]).rolling(14, min_periods=1).mean()
+        d.attrs.update(box=(True, 101.0, 98.0), box_atr=1.0)
+        class Empty:
+            def signals(self, x):
+                return []
+        got = BoxConfirmSignals(Empty(), "both").signals(d)
+        self.assertTrue(any(s.i == k and s.side == 1 and s.tag == "box_confirm" for s in got))
+        s = next(s for s in got if s.i == k)
+        self.assertAlmostEqual(s.target_px, 101.0 + 1.5)                             # TP1 half the box height above the edge
+        self.assertTrue((LadderTests("test_tier_from_depth")._runner(self.tmp).zone_config().get("box_confirm") or {}).get("live"))
+
+    def setUp(self):
+        import tempfile
+        self._t = tempfile.TemporaryDirectory()
+        self.tmp = self._t.name
+
+    def tearDown(self):
+        self._t.cleanup()
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

@@ -75,6 +75,14 @@
    "_note": "owner 2026-10-16: HYBRID zones (range box + Fibonacci levels + the stock's swing levels; the entry is where they agree), LIVE on paper at reduced size without a backtest (his decision). Rules in zonemap.HYBRID_RULES; stop 0.5 ATR past the entry level, TP1 the first target >= 1R, TP2 the next >= 0.5R beyond. Tag hybrid_box. Set live to false to switch it off.",
    "live": true,
    "risk_pct": 0.005
+  },
+  "box_confirm": {
+   "_note": "owner 2026-10-16 ('fix the box: candlesticks, volume, volatility'): each close outside the stock's daily box is read as continuing (strong candle + volume + volatility expanding -> trade the break) or failing (weak / no volume and back inside -> fade). LIVE on paper at reduced size by the owner's decision; settings from the forex/stock grids. Set live to false to switch it off.",
+   "live": true,
+   "risk_pct": 0.005,
+   "mode": "both",
+   "vol_mult": 1.5,
+   "atr_ratio": 1.1
   }
  },
  "swing": {
