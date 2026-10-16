@@ -1,3 +1,4 @@
 $ show alpaca_paper/day_guards.json
-started 2026-10-16 09:58:34 EDT
-RUNNING...
+started 2026-10-16 09:58:34 EDT, took 0s, exit 0
+
+{"day": "2026-10-16", "day_start_equity": 54186.2, "locked_until": null, "pl_day": "2026-10-16", "pl_start": 54186.2, "pl_peak_gain": 0.0, "pl_locked_day": "2026-10-14"}
