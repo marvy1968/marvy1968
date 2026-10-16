@@ -1,3 +1,20 @@
 $ alpaca run-all --phase validate --year --families box_range
-started 2026-10-15 20:53:54 EDT
-RUNNING...
+started 2026-10-15 20:53:54 EDT, took 2425s, exit 0
+
+daily data ready
+## box_range: the range box did not beat the live configuration for the range experts in both periods: leave the stock range experts as they are
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no box): 1760t win 35% PF 0.65 avgR -0.22 daily -0.207% CAGR -40.6% maxDD -22.9%
+- train | range experts on the box: valid: 1102t win 30% PF 0.61 avgR -0.23 daily -0.165% CAGR -33.9% maxDD -17.5%
+- train | range experts on the box: lower/upper half: 1046t win 29% PF 0.61 avgR -0.23 daily -0.157% CAGR -32.8% maxDD -16.8%
+- train | range experts on the box: outer third: 1039t win 30% PF 0.62 avgR -0.22 daily -0.153% CAGR -32.0% maxDD -16.4%
+- validate | live (no box): 1250t win 39% PF 0.76 avgR -0.08 daily -0.174% CAGR -35.6% maxDD -18.1%
+- validate | range experts on the box: valid: 817t win 38% PF 0.76 avgR -0.11 daily -0.123% CAGR -26.5% maxDD -12.2%
+- validate | range experts on the box: lower/upper half: 815t win 38% PF 0.76 avgR -0.11 daily -0.124% CAGR -26.8% maxDD -12.3%
+- validate | range experts on the box: outer third: 815t win 38% PF 0.76 avgR -0.11 daily -0.124% CAGR -26.8% maxDD -12.3%
+ALL DONE
