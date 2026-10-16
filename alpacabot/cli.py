@@ -62,6 +62,9 @@ def run_all(a) -> int:
     minute = {}
     default = ["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"]
     suffix = "" if list(a.families) == default else "_" + "_".join(a.families)     # a partial run never overwrites the full summary
+    if len(suffix) > 80:                         # many families: a short stable name (a long list overflowed the file-name limit and crashed the run's summary)
+        import hashlib
+        suffix = "_" + hashlib.sha1(suffix.encode()).hexdigest()[:10]
     for fam in a.families:
         first = len(lines)
         try:
