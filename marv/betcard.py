@@ -166,7 +166,8 @@ def one_side(bets: list[Bet]) -> list[Bet]:
     a tie (incl. neither backtested) drops both."""
     groups: dict[tuple, list[Bet]] = {}
     for b in bets:
-        groups.setdefault((b.sport, b.game, b.market), []).append(b)
+        w = lambda t: (str(t or "").lower().split() or [""])[0]   # feeds spell names differently
+        groups.setdefault((b.sport, w(b.away), w(b.home), b.start[:10], b.market), []).append(b)
     drop = set()
     for k, g in groups.items():
         if len({b.side for b in g}) < 2:
@@ -182,7 +183,7 @@ def one_side(bets: list[Bet]) -> list[Bet]:
         for b in g:
             if b.side != keep:
                 drop.add(id(b))
-        print(f"betcard: conflict {k}: sides {best} -> kept {keep or 'none (tie)'}")
+        __import__("logging").getLogger(__name__).warning(f"betcard: conflict {k}: sides {best} -> kept {keep or 'none (tie)'}")
     return [b for b in bets if id(b) not in drop]
 
 
