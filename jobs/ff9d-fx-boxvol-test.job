@@ -1,0 +1,2 @@
+# timeout 3600
+alpaca run-all --families fx_boxvol_h1 fx_boxvolz_h1 fx_boxfailvol_h1
