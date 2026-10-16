@@ -75,6 +75,7 @@ def run_all(a) -> int:
                 from fxbot.research import box_diagnosis
                 fxd = {i: fx_load(i, "H1", _dt.date(2015, 1, 1), _dt.date(2022, 12, 31), Path("state/fx/cache")) for i in MAJORS}
                 lines += ["## boxdiag_fx: the owner's OANDA range box, trade by trade (H1, 2016-2022, bid/ask)"] + box_diagnosis(fxd)
+                print("\n".join(lines[first:]), flush=True)
                 continue
             if fam.startswith("fx"):               # OANDA forex research (fxbot, practice data only): "fx" = every family, "fx_<family>" = one
                 from fxbot.cli import main as fx_main
