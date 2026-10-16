@@ -95,7 +95,10 @@ def load(instrument: str, granularity: str, start: date, end: date, cache: Path)
 
 def mid(df: pd.DataFrame) -> pd.DataFrame:
     """Mid-price OHLC (what the signals look at); fills use the bid/ask columns."""
-    return pd.DataFrame({k: (df["b" + k[0]] + df["a" + k[0]]) / 2 for k in ("open", "high", "low", "close")}, index=df.index)
+    out = pd.DataFrame({k: (df["b" + k[0]] + df["a" + k[0]]) / 2 for k in ("open", "high", "low", "close")}, index=df.index)
+    if "volume" in df:                              # OANDA tick volume (volume-confirmation tests)
+        out["volume"] = df["volume"]
+    return out
 
 
 def usd_per_unit(instrument: str, price_move: float, price: float) -> float:

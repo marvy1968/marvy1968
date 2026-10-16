@@ -57,6 +57,10 @@ FAMILIES = {
     "fx_boxbreak_also_h1": ("H1", RangeBox200, {"lookback": [100], "breakout": ["also"]}),
     # REPAIR (2026-10-16): fade the FAILED breakout instead of the first touch of the edge (the edge broke on 68% of the box's trades)
     "fx_boxfail_h1": ("H1", RangeBoxFailed, {"lookback": [100], "look": [6], "target": ["edge", "mid"]}),
+    # Gemini's fix (owner's paste 2026-10-16): only fade the edge on a volume expansion (>= 1.5x the 20-bar average)
+    "fx_boxvol_h1": ("H1", RangeBox200, {"lookback": [100], "vol_mult": [1.5], "target": ["edge", "mid"]}),
+    "fx_boxvolz_h1": ("H1", RangeBox200, {"lookback": [100], "levels": ["zscore"], "vol_mult": [1.5], "target": ["mid"]}),
+    "fx_boxfailvol_h1": ("H1", RangeBoxFailed, {"lookback": [100], "look": [6], "vol_mult": [1.5], "target": ["edge", "mid"]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
@@ -220,4 +224,8 @@ def box_diagnosis(data: dict, a=None, b=None) -> list[str]:
     anatomy("what-if: stop 1.0 ATR + target the middle", RangeBox200(stop_atr=1.0, target="mid"))
     anatomy("REPAIR: failed breakout, target the far edge", RangeBoxFailed(target="edge"))
     anatomy("REPAIR: failed breakout, target the middle", RangeBoxFailed(target="mid"))
+    anatomy("VOLUME (Gemini's fix): live box + volume >= 1.5x 20-bar average", RangeBox200(vol_mult=1.5))
+    anatomy("VOLUME: live box, target the middle + volume >= 1.5x", RangeBox200(vol_mult=1.5, target="mid"))
+    anatomy("VOLUME: z-score band (SMA200 +- 2 sigma) + volume >= 1.5x, target the middle", RangeBox200(levels="zscore", vol_mult=1.5, target="mid"))
+    anatomy("VOLUME: failed breakout + volume >= 1.5x, target the middle", RangeBoxFailed(target="mid", vol_mult=1.5))
     return lines

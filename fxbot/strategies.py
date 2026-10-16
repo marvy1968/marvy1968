@@ -193,11 +193,12 @@ class RangeBox200:
 
     def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72,
                  levels: str = "hilo", z: float = 2.0, breakout: str = "off", break_atr: float = 0.1, adx_min: float = 20.0,
-                 target: str = "edge"):
+                 target: str = "edge", vol_mult: float = 0.0):
         self.lookback, self.min_crosses, self.flat_atr, self.stop_atr, self.max_bars = lookback, min_crosses, flat_atr, stop_atr, max_bars
         self.levels, self.z = levels, z
         self.breakout, self.break_atr, self.adx_min = breakout, break_atr, adx_min
         self.target = target                       # "edge" (drawn: the far side of the box) or "mid" (diagnostics: the box middle)
+        self.vol_mult = vol_mult                   # > 0: the signal bar's volume must be >= vol_mult x the prior 20-bar average
         self.name = f"range_box_200_20 (owner's) lb{lookback}" + (f" z{z}" if levels == "zscore" else "") + ("" if breakout == "off" else f" break:{breakout}")
 
     def frame(self, m):
@@ -218,6 +219,9 @@ class RangeBox200:
         ok = ranging & (h >= 2 * a) & (h <= 20 * a)
         long_ = ok & (m["low"] <= bot + 0.15 * h) & (c > bot) & (c <= bot + 0.33 * h)
         short = ok & (m["high"] >= top - 0.15 * h) & (c < top) & (c >= top - 0.33 * h)
+        if self.vol_mult > 0 and "volume" in m:
+            vok = m["volume"] >= self.vol_mult * m["volume"].shift(1).rolling(20).mean()
+            long_, short = long_ & vok, short & vok
         stop = pd.Series(np.where(long_, c - (bot - self.stop_atr * a), (top + self.stop_atr * a) - c), index=m.index)
         none = pd.Series(False, index=m.index)
         zone_px = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))
@@ -258,9 +262,9 @@ class RangeBoxFailed(RangeBox200):
     target at the far edge (target="edge") or the middle (target="mid"). Short = mirror."""
 
     def __init__(self, lookback: int = 100, look: int = 6, target: str = "edge", stop_buf_atr: float = 0.25, max_bars: int = 72,
-                 min_crosses: int = 2, flat_atr: float = 0.5):
+                 min_crosses: int = 2, flat_atr: float = 0.5, vol_mult: float = 0.0):
         super().__init__(lookback=lookback, min_crosses=min_crosses, flat_atr=flat_atr, max_bars=max_bars)
-        self.look, self.target, self.stop_buf_atr = look, target, stop_buf_atr
+        self.look, self.target, self.stop_buf_atr, self.vol_mult = look, target, stop_buf_atr, vol_mult
         self.name = f"range_box failed-breakout lb{lookback} look{look} tgt:{target}"
 
     def frame(self, m):
@@ -309,6 +313,9 @@ class RangeBoxFailed(RangeBox200):
                         break
                     if cl[i] < t0 - hh / 3:
                         break
+        if self.vol_mult > 0 and "volume" in m:     # the re-entry bar must come on expanding volume
+            vok = (m["volume"] >= self.vol_mult * m["volume"].shift(1).rolling(20).mean()).to_numpy()
+            L_, S_ = L_ & vok, S_ & vok
         none = pd.Series(False, index=m.index)
         f = _frame(m.index, pd.Series(L_, index=m.index), pd.Series(S_, index=m.index), none, none, pd.Series(stop, index=m.index), h / a)
         f["zone_px"], f["target"] = z1, tg

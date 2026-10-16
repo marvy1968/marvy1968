@@ -446,3 +446,22 @@ class RangeBoxFailedTests(unittest.TestCase):
             self.assertGreater(m["close"].iloc[i], bot.iloc[i - 1] - 1e-9 if i else 0)
             self.assertGreater(f["zone_px"].iloc[i], m["close"].iloc[i])               # TP1 (box middle) above the entry
         self.assertTrue((f["stop"][f["long"] | f["short"]] > 0).all())
+
+
+class VolumeConfirmTests(unittest.TestCase):
+    def test_volume_gate_only_removes_signals_and_mid_keeps_volume(self):
+        from fxbot.data import mid
+        from fxbot.strategies import RangeBox200
+        rng = np.random.default_rng(6)
+        n = 700
+        idx = pd.date_range("2022-01-03", periods=n, freq="h", tz="UTC")
+        c = 1.10 + 0.004 * np.sin(np.arange(n) / 9.0) + rng.normal(0, 0.0004, n)
+        sp = 0.00008
+        df = pd.DataFrame({"bo": np.r_[c[0], c[:-1]] - sp, "bh": c + 0.0006 - sp, "bl": c - 0.0006 - sp, "bc": c - sp,
+                           "ao": np.r_[c[0], c[:-1]] + sp, "ah": c + 0.0006 + sp, "al": c - 0.0006 + sp, "ac": c + sp,
+                           "volume": rng.integers(50, 500, n).astype(float)}, index=idx)
+        m = mid(df)
+        self.assertIn("volume", m)
+        a, b = RangeBox200().frame(m), RangeBox200(vol_mult=1.5).frame(m)
+        self.assertFalse((b["long"] & ~a["long"]).any())
+        self.assertLessEqual(int(b["long"].sum() + b["short"].sum()), int(a["long"].sum() + a["short"].sum()))
