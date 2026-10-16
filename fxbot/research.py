@@ -52,6 +52,9 @@ FAMILIES = {
     "fx_zbox200_h4": ("H4", F0Reversion, {"n": [200], "entry_z": [2.0], "stop_z": [3.0]}),
     # the owner's range box with its levels from the statistical envelope (SMA200 +- 2 sigma) instead of the 100-bar high/low
     "fx_box200z_h1": ("H1", RangeBox200, {"lookback": [100], "levels": ["zscore"], "z": [2.0]}),
+    # owner 2026-10-16: virtual breakout orders outside the box when the indicators agree: breakouts alone, and the box fade + breakouts together
+    "fx_boxbreak_only_h1": ("H1", RangeBox200, {"lookback": [100], "breakout": ["only"]}),
+    "fx_boxbreak_also_h1": ("H1", RangeBox200, {"lookback": [100], "breakout": ["also"]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }

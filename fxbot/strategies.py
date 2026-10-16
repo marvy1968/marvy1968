@@ -192,10 +192,11 @@ class RangeBox200:
     (zone_px = the first line); the rest rides with the locked stop. Time stop max_bars."""
 
     def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72,
-                 levels: str = "hilo", z: float = 2.0):
+                 levels: str = "hilo", z: float = 2.0, breakout: str = "off", break_atr: float = 0.1, adx_min: float = 20.0):
         self.lookback, self.min_crosses, self.flat_atr, self.stop_atr, self.max_bars = lookback, min_crosses, flat_atr, stop_atr, max_bars
         self.levels, self.z = levels, z
-        self.name = f"range_box_200_20 (owner's) lb{lookback}" + (f" z{z}" if levels == "zscore" else "")
+        self.breakout, self.break_atr, self.adx_min = breakout, break_atr, adx_min
+        self.name = f"range_box_200_20 (owner's) lb{lookback}" + (f" z{z}" if levels == "zscore" else "") + ("" if breakout == "off" else f" break:{breakout}")
 
     def frame(self, m):
         from alpacabot.indicators import sma
@@ -217,9 +218,31 @@ class RangeBox200:
         short = ok & (m["high"] >= top - 0.15 * h) & (c < top) & (c >= top - 0.33 * h)
         stop = pd.Series(np.where(long_, c - (bot - self.stop_atr * a), (top + self.stop_atr * a) - c), index=m.index)
         none = pd.Series(False, index=m.index)
+        zone_px = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))
+        target = np.where(long_, top - c, np.where(short, c - bot, np.nan))          # backtests: one exit at the far edge
+        if self.breakout != "off":
+            # Owner (2026-10-16): virtual orders OUTSIDE the box in case price breaks out and the indicators support it. Virtual = no order is parked
+            # at the broker; the bar that CLOSES beyond the edge by break_atr x ATR (first close outside, from a box that was valid the bar before)
+            # is bought / sold at the next open. Indicators: ADX14 >= adx_min and the close on the right side of a rising / falling EMA20.
+            # Stop 0.5 ATR back inside the box edge; first take-profit line half the box height beyond the edge, the full box height is the target.
+            e20 = c.ewm(span=20, adjust=False).mean()
+            strong = adx(m, 14) >= self.adx_min
+            vb = ok.shift(1).fillna(False).astype(bool)
+            up = vb & strong & (c > top + self.break_atr * a) & (c.shift(1) <= top) & (c > e20) & (e20 > e20.shift(3))
+            dn = vb & strong & (c < bot - self.break_atr * a) & (c.shift(1) >= bot) & (c < e20) & (e20 < e20.shift(3))
+            bstop = pd.Series(np.where(up, c - (top - 0.5 * a), (bot + 0.5 * a) - c), index=m.index)
+            if self.breakout == "only":
+                long_, short, stop = up, dn, bstop
+                zone_px = np.where(up, top + 0.5 * h, np.where(dn, bot - 0.5 * h, np.nan))
+                target = np.where(up, top + h - c, np.where(dn, c - (bot - h), np.nan))
+            else:                                             # "also": the box fades inside, the breakout orders outside (never both on one bar)
+                long_, short = long_ | up, short | dn
+                stop = stop.where(~(up | dn), bstop)
+                zone_px = np.where(up, top + 0.5 * h, np.where(dn, bot - 0.5 * h, zone_px))
+                target = np.where(up, top + h - c, np.where(dn, c - (bot - h), target))
         f = _frame(m.index, long_, short, none, none, stop, h / a)
-        f["zone_px"] = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))
-        f["target"] = np.where(long_, top - c, np.where(short, c - bot, np.nan))     # backtests: one exit at the far edge
+        f["zone_px"] = zone_px
+        f["target"] = target
         return f
 
 

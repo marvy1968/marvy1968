@@ -368,3 +368,29 @@ class BoxGatedTests(unittest.TestCase):
         for n in BOX_GATE_EXPERTS:
             for suffix in ("plain", "valid", "half", "edge"):
                 self.assertIn(f"fx_boxgate_{n}_{suffix}", FAMILIES)
+
+
+class RangeBoxBreakoutTests(unittest.TestCase):
+    def _bars(self, drift=0.0, n=600):
+        rng = np.random.default_rng(5)
+        idx = pd.date_range("2022-01-03", periods=n, freq="h", tz="UTC")
+        c = 1.10 + 0.0035 * np.sin(np.arange(n) / 8.0) + rng.normal(0, 0.0003, n)
+        c[450:] += np.cumsum(np.full(n - 450, drift))                      # after bar 450 the pair leaves the box (when drift > 0)
+        return pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.0004, "low": c - 0.0004, "close": c, "volume": 1.0}, index=idx)
+
+    def test_off_is_unchanged_and_only_takes_signals_outside_the_box(self):
+        from fxbot.strategies import RangeBox200
+        m = self._bars(drift=0.0006)
+        plain, only, also = RangeBox200().frame(m), RangeBox200(breakout="only").frame(m), RangeBox200(breakout="also").frame(m)
+        self.assertEqual(RangeBox200(breakout="off").frame(m)["long"].tolist(), plain["long"].tolist())
+        self.assertTrue(only["long"].any())                                    # the breakout out of the box was bought
+        top = m["high"].shift(1).rolling(100).max()
+        self.assertTrue((m["close"][only["long"]] > top[only["long"]]).all())  # every breakout buy is a close beyond the top edge
+        self.assertTrue((only["stop"][only["long"]] > 0).all())
+        self.assertTrue((also["long"] | also["short"]).sum() >= (plain["long"] | plain["short"]).sum())
+
+    def test_no_breakout_signal_without_adx_support(self):
+        from fxbot.strategies import RangeBox200
+        m = self._bars(drift=0.0006)
+        none = RangeBox200(breakout="only", adx_min=1000.0).frame(m)
+        self.assertFalse((none["long"] | none["short"]).any())
