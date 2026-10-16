@@ -242,23 +242,81 @@ def update_text(sport: str, game, rec: dict, ended_period: int, final: bool, lin
     return "\n".join(lines)
 
 
-def log_alert(state_dir: Path, sport: str, game, e: dict) -> None:
-    """Every graded live alert (wins and losses) goes to state/live_alerts.json for the record."""
+def _alert_key(sport: str, game_id, e: dict) -> tuple:
+    """One bet = sport + game + market + side + line (line rounded to 0.5 so float noise is not a new bet)."""
+    ln = e.get("line")
+    return (sport, str(game_id), e.get("market"), e.get("side"), None if ln is None else round(float(ln) * 2) / 2)
+
+
+def dedupe_alerts(book: list) -> list:
+    out, seen = [], set()
+    for e in book:
+        k = _alert_key(e.get("sport"), e.get("game_id"), e)
+        if k not in seen:
+            seen.add(k)
+            out.append(e)
+    return out
+
+
+def log_alert(state_dir: Path, sport: str, game, e: dict) -> bool:
+    """Every graded live alert (wins and losses) goes to state/live_alerts.json for the record, ONCE per
+    game+market+side+line (2026-10-16 fix: a tick that failed before saving live_state re-logged the same alert)."""
     path = state_dir / "live_alerts.json"
     book = json.loads(path.read_text()) if path.exists() else []
+    k = _alert_key(sport, game.id, e)
+    if any(_alert_key(x.get("sport"), x.get("game_id"), x) == k for x in book):
+        return False
     book.append({"sport": sport, "game_id": str(game.id), "home": game.home, "away": game.away,
                  "final": [game.away_score, game.home_score], **e})
-    path.write_text(json.dumps(book, indent=1))
+    tmp = path.with_suffix(".tmp"); tmp.write_text(json.dumps(book, indent=1)); os.replace(tmp, path)
+    return True
 
 
 def live_record(state_dir: Path) -> str:
     path = state_dir / "live_alerts.json"
-    book = json.loads(path.read_text()) if path.exists() else []
+    book = dedupe_alerts(json.loads(path.read_text()) if path.exists() else [])
     w = sum(e["result"] == "win" for e in book)
     l = sum(e["result"] == "loss" for e in book)
     units = sum((e["price"] / 100 if e["price"] > 0 else 100 / -e["price"]) if e["result"] == "win" else
                 (-1.0 if e["result"] == "loss" else 0.0) for e in book)
     return f"👽 Live edge alerts: {w}-{l}" + (f" ({w / (w + l):.0%}), {units:+.1f}u at the alerted prices" if w + l else "")
+
+
+TT_SHADOW = "live_tt_shadow.json"  # CFB live team-total projections, SHADOW ONLY (never alerts, no extra odds credits)
+
+
+def tt_shadow_log(state_dir: Path, sport: str, game, ended: int, st: dict) -> None:
+    """Log Marv's projected final team totals once per game+period (no price feed for live team totals yet)."""
+    try:
+        path = state_dir / TT_SHADOW
+        book = json.loads(path.read_text()) if path.exists() else []
+        if any(r["game_id"] == str(game.id) and r["period"] == ended for r in book):
+            return
+        t, m = float(st["exp_total"]), float(st["exp_margin"])
+        book.append({"sport": sport, "game_id": str(game.id), "home": game.home, "away": game.away, "period": ended,
+                     "score": [game.info.get("live_away"), game.info.get("live_home")],
+                     "proj_home": round((t + m) / 2, 2), "proj_away": round((t - m) / 2, 2), "line_home": None,
+                     "line_away": None, "at": datetime.now(timezone.utc).isoformat(), "status": "pending"})
+        tmp = path.with_suffix(".tmp"); tmp.write_text(json.dumps(book, indent=1)); os.replace(tmp, path)
+    except Exception as exc:
+        log.warning("tt shadow log %s: %s", getattr(game, "id", "?"), exc)
+
+
+def tt_shadow_grade(state_dir: Path, game) -> None:
+    try:
+        path = state_dir / TT_SHADOW
+        if not path.exists():
+            return
+        book, ch = json.loads(path.read_text()), False
+        for r in book:
+            if r["game_id"] == str(game.id) and r["status"] == "pending":
+                r.update(final_home=float(game.home_score), final_away=float(game.away_score), status="graded",
+                         err_home=round(float(game.home_score) - r["proj_home"], 2),
+                         err_away=round(float(game.away_score) - r["proj_away"], 2)); ch = True
+        if ch:
+            tmp = path.with_suffix(".tmp"); tmp.write_text(json.dumps(book, indent=1)); os.replace(tmp, path)
+    except Exception as exc:
+        log.warning("tt shadow grade %s: %s", getattr(game, "id", "?"), exc)
 
 
 class LiveMonitor:
@@ -380,9 +438,12 @@ class LiveMonitor:
                     state[key]["final"] = True
                     hs, as_ = float(g.home_score), float(g.away_score)
                     wins = []
+                    if sport == "cfb":
+                        tt_shadow_grade(Path(self.s.state_dir), g)
                     for e in state[key].get("alerted", []):
                         e["result"] = grade_alert(e, g.home, hs, as_)
-                        log_alert(Path(self.s.state_dir), sport, g, e)
+                        if not log_alert(Path(self.s.state_dir), sport, g, e):
+                            continue  # already recorded (and announced) on an earlier tick
                         if e["result"] == "win":
                             wins.append(e)
                     if wins and gate_quiet:  # gated sport: graded in the paper ledger, not announced
@@ -393,6 +454,15 @@ class LiveMonitor:
                         sent += 1
                     continue
                 state[key]["reported"] = ended
+                if sport == "cfb":  # shadow team-total projections (tracking only, no alert, no odds calls)
+                    try:
+                        _left = minutes_left(sport, ended, g.info.get("clock"), True)
+                        _st = bridge.live_state(rec, sport, g.info.get("live_home"), g.info.get("live_away"), _left)
+                        if ingame:
+                            _st = {**_st, "exp_total": ingame["exp_total"], "exp_margin": ingame["exp_margin"]}
+                        tt_shadow_log(Path(self.s.state_dir), sport, g, ended, _st)
+                    except Exception as exc:
+                        log.warning("tt shadow %s: %s", g.id, exc)
                 if not live_prices:
                     continue  # no live prices = no measurable edge, stay quiet
                 left = minutes_left(sport, ended, g.info.get("clock"), True)
