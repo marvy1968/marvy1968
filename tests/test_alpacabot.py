@@ -1443,7 +1443,9 @@ class FibBoxTests(unittest.TestCase):
         out = fib_ladder_cfg(cfg, 100.0, 105.28, 0.5)
         self.assertAlmostEqual(out["tp_depth_atr"][1], 5.28 / 0.5)
         self.assertEqual(cfg["tp_depth_atr"], [0.0, 0.25])                           # the shared plan is not changed
-        self.assertTrue((LadderTests("test_tier_from_depth")._runner(".").zone_config().get("fib") or {}).get("live"))
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue((LadderTests("test_tier_from_depth")._runner(tmp).zone_config().get("fib") or {}).get("live"))
 
 
 class BoxStrategyStudyTests(unittest.TestCase):
