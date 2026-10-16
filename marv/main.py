@@ -539,6 +539,12 @@ def cmd_serve(s: Settings, args) -> int:
                     body, code = json.dumps(_slp.live_prices(
                         state, q.get("league", ""), q.get("team") or None, q.get("other") or None, int(q["hg"]),
                         int(q["ag"]), float(q["minute"]), q.get("ht", "").lower() in ("1", "true", "yes"))), 200
+                elif url.path == "/mlb_live":  # in-game MLB run totals (March_edge SHADOW; Marvin 2026-10-16)
+                    from . import mlb_live_props as _mlp
+                    body, code = json.dumps(_mlp.live_prices(
+                        state, q.get("team") or None, q.get("other") or None, int(q["hg"]),
+                        int(q["ag"]), float(q.get("inning") or q.get("minute") or 1),
+                        q.get("text") or None)), 200
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
@@ -556,7 +562,7 @@ def cmd_serve(s: Settings, args) -> int:
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /overlay, /h2h, /grade, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /overlay, /h2h, /soccer_live, /mlb_live, /grade, /predictions or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
