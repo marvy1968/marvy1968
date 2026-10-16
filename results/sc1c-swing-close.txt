@@ -1,3 +1,12 @@
 $ alpaca swing close
-started 2026-10-16 13:24:43 EDT
-RUNNING...
+started 2026-10-16 13:24:43 EDT, took 10s, exit 0
+
+{
+ "META": "closed @ 710.10",
+ "MSFT": "closed @ 525.36",
+ "WMT": "closed @ 118.84"
+}
+
+SWING (Sector Top-Down, daily, holds overnight)
+  closed trades 4, 1W/3L, P&L $-254
+  holding: nothing
