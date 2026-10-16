@@ -1,3 +1,18 @@
 $ alpaca run-all --phase validate --months3 --families reversal_confirm
-started 2026-10-16 16:05:05 EDT
-RUNNING...
+started 2026-10-16 16:05:05 EDT, took 686s, exit 0
+
+daily data ready
+## reversal_confirm: the reversal check did not beat live in both halves
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no reversal check): 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | mean reversion needs 2 of 4 (incl. Velez tail / 180 / rubber band): 336t win 33% PF 0.50 avgR -0.32 daily -0.170% CAGR -36.3% maxDD -5.1%
+- train | mean reversion needs 3 of 4: 301t win 32% PF 0.52 avgR -0.33 daily -0.147% CAGR -32.3% maxDD -4.7%
+- validate | live (no reversal check): 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | mean reversion needs 2 of 4 (incl. Velez tail / 180 / rubber band): 367t win 33% PF 0.47 avgR -0.28 daily -0.206% CAGR -40.0% maxDD -6.4%
+- validate | mean reversion needs 3 of 4: 325t win 32% PF 0.48 avgR -0.29 daily -0.195% CAGR -37.5% maxDD -6.2%
+ALL DONE
