@@ -1,3 +1,20 @@
 $ alpaca run-all --phase validate --year --families profile_assign
-started 2026-10-15 21:35:52 EDT
-RUNNING...
+started 2026-10-15 21:35:52 EDT, took 2372s, exit 0
+
+daily data ready
+## profile_assign: no move beat the live assignment in both periods: leave dual_regime and opening_range_breakout on the trend profile
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (both on the trend profile): 1760t win 35% PF 0.65 avgR -0.22 daily -0.207% CAGR -40.6% maxDD -22.9%
+- train | dual_regime on the range profile: 1764t win 35% PF 0.64 avgR -0.22 daily -0.211% CAGR -41.1% maxDD -23.2%
+- train | opening_range_breakout on the range profile: 1764t win 35% PF 0.64 avgR -0.22 daily -0.210% CAGR -41.1% maxDD -23.2%
+- train | both on the range profile: 1768t win 35% PF 0.64 avgR -0.22 daily -0.212% CAGR -41.4% maxDD -23.4%
+- validate | live (both on the trend profile): 1250t win 39% PF 0.76 avgR -0.08 daily -0.174% CAGR -35.6% maxDD -18.1%
+- validate | dual_regime on the range profile: 1253t win 39% PF 0.76 avgR -0.09 daily -0.179% CAGR -36.4% maxDD -18.6%
+- validate | opening_range_breakout on the range profile: 1251t win 40% PF 0.76 avgR -0.08 daily -0.176% CAGR -35.9% maxDD -18.3%
+- validate | both on the range profile: 1255t win 40% PF 0.76 avgR -0.08 daily -0.180% CAGR -36.5% maxDD -18.7%
+ALL DONE
