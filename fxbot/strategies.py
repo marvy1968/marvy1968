@@ -250,6 +250,71 @@ class RangeBox200:
         return f
 
 
+class RangeBoxFailed(RangeBox200):
+    """REPAIR of the owner's range box (2026-10-16). The box's diagnosis (2016-22, 1,308 trades): price closed beyond the faded edge within a day
+    on 68% of trades (avg -0.98R) - the edge usually BREAKS; the 32% where it held averaged +1.2R. So wait for the failed breakout: within the
+    last `look` bars a bar CLOSED outside the box (box frozen as it was before that bar, pair ranging), and this bar closes back INSIDE it
+    (no deeper than the outer third) - fade it then. Stop 0.25 ATR beyond the false break's extreme; TP1 (zone_px) at the box middle, the
+    target at the far edge (target="edge") or the middle (target="mid"). Short = mirror."""
+
+    def __init__(self, lookback: int = 100, look: int = 6, target: str = "edge", stop_buf_atr: float = 0.25, max_bars: int = 72,
+                 min_crosses: int = 2, flat_atr: float = 0.5):
+        super().__init__(lookback=lookback, min_crosses=min_crosses, flat_atr=flat_atr, max_bars=max_bars)
+        self.look, self.target, self.stop_buf_atr = look, target, stop_buf_atr
+        self.name = f"range_box failed-breakout lb{lookback} look{look} tgt:{target}"
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        c, a = m["close"], atr(m, 14)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+        side_ = np.sign(s20 - s200)
+        crosses = (side_ != side_.shift(1)).astype(float).where(side_.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (ranging & (h >= 2 * a) & (h <= 20 * a)).fillna(False).to_numpy()
+        cl, hi, lo = c.to_numpy(float), m["high"].to_numpy(float), m["low"].to_numpy(float)
+        T, B, A = top.to_numpy(float), bot.to_numpy(float), a.to_numpy(float)
+        n = len(m)
+        L_, S_ = np.zeros(n, bool), np.zeros(n, bool)
+        stop, z1, tg = np.full(n, np.nan), np.full(n, np.nan), np.full(n, np.nan)
+        # breakout bars: a close outside a valid box (box as it stood before that bar)
+        dn = np.flatnonzero(ok & (cl < B))
+        up = np.flatnonzero(ok & (cl > T))
+        for brk, side in [(k, 1) for k in dn] + [(k, -1) for k in up]:
+            t0, b0, hh = T[brk], B[brk], T[brk] - B[brk]
+            for i in range(brk + 1, min(n, brk + 1 + self.look)):
+                if L_[i] or S_[i]:
+                    break
+                if side == 1:
+                    if cl[i] > b0 and cl[i] <= b0 + hh / 3:              # back inside, in the bottom third
+                        ext = lo[brk:i + 1].min()
+                        sd = cl[i] - (ext - self.stop_buf_atr * A[i])
+                        mid_ = (t0 + b0) / 2
+                        if sd > 0 and mid_ > cl[i]:
+                            L_[i], stop[i], z1[i] = True, sd, mid_
+                            tg[i] = (t0 if self.target == "edge" else mid_) - cl[i]
+                        break
+                    if cl[i] > b0 + hh / 3:
+                        break
+                else:
+                    if cl[i] < t0 and cl[i] >= t0 - hh / 3:
+                        ext = hi[brk:i + 1].max()
+                        sd = (ext + self.stop_buf_atr * A[i]) - cl[i]
+                        mid_ = (t0 + b0) / 2
+                        if sd > 0 and mid_ < cl[i]:
+                            S_[i], stop[i], z1[i] = True, sd, mid_
+                            tg[i] = cl[i] - (b0 if self.target == "edge" else mid_)
+                        break
+                    if cl[i] < t0 - hh / 3:
+                        break
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, pd.Series(L_, index=m.index), pd.Series(S_, index=m.index), none, none, pd.Series(stop, index=m.index), h / a)
+        f["zone_px"], f["target"] = z1, tg
+        return f
+
+
 class HybridBox:
     """The owner's HYBRID zones on forex (2026-10-16, live on practice at reduced size without a backtest, by his decision): the range box of
     RangeBox200 (100 hourly bars, pair ranging), its Fibonacci retracements and the pair's own swing levels inside the box (zonemap.level_map

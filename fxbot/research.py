@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -55,6 +55,8 @@ FAMILIES = {
     # owner 2026-10-16: virtual breakout orders outside the box when the indicators agree: breakouts alone, and the box fade + breakouts together
     "fx_boxbreak_only_h1": ("H1", RangeBox200, {"lookback": [100], "breakout": ["only"]}),
     "fx_boxbreak_also_h1": ("H1", RangeBox200, {"lookback": [100], "breakout": ["also"]}),
+    # REPAIR (2026-10-16): fade the FAILED breakout instead of the first touch of the edge (the edge broke on 68% of the box's trades)
+    "fx_boxfail_h1": ("H1", RangeBoxFailed, {"lookback": [100], "look": [6], "target": ["edge", "mid"]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
@@ -216,4 +218,6 @@ def box_diagnosis(data: dict, a=None, b=None) -> list[str]:
     anatomy("what-if: stop 2.0 ATR past the edge", RangeBox200(stop_atr=2.0))
     anatomy("what-if: target the box middle", RangeBox200(target="mid"))
     anatomy("what-if: stop 1.0 ATR + target the middle", RangeBox200(stop_atr=1.0, target="mid"))
+    anatomy("REPAIR: failed breakout, target the far edge", RangeBoxFailed(target="edge"))
+    anatomy("REPAIR: failed breakout, target the middle", RangeBoxFailed(target="mid"))
     return lines

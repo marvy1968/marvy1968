@@ -426,3 +426,23 @@ class HybridZoneTests(unittest.TestCase):
         self.assertTrue((f["zone_px"][lng] > m["close"][lng]).all())   # TP1 above a long's entry
         ok2 = lng & f["zone2_px"].notna()
         self.assertTrue((f["zone2_px"][ok2] > f["zone_px"][ok2]).all())
+
+
+class RangeBoxFailedTests(unittest.TestCase):
+    def test_fades_only_after_a_close_outside_and_back_inside(self):
+        from fxbot.strategies import RangeBoxFailed
+        rng = np.random.default_rng(4)
+        n = 700
+        idx = pd.date_range("2022-01-03", periods=n, freq="h", tz="UTC")
+        c = 1.10 + 0.0035 * np.sin(np.arange(n) / 8.0) + rng.normal(0, 0.0003, n)
+        c[600], c[601], c[602] = c[599] - 0.006, c[599] - 0.0062, c[599] - 0.0025   # dips out under the box, then closes back inside
+        m = pd.DataFrame({"open": np.r_[c[0], c[:-1]], "high": c + 0.0004, "low": c - 0.0004, "close": c, "volume": 1.0}, index=idx)
+        f = RangeBoxFailed().frame(m)
+        self.assertEqual(int(f["long"].sum()), 1)                                    # the false break is faded exactly once
+        bot = m["low"].shift(1).rolling(100).min()
+        for i in np.flatnonzero(f["long"].to_numpy()):
+            prior = m["close"].iloc[max(0, i - 6):i]
+            self.assertTrue((prior < bot.iloc[max(0, i - 6):i]).any())               # a close below the box came first
+            self.assertGreater(m["close"].iloc[i], bot.iloc[i - 1] - 1e-9 if i else 0)
+            self.assertGreater(f["zone_px"].iloc[i], m["close"].iloc[i])               # TP1 (box middle) above the entry
+        self.assertTrue((f["stop"][f["long"] | f["short"]] > 0).all())

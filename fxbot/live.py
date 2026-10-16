@@ -57,7 +57,7 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
           "trade": ["lien_h1", "box_h1", "hybrid_h1"],
-          "risk_by_strategy": {"hybrid_h1": 0.005}}                                # the hybrid trades at half the normal 1% (owner)
+          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005}}         # box halved 2026-10-16 while its repair is tested (0 for 5 live)                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
