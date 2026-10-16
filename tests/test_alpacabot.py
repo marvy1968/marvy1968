@@ -1551,6 +1551,22 @@ class TrendContinuationTests(unittest.TestCase):
         self.assertEqual(got, ["raschke_grail", "connors_rsi2"])                  # the weak-bar trend entry is dropped, the range expert kept
 
 
+class ExpertZoneTests(unittest.TestCase):
+    def test_each_trend_expert_has_its_own_zones_and_exit_plan_live(self):
+        import tempfile
+        from alpacabot.engine import EXPERT_LADDERS, EXPERT_ZONES, ladder_for, zone_profile
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = LadderTests("test_tier_from_depth")._runner(tmp).zone_config()
+        for name in ("velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"):
+            zp = zone_profile({"profiles": cfg["profiles"]}, "S:" + name)
+            self.assertEqual(zp["chase_atr"], EXPERT_ZONES[name]["chase_atr"])               # its own buy zone
+            lad = ladder_for(cfg["ladder"], name)
+            self.assertEqual(lad["tp_fracs"], EXPERT_LADDERS[name]["tp_fracs"])             # its own take-profit zone
+            self.assertEqual(lad["cut_fracs"], [])                                           # its own sell zone: one hard stop
+        self.assertEqual(ladder_for(cfg["ladder"], "connors_rsi2")["cut_fracs"], [0.25, 0.5])   # range experts keep the drawn plan
+        self.assertEqual(zone_profile({"profiles": cfg["profiles"]}, "connors_rsi2")["target"], "mean")
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

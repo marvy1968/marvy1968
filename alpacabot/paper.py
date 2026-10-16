@@ -421,7 +421,11 @@ class PaperRunner:
                 cfg.update(json.loads(p.read_text()))
             else:
                 p.write_text(json.dumps({"_note": "local override (e.g. {\"live\": false} to switch zones off here); otherwise alpacabot/zones.json rules"}, indent=1))
-            cfg["profiles"] = {k: {**ZONE_PROFILES[k], **cfg["profiles"].get(k, {})} for k in ZONE_PROFILES}
+            prof = cfg["profiles"]
+            cfg["profiles"] = {k: {**ZONE_PROFILES[k], **prof.get(k, {})} for k in ZONE_PROFILES}
+            for k, v in prof.items():                                  # per-expert zones (trend experts' own philosophy)
+                if k not in ZONE_PROFILES and isinstance(v, dict):
+                    cfg["profiles"][k] = {**ZONE_PROFILES["trend"], **v}
             return cfg
         except Exception:
             log.exception("zones.json unreadable: zones off until fixed")
@@ -798,7 +802,8 @@ class PaperRunner:
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
                     if getattr(sig, "target_px", 0) > 0:                  # the range box's far edge is this trade's take-profit zone
                         pos["zone_tp"] = float(sig.target_px)
-                    pos["exhaust_r"] = float(zcfg["profiles"][zone.get("profile", "trend")]["exhaust_r"])
+                    _p = zcfg["profiles"].get((sig.tag or "").removeprefix("S:")) or zcfg["profiles"][zone.get("profile", "trend")]
+                    pos["exhaust_r"] = float(_p["exhaust_r"])
                     if lad_cfg and tier is not None:
                         side_ = -1 if sig.side == -1 else 1
                         atr_i = sig.atr if sig.atr > 0 else sig.stop_dist / max(sig.trail, 1e-9)

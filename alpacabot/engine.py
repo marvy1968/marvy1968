@@ -62,7 +62,28 @@ def zone_profile(zones: dict | None, tag: str) -> dict | None:
     if not zones or "profiles" not in zones:
         return zones
     name = (tag or "").removeprefix("S:")
+    if name in zones["profiles"]:                 # an expert with its own zones (owner 2026-10-16: each trend expert's philosophy)
+        return zones["profiles"][name]
     return zones["profiles"]["range" if name in RANGE_STYLE else "trend"]
+
+
+# Each TREND expert's own buy / take-profit zones (owner 2026-10-16: "every trending expert gets a buy zone, take-profit zone and sell zone
+# based on its philosophy and other metrics"). Buy zone = chase_atr (how far past the signal a fill may be); take-profit zone = the prior
+# `lookback`-bar extreme when at least min_r away, else default_r (the stock's daily zone-map level wins when nearer, as for every expert);
+# the sell zone is the expert's own stop plus its own exit plan in EXPERT_LADDERS (no cut steps: each of these traders uses one hard stop).
+EXPERT_ZONES = {
+    "velez_elephant": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5, "target": "extreme"},
+    # Velez: buy the elephant bar's follow-through at once or not at all; stop under the bar; first target the prior swing high
+    "raschke_grail": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 2.0, "target": "extreme"},
+    # Raschke: enter on the pullback to the 20 EMA, never chase; target the prior swing high (the trend's last high)
+    "brooks_pullback": {"chase_atr": 0.25, "lookback": 12, "min_r": 1.0, "default_r": 1.0, "exhaust_r": 1.5, "target": "extreme"},
+    # Brooks: buy above the signal bar, scalp the first leg at 1R (or the nearer recent high), swing the rest
+    "donchian_turtle": {"chase_atr": 0.5, "lookback": 55, "min_r": 2.0, "default_r": 4.0, "exhaust_r": 4.0, "target": "extreme"},
+    # Turtles: the breakout may add up to 1/2 N; no fixed target - the wide zone keeps the take-profit steps out of the way of the 2N trail
+    "opening_range_breakout": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 2.0, "target": "extreme"},
+    # Crabel / Zarattini: the first close above the opening range, not later; 2R or the day's prior high
+    "dual_regime": {"chase_atr": 0.5, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5, "target": "extreme"},
+}
 
 
 # Each expert's own exits, written from their published rules on 2026-10-14 before any test (the owner asked for each master's

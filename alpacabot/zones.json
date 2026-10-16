@@ -22,6 +22,54 @@
     "default_r": 1.5,
     "exhaust_r": 1.5,
     "target": "mean"
+   },
+   "velez_elephant": {
+    "chase_atr": 0.25,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 1.5,
+    "target": "extreme"
+   },
+   "raschke_grail": {
+    "chase_atr": 0.25,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 2.0,
+    "target": "extreme"
+   },
+   "brooks_pullback": {
+    "chase_atr": 0.25,
+    "lookback": 12,
+    "min_r": 1.0,
+    "default_r": 1.0,
+    "exhaust_r": 1.5,
+    "target": "extreme"
+   },
+   "donchian_turtle": {
+    "chase_atr": 0.5,
+    "lookback": 55,
+    "min_r": 2.0,
+    "default_r": 4.0,
+    "exhaust_r": 4.0,
+    "target": "extreme"
+   },
+   "opening_range_breakout": {
+    "chase_atr": 0.25,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 2.0,
+    "target": "extreme"
+   },
+   "dual_regime": {
+    "chase_atr": 0.5,
+    "lookback": 20,
+    "min_r": 1.0,
+    "default_r": 2.0,
+    "exhaust_r": 1.5,
+    "target": "extreme"
    }
   },
   "ladder": {
@@ -53,7 +101,93 @@
     "tp"
    ],
    "ride": true,
-   "trail_atr": 1.0
+   "trail_atr": 1.0,
+   "by_expert": {
+    "velez_elephant": {
+     "tp_fracs": [
+      0.33,
+      0.66
+     ],
+     "tp_depth_atr": [
+      0.0,
+      0.5
+     ],
+     "lock": [
+      "breakeven",
+      "tp"
+     ],
+     "trail_atr": 0.75,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    },
+    "raschke_grail": {
+     "tp_fracs": [
+      0.5,
+      0.75
+     ],
+     "tp_depth_atr": [
+      0.0,
+      0.25
+     ],
+     "lock": [
+      "breakeven",
+      "tp"
+     ],
+     "trail_atr": 1.0,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    },
+    "brooks_pullback": {
+     "tp_fracs": [
+      0.5
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": [
+      "breakeven"
+     ],
+     "trail_atr": 1.0,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    },
+    "donchian_turtle": {
+     "tp_fracs": [],
+     "tp_depth_atr": [],
+     "trail_atr": 2.0,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    },
+    "opening_range_breakout": {
+     "tp_fracs": [
+      0.5
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": [
+      "breakeven"
+     ],
+     "trail_atr": 1.0,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    },
+    "dual_regime": {
+     "tp_fracs": [
+      0.25
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": [
+      "breakeven"
+     ],
+     "trail_atr": 1.5,
+     "cut_fracs": [],
+     "cut_depth_r": []
+    }
+   },
+   "_note_by_expert": "owner 2026-10-16: every TREND expert uses its own philosophy's zones: take-profit steps, stop locks and trail from engine.EXPERT_LADDERS, one hard stop (its sell zone, no cut steps); buy / take-profit zone distances in profiles.<expert> (engine.EXPERT_ZONES). Range experts and the box strategies keep the drawn plan."
   },
   "mtf": {
    "_note": "owner 2026-10-15: trend direction AND strength confirmed on weekly / 1-hour / 15-minute before entry, and re-checked while the trade runs (the 1-hour trend turning against a trend-expert trade exits it at the next open). Range experts need a NON-trending 1-hour market. Set entry / trend_exit to false to switch a part off.",
