@@ -485,7 +485,7 @@ def main(argv=None) -> int:
     sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
     sw = sub.add_parser("swing", help="daily Sector Top-Down swing runner (PAPER): scan after the close, open before the open, status")
-    sw.add_argument("action", choices=["scan", "open", "status"])
+    sw.add_argument("action", choices=["scan", "open", "status", "close"])
     sw.add_argument("--state", default="state/alpaca_swing")
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
@@ -543,7 +543,7 @@ def main(argv=None) -> int:
         setup(Path(a.state) / "swing.log")
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
-        out = r.scan(now) if a.action == "scan" else r.open(now)
+        out = r.scan(now) if a.action == "scan" else r.close_all(now) if a.action == "close" else r.open(now)
         print(json.dumps(out, indent=1, default=str))
         print("\n".join(summary(a.state)))
         return 0

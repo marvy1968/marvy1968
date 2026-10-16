@@ -2516,6 +2516,23 @@ class SwingZoneLiveTests(unittest.TestCase):
             t = json.loads((Path(d) / "trades.jsonl").read_text().splitlines()[-1])
             self.assertEqual((t["reason"], t["exit"]), ("zone", 110.0))
 
+    def test_owner_close_cancels_the_oco_sells_and_books_it(self):
+        import tempfile
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B(ask=100.5)
+            r = self._runner(b, d)
+            r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+            cancelled = []
+            b.cancel_order = cancelled.append
+            out = r.close_all(datetime(2025, 10, 15, 12, 10, tzinfo=et))
+            self.assertEqual(cancelled, ["oco-AMD"])
+            self.assertEqual(b.sent[-1][:3], ("AMD", 5, "sell"))
+            self.assertEqual(r.state["positions"], {})
+            self.assertIn("closed", out["AMD"])
+            t = json.loads((Path(d) / "trades.jsonl").read_text().splitlines()[-1])
+            self.assertEqual(t["reason"], "owner_close")
+
     def test_gap_past_the_entry_zone_is_skipped(self):
         import tempfile
         et = __import__("zoneinfo").ZoneInfo("America/New_York")

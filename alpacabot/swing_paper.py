@@ -239,6 +239,43 @@ class SwingRunner:
         self._save()
         return sent
 
+    def close_all(self, now: datetime, wait_s: float = 60.0) -> dict:
+        """Owner's manual close: cancel each swing position's stop / OCO at Alpaca, sell it at market and book it as "owner_close"."""
+        self.settle_stops(now)                            # a stop that already filled is booked at its own price first
+        tag = now.astimezone(ET).strftime("%Y%m%d%H%M")
+        sent = {}
+        for sym, pos in list(self.state["positions"].items()):
+            if pos.get("stop_order_id"):
+                try:
+                    self.b.cancel_order(pos["stop_order_id"])
+                except Exception:
+                    log.exception("cancel stop %s", sym)
+            sent[sym] = self.b.submit_order(sym, pos["qty"], "sell", "market", "day", f"sw-c-{sym}-{tag}")
+        out, waited = {}, 0.0
+        pending = dict(sent)
+        while pending:
+            for sym, o in list(pending.items()):
+                st = self.b.order(o["id"]) if isinstance(o, dict) and o.get("id") else {"status": "rejected"}
+                if st.get("status") in ("filled", "rejected", "canceled", "expired"):
+                    if st.get("status") == "filled":
+                        px = float(st.get("filled_avg_price") or 0)
+                        self.record(sym, self.state["positions"].pop(sym), px, "owner_close", now)
+                        out[sym] = f"closed @ {px:.2f}"
+                    else:
+                        out[sym] = f"NOT closed ({st.get('status')}): stop was cancelled, check it"
+                        self.journal("close_not_filled", now, symbol=sym, status=st.get("status"))
+                    del pending[sym]
+            if pending and waited < wait_s:
+                self.sleep(2)
+                waited += 2
+            elif pending:
+                for sym in pending:
+                    out[sym] = "close order still working after %.0fs: check it" % wait_s
+                break
+        self._save()
+        self.journal("owner_close", now, result=out)
+        return out
+
     def _settle_open(self, sym: str, kind: str, o: dict, now: datetime):
         filled = o.get("status") == "filled"
         px = float(o.get("filled_avg_price") or 0)
