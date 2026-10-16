@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --year --families box_diag
-started 2026-10-16 00:00:21 EDT
-RUNNING...
+started 2026-10-16 00:00:21 EDT, took 61s, exit 0
+
+daily data ready
+## box_diag: counts: {"sessions": 2520, "box_attr": 2520, "valid_box": 124, "atr_bad": 0, "box_raw": 62, "box_direction": 29, "box_stage": 0, "box_mtf": 0, "fib_raw": 44, "fib_direction": 33, "fib_stage": 5, "fib_mtf": 4}
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
