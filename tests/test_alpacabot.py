@@ -1584,6 +1584,21 @@ class TrendGateOrderTests(unittest.TestCase):
         self.assertEqual(order, sorted(order))                       # heat map -> direction/stage/chase -> multi-timeframe -> continuation -> order
 
 
+class RiskByExpertTests(unittest.TestCase):
+    def test_clear_losers_trade_at_half_size_and_the_rest_at_full(self):
+        import inspect
+        import tempfile
+        from alpacabot import paper
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = LadderTests("test_tier_from_depth")._runner(tmp).zone_config()
+        rbe = cfg["risk_by_expert"]
+        self.assertEqual(rbe["williams_r"], 0.005)
+        self.assertNotIn("velez_elephant", rbe)
+        self.assertNotIn("brooks_pullback", rbe)
+        src = inspect.getsource(paper.PaperRunner.on_bar_close)
+        self.assertLess(src.index("risk_by_expert"), src.index("try_enter(sym"))   # applied before the order is sized
+
+
 class BoxStrategyStudyTests(unittest.TestCase):
     def test_study_runs_and_restores_the_live_style_sets(self):
         from alpacabot import engine, research

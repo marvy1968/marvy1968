@@ -759,6 +759,9 @@ class PaperRunner:
             if lad_cfg:                                                  # owner's scaling: size by how deep price is into the entry zone
                 tier = self.ladder_tier(sym, sig, ref, lad_cfg)
                 self.exec.risk_pct = lad_cfg["entry_risk"][tier]
+            _rbe = (zcfg.get("risk_by_expert") or {}).get((sig.tag or "").removeprefix("S:"))
+            if _rbe is not None:                                        # per-expert size from the evidence (e.g. halved for clear losers)
+                self.exec.risk_pct = float(_rbe)
             if (sig.tag or "").removeprefix("S:") == "fib_box":         # the Fibonacci box trades at reduced size (owner: "decrease equity use")
                 self.exec.risk_pct = float((zcfg.get("fib") or {}).get("risk_pct", 0.005))
             if (sig.tag or "").removeprefix("S:") == "box_confirm":     # the confirmed box, at reduced size
