@@ -192,10 +192,12 @@ class RangeBox200:
     (zone_px = the first line); the rest rides with the locked stop. Time stop max_bars."""
 
     def __init__(self, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, max_bars: int = 72,
-                 levels: str = "hilo", z: float = 2.0, breakout: str = "off", break_atr: float = 0.1, adx_min: float = 20.0):
+                 levels: str = "hilo", z: float = 2.0, breakout: str = "off", break_atr: float = 0.1, adx_min: float = 20.0,
+                 target: str = "edge"):
         self.lookback, self.min_crosses, self.flat_atr, self.stop_atr, self.max_bars = lookback, min_crosses, flat_atr, stop_atr, max_bars
         self.levels, self.z = levels, z
         self.breakout, self.break_atr, self.adx_min = breakout, break_atr, adx_min
+        self.target = target                       # "edge" (drawn: the far side of the box) or "mid" (diagnostics: the box middle)
         self.name = f"range_box_200_20 (owner's) lb{lookback}" + (f" z{z}" if levels == "zscore" else "") + ("" if breakout == "off" else f" break:{breakout}")
 
     def frame(self, m):
@@ -220,6 +222,8 @@ class RangeBox200:
         none = pd.Series(False, index=m.index)
         zone_px = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))
         target = np.where(long_, top - c, np.where(short, c - bot, np.nan))          # backtests: one exit at the far edge
+        if self.target == "mid":
+            target = np.where(long_, (top + bot) / 2 - c, np.where(short, c - (top + bot) / 2, np.nan))
         if self.breakout != "off":
             # Owner (2026-10-16): virtual orders OUTSIDE the box in case price breaks out and the indicators support it. Virtual = no order is parked
             # at the broker; the bar that CLOSES beyond the edge by break_atr x ATR (first close outside, from a box that was valid the bar before)

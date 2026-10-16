@@ -149,3 +149,71 @@ for _name in ("fx_lien_fader_h1", "fx_f0_h4", "fx_box200_h1"):
     _gran, _cls, _params = FAMILIES[_name]
     FAMILIES[_name + "_ladder"] = (_gran, (lambda c, p0: (lambda variant, **p: Laddered(c(**{**p0, **p}), LADDER_VARIANTS[variant])))(
         _cls, {k: v[0] for k, v in _params.items()}), {"variant": list(LADDER_VARIANTS)})
+
+
+
+def box_diagnosis(data: dict, a=None, b=None) -> list[str]:
+    """Why the owner's range box (RangeBox200, H1) loses: per-trade anatomy on 2016-2022 bid/ask data, plus stop / target what-ifs that are
+    diagnostics only (nothing here is adopted)."""
+    import datetime as _d
+    from alpacabot.indicators import atr as _atr
+    from .data import mid as _mid
+    a = a or _d.date(2016, 1, 1)
+    b = b or _d.date(2022, 12, 31)
+    lines = []
+
+    def anatomy(label, strat):
+        rows = []
+        for inst, df in data.items():
+            m = _mid(df)
+            at = _atr(m, 14).to_numpy(float)
+            f = strat.frame(m)
+            hi_, lo_ = m["high"].to_numpy(float), m["low"].to_numpy(float)
+            top = m["high"].shift(1).rolling(100).max().to_numpy(float)
+            bot = m["low"].shift(1).rolling(100).min().to_numpy(float)
+            spread = (df["ac"] - df["bc"]).to_numpy(float)
+            tg = f["target"].to_numpy(float)
+            idx = {t: k for k, t in enumerate(df.index)}
+            for t in simulate(inst, df, strat):
+                if not (a <= t.entry_time.date() <= b):
+                    continue
+                j0, j1 = idx[t.entry_time], idx[t.exit_time]
+                i = j0 - 1
+                r = t.side * (t.exit_px - t.entry_px) / t.stop_dist
+                seg_hi, seg_lo = hi_[j0:j1 + 1].max(), lo_[j0:j1 + 1].min()
+                mfe = (seg_hi - t.entry_px if t.side == 1 else t.entry_px - seg_lo) / t.stop_dist
+                # broke out of the box against the trade within 24 bars after entry (close beyond the edge it was faded from)
+                w = m["close"].to_numpy(float)[j0:j0 + 24]
+                broke = bool((w < bot[i]).any()) if t.side == 1 else bool((w > top[i]).any())
+                rows.append({"r": r, "why": t.reason, "mfe": mfe, "bars": t.bars, "stop_atr": t.stop_dist / at[i] if at[i] > 0 else np.nan,
+                             "spread_frac": spread[i] / t.stop_dist, "tgt_r": tg[i] / t.stop_dist if np.isfinite(tg[i]) else np.nan,
+                             "broke": broke, "box_atr": (top[i] - bot[i]) / at[i] if at[i] > 0 else np.nan})
+        if not rows:
+            lines.append(f"### {label}: no trades")
+            return
+        R = np.array([x["r"] for x in rows])
+        wins, losses = R[R > 0], R[R <= 0]
+        pf = wins.sum() / -losses.sum() if losses.sum() < 0 else float("inf")
+        lines.append(f"### {label}: {len(R)} trades, win {len(wins) / len(R):.0%}, avg R {R.mean():+.2f}, avg win {wins.mean() if len(wins) else 0:+.2f}R, "
+                     f"avg loss {losses.mean() if len(losses) else 0:+.2f}R, PF {pf:.2f} (before spread costs counted in R)")
+        whys = {}
+        for x in rows:
+            whys.setdefault(x["why"], []).append(x["r"])
+        lines.append("- exits: " + ", ".join(f"{k} {len(v)} ({len(v) / len(rows):.0%}, avg {np.mean(v):+.2f}R)" for k, v in sorted(whys.items(), key=lambda z: -len(z[1]))))
+        med = lambda k: float(np.nanmedian([x[k] for x in rows]))   # noqa: E731
+        lines.append(f"- median stop {med('stop_atr'):.2f} ATR; spread = {med('spread_frac'):.0%} of the stop; target {med('tgt_r'):.1f}R away; "
+                     f"box {med('box_atr'):.1f} ATR tall; held {med('bars'):.0f} bars")
+        mfe = np.array([x["mfe"] for x in rows])
+        lines.append(f"- best move in the trade's favour before exit (MFE): median {np.median(mfe):.2f}R; reached +1R {np.mean(mfe >= 1):.0%}, "
+                     f"+2R {np.mean(mfe >= 2):.0%}, half way to target {np.mean(mfe >= 0.5 * np.array([x['tgt_r'] for x in rows])):.0%}")
+        br = np.array([x["broke"] for x in rows])
+        lines.append(f"- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): {br.mean():.0%} of trades; "
+                     f"their avg {R[br].mean() if br.any() else 0:+.2f}R vs {R[~br].mean() if (~br).any() else 0:+.2f}R for the rest")
+        lines.append("")
+
+    anatomy("live box (stop 0.5 ATR past the edge, target the far edge)", RangeBox200())
+    anatomy("what-if: stop 1.0 ATR past the edge", RangeBox200(stop_atr=1.0))
+    anatomy("what-if: stop 2.0 ATR past the edge", RangeBox200(stop_atr=2.0))
+    anatomy("what-if: target the box middle", RangeBox200(target="mid"))
+    anatomy("what-if: stop 1.0 ATR + target the middle", RangeBox200(stop_atr=1.0, target="mid"))
+    return lines
