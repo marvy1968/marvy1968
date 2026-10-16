@@ -1,3 +1,15 @@
 $ alpaca positions --fx
-started 2026-10-16 04:07:24 EDT
-RUNNING...
+started 2026-10-16 04:07:24 EDT, took 1s, exit 0
+
+MARV FX PRACTICE RUNNER 2026-10-16 08:07 UTC  (OANDA practice; forex only)
+book equity $57,054.12 (start $59,021.37)  realized $-1,808.21  today $-1,545.45 (3 fills)
+market OPEN  kill switch off
+last completed bar scanned: lien_h1 7/7 pairs @ 2026-10-16T07:00, f0_h4 7/7 pairs @ 2026-10-16T01:00, box_h1 7/7 pairs @ 2026-10-16T07:00, hybrid_h1 7/7 pairs @ 2026-10-16T07:00
+open groups 1, OANDA trades 1:
+  box_h1-GBP_USD-2026-10-16T0700: short 429850u avg 1.33100 stop 1.33195 zone 1.31406 tp 1.30979 tier 0 sold 0/429850 uPL $-159.04
+
+last fills:
+{"date": "2026-10-14", "closed": "2026-10-15T14:20:34+00:00", "group": "box_h1-GBP_USD-2026-10-15T1100", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492019", "units": 157342, "entry": 1.32455, "exit": 1.32622, "pl": -262.76, "reason": "broker_sl", "partial": false, "opened": "2026-10-15T11:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T02:55:03+00:00", "group": "box_h1-GBP_USD-2026-10-15T1400", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492076", "units": 180477, "entry": 1.3249, "exit": 1.32818, "pl": -597.47, "reason": "broker_sl", "partial": false, "opened": "2026-10-15T14:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T03:55:10+00:00", "group": "box_h1-USD_CHF-2026-10-15T2200", "strategy": "box_h1", "instrument": "USD_CHF", "side": "long", "trade_id": "492149", "units": 281200, "entry": 0.82757, "exit": 0.82651, "pl": -364.21, "reason": "closed_outside_runner", "partial": false, "opened": "2026-10-15T22:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T07:01:06+00:00", "group": "box_h1-USD_CHF-2026-10-16T0400", "strategy": "box_h1", "instrument": "USD_CHF", "side": "long", "trade_id": "492221", "units": 463484, "entry": 0.82691, "exit": 0.82588, "pl": -583.77, "reason": "broker_sl", "partial": false, "opened": "2026-10-16T04:00:00+00:00", "tier": 0}
