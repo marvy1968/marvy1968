@@ -1,2 +1,2 @@
-# timeout 14400
+# timeout 7200
 alpaca run-all --phase validate --year --families profile_assign
