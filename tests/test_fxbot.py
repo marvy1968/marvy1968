@@ -465,3 +465,39 @@ class VolumeConfirmTests(unittest.TestCase):
         a, b = RangeBox200().frame(m), RangeBox200(vol_mult=1.5).frame(m)
         self.assertFalse((b["long"] & ~a["long"]).any())
         self.assertLessEqual(int(b["long"].sum() + b["short"].sum()), int(a["long"].sum() + a["short"].sum()))
+
+
+class BoxConfirmTests(unittest.TestCase):
+    def _frame(self, strong=True, vol=1000.0, comeback=False):
+        n = 400
+        idx = pd.date_range("2022-01-03", periods=n, freq="h", tz="UTC")
+        rng = np.random.default_rng(2)
+        c = 1.10 + 0.002 * np.sin(np.arange(n) / 7.0) + rng.normal(0, 0.0002, n)
+        o = np.r_[c[0], c[:-1]]
+        h_, l_ = np.maximum(o, c) + 0.0003, np.minimum(o, c) - 0.0003
+        v = np.full(n, 100.0)
+        b = 350
+        top = h_[250:350].max()
+        if strong:                                       # big body closing at its high, well above the box, on heavy volume
+            o[b], c[b], l_[b], h_[b] = top - 0.0005, top + 0.004, top - 0.0006, top + 0.0041
+        else:                                            # a poke above with a long upper wick, small body, no volume
+            o[b], c[b], l_[b], h_[b] = top - 0.0002, top + 0.0002, top - 0.0004, top + 0.004
+        v[b] = vol
+        if comeback:
+            o[b + 1], c[b + 1], h_[b + 1], l_[b + 1] = c[b], top - 0.0015, c[b] + 0.0001, top - 0.0016
+        return pd.DataFrame({"open": o, "high": h_, "low": l_, "close": c, "volume": v}, index=idx), b
+
+    def test_confirmed_breakout_is_traded_with_and_failed_one_is_faded(self):
+        from alpacabot.confirm import confirm_signals
+        for strong, vol, comeback, want in ((True, 1000.0, False, ("long", "cont")), (False, 100.0, True, ("short", "fail"))):
+            m, b = self._frame(strong, vol, comeback)
+            top = m["high"].shift(1).rolling(100).max().to_numpy()
+            bot = m["low"].shift(1).rolling(100).min().to_numpy()
+            a = (m["high"] - m["low"]).rolling(14).mean().to_numpy()
+            al = np.full(len(m), np.nanmean(a) * 0.5)                 # current ATR above its long-run level: volatility expanding
+            r = confirm_signals(m["open"], m["high"], m["low"], m["close"], m["volume"], a, al, top, bot, np.ones(len(m), bool), mode="both")
+            k = [x for x in np.flatnonzero(r["long"] | r["short"]) if x >= b]       # the bar the test builds (earlier noise may also signal)
+            self.assertTrue(len(k) >= 1)
+            i = k[0]
+            self.assertEqual(("long" if r["long"][i] else "short", r["kind"][i]), want)
+            self.assertGreater(r["stop"][i], 0)

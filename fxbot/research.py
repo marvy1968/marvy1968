@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -61,6 +61,8 @@ FAMILIES = {
     "fx_boxvol_h1": ("H1", RangeBox200, {"lookback": [100], "vol_mult": [1.5], "target": ["edge", "mid"]}),
     "fx_boxvolz_h1": ("H1", RangeBox200, {"lookback": [100], "levels": ["zscore"], "vol_mult": [1.5], "target": ["mid"]}),
     "fx_boxfailvol_h1": ("H1", RangeBoxFailed, {"lookback": [100], "look": [6], "vol_mult": [1.5], "target": ["edge", "mid"]}),
+    # FIX (owner 2026-10-16): candlestick + volume + volatility decide whether a break of the box is continuing (trade it) or failing (fade)
+    "fx_boxconfirm_h1": ("H1", BoxConfirm, {"mode": ["continuation", "failure", "both"], "vol_mult": [1.2, 1.5], "atr_ratio": [1.0, 1.2]}),
     "fx_box200_m15": ("M15", RangeBox200, {"lookback": [100]}),
     "fx_box200_h4": ("H4", RangeBox200, {"lookback": [100]}),
 }
@@ -224,6 +226,8 @@ def box_diagnosis(data: dict, a=None, b=None) -> list[str]:
     anatomy("what-if: stop 1.0 ATR + target the middle", RangeBox200(stop_atr=1.0, target="mid"))
     anatomy("REPAIR: failed breakout, target the far edge", RangeBoxFailed(target="edge"))
     anatomy("REPAIR: failed breakout, target the middle", RangeBoxFailed(target="mid"))
+    for mode in ("continuation", "failure", "both"):
+        anatomy(f"CONFIRM ({mode}): candles + volume 1.5x + volatility 1.1x", BoxConfirm(mode=mode))
     anatomy("VOLUME (Gemini's fix): live box + volume >= 1.5x 20-bar average", RangeBox200(vol_mult=1.5))
     anatomy("VOLUME: live box, target the middle + volume >= 1.5x", RangeBox200(vol_mult=1.5, target="mid"))
     anatomy("VOLUME: z-score band (SMA200 +- 2 sigma) + volume >= 1.5x, target the middle", RangeBox200(levels="zscore", vol_mult=1.5, target="mid"))

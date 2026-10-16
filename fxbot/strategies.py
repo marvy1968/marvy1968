@@ -322,6 +322,40 @@ class RangeBoxFailed(RangeBox200):
         return f
 
 
+class BoxConfirm:
+    """The owner's range box with candlestick + volume + volatility confirmation (alpacabot.confirm, 2026-10-16): every close outside the box
+    (100 hourly bars, pair ranging) is read as CONTINUING (strong candle, volume and volatility expanding -> trade the breakout) or FAILING
+    (weak candle / no volume, and price closes back inside -> fade it). mode / vol_mult / atr_ratio come from a pre-declared grid."""
+
+    def __init__(self, lookback: int = 100, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1, body_min: float = 0.6,
+                 look: int = 6, target: str = "mid", max_bars: int = 72, min_crosses: int = 2, flat_atr: float = 0.5):
+        self.lookback, self.mode, self.vol_mult, self.atr_ratio, self.body_min = lookback, mode, vol_mult, atr_ratio, body_min
+        self.look, self.target, self.max_bars, self.min_crosses, self.flat_atr = look, target, max_bars, min_crosses, flat_atr
+        self.name = f"box_confirm {mode} vol{vol_mult} atr{atr_ratio}"
+
+    def frame(self, m):
+        from alpacabot.confirm import confirm_signals
+        from alpacabot.indicators import sma
+        c, a = m["close"], atr(m, 14)
+        al = atr(m, 100)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+        side_ = np.sign(s20 - s200)
+        crosses = (side_ != side_.shift(1)).astype(float).where(side_.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (ranging.shift(1).fillna(False).astype(bool) & (h >= 2 * a) & (h <= 20 * a)).fillna(False)   # the box as it stood before the bar
+        r = confirm_signals(m["open"], m["high"], m["low"], c, m["volume"] if "volume" in m else None, a, al, top, bot, ok,
+                            mode=self.mode, vol_mult=self.vol_mult, atr_ratio=self.atr_ratio, body_min=self.body_min, look=self.look,
+                            target=self.target)
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, pd.Series(r["long"], index=m.index), pd.Series(r["short"], index=m.index), none, none,
+                   pd.Series(r["stop"], index=m.index), h / a)
+        f["zone_px"], f["target"], f["kind"] = r["tp1"], r["tgt"], r["kind"]
+        return f
+
+
 class HybridBox:
     """The owner's HYBRID zones on forex (2026-10-16, live on practice at reduced size without a backtest, by his decision): the range box of
     RangeBox200 (100 hourly bars, pair ranging), its Fibonacci retracements and the pair's own swing levels inside the box (zonemap.level_map
