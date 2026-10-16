@@ -319,6 +319,56 @@ def _pick_engine(state_dir: Path, sport: str, rec: dict, kind: str | None = None
         return ""
 
 
+LIVE_TOTAL_EDGE = {"nfl": 2.0, "cfb": 2.5, "wnba": 3.0}  # pts of projected-vs-line gap for a 👍/👎 live read
+
+
+def _live_score(sport: str, rec: dict, text: str | None):
+    """(home_score, away_score, minutes_left) parsed from a live March_edge card line such as
+    '🏈 Seahawks 3–14 Broncos · 7:46 3rd'; None when the text has no readable score/clock."""
+    import re
+    if not text:
+        return None
+    pat = re.compile(r"^\W*\s*(.+?)\s+(\d+)\s*[–-]\s*(\d+)\s+(.+?)\s*·\s*(\d{1,2}):(\d{2})\s+(1st|2nd|3rd|4th|OT)\b")
+    for ln in str(text).splitlines():
+        m = pat.match(ln.strip())
+        if not m:
+            continue
+        t1, s1, s2, t2, mm, ss, per = m.groups()
+        cfg = GAME.get(sport, GAME["nfl"])
+        q = cfg["minutes"] / 4
+        n = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4}.get(per)
+        clock = int(mm) + int(ss) / 60
+        left = clock if n is None else (4 - n) * q + clock
+        home_first = similarity(t1, rec["home"]) > similarity(t1, rec["away"])
+        hs, as_ = (float(s1), float(s2)) if home_first else (float(s2), float(s1))
+        return hs, as_, left
+    return None
+
+
+def _live_total_read(sport: str, rec: dict, text: str | None, side: str, line):
+    """2026-10-16 (Marvin): live total H2H = Marv's in-game projected final total (live_state: pregame rate blended
+    with this game's pace, applied to the time left) vs the live line. Returns (verdict, why) or None.
+    Unproven: shows the projected number only, never a %; March_edge logs a live 👎 but does not block on it."""
+    try:
+        if line is None or not side:
+            return None
+        sc = _live_score(sport, rec, text)
+        if sc is None:
+            return None
+        hs, as_, left = sc
+        st = live_state(rec, sport, hs, as_, left)
+        proj, ln = st["exp_total"], float(line)
+        over = side.lower().startswith("o")
+        gap = (proj - ln) if over else (ln - proj)
+        e = LIVE_TOTAL_EDGE.get(sport, 2.5)
+        verdict = "good" if gap >= e else ("not" if gap <= -e else "mixed")
+        return verdict, (f"live: Marv projects final total {proj:.1f} vs line {ln:g} "
+                         f"({int(hs + as_)} scored, {left:.0f} min left) → {'supports' if gap >= e else 'against' if gap <= -e else 'too close for'} "
+                         f"the {'Over' if over else 'Under'}")
+    except Exception:  # noqa: BLE001 - never break the alert
+        return None
+
+
 def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
             other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
     """Marv Predict read on one March_edge alert: every metric Marv has on the game (ratings margin, O/D category
@@ -377,6 +427,9 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
             return Overlay(False)
         ins = I.side_insight(state_dir, sport, rec, card, t, line, price, live, spread=(kind == "spread"))
     elif kind == "total" and live:
+        lv = _live_total_read(sport, rec, text, side, line)
+        if lv:
+            return Overlay(True, lv[0], lv[1], "live projection, unproven (log only, no veto)", game)
         return Overlay(True, "n/a", f"live total: no pregame comparison; pregame projection {total:.0f} ({src})",
                        proven.UNPROVEN, game)
     elif kind == "total":

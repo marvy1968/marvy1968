@@ -285,7 +285,7 @@ def parlays(legs: list[dict], n: int = PARLAYS_PER_SPORT) -> list[dict]:
     """Ranked 2-leg parlays inside one sport, distinct games only (no correlated same-game legs)."""
     out = []
     for a, b in itertools.combinations(legs, 2):
-        if a["game"] == b["game"]:
+        if a["game"] == b["game"] or _gkey(a) == _gkey(b):
             continue
         out.append({"legs": sorted([a, b], key=lambda x: x["start"]), "price": combined([a["price"], b["price"]]),
                     "score": round(a["strength"] + b["strength"], 3),
@@ -319,6 +319,11 @@ def _pick(leg: dict) -> str:
     return f"{leg['side']} {leg['line']:g} ({leg['price']:+.0f})"
 
 
+def _mpick(leg: dict) -> str:
+    """Pick with its matchup in front, e.g. 'Arizona State @ Texas Tech Over 48.5 (-110)' (2026-10-16)."""
+    return f"{leg['game']} {_pick(leg)}"
+
+
 def _why(leg: dict) -> str:
     from . import proven
     if leg["tier"] == "SIGNAL":  # % only when the rule is proven (backtest number), else no %
@@ -346,7 +351,7 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
         lines.append(f"{EMOJI[s]} {NAME[s]}")
         for i, p in enumerate(ps, 1):
             a, b = p["legs"]
-            lines.append(f" {i}) {p['price']:+d} · {TIER_ICON[a['tier']]} {_pick(a)} + {TIER_ICON[b['tier']]} {_pick(b)}")
+            lines.append(f" {i}) {p['price']:+d} · {TIER_ICON[a['tier']]} {_mpick(a)} [{NAME[a['sport']]}] + {TIER_ICON[b['tier']]} {_mpick(b)} [{NAME[b['sport']]}]")
             lines.append(f"    {a['game']} {_when(a['start'])} | {b['game']} {_when(b['start'])}")
     thin = [f"{NAME[s]} {len({l['game'] for l in card['ml'] + card['ou'] if l['sport'] == s})}"
             for s in sports if not card["parlays"].get(s)]
@@ -361,8 +366,8 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
             if not rows:
                 lines.append(" none qualified today")
             for i, x in enumerate(rows, 1):
-                lines.append(f" {i}) {TIER_ICON[x['tier']]} {TIER_NAME[x['tier']]} · {EMOJI[x['sport']]} {_pick(x)} · "
-                             f"{x['game']} · {_when(x['start'])}")
+                lines.append(f" {i}) {TIER_ICON[x['tier']]} {TIER_NAME[x['tier']]} · {EMOJI[x['sport']]} {_mpick(x)} [{NAME[x['sport']]}] · "
+                             f"{_when(x['start'])}")
                 lines.append(f"    {_why(x)}")
     try:
         from . import ufp_uvf
@@ -673,7 +678,7 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
         if not ps:
             L.append(" none today (not enough qualifying games)")
         for i, p in enumerate(ps, 1):
-            L.append(f" {i}) {p['price']:+d} · " + " + ".join(f"{'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_pick(x)} {_tag(x)}" for x in p["legs"]))
+            L.append(f" {i}) {p['price']:+d} · " + " + ".join(f"{'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_mpick(x)} {_tag(x)}" for x in p["legs"]))
             L.append(f"    {len(p['legs'])} legs · {p['tiers']}" + (" · ½ STAKE (UF)" if p["half"] else ""))
     plist("1️⃣ TOP RANKED 2-LEG PARLAYS", _combos(legs, 2, TG_TOP))
     big = []
@@ -690,7 +695,7 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
             icon = "🎯" if x.get("master_extreme") else TIER_ICON[x["tier"]]
             when = _when(x["start"]) if datetime.fromisoformat(x["start"]).astimezone(CT).date() == d.date() else \
                 datetime.fromisoformat(x["start"]).astimezone(CT).strftime("%a %b %-d %-I:%M %p CT")
-            L.append(f" {i}) {icon} {_pick(x)} {_tag(x)} · {x['game']} · {when}")
+            L.append(f" {i}) {icon} {_mpick(x)} {_tag(x)} · {when}")
             L.append(f"    {_just(x)}")
     try:
         from . import ufp_uvf

@@ -153,6 +153,40 @@ def gap_candidates(gaps: list[dict]) -> list[Bet]:
     return out
 
 
+def _bt_roi(b: Bet) -> float | None:
+    """Backtested ROI per unit at this price (SIGNAL tier hit rate); None when the bet has no backtest."""
+    if b.tier != "SIGNAL" or "untested" in b.why:
+        return None
+    p = b.score / 100
+    return p * E.payout(b.price) - (1 - p)
+
+
+def one_side(bets: list[Bet]) -> list[Bet]:
+    """2026-10-16: one side per (sport, game, market). Opposite sides: keep the higher backtested ROI;
+    a tie (incl. neither backtested) drops both."""
+    groups: dict[tuple, list[Bet]] = {}
+    for b in bets:
+        w = lambda t: (str(t or "").lower().split() or [""])[0]   # feeds spell names differently
+        groups.setdefault((b.sport, w(b.away), w(b.home), b.start[:10], b.market), []).append(b)
+    drop = set()
+    for k, g in groups.items():
+        if len({b.side for b in g}) < 2:
+            continue
+        best = {}
+        for b in g:
+            r = _bt_roi(b)
+            r = -9.0 if r is None else r
+            best[b.side] = max(best.get(b.side, -9.0), r)
+        top = max(best.values())
+        winners = [sd for sd, r in best.items() if abs(r - top) < 1e-9]
+        keep = winners[0] if len(winners) == 1 and top > -9.0 else None
+        for b in g:
+            if b.side != keep:
+                drop.add(id(b))
+        __import__("logging").getLogger(__name__).warning(f"betcard: conflict {k}: sides {best} -> kept {keep or 'none (tie)'}")
+    return [b for b in bets if id(b) not in drop]
+
+
 def select(cands: list[Bet], n_max: int = MAX_BETS) -> list[Bet]:
     """Rank (HIGH, then SIGNAL, then MODEL), merge duplicates of the same bet, max PER_GAME per game."""
     order = {"HIGH": 0, "SIGNAL": 1, "MODEL": 2}
@@ -166,7 +200,7 @@ def select(cands: list[Bet], n_max: int = MAX_BETS) -> list[Bet]:
             continue
         merged[key] = b
     out, per_game, untested = [], {}, 0
-    for b in merged.values():
+    for b in one_side(list(merged.values())):
         if per_game.get(b.game, 0) >= PER_GAME:
             continue
         if "untested" in b.why:  # NFL Bovado-vs-Pinnacle gaps have no backtest: at most 2 per card
