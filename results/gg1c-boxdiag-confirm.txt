@@ -1,3 +1,90 @@
 $ alpaca run-all --families boxdiag_fx
-started 2026-10-16 06:54:56 EDT
-RUNNING...
+started 2026-10-16 06:54:56 EDT, took 56s, exit 0
+
+daily data ready
+## boxdiag_fx: the owner's OANDA range box, trade by trade (H1, 2016-2022, bid/ask)
+### live box (stop 0.5 ATR past the edge, target the far edge): 1308 trades, win 15%, avg R -0.28, avg win +3.85R, avg loss -1.00R, PF 0.68 (before spread costs counted in R)
+- exits: stop 1099 (84%, avg -1.01R), time 123 (9%, avg +2.60R), target 86 (7%, avg +4.96R)
+- median stop 1.21 ATR; spread = 10% of the stop; target 7.4R away; box 9.7 ATR tall; held 7 bars
+- best move in the trade's favour before exit (MFE): median 0.80R; reached +1R 44%, +2R 27%, half way to target 18%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 68% of trades; their avg -0.98R vs +1.20R for the rest
+
+### what-if: stop 1.0 ATR past the edge: 983 trades, win 21%, avg R -0.21, avg win +2.71R, avg loss -0.99R, PF 0.73 (before spread costs counted in R)
+- exits: stop 757 (77%, avg -1.01R), time 140 (14%, avg +1.58R), target 86 (9%, avg +3.91R)
+- median stop 1.82 ATR; spread = 6% of the stop; target 4.9R away; box 9.6 ATR tall; held 17 bars
+- best move in the trade's favour before exit (MFE): median 0.81R; reached +1R 45%, +2R 26%, half way to target 24%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 66% of trades; their avg -0.79R vs +0.94R for the rest
+
+### what-if: stop 2.0 ATR past the edge: 748 trades, win 32%, avg R -0.16, avg win +1.57R, avg loss -0.96R, PF 0.76 (before spread costs counted in R)
+- exits: stop 473 (63%, avg -1.00R), time 188 (25%, avg +0.76R), target 86 (11%, avg +2.50R), end 1 (0%, avg +0.24R)
+- median stop 2.94 ATR; spread = 4% of the stop; target 2.9R away; box 9.6 ATR tall; held 31 bars
+- best move in the trade's favour before exit (MFE): median 0.75R; reached +1R 41%, +2R 18%, half way to target 31%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 65% of trades; their avg -0.59R vs +0.63R for the rest
+
+### what-if: target the box middle: 1526 trades, win 23%, avg R -0.21, avg win +2.46R, avg loss -1.00R, PF 0.72 (before spread costs counted in R)
+- exits: stop 1171 (77%, avg -1.00R), target 325 (21%, avg +2.52R), time 30 (2%, avg +0.99R)
+- median stop 1.28 ATR; spread = 9% of the stop; target 3.1R away; box 9.4 ATR tall; held 6 bars
+- best move in the trade's favour before exit (MFE): median 0.77R; reached +1R 42%, +2R 21%, half way to target 37%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 67% of trades; their avg -0.90R vs +1.19R for the rest
+
+### what-if: stop 1.0 ATR + target the middle: 1161 trades, win 31%, avg R -0.17, avg win +1.68R, avg loss -0.99R, PF 0.75 (before spread costs counted in R)
+- exits: stop 794 (68%, avg -1.00R), target 329 (28%, avg +1.72R), time 38 (3%, avg +0.79R)
+- median stop 1.92 ATR; spread = 6% of the stop; target 1.9R away; box 9.3 ATR tall; held 12 bars
+- best move in the trade's favour before exit (MFE): median 0.76R; reached +1R 42%, +2R 16%, half way to target 47%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 65% of trades; their avg -0.75R vs +0.91R for the rest
+
+### REPAIR: failed breakout, target the far edge: 508 trades, win 16%, avg R -0.30, avg win +3.44R, avg loss -0.99R, PF 0.64 (before spread costs counted in R)
+- exits: stop 423 (83%, avg -1.00R), time 58 (11%, avg +2.32R), target 27 (5%, avg +5.00R)
+- median stop 1.41 ATR; spread = 8% of the stop; target 6.9R away; box 10.3 ATR tall; held 11 bars
+- best move in the trade's favour before exit (MFE): median 0.76R; reached +1R 40%, +2R 24%, half way to target 18%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 63% of trades; their avg -0.99R vs +0.84R for the rest
+
+### REPAIR: failed breakout, target the middle: 518 trades, win 21%, avg R -0.21, avg win +2.73R, avg loss -1.00R, PF 0.73 (before spread costs counted in R)
+- exits: stop 406 (78%, avg -1.00R), target 102 (20%, avg +2.82R), time 10 (2%, avg +0.89R)
+- median stop 1.40 ATR; spread = 8% of the stop; target 3.3R away; box 10.2 ATR tall; held 8 bars
+- best move in the trade's favour before exit (MFE): median 0.76R; reached +1R 40%, +2R 21%, half way to target 34%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 62% of trades; their avg -0.95R vs +1.00R for the rest
+
+### CONFIRM (continuation): candles + volume 1.5x + volatility 1.1x: 120 trades, win 23%, avg R +0.41, avg win +5.05R, avg loss -1.00R, PF 1.54 (before spread costs counted in R)
+- exits: stop 91 (76%, avg -1.00R), target 20 (17%, avg +4.72R), time 9 (8%, avg +5.14R)
+- median stop 0.99 ATR; spread = 10% of the stop; target 7.3R away; box 7.6 ATR tall; held 2 bars
+- best move in the trade's favour before exit (MFE): median 0.68R; reached +1R 38%, +2R 28%, half way to target 28%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 2% of trades; their avg -1.00R vs +0.43R for the rest
+
+### CONFIRM (failure): candles + volume 1.5x + volatility 1.1x: 399 trades, win 19%, avg R -0.22, avg win +3.10R, avg loss -1.00R, PF 0.73 (before spread costs counted in R)
+- exits: stop 321 (80%, avg -1.00R), target 69 (17%, avg +3.25R), time 9 (2%, avg +1.20R)
+- median stop 1.33 ATR; spread = 9% of the stop; target 3.7R away; box 10.6 ATR tall; held 9 bars
+- best move in the trade's favour before exit (MFE): median 0.76R; reached +1R 42%, +2R 22%, half way to target 32%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 63% of trades; their avg -0.96R vs +1.07R for the rest
+
+### CONFIRM (both): candles + volume 1.5x + volatility 1.1x: 461 trades, win 22%, avg R +0.00, avg win +3.61R, avg loss -1.00R, PF 1.00 (before spread costs counted in R)
+- exits: stop 358 (78%, avg -1.00R), target 86 (19%, avg +3.52R), time 17 (4%, avg +3.33R)
+- median stop 1.27 ATR; spread = 9% of the stop; target 4.1R away; box 9.8 ATR tall; held 7 bars
+- best move in the trade's favour before exit (MFE): median 0.76R; reached +1R 41%, +2R 24%, half way to target 33%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 45% of trades; their avg -0.96R vs +0.78R for the rest
+
+### VOLUME (Gemini's fix): live box + volume >= 1.5x 20-bar average: 765 trades, win 16%, avg R -0.32, avg win +3.10R, avg loss -0.99R, PF 0.61 (before spread costs counted in R)
+- exits: stop 623 (81%, avg -1.01R), time 95 (12%, avg +1.90R), target 47 (6%, avg +4.36R)
+- median stop 1.53 ATR; spread = 8% of the stop; target 5.6R away; box 9.5 ATR tall; held 10 bars
+- best move in the trade's favour before exit (MFE): median 0.81R; reached +1R 45%, +2R 25%, half way to target 20%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 63% of trades; their avg -0.95R vs +0.76R for the rest
+
+### VOLUME: live box, target the middle + volume >= 1.5x: 853 trades, win 26%, avg R -0.21, avg win +2.03R, avg loss -0.99R, PF 0.71 (before spread costs counted in R)
+- exits: stop 624 (73%, avg -1.00R), target 208 (24%, avg +2.09R), time 21 (2%, avg +0.53R)
+- median stop 1.55 ATR; spread = 8% of the stop; target 2.3R away; box 9.3 ATR tall; held 6 bars
+- best move in the trade's favour before exit (MFE): median 0.78R; reached +1R 42%, +2R 19%, half way to target 42%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 63% of trades; their avg -0.90R vs +0.95R for the rest
+
+### VOLUME: z-score band (SMA200 +- 2 sigma) + volume >= 1.5x, target the middle: 607 trades, win 26%, avg R -0.24, avg win +1.95R, avg loss -1.00R, PF 0.68 (before spread costs counted in R)
+- exits: stop 448 (74%, avg -1.00R), target 146 (24%, avg +2.06R), time 12 (2%, avg +0.41R), end 1 (0%, avg +0.30R)
+- median stop 1.49 ATR; spread = 7% of the stop; target 2.3R away; box 9.1 ATR tall; held 6 bars
+- best move in the trade's favour before exit (MFE): median 0.77R; reached +1R 41%, +2R 19%, half way to target 41%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 54% of trades; their avg -0.77R vs +0.38R for the rest
+
+### VOLUME: failed breakout + volume >= 1.5x, target the middle: 187 trades, win 29%, avg R -0.09, avg win +2.06R, avg loss -0.99R, PF 0.87 (before spread costs counted in R)
+- exits: stop 129 (69%, avg -1.00R), target 52 (28%, avg +2.14R), time 6 (3%, avg +0.17R)
+- median stop 1.85 ATR; spread = 6% of the stop; target 2.3R away; box 9.8 ATR tall; held 14 bars
+- best move in the trade's favour before exit (MFE): median 0.83R; reached +1R 43%, +2R 20%, half way to target 46%
+- price CLOSED beyond the faded edge within 24 h after entry (a breakout against the trade): 49% of trades; their avg -0.87R vs +0.65R for the rest
+
+ALL DONE
