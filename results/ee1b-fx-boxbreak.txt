@@ -1,0 +1,3 @@
+$ alpaca run-all --families fx_box200_h1 fx_boxbreak_only_h1 fx_boxbreak_also_h1
+started 2026-10-15 21:34:25 EDT
+RUNNING...
