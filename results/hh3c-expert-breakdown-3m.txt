@@ -1,3 +1,39 @@
 $ alpaca run-all --phase validate --months3 --families expert_breakdown
-started 2026-10-16 09:23:32 EDT
-RUNNING...
+started 2026-10-16 09:23:32 EDT, took 1375s, exit 0
+
+daily data ready
+- DROP: ['velez_180', 'raschke_grail', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'] | KEEP: ['velez_elephant', 'brooks_pullback']
+## expert_breakdown: drop candidates velez_180, raschke_grail, connors_rsi2, bollinger_bounce, williams_r, donchian_turtle, vwap_dev, dual_regime, opening_range_breakout, but the kept set did not beat live in both periods
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (all experts): 341t win 34% PF 0.53 avgR -0.31 daily -0.163% CAGR -35.5% maxDD -4.9%
+- train | velez_elephant alone: 3t win 33% PF 0.04 avgR -0.49 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | velez_180 alone: 92t win 26% PF 0.42 avgR -0.44 daily -0.064% CAGR -15.9% maxDD -1.8%
+- train | raschke_grail alone: 5t win 20% PF 0.88 avgR -0.62 daily +0.012% CAGR -0.9% maxDD -0.1%
+- train | brooks_pullback alone: 6t win 33% PF 0.85 avgR -0.27 daily +0.017% CAGR -1.6% maxDD -0.1%
+- train | connors_rsi2 alone: 79t win 33% PF 0.30 avgR -0.27 daily -0.061% CAGR -14.6% maxDD -1.3%
+- train | bollinger_bounce alone: 54t win 31% PF 0.53 avgR -0.39 daily -0.043% CAGR -10.0% maxDD -1.0%
+- train | williams_r alone: 188t win 37% PF 0.46 avgR -0.27 daily -0.104% CAGR -25.3% maxDD -2.9%
+- train | donchian_turtle alone: 9t win 22% PF 0.55 avgR -0.20 daily -0.020% CAGR -6.5% maxDD -0.4%
+- train | vwap_dev alone: 140t win 41% PF 0.77 avgR -0.24 daily -0.015% CAGR -8.2% maxDD -0.8%
+- train | dual_regime alone: 101t win 22% PF 0.43 avgR -0.40 daily -0.106% CAGR -18.8% maxDD -2.7%
+- train | opening_range_breakout alone: 10t win 10% PF 0.10 avgR -0.71 daily -0.042% CAGR -13.5% maxDD -0.4%
+- train | kept experts: 9t win 33% PF 0.29 avgR -0.34 daily -0.064% CAGR -15.4% maxDD -0.4%
+- validate | live (all experts): 370t win 34% PF 0.49 avgR -0.27 daily -0.196% CAGR -38.4% maxDD -6.1%
+- validate | velez_elephant alone: 3t win 67% PF 2.10 avgR +0.24 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | velez_180 alone: 120t win 24% PF 0.38 avgR -0.41 daily -0.098% CAGR -21.5% maxDD -3.2%
+- validate | raschke_grail alone: 7t win 14% PF 0.63 avgR -0.11 daily -0.040% CAGR -8.8% maxDD -0.4%
+- validate | brooks_pullback alone: 12t win 33% PF 1.17 avgR -0.04 daily -0.032% CAGR +2.2% maxDD -0.2%
+- validate | connors_rsi2 alone: 108t win 48% PF 0.81 avgR -0.08 daily -0.019% CAGR -4.0% maxDD -0.6%
+- validate | bollinger_bounce alone: 30t win 33% PF 0.87 avgR -0.14 daily -0.012% CAGR -1.3% maxDD -0.6%
+- validate | williams_r alone: 221t win 38% PF 0.60 avgR -0.25 daily -0.089% CAGR -19.3% maxDD -2.9%
+- validate | donchian_turtle alone: 12t win 8% PF 0.11 avgR -0.63 daily -0.073% CAGR -17.9% maxDD -0.6%
+- validate | vwap_dev alone: 126t win 37% PF 0.54 avgR -0.24 daily -0.063% CAGR -14.0% maxDD -1.7%
+- validate | dual_regime alone: 140t win 26% PF 0.38 avgR -0.31 daily -0.108% CAGR -23.6% maxDD -3.3%
+- validate | opening_range_breakout alone: 10t win 10% PF 0.11 avgR -0.55 daily -0.098% CAGR -21.8% maxDD -1.0%
+- validate | kept experts: 13t win 31% PF 1.01 avgR -0.08 daily -0.032% CAGR +0.2% maxDD -0.2%
+ALL DONE
