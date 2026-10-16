@@ -241,6 +241,11 @@
    "need": 2,
    "vola_max": 1.2,
    "stretch_atr": 1.0
+  },
+  "regime_switch": {
+   "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only while SPY's daily ADX (14, completed days) is below adx_max = the market is ranging. Box strategies and trend experts are not affected. A filter only; set live to false to switch it off.",
+   "live": true,
+   "adx_max": 20.0
   }
  },
  "swing": {

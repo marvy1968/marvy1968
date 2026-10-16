@@ -2477,6 +2477,22 @@ def paper_ET():
     return ET
 
 
+class RegimeSwitchTests(unittest.TestCase):
+    def test_mean_reversion_is_off_while_spy_trends(self):
+        from types import SimpleNamespace as NS
+        from alpacabot.paper import PaperRunner
+        cfg = {"regime_switch": {"live": True, "adx_max": 20.0}}
+        me = NS(zonemap={"SPY": {"adx": 27.3}})
+        f = PaperRunner.regime_block
+        self.assertIn("ADX 27.3", f(me, NS(tag="connors_rsi2"), cfg))
+        self.assertIn("ADX", f(me, NS(tag="S:velez_180"), cfg))
+        self.assertEqual(f(me, NS(tag="raschke_grail"), cfg), "")          # trend experts unaffected
+        self.assertEqual(f(me, NS(tag="range_box"), cfg), "")              # box strategies unaffected
+        self.assertEqual(f(NS(zonemap={"SPY": {"adx": 15.0}}), NS(tag="connors_rsi2"), cfg), "")
+        self.assertEqual(f(NS(zonemap={}), NS(tag="connors_rsi2"), cfg), "")  # unknown ADX = allowed
+        self.assertEqual(f(me, NS(tag="connors_rsi2"), {"regime_switch": {"live": False}}), "")
+
+
 class SwingZoneLiveTests(unittest.TestCase):
     class B:
         def __init__(self, ask=101.0):

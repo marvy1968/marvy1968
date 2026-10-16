@@ -595,6 +595,18 @@ class PaperRunner:
         wb = int((getattr(self, "zonemap", {}).get(sym) or {}).get("wbias", 0))
         return tf_confirm_reason(day, sig, wb, float(m.get("adx_min", MTF["adx_min"])), float(m.get("range_adx_max", MTF["range_adx_max"])))
 
+    def regime_block(self, sig, zcfg: dict) -> str:
+        """Owner 2026-10-16 ("build the regime switch"): the mean-reversion experts (range experts, not the box strategies) trade only
+        while the market is NOT trending, i.e. SPY's daily ADX (completed days) is below adx_max. Unknown ADX = allowed. '' = allowed."""
+        rs = zcfg.get("regime_switch") or {}
+        from .experts import BOX_STRATEGIES, RANGE_EXPERTS
+        nm = (sig.tag or "").removeprefix("S:")
+        if not rs.get("live") or nm not in RANGE_EXPERTS or nm in BOX_STRATEGIES:
+            return ""
+        a = (getattr(self, "zonemap", {}).get(gates.MARKET) or {}).get("adx")
+        lim = float(rs.get("adx_max", 20.0))
+        return f"regime: SPY daily ADX {a:.1f} >= {lim:g} (trending, mean reversion off)" if a is not None and a >= lim else ""
+
     def refresh_zonemap(self, now_et: datetime):
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
         history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
@@ -615,6 +627,13 @@ class PaperRunner:
                     zm[sym]["box_atr"] = float(bx["atr"])
                 except Exception:
                     zm[sym]["box"], zm[sym]["box_atr"] = [False, 0.0, 0.0], 0.0
+                if sym == gates.MARKET:                               # SPY's daily ADX (completed days): the mean-reversion regime switch
+                    try:
+                        from .indicators import adx
+                        a = float(adx(prior).iloc[-1])
+                        zm[sym]["adx"] = round(a, 2) if a == a else None
+                    except Exception:
+                        zm[sym]["adx"] = None
             except Exception:
                 log.exception("zone map: %s skipped", sym)
         self.zonemap = zm
@@ -756,6 +775,10 @@ class PaperRunner:
                         self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
                                      result=f"reversal not confirmed ({k}/4; failed: {', '.join(failed)})")
                         continue
+                why = self.regime_block(sig, zcfg)
+                if why:
+                    self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)
+                    continue
                 tc = zcfg.get("trend_confirm") or {}
                 from .experts import TREND_EXPERTS
                 if tc.get("live") and (sig.tag or "").removeprefix("S:") in TREND_EXPERTS:   # owner: candles / volume / volatility must
