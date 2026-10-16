@@ -1,3 +1,8 @@
 $ alpaca positions
-started 2026-10-16 14:06:46 EDT
-RUNNING...
+started 2026-10-16 14:06:46 EDT, took 2s, exit 0
+
+equity $52,988.39  cash $53,225.70  long mv $13,264.94  short mv $-13,502.25
+2 open positions:
+  TMUS       short qty          -85  value $-13,502.25  unrealized $    17.85
+  JNJ        long  qty           52  value $ 13,264.94  unrealized $    -0.78
+0 open orders:
