@@ -1,3 +1,90 @@
 $ alpaca run-all --families fx_boxvol_h1 fx_boxvolz_h1 fx_boxfailvol_h1
-started 2026-10-16 06:51:43 EDT
-RUNNING...
+started 2026-10-16 06:51:43 EDT, took 19s, exit 0
+
+daily data ready
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxvol_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'vol_mult': 1.5, 'target': 'mid'}: 534t PF 0.60 total -55.2% maxDD(closed) -56.0%
+  - train {'lookback': 100, 'vol_mult': 1.5, 'target': 'edge'}: 491t PF 0.49 total -63.6% maxDD(closed) -65.2%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxvol_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'vol_mult': 1.5, 'target': 'mid'}: 534t PF 0.60 total -55.2% maxDD(closed) -56.0%
+  - train {'lookback': 100, 'vol_mult': 1.5, 'target': 'edge'}: 491t PF 0.49 total -63.6% maxDD(closed) -65.2%
+## fx_boxvol_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxvolz_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'levels': 'zscore', 'vol_mult': 1.5, 'target': 'mid'}: 401t PF 0.58 total -48.2% maxDD(closed) -49.3%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxvolz_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'levels': 'zscore', 'vol_mult': 1.5, 'target': 'mid'}: 401t PF 0.58 total -48.2% maxDD(closed) -49.3%
+## fx_boxvolz_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+data ready: H1 348214 bars
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxfailvol_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'look': 6, 'vol_mult': 1.5, 'target': 'mid'}: 127t PF 0.64 total -15.7% maxDD(closed) -17.4%
+  - train {'lookback': 100, 'look': 6, 'vol_mult': 1.5, 'target': 'edge'}: 127t PF 0.45 total -25.2% maxDD(closed) -27.7%
+ALL DONE
+# fxbot walk-forward (train 2016-2020, validate 2021-2022, bid/ask fills, financing 0.01%/night)
+
+## fx_boxfailvol_h1: no parameter set made money with 100+ trades on the train years
+- chosen None
+- train: Nonet PF 0.00 total +0.0% maxDD 0.0% avg/day +0.000%
+- validate: Nonet win 0% PF 0.00 total +0.0% CAGR +0.0% maxDD(closed trades) 0.0% avg/day +0.000% financing $0
+- spread x2 total +0.0% | placebo PF 0.00, real beats 0% | PASS False
+
+  - train {'lookback': 100, 'look': 6, 'vol_mult': 1.5, 'target': 'mid'}: 127t PF 0.64 total -15.7% maxDD(closed) -17.4%
+  - train {'lookback': 100, 'look': 6, 'vol_mult': 1.5, 'target': 'edge'}: 127t PF 0.45 total -25.2% maxDD(closed) -27.7%
+## fx_boxfailvol_h1: see state/fx/reports/summary.md
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
