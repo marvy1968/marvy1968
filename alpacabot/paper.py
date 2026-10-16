@@ -704,7 +704,8 @@ class PaperRunner:
                 bc = self.zone_config().get("box_confirm") or {}
                 if bc.get("live"):                                               # candle + volume + volatility box (owner, 2026-10-16)
                     from .brain import BoxConfirmSignals
-                    brain = BoxConfirmSignals(brain, bc.get("mode", "both"), float(bc.get("vol_mult", 1.5)), float(bc.get("atr_ratio", 1.1)))
+                    brain = BoxConfirmSignals(brain, bc.get("mode", "both"), float(bc.get("vol_mult", 1.5)), float(bc.get("atr_ratio", 1.1)),
+                                              float(bc.get("vote", 0.0)))
                 if (self.zone_config().get("hybrid") or {}).get("live"):        # hybrid zones: box + Fibonacci + swing levels (owner, 2026-10-16)
                     from .brain import HybridBoxSignals
                     day.attrs["levels"] = zbox.get("levels") or []

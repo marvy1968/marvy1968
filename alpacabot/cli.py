@@ -68,6 +68,18 @@ def run_all(a) -> int:
     for fam in a.families:
         first = len(lines)
         try:
+            if fam == "recentvote_fx":             # last-3-months vote test (fxbot.research.recent_vote_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import recent_vote_check
+                today = _dt.date.today()
+                a3 = today - _dt.timedelta(days=92)
+                fxd = {i: fx_load(i, "H1", a3 - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                body, pick = recent_vote_check(fxd, a3, today)
+                lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "votecheck_fx":              # 60% / 80% / 100% indicator vote for confirmed breakouts (fxbot.research.vote_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS

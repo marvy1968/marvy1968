@@ -297,9 +297,9 @@ class BoxConfirmSignals(BoxSignals):
 
     TAG = "box_confirm"
 
-    def __init__(self, brain, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1):
+    def __init__(self, brain, mode: str = "both", vol_mult: float = 1.5, atr_ratio: float = 1.1, vote: float = 0.0):
         super().__init__(brain)
-        self.mode, self.vol_mult, self.atr_ratio = mode, vol_mult, atr_ratio
+        self.mode, self.vol_mult, self.atr_ratio, self.vote = mode, vol_mult, atr_ratio, vote
 
     def box_signals(self, day) -> list:
         from .confirm import confirm_signals
@@ -317,7 +317,7 @@ class BoxConfirmSignals(BoxSignals):
             a = pd.Series(tr).rolling(14, min_periods=5).mean().to_numpy()
         al = pd.Series(a).expanding(min_periods=12).mean().shift(1).to_numpy()        # the session's average so far
         r = confirm_signals(day["open"], hi, lo, cl, day["volume"] if "volume" in day else None, a, al, np.full(n, top), np.full(n, bot),
-                            np.ones(n, bool), mode=self.mode, vol_mult=self.vol_mult, atr_ratio=self.atr_ratio, allow=allow)
+                            np.ones(n, bool), mode=self.mode, vol_mult=self.vol_mult, atr_ratio=self.atr_ratio, allow=allow, vote=self.vote)
         out, seen = [], set()
         for i in np.flatnonzero(r["long"] | r["short"]):
             side = 1 if r["long"][i] else -1

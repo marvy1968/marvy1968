@@ -271,3 +271,20 @@ def vote_check(data: dict) -> list[str]:
                        f"PF {va.get('profit_factor') or 0:.2f} total {va.get('total_return') or 0:+.1%} maxDD {va.get('max_drawdown') or 0:.1%} | "
                        f"2x spread {x2.get('total_return') or 0:+.1%} | placebo PF {np.mean(plc):.2f}, real beats {beat:.0%}")
     return out
+
+
+
+def recent_vote_check(data: dict, a, b) -> tuple[list[str], float]:
+    """Owner 2026-10-16: a SHORT test on the last 3 months (a..b) of the confirmed-breakout votes, then install. Pre-declared pick: the vote
+    with the best profit factor among those with >= 10 trades and PF > 1; if none, the all-indicators rule (1.0, best on 2016-20)."""
+    out, best = [], (None, 1.0)
+    for vote in (0.6, 0.8, 1.0):
+        strat = BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=vote)
+        m = run(strat, data, a, b)
+        pf, n = m.get("profit_factor") or 0, m.get("trades") or 0
+        out.append(f"- vote {vote:.0%}: {n} trades, win {m.get('win_rate') or 0:.0%}, PF {pf:.2f}, total {m.get('total_return') or 0:+.2%}, "
+                   f"maxDD {m.get('max_drawdown') or 0:.1%}")
+        if n >= 10 and pf > 1 and (best[0] is None or pf > best[0]):
+            best = (pf, vote)
+    out.append(f"- PICK (pre-declared rule): vote {best[1]:.0%}" + ("" if best[0] else " (no vote was profitable with 10+ trades: all-indicators rule)"))
+    return out, best[1]

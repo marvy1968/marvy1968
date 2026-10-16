@@ -33,17 +33,22 @@ import pandas as pd
 
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
-from .strategies import F0Reversion, HybridBox, LienFader, RangeBox200
+from .strategies import BoxConfirm, F0Reversion, HybridBox, LienFader, RangeBox200
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
 PAIRS = ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"]
+CONFIRM_VOTE = 1.0          # share of the 5 continuation indicators that must agree (1.0 = all; set from the owner's 3-month test)
 STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "count": 1500, "minutes": 60},   # break 20 pips (was 15): best of the 27-point
           # grid (2016-20 PF 1.46, 2021-22 PF 1.27); narrowly missed the 90% placebo bar (85%), so PROVISIONAL on paper money, 2026-10-15
           "f0_h4": {"make": F0Reversion, "gran": "H4", "count": 400, "minutes": 240},
           "box_h1": {"make": RangeBox200, "gran": "H1", "count": 600, "minutes": 60},
           # owner 2026-10-16: HYBRID zones (box + Fibonacci + swing levels agree), live on practice at half size without a backtest
-          "hybrid_h1": {"make": HybridBox, "gran": "H1", "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
+          "hybrid_h1": {"make": HybridBox, "gran": "H1", "count": 600, "minutes": 60},
+          # owner 2026-10-16 "fix the box": candles + volume + volatility confirm a break of the box -> trade the CONTINUING breakout
+          # (2016-22: PF 1.54 on 120 trades before costs; the plain box fade lost, PF 0.68 on 1,308). Half size; vote from the 3-month test.
+          "confirm_h1": {"make": lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=CONFIRM_VOTE), "gran": "H1",
+                         "count": 600, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -56,8 +61,9 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           "book_cap": 100_000.0, "strategies": list(STRATS),
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
-          "trade": ["lien_h1", "box_h1", "hybrid_h1"],
-          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005}}         # box halved 2026-10-16 while its repair is tested (0 for 5 live)                                # the hybrid trades at half the normal 1% (owner)
+          # box_h1 (the plain fade, 0 for 6 live, PF 0.68 in 2016-22) now only LOGS its signals; confirm_h1 replaces it (owner, 2026-10-16)
+          "trade": ["lien_h1", "hybrid_h1", "confirm_h1"],
+          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005}}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:

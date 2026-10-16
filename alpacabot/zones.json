@@ -77,12 +77,13 @@
    "risk_pct": 0.005
   },
   "box_confirm": {
-   "_note": "owner 2026-10-16 ('fix the box: candlesticks, volume, volatility'): each close outside the stock's daily box is read as continuing (strong candle + volume + volatility expanding -> trade the break) or failing (weak / no volume and back inside -> fade). LIVE on paper at reduced size by the owner's decision; settings from the forex/stock grids. Set live to false to switch it off.",
+   "_note": "owner 2026-10-16 ('fix the box: candlesticks, volume, volatility'): a close outside the stock's daily box is traded WITH the break only when the continuation indicators agree (body, close location, volume >= 1.5x, volatility >= 1.1x, decisive close; vote = share that must agree). The fade side lost in every test, so mode = continuation. LIVE on paper at half size by the owner's decision. Set live to false to switch it off.",
    "live": true,
    "risk_pct": 0.005,
-   "mode": "both",
+   "mode": "continuation",
    "vol_mult": 1.5,
-   "atr_ratio": 1.1
+   "atr_ratio": 1.1,
+   "vote": 1.0
   }
  },
  "swing": {

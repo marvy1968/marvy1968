@@ -354,6 +354,8 @@ class BoxConfirm:
         f = _frame(m.index, pd.Series(r["long"], index=m.index), pd.Series(r["short"], index=m.index), none, none,
                    pd.Series(r["stop"], index=m.index), h / a)
         f["zone_px"], f["target"], f["kind"] = r["tp1"], r["tgt"], r["kind"]
+        sd_ = np.where(r["long"], 1.0, np.where(r["short"], -1.0, np.nan))
+        f["zone2_px"] = c.to_numpy(float) + sd_ * r["tgt"]          # TP2 = the full measured move (live runner's second step)
         return f
 
 
