@@ -1,3 +1,102 @@
 $ status
-started 2026-10-16 09:58:21 EDT
-RUNNING...
+started 2026-10-16 09:58:21 EDT, took 0s, exit 0
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-live.service.d
+             └─tf.conf
+     Active: active (running) since Fri 2026-10-16 09:57:09 EDT; 1min 13s ago
+   Main PID: 138370 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 138.8M
+        CPU: 4.337s
+     CGroup: /system.slice/marv-live.service
+             └─138370 /opt/marv-bot/.venv/bin/python -m marv live --interval 120
+
+Oct 16 09:57:09 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Oct 16 09:57:19 instance-stockbot python[138370]: 2026-10-16 09:57:19,839 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 1 day 3h ago
+    Trigger: Fri 2026-10-16 17:30:00 EDT; 7h left
+   Triggers: ● marv-bot-late.service
+
+Oct 15 06:48:54 instance-stockbot systemd[1]: Started marv-bot-late.timer - Re-check injuries and stats shortly before games.
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-15 06:50:37 EDT; 1 day 3h ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Oct 15 06:50:37 instance-stockbot systemd[1]: Stopped marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+Oct 15 06:50:37 instance-stockbot systemd[1]: Stopping marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute...
+Oct 15 06:50:37 instance-stockbot systemd[1]: Started marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute.
+
+● marv-fx-paper.service - Marv FOREX practice runner (OANDA practice account only; separate from the Alpaca stock bot)
+     Loaded: loaded (/etc/systemd/system/marv-fx-paper.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2026-10-16 09:57:11 EDT; 1min 11s ago
+   Main PID: 138444 (python)
+      Tasks: 3 (limit: 4617)
+     Memory: 75.7M
+        CPU: 2.362s
+     CGroup: /system.slice/marv-fx-paper.service
+             └─138444 /opt/marv-bot/.venv/bin/python -m fxbot paper
+
+Oct 16 09:57:11 instance-stockbot systemd[1]: Started marv-fx-paper.service - Marv FOREX practice runner (OANDA practice account only; separate from the Alpaca stock bot).
+Oct 16 09:57:14 instance-stockbot python[138444]: 2026-10-16 09:57:14,775 INFO fxbot.live: fx practice runner up (OANDA practice host only)
+
+● marv-health.timer - Run the Marv watchdog every 30 minutes
+     Loaded: loaded (/etc/systemd/system/marv-health.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 1 day 3h ago
+    Trigger: Fri 2026-10-16 10:00:32 EDT; 2min 9s left
+   Triggers: ● marv-health.service
+
+Oct 15 06:48:54 instance-stockbot systemd[1]: Started marv-health.timer - Run the Marv watchdog every 30 minutes.
+
+● marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run)
+     Loaded: loaded (/etc/systemd/system/marv-soccer.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:55 EDT; 1 day 3h ago
+    Trigger: Fri 2026-10-16 10:04:22 EDT; 5min left
+   Triggers: ● marv-soccer.service
+
+Oct 15 06:48:55 instance-stockbot systemd[1]: Started marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run).
+
+● marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot
+     Loaded: loaded (/etc/systemd/system/marv-bridge.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-bridge.service.d
+             └─tf.conf
+     Active: active (running) since Fri 2026-10-16 09:57:09 EDT; 1min 13s ago
+   Main PID: 138371 (python)
+      Tasks: 10 (limit: 4617)
+     Memory: 177.9M
+        CPU: 9.906s
+     CGroup: /system.slice/marv-bridge.service
+             └─138371 /opt/marv-bot/.venv/bin/python -m marv serve --port 8787
+
+Oct 16 09:57:09 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Oct 16 09:57:19 instance-stockbot python[138371]: 2026-10-16 09:57:19,982 INFO Marv bridge listening on http://127.0.0.1:8787
+
+● marv-master.timer - Marv MASTER tracker every 15 min
+     Loaded: loaded (/etc/systemd/system/marv-master.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 1 day 3h ago
+NEXT                        LEFT          LAST                        PASSED       UNIT                  ACTIVATES
+Fri 2026-10-16 10:00:00 EDT 1min 37s left Thu 2026-10-15 10:00:01 EDT 23h ago      marv-bot.timer        marv-bot.service
+Fri 2026-10-16 10:00:32 EDT 2min 9s left  Fri 2026-10-16 09:30:32 EDT 27min ago    marv-health.timer     marv-health.service
+Fri 2026-10-16 10:04:22 EDT 5min left     Fri 2026-10-16 07:04:22 EDT 2h 54min ago marv-soccer.timer     marv-soccer.service
+Fri 2026-10-16 10:04:27 EDT 6min left     Fri 2026-10-16 09:49:27 EDT 8min ago     marv-master.timer     marv-master.service
+Fri 2026-10-16 10:07:00 EDT 8min left     Fri 2026-10-16 09:52:02 EDT 6min ago     marv-clvinj.timer     marv-clvinj.service
+Fri 2026-10-16 16:20:00 EDT 6h left       Thu 2026-10-15 16:20:00 EDT 17h ago      marv-swing-scan.timer marv-swing-scan.service
+Fri 2026-10-16 17:30:00 EDT 7h left       Thu 2026-10-15 17:30:00 EDT 16h ago      marv-bot-late.timer   marv-bot-late.service
+Sat 2026-10-17 08:40:00 EDT 22h left      Fri 2026-10-16 08:40:02 EDT 1h 18min ago marv-dailypicks.timer marv-dailypicks.service
+Mon 2026-10-19 09:20:00 EDT 2 days left   Fri 2026-10-16 09:20:02 EDT 38min ago    marv-swing-open.timer marv-swing-open.service
+-                           -             Fri 2026-10-16 09:58:20 EDT 2s ago       marv-vmlink.timer     marv-vmlink.service
+
+10 timers listed.
+Pass --all to see loaded but inactive timers, too.
+d08a6a2 Stock: halve the size of the 7 experts that lost in both halves of the last 3 months (risk_by_expert), per the owner's live-paper rule
+e4a076d Test: trend experts pass heat map, direction, stage, multi-timeframe and the continuation check, in that order
+b28e872 Every trend expert trades its own buy / take-profit / sell zones from its philosophy (EXPERT_ZONES + EXPERT_LADDERS, one hard stop), plus the zone map levels; range experts keep the drawn plan
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   48G   47G  51% /
