@@ -195,6 +195,61 @@ def tf_shifts(sport: str, game, history, now) -> tuple[float, float]:
     return side, tot
 
 
+# RECENCY (Master Formula // Dynamic Recency Update PDF, 2026-10-15): team scoring rates = REC_W x last REC_N games
+# + (1-REC_W) x macro baseline. Study: experiments/master/recency (tuned on pre-2026-08-06, validated on unseen
+# 10-week + 3-week windows): it did NOT beat current Master in any sport, so it runs as TRACKING ONLY.
+# MARV_RECENCY=0 disables the computation; MARV_RECENCY_LIVE="nfl,..." would apply it to picks for those sports
+# (empty = current Master stays in charge everywhere). Log: state/master/recency_track.json.
+REC_ON = os.environ.get("MARV_RECENCY", "1") == "1"
+REC_LIVE = {x for x in os.environ.get("MARV_RECENCY_LIVE", "").split(",") if x}
+REC_W, REC_N = 0.6, 3
+
+
+def recency_shifts(sport: str, game, history, now) -> tuple[float, float]:
+    """(side prob shift toward home, total prob shift toward Over) from the recency re-weighting of each team's
+    points for/against. Uses the same 50/50 market shrink as the Master MC, so expected-margin delta is halved."""
+    def rates(team):
+        gs = sorted([g for g in history if g.completed and g.home_score is not None and g.start < now and team in (g.home, g.away)
+                     and now - g.start <= timedelta(days=400)], key=lambda g: g.start)
+        if len(gs) < 3:
+            return None
+        pf = [g.home_score if g.home == team else g.away_score for g in gs]
+        pa = [g.away_score if g.home == team else g.home_score for g in gs]
+        mac = (sum(pf) / len(pf), sum(pa) / len(pa)); r = (sum(pf[-REC_N:]) / len(pf[-REC_N:]), sum(pa[-REC_N:]) / len(pa[-REC_N:]))
+        return REC_W * (r[0] - mac[0]), REC_W * (r[1] - mac[1])
+    h, a = rates(game.home), rates(game.away)
+    if not h or not a:
+        return 0.0, 0.0
+    sdm, sdt = SD.get(sport, (12.0, 14.0))
+    dm = 0.5 * (h[0] + a[1] - a[0] - h[1])  # delta expected margin (home - away) after the 50/50 shrink
+    dt = 0.5 * (h[0] + a[0] + h[1] + a[1])  # delta expected total
+    k = 0.3989  # normal pdf at 0: d P / d(mean/sd) near a pick'em line
+    return max(-0.15, min(0.15, k * dm / sdm)), max(-0.15, min(0.15, k * dt / sdt))
+
+
+def _rec_log(sport, preds, state_dir):
+    try:
+        p = Path(state_dir) / "master" / "recency_track.json"; p.parent.mkdir(exist_ok=True)
+        led = json.loads(p.read_text()) if p.exists() else {}
+        now = datetime.now(timezone.utc)
+        for pred in preds:
+            if pred.game.start <= now:
+                continue
+            for pk in pred.picks:
+                if getattr(pk, "prob_recency", None) is None:
+                    continue
+                led[f"{sport}:{pred.game.id}:{pk.market}:{pk.side}"] = {
+                    "sport": sport, "game_id": pred.game.id, "start": pred.game.start.isoformat(), "market": pk.market, "side": pk.side,
+                    "line": pk.line, "price": pk.price, "prob_master": round(pk.prob, 4), "prob_recency": pk.prob_recency,
+                    "edge_master": round(pk.edge, 4), "edge_recency": pk.edge_recency, "master_active": pk.active,
+                    "recency_live": sport in REC_LIVE, "updated": now.isoformat()}
+        cut = (now - timedelta(days=120)).isoformat()
+        led = {k: v for k, v in led.items() if v["start"] >= cut}
+        tmp = p.with_suffix(".tmp"); tmp.write_text(json.dumps(led, indent=1)); os.replace(tmp, p)
+    except Exception:
+        log.exception("recency tracking log failed")
+
+
 def _reprice(sport, pk, newp, tag):
     b = (pk.price / 100) if pk.price > 0 else (100 / -pk.price)
     pk.ev = pk.ev + (newp - pk.prob) * (1 + b)
@@ -407,6 +462,20 @@ def apply(sport, preds, history, state_dir: Path, now=None):
                     pk.vetoes.append("soccer moneyline dropped from play list")
                 if sport.key in UF_GATED and uf == 0:
                     pk.vetoes.append(f"UF=0 ({why}): no bet")
+            if REC_ON:
+                try:
+                    r_side, r_tot = recency_shifts(sport.key, g, history, now)
+                    pred.recency_shift = (round(r_side, 4), round(r_tot, 4))
+                    for pk in pred.picks:
+                        if pk.market not in ("ml", "spread", "total"):
+                            continue
+                        sh = (r_side if pk.side == g.home else -r_side) if pk.market != "total" else (r_tot if pk.side == "Over" else -r_tot)
+                        pk.prob_recency = round(min(0.999, max(0.001, pk.prob + sh)), 4)
+                        pk.edge_recency = round(pk.edge + (pk.prob_recency - pk.prob), 4)
+                        if sport.key in REC_LIVE and sh:
+                            _reprice(sport, pk, pk.prob_recency, "RECENCY")
+                except Exception:  # noqa: BLE001
+                    log.exception("RECENCY layer failed on %s (Master untouched)", g.id)
             if MASTER_ON:
                 try:
                     _master(sport, pred, g, side_shift, tot_shift, uf, why, tf_side, tf_tot, state_dir)
@@ -415,6 +484,8 @@ def apply(sport, preds, history, state_dir: Path, now=None):
         except Exception:
             log.exception("TCI/PPE/UF failed on %s; pick left as-is", pred.game.id)
     _ab_log(sport.key, preds, state_dir)
+    if REC_ON:
+        _rec_log(sport.key, preds, state_dir)
     return preds
 
 
