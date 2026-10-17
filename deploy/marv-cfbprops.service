@@ -1,0 +1,15 @@
+[Unit]
+Description=Marv CFB pregame props SHADOW (Bovada CFB props vs Marv projections; tracking only, never Telegram)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+EnvironmentFile=-/opt/marv-bot/.env
+Environment=CFB_PROPS_MAX_CREDITS=200
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv.cfb_props_shadow
+TimeoutStartSec=3600
+Nice=19
+MemoryMax=1500M

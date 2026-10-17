@@ -45,6 +45,72 @@ def _marv_games(now):
     P = _load(ST / "predictions.json", {})
     return [v for v in P.values() if v.get("sport") == "cfb" and now <= datetime.fromisoformat(v["start"]) <= now + timedelta(hours=18)], similarity
 
+ESPN_SUM = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary"
+
+
+def _espn_box(gid: str, cache: Path) -> dict:
+    import requests
+    f = cache / f"{gid}.json"
+    if f.exists():
+        return _load(f, {})
+    try:
+        js = requests.get(ESPN_SUM, params={"event": gid}, timeout=20).json()
+        box = {"players": js.get("boxscore", {}).get("players", []),
+               "teams": [{"id": c["team"]["id"], "homeAway": c.get("homeAway")}
+                         for c in (js.get("header", {}).get("competitions") or [{}])[0].get("competitors", [])]}
+        f.write_text(json.dumps(box))
+        return box
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def espn_players(games: pd.DataFrame, season: int, teams: set) -> pd.DataFrame:
+    """2026-10-17: current-season player game logs from ESPN box scores (the free play-by-play name parser mangles
+    2026 names, e.g. 'o Huddle-Shotgun #16 A.Manning'). Only completed games of teams on today's slate; cached."""
+    from concurrent.futures import ThreadPoolExecutor
+    cache = ST / "cache" / "espn_cfb_box"
+    cache.mkdir(parents=True, exist_ok=True)
+    g = games[(games["season"] == season) & games["home_points"].notna() & (games["home"].isin(teams) | games["away"].isin(teams))]
+    ids = [str(x) for x in g["game_id"]]
+    with ThreadPoolExecutor(6) as ex:
+        boxes = dict(zip(ids, ex.map(lambda i: _espn_box(i, cache), ids)))
+    rows = []
+    gi = g.assign(game_id=g["game_id"].astype(str)).set_index("game_id")
+    for gid, box in boxes.items():
+        ha = {str(t["id"]): t.get("homeAway") for t in box.get("teams", [])}
+        for tp in box.get("players", []):
+            side = ha.get(str(tp["team"]["id"]))
+            if side not in ("home", "away"):
+                continue
+            team = gi.at[gid, side]; opp = gi.at[gid, "away" if side == "home" else "home"]
+            per = {}
+            for st in tp.get("statistics", []):
+                keys = st.get("keys", [])
+                for a in st.get("athletes", []):
+                    nm = a["athlete"].get("displayName", "")
+                    v = dict(zip(keys, a.get("stats", [])))
+                    r = per.setdefault(nm, dict(passing_yards=0.0, attempts=0.0, completions=0.0, receiving_yards=0.0,
+                                                receptions=0.0, targets=0.0, rushing_yards=0.0, carries=0.0))
+                    num = lambda k: float(str(v.get(k, "0")).replace("--", "0") or 0)
+                    if st.get("name") == "passing":
+                        ca = str(v.get("completions/passingAttempts", "0/0")).split("/")
+                        r["completions"], r["attempts"] = float(ca[0] or 0), float(ca[-1] or 0)
+                        r["passing_yards"] = num("passingYards")
+                    elif st.get("name") == "rushing":
+                        r["carries"], r["rushing_yards"] = num("rushingAttempts"), num("rushingYards")
+                    elif st.get("name") == "receiving":
+                        r["receptions"], r["receiving_yards"] = num("receptions"), num("receivingYards")
+                        r["targets"] = max(r["receptions"], num("receivingTargets"))
+            for nm, r in per.items():
+                if nm and nm.strip() != "Team":
+                    rows.append(dict(game_id=gi.loc[gid, "game_id"] if "game_id" in gi.columns else gid, team=team,
+                                     opponent_team=opp, player=nm, season=season, **r))
+    out = pd.DataFrame(rows)
+    if not out.empty:  # same dtype as the history game ids
+        out["game_id"] = out["game_id"].astype(games["game_id"].dtype) if games["game_id"].dtype != object else out["game_id"]
+    log.info("ESPN box players: %d games, %d player rows", len(boxes), len(out))
+    return out
+
 
 def run(now=None):
     from .data import oddsapi
@@ -93,6 +159,10 @@ def run(now=None):
     games, players = C.load(ST / "cache", list(range(season - 2, season + 1)), season)  # 3 seasons: lean + fast
     log.info("loaded %d games / %d player rows", len(games), len(players))
     teams = sorted(set(players["team"]))
+    slate_t = {t for e, _ in pairs for t in (_team(e["home_team"], teams), _team(e["away_team"], teams)) if t}
+    ep = espn_players(games, season, slate_t)
+    if not ep.empty:  # current season from ESPN boxes instead of the mangled play-by-play names
+        players = pd.concat([players[players["season"] != season], ep], ignore_index=True)
     mlines = {}
     try:
         for ev in oddsapi.fetch(key, SPORT):  # same cached-in-run game odds Marv uses; 2 credits
@@ -129,6 +199,9 @@ def run(now=None):
     if df.empty:
         return "no props matched to players"
     # news: player listed out/doubtful in ESPN game injuries -> no grade
+    df = df.rename(columns={c: c[:-2] for c in df.columns if c.endswith("_x") and c[:-2] not in df.columns})
+    if "date" not in df.columns and "date_y" in df.columns:
+        df = df.rename(columns={"date_y": "date"})
     log.info("priced %d props; news check", len(df))
     from . import news_adjust as N
     hurt = {}
@@ -174,7 +247,8 @@ def grade():
     open_ = [b for b in book if b["result"] is None and b["start"] < (datetime.now(timezone.utc) - timedelta(hours=5)).isoformat()]
     if open_:
         season = season_of(datetime.now(timezone.utc))
-        games, players = C.load(ST / "cache", [season], season)
+        games, _ = C.load(ST / "cache", [season], season)
+        players = espn_players(games, season, {b["team"] for b in open_})  # ESPN boxes (clean names)
         p = players.merge(games[["game_id", "date"]], on="game_id")
         p["_k"] = list(zip(p["date"].dt.strftime("%Y-%m-%d"), p["team"], p["player"].map(O.norm_name)))
         stats = p.drop_duplicates("_k").set_index("_k")

@@ -1,0 +1,9 @@
+[Unit]
+Description=Marv CFB props shadow grading daily 09:15 ET
+
+[Timer]
+OnCalendar=*-*-* 09:15:00 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

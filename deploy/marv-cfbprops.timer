@@ -1,0 +1,10 @@
+[Unit]
+Description=Marv CFB props shadow pregame pulls (Sat 9:00 + 14:00 ET, Thu/Fri 15:00 ET)
+
+[Timer]
+OnCalendar=Sat *-*-* 09:00:00 America/New_York
+OnCalendar=Sat *-*-* 14:00:00 America/New_York
+OnCalendar=Thu,Fri *-*-* 15:00:00 America/New_York
+
+[Install]
+WantedBy=timers.target
