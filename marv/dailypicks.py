@@ -999,6 +999,10 @@ def league_card(settings, arg: str = "", full: bool = False) -> str:
         return html.escape(f"Unknown league '{a}'. Try /parlay with one of: {LEAGUE_HELP}. Plain /parlay shows every sport.")
     if key == "nba" and "nba" in TG_EXCLUDE:
         return "🏀 NBA picks are off Telegram for now; they resume after the Oct 27 review."
+    try:  # 2026-10-17: same legs as the image card (/card plan legs: Master extremes own their totals)
+        return league_text(settings, key)
+    except Exception:  # noqa: BLE001
+        log.exception("league_text")
     out = answer(settings, ["/parlay", key], full=True)
     if key == "cfb" and out.startswith("No qualifying"):
         try:
@@ -1009,3 +1013,41 @@ def league_card(settings, arg: str = "", full: bool = False) -> str:
         except Exception:  # noqa: BLE001
             pass
     return out
+
+
+
+def league_text(settings, key: str) -> str:
+    """/parlay <league> text built from exactly the legs the PNG card uses (marv.cardimg._plan_legs + _combos)."""
+    from . import cardimg as CI
+    state = Path(settings.state_dir)
+    card = _jload(_dir(state) / CARD, None)
+    if not card or card.get("date") != datetime.now(CT).date().isoformat():
+        raise RuntimeError("no card today")
+    legs = CI._plan_legs(card, key)
+    ps = _combos(legs, 2, TG_TOP)
+    d = datetime.fromisoformat(card["date"])
+    L = [f"👽 MARV PREDICT · {NAME.get(key, key)} CARD · {d:%a %b %-d}" + (" · 📝 PAPER" if getattr(settings, "paper_mode", True) else ""),
+         "", "━━ 🎰 BEST 2-LEG PARLAYS (ranked best → least) ━━"]
+    if not ps:
+        L.append(" none today (need 2+ qualifying games)")
+    for i, p in enumerate(ps, 1):
+        L.append(f" {i}) {p['price']:+d} · " + " + ".join(f"{'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_mpick(x)}" for x in p["legs"]))
+        L.append("    " + " | ".join(f"{x['game']} {_when(x['start'])}" for x in p["legs"]))
+    for title, mk in (("💰 MONEYLINES / SIDES", "ml"), ("📐 OVER/UNDERS", "total")):
+        rows = [x for x in legs if x["market"] == mk][:STRAIGHT_MAX]
+        L += ["", f"━━ {title} ━━"] + ([" none qualified today"] if not rows else [])
+        for i, x in enumerate(rows, 1):
+            L.append(f" {i}) {'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_mpick(x)} · {_when(x['start'])}")
+            L.append(f"    {_just(x)}")
+    if key == "cfb":
+        try:
+            from . import cfb_props_shadow as _cps
+            pl = _cps.card_line()
+            if pl:
+                L += ["", pl]
+        except Exception:  # noqa: BLE001
+            pass
+    bd = [ln for ln in sport_breakdown(state).splitlines() if f" {NAME.get(key, key)}:" in ln]
+    L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean · 🎯 Master Extreme (tracking). "
+          "Ranked by leg strength, not a probability; no win % unless proven. Paper only."] + bd
+    return html.escape("\n".join(L))

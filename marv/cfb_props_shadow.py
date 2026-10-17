@@ -57,6 +57,7 @@ ESPN_SUM = "https://site.api.espn.com/apis/site/v2/sports/football/college-footb
 
 def _espn_box(gid: str, cache: Path) -> dict:
     import requests
+    cache.mkdir(parents=True, exist_ok=True)
     f = cache / f"{gid}.json"
     if f.exists():
         return _load(f, {})
@@ -69,6 +70,46 @@ def _espn_box(gid: str, cache: Path) -> dict:
         return box
     except Exception:  # noqa: BLE001
         return {}
+
+
+def fcs_games(games: pd.DataFrame, season: int, idmap: dict) -> pd.DataFrame:
+    """2026-10-17: completed games vs FCS (or any) opponents missing from Marv's FBS game table, from ESPN team
+    schedules of today's slate teams (idmap: ESPN team id -> Marv team name). Free, cached per day."""
+    import requests
+    have = set(games["game_id"].astype(str))
+    cache = ST / "cache" / "espn_cfb_sched"; cache.mkdir(parents=True, exist_ok=True)
+    day = datetime.now(timezone.utc).strftime("%Y%m%d")
+    rows = []
+    for tid, name in idmap.items():
+        f = cache / f"{tid}_{day}.json"
+        try:
+            js = _load(f, None) if f.exists() else None
+            if js is None:
+                js = requests.get(f"https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/{tid}/schedule",
+                                  params={"season": season}, timeout=20).json()
+                f.write_text(json.dumps(js))
+        except Exception:  # noqa: BLE001
+            continue
+        for ev in js.get("events", []):
+            c = (ev.get("competitions") or [{}])[0]
+            if str(ev.get("id")) in have or not ((c.get("status") or {}).get("type") or {}).get("completed"):
+                continue
+            t = {x.get("homeAway"): x for x in c.get("competitors", [])}
+            if "home" not in t or "away" not in t:
+                continue
+            nm = lambda x: idmap.get(str(x["team"]["id"])) or x["team"].get("location") or x["team"].get("displayName")
+            sc = lambda x: float((x.get("score") or {}).get("value", x.get("score", 0)) if isinstance(x.get("score"), dict) else x.get("score") or 0)
+            rows.append({"game_id": str(ev["id"]), "date": pd.Timestamp(ev["date"]).tz_convert("America/New_York").tz_localize(None).normalize(),
+                         "season": season, "home": nm(t["home"]), "away": nm(t["away"]), "neutral": bool(c.get("neutralSite")),
+                         "home_points": sc(t["home"]), "away_points": sc(t["away"]), "spread": np.nan, "total": np.nan,
+                         "home_elo": np.nan, "away_elo": np.nan, "home_fbs": True, "away_fbs": False})
+            have.add(str(ev["id"]))
+    out = pd.DataFrame(rows)
+    if not out.empty and games["game_id"].dtype != object:
+        out = out[out["game_id"].str.isdigit()]
+        out["game_id"] = out["game_id"].astype(games["game_id"].dtype)
+    log.info("ESPN schedules: %d extra (FCS/missing) games for %d slate teams", len(out), len(idmap))
+    return out
 
 
 def espn_players(games: pd.DataFrame, season: int, teams: set) -> pd.DataFrame:
@@ -167,6 +208,19 @@ def run(now=None):
     log.info("loaded %d games / %d player rows", len(games), len(players))
     teams = sorted(set(players["team"]))
     slate_t = {t for e, _ in pairs for t in (_team(e["home_team"], teams), _team(e["away_team"], teams)) if t}
+    idmap = {}
+    for e, r in pairs:  # ESPN team id -> Marv team name, from today's ESPN event header
+        bx = _espn_box(str(r["game_id"]), ST / "cache" / "espn_cfb_box_today")
+        for t in bx.get("teams", []):
+            nm = _team(e["home_team"] if t.get("homeAway") == "home" else e["away_team"], teams)
+            if nm:
+                idmap[str(t["id"])] = nm
+    try:
+        xg = fcs_games(games, season, idmap)
+        if not xg.empty:
+            games = pd.concat([games, xg], ignore_index=True)
+    except Exception:  # noqa: BLE001
+        log.exception("FCS games")
     ep = espn_players(games, season, slate_t)
     if not ep.empty:  # current season from ESPN boxes instead of the mangled play-by-play names
         players = pd.concat([players[players["season"] != season], ep], ignore_index=True)
