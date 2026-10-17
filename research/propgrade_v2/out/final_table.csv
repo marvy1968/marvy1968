@@ -1,0 +1,22 @@
+pop,set,n,W,L,win%,ROI%
+T1 every real NFL line 2025-10-16..11-10 (both sides),(a) current: ME + Marv game read not opposing,1620,810,810,50.0,-6.3
+T1 every real NFL line 2025-10-16..11-10 (both sides),(b) new prop grade 👍 only,288,142,146,49.3,-5.3
+T1 every real NFL line 2025-10-16..11-10 (both sides),(c) no Marv filter,3216,1608,1608,50.0,-6.5
+"T2 March_edge rule replayed, 2025-10-16..11-10",(a) current: ME + Marv game read not opposing,15,9,6,60.0,17.4
+"T2 March_edge rule replayed, 2025-10-16..11-10",(b) new prop grade 👍 only,9,9,0,100.0,95.8
+"T2 March_edge rule replayed, 2025-10-16..11-10",(c) no Marv filter,24,15,9,62.5,22.6
+T3 March_edge actual NFL pregame picks 2026-10-02..10-13,(a) current: ME + Marv game read not opposing,28,17,11,60.7,-1.9
+T3 March_edge actual NFL pregame picks 2026-10-02..10-13,(b) new prop grade 👍 only,34,22,12,64.7,4.8
+T3 March_edge actual NFL pregame picks 2026-10-02..10-13,(c) no Marv filter,54,35,19,64.8,7.1
+T2+T3 March_edge picks combined (NFL),(a) current: ME + Marv game read not opposing,43,26,17,60.5,4.8
+T2+T3 March_edge picks combined (NFL),(b) new prop grade 👍 only,43,31,12,72.1,23.8
+T2+T3 March_edge picks combined (NFL),(c) no Marv filter,78,50,28,64.1,11.9
+T3 ncaaf pregame (Marv read n/a -> kept),(a) current,9,2,7,22.2,-58.5
+T3 ncaaf: no player model -> never 👍,(b) 👍,0,0,0,,
+T3 ncaaf,(c) no Marv filter,9,2,7,22.2,-58.5
+T3 nhl pregame (Marv read n/a -> kept),(a) current,12,6,6,50.0,1.0
+T3 nhl: no player model -> never 👍,(b) 👍,0,0,0,,
+T3 nhl,(c) no Marv filter,12,6,6,50.0,1.0
+T3 wnba pregame (Marv read n/a -> kept),(a) current,26,12,14,46.2,-16.0
+T3 wnba: no player model -> never 👍,(b) 👍,0,0,0,,
+T3 wnba,(c) no Marv filter,26,12,14,46.2,-16.0

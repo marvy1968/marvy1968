@@ -1,0 +1,15 @@
+set,n,W,L,win%,ROI%
+T1 grade up,288,142,146,49.3,-5.3
+T1 grade neutral,799,418,381,52.3,-2.3
+T1 grade down,2129,1048,1081,49.2,-8.2
+T1 👍 player_pass_yds,19,9,10,47.4,-9.4
+T1 👍 player_reception_yds,101,48,53,47.5,-9.9
+T1 👍 player_receptions,88,39,49,44.3,-11.8
+T1 👍 player_rush_yds,80,46,34,57.5,8.7
+T1 👍 over,92,38,54,41.3,-21.5
+T1 👍 under,196,104,92,53.1,2.4
+T1 always under,1608,874,734,54.4,1.9
+T3 grade up,34,22,12,64.7,4.8
+T3 grade neutral,20,13,7,65.0,10.9
+T3 grade down,0,0,0,,
+T2+T3 (a) AND (b),24,16,8,66.7,16.9

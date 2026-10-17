@@ -1,0 +1,12 @@
+[Unit]
+Description=Marv prop grade v2 shadow: weekdays after the stock close + evenings, weekend late mornings (before 1pm ET kickoffs)
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 16:35:00
+OnCalendar=*-*-* 19:40:00
+OnCalendar=*-*-* 23:50:00
+OnCalendar=Sat,Sun *-*-* 11:45:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

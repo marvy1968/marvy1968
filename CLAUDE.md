@@ -120,3 +120,9 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     verdict `paper` (never a veto, never a %), every read logged to overlay_log.jsonl and graded. Walk-forward 2020-26 (23.6k
     matches): beats base rates (Brier 0.598 vs 0.649) but not the closing market (0.586) in any league; edge bets lose
     (1X2 -10.7%, O/U2.5 -5.9%, CLV -3%). Nothing in marv/proven.py. Promote only after the bar + 100+ graded paper reads.
+
+15. Prop grade v2 (Oct 16 2026, SHADOW): `marv/propgrade.py prop_grade()` gives NFL props 👍/neutral/👎 from player form, Marv's
+    projection, matchup, usage, team implied points and the game-script read (capped ±3 pts). `marv-propgrade.timer` ->
+    `python -m marv.propgrade_shadow` logs every March_edge pregame NFL prop to `state/propgrade/shadow.jsonl` + `summary.json`.
+    Not proven (unseen 2025 real lines: 👍 49.3%, ROI −5.3%, n=288; March_edge picks 31-12 +23.8% but n=43), so the Kalshi demo
+    prop filter is unchanged. `MARV_PROPGRADE_LIVE` stays off until 100+ graded 👍 beat both the game read and no filter on ROI.
