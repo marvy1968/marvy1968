@@ -93,8 +93,11 @@ def refresh(state_dir: Path, now: datetime | None = None, leagues: list[str] | N
             if not r:
                 status[key] = "too few matches"
                 continue
+            src = D.LEAGUES[key][2]
             r.update({"league": key, "label": D.LEAGUES[key][1], "fitted": now.isoformat(),
-                      "last_match": str(df.loc[df["played"], "date"].max().date())})
+                      "last_match": str(df.loc[df["played"], "date"].max().date()),
+                      "source": "espn" if src == "espn" else "football-data",
+                      "low_confidence": src == "espn"})
             _jdump(out_dir(state_dir) / f"ratings_{key}.json", r)
             status[key] = f"ok ({len(r['teams'])} teams, last match {r['last_match']})"
         except Exception as exc:  # noqa: BLE001 - one league never stops the others

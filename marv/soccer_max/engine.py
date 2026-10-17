@@ -363,6 +363,10 @@ def vetoes_and_confidence(r: dict, home: str, away: str, xg: dict, sim: dict, ca
     if calib_penalty:
         notes.append("soft: league calibration worse than the closing market in validation")
         conf -= 10
+    # Oct 16 2026 (Marvin): ESPN-only leagues (no football-data shots/xG) — track with low confidence
+    if (r.get("source") or "") == "espn" or r.get("low_confidence"):
+        notes.append("soft: ESPN goals-only history (no shots/xG feed) — low-confidence paper track")
+        conf -= 15
     return v + notes, int(np.clip(conf, 0, 100)), notes
 
 
