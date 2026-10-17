@@ -83,3 +83,25 @@ class TrendStairsSixVoteTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TrendStairsSidesConfirmTests(unittest.TestCase):
+    def test_sides_filter_and_confirmation(self):
+        from alpacabot.brain import TrendStairsSignals
+        from alpacabot.experts import features_both
+
+        class Empty:
+            def signals(self, day):
+                return []
+        df = _uptrend()
+        df = df.join(features_both(df))
+        day = df[df.index.date == df.index[-1].date()]
+        base = TrendStairsSignals(Empty(), need=2, h1_stoch_max=100.0).signals(day)
+        self.assertTrue(base)
+        self.assertEqual(TrendStairsSignals(Empty(), need=2, h1_stoch_max=100.0, sides=(-1,)).signals(day), [])   # uptrend: no shorts
+        strict = TrendStairsSignals(Empty(), need=2, h1_stoch_max=100.0, confirm=1.0).signals(day)
+        self.assertLessEqual(len(strict), len(base))
+
+
+if __name__ == "__main__":
+    unittest.main()

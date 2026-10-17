@@ -350,8 +350,11 @@ class TrendStairsSignals(BoxSignals):
     NEED = ("f_bb_mid", "f_vwap", "f_atr", "f_stk", "f_std", "f_m15_dir", "f_h1_dir", "f_h1_stoch")
 
     def __init__(self, brain, need: int = 3, h1_stoch_max: float = 40.0, near_ma_atr: float = 0.8, vwap_atr: float = 0.75,
-                 tp1_atr: float = 1.3, stop_atr: float = 1.2, sr_rsi: bool = False, need6: int = 4):
+                 tp1_atr: float = 1.3, stop_atr: float = 1.2, sr_rsi: bool = False, need6: int = 4, sides: tuple = (1, -1),
+                 confirm: float = 0.0):
         super().__init__(brain)
+        self.sides = tuple(sides)
+        self.confirm = confirm      # owner 2026-10-17: the trend confirmed by candles, volume, volatility (confirm.trend_votes >= confirm x 5)
         self.need, self.h1max, self.near, self.vwap_atr, self.tp1, self.stop_atr = need, h1_stoch_max, near_ma_atr, vwap_atr, tp1_atr, stop_atr
         self.sr_rsi, self.need6 = sr_rsi, need6     # owner 2026-10-17: + S/R (the stock's daily zone map) and RSI 40-55 turning: need6 of 6
 
@@ -362,7 +365,7 @@ class TrendStairsSignals(BoxSignals):
         win = np.asarray((t >= "09:45") & (t <= "15:15"))
         out = []
         for side, p in ((1, ""), (-1, "m_")):
-            if any(p + k not in day for k in self.NEED):
+            if side not in self.sides or any(p + k not in day for k in self.NEED):
                 continue
             g = lambda k: day[p + k].to_numpy(float)          # noqa: E731  (mirrored features for the short side)
             c = side * day["close"].to_numpy(float)
@@ -389,6 +392,10 @@ class TrendStairsSignals(BoxSignals):
                 ok = win & trend & (votes >= need) & (a > 0)
             edge = ok & ~np.r_[False, ok[:-1]]                # a new buy setup (not every bar of the same one)
             for i in np.flatnonzero(edge):
+                if self.confirm > 0:
+                    from .confirm import trend_votes
+                    if trend_votes(day, int(i), side)[0] / 5.0 < self.confirm - 1e-9:
+                        continue                               # the trend is not confirmed on the signal bar
                 sd = float(np.clip(c[i] - (mid[i] - self.stop_atr * a[i]), 0.8 * a[i], 2.0 * a[i]))
                 out.append(Signal(i=int(i), side=side, stop_dist=sd, tag=self.TAG if side == 1 else "S:" + self.TAG, atr=float(a[i]),
                                   exit_col="x_stairs", target_px=float(side * (c[i] + self.tp1 * a[i]))))

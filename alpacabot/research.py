@@ -906,20 +906,27 @@ def trend_stairs_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
     cp = Checkpoint(ckpt)
 
-    def run(mode, need, a, b, sr_rsi=False):
+    def run(mode, need, a, b, sr_rsi=False, sides=(1, -1), confirm=0.0):
         br = Brain(experts=[] if mode == "alone" else list(ALL_EXPERTS), short_experts=[] if mode == "alone" else list(ALL_EXPERTS),
                    sector_filter=True, short_gate="red")
         br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
                     "ladder": {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
-        inner = TrendStairsSignals(br, need=need, sr_rsi=sr_rsi, need6=need) if mode in ("with", "alone") else br
+        inner = TrendStairsSignals(br, need=need, sr_rsi=sr_rsi, need6=need, sides=sides, confirm=confirm) if mode in ("with", "alone") else br
         r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     variants = {"live (no trend_stairs)": ("live", 3), "live + trend_stairs (3 of 4)": ("with", 3),
                 "trend_stairs alone, 3 of 4 agree": ("alone", 3), "trend_stairs alone, 2 of 4 agree": ("alone", 2),
-                "trend_stairs alone + S/R + RSI, 4 of 6": ("alone", 4, True), "trend_stairs alone + S/R + RSI, 5 of 6": ("alone", 5, True)}
+                "trend_stairs alone + S/R + RSI, 4 of 6": ("alone", 4, True), "trend_stairs alone + S/R + RSI, 5 of 6": ("alone", 5, True),
+                # owner 2026-10-17: the short side = the opposite of the long trend, stair-step stop, trend confirmed by candles / volume /
+                # volatility (3 of 5) - longs and shorts reported apart
+                "LONGS only, 3 of 4": ("alone", 3, False, (1,)), "SHORTS only, 3 of 4": ("alone", 3, False, (-1,)),
+                "LONGS only, 3 of 4 + confirmed (3 of 5)": ("alone", 3, False, (1,), 0.6),
+                "SHORTS only, 3 of 4 + confirmed (3 of 5)": ("alone", 3, False, (-1,), 0.6),
+                "SHORTS only, + S/R + RSI 4 of 6 + confirmed": ("alone", 4, True, (-1,), 0.6)}
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
-        out["periods"][per] = {name: cp.get(f"ts-{per}-{v[0]}-{v[1]}" + ("-srrsi" if len(v) > 2 else ""),
+        out["periods"][per] = {name: cp.get(f"ts-{per}-{v[0]}-{v[1]}" + ("-srrsi" if len(v) > 2 and v[2] else "")
+                                            + (f"-s{''.join(str(x) for x in v[3])}" if len(v) > 3 else "") + (f"-c{v[4]}" if len(v) > 4 else ""),
                                             lambda v=v, a=a, b=b: run(v[0], v[1], a, b, *v[2:])) for name, v in variants.items()}
     ok = _zone_verdict([{"without": out["periods"][p]["live (no trend_stairs)"], "with": out["periods"][p]["live + trend_stairs (3 of 4)"]}
                         for p in out["periods"]])

@@ -743,7 +743,8 @@ class PaperRunner:
                 brain = TrendStairsSignals(brain, int(ts_cfg.get("need", 3)), float(ts_cfg.get("h1_stoch_max", 40.0)),
                                            float(ts_cfg.get("near_ma_atr", 0.8)), float(ts_cfg.get("vwap_atr", 0.75)),
                                            float(ts_cfg.get("tp1_atr", 1.3)), float(ts_cfg.get("stop_atr", 1.2)),
-                                           bool(ts_cfg.get("sr_rsi", False)), int(ts_cfg.get("need6", 4)))
+                                           bool(ts_cfg.get("sr_rsi", False)), int(ts_cfg.get("need6", 4)),
+                                           tuple(ts_cfg.get("sides", [1, -1])), float(ts_cfg.get("confirm", 0.0)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
