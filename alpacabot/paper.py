@@ -385,7 +385,8 @@ class PaperRunner:
             if lad and lad["cfg"].get("trail_atr") and lad.get("tp_steps", 0) >= len(lad["cfg"]["tp_fracs"]):
                 # owner: what is left rides the trend, followed by a virtual stop for safety (trail_atr x ATR behind the best price)
                 self.lock_stop(sym, pos, pos["best_px"] - side * lad["cfg"]["trail_atr"] * lad["atr"], quiet=True)
-            if lad and lad["cfg"].get("trail_from_entry_r") and side * (pos["best_px"] - lad["fill"]) > 0:    # optional: trail from the first profit
+            if lad and lad["cfg"].get("trail_from_entry_r") and side * (pos["best_px"] - lad["fill"]) > 0 and \
+                    side * (pos["best_px"] - lad["fill"]) >= lad["cfg"].get("trail_start_r", 0.0) * abs(lad["fill"] - lad["stop_px"]):   # trail / stair-step
                 self.lock_stop(sym, pos, pos["best_px"] - side * lad["cfg"]["trail_from_entry_r"] * abs(lad["fill"] - lad["stop_px"]), quiet=True)
             reason = self.exits.on_quote(sym, bid, ask)       # closes only our qty (OwnBook.close)
             if reason:
@@ -733,6 +734,12 @@ class PaperRunner:
                     from .brain import HybridBoxSignals
                     day.attrs["levels"] = zbox.get("levels") or []
                     brain = HybridBoxSignals(brain)
+            ts_cfg = self.zone_config().get("trend_stairs") or {}
+            if ts_cfg.get("live") and self.zone_config().get("live"):                                              # owner's trend_stairs design (2026-10-17), its own tag
+                from .brain import TrendStairsSignals
+                brain = TrendStairsSignals(brain, int(ts_cfg.get("need", 3)), float(ts_cfg.get("h1_stoch_max", 40.0)),
+                                           float(ts_cfg.get("near_ma_atr", 0.8)), float(ts_cfg.get("vwap_atr", 0.75)),
+                                           float(ts_cfg.get("tp1_atr", 1.3)), float(ts_cfg.get("stop_atr", 1.2)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue

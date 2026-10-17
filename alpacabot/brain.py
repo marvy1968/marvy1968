@@ -333,6 +333,55 @@ class BoxConfirmSignals(BoxSignals):
         return out
 
 
+class TrendStairsSignals(BoxSignals):
+    """The owner's trend_stairs design (drawing 2026-10-17, levels from alpacabot.levels on 58 stocks x 3 months): trade ONLY while the trend is
+    up on the 15-minute AND 1-hour bars (the daily stage / direction is checked by the live chain's direction-first + Weinstein filters), and buy
+    the pullback when at least `need` of 4 indicators agree:
+      1. price at the 20 MA (within near_ma_atr ATR: real pullback lows sat -0.8 .. +0.7 ATR from it),
+      2. price holding VWAP (close >= VWAP - vwap_atr ATR: a quarter of real pullback lows dipped 0.75 ATR under it),
+      3. the 5-minute stochastic crosses up (below 70),
+      4. the 1-hour stochastic <= h1_stoch_max (1-hour stochastic 20-30 in a full uptrend bounced 63% of the time).
+    Stop ("sell zone"): stop_atr ATR under the 20 MA (0.8-2 ATR from entry). TP1 = +tp1_atr ATR (the ladder adds TP2 +0.6 ATR later = the
+    median 1.9 ATR move); the stair-step stop follows (engine.EXPERT_LADDERS["trend_stairs"]); sell when 2 of 3 sell indicators agree or the
+    1-hour trend turns (experts x_stairs). Re-enters after an exit while the trend lasts ("as long as we are trending we buy"). Shorts mirror.
+    Between 9:45 and 15:15. Tag "trend_stairs"."""
+
+    TAG = "trend_stairs"
+    NEED = ("f_bb_mid", "f_vwap", "f_atr", "f_stk", "f_std", "f_m15_dir", "f_h1_dir", "f_h1_stoch")
+
+    def __init__(self, brain, need: int = 3, h1_stoch_max: float = 40.0, near_ma_atr: float = 0.8, vwap_atr: float = 0.75,
+                 tp1_atr: float = 1.3, stop_atr: float = 1.2):
+        super().__init__(brain)
+        self.need, self.h1max, self.near, self.vwap_atr, self.tp1, self.stop_atr = need, h1_stoch_max, near_ma_atr, vwap_atr, tp1_atr, stop_atr
+
+    def box_signals(self, day) -> list:
+        if len(day) < 3:
+            return []
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "09:45") & (t <= "15:15"))
+        out = []
+        for side, p in ((1, ""), (-1, "m_")):
+            if any(p + k not in day for k in self.NEED):
+                continue
+            g = lambda k: day[p + k].to_numpy(float)          # noqa: E731  (mirrored features for the short side)
+            c = side * day["close"].to_numpy(float)
+            mid, vw, a, k, d = g("f_bb_mid"), g("f_vwap"), g("f_atr"), g("f_stk"), g("f_std")
+            with np.errstate(invalid="ignore"):
+                trend = (g("f_m15_dir") == 1) & (g("f_h1_dir") == 1)
+                v1 = np.abs(c - mid) <= self.near * a
+                v2 = c >= vw - self.vwap_atr * a
+                kp, dp = np.r_[np.nan, k[:-1]], np.r_[np.nan, d[:-1]]
+                v3 = (k > d) & (kp <= dp) & (k < 70)
+                v4 = g("f_h1_stoch") <= self.h1max
+                ok = win & trend & (v1.astype(int) + v2.astype(int) + v3.astype(int) + v4.astype(int) >= self.need) & (a > 0)
+            edge = ok & ~np.r_[False, ok[:-1]]                # a new buy setup (not every bar of the same one)
+            for i in np.flatnonzero(edge):
+                sd = float(np.clip(c[i] - (mid[i] - self.stop_atr * a[i]), 0.8 * a[i], 2.0 * a[i]))
+                out.append(Signal(i=int(i), side=side, stop_dist=sd, tag=self.TAG if side == 1 else "S:" + self.TAG, atr=float(a[i]),
+                                  exit_col="x_stairs", target_px=float(side * (c[i] + self.tp1 * a[i]))))
+        return out
+
+
 def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
     """Per-trade ladder for a Fibonacci box trade: the first take-profit step at TP1 (the zone itself) and the second at TP2, written as
     ATRs beyond TP1 so the live ladder code needs no change."""

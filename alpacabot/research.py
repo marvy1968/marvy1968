@@ -897,6 +897,35 @@ def box_strategy_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def trend_stairs_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The owner's trend_stairs design (brain.TrendStairsSignals) on the live configuration (direction first + Weinstein stage + multi-timeframe +
+    zone map), with its own zones and stair-step exits. Variants: live; live + trend_stairs (3 of 4); trend_stairs alone 3 of 4 and 2 of 4.
+    Reported for the owner's live-paper rule (it goes live at 0.5% unless clearly harmful)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(mode, need, a, b):
+        br = Brain(experts=[] if mode == "alone" else list(ALL_EXPERTS), short_experts=[] if mode == "alone" else list(ALL_EXPERTS),
+                   sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
+        inner = TrendStairsSignals(br, need=need) if mode in ("with", "alone") else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"live (no trend_stairs)": ("live", 3), "live + trend_stairs (3 of 4)": ("with", 3),
+                "trend_stairs alone, 3 of 4 agree": ("alone", 3), "trend_stairs alone, 2 of 4 agree": ("alone", 2)}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"ts-{per}-{m}-{n}", lambda m=m, n=n, a=a, b=b: run(m, n, a, b)) for name, (m, n) in variants.items()}
+    ok = _zone_verdict([{"without": out["periods"][p]["live (no trend_stairs)"], "with": out["periods"][p]["live + trend_stairs (3 of 4)"]}
+                        for p in out["periods"]])
+    out.update({"family": "trend_stairs", "passes": bool(ok),
+                "verdict": "live + trend_stairs beat live in both halves" if ok else "trend_stairs did not beat live in both halves (live-paper rule decides)"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

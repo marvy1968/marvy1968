@@ -72,6 +72,19 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
         d = pd.Series(np.where((e9 > e21) & (cr > e21), 1, np.where((e9 < e21) & (cr < e21), -1, 0)), index=r.index).shift(1)
         f[f"f_{tag}_dir"] = d.reindex(df.index, method="ffill").fillna(0).astype(int)
         f[f"f_{tag}_adx"] = adx(r, 14).shift(1).reindex(df.index, method="ffill")
+        rl, rh = r["low"].rolling(14, min_periods=14).min(), r["high"].rolling(14, min_periods=14).max()
+        rk = (100 * (r["close"] - rl) / (rh - rl).replace(0, np.nan)).rolling(3, min_periods=3).mean()
+        f[f"f_{tag}_stoch"] = rk.shift(1).reindex(df.index, method="ffill")
+    # owner's trend_stairs design (2026-10-17): stochastic %K(14,3) / %D(3), the 1-hour stochastic, and its 2-of-3 sell vote
+    lo14, hi14 = l.rolling(14, min_periods=14).min(), h.rolling(14, min_periods=14).max()
+    stk = (100 * (c - lo14) / (hi14 - lo14).replace(0, np.nan)).rolling(3, min_periods=3).mean()
+    std = stk.rolling(3, min_periods=3).mean()
+    f["f_stk"], f["f_std"] = stk, std
+    a_ = f["f_atr"]
+    v_stoch = (stk < std) & (stk.shift(1) >= 75)                                 # stochastic turns down from overbought
+    v_vwap = c < vw - 0.75 * a_                                                  # lost VWAP (by more than the normal 0.75 ATR dip)
+    v_ma = (c < mid) & (c.shift(1) < mid.shift(1)) & (c.shift(2) < mid.shift(2))   # 3 closes in a row under the 20 MA
+    f["x_stairs"] = ((v_stoch.astype(int) + v_vwap.astype(int) + v_ma.astype(int)) >= 2) | (f["f_h1_dir"] == -1)
     # indicator exits ("sell when they say sell"): decided at a close, filled at the next open
     f["x_connors"] = (c > f["f_sma5"]) | (f["f_rsi2"] > 70)
     f["x_boll"] = c >= f["f_bb_mid"]

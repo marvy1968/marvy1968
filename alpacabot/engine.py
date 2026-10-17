@@ -72,6 +72,8 @@ def zone_profile(zones: dict | None, tag: str) -> dict | None:
 # `lookback`-bar extreme when at least min_r away, else default_r (the stock's daily zone-map level wins when nearer, as for every expert);
 # the sell zone is the expert's own stop plus its own exit plan in EXPERT_LADDERS (no cut steps: each of these traders uses one hard stop).
 EXPERT_ZONES = {
+    "trend_stairs": {"chase_atr": 0.25, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"},
+    # owner's trend_stairs (2026-10-17): buy the pullback, never chase; TP1 comes from the signal (+1.3 ATR), no exhaustion exit
     "velez_elephant": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5, "target": "extreme"},
     # Velez: buy the elephant bar's follow-through at once or not at all; stop under the bar; first target the prior swing high
     "raschke_grail": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 2.0, "target": "extreme"},
@@ -89,6 +91,10 @@ EXPERT_ZONES = {
 # Each expert's own exits, written from their published rules on 2026-10-14 before any test (the owner asked for each master's
 # philosophy to set its own take-profit and sell zones). No cut steps: every one of these traders uses a single hard stop.
 EXPERT_LADDERS = {
+    "trend_stairs": {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [0.33, 0.66], "tp_depth_atr": [0.0, 0.6], "lock": [],
+                     "trail_atr": 1.0, "trail_from_entry_r": 0.5, "trail_start_r": 0.5},
+    # owner's drawing: one hard stop, a third at TP1 (+1.3 ATR) and TP2 (+1.9 ATR, the median move after a pullback low), the stop climbs the
+    # stairs (0.5R behind the best price once +0.5R is reached), the last third rides with a 1 ATR trail
     "velez_elephant": {"tp_fracs": [0.33, 0.66], "tp_depth_atr": [0.0, 0.5], "lock": ["breakeven", "tp"], "trail_atr": 0.75},  # Velez: 1/3 at
     # the first target, stop to break-even, trail the rest tight under the bars
     "velez_180": {"tp_fracs": [0.5, 1.0], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven"]},          # a fast reversal: bank it quickly
@@ -160,8 +166,9 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
             state.ratchet(h[j])
         if trail and steps >= len(tps):                              # (no TP steps at all: the trail runs from the entry)
             stop = max(stop, best - trail * atr_i)
-        if lad.get("trail_from_entry_r") and best > fill:            # trail from the first profit: trail_from_entry_r x the risk behind
-            stop = max(stop, best - lad["trail_from_entry_r"] * risk)
+        if lad.get("trail_from_entry_r") and best - fill >= lad.get("trail_start_r", 0.0) * risk and best > fill:
+            stop = max(stop, best - lad["trail_from_entry_r"] * risk)      # trail from the first profit (or, with trail_start_r, the stair-step:
+            #                                                              # +0.5R -> break-even, +0.75R -> +0.25R, +1R -> +0.5R, +1.5R -> +1R)
     return n - 1, pnl + (1 - sold) * (sell(c[n - 1]) - fill), "eod"
 
 

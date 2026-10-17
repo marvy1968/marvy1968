@@ -70,6 +70,14 @@
     "default_r": 2.0,
     "exhaust_r": 1.5,
     "target": "extreme"
+   },
+   "trend_stairs": {
+    "chase_atr": 0.25,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
    }
   },
   "ladder": {
@@ -185,6 +193,22 @@
      "trail_atr": 1.5,
      "cut_fracs": [],
      "cut_depth_r": []
+    },
+    "trend_stairs": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      0.33,
+      0.66
+     ],
+     "tp_depth_atr": [
+      0.0,
+      0.6
+     ],
+     "lock": [],
+     "trail_atr": 1.0,
+     "trail_from_entry_r": 0.5,
+     "trail_start_r": 0.5
     }
    },
    "_note_by_expert": "owner 2026-10-16: every TREND expert uses its own philosophy's zones: take-profit steps, stop locks and trail from engine.EXPERT_LADDERS, one hard stop (its sell zone, no cut steps); buy / take-profit zone distances in profiles.<expert> (engine.EXPERT_ZONES). Range experts and the box strategies keep the drawn plan."
@@ -233,7 +257,8 @@
    "connors_rsi2": 0.005,
    "vwap_dev": 0.005,
    "opening_range_breakout": 0.005,
-   "donchian_turtle": 0.005
+   "donchian_turtle": 0.005,
+   "trend_stairs": 0.005
   },
   "reversal_confirm": {
    "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only when the move against them is FAILING: at least `need` of 4 checks (reversal candle incl. Velez's bottoming tail and 180; the last 3 bars show no strong continuation against the trade; 5-minute ATR <= vola_max x session average; Velez's rubber band: stretched >= stretch_atr ATR from the 20 EMA). A filter only. Set live to false to switch it off.",
@@ -246,6 +271,16 @@
    "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only while SPY's daily ADX (14, completed days) is below adx_max = the market is ranging. Box strategies and trend experts are not affected. A filter only; set live to false to switch it off.",
    "live": true,
    "adx_max": 20.0
+  },
+  "trend_stairs": {
+   "_note": "owner's trend_stairs drawing 2026-10-17 (brain.TrendStairsSignals): only while the 15-minute and 1-hour trends agree (plus direction first / Weinstein stage); buy the pullback when `need` of 4 agree (at the 20 MA, holding VWAP, 5-minute stochastic crosses up, 1-hour stochastic <= h1_stoch_max); stop stop_atr ATR under the 20 MA; TP1 +tp1_atr ATR, TP2 +0.6 ATR more, stair-step stop (ladder.by_expert.trend_stairs); sell when 2 of 3 sell indicators agree or the 1-hour trend turns. Levels from the 58-stock reversal study. Live at 0.5% risk (risk_by_expert). Set live to false to switch it off.",
+   "live": true,
+   "need": 3,
+   "h1_stoch_max": 40.0,
+   "near_ma_atr": 0.8,
+   "vwap_atr": 0.75,
+   "tp1_atr": 1.3,
+   "stop_atr": 1.2
   }
  },
  "swing": {
