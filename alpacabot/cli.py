@@ -140,6 +140,18 @@ def run_all(a) -> int:
                         print(f"skip {s_}: {exc}", flush=True)
                 spy_d = load("SPY", "1Day", end2 - _td(days=700), end2, cache)
                 mdown = market_down(spy_d)
+                from .news import fetch as news_fetch, sector_news_negative, sector_trend_negative
+                from .universe import SECTOR_ETFS as _ETF, SECTOR_OF as _SOF
+                etf_neg = sector_trend_negative({e: load(e, "1Day", end2 - _td(days=700), end2, cache) for e in _ETF})
+                try:                                     # owner: shorts only when the sector's news is negative (Alpaca/Benzinga headlines)
+                    arts = news_fetch(list(_ST), end2 - _td(days=380), end2, cache / "news")
+                    news_neg = sector_news_negative(arts, _SOF, spy_d.index)
+                    lines.append(f"- news: {len(arts)} articles on the 55 stocks; sector-negative days per sector: "
+                                 + ", ".join(f"{e} {int(v.sum())}" for e, v in sorted(news_neg.items())))
+                except Exception as exc:
+                    news_neg = None
+                    lines.append(f"- news feed unavailable ({type(exc).__name__}: {str(exc)[:120]}): variants J/K skipped")
+                by_stock = lambda m: {s_: m.get(_SOF.get(s_, "")) for s_ in fb}           # noqa: E731
                 variants = {
                     "A. mirror of the longs (as built)": {},
                     "B. only when the market falls (SPY under a falling 50-day)": {"short_ok": "mdown"},
@@ -148,7 +160,15 @@ def run_all(a) -> int:
                     "E. no sell vote (stop or 1.5R only)": {"short_exit_vote": False},
                     "F. take-profit 1.0R": {"short_rules": {"tp_r": 1.0}},
                     "G. stop at 2-3 ATR (wider)": {"short_rules": {"stop_min_atr": 2.0}},
+                    "I. sector negative (sector ETF under a falling 50-day)": {"short_ok": by_stock(etf_neg)},
+                    "I + C (sector trend negative, 4 of 4)": {"short_ok": by_stock(etf_neg), "short_rules": {"need": 4}},
                 }
+                if news_neg is not None:
+                    variants["J. sector NEWS negative (headlines, last 5 sessions)"] = {"short_ok": by_stock(news_neg)}
+                    nb, eb = by_stock(news_neg), by_stock(etf_neg)
+                    variants["K. J + I (news AND sector trend negative)"] = {"short_ok": {
+                        s_: (nb[s_] & eb[s_].reindex(nb[s_].index).fillna(False)) if nb[s_] is not None and eb[s_] is not None else None
+                        for s_ in fb}}
                 res = {"family": fam, "verdict": "see the table"}
                 for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
                     lines.append(f"### shorts, {label}")

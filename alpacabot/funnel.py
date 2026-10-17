@@ -75,7 +75,7 @@ def market_down(spy: pd.DataFrame) -> pd.Series:
 
 
 def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005, slip_bps: float = 5.0, rules: dict | None = None,
-             sides: tuple = ("long", "short"), short_ok: pd.Series | None = None, short_rules: dict | None = None,
+             sides: tuple = ("long", "short"), short_ok=None, short_rules: dict | None = None,
              short_exit_vote: bool = True) -> dict:
     """Signals on days start..end: enter at the next open (a gap through the stop or past the take-profit is skipped, like the live runner),
     stop first then take-profit inside a day (conservative), the sell vote at a close exits at the next open. One position per stock at a
@@ -94,8 +94,11 @@ def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005,
             f["long_entry"] = False
         if "short" not in sides:
             f["short_entry"] = False
-        elif short_ok is not None:                              # shorts only on days the market filter allows
-            ok_by_day = dict(zip(short_ok.index.date, short_ok.to_numpy(bool)))
+        elif short_ok is not None:                              # shorts only on days the filter allows (one series, or one per stock)
+            ok = short_ok.get(sym) if isinstance(short_ok, dict) else short_ok
+            if ok is None:
+                ok = pd.Series(False, index=d.index)
+            ok_by_day = dict(zip(ok.index.date, ok.to_numpy(bool)))
             f["short_entry"] = f["short_entry"] & np.array([ok_by_day.get(x, False) for x in f.index.date], dtype=bool)
         if not short_exit_vote:
             f["short_exit"] = False
