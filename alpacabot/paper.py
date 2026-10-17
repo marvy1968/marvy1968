@@ -613,12 +613,13 @@ class PaperRunner:
         """Once a day: each stock's direction (bias) and support/resistance zone map from its completed daily bars (consolidated SIP
         history). Saved to zonemap.json; used in SHADOW mode (logged on each trade) until the zones study passes."""
         from .zonemap import bias_for_session, level_map, range_box, stage, weekly_for_session
-        zm = {}
+        zm, dailies = {}, {}
         for sym in self.symbols:
             try:
                 d = self.raw.daily_history(sym, days=330) if hasattr(self.raw, "daily_history") else None
                 if d is None or not len(d):
                     continue
+                dailies[sym] = d[d.index.date < now_et.date()]
                 prior = d[d.index.date < now_et.date()]
                 zm[sym] = {"bias": bias_for_session(d, now_et.date()), "levels": level_map(prior), "stage": stage(prior),
                          "wbias": weekly_for_session(d, now_et.date())}
@@ -638,6 +639,8 @@ class PaperRunner:
                         zm[sym]["adx"] = None
             except Exception:
                 log.exception("zone map: %s skipped", sym)
+        if ((self.zone_config().get("trend_stairs") or {}).get("select")):
+            self.trend_lists(zm, dailies, now_et)
         self.zonemap = zm
         try:
             (self.dir / "zonemap.json").write_text(json.dumps({"date": now_et.date().isoformat(), "stocks": zm}))
@@ -646,6 +649,37 @@ class PaperRunner:
         n = {b: sum(1 for v in zm.values() if v["bias"] == b) for b in (1, -1, 0)}
         st = {k: sum(1 for v in zm.values() if v.get("stage") == k) for k in (1, 2, 3, 4)}
         self.journal("zonemap", up=n[1], down=n[-1], range=n[0], stocks=len(zm), stage2=st[2], stage4=st[4], stage1=st[1], stage3=st[3])
+
+    def trend_lists(self, zm: dict, dailies: dict, now_et: datetime):
+        """The owner's daily funnel for trend_stairs (alpacabot.selection): today's long list (stage 2, sector news not negative, 3 strongest
+        per sector, trend strength up) and short list (stage 4, sector news negative, 3 weakest, trend strength down), from completed daily
+        bars. Sector news from Alpaca headlines (alpacabot.news); if the feed fails, the sector ETF trend stands in. Saved on the zone map."""
+        from . import universe as _u
+        from .news import fetch as news_fetch, sector_news_negative, sector_trend_negative
+        from .selection import for_session, lists
+        try:
+            spy = dailies.get(gates.MARKET)
+            if spy is None or not len(spy):
+                raise ValueError("no SPY daily bars")
+            try:
+                neg = sector_news_negative(news_fetch(list(_u.STOCKS), now_et.date() - timedelta(days=14), now_et.date(), self.dir / "news_cache"),
+                                           _u.SECTOR_OF, spy.index.append(pd.DatetimeIndex([pd.Timestamp(now_et.date())], tz=spy.index.tz)))
+                src = "news"
+            except Exception:
+                log.exception("sector news unavailable: the sector ETF trend stands in")
+                etf = {e: self.raw.daily_history(e, days=330) for e in _u.SECTOR_ETFS}
+                neg = sector_trend_negative({e: d[d.index.date < now_et.date()] for e, d in etf.items() if d is not None and len(d)})
+                src = "sector trend"
+            lok, sok = lists(dailies, spy, _u.SECTOR_OF, neg)
+            day_after = now_et.date()
+            for sym, z in zm.items():
+                z["ts_long"] = bool(for_session(lok, sym, day_after))
+                z["ts_short"] = bool(for_session(sok, sym, day_after))
+            self.journal("trend_lists", source=src, long=[s for s, z in zm.items() if z.get("ts_long")], short=[s for s, z in zm.items() if z.get("ts_short")])
+        except Exception:
+            log.exception("trend_stairs lists failed: no list today (trend_stairs takes no new trades)")
+            for z in zm.values():
+                z["ts_long"] = z["ts_short"] = False
 
     def can_short(self, sym: str) -> str:
         """'' when shorting sym is allowed; otherwise the reason."""
@@ -740,11 +774,13 @@ class PaperRunner:
                 from .brain import TrendStairsSignals
                 if not day.attrs.get("levels"):
                     day.attrs["levels"] = zbox.get("levels") or []                # the stock's daily S/R zones (for the S/R vote)
+                day.attrs["ts_ok"] = (bool(zbox.get("ts_long")), bool(zbox.get("ts_short")))   # today's long / short list (owner's funnel)
                 brain = TrendStairsSignals(brain, int(ts_cfg.get("need", 3)), float(ts_cfg.get("h1_stoch_max", 40.0)),
                                            float(ts_cfg.get("near_ma_atr", 0.8)), float(ts_cfg.get("vwap_atr", 0.75)),
                                            float(ts_cfg.get("tp1_atr", 1.3)), float(ts_cfg.get("stop_atr", 1.2)),
                                            bool(ts_cfg.get("sr_rsi", False)), int(ts_cfg.get("need6", 4)),
-                                           tuple(ts_cfg.get("sides", [1, -1])), float(ts_cfg.get("confirm", 0.0)))
+                                           tuple(ts_cfg.get("sides", [1, -1])), float(ts_cfg.get("confirm", 0.0)),
+                                           bool(ts_cfg.get("select", False)), bool(ts_cfg.get("tp_zone", False)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue

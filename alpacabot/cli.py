@@ -395,6 +395,46 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
+                elif fam == "trend_stairs58":       # owner's Trend Stock / Short Trend drawings on all 58 stocks (research.trend_stairs58_study)
+                    from datetime import timedelta as _td
+                    from . import gates as _g
+                    from . import universe as _u
+                    from .news import fetch as news_fetch, sector_news_negative, sector_trend_negative
+                    from .paper import SYMBOLS as _PS
+                    from .research import trend_stairs58_study
+                    from .selection import for_session, lists
+                    from .zonemap import attach
+                    for s_ in _u.STOCKS:
+                        _g.add_sector(s_, _u.SECTOR_OF[s_])
+                    syms58 = sorted(set(_PS) | set(_u.STOCKS))
+                    m58 = {}
+                    for s_ in syms58:
+                        try:
+                            m58[s_] = minute[s_] if s_ in minute else load(s_, "1Min", mstart, end, cache)
+                        except Exception as exc:
+                            print(f"skip {s_}: {exc}", flush=True)
+                    d58 = {s_: load(s_, "1Day", end - _td(days=700), end, cache) for s_ in m58}
+                    days = add_gates(split_days(m58, minutes=5, feature_fn=features_both), {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    del m58
+                    days = attach(days, d58)
+                    spy_d = d58.get("SPY") if "SPY" in d58 else load("SPY", "1Day", end - _td(days=700), end, cache)
+                    try:
+                        neg = sector_news_negative(news_fetch(list(_u.STOCKS), end - _td(days=200), end, cache / "news"), _u.SECTOR_OF, spy_d.index)
+                        src = "sector NEWS"
+                    except Exception as exc:
+                        neg = sector_trend_negative({e: load(e, "1Day", end - _td(days=700), end, cache) for e in _u.SECTOR_ETFS})
+                        src = f"sector TREND (news unavailable: {type(exc).__name__})"
+                    lok, sok = lists(d58, spy_d, _u.SECTOR_OF, neg)
+                    nl = ns = nd = 0
+                    for s_, frames in days.items():
+                        for f_ in frames:
+                            sd = f_.index[0].date()
+                            f_.attrs["ts_ok"] = (bool(for_session(lok, s_, sd)), bool(for_session(sok, s_, sd)))
+                            nl += f_.attrs["ts_ok"][0]
+                            ns += f_.attrs["ts_ok"][1]
+                            nd += 1
+                    lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
+                    res = trend_stairs58_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ts58.json")
                 elif fam == "reversal_levels":      # owner 2026-10-17: at which indicator levels price usually reverses (alpacabot.levels)
                     from .engine import resample_bars
                     from .levels import report_lines, study
@@ -485,7 +525,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

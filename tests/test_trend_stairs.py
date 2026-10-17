@@ -105,3 +105,28 @@ class TrendStairsSidesConfirmTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TrendStairsListTests(unittest.TestCase):
+    def test_select_needs_todays_list_and_tp_box_changes_the_exit(self):
+        from alpacabot.brain import TrendStairsSignals
+        from alpacabot.experts import features_both
+
+        class Empty:
+            def signals(self, day):
+                return []
+        df = _uptrend()
+        df = df.join(features_both(df))
+        day = df[df.index.date == df.index[-1].date()].copy()
+        self.assertIn("x_stairs_tp", day)
+        kw = dict(need=2, h1_stoch_max=100.0, select=True)
+        self.assertEqual(TrendStairsSignals(Empty(), **kw).signals(day), [])              # no list attached: nothing
+        day.attrs["ts_ok"] = (False, True)
+        self.assertEqual(TrendStairsSignals(Empty(), **kw).signals(day), [])              # on the short list only, in an uptrend
+        day.attrs["ts_ok"] = (True, False)
+        sigs = TrendStairsSignals(Empty(), tp_zone=True, **kw).signals(day)
+        self.assertTrue(sigs and all(s.exit_col == "x_stairs_tp" for s in sigs))
+
+
+if __name__ == "__main__":
+    unittest.main()

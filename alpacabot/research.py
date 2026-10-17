@@ -935,6 +935,38 @@ def trend_stairs_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def trend_stairs58_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The owner's Trend Stock / Short Trend drawings on all 58 live stocks (2026-10-17): trend_stairs alone, with and without the daily
+    funnel lists (day.attrs["ts_ok"] from alpacabot.selection), the TP box exit and the candle / volume / volatility confirmation, longs and
+    shorts apart. Live configuration filters (direction first, Weinstein stage, multi-timeframe)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(kw, a, b):
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(TrendStairsSignals(br, **kw)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {
+        "1. both sides, no lists (as live)": {},
+        "2. both sides + daily lists": {"select": True},
+        "3. both sides + lists + TP box": {"select": True, "tp_zone": True},
+        "4. LONGS + lists + TP box": {"select": True, "tp_zone": True, "sides": (1,)},
+        "5. SHORTS + lists + TP box": {"select": True, "tp_zone": True, "sides": (-1,)},
+        "6. LONGS + lists + TP box + confirmed (3 of 5)": {"select": True, "tp_zone": True, "sides": (1,), "confirm": 0.6},
+        "7. SHORTS + lists + TP box + confirmed (3 of 5)": {"select": True, "tp_zone": True, "sides": (-1,), "confirm": 0.6},
+        "8. SHORTS, no lists (plain mirror)": {"sides": (-1,)},
+    }
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"ts58-{per}-{name[:2]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
+    out.update({"family": "trend_stairs58", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

@@ -85,6 +85,10 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     v_vwap = c < vw - 0.75 * a_                                                  # lost VWAP (by more than the normal 0.75 ATR dip)
     v_ma = (c < mid) & (c.shift(1) < mid.shift(1)) & (c.shift(2) < mid.shift(2))   # 3 closes in a row under the 20 MA
     f["x_stairs"] = ((v_stoch.astype(int) + v_vwap.astype(int) + v_ma.astype(int)) >= 2) | (f["f_h1_dir"] == -1)
+    # owner's TP box (drawings 2026-10-17): take the profit when 2 of 4 say the move is stretched - stochastic / RSI overbought (shorts:
+    # oversold, on the mirrored series), price 80% of the way from the 20 MA to the outer Bollinger band, price at the band
+    tp_votes = (stk >= 80).astype(int) + (f["f_rsi14"] >= 70).astype(int) + (c >= mid + 0.8 * (up - mid)).astype(int) + (c >= up).astype(int)
+    f["x_stairs_tp"] = f["x_stairs"] | (tp_votes >= 2)
     # indicator exits ("sell when they say sell"): decided at a close, filled at the next open
     f["x_connors"] = (c > f["f_sma5"]) | (f["f_rsi2"] > 70)
     f["x_boll"] = c >= f["f_bb_mid"]
