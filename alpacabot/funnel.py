@@ -67,6 +67,44 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
     return out
 
 
+def trend_strength_down(d: pd.DataFrame, spy: pd.DataFrame, adx_min: float = 25.0, rs_days: int = 63) -> pd.DataFrame:
+    """The owner's "trend strength indicators strongly negative" for shorts, per day (completed bars): adx_dn = ADX(14) >= adx_min with -DI
+    above +DI (a strong trend, pointing down); ma_dn = the 150-day average lower than 20 days ago; rs_dn = the stock's `rs_days` return below
+    SPY's. Columns: those three, votes (0-3), rs (stock minus SPY return, for ranking the weakest per sector)."""
+    h, l, c = (d[k].astype(float) for k in ("high", "low", "close"))
+    up, dn = h.diff(), -l.diff()
+    pdm = ((up > dn) & (up > 0)) * up
+    mdm = ((dn > up) & (dn > 0)) * dn
+    a = atr(d, 14)
+    pdi = 100 * pdm.ewm(alpha=1 / 14, adjust=False, min_periods=14).mean() / a
+    mdi = 100 * mdm.ewm(alpha=1 / 14, adjust=False, min_periods=14).mean() / a
+    dx = 100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan)
+    adx_ = dx.ewm(alpha=1 / 14, adjust=False, min_periods=14).mean()
+    m150 = c.rolling(150, min_periods=150).mean()
+    sc = spy["close"].astype(float)
+    sc_by_day = dict(zip(sc.index.date, sc.to_numpy()))
+    spy_al = pd.Series([sc_by_day.get(x, np.nan) for x in d.index.date], index=d.index).ffill()
+    rs = c.pct_change(rs_days) - spy_al.pct_change(rs_days)
+    out = pd.DataFrame({"adx_dn": (adx_ >= adx_min) & (mdi > pdi), "ma_dn": m150 < m150.shift(20), "rs_dn": rs < 0, "rs": rs}, index=d.index)
+    out["votes"] = out[["adx_dn", "ma_dn", "rs_dn"]].astype(int).sum(axis=1)
+    return out
+
+
+def weakest_per_sector(ts: dict, sector_of: dict, n: int = 3) -> dict:
+    """{symbol: bool Series}: True on days the stock is among the `n` weakest (lowest rs) of its sector."""
+    frames = {}
+    for etf in set(sector_of.values()):
+        syms = [s for s in ts if sector_of.get(s) == etf]
+        if not syms:
+            continue
+        m = pd.DataFrame({s: pd.Series(ts[s]["rs"].to_numpy(), index=ts[s].index.date) for s in syms})
+        rank = m.rank(axis=1, method="first")
+        for s in syms:
+            ok = (rank[s] <= n) & m[s].notna()
+            frames[s] = pd.Series(ok.to_numpy(bool), index=pd.DatetimeIndex(pd.to_datetime(ok.index)))
+    return frames
+
+
 def market_down(spy: pd.DataFrame) -> pd.Series:
     """True on days the market itself is falling: SPY closes under its 50-day average and that average is lower than 10 days ago."""
     c = spy["close"].astype(float)

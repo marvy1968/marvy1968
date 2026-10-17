@@ -163,8 +163,20 @@ def run_all(a) -> int:
                     "I. sector negative (sector ETF under a falling 50-day)": {"short_ok": by_stock(etf_neg)},
                     "I + C (sector trend negative, 4 of 4)": {"short_ok": by_stock(etf_neg), "short_rules": {"need": 4}},
                 }
+                import pandas as _pd
+                from .funnel import trend_strength_down, weakest_per_sector
+                ts_ = {s_: trend_strength_down(d_, spy_d) for s_, d_ in fb.items() if len(d_) > 200}
+                strong3 = {s_: _pd.Series((t_["votes"] == 3).to_numpy(bool), index=_pd.DatetimeIndex(_pd.to_datetime(t_.index.date)))
+                           for s_, t_ in ts_.items()}
+                weak3 = weakest_per_sector(ts_, _SOF, 3)
+                both_ = lambda a, b: {s_: (a[s_] & b[s_].reindex(a[s_].index).fillna(False)) if a.get(s_) is not None and b.get(s_) is not None
+                                      else None for s_ in fb}                                  # noqa: E731
+                variants["L. trend strength strongly negative (ADX>=25 down, 150-day falling, weaker than SPY)"] = {"short_ok": strong3}
+                variants["M. L + one of the 3 weakest stocks in its sector"] = {"short_ok": both_(strong3, weak3)}
+                variants["N. M + sector trend negative (I)"] = {"short_ok": both_(both_(strong3, weak3), by_stock(etf_neg))}
                 if news_neg is not None:
                     variants["J. sector NEWS negative (headlines, last 5 sessions)"] = {"short_ok": by_stock(news_neg)}
+                    variants["O. M + sector NEWS negative (J)"] = {"short_ok": both_(both_(strong3, weak3), by_stock(news_neg))}
                     nb, eb = by_stock(news_neg), by_stock(etf_neg)
                     variants["K. J + I (news AND sector trend negative)"] = {"short_ok": {
                         s_: (nb[s_] & eb[s_].reindex(nb[s_].index).fillna(False)) if nb[s_] is not None and eb[s_] is not None else None

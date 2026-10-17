@@ -154,3 +154,16 @@ class FunnelLiveTests(unittest.TestCase):
             self.assertEqual(r.funnel_plan(*args)[1], [])                        # zones.json: shorts off (they lost in the check)
             r.zone_config = lambda: {"live": True, "funnel": {"live": True, "shorts": True}}
             self.assertEqual(r.funnel_plan(*args)[1][0]["side"], -1)
+
+
+class TrendStrengthDownTests(unittest.TestCase):
+    def test_strong_downtrend_scores_three_and_weakest_ranked(self):
+        from alpacabot.funnel import trend_strength_down, weakest_per_sector
+        spy = _daily(drift=0.05, seed=5)
+        down = trend_strength_down(_daily(drift=-0.15, seed=2), spy)      # (prices stay positive)
+        up = trend_strength_down(_daily(drift=0.15, seed=3), spy)
+        self.assertEqual(int(down["votes"].iloc[-1]), 3)
+        self.assertLess(int(up["votes"].iloc[-1]), 3)                   # a rising stock is never "strongly negative"
+        self.assertFalse(bool(up["ma_dn"].iloc[-1]) or bool(up["rs_dn"].iloc[-1]))
+        w = weakest_per_sector({"D": down, "U": up}, {"D": "XLK", "U": "XLK"}, n=1)
+        self.assertTrue(bool(w["D"].iloc[-1]) and not bool(w["U"].iloc[-1]))
