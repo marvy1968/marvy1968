@@ -544,6 +544,13 @@ def answer(settings, parts=None, full: bool = True) -> str:
             extra = "\n" + html.escape(ufp_uvf.record_line(state))
     except Exception:  # noqa: BLE001
         pass
+    try:  # Oct 16 2026 (Marvin): CFB +200..+299 dog shadow (tracking-only)
+        from . import cfb_dog_shadow
+        _dog = cfb_dog_shadow.record_line(state)
+        if _dog:
+            extra += "\n" + html.escape(_dog)
+    except Exception:  # noqa: BLE001
+        pass
     return text(card, paper=getattr(settings, "paper_mode", True), sport=sport, full=full) + "\n" + \
         html.escape(record(state)) + extra
 
@@ -702,6 +709,13 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
         L += ufp_uvf.card_lines([t for t in card.get("upset_tags", []) if t["sport"] not in TG_EXCLUDE])
         if ufp_uvf.ON:
             record_line = record_line + "\n" + ufp_uvf.record_line(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")))
+    except Exception:  # noqa: BLE001
+        pass
+    try:  # Oct 16 2026 (Marvin): CFB +200..+299 dog shadow tracking line
+        from . import cfb_dog_shadow
+        _dog = cfb_dog_shadow.record_line()
+        if _dog:
+            record_line = (record_line + "\n" if record_line else "") + _dog
     except Exception:  # noqa: BLE001
         pass
     try:  # 2026-10-15 Value Plays (tracking only unless state/value_play/validation.json passed)
