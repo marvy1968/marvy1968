@@ -118,7 +118,24 @@ fi
 cp "$DIR"/deploy/marv-*.service "$DIR"/deploy/marv-bot*.timer "$DIR"/deploy/marv-health.timer "$DIR"/deploy/marv-soccer.timer "$DIR"/deploy/marv-dailypicks.timer "$DIR"/deploy/marv-swing-*.timer /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now marv-bot.timer marv-bot-late.timer marv-health.timer marv-soccer.timer marv-bridge.service marv-live.service marv-edges.service
-systemctl restart marv-bridge.service marv-live.service marv-edges.service 2>/dev/null || true
+# Owner 2026-10-17 ("stop resetting my bet bots"): the betting services restart only when betting code changed since the last install.
+# A deploy that only touches the stock / forex bots (alpacabot/, fxbot/, their tests, the vm-link runner, docs) leaves them running.
+# FORCE_BET_RESTART=1 restarts them anyway.
+PREV="$(cat "$DIR/state/.installed_rev" 2>/dev/null || git -c safe.directory="$DIR" -C "$DIR" rev-parse -q --verify "$BRANCH@{1}" 2>/dev/null || true)"
+NOW="$(git -c safe.directory="$DIR" -C "$DIR" rev-parse -q --verify HEAD 2>/dev/null || true)"
+BET_CHANGED=1
+if [ "${FORCE_BET_RESTART:-0}" != "1" ] && [ -n "$PREV" ] && [ -n "$NOW" ]; then
+  if ! git -c safe.directory="$DIR" -C "$DIR" diff --name-only "$PREV" "$NOW" 2>/dev/null \
+       | grep -qvE '^(alpacabot/|fxbot/|tests/test_(alpaca|fx|funnel|levels|trend_stairs|botreport)|deploy/vm_link\.py|deploy/marv-(alpaca|fx|swing)|[^/]*\.md$)'; then
+    BET_CHANGED=0
+  fi
+fi
+if [ "$BET_CHANGED" = "1" ]; then
+  systemctl restart marv-bridge.service marv-live.service marv-edges.service 2>/dev/null || true
+else
+  echo "betting services left running (no betting code changed since $PREV)"
+fi
+[ -n "$NOW" ] && echo "$NOW" > "$DIR/state/.installed_rev" || true
 # Alpaca PAPER trading loop (paper account only; idles with "WAITING FOR KEYS" until the keys are in .env)
 systemctl enable marv-alpaca-paper.service 2>/dev/null && systemctl restart marv-alpaca-paper.service 2>/dev/null || true
 # our own FOREX practice runner (OANDA practice host only; forex, separate from the stock bot)
