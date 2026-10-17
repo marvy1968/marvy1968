@@ -90,6 +90,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         except Exception:
             log.exception("situational tags failed")
     bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
+    preds = [p for p in preds if not getattr(p, "projection_only", False)]  # 2026-10-17: card/ledgers unchanged
     AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
     # Projections for every upcoming game stay available for queries (/game, /board); the card that gets
     # sent only covers games starting today.

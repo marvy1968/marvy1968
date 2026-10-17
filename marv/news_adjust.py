@@ -114,11 +114,34 @@ def _sim(a, b):
     a, b = (a or "").lower(), (b or "").lower(); return bool(a and b and (a in b or b in a))
 
 
+def _team_key(tbl, team):
+    """2026-10-17: best name match (was substring: 'Oregon' hit 'Oregon State Beavers'; exact-key lookups missed
+    'Oregon' vs ESPN 'Oregon Ducks', so CFB QB/skill checks silently found nothing)."""
+    try:
+        from .data.teams import similarity
+    except Exception:  # noqa: BLE001
+        similarity = None
+    best, sc = None, 0.0
+    for k in tbl:
+        v = similarity(k, team) if similarity else float(_sim(k, team))
+        kl, tl = (k or "").lower(), (team or "").lower()
+        if kl.startswith(tl + " ") and len(kl.split()) - len(tl.split()) == 1:
+            v = 1.5  # "Kansas" -> "Kansas Jayhawks" (team + one-word mascot), not "Kansas State Wildcats"
+        if kl == tl:
+            v = 2.0
+        if v > sc:
+            best, sc = k, v
+    return best if sc >= 0.75 else None
+
+
 def _team_inj(tbl, team):
-    for k, v in tbl.items():
-        if _sim(k, team):
-            return v
-    return []
+    k = _team_key(tbl, team)
+    return tbl[k] if k is not None else []
+
+
+def _team_lead(tbl, team):
+    k = _team_key(tbl or {}, team)
+    return tbl[k] if k is not None else {}
 
 
 def adjust_game(sport, rec, ctx):
@@ -127,7 +150,7 @@ def adjust_game(sport, rec, ctx):
     for side, sg in (("home", 1), ("away", -1)):
         team = rec[side]
         if sport == "nfl":
-            q = ctx["qbs"].get(team); inj = _team_inj(ctx["inj"], team)
+            q = _team_lead(ctx["qbs"], team) or None; inj = _team_inj(ctx["inj"], team)
             if q:
                 st = next((x["status"] for x in inj if x["name"] == q["starter"]), "")
                 if st.startswith(BAD):
@@ -135,7 +158,7 @@ def adjust_game(sport, rec, ctx):
                     dm -= sg * sh; dt -= 0.5 * abs(sh); why.append(f"QB {_short(q['starter'])} out")
                 elif st.startswith("questionable"):
                     flags.append(f"QB {_short(q['starter'])} questionable")
-            lead = ctx.get("lead", {}).get(team, {})
+            lead = _team_lead(ctx.get("lead", {}), team)
             for cat in ("rushingYards", "receivingYards"):
                 n = lead.get(cat)
                 if n and any(x["name"] == n and x["status"].startswith(BAD) for x in inj):
@@ -149,7 +172,7 @@ def adjust_game(sport, rec, ctx):
             if lost:
                 dm -= sg * W_M * lost; dt -= W_T * lost; why.append(f"{', '.join(names)} out")
         elif sport == "cfb":
-            lead = ctx.get("lead", {}).get(team, {}); inj = ctx.get("ginj", {}).get(team) or _team_inj(ctx.get("ginj", {}), team)
+            lead = _team_lead(ctx.get("lead", {}), team); inj = _team_inj(ctx.get("ginj", {}), team)
             n = lead.get("passingYards")
             if n and any(x["name"] == n and x["status"].startswith(BAD) for x in inj):
                 dm -= sg * 2.5; dt -= 1.5; why.append(f"QB {_short(n)} out")
