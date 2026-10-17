@@ -273,14 +273,17 @@
    "adx_max": 20.0
   },
   "trend_stairs": {
-   "_note": "owner's trend_stairs drawing 2026-10-17 (brain.TrendStairsSignals): only while the 15-minute and 1-hour trends agree (plus direction first / Weinstein stage); buy the pullback when `need` of 4 agree (at the 20 MA, holding VWAP, 5-minute stochastic crosses up, 1-hour stochastic <= h1_stoch_max); stop stop_atr ATR under the 20 MA; TP1 +tp1_atr ATR, TP2 +0.6 ATR more, stair-step stop (ladder.by_expert.trend_stairs); sell when 2 of 3 sell indicators agree or the 1-hour trend turns. Levels from the 58-stock reversal study. Live at 0.5% risk (risk_by_expert). Set live to false to switch it off.",
+   "_note": "owner's trend_stairs drawing 2026-10-17 (brain.TrendStairsSignals): only while the 15-minute and 1-hour trends agree (plus direction first / Weinstein stage); buy the pullback when `need` of 4 agree (at the 20 MA, holding VWAP, 5-minute stochastic crosses up, 1-hour stochastic <= h1_stoch_max); stop stop_atr ATR under the 20 MA; TP1 +tp1_atr ATR, TP2 +0.6 ATR more, stair-step stop (ladder.by_expert.trend_stairs); sell when 2 of 3 sell indicators agree or the 1-hour trend turns. Levels from the 58-stock reversal study. Live at 0.5% risk (risk_by_expert). Set live to false to switch it off. 2026-10-17 refinement (58 stocks, last 3 months, two halves; nothing profitable): the candle/volume/volatility confirmation (3 of 5) was the only change better than the base in BOTH halves (PF 0.72 / 0.55 vs 0.68 / 0.42; daily -0.020% / -0.017% vs -0.047% / -0.046%) -> confirm 0.6 live. Daily lists (select) and the TP box (tp_zone) did not help in the second half -> off.",
    "live": true,
    "need": 3,
    "h1_stoch_max": 40.0,
    "near_ma_atr": 0.8,
    "vwap_atr": 0.75,
    "tp1_atr": 1.3,
-   "stop_atr": 1.2
+   "stop_atr": 1.2,
+   "confirm": 0.6,
+   "select": false,
+   "tp_zone": false
   }
  },
  "swing": {
