@@ -80,9 +80,10 @@ class RestBroker:
         r.raise_for_status()
         return r.json()
 
-    def submit_oco(self, symbol: str, qty: int, limit_price: float, stop_price: float, client_order_id: str) -> dict:
-        """Exit bracket for a held long: a GTC take-profit limit and a GTC stop, one-cancels-other (Alpaca order_class "oco")."""
-        body = {"symbol": symbol, "qty": str(qty), "side": "sell", "type": "limit", "time_in_force": "gtc", "order_class": "oco",
+    def submit_oco(self, symbol: str, qty: int, limit_price: float, stop_price: float, client_order_id: str, side: str = "sell") -> dict:
+        """Exit bracket for a held position (side "sell" for a long, "buy" for a short): a GTC take-profit limit and a GTC stop,
+        one-cancels-other (Alpaca order_class "oco")."""
+        body = {"symbol": symbol, "qty": str(qty), "side": side, "type": "limit", "time_in_force": "gtc", "order_class": "oco",
                 "client_order_id": client_order_id, "take_profit": {"limit_price": f"{limit_price:.2f}"},
                 "stop_loss": {"stop_price": f"{stop_price:.2f}"}}
         r = self._req("POST", f"{TRADE_URL}/orders", json=body)

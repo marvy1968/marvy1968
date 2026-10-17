@@ -295,6 +295,12 @@
     "exhaust_r": 1.5,
     "target": "extreme"
    }
+  },
+  "funnel": {
+   "_note": "owner's Stock Funnel (pasted script 2026-10-17, rebuilt with its bugs fixed; alpacabot.funnel): daily bars, stage 2 longs / stage 4 shorts, 3 of 4 buy votes (at the 20-day MA not extended, above the 20-day VWAP, volume 1.2x, stochastic cross), stop at the Bollinger band kept 1-3 ATR away, take-profit 1.5R (both at Alpaca), sells on 2 of 3 (3 closes under the MA, under VWAP, stochastic turning down) or a stage change. Its own 3 slots at 0.5% risk. Set live to false to switch it off. 2026-10-17 check (55 stocks, daily): last 3 months 107 trades PF 0.80 - longs 67 +4.3R, shorts 40 -12.6R; last 12 months longs 281 +24.4R, shorts 152 -28.1R. Shorts lost in both windows (clearly harmful) -> shorts off (set shorts true to turn them back on); longs live.",
+   "live": true,
+   "risk_pct": 0.005,
+   "shorts": false
   }
  }
 }

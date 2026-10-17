@@ -30,6 +30,7 @@ from .universe import STOCKS
 ET = ZoneInfo(NY)
 UNIVERSE = list(STOCKS)          # the 5 largest S&P 500 stocks in each of the 11 sectors (universe.py)
 RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.0035, 3, 0.333, 5.0
+FUNNEL_RISK, FUNNEL_MAX = 0.005, 3     # owner's Stock Funnel (alpacabot.funnel): 0.5% risk, its own 3 slots, longs and shorts
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
@@ -72,12 +73,13 @@ class SwingRunner:
             f.write(json.dumps({"t": when.isoformat(timespec="seconds"), "kind": kind, **kw}, default=str) + "\n")
 
     def record(self, sym: str, pos: dict, px: float, reason: str, when: datetime):
-        pnl = (px - pos["entry"]) * pos["qty"]
-        risk = (pos["entry"] - pos["stop"]) * pos["qty"]
+        side = pos.get("side", 1)
+        pnl = side * (px - pos["entry"]) * pos["qty"]
+        risk = side * (pos["entry"] - pos["stop"]) * pos["qty"]
         with open(self.dir / "trades.jsonl", "a") as f:
-            f.write(json.dumps({"date": when.date().isoformat(), "symbol": sym, "side": "long", "qty": pos["qty"], "entry": pos["entry"],
-                                "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk > 0 else 0.0, "reason": reason,
-                                "opened": pos["entry_date"]}) + "\n")
+            f.write(json.dumps({"date": when.date().isoformat(), "symbol": sym, "side": "long" if side == 1 else "short", "qty": pos["qty"],
+                                "entry": pos["entry"], "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk > 0 else 0.0,
+                                "reason": reason, "opened": pos["entry_date"], "strategy": pos.get("strategy", "topdown")}) + "\n")
         self.journal("exit", when, symbol=sym, px=px, reason=reason, pnl=round(pnl, 2))
 
     def realized(self) -> float:
@@ -136,11 +138,13 @@ class SwingRunner:
                 frames[sym], closes[sym] = strat.frame(d), float(d["close"].iloc[-1])
                 bars_[sym] = d
         held = self.state["positions"]
-        exits = [s for s in held if s in frames and bool(frames[s]["exit"].iloc[-1])]
-        free = MAX_POS - (len(held) - len(exits))
+        td_held = {s: p for s, p in held.items() if p.get("strategy", "topdown") == "topdown"}
+        exits = [s for s in td_held if s in frames and bool(frames[s]["exit"].iloc[-1])]
+        free = MAX_POS - (len(td_held) - len(exits))
         cands = sorted([s for s in frames if s not in held and bool(frames[s]["entry"].iloc[-1])], key=lambda s: -float(frames[s]["rs"].iloc[-1]))
-        mv = sum(p["qty"] * closes.get(s, p["entry"]) for s, p in held.items())
-        equity = self.state["base_equity"] + self.realized() + sum((closes.get(s, p["entry"]) - p["entry"]) * p["qty"] for s, p in held.items())
+        mv = sum(p["qty"] * closes.get(s, p["entry"]) for s, p in held.items())       # gross: a short ties up margin like a long ties up cash
+        equity = self.state["base_equity"] + self.realized() + sum(p.get("side", 1) * (closes.get(s, p["entry"]) - p["entry"]) * p["qty"]
+                                                                    for s, p in held.items())
         cash = equity - mv + sum(held[s]["qty"] * closes[s] for s in exits)
         hist = (self.state.get("equity_hist") or [])[-4:] + [round(equity, 2)]
         self.state["equity_hist"] = hist
@@ -166,10 +170,53 @@ class SwingRunner:
             cash -= qty * px
             entries.append({"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px,
                             **swing_zone(bars_[s], px, stop, self.zone_config())})
+        exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
+
+    def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now) -> tuple:
+        """The owner's Stock Funnel (alpacabot.funnel) beside Sector Top-Down: its own exits (2-of-3 sell vote or the stage changed), its own
+        3 slots and 0.5% risk, longs and shorts. Never a stock either strategy already holds or plans to buy. Off with zones.json swing.funnel.live."""
+        cfg = self.zone_config().get("funnel") or {}
+        if not cfg.get("live"):
+            return exits, entries
+        from .funnel import frame as funnel_frame
+        try:
+            ff = {s: funnel_frame(d, cfg.get("rules")) for s, d in bars_.items() if len(d) >= 200}
+        except Exception:
+            log.exception("funnel frames")
+            return exits, entries
+        fn_held = {s: p for s, p in held.items() if p.get("strategy") == "funnel"}
+        f_exits = [s for s, p in fn_held.items() if s in ff and bool(ff[s]["long_exit" if p.get("side", 1) == 1 else "short_exit"].iloc[-1])]
+        exits = exits + [s for s in f_exits if s not in exits]
+        free = FUNNEL_MAX - (len(fn_held) - len(f_exits))
+        if locked or free <= 0:
+            return exits, entries
+        taken = set(held) | {e["symbol"] for e in entries}
+        cands = []
+        for s, f in ff.items():
+            if s in taken:
+                continue
+            side = 1 if bool(f["long_entry"].iloc[-1]) else -1 if (cfg.get("shorts") and bool(f["short_entry"].iloc[-1])) else 0
+            if side:
+                cands.append((s, side, f))
+        risk_pct = float(cfg.get("risk_pct", FUNNEL_RISK))
+        for s, side, f in sorted(cands, key=lambda x: x[0])[:free]:
+            tag = "long" if side == 1 else "short"
+            px, stop, tp = closes[s], float(f[f"{tag}_stop"].iloc[-1]), float(f[f"{tag}_tp"].iloc[-1])
+            risk_ps = side * (px - stop) + px * SLIP_BPS / 1e4
+            if risk_ps <= 0:
+                continue
+            qty = int(min(equity * risk_pct / risk_ps, equity * MAX_POS_FRAC / px, max(cash, 0) / px))   # whole shares, capped by size and cash
+            if qty < 1:
+                continue
+            cash -= qty * px
+            entries.append({"symbol": s, "qty": qty, "stop": round(stop, 2), "side": side, "strategy": "funnel", "signal_close": px,
+                            "zone_tp": round(tp, 2), "atr": round(float(f["atr"].iloc[-1]), 4)})
+        self.journal("funnel_plan", now, exits=f_exits, entries=[e["symbol"] for e in entries if e.get("strategy") == "funnel"])
+        return exits, entries
 
     # ---------------------------------------------------------------- at the open
     def open(self, now: datetime, wait_until: datetime | None = None) -> dict:
@@ -198,18 +245,33 @@ class SwingRunner:
                     self.b.cancel_order(pos["stop_order_id"])
                 except Exception:
                     log.exception("cancel stop %s", sym)
-            sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell", "market", "day", f"sw-x-{sym}-{tag}"))
+            sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day",
+                                                     f"sw-x-{sym}-{tag}"))
         zcfg = self.zone_config()
         for e in plan["entries"]:
+            side = e.get("side", 1)
+            if side == -1:                               # a funnel short: easy to borrow, and no other bot holds this stock (a sell would cut THEIR long)
+                try:
+                    if hasattr(self.b, "shortable") and not self.b.shortable(e["symbol"]):
+                        self.journal("short_skip", now, symbol=e["symbol"], reason="not easy to borrow")
+                        continue
+                    if hasattr(self.b, "positions") and self.b.positions().get(e["symbol"], 0):
+                        self.journal("short_skip", now, symbol=e["symbol"], reason="another bot holds this stock")
+                        continue
+                except Exception:
+                    log.exception("short check %s (skipped)", e["symbol"])
+                    continue
             if zcfg["live"] and e.get("atr") and hasattr(self.b, "quote"):        # entry zone: no chasing a gap past signal close + 0.5 ATR
                 try:
-                    ask = float(self.b.quote(e["symbol"])[1])
-                    if ask > e["signal_close"] + zcfg["profiles"]["trend"]["chase_atr"] * e["atr"]:
-                        self.journal("chase_skip", now, symbol=e["symbol"], ask=ask, signal_close=e["signal_close"], atr=e["atr"])
+                    bid, ask = (float(x) for x in self.b.quote(e["symbol"])[:2])
+                    px_now = ask if side == 1 else bid
+                    if side * (px_now - e["signal_close"]) > zcfg["profiles"]["trend"]["chase_atr"] * e["atr"]:
+                        self.journal("chase_skip", now, symbol=e["symbol"], ask=px_now, signal_close=e["signal_close"], atr=e["atr"])
                         continue
                 except Exception:
                     log.exception("chase check %s (entering anyway)", e["symbol"])
-            sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy", "market", "day", f"sw-e-{e['symbol']}-{tag}"))
+            sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy" if side == 1 else "sell", "market", "day",
+                                                              f"sw-e-{e['symbol']}-{tag}"))
         plan["done"] = True
         self._save()
         self.journal("orders", now, sent={k: v[0] for k, v in sent.items()})
@@ -250,7 +312,7 @@ class SwingRunner:
                     self.b.cancel_order(pos["stop_order_id"])
                 except Exception:
                     log.exception("cancel stop %s", sym)
-            sent[sym] = self.b.submit_order(sym, pos["qty"], "sell", "market", "day", f"sw-c-{sym}-{tag}")
+            sent[sym] = self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day", f"sw-c-{sym}-{tag}")
         out, waited = {}, 0.0
         pending = dict(sent)
         while pending:
@@ -291,24 +353,29 @@ class SwingRunner:
             _alert(f"SWING (paper): {sym} buy not filled ({o.get('status')})")
             return
         qty = int(float(o.get("filled_qty") or e["qty"]))
+        side = e.get("side", 1)
+        close_side = "sell" if side == 1 else "buy"
         pos = {"qty": qty, "entry": px, "stop": e["stop"], "entry_date": now.astimezone(ET).date().isoformat()}
-        if px <= e["stop"]:                              # opened at/below its stop: the backtest takes no such trade, so get out now
-            self.b.submit_order(sym, qty, "sell", "market", "day", f"sw-g-{sym}-{now.astimezone(ET):%Y%m%d}")
+        if side == -1 or e.get("strategy"):
+            pos.update(side=side, strategy=e.get("strategy", "topdown"))
+        if side * (px - e["stop"]) <= 0:                 # opened at/through its stop: the backtest takes no such trade, so get out now
+            self.b.submit_order(sym, qty, close_side, "market", "day", f"sw-g-{sym}-{now.astimezone(ET):%Y%m%d}")
             self.record(sym, pos, px, "gap_below_stop", now)
             return
         tp = e.get("zone_tp")
         if tp and self.zone_config()["live"]:
-            if px >= tp:                                   # opened at/above its take-profit zone: take the profit now
-                self.b.submit_order(sym, qty, "sell", "market", "day", f"sw-z-{sym}-{now.astimezone(ET):%Y%m%d}")
+            if side * (px - tp) >= 0:                      # opened at/past its take-profit zone: take the profit now
+                self.b.submit_order(sym, qty, close_side, "market", "day", f"sw-z-{sym}-{now.astimezone(ET):%Y%m%d}")
                 self.record(sym, pos, px, "zone", now)
                 return
             if hasattr(self.b, "submit_oco"):              # stop + take-profit zone at the broker, one cancels the other
-                so = self.b.submit_oco(sym, qty, round(tp, 2), round(e["stop"], 2), f"sw-o-{sym}-{now.astimezone(ET):%Y%m%d}")
+                kw = {} if side == 1 else {"side": "buy"}
+                so = self.b.submit_oco(sym, qty, round(tp, 2), round(e["stop"], 2), f"sw-o-{sym}-{now.astimezone(ET):%Y%m%d}", **kw)
                 pos.update(stop_order_id=so.get("id") if isinstance(so, dict) else None, oco=True, zone_tp=round(tp, 2))
                 self.state["positions"][sym] = pos
-                self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"], zone_tp=round(tp, 2))
+                self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"], zone_tp=round(tp, 2), side=side, strategy=pos.get("strategy"))
                 return
-        so = self.b.submit_order(sym, qty, "sell", "stop", "gtc", f"sw-s-{sym}-{now.astimezone(ET):%Y%m%d}", stop_price=round(e["stop"], 2))
+        so = self.b.submit_order(sym, qty, close_side, "stop", "gtc", f"sw-s-{sym}-{now.astimezone(ET):%Y%m%d}", stop_price=round(e["stop"], 2))
         pos["stop_order_id"] = so.get("id") if isinstance(so, dict) else None
         self.state["positions"][sym] = pos
         self.journal("entry", now, symbol=sym, qty=qty, fill=px, stop=e["stop"])
@@ -347,10 +414,15 @@ def summary(state_dir="state/alpaca_swing") -> list[str]:
     st = json.loads((d / "state.json").read_text()) if (d / "state.json").exists() else {}
     trades = [json.loads(x) for x in (d / "trades.jsonl").read_text().splitlines() if x.strip()] if (d / "trades.jsonl").exists() else []
     w = sum(t["pnl"] > 0 for t in trades)
-    lines = ["", "SWING (Sector Top-Down, daily, holds overnight)",
+    lines = ["", "SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)",
              f"  closed trades {len(trades)}, {w}W/{len(trades) - w}L, P&L ${sum(t['pnl'] for t in trades):+,.0f}"]
+    for strat in ("topdown", "funnel"):
+        ts = [t for t in trades if t.get("strategy", "topdown") == strat]
+        if ts and strat == "funnel":
+            lines.append(f"  funnel: {len(ts)} trades, {sum(t['pnl'] > 0 for t in ts)}W, P&L ${sum(t['pnl'] for t in ts):+,.0f}")
     pos = st.get("positions") or {}
-    lines.append("  holding: " + (", ".join(f"{s} {p['qty']} @ {p['entry']:.2f} (stop {p['stop']:.2f})" for s, p in pos.items()) or "nothing"))
+    lines.append("  holding: " + (", ".join(f"{s} {'short ' if p.get('side', 1) == -1 else ''}{p['qty']} @ {p['entry']:.2f} (stop {p['stop']:.2f}"
+                                           f"{', funnel' if p.get('strategy') == 'funnel' else ''})" for s, p in pos.items()) or "nothing"))
     plan = st.get("plan") or {}
     if plan and not plan.get("done"):
         lines.append(f"  next open: buy {[e['symbol'] for e in plan.get('entries', [])] or 'nothing'}, sell {plan.get('exits') or 'nothing'}")

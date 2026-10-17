@@ -46,3 +46,98 @@ class FunnelTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FunnelLiveTests(unittest.TestCase):
+    class B:
+        def __init__(self, shortable=True, held=None):
+            self.sent, self.oco, self.orders, self.short_ok, self.held = [], [], {}, shortable, held or {}
+        def equity(self): return 50000.0
+        def is_session(self, day): return True
+        def quote(self, s): return (100.0, 100.0)
+        def shortable(self, s): return self.short_ok
+        def positions(self): return dict(self.held)
+        def submit_order(self, *a, **k):
+            self.sent.append(a)
+            return {"id": a[-1] if isinstance(a[-1], str) else a[0], "status": "filled", "filled_qty": str(a[1]), "filled_avg_price": "100"}
+        def submit_oco(self, sym, qty, limit, stop, coid, side="sell"):
+            self.oco.append((sym, qty, limit, stop, side))
+            return {"id": "oco-" + sym, "status": "new"}
+        def order(self, oid): return {"id": oid, "status": "filled", "filled_qty": "10", "filled_avg_price": "100"}
+        def cancel_order(self, oid): pass
+
+    def _runner(self, b, tmp, entry):
+        from alpacabot.swing_paper import SwingRunner
+        r = SwingRunner(b, state_dir=tmp, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+        r.state["plan"] = {"made": "2025-10-13", "exits": [], "entries": [entry]}
+        return r
+
+    def test_short_entry_sells_then_places_a_buy_side_oco_and_books_short_pnl(self):
+        import json
+        import tempfile
+        from datetime import datetime
+        from pathlib import Path
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B()
+            r = self._runner(b, d, {"symbol": "XYZ", "qty": 10, "stop": 104.0, "side": -1, "strategy": "funnel", "signal_close": 100.0,
+                                    "zone_tp": 94.0, "atr": 2.0})
+            r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+            self.assertEqual(b.sent[0][:3], ("XYZ", 10, "sell"))
+            self.assertEqual(b.oco, [("XYZ", 10, 94.0, 104.0, "buy")])
+            pos = r.state["positions"]["XYZ"]
+            self.assertEqual((pos["side"], pos["strategy"]), (-1, "funnel"))
+            r.record("XYZ", r.state["positions"].pop("XYZ"), 94.0, "zone", datetime(2025, 10, 15, 16, 20, tzinfo=et))
+            t = json.loads((Path(d) / "trades.jsonl").read_text().splitlines()[-1])
+            self.assertEqual((t["side"], t["pnl"], t["r"], t["strategy"]), ("short", 60.0, 1.5, "funnel"))
+
+    def test_short_skipped_when_not_borrowable_or_another_bot_holds_it(self):
+        import tempfile
+        from datetime import datetime
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        e = {"symbol": "XYZ", "qty": 10, "stop": 104.0, "side": -1, "strategy": "funnel", "signal_close": 100.0, "zone_tp": 94.0, "atr": 2.0}
+        for b in (self.B(shortable=False), self.B(held={"XYZ": 25})):
+            with tempfile.TemporaryDirectory() as d:
+                r = self._runner(b, d, dict(e))
+                r.open(datetime(2025, 10, 14, 9, 20, tzinfo=et), wait_until=datetime(2025, 10, 14, 9, 20, tzinfo=et))
+                self.assertEqual(b.sent, [])
+                self.assertNotIn("XYZ", r.state["positions"])
+
+    def test_funnel_plan_adds_whole_share_entries_with_its_own_risk(self):
+        import tempfile
+        from datetime import datetime
+        from alpacabot.funnel import frame
+        from alpacabot.swing_paper import SwingRunner
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        full = _daily()
+        f = frame(full)
+        cut = int(next(i for i in np.flatnonzero(f["long_entry"].to_numpy()) if i >= 199))   # the runner needs 200 days of history
+        bars = full.iloc[:cut + 1]
+        with tempfile.TemporaryDirectory() as d:
+            r = SwingRunner(self.B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            exits, entries = r.funnel_plan({"AAA": bars}, {"AAA": float(bars["close"].iloc[-1])}, {}, [], [], 50000.0, 50000.0, False,
+                                           datetime(2025, 10, 14, 16, 20, tzinfo=et))
+            self.assertEqual(len(entries), 1)
+            e = entries[0]
+            self.assertEqual((e["symbol"], e["side"], e["strategy"]), ("AAA", 1, "funnel"))
+            self.assertIsInstance(e["qty"], int)
+            risk = (e["signal_close"] - e["stop"]) * e["qty"]
+            self.assertLessEqual(risk, 50000.0 * 0.005 + 1e-6)
+            self.assertLessEqual(e["qty"] * e["signal_close"], 50000.0 * 0.334)
+
+    def test_funnel_shorts_stay_off_unless_switched_on(self):
+        import tempfile
+        from datetime import datetime
+        from alpacabot.funnel import frame
+        from alpacabot.swing_paper import SwingRunner
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        full = _daily(drift=-0.15, seed=2)
+        f = frame(full)
+        cut = int(next(i for i in np.flatnonzero(f["short_entry"].to_numpy()) if i >= 199))
+        bars = full.iloc[:cut + 1]
+        args = ({"AAA": bars}, {"AAA": float(bars["close"].iloc[-1])}, {}, [], [], 50000.0, 50000.0, False, datetime(2025, 10, 14, 16, 20, tzinfo=et))
+        with tempfile.TemporaryDirectory() as d:
+            r = SwingRunner(self.B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            self.assertEqual(r.funnel_plan(*args)[1], [])                        # zones.json: shorts off (they lost in the check)
+            r.zone_config = lambda: {"live": True, "funnel": {"live": True, "shorts": True}}
+            self.assertEqual(r.funnel_plan(*args)[1][0]["side"], -1)
