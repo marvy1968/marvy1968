@@ -1,3 +1,110 @@
 $ alpaca run-all --phase validate --months3 --families reversal_levels
-started 2026-10-17 13:31:07 EDT
-RUNNING...
+started 2026-10-17 13:31:07 EDT, took 26s, exit 0
+
+daily data ready
+- 50,700 five-minute bars, 10 stocks, 4,468 swing tops and 4,271 swing bottoms (a turn = a 1 ATR reversal within 1 hour)
+### RSI 14
+- at tops, uptrend (1975): median 57.83, middle half 50.96 to 65.4
+- at tops, downtrend (1837): median 51.37, middle half 44.03 to 58.48
+- at tops, all (4468): median 54.55, middle half 46.97 to 62.36
+- at bottoms, uptrend (1810): median 48.7, middle half 42.01 to 55.83
+- at bottoms, downtrend (1809): median 42.12, middle half 35.33 to 48.75
+- at bottoms, all (4271): median 45.28, middle half 38.04 to 52.69
+- odds bottom (0, 20]: reversed first 49.5% of 594
+- odds bottom (20, 25]: reversed first 50.3% of 766
+- odds bottom (25, 30]: reversed first 49.6% of 1538
+- odds bottom (30, 35]: reversed first 51.0% of 2605
+- odds bottom (35, 40]: reversed first 51.0% of 4360
+- odds bottom (40, 60]: reversed first 49.3% of 26821
+- odds top (60, 65]: reversed first 52.5% of 4203
+- odds top (65, 70]: reversed first 52.1% of 2609
+- odds top (70, 75]: reversed first 52.7% of 1506
+- odds top (75, 80]: reversed first 46.3% of 792
+- odds top (80, 101]: reversed first 39.3% of 700
+### stochastic %K 14/3
+- at tops, uptrend (1975): median 71.43, middle half 47.08 to 87.24
+- at tops, downtrend (1837): median 62.08, middle half 37.27 to 83.91
+- at tops, all (4468): median 66.87, middle half 41.85 to 85.91
+- at bottoms, uptrend (1810): median 38.52, middle half 16.53 to 63.54
+- at bottoms, downtrend (1809): median 27.44, middle half 12.92 to 52.67
+- at bottoms, all (4271): median 32.46, middle half 14.34 to 58.48
+- odds bottom (0, 5]: reversed first 54.0% of 891
+- odds bottom (5, 10]: reversed first 51.7% of 2699
+- odds bottom (10, 20]: reversed first 50.9% of 5896
+- odds bottom (20, 30]: reversed first 48.7% of 4994
+- odds bottom (30, 70]: reversed first 49.9% of 18000
+- odds top (70, 80]: reversed first 51.9% of 4809
+- odds top (80, 90]: reversed first 51.7% of 5628
+- odds top (90, 95]: reversed first 51.2% of 2539
+- odds top (95, 101]: reversed first 54.2% of 1038
+### Bollinger %B (0 = lower band, 1 = upper band)
+- at tops, uptrend (1975): median 0.72, middle half 0.49 to 0.88
+- at tops, downtrend (1837): median 0.63, middle half 0.38 to 0.86
+- at tops, all (4468): median 0.69, middle half 0.43 to 0.87
+- at bottoms, uptrend (1810): median 0.38, middle half 0.16 to 0.61
+- at bottoms, downtrend (1809): median 0.27, middle half 0.13 to 0.51
+- at bottoms, all (4271): median 0.31, middle half 0.14 to 0.57
+- odds bottom (-9.0, -0.25]: reversed first 46.4% of 308
+- odds bottom (-0.25, 0.0]: reversed first 50.0% of 2216
+- odds bottom (0.0, 0.1]: reversed first 49.9% of 2796
+- odds bottom (0.1, 0.2]: reversed first 50.0% of 4204
+- odds bottom (0.2, 0.8]: reversed first 50.0% of 27650
+- odds top (0.8, 0.9]: reversed first 51.9% of 4022
+- odds top (0.9, 1.0]: reversed first 52.7% of 2734
+- odds top (1.0, 1.25]: reversed first 51.8% of 2217
+- odds top (1.25, 9.0]: reversed first 51.3% of 347
+### distance from the 20 MA, in ATR
+- at tops, uptrend (1975): median 0.78, middle half -0.03 to 1.73
+- at tops, downtrend (1837): median 0.39, middle half -0.46 to 1.33
+- at tops, all (4468): median 0.6, middle half -0.24 to 1.51
+- at bottoms, uptrend (1810): median -0.36, middle half -1.22 to 0.43
+- at bottoms, downtrend (1809): median -0.81, middle half -1.65 to 0.05
+- at bottoms, all (4271): median -0.61, middle half -1.45 to 0.23
+- odds bottom (-99.0, -3.0]: reversed first 48.1% of 2062
+- odds bottom (-3.0, -2.5]: reversed first 53.0% of 994
+- odds bottom (-2.5, -2.0]: reversed first 53.1% of 1757
+- odds bottom (-2.0, -1.5]: reversed first 51.6% of 2706
+- odds bottom (-1.5, -1.0]: reversed first 47.5% of 4218
+- odds bottom (-1.0, 1.0]: reversed first 49.8% of 23162
+- odds top (1.0, 1.5]: reversed first 51.0% of 3933
+- odds top (1.5, 2.0]: reversed first 53.1% of 2633
+- odds top (2.0, 2.5]: reversed first 51.0% of 1825
+- odds top (2.5, 3.0]: reversed first 51.1% of 1165
+- odds top (3.0, 99.0]: reversed first 49.7% of 2039
+### distance from VWAP, in ATR
+- at tops, uptrend (1975): median 1.19, middle half -0.23 to 2.8
+- at tops, downtrend (1837): median 0.1, middle half -1.29 to 1.45
+- at tops, all (4468): median 0.6, middle half -0.88 to 2.11
+- at bottoms, uptrend (1810): median -0.19, middle half -1.62 to 1.34
+- at bottoms, downtrend (1809): median -1.22, middle half -2.62 to 0.01
+- at bottoms, all (4271): median -0.78, middle half -2.11 to 0.64
+- odds bottom (-99.0, -4.0]: reversed first 51.1% of 2277
+- odds bottom (-4.0, -3.0]: reversed first 53.8% of 2262
+- odds bottom (-3.0, -2.0]: reversed first 50.8% of 4030
+- odds bottom (-2.0, -1.5]: reversed first 51.3% of 3105
+- odds bottom (-1.5, -1.0]: reversed first 49.4% of 3731
+- odds bottom (-1.0, 1.0]: reversed first 49.0% of 16594
+- odds top (1.0, 1.5]: reversed first 51.9% of 3265
+- odds top (1.5, 2.0]: reversed first 53.0% of 2651
+- odds top (2.0, 3.0]: reversed first 49.9% of 3668
+- odds top (3.0, 4.0]: reversed first 52.8% of 2157
+- odds top (4.0, 99.0]: reversed first 50.1% of 2754
+### per stock: median RSI / stochastic at tops and bottoms
+- AAPL (838 turns): RSI top 55.77 bottom 45.76 | stoch top 70.2 bottom 34.67 | %B top 0.71 bottom 0.34
+- AMD (864 turns): RSI top 53.61 bottom 45.45 | stoch top 67.21 bottom 31.49 | %B top 0.66 bottom 0.31
+- AMZN (882 turns): RSI top 53.62 bottom 43.24 | stoch top 65.1 bottom 29.95 | %B top 0.69 bottom 0.29
+- IWM (913 turns): RSI top 54.0 bottom 45.41 | stoch top 63.31 bottom 33.34 | %B top 0.65 bottom 0.32
+- META (925 turns): RSI top 53.95 bottom 45.16 | stoch top 62.55 bottom 32.49 | %B top 0.69 bottom 0.29
+- MSFT (872 turns): RSI top 56.04 bottom 46.15 | stoch top 68.56 bottom 33.98 | %B top 0.73 bottom 0.31
+- NVDA (878 turns): RSI top 54.66 bottom 45.6 | stoch top 65.77 bottom 32.96 | %B top 0.67 bottom 0.33
+- QQQ (851 turns): RSI top 55.46 bottom 46.24 | stoch top 73.25 bottom 32.65 | %B top 0.7 bottom 0.32
+- SPY (856 turns): RSI top 54.55 bottom 45.68 | stoch top 71.13 bottom 34.75 | %B top 0.71 bottom 0.32
+- TSLA (860 turns): RSI top 53.76 bottom 44.58 | stoch top 64.86 bottom 29.56 | %B top 0.67 bottom 0.3
+## reversal_levels: see the tables: AT TURNS = where reversals happened; ODDS = how often a level reverses (50% = coin flip)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
