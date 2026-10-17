@@ -1,3 +1,57 @@
 $ alpaca run-all --phase validate --months3 --families funnel_shorts
-started 2026-10-17 16:07:44 EDT
-RUNNING...
+started 2026-10-17 16:07:44 EDT, took 314s, exit 0
+
+daily data ready
+- news: 30829 articles on the 55 stocks; sector-negative days per sector: XLB 19, XLC 37, XLE 34, XLF 69, XLI 24, XLK 4, XLP 25, XLRE 9, XLU 49, XLV 27, XLY 38
+### longs, last 3 months
+- as built (4 votes, 3 of 4): 67 trades, win 0.448, PF 1.2, avg R 0.064, total +4.26R, exits {'stop': 5, 'tp': 15, 'signal': 41, 'open': 6}
+- + S/R (at strong support) + RSI 40-55 turning up: 4 of 6: 64 trades, win 0.391, PF 1.27, avg R 0.087, total +5.54R, exits {'stop': 7, 'tp': 15, 'signal': 36, 'open': 6}
+- + S/R + RSI: 5 of 6: 17 trades, win 0.412, PF 1.3, avg R 0.119, total +2.03R, exits {'stop': 3, 'tp': 6, 'signal': 7, 'open': 1}
+### shorts, last 3 months
+- A. mirror of the longs (as built): 40 trades, win 0.25, PF 0.35, avg R -0.315, total -12.61R, exits {'stop': 9, 'tp': 3, 'signal': 19, 'open': 9}
+- B. only when the market falls (SPY under a falling 50-day): 0 trades, win None, PF None, avg R None, total +0R, exits {'stop': 0, 'tp': 0, 'signal': 0, 'open': 0}
+- C. all 4 of 4 must agree: 4 trades, win 0.25, PF 0.86, avg R -0.079, total -0.32R, exits {'stop': 2, 'tp': 1, 'signal': 1, 'open': 0}
+- D. B + C: 0 trades, win None, PF None, avg R None, total +0R, exits {'stop': 0, 'tp': 0, 'signal': 0, 'open': 0}
+- E. no sell vote (stop or 1.5R only): 35 trades, win 0.257, PF 0.45, avg R -0.361, total -12.63R, exits {'stop': 20, 'tp': 5, 'signal': 0, 'open': 10}
+- F. take-profit 1.0R: 40 trades, win 0.275, PF 0.32, avg R -0.303, total -12.12R, exits {'stop': 8, 'tp': 4, 'signal': 19, 'open': 9}
+- G. stop at 2-3 ATR (wider): 40 trades, win 0.25, PF 0.38, avg R -0.289, total -11.56R, exits {'stop': 6, 'tp': 3, 'signal': 22, 'open': 9}
+- I. sector negative (sector ETF under a falling 50-day): 22 trades, win 0.182, PF 0.16, avg R -0.443, total -9.74R, exits {'stop': 5, 'tp': 0, 'signal': 12, 'open': 5}
+- I + C (sector trend negative, 4 of 4): 0 trades, win None, PF None, avg R None, total +0R, exits {'stop': 0, 'tp': 0, 'signal': 0, 'open': 0}
+- L. trend strength strongly negative (ADX>=25 down, 150-day falling, weaker than SPY): 7 trades, win 0.286, PF 0.83, avg R -0.045, total -0.32R, exits {'stop': 0, 'tp': 0, 'signal': 2, 'open': 5}
+- M. L + one of the 3 weakest stocks in its sector: 7 trades, win 0.143, PF 0.53, avg R -0.147, total -1.03R, exits {'stop': 0, 'tp': 0, 'signal': 2, 'open': 5}
+- N. M + sector trend negative (I): 5 trades, win 0.2, PF 0.67, avg R -0.113, total -0.57R, exits {'stop': 0, 'tp': 0, 'signal': 2, 'open': 3}
+- J. sector NEWS negative (headlines, last 5 sessions): 12 trades, win 0.25, PF 0.4, avg R -0.284, total -3.41R, exits {'stop': 3, 'tp': 1, 'signal': 4, 'open': 4}
+- O. M + sector NEWS negative (J): 0 trades, win None, PF None, avg R None, total +0R, exits {'stop': 0, 'tp': 0, 'signal': 0, 'open': 0}
+- K. J + I (news AND sector trend negative): 9 trades, win 0.111, PF 0.07, avg R -0.586, total -5.28R, exits {'stop': 3, 'tp': 0, 'signal': 3, 'open': 3}
+- P. + S/R (at strong resistance) + RSI 45-60 turning down: 4 of 6: 37 trades, win 0.324, PF 0.57, avg R -0.193, total -7.13R, exits {'stop': 9, 'tp': 6, 'signal': 16, 'open': 6}
+- Q. M + P (trend strength strongly negative, 3 weakest, 4 of 6): 2 trades, win 0.5, PF 0.9, avg R -0.017, total -0.03R, exits {'stop': 0, 'tp': 0, 'signal': 0, 'open': 2}
+### longs, last 12 months
+- as built (4 votes, 3 of 4): 281 trades, win 0.413, PF 1.25, avg R 0.087, total +24.42R, exits {'stop': 36, 'tp': 81, 'signal': 158, 'open': 6}
+- + S/R (at strong support) + RSI 40-55 turning up: 4 of 6: 265 trades, win 0.392, PF 1.23, avg R 0.079, total +20.96R, exits {'stop': 33, 'tp': 72, 'signal': 154, 'open': 6}
+- + S/R + RSI: 5 of 6: 63 trades, win 0.413, PF 1.34, avg R 0.131, total +8.28R, exits {'stop': 9, 'tp': 21, 'signal': 32, 'open': 1}
+### shorts, last 12 months
+- A. mirror of the longs (as built): 152 trades, win 0.263, PF 0.58, avg R -0.185, total -28.08R, exits {'stop': 30, 'tp': 20, 'signal': 93, 'open': 9}
+- B. only when the market falls (SPY under a falling 50-day): 18 trades, win 0.167, PF 0.25, avg R -0.333, total -5.99R, exits {'stop': 2, 'tp': 2, 'signal': 14, 'open': 0}
+- C. all 4 of 4 must agree: 17 trades, win 0.118, PF 0.33, avg R -0.435, total -7.39R, exits {'stop': 5, 'tp': 2, 'signal': 10, 'open': 0}
+- D. B + C: 1 trades, win 0.0, PF 0.0, avg R -0.744, total -0.74R, exits {'stop': 0, 'tp': 0, 'signal': 1, 'open': 0}
+- E. no sell vote (stop or 1.5R only): 107 trades, win 0.29, PF 0.51, avg R -0.356, total -38.1R, exits {'stop': 70, 'tp': 26, 'signal': 0, 'open': 11}
+- F. take-profit 1.0R: 165 trades, win 0.358, PF 0.76, avg R -0.092, total -15.2R, exits {'stop': 27, 'tp': 45, 'signal': 84, 'open': 9}
+- G. stop at 2-3 ATR (wider): 148 trades, win 0.257, PF 0.62, avg R -0.154, total -22.81R, exits {'stop': 22, 'tp': 18, 'signal': 99, 'open': 9}
+- I. sector negative (sector ETF under a falling 50-day): 61 trades, win 0.246, PF 0.5, avg R -0.224, total -13.66R, exits {'stop': 9, 'tp': 7, 'signal': 40, 'open': 5}
+- I + C (sector trend negative, 4 of 4): 3 trades, win 0.0, PF 0.0, avg R -1.265, total -3.8R, exits {'stop': 1, 'tp': 0, 'signal': 2, 'open': 0}
+- L. trend strength strongly negative (ADX>=25 down, 150-day falling, weaker than SPY): 35 trades, win 0.257, PF 0.43, avg R -0.205, total -7.18R, exits {'stop': 4, 'tp': 2, 'signal': 24, 'open': 5}
+- M. L + one of the 3 weakest stocks in its sector: 33 trades, win 0.242, PF 0.43, avg R -0.209, total -6.9R, exits {'stop': 4, 'tp': 2, 'signal': 22, 'open': 5}
+- N. M + sector trend negative (I): 15 trades, win 0.267, PF 0.45, avg R -0.176, total -2.64R, exits {'stop': 1, 'tp': 0, 'signal': 11, 'open': 3}
+- J. sector NEWS negative (headlines, last 5 sessions): 36 trades, win 0.333, PF 0.82, avg R -0.06, total -2.17R, exits {'stop': 5, 'tp': 5, 'signal': 22, 'open': 4}
+- O. M + sector NEWS negative (J): 7 trades, win 0.571, PF 8.79, avg R 0.324, total +2.27R, exits {'stop': 0, 'tp': 1, 'signal': 6, 'open': 0}
+- K. J + I (news AND sector trend negative): 21 trades, win 0.333, PF 0.72, avg R -0.107, total -2.25R, exits {'stop': 4, 'tp': 3, 'signal': 11, 'open': 3}
+- P. + S/R (at strong resistance) + RSI 45-60 turning down: 4 of 6: 141 trades, win 0.284, PF 0.5, avg R -0.226, total -31.86R, exits {'stop': 29, 'tp': 18, 'signal': 88, 'open': 6}
+- Q. M + P (trend strength strongly negative, 3 weakest, 4 of 6): 17 trades, win 0.294, PF 0.31, avg R -0.201, total -3.42R, exits {'stop': 2, 'tp': 1, 'signal': 12, 'open': 2}
+## funnel_shorts: see the table
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
