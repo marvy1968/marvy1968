@@ -295,7 +295,16 @@ def run_all(a) -> int:
                 elif fam == "reversal_levels":      # owner 2026-10-17: at which indicator levels price usually reverses (alpacabot.levels)
                     from .engine import resample_bars
                     from .levels import report_lines, study
-                    res = study({s: resample_bars(df, 5) for s, df in minute.items()}, train[0], test[1])
+                    from . import universe as _u
+                    from .paper import SYMBOLS as _PS
+                    lv = {}
+                    for s_ in sorted(set(_PS) | set(_u.STOCKS)):       # the live paper universe (58), not just the 10 backtest symbols
+                        try:
+                            lv[s_] = resample_bars(minute[s_] if s_ in minute else load(s_, "1Min", mstart, end, cache), 5)
+                        except Exception as exc:
+                            print(f"skip {s_}: {exc}", flush=True)
+                    res = study(lv, train[0], test[1])
+                    del lv
                     lines += report_lines(res)
                     (out / f"reversal_levels{qtag}.json").write_text(json.dumps(res, indent=1, default=str))
                 elif fam == "expert_breakdown":     # each expert alone through the live configuration (research.expert_breakdown)

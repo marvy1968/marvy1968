@@ -28,6 +28,9 @@ class ReversalLevelsTests(unittest.TestCase):
         self.assertLess(bot, 45)
         self.assertIn("AAA", res["per_stock"])
         self.assertTrue(any("odds" in ln for ln in report_lines(res)))
+        self.assertIn("mtf", res)
+        runs = [v["run_atr"] for v in res["mtf"].values() if v["n"] and v.get("run_atr")]
+        self.assertTrue(runs and all(r[1] >= 1.0 for r in runs))     # a turn is a 1+ ATR reversal by definition
 
     def test_outcome_labels_first_touch_within_the_session(self):
         from alpacabot.levels import _outcomes
