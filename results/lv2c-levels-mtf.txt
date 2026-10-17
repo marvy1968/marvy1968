@@ -1,3 +1,350 @@
 $ alpaca run-all --phase validate --months3 --families reversal_levels
-started 2026-10-17 13:33:35 EDT
-RUNNING...
+started 2026-10-17 13:33:35 EDT, took 76s, exit 0
+
+daily data ready
+- 294,045 five-minute bars, 58 stocks, 26,262 swing tops and 26,079 swing bottoms (a turn = a 1 ATR reversal within 1 hour)
+### RSI 14
+- at tops, uptrend (11312): median 57.78, middle half 51.05 to 64.91
+- at tops, downtrend (11080): median 51.74, middle half 44.88 to 58.48
+- at tops, all (26262): median 54.76, middle half 47.4 to 62.09
+- at bottoms, uptrend (11013): median 48.92, middle half 41.8 to 55.65
+- at bottoms, downtrend (11188): median 42.62, middle half 35.8 to 49.11
+- at bottoms, all (26079): median 45.5, middle half 38.17 to 52.74
+- odds bottom (0, 20]: reversed first 48.0% of 2854
+- odds bottom (20, 25]: reversed first 51.6% of 3912
+- odds bottom (25, 30]: reversed first 51.6% of 8172
+- odds bottom (30, 35]: reversed first 51.8% of 15181
+- odds bottom (35, 40]: reversed first 51.3% of 25371
+- odds bottom (40, 60]: reversed first 50.0% of 159970
+- odds top (60, 65]: reversed first 51.3% of 25576
+- odds top (65, 70]: reversed first 51.3% of 15655
+- odds top (70, 75]: reversed first 51.7% of 8679
+- odds top (75, 80]: reversed first 50.3% of 4140
+- odds top (80, 101]: reversed first 50.3% of 2874
+### stochastic %K 14/3
+- at tops, uptrend (11312): median 72.47, middle half 46.51 to 87.71
+- at tops, downtrend (11080): median 64.24, middle half 38.51 to 84.69
+- at tops, all (26262): median 68.52, middle half 41.82 to 86.33
+- at bottoms, uptrend (11013): median 38.23, middle half 16.57 to 63.72
+- at bottoms, downtrend (11188): median 28.75, middle half 13.24 to 54.85
+- at bottoms, all (26079): median 32.93, middle half 14.45 to 59.63
+- odds bottom (0, 5]: reversed first 50.3% of 5701
+- odds bottom (5, 10]: reversed first 51.3% of 15249
+- odds bottom (10, 20]: reversed first 50.9% of 33501
+- odds bottom (20, 30]: reversed first 50.2% of 28944
+- odds bottom (30, 70]: reversed first 50.1% of 103518
+- odds top (70, 80]: reversed first 50.4% of 28870
+- odds top (80, 90]: reversed first 50.4% of 33848
+- odds top (90, 95]: reversed first 51.2% of 16247
+- odds top (95, 101]: reversed first 53.5% of 6493
+### Bollinger %B (0 = lower band, 1 = upper band)
+- at tops, uptrend (11312): median 0.73, middle half 0.49 to 0.88
+- at tops, downtrend (11080): median 0.65, middle half 0.4 to 0.86
+- at tops, all (26262): median 0.69, middle half 0.43 to 0.86
+- at bottoms, uptrend (11013): median 0.37, middle half 0.16 to 0.61
+- at bottoms, downtrend (11188): median 0.28, middle half 0.13 to 0.52
+- at bottoms, all (26079): median 0.32, middle half 0.14 to 0.57
+- odds bottom (-9.0, -0.25]: reversed first 50.4% of 1805
+- odds bottom (-0.25, 0.0]: reversed first 50.9% of 13134
+- odds bottom (0.0, 0.1]: reversed first 50.6% of 16132
+- odds bottom (0.1, 0.2]: reversed first 50.4% of 24567
+- odds bottom (0.2, 0.8]: reversed first 50.2% of 160320
+- odds top (0.8, 0.9]: reversed first 50.6% of 25324
+- odds top (0.9, 1.0]: reversed first 51.5% of 16411
+- odds top (1.0, 1.25]: reversed first 51.7% of 12885
+- odds top (1.25, 9.0]: reversed first 49.6% of 1806
+### distance from the 20 MA, in ATR
+- at tops, uptrend (11312): median 0.8, middle half -0.04 to 1.73
+- at tops, downtrend (11080): median 0.49, middle half -0.4 to 1.38
+- at tops, all (26262): median 0.64, middle half -0.24 to 1.56
+- at bottoms, uptrend (11013): median -0.43, middle half -1.32 to 0.45
+- at bottoms, downtrend (11188): median -0.78, middle half -1.68 to 0.07
+- at bottoms, all (26079): median -0.61, middle half -1.53 to 0.26
+- odds bottom (-99.0, -3.0]: reversed first 50.3% of 10770
+- odds bottom (-3.0, -2.5]: reversed first 52.5% of 6753
+- odds bottom (-2.5, -2.0]: reversed first 50.7% of 11098
+- odds bottom (-2.0, -1.5]: reversed first 51.7% of 16949
+- odds bottom (-1.5, -1.0]: reversed first 50.1% of 24160
+- odds bottom (-1.0, 1.0]: reversed first 50.2% of 131992
+- odds top (1.0, 1.5]: reversed first 50.3% of 24260
+- odds top (1.5, 2.0]: reversed first 51.1% of 17122
+- odds top (2.0, 2.5]: reversed first 51.7% of 11188
+- odds top (2.5, 3.0]: reversed first 51.1% of 7044
+- odds top (3.0, 99.0]: reversed first 52.2% of 11048
+### distance from VWAP, in ATR
+- at tops, uptrend (11312): median 1.2, middle half -0.17 to 2.71
+- at tops, downtrend (11080): median 0.26, middle half -1.19 to 1.57
+- at tops, all (26262): median 0.73, middle half -0.74 to 2.16
+- at bottoms, uptrend (11013): median -0.16, middle half -1.54 to 1.39
+- at bottoms, downtrend (11188): median -1.1, middle half -2.5 to 0.2
+- at bottoms, all (26079): median -0.69, middle half -2.08 to 0.77
+- odds bottom (-99.0, -4.0]: reversed first 50.7% of 15038
+- odds bottom (-4.0, -3.0]: reversed first 51.8% of 13137
+- odds bottom (-3.0, -2.0]: reversed first 50.4% of 22678
+- odds bottom (-2.0, -1.5]: reversed first 50.7% of 16523
+- odds bottom (-1.5, -1.0]: reversed first 50.5% of 20284
+- odds bottom (-1.0, 1.0]: reversed first 50.1% of 96136
+- odds top (1.0, 1.5]: reversed first 50.5% of 19933
+- odds top (1.5, 2.0]: reversed first 51.0% of 16225
+- odds top (2.0, 3.0]: reversed first 50.7% of 22895
+- odds top (3.0, 4.0]: reversed first 50.9% of 13344
+- odds top (4.0, 99.0]: reversed first 51.2% of 16191
+### MULTI-TIMEFRAME: turns grouped by the 15-minute / 1-hour / daily trend (median, middle half)
+#### UPTREND on all 3 (15m/1h/day): pullback lows = BUY zone (3091 turns)
+- move after the turn (TP distance): median 1.88 ATR, middle half 1.33 to 2.72 ATR (5-minute ATR)
+- rsi14: median 52.46, middle half 46.94 to 58.25
+- stoch: median 49.45, middle half 25.18 to 69.58
+- pctb: median 0.48, middle half 0.25 to 0.67
+- ma20_atr: median -0.07, middle half -0.83 to 0.71
+- vwap_atr: median 0.48, middle half -0.74 to 1.97
+- rsi14_15m: median 61.1, middle half 56.59 to 67.27
+- stoch_15m: median 75.54, middle half 59.25 to 86.74
+- pctb_15m: median 0.73, middle half 0.62 to 0.85
+- ma20_atr_15m: median 1.16, middle half 0.5 to 2.02
+- rsi14_1h: median 64.93, middle half 60.06 to 71.06
+- stoch_1h: median 80.88, middle half 67.74 to 89.92
+- pctb_1h: median 0.85, middle half 0.76 to 0.95
+- ma20_atr_1h: median 1.79, middle half 1.06 to 2.67
+#### UPTREND on all 3: swing highs = TP zone (3493 turns)
+- move after the turn (TP distance): median 1.86 ATR, middle half 1.31 to 2.77 ATR (5-minute ATR)
+- rsi14: median 60.48, middle half 54.67 to 67.19
+- stoch: median 78.33, middle half 56.79 to 89.23
+- pctb: median 0.77, middle half 0.59 to 0.9
+- ma20_atr: median 1.07, middle half 0.28 to 1.99
+- vwap_atr: median 1.69, middle half 0.49 to 3.09
+- rsi14_15m: median 62.75, middle half 57.55 to 69.13
+- stoch_15m: median 75.69, middle half 57.67 to 87.85
+- pctb_15m: median 0.77, middle half 0.65 to 0.91
+- ma20_atr_15m: median 1.32, middle half 0.61 to 2.31
+- rsi14_1h: median 64.76, middle half 59.81 to 70.77
+- stoch_1h: median 80.44, middle half 66.61 to 89.77
+- pctb_1h: median 0.84, middle half 0.75 to 0.94
+- ma20_atr_1h: median 1.73, middle half 1.05 to 2.61
+#### DOWNTREND on all 3: bounce highs = SHORT zone (3110 turns)
+- move after the turn (TP distance): median 1.86 ATR, middle half 1.3 to 2.71 ATR (5-minute ATR)
+- rsi14: median 48.17, middle half 42.16 to 53.46
+- stoch: median 51.27, middle half 31.16 to 74.46
+- pctb: median 0.52, middle half 0.34 to 0.76
+- ma20_atr: median 0.08, middle half -0.7 to 0.86
+- vwap_atr: median -0.42, middle half -1.75 to 0.71
+- rsi14_15m: median 39.37, middle half 33.54 to 44.05
+- stoch_15m: median 25.54, middle half 14.64 to 41.6
+- pctb_15m: median 0.28, middle half 0.15 to 0.4
+- ma20_atr_15m: median -1.07, middle half -1.95 to -0.41
+- rsi14_1h: median 35.71, middle half 31.0 to 40.1
+- stoch_1h: median 18.98, middle half 10.54 to 31.49
+- pctb_1h: median 0.15, middle half 0.05 to 0.25
+- ma20_atr_1h: median -1.66, middle half -2.4 to -1.02
+#### DOWNTREND on all 3: swing lows = short TP zone (3562 turns)
+- move after the turn (TP distance): median 1.87 ATR, middle half 1.31 to 2.78 ATR (5-minute ATR)
+- rsi14: median 40.17, middle half 33.92 to 45.48
+- stoch: median 22.73, middle half 11.27 to 44.72
+- pctb: median 0.24, middle half 0.1 to 0.42
+- ma20_atr: median -1.06, middle half -1.93 to -0.25
+- vwap_atr: median -1.55, middle half -2.89 to -0.45
+- rsi14_15m: median 38.29, middle half 31.49 to 43.06
+- stoch_15m: median 25.57, middle half 13.01 to 42.28
+- pctb_15m: median 0.23, middle half 0.1 to 0.37
+- ma20_atr_15m: median -1.27, middle half -2.19 to -0.54
+- rsi14_1h: median 36.09, middle half 31.34 to 40.57
+- stoch_1h: median 19.66, middle half 10.96 to 32.5
+- pctb_1h: median 0.16, middle half 0.05 to 0.26
+- ma20_atr_1h: median -1.6, middle half -2.34 to -0.96
+#### MIXED trends: highs (19659 turns)
+- move after the turn (TP distance): median 1.87 ATR, middle half 1.31 to 2.83 ATR (5-minute ATR)
+- rsi14: median 54.88, middle half 47.36 to 62.16
+- stoch: median 69.19, middle half 41.82 to 86.64
+- pctb: median 0.69, middle half 0.43 to 0.86
+- ma20_atr: median 0.65, middle half -0.25 to 1.58
+- vwap_atr: median 0.76, middle half -0.73 to 2.19
+- rsi14_15m: median 51.45, middle half 43.25 to 59.98
+- stoch_15m: median 52.64, middle half 26.88 to 77.34
+- pctb_15m: median 0.56, middle half 0.3 to 0.79
+- ma20_atr_15m: median 0.23, middle half -0.86 to 1.3
+- rsi14_1h: median 49.93, middle half 42.4 to 57.51
+- stoch_1h: median 48.96, middle half 26.37 to 73.41
+- pctb_1h: median 0.5, middle half 0.27 to 0.75
+- ma20_atr_1h: median 0.01, middle half -1.03 to 1.07
+#### MIXED trends: lows (19426 turns)
+- move after the turn (TP distance): median 1.89 ATR, middle half 1.34 to 2.77 ATR (5-minute ATR)
+- rsi14: median 45.44, middle half 38.03 to 52.72
+- stoch: median 32.49, middle half 14.29 to 59.73
+- pctb: median 0.32, middle half 0.14 to 0.57
+- ma20_atr: median -0.62, middle half -1.56 to 0.26
+- vwap_atr: median -0.69, middle half -2.1 to 0.79
+- rsi14_15m: median 49.05, middle half 40.24 to 57.27
+- stoch_15m: median 48.21, middle half 23.28 to 73.91
+- pctb_15m: median 0.46, middle half 0.22 to 0.71
+- ma20_atr_15m: median -0.16, middle half -1.26 to 0.92
+- rsi14_1h: median 50.23, middle half 42.57 to 57.64
+- stoch_1h: median 50.17, middle half 27.12 to 74.13
+- pctb_1h: median 0.51, middle half 0.27 to 0.75
+- ma20_atr_1h: median 0.04, middle half -1.02 to 1.09
+### MULTI-TIMEFRAME odds (15-minute and 1-hour indicators, only when all 3 trends agree)
+- rsi14_15m | all 3 up: bottom (40, 60]: reversed first 50.4% of 13366
+- rsi14_15m | all 3 up: top (60, 65]: reversed first 51.5% of 7894
+- rsi14_15m | all 3 up: top (65, 70]: reversed first 49.3% of 5725
+- rsi14_15m | all 3 up: top (70, 75]: reversed first 48.2% of 3766
+- rsi14_15m | all 3 up: top (75, 80]: reversed first 53.3% of 2125
+- rsi14_15m | all 3 up: top (80, 101]: reversed first 50.4% of 1120
+- rsi14_15m | all 3 down: bottom (0, 20]: reversed first 54.7% of 1004
+- rsi14_15m | all 3 down: bottom (20, 25]: reversed first 54.0% of 1645
+- rsi14_15m | all 3 down: bottom (25, 30]: reversed first 53.4% of 3543
+- rsi14_15m | all 3 down: bottom (30, 35]: reversed first 50.0% of 5656
+- rsi14_15m | all 3 down: bottom (35, 40]: reversed first 50.2% of 7665
+- rsi14_15m | all 3 down: bottom (40, 60]: reversed first 49.9% of 14891
+- stoch_15m | all 3 up: bottom (5, 10]: reversed first 43.1% of 51
+- stoch_15m | all 3 up: bottom (10, 20]: reversed first 46.3% of 417
+- stoch_15m | all 3 up: bottom (20, 30]: reversed first 49.1% of 1013
+- stoch_15m | all 3 up: bottom (30, 70]: reversed first 50.2% of 12361
+- stoch_15m | all 3 up: top (70, 80]: reversed first 51.3% of 5870
+- stoch_15m | all 3 up: top (80, 90]: reversed first 49.8% of 7994
+- stoch_15m | all 3 up: top (90, 95]: reversed first 49.7% of 4299
+- stoch_15m | all 3 up: top (95, 101]: reversed first 49.5% of 1982
+- stoch_15m | all 3 down: bottom (0, 5]: reversed first 55.5% of 1571
+- stoch_15m | all 3 down: bottom (5, 10]: reversed first 52.8% of 3761
+- stoch_15m | all 3 down: bottom (10, 20]: reversed first 50.5% of 8042
+- stoch_15m | all 3 down: bottom (20, 30]: reversed first 50.2% of 6409
+- stoch_15m | all 3 down: bottom (30, 70]: reversed first 50.4% of 12950
+- stoch_15m | all 3 down: top (70, 80]: reversed first 52.6% of 1208
+- stoch_15m | all 3 down: top (80, 90]: reversed first 56.1% of 417
+- stoch_15m | all 3 down: top (90, 95]: reversed first 41.9% of 43
+- pctb_15m | all 3 up: bottom (0.1, 0.2]: reversed first 39.3% of 56
+- pctb_15m | all 3 up: bottom (0.2, 0.8]: reversed first 50.4% of 20259
+- pctb_15m | all 3 up: top (0.8, 0.9]: reversed first 48.9% of 5911
+- pctb_15m | all 3 up: top (0.9, 1.0]: reversed first 51.0% of 3678
+- pctb_15m | all 3 up: top (1.0, 1.25]: reversed first 52.9% of 3350
+- pctb_15m | all 3 up: top (1.25, 9.0]: reversed first 55.1% of 726
+- pctb_15m | all 3 down: bottom (-9.0, -0.25]: reversed first 51.1% of 793
+- pctb_15m | all 3 down: bottom (-0.25, 0.0]: reversed first 51.9% of 3638
+- pctb_15m | all 3 down: bottom (0.0, 0.1]: reversed first 50.6% of 3522
+- pctb_15m | all 3 down: bottom (0.1, 0.2]: reversed first 52.5% of 5678
+- pctb_15m | all 3 down: bottom (0.2, 0.8]: reversed first 50.0% of 20676
+- pctb_15m | all 3 down: top (0.8, 0.9]: reversed first 50.0% of 80
+- ma20_atr_15m | all 3 up: bottom (-1.5, -1.0]: reversed first 41.7% of 60
+- ma20_atr_15m | all 3 up: bottom (-1.0, 1.0]: reversed first 50.4% of 14109
+- ma20_atr_15m | all 3 up: top (1.0, 1.5]: reversed first 50.5% of 5469
+- ma20_atr_15m | all 3 up: top (1.5, 2.0]: reversed first 49.5% of 4454
+- ma20_atr_15m | all 3 up: top (2.0, 2.5]: reversed first 49.2% of 3292
+- ma20_atr_15m | all 3 up: top (2.5, 3.0]: reversed first 50.6% of 2512
+- ma20_atr_15m | all 3 up: top (3.0, 99.0]: reversed first 52.1% of 4100
+- ma20_atr_15m | all 3 down: bottom (-99.0, -3.0]: reversed first 53.9% of 4014
+- ma20_atr_15m | all 3 down: bottom (-3.0, -2.5]: reversed first 52.6% of 2168
+- ma20_atr_15m | all 3 down: bottom (-2.5, -2.0]: reversed first 52.7% of 3166
+- ma20_atr_15m | all 3 down: bottom (-2.0, -1.5]: reversed first 50.2% of 4502
+- ma20_atr_15m | all 3 down: bottom (-1.5, -1.0]: reversed first 49.8% of 5250
+- ma20_atr_15m | all 3 down: bottom (-1.0, 1.0]: reversed first 49.6% of 15262
+- ma20_atr_15m | all 3 down: top (1.0, 1.5]: reversed first 36.4% of 33
+- rsi14_1h | all 3 up: bottom (40, 60]: reversed first 49.7% of 8417
+- rsi14_1h | all 3 up: top (60, 65]: reversed first 49.6% of 8598
+- rsi14_1h | all 3 up: top (65, 70]: reversed first 51.7% of 7020
+- rsi14_1h | all 3 up: top (70, 75]: reversed first 50.4% of 5334
+- rsi14_1h | all 3 up: top (75, 80]: reversed first 49.1% of 3158
+- rsi14_1h | all 3 up: top (80, 101]: reversed first 45.8% of 1469
+- rsi14_1h | all 3 down: bottom (0, 20]: reversed first 52.7% of 700
+- rsi14_1h | all 3 down: bottom (20, 25]: reversed first 55.7% of 1819
+- rsi14_1h | all 3 down: bottom (25, 30]: reversed first 52.0% of 4742
+- rsi14_1h | all 3 down: bottom (30, 35]: reversed first 49.5% of 8256
+- rsi14_1h | all 3 down: bottom (35, 40]: reversed first 49.7% of 9581
+- rsi14_1h | all 3 down: bottom (40, 60]: reversed first 50.9% of 9306
+- stoch_1h | all 3 up: bottom (20, 30]: reversed first 62.6% of 270
+- stoch_1h | all 3 up: bottom (30, 70]: reversed first 49.8% of 9177
+- stoch_1h | all 3 up: top (70, 80]: reversed first 51.4% of 6662
+- stoch_1h | all 3 up: top (80, 90]: reversed first 50.7% of 9141
+- stoch_1h | all 3 up: top (90, 95]: reversed first 47.2% of 5782
+- stoch_1h | all 3 up: top (95, 101]: reversed first 52.1% of 2943
+- stoch_1h | all 3 down: bottom (0, 5]: reversed first 53.4% of 2369
+- stoch_1h | all 3 down: bottom (5, 10]: reversed first 51.1% of 5422
+- stoch_1h | all 3 down: bottom (10, 20]: reversed first 48.8% of 10286
+- stoch_1h | all 3 down: bottom (20, 30]: reversed first 52.5% of 6920
+- stoch_1h | all 3 down: bottom (30, 70]: reversed first 50.3% of 9159
+- stoch_1h | all 3 down: top (70, 80]: reversed first 43.3% of 245
+- pctb_1h | all 3 up: bottom (0.2, 0.8]: reversed first 49.0% of 12188
+- pctb_1h | all 3 up: top (0.8, 0.9]: reversed first 48.0% of 9605
+- pctb_1h | all 3 up: top (0.9, 1.0]: reversed first 51.1% of 6976
+- pctb_1h | all 3 up: top (1.0, 1.25]: reversed first 50.4% of 4807
+- pctb_1h | all 3 up: top (1.25, 9.0]: reversed first 52.4% of 420
+- pctb_1h | all 3 down: bottom (-9.0, -0.25]: reversed first 49.7% of 573
+- pctb_1h | all 3 down: bottom (-0.25, 0.0]: reversed first 53.6% of 5180
+- pctb_1h | all 3 down: bottom (0.0, 0.1]: reversed first 52.2% of 6318
+- pctb_1h | all 3 down: bottom (0.1, 0.2]: reversed first 48.7% of 9343
+- pctb_1h | all 3 down: bottom (0.2, 0.8]: reversed first 50.3% of 12987
+- ma20_atr_1h | all 3 up: bottom (-1.0, 1.0]: reversed first 51.2% of 7597
+- ma20_atr_1h | all 3 up: top (1.0, 1.5]: reversed first 51.9% of 6122
+- ma20_atr_1h | all 3 up: top (1.5, 2.0]: reversed first 51.0% of 5231
+- ma20_atr_1h | all 3 up: top (2.0, 2.5]: reversed first 49.7% of 5064
+- ma20_atr_1h | all 3 up: top (2.5, 3.0]: reversed first 48.5% of 3936
+- ma20_atr_1h | all 3 up: top (3.0, 99.0]: reversed first 50.5% of 6046
+- ma20_atr_1h | all 3 down: bottom (-99.0, -3.0]: reversed first 52.2% of 4545
+- ma20_atr_1h | all 3 down: bottom (-3.0, -2.5]: reversed first 50.7% of 3206
+- ma20_atr_1h | all 3 down: bottom (-2.5, -2.0]: reversed first 50.1% of 4981
+- ma20_atr_1h | all 3 down: bottom (-2.0, -1.5]: reversed first 51.1% of 6218
+- ma20_atr_1h | all 3 down: bottom (-1.5, -1.0]: reversed first 49.6% of 6645
+- ma20_atr_1h | all 3 down: bottom (-1.0, 1.0]: reversed first 50.8% of 8809
+### per stock: median RSI / stochastic at tops and bottoms
+- AAPL (838 turns): RSI top 55.77 bottom 45.76 | stoch top 70.2 bottom 34.67 | %B top 0.71 bottom 0.34
+- ABBV (876 turns): RSI top 54.97 bottom 45.47 | stoch top 70.01 bottom 32.87 | %B top 0.7 bottom 0.31
+- AMT (934 turns): RSI top 55.23 bottom 45.52 | stoch top 69.61 bottom 30.87 | %B top 0.7 bottom 0.31
+- AMZN (882 turns): RSI top 53.62 bottom 43.24 | stoch top 65.1 bottom 29.95 | %B top 0.69 bottom 0.29
+- APD (880 turns): RSI top 54.5 bottom 44.67 | stoch top 71.44 bottom 29.75 | %B top 0.68 bottom 0.3
+- AVGO (845 turns): RSI top 53.97 bottom 45.78 | stoch top 65.89 bottom 30.35 | %B top 0.67 bottom 0.32
+- BAC (1030 turns): RSI top 55.27 bottom 45.56 | stoch top 70.19 bottom 32.22 | %B top 0.7 bottom 0.33
+- BKNG (870 turns): RSI top 53.92 bottom 44.62 | stoch top 68.5 bottom 33.33 | %B top 0.69 bottom 0.3
+- BRK.B (868 turns): RSI top 54.67 bottom 46.86 | stoch top 66.92 bottom 32.85 | %B top 0.68 bottom 0.34
+- CAT (843 turns): RSI top 54.3 bottom 45.38 | stoch top 64.88 bottom 31.57 | %B top 0.67 bottom 0.31
+- CEG (904 turns): RSI top 54.94 bottom 44.86 | stoch top 71.51 bottom 34.78 | %B top 0.7 bottom 0.3
+- COP (934 turns): RSI top 56.1 bottom 47.61 | stoch top 72.09 bottom 41.57 | %B top 0.71 bottom 0.36
+- COST (846 turns): RSI top 55.19 bottom 45.45 | stoch top 70.3 bottom 35.08 | %B top 0.72 bottom 0.34
+- CVX (930 turns): RSI top 56.4 bottom 48.13 | stoch top 73.55 bottom 42.75 | %B top 0.73 bottom 0.38
+- DIS (914 turns): RSI top 55.64 bottom 46.04 | stoch top 69.49 bottom 35.2 | %B top 0.72 bottom 0.3
+- DUK (981 turns): RSI top 55.21 bottom 45.63 | stoch top 71.88 bottom 32.28 | %B top 0.73 bottom 0.32
+- ECL (898 turns): RSI top 54.94 bottom 45.98 | stoch top 69.27 bottom 34.77 | %B top 0.69 bottom 0.34
+- EOG (919 turns): RSI top 55.46 bottom 46.37 | stoch top 72.9 bottom 39.66 | %B top 0.7 bottom 0.37
+- EQIX (854 turns): RSI top 55.22 bottom 45.07 | stoch top 71.42 bottom 33.52 | %B top 0.68 bottom 0.32
+- GE (864 turns): RSI top 54.0 bottom 44.65 | stoch top 65.75 bottom 30.38 | %B top 0.68 bottom 0.32
+- GEV (848 turns): RSI top 55.04 bottom 45.74 | stoch top 65.83 bottom 30.96 | %B top 0.69 bottom 0.31
+- GOOGL (882 turns): RSI top 53.94 bottom 44.96 | stoch top 66.92 bottom 28.83 | %B top 0.69 bottom 0.3
+- HD (873 turns): RSI top 53.08 bottom 42.67 | stoch top 64.33 bottom 25.56 | %B top 0.66 bottom 0.27
+- IWM (913 turns): RSI top 54.0 bottom 45.41 | stoch top 63.31 bottom 33.34 | %B top 0.65 bottom 0.32
+- JNJ (889 turns): RSI top 55.5 bottom 46.52 | stoch top 72.35 bottom 36.41 | %B top 0.71 bottom 0.35
+- JPM (886 turns): RSI top 54.61 bottom 45.78 | stoch top 66.77 bottom 30.98 | %B top 0.69 bottom 0.32
+- KO (976 turns): RSI top 54.98 bottom 46.14 | stoch top 69.24 bottom 34.36 | %B top 0.69 bottom 0.34
+- LIN (888 turns): RSI top 54.84 bottom 46.14 | stoch top 67.71 bottom 31.21 | %B top 0.7 bottom 0.35
+- LLY (872 turns): RSI top 54.76 bottom 45.12 | stoch top 68.3 bottom 31.5 | %B top 0.68 bottom 0.3
+- MA (864 turns): RSI top 55.74 bottom 45.38 | stoch top 72.12 bottom 36.25 | %B top 0.72 bottom 0.31
+- MCD (934 turns): RSI top 53.87 bottom 44.4 | stoch top 62.6 bottom 27.63 | %B top 0.66 bottom 0.27
+- META (925 turns): RSI top 53.95 bottom 45.16 | stoch top 62.55 bottom 32.49 | %B top 0.69 bottom 0.29
+- MRK (925 turns): RSI top 53.83 bottom 45.56 | stoch top 68.97 bottom 35.22 | %B top 0.7 bottom 0.31
+- MSFT (872 turns): RSI top 56.04 bottom 46.15 | stoch top 68.56 bottom 33.98 | %B top 0.73 bottom 0.31
+- NEE (1027 turns): RSI top 54.16 bottom 45.89 | stoch top 66.58 bottom 31.21 | %B top 0.67 bottom 0.32
+- NEM (881 turns): RSI top 55.16 bottom 45.76 | stoch top 71.75 bottom 33.86 | %B top 0.7 bottom 0.35
+- NFLX (931 turns): RSI top 54.79 bottom 46.04 | stoch top 65.22 bottom 36.16 | %B top 0.67 bottom 0.34
+- NVDA (878 turns): RSI top 54.66 bottom 45.6 | stoch top 65.77 bottom 32.96 | %B top 0.67 bottom 0.33
+- ORCL (884 turns): RSI top 55.64 bottom 45.48 | stoch top 71.63 bottom 30.14 | %B top 0.71 bottom 0.31
+- PG (894 turns): RSI top 55.07 bottom 45.76 | stoch top 72.12 bottom 33.76 | %B top 0.7 bottom 0.35
+- PLD (958 turns): RSI top 54.82 bottom 44.7 | stoch top 67.29 bottom 31.83 | %B top 0.68 bottom 0.32
+- PM (928 turns): RSI top 53.76 bottom 45.07 | stoch top 63.34 bottom 30.25 | %B top 0.64 bottom 0.3
+- QQQ (851 turns): RSI top 55.46 bottom 46.24 | stoch top 73.25 bottom 32.65 | %B top 0.7 bottom 0.32
+- RTX (896 turns): RSI top 54.75 bottom 44.69 | stoch top 68.75 bottom 31.65 | %B top 0.68 bottom 0.28
+- SHW (898 turns): RSI top 53.88 bottom 45.61 | stoch top 65.6 bottom 33.84 | %B top 0.67 bottom 0.33
+- SO (981 turns): RSI top 54.86 bottom 45.26 | stoch top 67.17 bottom 29.45 | %B top 0.67 bottom 0.3
+- SPG (967 turns): RSI top 53.98 bottom 43.88 | stoch top 60.74 bottom 28.82 | %B top 0.67 bottom 0.27
+- SPY (856 turns): RSI top 54.55 bottom 45.68 | stoch top 71.13 bottom 34.75 | %B top 0.71 bottom 0.32
+- TMUS (887 turns): RSI top 54.2 bottom 45.12 | stoch top 66.77 bottom 33.07 | %B top 0.66 bottom 0.31
+- TSLA (860 turns): RSI top 53.76 bottom 44.58 | stoch top 64.86 bottom 29.56 | %B top 0.67 bottom 0.3
+- UBER (936 turns): RSI top 54.55 bottom 45.2 | stoch top 69.98 bottom 33.53 | %B top 0.71 bottom 0.34
+- UNH (877 turns): RSI top 54.14 bottom 44.35 | stoch top 69.11 bottom 32.18 | %B top 0.69 bottom 0.32
+- V (878 turns): RSI top 55.69 bottom 46.3 | stoch top 69.82 bottom 36.78 | %B top 0.7 bottom 0.33
+- VST (921 turns): RSI top 54.82 bottom 45.41 | stoch top 67.27 bottom 32.83 | %B top 0.68 bottom 0.31
+- WELL (885 turns): RSI top 53.48 bottom 44.48 | stoch top 67.78 bottom 31.18 | %B top 0.67 bottom 0.29
+- WMB (959 turns): RSI top 55.55 bottom 46.42 | stoch top 69.89 bottom 34.94 | %B top 0.69 bottom 0.32
+- WMT (955 turns): RSI top 55.39 bottom 46.83 | stoch top 72.64 bottom 36.16 | %B top 0.72 bottom 0.34
+- XOM (896 turns): RSI top 55.93 bottom 47.99 | stoch top 76.13 bottom 39.91 | %B top 0.72 bottom 0.37
+## reversal_levels: see the tables: AT TURNS = where reversals happened; ODDS = how often a level reverses (50% = coin flip)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
