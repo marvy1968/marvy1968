@@ -967,6 +967,59 @@ def trend_stairs58_study(days, train, validate, costs: Costs = Costs(), pf: Port
     return out
 
 
+TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
+    "base: lists + TP box": {},
+    "entry 2 of 4": {"need": 2},
+    "1-hour stochastic <= 60": {"h1_stoch_max": 60.0},
+    "TP1 +1.0 ATR": {"tp1_atr": 1.0},
+    "TP1 +1.8 ATR": {"tp1_atr": 1.8},
+    "stop 1.0 ATR under the 20 MA": {"stop_atr": 1.0},
+    "stop 1.6 ATR under the 20 MA": {"stop_atr": 1.6},
+    "no TP box": {"tp_zone": False},
+    "lists: trend strength 2 of 3": {"list_key": "ts_ok2"},
+    "lists: 5 per sector": {"list_key": "ts_ok5"},
+    "confirmed (3 of 5)": {"confirm": 0.6},
+}
+
+
+def trend_stairs58_opt(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Refine the owner's trend_stairs + daily lists on all 58 stocks: each TS58_GRID change alone (both sides, lists on, TP box on unless
+    the change says otherwise), longs and shorts apart. Pre-declared rule: on TRAIN pick the change with the best profit factor among those
+    with 15+ trades; it is ADOPTED only if it also beats the base on VALIDATE (profit factor and daily return). Then the adopted set is
+    reported per side so a losing side can be switched off."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(kw, a, b):
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
+        full = {"select": True, "tp_zone": True, **kw}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(TrendStairsSignals(br, **full)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {"train": {}, "validate": {}}}
+    for name, kw in TS58_GRID.items():
+        for per, (a, b) in (("train", train), ("validate", validate)):
+            out["periods"][per][name] = cp.get(f"opt-{per}-{name}", lambda kw=kw, a=a, b=b: run(kw, a, b))
+    tr, va = out["periods"]["train"], out["periods"]["validate"]
+    ok = [n for n in TS58_GRID if n != "base: lists + TP box" and (tr[n].get("trades") or 0) >= 15]
+    best = max(ok, key=lambda n: tr[n].get("profit_factor") or 0, default=None)
+    base_v = va["base: lists + TP box"]
+    adopt = bool(best) and (va[best].get("profit_factor") or 0) > (base_v.get("profit_factor") or 0) and \
+        (va[best].get("daily_ret_pct_mean") or 0) > (base_v.get("daily_ret_pct_mean") or 0)
+    chosen = dict(TS58_GRID[best]) if adopt else {}
+    for side, label in (((1,), "LONGS"), ((-1,), "SHORTS")):
+        for per, (a, b) in (("train", train), ("validate", validate)):
+            out["periods"][per][f"chosen set, {label} only"] = cp.get(f"opt-{per}-chosen-{label}-{sorted(chosen.items())}",
+                                                                     lambda a=a, b=b, side=side: run({**chosen, "sides": side}, a, b))
+    out.update({"family": "trend_stairs58_opt", "best_on_train": best, "adopted": adopt, "chosen_changes": chosen, "passes": adopt,
+                "verdict": (f"ADOPT '{best}': best on train and beat the base on validate" if adopt else
+                            f"keep the base: best on train was '{best}', it did not beat the base on validate")})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

@@ -395,7 +395,7 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
-                elif fam == "trend_stairs58":       # owner's Trend Stock / Short Trend drawings on all 58 stocks (research.trend_stairs58_study)
+                elif fam in ("trend_stairs58", "trend_stairs58_opt"):   # owner's Trend Stock / Short Trend drawings on all 58 stocks
                     from datetime import timedelta as _td
                     from . import gates as _g
                     from . import universe as _u
@@ -425,16 +425,24 @@ def run_all(a) -> int:
                         neg = sector_trend_negative({e: load(e, "1Day", end - _td(days=700), end, cache) for e in _u.SECTOR_ETFS})
                         src = f"sector TREND (news unavailable: {type(exc).__name__})"
                     lok, sok = lists(d58, spy_d, _u.SECTOR_OF, neg)
+                    alt = {"ts_ok2": lists(d58, spy_d, _u.SECTOR_OF, neg, need=2), "ts_ok5": lists(d58, spy_d, _u.SECTOR_OF, neg, top=5)}
                     nl = ns = nd = 0
                     for s_, frames in days.items():
                         for f_ in frames:
                             sd = f_.index[0].date()
                             f_.attrs["ts_ok"] = (bool(for_session(lok, s_, sd)), bool(for_session(sok, s_, sd)))
+                            for k_, (l_, sh_) in alt.items():
+                                f_.attrs[k_] = (bool(for_session(l_, s_, sd)), bool(for_session(sh_, s_, sd)))
                             nl += f_.attrs["ts_ok"][0]
                             ns += f_.attrs["ts_ok"][1]
                             nd += 1
                     lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
-                    res = trend_stairs58_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ts58.json")
+                    if fam == "trend_stairs58":
+                        res = trend_stairs58_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ts58.json")
+                    else:
+                        from .research import trend_stairs58_opt
+                        res = trend_stairs58_opt(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ts58opt.json")
+                        lines.append(f"- best on train: {res['best_on_train']} | adopted: {res['adopted']} | {res['verdict']}")
                 elif fam == "reversal_levels":      # owner 2026-10-17: at which indicator levels price usually reverses (alpacabot.levels)
                     from .engine import resample_bars
                     from .levels import report_lines, study
@@ -525,7 +533,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

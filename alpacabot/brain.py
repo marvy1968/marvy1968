@@ -351,11 +351,12 @@ class TrendStairsSignals(BoxSignals):
 
     def __init__(self, brain, need: int = 3, h1_stoch_max: float = 40.0, near_ma_atr: float = 0.8, vwap_atr: float = 0.75,
                  tp1_atr: float = 1.3, stop_atr: float = 1.2, sr_rsi: bool = False, need6: int = 4, sides: tuple = (1, -1),
-                 confirm: float = 0.0, select: bool = False, tp_zone: bool = False):
+                 confirm: float = 0.0, select: bool = False, tp_zone: bool = False, list_key: str = "ts_ok"):
         super().__init__(brain)
         self.sides = tuple(sides)
         self.select = select        # owner's daily funnel (alpacabot.selection): only stocks on today's long / short list (day.attrs["ts_ok"])
         self.tp_zone = tp_zone      # owner's TP box: also exit when 2 of 4 say the move is stretched (experts x_stairs_tp)
+        self.list_key = list_key    # which daily list on day.attrs (research: "ts_ok" = 3 of 3 trend strength, "ts_ok2" = 2 of 3, ...)
         self.confirm = confirm      # owner 2026-10-17: the trend confirmed by candles, volume, volatility (confirm.trend_votes >= confirm x 5)
         self.need, self.h1max, self.near, self.vwap_atr, self.tp1, self.stop_atr = need, h1_stoch_max, near_ma_atr, vwap_atr, tp1_atr, stop_atr
         self.sr_rsi, self.need6 = sr_rsi, need6     # owner 2026-10-17: + S/R (the stock's daily zone map) and RSI 40-55 turning: need6 of 6
@@ -366,7 +367,7 @@ class TrendStairsSignals(BoxSignals):
         t = day.index.strftime("%H:%M")
         win = np.asarray((t >= "09:45") & (t <= "15:15"))
         out = []
-        ok_lists = day.attrs.get("ts_ok") if self.select else None
+        ok_lists = day.attrs.get(self.list_key) if self.select else None
         for side, p in ((1, ""), (-1, "m_")):
             if side not in self.sides or any(p + k not in day for k in self.NEED):
                 continue
