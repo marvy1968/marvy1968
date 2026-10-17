@@ -127,6 +127,26 @@ def run_all(a) -> int:
                 res = {"family": fam, "verdict": "see state/fx/reports/summary.md" if code == 0 else "WAITING FOR KEYS (OANDA_API_TOKEN)"}
                 if summary.exists() and code == 0:
                     lines.append(summary.read_text())
+            elif fam == "funnel_swing":           # owner's Stock Funnel as a daily swing strategy (alpacabot.funnel), last 3 months + 12 for context
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb = {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                res = {"family": fam, "verdict": "live-paper rule: it goes live at 0.5% unless clearly harmful"}
+                for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months (context)", end2 - _td(days=365))):
+                    m_ = funnel_bt(fb, a_, end2 - _td(days=1))
+                    lines.append(f"- {label}: {m_['trades']} trades (longs {m_['longs']} {m_['longs_r']:+}R, shorts {m_['shorts']} {m_['shorts_r']:+}R), "
+                                 f"win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, return {m_['return_pct']:+}% at 0.5% risk, exits {m_['exits']}")
+                    res[label] = {k: v for k, v in m_.items() if k != "list"}
+                    if label == "last 3 months":
+                        for t in m_["list"]:
+                            lines.append(f"  - {t['symbol']} {t['side']} {t['entry_date']} -> {t['exit_date']} {t['r']:+}R ({t['reason']})")
             elif fam == "sector_td":               # the supplied frozen rules, tested on untouched years and on a hindsight-free control list
                 end2 = date.today()
                 spy2 = load("SPY", "1Day", start, end2, cache)
