@@ -1,0 +1,2 @@
+# timeout 2400
+alpaca run-all --phase validate --months3 --families reversal_levels
