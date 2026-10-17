@@ -166,7 +166,7 @@ def market_down(spy: pd.DataFrame) -> pd.Series:
 
 def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005, slip_bps: float = 5.0, rules: dict | None = None,
              sides: tuple = ("long", "short"), short_ok=None, short_rules: dict | None = None,
-             short_exit_vote: bool = True) -> dict:
+             short_exit_vote: bool = True, no_stop: bool = False) -> dict:
     """Signals on days start..end: enter at the next open (a gap through the stop or past the take-profit is skipped, like the live runner),
     stop first then take-profit inside a day (conservative), the sell vote at a close exits at the next open. One position per stock at a
     time. Result per trade in R; return = sum(R) x risk_pct (no portfolio cap, so it overstates exposure on busy days)."""
@@ -212,7 +212,7 @@ def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005,
                 continue
             j, px, why = i + 1, None, ""
             while j < n:
-                if (side == 1 and l[j] <= stop) or (side == -1 and h[j] >= stop):
+                if not no_stop and ((side == 1 and l[j] <= stop) or (side == -1 and h[j] >= stop)):
                     px, why = (min(stop, o[j]) if side == 1 else max(stop, o[j])), "stop"
                 elif (side == 1 and h[j] >= tp) or (side == -1 and l[j] <= tp):
                     px, why = (max(tp, o[j]) if side == 1 else min(tp, o[j])), "tp"

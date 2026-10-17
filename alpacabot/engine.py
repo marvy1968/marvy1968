@@ -132,12 +132,17 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
     (ATR beyond the zone), lock ("breakeven" / "tp" per TP step), trail_atr (the rider's stop behind its best high), trail_from_entry_r
     (optional: trail that many R behind the best price from the first tick in profit). exit_at(j) -> True when
     the expert's own exit fires at bar j's close (filled at the next open); state = ExitState for a managed (trailing) expert."""
+    if lad.get("no_stop"):                    # research only (owner 2026-10-17 "remove all stops, retest"): no price stop, no cut steps;
+        stop = -np.inf                        # risk still sizes the trade and measures R. no_stop == "all" also drops the trails.
+        lad = {**lad, "cut_fracs": [], "cut_depth_r": []}
+        if lad["no_stop"] == "all":
+            lad = {**lad, "trail_atr": None, "trail_from_entry_r": None}
     cuts = [(fill - d * risk, f) for d, f in zip(lad.get("cut_depth_r", []), lad.get("cut_fracs", []))]
     tps = [(ztgt + d * atr_i, f) for d, f in zip(lad.get("tp_depth_atr", []), lad.get("tp_fracs", []))] if np.isfinite(ztgt) else []
     locks, trail = lad.get("lock") or [], lad.get("trail_atr")
     sold, pnl, steps, best, why = 0.0, 0.0, 0, fill, ""
     for j in range(j0, n):
-        if state is not None:
+        if state is not None and not lad.get("no_stop"):
             stop = max(stop, state.stop)
         if l[j] <= stop:
             px = sell(min(stop, o[j]))

@@ -130,3 +130,23 @@ class TrendStairsListTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NoStopResearchTests(unittest.TestCase):
+    def test_no_stop_rides_through_the_stop_price(self):
+        import numpy as np
+        from alpacabot.engine import ladder_walk
+        sell = lambda px: px                                     # noqa: E731
+        o = np.array([100.0, 99.0, 98.5, 101.0])
+        h = np.array([100.1, 99.2, 99.0, 101.5])
+        l = np.array([99.5, 98.5, 98.0, 100.5])
+        c = np.array([99.6, 98.8, 98.9, 101.2])
+        lad = {"tp_fracs": [], "tp_depth_atr": []}
+        j, pnl, why = ladder_walk(o, h, l, c, 0, 4, 100.0, 99.0, np.inf, 1.0, 1.0, lad, sell)
+        self.assertEqual(why, "stop")
+        j, pnl, why = ladder_walk(o, h, l, c, 0, 4, 100.0, 99.0, np.inf, 1.0, 1.0, {**lad, "no_stop": "all"}, sell)
+        self.assertEqual((why, round(pnl, 2)), ("eod", 1.2))      # held to the close
+
+
+if __name__ == "__main__":
+    unittest.main()

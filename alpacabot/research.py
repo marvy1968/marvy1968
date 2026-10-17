@@ -1020,6 +1020,36 @@ def trend_stairs58_opt(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def no_stop_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-17 "remove all stops, retest" (RESEARCH ONLY - the live bots keep their stops): the same trades with and without stops.
+    trend_stairs as live (both sides, confirmed 3 of 5) and the 11 live experts (owner's ladder), on the given days. no_stop "initial" keeps
+    the stair-step / trailing stops, "all" drops every stop (exits: sell vote, take-profit, 3:50 close)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(kind, no_stop, a, b):
+        ts = kind == "trend_stairs"
+        br = Brain(experts=[] if ts else list(ALL_EXPERTS), short_experts=[] if ts else list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        lad = {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}
+        if no_stop:
+            lad["no_stop"] = no_stop
+            lad["by_expert"] = {k: {**v, "no_stop": no_stop} for k, v in lad["by_expert"].items()}
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True, "ladder": lad}
+        inner = TrendStairsSignals(br, confirm=0.6) if ts else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"trend_stairs WITH stops (as live)": ("trend_stairs", None), "trend_stairs, no starting stop (stair-step kept)": ("trend_stairs", "initial"),
+                "trend_stairs, NO stops at all": ("trend_stairs", "all"), "11 experts WITH stops (as live)": ("experts", None),
+                "11 experts, NO stops at all": ("experts", "all")}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {n: cp.get(f"ns-{per}-{k}-{ns}", lambda k=k, ns=ns, a=a, b=b: run(k, ns, a, b)) for n, (k, ns) in variants.items()}
+    out.update({"family": "no_stops", "passes": False, "verdict": "research only: the live bots keep their stops"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""
