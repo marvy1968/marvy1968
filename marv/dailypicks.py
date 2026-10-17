@@ -43,6 +43,7 @@ TIER_ICON = {"HIGH": "🔥", "SIGNAL": "📈", "LEAN": "🧮"}
 TIER_NAME = {"HIGH": "A·HIGH", "SIGNAL": "B·SIGNAL", "LEAN": "C·LEAN"}
 UF_MAX_FAV = float(os.environ.get("UF_MAX_FAV", "-500"))
 MIN_LEAN_EDGE = float(os.environ.get("DAILY_MIN_EDGE", "0.02"))
+MAX_LEG_REUSE = int(os.environ.get("DAILY_MAX_LEG_REUSE", "2"))  # 2026-10-17: a leg appears in <= 2 ranked parlays
 PARLAYS_PER_SPORT = int(os.environ.get("DAILY_PARLAYS_PER_SPORT", "5"))
 STRAIGHT_MAX = int(os.environ.get("DAILY_STRAIGHT_MAX", "10"))
 WINDOW_H = int(os.environ.get("DAILY_WINDOW_HOURS", "22"))
@@ -291,11 +292,87 @@ def parlays(legs: list[dict], n: int = PARLAYS_PER_SPORT) -> list[dict]:
                     "score": round(a["strength"] + b["strength"], 3),
                     "tiers": "+".join(sorted({a["tier"], b["tier"]}, key=lambda t: -TIER_BASE[t]))})
     out.sort(key=lambda p: (-p["score"], -p["price"]))
-    return out[:n]
+    return _cap_reuse(out, n)
+
+
+def _lid(leg: dict) -> tuple:
+    return _gkey(leg) + (leg.get("market"), leg.get("side"))
+
+
+def _cap_reuse(ranked: list[dict], n: int, cap: int = MAX_LEG_REUSE) -> list[dict]:
+    """2026-10-17 (Marvin): the same leg may appear in at most `cap` of the ranked parlays."""
+    out, used = [], {}
+    for p in ranked:
+        ids = [_lid(x) for x in p["legs"]]
+        if any(used.get(i, 0) >= cap for i in ids):
+            continue
+        for i in ids:
+            used[i] = used.get(i, 0) + 1
+        out.append(p)
+        if len(out) >= n:
+            break
+    return out
+
+
+def _marv_total(leg: dict):
+    """Marv's own projected total for this leg's game (state/predictions.json), or None."""
+    from .data.teams import similarity
+    P = _jload(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")) / "predictions.json", {})
+    best, sc = None, 0.0
+    for r in P.values():
+        if r.get("sport") != leg.get("sport"):
+            continue
+        v = min(similarity(str(r.get("home")), str(leg.get("home"))), similarity(str(r.get("away")), str(leg.get("away"))))
+        if v > sc:
+            best, sc = r, v
+    return float(best["model_total"]) if best is not None and sc >= 0.75 and best.get("model_total") is not None else None
+
+
+def refine(legs: list[dict], uf: list) -> list[dict]:
+    """2026-10-17 (Marvin): (3) generic CFB OVER-FADE under counts as a B signal only when Marv's projected total is
+    also below the line; (2) a leg opposite a Master/Script extreme on the same game total is dropped (the extreme is
+    the stronger side), so /parlay and the /card plan never disagree."""
+    out = []
+    try:
+        mx = {(_gkey(x), "total"): x for x in master_extremes()}
+    except Exception:  # noqa: BLE001
+        mx = {}
+    for x in legs:
+        why = str(x.get("why", ""))
+        if (x.get("sport") == "cfb" and x.get("market") == "total" and x.get("side") == "Under" and x.get("tier") == "SIGNAL"
+                and why.split(":")[0].strip() == "OVER-FADE" and not x.get("master_extreme")):
+            mt = _marv_total(x)
+            if mt is None or x.get("line") is None or mt >= float(x["line"]):
+                uf.append(f"CFB {x.get('game')} Under {x.get('line')}: OVER-FADE without Marv under "
+                          f"(Marv {'n/a' if mt is None else f'{mt:.1f}'})")
+                continue
+        m = mx.get((_gkey(x), x.get("market")))
+        if m is not None and not x.get("master_extreme") and m["side"] != x.get("side") and m["strength"] >= x["strength"]:
+            uf.append(f"{x['sport'].upper()} {x.get('game')} {x.get('side')} {x.get('line')}: conflicts with "
+                      f"Master extreme {m['side']} {m.get('line')} (kept the stronger side)")
+            continue
+        out.append(x)
+    return out
+
+
+def refine_card(card: dict, now=None) -> dict:
+    """Re-apply refine + leg cap to a stored card (no projections, no credits)."""
+    legs, seen = [], set()
+    for x in card["ml"] + card["ou"] + [l for ps in card["parlays"].values() for p in ps for l in p["legs"]]:
+        k = _lid(x)
+        if k not in seen:
+            seen.add(k); legs.append(x)
+    uf = list(card.get("uf_removed", []))
+    new = build(legs, uf, card["sports_checked"], now or datetime.fromisoformat(card["built"]))
+    for k in ("date", "built", "upset_tags"):
+        if k in card:
+            new[k] = card[k]
+    new["refined"] = datetime.now(timezone.utc).isoformat()
+    return new
 
 
 def build(legs: list[dict], uf: list, sports_checked: list, now: datetime) -> dict:
-    legs = dedupe(legs)
+    legs = dedupe(refine(legs, uf))
     by_sport = {}
     for leg in legs:
         by_sport.setdefault(leg["sport"], []).append(leg)
@@ -654,7 +731,7 @@ def _just(leg):
 def _combos(legs, k, n):
     out = []
     pool = legs[:12]
-    for c in itertools.combinations(pool, k):
+    for c in itertools.combinations(pool, k):  # ranked; reuse capped by _cap_reuse
         if len({_gkey(x) for x in c}) < k:
             continue  # distinct games only
         tiers = sorted({x["tier"] for x in c if not x.get("master_extreme")}, key=lambda t: -TIER_BASE[t])
@@ -663,7 +740,7 @@ def _combos(legs, k, n):
                     "score": sum(x["strength"] for x in c) / k, "tiers": "+".join(tn),
                     "half": any((x.get("uf_stake") or 1) < 1 for x in c)})
     out.sort(key=lambda p: (-p["score"], -p["price"]))
-    return out[:n]
+    return _cap_reuse(out, n)
 
 
 MASTER_DIR = Path(os.environ.get("MARV_MASTER_STATE", "/opt/marv-bot/state/master"))
@@ -760,7 +837,7 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
     for k in (3, 4, 5):
         big += _combos(legs, k, 2)
     big.sort(key=lambda p: (-p["score"], -p["price"]))
-    plist("2️⃣ TOP RANKED 3- TO 5-LEG PARLAYS", big[:TG_TOP])
+    plist("2️⃣ TOP RANKED 3- TO 5-LEG PARLAYS", _cap_reuse(big, TG_TOP))
     for title, key in (("3️⃣ TOP RANKED STRAIGHT MONEYLINES / SIDES", "ml"), ("4️⃣ OVER/UNDERS", "total")):
         L.extend(["", f"━━ {title} ━━"])
         rows = [x for x in legs if x["market"] == key][:STRAIGHT_MAX]
