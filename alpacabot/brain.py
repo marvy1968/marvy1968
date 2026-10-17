@@ -350,9 +350,10 @@ class TrendStairsSignals(BoxSignals):
     NEED = ("f_bb_mid", "f_vwap", "f_atr", "f_stk", "f_std", "f_m15_dir", "f_h1_dir", "f_h1_stoch")
 
     def __init__(self, brain, need: int = 3, h1_stoch_max: float = 40.0, near_ma_atr: float = 0.8, vwap_atr: float = 0.75,
-                 tp1_atr: float = 1.3, stop_atr: float = 1.2):
+                 tp1_atr: float = 1.3, stop_atr: float = 1.2, sr_rsi: bool = False, need6: int = 4):
         super().__init__(brain)
         self.need, self.h1max, self.near, self.vwap_atr, self.tp1, self.stop_atr = need, h1_stoch_max, near_ma_atr, vwap_atr, tp1_atr, stop_atr
+        self.sr_rsi, self.need6 = sr_rsi, need6     # owner 2026-10-17: + S/R (the stock's daily zone map) and RSI 40-55 turning: need6 of 6
 
     def box_signals(self, day) -> list:
         if len(day) < 3:
@@ -373,7 +374,19 @@ class TrendStairsSignals(BoxSignals):
                 kp, dp = np.r_[np.nan, k[:-1]], np.r_[np.nan, d[:-1]]
                 v3 = (k > d) & (kp <= dp) & (k < 70)
                 v4 = g("f_h1_stoch") <= self.h1max
-                ok = win & trend & (v1.astype(int) + v2.astype(int) + v3.astype(int) + v4.astype(int) >= self.need) & (a > 0)
+                votes = v1.astype(int) + v2.astype(int) + v3.astype(int) + v4.astype(int)
+                need = self.need
+                if self.sr_rsi:
+                    lv = [z["price"] for z in (day.attrs.get("levels") or []) if z.get("strong")]
+                    rl, rh, rc = (day[x].to_numpy(float) for x in ("low", "high", "close"))
+                    v5 = np.zeros(len(day), bool)
+                    for L in lv:                     # real prices: a long tests strong support and holds it; a short tests resistance
+                        v5 |= ((rl <= L + a) & (rc >= L)) if side == 1 else ((rh >= L - a) & (rc <= L))
+                    r_ = g("f_rsi14")                # mirrored for shorts: 40-55 rising there = 45-60 falling on the real chart
+                    v6 = (r_ >= 40) & (r_ <= 55) & (r_ > np.r_[np.nan, r_[:-1]])
+                    votes = votes + v5.astype(int) + v6.astype(int)
+                    need = self.need6
+                ok = win & trend & (votes >= need) & (a > 0)
             edge = ok & ~np.r_[False, ok[:-1]]                # a new buy setup (not every bar of the same one)
             for i in np.flatnonzero(edge):
                 sd = float(np.clip(c[i] - (mid[i] - self.stop_atr * a[i]), 0.8 * a[i], 2.0 * a[i]))

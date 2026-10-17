@@ -25,7 +25,49 @@ import pandas as pd
 from .indicators import atr
 
 RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop_max_atr": 3.0, "tp_r": 1.5, "stoch_top": 75.0,
-         "stage_ma": 150, "stage_slope": 20}
+         "stage_ma": 150, "stage_slope": 20,
+         # owner 2026-10-17 ("S/R and RSI determine buy zones"): two more votes, then `need6` of 6 must agree
+         "sr_rsi": False, "need6": 4, "sr_atr": 0.5, "sr_lookback": 120, "sr_wing": 2, "sr_min_touches": 2,
+         "rsi_long": (40.0, 55.0), "rsi_short": (45.0, 60.0)}
+
+
+def sr_votes(d: pd.DataFrame, a: pd.Series, lookback: int = 120, wing: int = 2, tol_atr: float = 0.5, min_touches: int = 2) -> tuple:
+    """(at_support, at_resistance) per day, causal: swing highs / lows (the extreme of 2*wing+1 bars) known by that day (a pivot needs `wing`
+    later bars), over the last `lookback` days, merged within tol_atr ATR into zones; a zone touched >= min_touches times is strong (the
+    zone map's rule). At support = the day's low reached a strong zone (within tol_atr ATR) and the close held above it; resistance mirrors."""
+    hi, lo, c = (d[k].to_numpy(float) for k in ("high", "low", "close"))
+    av = a.to_numpy(float)
+    n = len(c)
+    piv = []                                                     # (bar index, price)
+    sup, res = np.zeros(n, bool), np.zeros(n, bool)
+    for i in range(n):
+        j = i - wing                                              # the newest bar that can now be confirmed as a pivot
+        if j >= wing:
+            if hi[j] == hi[j - wing:j + wing + 1].max():
+                piv.append((j, hi[j]))
+            if lo[j] == lo[j - wing:j + wing + 1].min():
+                piv.append((j, lo[j]))
+        if not np.isfinite(av[i]) or av[i] <= 0:
+            continue
+        tol = tol_atr * av[i]
+        pts = sorted(p for k, p in piv if k > i - lookback)
+        zones, cur = [], []
+        for p in pts:
+            if cur and p - cur[-1] > tol:
+                zones.append(cur)
+                cur = []
+            cur.append(p)
+        if cur:
+            zones.append(cur)
+        for z in zones:
+            if len(z) < min_touches:
+                continue
+            L = float(np.mean(z))
+            if lo[i] <= L + tol and c[i] >= L - 0.1 * av[i] and c[i] <= L + 2 * tol:
+                sup[i] = True
+            if hi[i] >= L - tol and c[i] <= L + 0.1 * av[i] and c[i] >= L - 2 * tol:
+                res[i] = True
+    return pd.Series(sup, index=d.index), pd.Series(res, index=d.index)
 
 
 def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
@@ -45,6 +87,10 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
     rising = m150 > m150.shift(r["stage_slope"])
     stage = pd.Series(np.where(m150.isna(), 0, np.where(c > m150, np.where(rising, 2, 3), np.where(rising, 1, 4))), index=d.index)
     vol_ok = v >= r["vol_mult"] * vavg
+    if r["sr_rsi"]:
+        from .indicators import rsi as _rsi
+        rs14 = _rsi(c, 14)
+        at_sup, at_res = sr_votes(d, a, r["sr_lookback"], r["sr_wing"], r["sr_atr"], r["sr_min_touches"])
     out = pd.DataFrame(index=d.index)
     out["stage"], out["atr"], out["close"] = stage, a, c
     for side in (1, -1):
@@ -52,11 +98,17 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         vwap_ok = (c >= vw) if side == 1 else (c <= vw)
         cross = ((k > dd) & (k.shift(1) <= dd.shift(1))) if side == 1 else ((k < dd) & (k.shift(1) >= dd.shift(1)))
         votes = near.astype(int) + vwap_ok.astype(int) + vol_ok.astype(int) + cross.astype(int)
+        need = r["need"]
+        if r["sr_rsi"]:                                                    # 5: at strong support (resistance); 6: RSI pulled back and turning
+            lo_, hi_ = r["rsi_long"] if side == 1 else r["rsi_short"]
+            rsi_ok = (rs14 >= lo_) & (rs14 <= hi_) & ((rs14 > rs14.shift(1)) if side == 1 else (rs14 < rs14.shift(1)))
+            votes = votes + (at_sup if side == 1 else at_res).astype(int) + rsi_ok.astype(int)
+            need = r["need6"]
         want = 2 if side == 1 else 4
         band = lo if side == 1 else up
         dist = (side * (c - band)).clip(lower=r["stop_min_atr"] * a, upper=r["stop_max_atr"] * a)
         tag = "long" if side == 1 else "short"
-        out[f"{tag}_entry"] = (stage == want) & (votes >= r["need"]) & a.notna() & (a > 0) & ma.notna()
+        out[f"{tag}_entry"] = (stage == want) & (votes >= need) & a.notna() & (a > 0) & ma.notna()
         out[f"{tag}_stop"] = c - side * dist
         out[f"{tag}_tp"] = c + side * r["tp_r"] * dist
         under = (c < ma) if side == 1 else (c > ma)

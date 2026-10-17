@@ -167,3 +167,23 @@ class TrendStrengthDownTests(unittest.TestCase):
         self.assertFalse(bool(up["ma_dn"].iloc[-1]) or bool(up["rs_dn"].iloc[-1]))
         w = weakest_per_sector({"D": down, "U": up}, {"D": "XLK", "U": "XLK"}, n=1)
         self.assertTrue(bool(w["D"].iloc[-1]) and not bool(w["U"].iloc[-1]))
+
+
+class SupportResistanceVoteTests(unittest.TestCase):
+    def test_sr_votes_mark_a_retest_of_a_twice_touched_low(self):
+        from alpacabot.funnel import sr_votes
+        from alpacabot.indicators import atr
+        lows = [105, 103, 100, 103, 106, 104, 100.2, 103, 106, 107, 105, 100.3, 104]   # 100 touched, then retested
+        idx = pd.bdate_range("2026-01-05", periods=len(lows))
+        lo = np.array(lows, float)
+        d = pd.DataFrame({"open": lo + 1.5, "high": lo + 3, "low": lo, "close": lo + 2, "volume": 1e6}, index=idx)
+        a = atr(d, 3).bfill()
+        sup, res = sr_votes(d, a, lookback=60, wing=2, tol_atr=0.5, min_touches=2)
+        self.assertTrue(bool(sup.iloc[11]))          # the third test of ~100 is at a strong (2-touch) support
+        self.assertFalse(bool(sup.iloc[4]))
+
+    def test_six_vote_mode_runs(self):
+        from alpacabot.funnel import frame
+        f4, f6 = frame(_daily()), frame(_daily(), {"sr_rsi": True})
+        self.assertIn("long_entry", f6)
+        self.assertGreaterEqual(int(f4["long_entry"].sum()) + 1, 1)

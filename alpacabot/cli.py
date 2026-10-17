@@ -181,8 +181,19 @@ def run_all(a) -> int:
                     variants["K. J + I (news AND sector trend negative)"] = {"short_ok": {
                         s_: (nb[s_] & eb[s_].reindex(nb[s_].index).fillna(False)) if nb[s_] is not None and eb[s_] is not None else None
                         for s_ in fb}}
+                variants["P. + S/R (at strong resistance) + RSI 45-60 turning down: 4 of 6"] = {"short_rules": {"sr_rsi": True}}
+                variants["Q. M + P (trend strength strongly negative, 3 weakest, 4 of 6)"] = {"short_ok": both_(strong3, weak3), "short_rules": {"sr_rsi": True}}
                 res = {"family": fam, "verdict": "see the table"}
+                long_variants = {"as built (4 votes, 3 of 4)": {},
+                                 "+ S/R (at strong support) + RSI 40-55 turning up: 4 of 6": {"rules": {"sr_rsi": True}},
+                                 "+ S/R + RSI: 5 of 6": {"rules": {"sr_rsi": True, "need6": 5}}}
                 for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
+                    lines.append(f"### longs, {label}")
+                    for name, kw in long_variants.items():
+                        m_ = funnel_bt({k: v.copy() for k, v in fb.items()}, a_, end2 - _td(days=1), sides=("long",), **kw)
+                        lines.append(f"- {name}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
+                                     f"total {m_['longs_r']:+}R, exits {m_['exits']}")
+                        res[f"longs {label} | {name}"] = {k: v for k, v in m_.items() if k != "list"}
                     lines.append(f"### shorts, {label}")
                     for name, kw in variants.items():
                         kw = dict(kw)

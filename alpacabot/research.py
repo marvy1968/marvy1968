@@ -906,19 +906,21 @@ def trend_stairs_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
     cp = Checkpoint(ckpt)
 
-    def run(mode, need, a, b):
+    def run(mode, need, a, b, sr_rsi=False):
         br = Brain(experts=[] if mode == "alone" else list(ALL_EXPERTS), short_experts=[] if mode == "alone" else list(ALL_EXPERTS),
                    sector_filter=True, short_gate="red")
         br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
                     "ladder": {**_OWNER_LADDER, "by_expert": {"trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
-        inner = TrendStairsSignals(br, need=need) if mode in ("with", "alone") else br
+        inner = TrendStairsSignals(br, need=need, sr_rsi=sr_rsi, need6=need) if mode in ("with", "alone") else br
         r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     variants = {"live (no trend_stairs)": ("live", 3), "live + trend_stairs (3 of 4)": ("with", 3),
-                "trend_stairs alone, 3 of 4 agree": ("alone", 3), "trend_stairs alone, 2 of 4 agree": ("alone", 2)}
+                "trend_stairs alone, 3 of 4 agree": ("alone", 3), "trend_stairs alone, 2 of 4 agree": ("alone", 2),
+                "trend_stairs alone + S/R + RSI, 4 of 6": ("alone", 4, True), "trend_stairs alone + S/R + RSI, 5 of 6": ("alone", 5, True)}
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
-        out["periods"][per] = {name: cp.get(f"ts-{per}-{m}-{n}", lambda m=m, n=n, a=a, b=b: run(m, n, a, b)) for name, (m, n) in variants.items()}
+        out["periods"][per] = {name: cp.get(f"ts-{per}-{v[0]}-{v[1]}" + ("-srrsi" if len(v) > 2 else ""),
+                                            lambda v=v, a=a, b=b: run(v[0], v[1], a, b, *v[2:])) for name, v in variants.items()}
     ok = _zone_verdict([{"without": out["periods"][p]["live (no trend_stairs)"], "with": out["periods"][p]["live + trend_stairs (3 of 4)"]}
                         for p in out["periods"]])
     out.update({"family": "trend_stairs", "passes": bool(ok),

@@ -60,3 +60,26 @@ class TrendStairsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TrendStairsSixVoteTests(unittest.TestCase):
+    def test_sr_rsi_mode_runs_and_respects_levels(self):
+        from alpacabot.brain import TrendStairsSignals
+        from alpacabot.experts import features_both
+
+        class Empty:
+            def signals(self, day):
+                return []
+        df = _uptrend()
+        df = df.join(features_both(df))
+        day = df[df.index.date == df.index[-1].date()].copy()
+        day.attrs["levels"] = [{"price": float(day["low"].min()), "touches": 3, "strong": True}]
+        sigs = TrendStairsSignals(Empty(), need6=2, h1_stoch_max=100.0, sr_rsi=True).signals(day)
+        self.assertTrue(all(s.tag == "trend_stairs" for s in sigs))
+        day.attrs["levels"] = []
+        none = TrendStairsSignals(Empty(), need6=6, h1_stoch_max=100.0, sr_rsi=True).signals(day)
+        self.assertEqual(none, [])                                  # 6 of 6 is impossible without an S/R level
+
+
+if __name__ == "__main__":
+    unittest.main()

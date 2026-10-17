@@ -738,9 +738,12 @@ class PaperRunner:
             ts_cfg = self.zone_config().get("trend_stairs") or {}
             if ts_cfg.get("live") and self.zone_config().get("live"):                                              # owner's trend_stairs design (2026-10-17), its own tag
                 from .brain import TrendStairsSignals
+                if not day.attrs.get("levels"):
+                    day.attrs["levels"] = zbox.get("levels") or []                # the stock's daily S/R zones (for the S/R vote)
                 brain = TrendStairsSignals(brain, int(ts_cfg.get("need", 3)), float(ts_cfg.get("h1_stoch_max", 40.0)),
                                            float(ts_cfg.get("near_ma_atr", 0.8)), float(ts_cfg.get("vwap_atr", 0.75)),
-                                           float(ts_cfg.get("tp1_atr", 1.3)), float(ts_cfg.get("stop_atr", 1.2)))
+                                           float(ts_cfg.get("tp1_atr", 1.3)), float(ts_cfg.get("stop_atr", 1.2)),
+                                           bool(ts_cfg.get("sr_rsi", False)), int(ts_cfg.get("need6", 4)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
