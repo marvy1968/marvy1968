@@ -1,3 +1,40 @@
 $ alpaca run-all --phase validate --months3 --families trend_stairs58_opt
-started 2026-10-17 17:09:21 EDT
-RUNNING...
+started 2026-10-17 17:09:21 EDT, took 408s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 302 of 4118 stock-days, on the SHORT list 34
+- best on train: entry 2 of 4 | adopted: False | keep the base: best on train was 'entry 2 of 4', it did not beat the base on validate
+## trend_stairs58_opt: keep the base: best on train was 'entry 2 of 4', it did not beat the base on validate
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | base: lists + TP box: 106t win 50% PF 0.68 avgR -0.16 daily -0.047% CAGR -9.5% maxDD -1.1%
+- train | entry 2 of 4: 189t win 48% PF 0.72 avgR -0.12 daily -0.050% CAGR -14.1% maxDD -1.9%
+- train | 1-hour stochastic <= 60: 118t win 51% PF 0.67 avgR -0.15 daily -0.050% CAGR -10.4% maxDD -1.3%
+- train | TP1 +1.0 ATR: 106t win 52% PF 0.70 avgR -0.16 daily -0.045% CAGR -9.0% maxDD -1.1%
+- train | TP1 +1.8 ATR: 106t win 50% PF 0.68 avgR -0.16 daily -0.047% CAGR -9.5% maxDD -1.2%
+- train | stop 1.0 ATR under the 20 MA: 110t win 48% PF 0.64 avgR -0.17 daily -0.056% CAGR -11.2% maxDD -1.3%
+- train | stop 1.6 ATR under the 20 MA: 100t win 56% PF 0.70 avgR -0.13 daily -0.045% CAGR -9.6% maxDD -1.2%
+- train | no TP box: 105t win 49% PF 0.71 avgR -0.16 daily -0.041% CAGR -9.1% maxDD -1.1%
+- train | lists: trend strength 2 of 3: 157t win 48% PF 0.66 avgR -0.19 daily -0.056% CAGR -11.7% maxDD -1.6%
+- train | lists: 5 per sector: 110t win 49% PF 0.64 avgR -0.17 daily -0.057% CAGR -11.7% maxDD -1.4%
+- train | confirmed (3 of 5): 36t win 53% PF 0.72 avgR -0.11 daily -0.020% CAGR -3.8% maxDD -0.6%
+- train | chosen set, LONGS only: 104t win 51% PF 0.79 avgR -0.14 daily -0.028% CAGR -5.4% maxDD -0.7%
+- train | chosen set, SHORTS only: 2t win 0% PF 0.00 avgR -1.03 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | base: lists + TP box: 61t win 33% PF 0.42 avgR -0.27 daily -0.046% CAGR -11.5% maxDD -1.0%
+- validate | entry 2 of 4: 128t win 44% PF 0.38 avgR -0.32 daily -0.107% CAGR -23.9% maxDD -3.0%
+- validate | 1-hour stochastic <= 60: 77t win 35% PF 0.31 avgR -0.31 daily -0.073% CAGR -17.4% maxDD -1.8%
+- validate | TP1 +1.0 ATR: 61t win 34% PF 0.45 avgR -0.27 daily -0.044% CAGR -11.1% maxDD -1.0%
+- validate | TP1 +1.8 ATR: 61t win 33% PF 0.41 avgR -0.28 daily -0.047% CAGR -11.9% maxDD -1.1%
+- validate | stop 1.0 ATR under the 20 MA: 63t win 35% PF 0.45 avgR -0.31 daily -0.038% CAGR -10.2% maxDD -0.9%
+- validate | stop 1.6 ATR under the 20 MA: 58t win 45% PF 0.49 avgR -0.27 daily -0.050% CAGR -11.6% maxDD -1.1%
+- validate | no TP box: 61t win 33% PF 0.46 avgR -0.24 daily -0.042% CAGR -10.8% maxDD -1.0%
+- validate | lists: trend strength 2 of 3: 78t win 36% PF 0.47 avgR -0.23 daily -0.043% CAGR -10.9% maxDD -1.1%
+- validate | lists: 5 per sector: 67t win 34% PF 0.42 avgR -0.26 daily -0.051% CAGR -12.6% maxDD -1.1%
+- validate | confirmed (3 of 5): 20t win 40% PF 0.55 avgR -0.19 daily -0.017% CAGR -6.3% maxDD -0.2%
+- validate | chosen set, LONGS only: 41t win 34% PF 0.41 avgR -0.33 daily -0.043% CAGR -11.2% maxDD -0.8%
+- validate | chosen set, SHORTS only: 20t win 30% PF 0.46 avgR -0.16 daily -0.031% CAGR -6.7% maxDD -0.2%
+ALL DONE
