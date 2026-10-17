@@ -559,12 +559,22 @@ def cmd_serve(s: Settings, args) -> int:
                                              q["player"], q["market"], q["side"], float(q["line"]), float(q["price"]),
                                              float(q["other"]) if q.get("other") else None)
                     body, code = json.dumps(g), 200
+                elif url.path == "/card_img":  # 2026-10-17: PNG bet cards for March_edge sendPhoto (paths on this host)
+                    from . import cardimg as _ci
+                    from . import dailypicks as _dp
+                    qs = parse_qs(url.query)
+                    sp = (qs.get("sport") or [""])[0].lower()
+                    sp = _dp.LEAGUE_ALIAS.get(sp, sp) if sp else None
+                    body, code = json.dumps({"paths": _ci.images((qs.get("kind") or ["parlay"])[0], sp)}), 200
                 elif url.path == "/card":  # March_edge /parlay [league] and /reportcard [league] (read-only, no credits)
                     from . import dailypicks as _dp
                     qs = parse_qs(url.query)
                     sp = (qs.get("sport") or [""])[0]
                     full = (qs.get("full") or ["0"])[0] == "1"
-                    if not full:
+                    if (qs.get("plan") or ["0"])[0] == "1":  # /card: the daily action plan text
+                        _c = _dp._jload(_dp._dir(state) / _dp.CARD, None)
+                        txt = _dp.telegram_text(_c, _dp.record(state)) if _c else "Today's daily card isn't built yet."
+                    elif not full:
                         txt = _dp.league_card(s, sp, full=False)
                     else:
                         txt = _dp.answer(s, ["/reportcard", _dp.LEAGUE_ALIAS.get(sp.lower(), sp.lower())] if sp else None, full=True)

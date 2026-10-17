@@ -29,6 +29,13 @@ MKTS = ["player_pass_yds", "player_rush_yds", "player_reception_yds"]
 MIN_EDGE, MIN_P = 0.05, 0.55
 
 
+SUSPECT = 0.60  # 2026-10-17 (Marvin): a yardage projection below 60% of the line (or above 1/0.6) is a data problem
+
+
+def suspect(proj: float, line: float) -> bool:
+    return line > 0 and (proj < SUSPECT * line or proj > line / SUSPECT)
+
+
 def _load(p, d):
     try:
         return json.loads(p.read_text())
@@ -220,6 +227,8 @@ def run(now=None):
     for r in df.itertuples():
         st = hurt.get(O.norm_name(r.player))
         g = "👍" if (r.edge >= MIN_EDGE and r.p_side >= MIN_P and not st) else "➖"
+        if suspect(float(r.proj), float(r.line)):
+            g = "➖"; st = st or "suspect projection (<60% or >167% of line)"
         rec = dict(event=r.game_id, espn=meta[r.game_id]["espn"], game=meta[r.game_id]["game"], start=meta[r.game_id]["start"],
                    date=str(pd.Timestamp(r.date).date()), player=r.player, team=r.team, market=r.market, stat=r.stat,
                    line=float(r.line), side=r.side, price=float(r.price), proj=round(float(r.proj), 1),
@@ -291,7 +300,8 @@ LABEL = {"player_pass_yds": "pass yds", "player_rush_yds": "rush yds", "player_r
 def card_line(now=None):
     """One line for the /parlay + daily card: best upcoming 👍 Bovada CFB pregame prop (no % until proven)."""
     now = (now or datetime.now(timezone.utc)).isoformat()
-    c = [b for b in _load(LEDGER, []) if b.get("grade") == "👍" and b.get("result") is None and b["start"] > now]
+    c = [b for b in _load(LEDGER, []) if b.get("grade") == "👍" and b.get("result") is None and b["start"] > now
+         and not suspect(float(b["proj"]), float(b["line"]))]
     if not c:
         return ""
     b = max(c, key=lambda x: x["edge"])
