@@ -368,6 +368,18 @@ def _when(start) -> str:
 
 
 def text(parlays: dict[int, dict], paper: bool = True, n_legs: int = 0) -> str:
+    t = _text(parlays, paper, n_legs)
+    try:  # 2026-10-17 (Marvin): one line, best Bovada CFB pregame prop 👍 (tracking; no % until proven)
+        from . import cfb_props_shadow as _cps
+        _pl = _cps.card_line()
+        if _pl:
+            t += "\n\n" + html.escape(_pl)
+    except Exception:  # noqa: BLE001
+        pass
+    return t
+
+
+def _text(parlays: dict[int, dict], paper: bool = True, n_legs: int = 0) -> str:
     if not parlays:
         return ("🎰 MARV PARLAYS\nNot enough qualifying legs right now (need 2+ games with a firing upset score, "
                 f"a 👍 H2H read or a proven O/U; found {n_legs}).")

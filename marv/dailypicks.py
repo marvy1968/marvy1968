@@ -374,6 +374,13 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
         lines += ufp_uvf.card_lines([t for t in card.get("upset_tags", []) if not sport or t["sport"] == sport])
     except Exception:  # noqa: BLE001
         pass
+    try:  # 2026-10-17 (Marvin): one line, best Bovada CFB pregame prop 👍 (tracking; no % until proven)
+        from . import cfb_props_shadow as _cps
+        _pl = _cps.card_line() if sport in (None, "cfb") else ""
+        if _pl:
+            lines.extend(["", _pl])
+    except Exception:  # noqa: BLE001
+        pass
     lines += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked by leg "
               "strength, not a probability; no model % (only proven backtests print a %). 0.5u paper leans, "
               "graded daily — not real-money picks until 100+ graded above 52.4%."]
@@ -479,7 +486,68 @@ def record(state: Path) -> str:
         lo = sum(r["result"] == "loss" for r in rows)
         u = sum(r["profit"] or 0 for r in rows)
         out.append(f"{'2-leg parlays' if kind == 'parlay2' else 'straight ML/O-U'} {w}-{lo} ({u:+.1f}u, n={len(rows)})")
-    return "Paper record: " + " · ".join(out)
+    line = "Paper record: " + " · ".join(out)
+    try:  # 2026-10-17 (Marvin): one compact line per sport (ML / O/U / Props W-L)
+        bd = sport_breakdown(state)
+        if bd:
+            line += "\n" + bd
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: sport breakdown")
+    return line
+
+
+def _wl(rows, price_key="price"):
+    from . import edges as E
+    d = [r for r in rows if r.get("result") in ("win", "loss")]
+    w = sum(r["result"] == "win" for r in d)
+    u = sum((r.get("profit") if r.get("profit") is not None else
+             (0.5 * E.payout(r.get(price_key) or -110) if r["result"] == "win" else -0.5)) for r in d)
+    return w, len(d) - w, u
+
+
+def _fmt(name, w, l, u):
+    n = w + l
+    if n >= 100 and u > 0:  # proven: 100+ graded and profitable -> % allowed
+        return f"{name} {w}-{l} ({w / n:.0%})"
+    return f"{name} {w}-{l}"
+
+
+def sport_breakdown(state: Path) -> str:
+    """Per sport: straight ML, O/U (daily card paper log) and Props (Marv prop shadows). Empty categories omitted;
+    sports in TG_EXCLUDE (NBA until the Oct 27 review) hidden. No % unless 100+ graded and profitable."""
+    book = [r for r in _jload(_dir(state) / LOG, []) if r.get("kind") == "straight"]
+    cats: dict = {}
+    for r in book:
+        leg = (r.get("legs") or [{}])[0]
+        sp = r.get("sport") or leg.get("sport")
+        cats.setdefault(sp, {}).setdefault("O/U" if leg.get("market") == "total" else "ML", []).append(r)
+    props: dict = {}
+    for b in _jload(Path(state) / "props_cfb_shadow.json", []):  # CFB Bovada props 👍 (marv/cfb_props_shadow)
+        if b.get("grade") == "👍":
+            props.setdefault("cfb", []).append({"result": b.get("result"), "price": b.get("price")})
+    pg = Path(state) / "propgrade" / "shadow.jsonl"  # NFL prop grade v2 👍 (if graded)
+    if pg.exists():
+        for ln in pg.read_text().splitlines():
+            try:
+                b = json.loads(ln)
+            except ValueError:
+                continue
+            if str(b.get("grade", "")).startswith("👍") and b.get("result") in ("win", "loss"):
+                props.setdefault("nfl", []).append({"result": b["result"], "price": b.get("price")})
+    for sp, rows in props.items():
+        cats.setdefault(sp, {})["Props"] = rows
+    out = []
+    for sp in [x for x in SPORTS if x in cats] + sorted(x for x in cats if x not in SPORTS and x):
+        if sp in TG_EXCLUDE:
+            continue
+        parts = []
+        for name in ("ML", "O/U", "Props"):
+            w, l, u = _wl(cats[sp].get(name, []))
+            if w + l:
+                parts.append(_fmt(name, w, l, u))
+        if parts:
+            out.append(f"{EMOJI.get(sp, '•')} {NAME.get(sp, sp.upper())}: " + " · ".join(parts))
+    return "\n".join(out)
 
 
 # ---------------------------------------------------------------- entry points
@@ -723,6 +791,13 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
         L += value_play.card_lines(TG_EXCLUDE)
     except Exception:  # noqa: BLE001
         log.exception("daily picks: value plays")
+    try:  # 2026-10-17 (Marvin): one line, best Bovada CFB pregame prop 👍 (tracking; no % until proven)
+        from . import cfb_props_shadow as _cps
+        _pl = _cps.card_line()
+        if _pl:
+            L.extend(["", _pl])
+    except Exception:  # noqa: BLE001
+        pass
     L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked best → least by leg "
           "strength, not a probability; no model % (only proven backtests print one). Paper only.", record_line]
     try:
@@ -826,3 +901,34 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# 2026-10-17 (Marvin): /parlay <league>
+LEAGUE_ALIAS = {"ncaaf": "cfb", "cfb": "cfb", "cfootball": "cfb", "college": "cfb", "nfl": "nfl", "wnba": "wnba",
+                "nba": "nba", "soccer": "soccer", "futbol": "soccer", "epl": "soccer", "mls": "soccer", "mlb": "mlb",
+                "nhl": "nhl", "ncaab": "ncaab", "cbb": "ncaab", "ncaam": "ncaab", "ncaaw": "ncaaw",
+                "euroleague": "euroleague", "el": "euroleague"}
+LEAGUE_HELP = "ncaaf (cfb), nfl, wnba, nba, soccer, mlb, nhl, ncaab, ncaaw, euroleague"
+
+
+def league_card(settings, arg: str = "", full: bool = False) -> str:
+    """/parlay [league]: plain = the all-sport parlay card (unchanged); a league = that league's 2-leg parlays +
+    ML + O/U picks (+ its best Bovada prop line where Marv prices one: CFB)."""
+    a = (arg or "").strip().lower().lstrip("/")
+    if not a:
+        return answer(settings, None, full=full)
+    key = LEAGUE_ALIAS.get(a)
+    if key is None:
+        return html.escape(f"Unknown league '{a}'. Try /parlay with one of: {LEAGUE_HELP}. Plain /parlay shows every sport.")
+    if key == "nba" and "nba" in TG_EXCLUDE:
+        return "🏀 NBA picks are off Telegram for now; they resume after the Oct 27 review."
+    out = answer(settings, ["/parlay", key], full=True)
+    if key == "cfb" and out.startswith("No qualifying"):
+        try:
+            from . import cfb_props_shadow as _cps
+            _pl = _cps.card_line()
+            if _pl:
+                out += "\n\n" + html.escape(_pl)
+        except Exception:  # noqa: BLE001
+            pass
+    return out

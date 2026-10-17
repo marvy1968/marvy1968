@@ -507,6 +507,29 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
     return o
 
 
+def _cfb_prop_read(market, side, line, text, live):
+    """2026-10-17 (Marvin): CFB pregame prop projection (marv/cfb_props_shadow ledger) vs the alerted prop."""
+    import html as _h
+    import re as _re
+    try:
+        from . import cfb_props_shadow as CPS
+        t = _re.sub(r"<[^>]+>", "", _h.unescape(text))
+        m = _re.search(r"[—-]\s*(.+?)\s+(OVER|UNDER)\s+([\d.]+)", t)
+        if not m or line is None:
+            return None
+        b = CPS.lookup(m.group(1).strip(), market)
+        if not b:
+            return ("n/a", f"no Marv CFB projection for {m.group(1).strip()}", "")
+        over = str(side).lower().startswith("o")
+        gap = (b["proj"] - float(line)) * (1 if over else -1)
+        e = max(2.0, 0.05 * float(line))
+        v = "good" if gap >= e else ("not" if gap <= -e else "mixed")
+        why = f"{'pregame ' if live else ''}Marv proj {b['proj']:g} vs {float(line):g}" + (f" · {b['news']}" if b.get("news") else "")
+        return (v, why, b.get("game", ""))
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
             other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
     """Marv Predict read on one March_edge alert: every metric Marv has on the game (ratings margin, O/D category
@@ -524,6 +547,10 @@ def _overlay(state_dir: Path, sport: str, market: str, side: str, line: float | 
     from . import proven
     sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
     kind = _market_kind(market)
+    if kind == "prop" and sport == "cfb" and text:
+        cp = _cfb_prop_read(market, side, line, text, live)
+        if cp:
+            return Overlay(True, cp[0], cp[1], "CFB prop projection, unproven (info only, no veto)", cp[2])
     rec = None
     if team:
         rec = find_game(state_dir, sport, team, other)

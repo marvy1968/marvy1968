@@ -559,11 +559,21 @@ def cmd_serve(s: Settings, args) -> int:
                                              q["player"], q["market"], q["side"], float(q["line"]), float(q["price"]),
                                              float(q["other"]) if q.get("other") else None)
                     body, code = json.dumps(g), 200
+                elif url.path == "/card":  # March_edge /parlay [league] and /reportcard [league] (read-only, no credits)
+                    from . import dailypicks as _dp
+                    qs = parse_qs(url.query)
+                    sp = (qs.get("sport") or [""])[0]
+                    full = (qs.get("full") or ["0"])[0] == "1"
+                    if not full:
+                        txt = _dp.league_card(s, sp, full=False)
+                    else:
+                        txt = _dp.answer(s, ["/reportcard", _dp.LEAGUE_ALIAS.get(sp.lower(), sp.lower())] if sp else None, full=True)
+                    body, code = json.dumps({"text": txt}), 200
                 elif url.path == "/board":  # current edges (games + props) for the odds bot
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /overlay, /h2h, /soccer_live, /mlb_live, /grade, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /overlay, /h2h, /soccer_live, /mlb_live, /grade, /predictions, /card or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
