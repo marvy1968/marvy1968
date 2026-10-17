@@ -131,6 +131,8 @@ def _marv_txt(m):
 def _pick(leg):
     if leg.get("market") == "ml":
         return f"{leg['side']} ML {int(leg['price']):+d}"
+    if leg.get("market") == "spread":
+        return f"{leg['side']} {float(leg['line']):+g} ({int(leg['price']):+d})"
     return f"{leg['side']} {float(leg['line']):g} ({int(leg['price']):+d})"
 
 
@@ -244,7 +246,7 @@ def _plan_legs(card, sport=None):
     from . import dailypicks as D
     mx = [x for x in D.master_extremes() if x["sport"] not in D.TG_EXCLUDE]
     keys = {D._gkey(x) for x in mx}
-    legs = [x for x in card["ml"] + card["ou"] if x["sport"] not in D.TG_EXCLUDE
+    legs = [x for x in card["ml"] + card["ou"] + card.get("spread", []) if x["sport"] not in D.TG_EXCLUDE
             and not (x["market"] == "total" and D._gkey(x) in keys)]
     legs = mx + sorted(legs, key=lambda x: -x["strength"])
     return [x for x in legs if not sport or x["sport"] == sport]
