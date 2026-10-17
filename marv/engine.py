@@ -1,3 +1,4 @@
+import os
 """Projection -> simulation -> market evaluation -> Max veto stack, for any sport.
 
 Following the Marv specs, the projection is built without looking at prices; odds are only
@@ -159,8 +160,13 @@ def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetim
     games = [g for g in slate if g.odds]
     if pool:  # college: FBS vs FBS only
         games = [g for g in games if pool(g.home) == g.home and pool(g.away) == g.away]
+    extra_ids = set()
     if projections is not None:
-        games = [g for g in games if g.id in projections]
+        if sport.key == "cfb" and os.environ.get("MARV_CFB_ALL_PROJ", "on").lower() not in ("0", "off", "false", "no"):
+            # 2026-10-17 (Marvin): every FBS game with a line gets a ratings projection for predictions.json / H2H;
+            # games outside the stats experts' top-30 focus are projection-only (all picks vetoed, never on the card).
+            extra_ids = {g.id for g in games if g.id not in projections and g.home in ratings.offense and g.away in ratings.offense}
+        games = [g for g in games if g.id in projections or g.id in extra_ids]
     else:
         games = [g for g in games if g.home in ratings.offense and g.away in ratings.offense]
     if sport.max_games and projections is None:
@@ -213,6 +219,10 @@ def predict(sport: Sport, history: list[Game], slate: list[Game], as_of: datetim
                 pick.vetoes.extend(proj.vetoes_for(pick, pred))
             _stability_veto(pick, simulations)
         _correlation_veto(pred.picks)
+        if game.id in extra_ids:
+            for pick in pred.picks:
+                pick.vetoes.append("projection only (outside top-30 focus)")
+            pred.projection_only = True
         out.append(pred)
     return out
 

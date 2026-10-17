@@ -369,7 +369,168 @@ def _live_total_read(sport: str, rec: dict, text: str | None, side: str, line):
         return None
 
 
+LIVE_SIDE_EDGE = 0.04  # Marv live win/cover prob must beat the price's implied prob by this for a 👍 (👎 if below by it)
+LIVE_TT_EDGE = {"nfl": 2.0, "cfb": 2.5, "wnba": 3.0}  # pts projected-team-score vs team-total line for 👍/👎
+
+
+def _abbr_sim(t: str, name: str) -> float:
+    """similarity() that also understands ESPN abbreviations on live cards (WASH ~ Washington, TULN ~ Tulane)."""
+    sc = similarity(t, name)
+    a = "".join(ch for ch in t.lower() if ch.isalpha())
+    if 2 <= len(a) <= 5:
+        words = [w for w in name.lower().replace("-", " ").split() if w]
+        if any(w.startswith(a) for w in words) or (words and a[0] == words[0][0] and
+                                                   all(c in words[0] for c in a) and a[:2] == words[0][:2]):
+            sc = max(sc, 0.95)
+    return sc
+
+
+def _live_score2(sport: str, rec: dict, text: str | None):
+    """Like _live_score but abbreviation-aware; on a tie assumes the ESPN 'AWAY x – y HOME' order."""
+    import re
+    if not text:
+        return None
+    pat = re.compile(r"^\W*\s*(.+?)\s+(\d+)\s*[–-]\s*(\d+)\s+(.+?)\s*·\s*(\d{1,2}):(\d{2})\s+(1st|2nd|3rd|4th|OT)\b")
+    for ln in str(text).splitlines():
+        m = pat.match(ln.strip())
+        if not m:
+            continue
+        t1, s1, s2, t2, mm, ss, per = m.groups()
+        cfg = GAME.get(sport, GAME["nfl"])
+        q = cfg["minutes"] / 4
+        n = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4}.get(per)
+        clock = int(mm) + int(ss) / 60
+        left = clock if n is None else (4 - n) * q + clock
+        h1 = _abbr_sim(t1, rec["home"]) + _abbr_sim(t2, rec["away"])
+        a1 = _abbr_sim(t1, rec["away"]) + _abbr_sim(t2, rec["home"])
+        home_first = h1 > a1
+        hs, as_ = (float(s1), float(s2)) if home_first else (float(s2), float(s1))
+        return hs, as_, left
+    return None
+
+
+def _implied(price) -> float | None:
+    try:
+        a = float(price)
+    except (TypeError, ValueError):
+        return None
+    return 100 / (a + 100) if a > 0 else -a / (-a + 100)
+
+
+def _live_side_read(sport: str, rec: dict, text: str | None, t: str, line, price, spread: bool):
+    """2026-10-16 (Marvin): live ML/spread H2H = Marv in-game projection (live_state) -> win (or cover) prob for the
+    alerted side vs the price. (verdict, why) or None. Information only: never a veto (MARV_VETO_LIVE stays off)."""
+    try:
+        sc = _live_score2(sport, rec, text)
+        if sc is None:
+            return None
+        hs, as_, left = sc
+        st = live_state(rec, sport, hs, as_, left)
+        name = rec["home"] if t == "home" else rec["away"]
+        sgn = 1 if t == "home" else -1
+        if spread and line is not None:
+            m = sgn * st["exp_margin"]
+            p = 1 - _norm_cdf((-float(line) - m) / st["sd_m"])
+            what = f"cover {float(line):+g}"
+        else:
+            p = st["p_home"] if t == "home" else 1 - st["p_home"]
+            what = "win"
+        imp = _implied(price)
+        if imp is None:
+            verdict = "mixed"
+        else:
+            verdict = "good" if p - imp >= LIVE_SIDE_EDGE else ("not" if p - imp <= -LIVE_SIDE_EDGE else "mixed")
+        sc_txt = f"{rec['away']} {as_:.0f}–{hs:.0f} {rec['home']}, {left:.0f} min left"
+        return verdict, (f"live: Marv {name} {what} {p:.0%}" + (f" vs price {imp:.0%}" if imp is not None else "")
+                         + f" (projected margin {name} {sgn * st['exp_margin']:+.1f}; {sc_txt})")
+    except Exception:  # noqa: BLE001 - never break the alert
+        return None
+
+
+def _live_tt_read(sport: str, rec: dict, text: str | None, side: str, line, team: str | None):
+    """Live team-total H2H: Marv projected final team score (same split as state/live_tt_shadow.json:
+    (exp_total ± exp_margin)/2) vs the team-total line. (verdict, why) or None. Information only."""
+    import re
+    try:
+        if line is None:
+            return None
+        nm, sd = team, side
+        m = re.search(r"VALUE\W+(.+?)\s+(OVER|UNDER)\s+([\d.]+)", str(text or ""), re.I)
+        if m:
+            nm, sd = m.group(1).strip(), m.group(2)
+        if not nm or not sd:
+            return None
+        t = "home" if _abbr_sim(nm, rec["home"]) >= _abbr_sim(nm, rec["away"]) else "away"
+        if max(_abbr_sim(nm, rec["home"]), _abbr_sim(nm, rec["away"])) < 0.5:
+            return None
+        sc = _live_score2(sport, rec, text)
+        if sc is None:
+            return None
+        hs, as_, left = sc
+        st = live_state(rec, sport, hs, as_, left)
+        proj = (st["exp_total"] + st["exp_margin"]) / 2 if t == "home" else (st["exp_total"] - st["exp_margin"]) / 2
+        over = sd.lower().startswith("o")
+        gap = (proj - float(line)) if over else (float(line) - proj)
+        e = LIVE_TT_EDGE.get(sport, 2.5)
+        verdict = "good" if gap >= e else ("not" if gap <= -e else "mixed")
+        name = rec[t]
+        return verdict, (f"live: Marv projects {name} {proj:.1f} vs team total {float(line):g} "
+                         f"({int(hs if t == 'home' else as_)} so far, {left:.0f} min left) → "
+                         f"{'supports' if gap >= e else 'against' if gap <= -e else 'too close for'} the {'Over' if over else 'Under'}")
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _track_live_read(state_dir: Path, sport: str, market: str, side: str, line, price, o) -> None:
+    """Log each live H2H read once (sport+game+market+side+line) to state/live_h2h_reads.json; grade_live_reads() grades."""
+    try:
+        import os as _os
+        from datetime import datetime, timezone
+        path = state_dir / "live_h2h_reads.json"
+        book = json.loads(path.read_text()) if path.exists() else []
+        k = [sport, o.game, market, side, None if line in (None, "") else float(line)]
+        if any(r.get("key") == k for r in book):
+            return
+        book.append({"key": k, "at": datetime.now(timezone.utc).isoformat(), "sport": sport, "game": o.game,
+                     "market": market, "side": side, "line": k[4], "price": None if price in (None, "") else float(price),
+                     "verdict": o.verdict, "why": o.why, "status": "pending"})
+        tmp = path.with_suffix(".tmp"); tmp.write_text(json.dumps(book, indent=1)); _os.replace(tmp, path)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
+            other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
+    o = _overlay(state_dir, sport, market, side, line, team, other, text, price, live)
+    if live and o.found and str(o.prob).startswith("live"):
+        _track_live_read(state_dir, LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower()), market, side, line, price, o)
+    return o
+
+
+def _cfb_prop_read(market, side, line, text, live):
+    """2026-10-17 (Marvin): CFB pregame prop projection (marv/cfb_props_shadow ledger) vs the alerted prop."""
+    import html as _h
+    import re as _re
+    try:
+        from . import cfb_props_shadow as CPS
+        t = _re.sub(r"<[^>]+>", "", _h.unescape(text))
+        m = _re.search(r"[—-]\s*(.+?)\s+(OVER|UNDER)\s+([\d.]+)", t)
+        if not m or line is None:
+            return None
+        b = CPS.lookup(m.group(1).strip(), market)
+        if not b:
+            return ("n/a", f"no Marv CFB projection for {m.group(1).strip()}", "")
+        over = str(side).lower().startswith("o")
+        gap = (b["proj"] - float(line)) * (1 if over else -1)
+        e = max(2.0, 0.05 * float(line))
+        v = "good" if gap >= e else ("not" if gap <= -e else "mixed")
+        why = f"{'pregame ' if live else ''}Marv proj {b['proj']:g} vs {float(line):g}" + (f" · {b['news']}" if b.get("news") else "")
+        return (v, why, b.get("game", ""))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _overlay(state_dir: Path, sport: str, market: str, side: str, line: float | None = None, team: str | None = None,
             other: str | None = None, text: str | None = None, price: float | None = None, live: bool = False) -> Overlay:
     """Marv Predict read on one March_edge alert: every metric Marv has on the game (ratings margin, O/D category
     points, stars, Marv model, injuries/QB, line moves, Bovada vs Pinnacle, O/U trends) compared FOR / AGAINST the
@@ -386,6 +547,10 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
     from . import proven
     sport = LEAGUE_TO_SPORT.get((sport or "").lower(), (sport or "").lower())
     kind = _market_kind(market)
+    if kind == "prop" and sport == "cfb" and text:
+        cp = _cfb_prop_read(market, side, line, text, live)
+        if cp:
+            return Overlay(True, cp[0], cp[1], "CFB prop projection, unproven (info only, no veto)", cp[2])
     rec = None
     if team:
         rec = find_game(state_dir, sport, team, other)
@@ -411,6 +576,8 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         if best is not None and score >= 0.75:
             rec = _from_card(best)
     if rec is None:
+        if live and kind in ("ml", "spread", "team_total") and sport in ("nfl", "cfb", "wnba"):
+            return Overlay(True, "n/a", "live: no Marv pregame model for this game", "information only", "")
         return Overlay(False)
     game = f"{rec['away']} @ {rec['home']}"
     card = _card_for(state_dir, sport, rec)
@@ -425,7 +592,16 @@ def overlay(state_dir: Path, sport: str, market: str, side: str, line: float | N
         t = _team_side(side, rec)
         if t is None:
             return Overlay(False)
+        if live:
+            lv = _live_side_read(sport, rec, text, t, line, price, kind == "spread")
+            if lv:
+                return Overlay(True, lv[0], lv[1], "live projection, unproven (info only, no veto)", game)
         ins = I.side_insight(state_dir, sport, rec, card, t, line, price, live, spread=(kind == "spread"))
+    elif kind == "team_total" and live:
+        lv = _live_tt_read(sport, rec, text, side, line, team)
+        if lv:
+            return Overlay(True, lv[0], lv[1], "live projection, unproven (info only, no veto)", game)
+        return Overlay(True, "n/a", "live team total: no live score/line to compare", "information only", game)
     elif kind == "total" and live:
         lv = _live_total_read(sport, rec, text, side, line)
         if lv:

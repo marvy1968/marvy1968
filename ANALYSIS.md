@@ -901,3 +901,32 @@ index is kept as an info feature, not a pick signal.
 `stats-backtest --resume` saves each finished week-sized chunk to `state/reports/ckpt_<sport>_<first>-<last>.pkl`; `--budget-min N` stops cleanly after N minutes
 and prints PARTIAL, so the job can simply be repeated until it prints the report. Resumed runs refit the experts at the first unfinished chunk (still no look-ahead).
 The ESPN historical-odds scrape for the college basketball training seasons is also cached per half-month, so killed runs keep their finished chunks.
+
+## Prop grade v2: per-prop 👍 / neutral / 👎 (Marvin 2026-10-16, SHADOW ONLY)
+
+`marv/propgrade.py prop_grade()` + weights `marv/propgrade_model.json`. Inputs per prop side: market no-vig probability (price),
+Marv's gradient-boosted projection P(over) (usage, opponent defense vs position, team implied points, home/roof/wind), the
+player's recent-form P(over), opponent defense ratio, usage trend, team implied points (market pace/script), and the Marv
+game-script read (`/opt/marv-feed/game_script.read`: Def Grind / Lean Grind lean under, Shootout leans over) as a nudge capped
+at ±3 pts (= `game_script.PROP_CAP`) so props don't double-count the total. Logistic weights fit on real 2025 NFL lines; 👍 = EV
+≥ +3% at the actual price and Marv's projection or the player's form on that side; 👎 = EV ≤ −3%; max 2 over 👍 per game.
+NFL pass/rush/rec yards + receptions only; WNBA/CFB/NHL/MLB/soccer props have no player model here and stay neutral.
+
+Out-of-sample (fit 2025 wk1-6; the variant was chosen on two inner folds inside wk1-6; research/propgrade_v2):
+
+| Unseen set | (a) March_edge + Marv game read | (b) prop grade 👍 | (c) no Marv filter |
+|---|---|---|---|
+| T1 every real NFL line, both sides, 2025-10-16..11-10 | 810-810, −6.3% (1,620) | 142-146, −5.3% (288) | 1608-1608, −6.5% (3,216) |
+| T2 March_edge rule replayed, 2025-10-19..11-09 | 9-6, +17.4% (15) | 9-0, +95.8% (9) | 15-9, +22.6% (24) |
+| T3 March_edge actual NFL pregame picks, 2026-10-02..10-13 | 17-11, −1.9% (28) | 22-12, +4.8% (34) | 35-19, +7.1% (54) |
+| T2+T3 combined | 26-17, +4.8% (43) | 31-12, +23.8% (43) | 50-28, +11.9% (78) |
+| T2+T3, March_edge ⭐⭐+ only (EV ≥ 7%) | 17-11, +2.1% (28) | 19-7, +22.1% (26) | 28-16, +4.9% (44) |
+| T3 other sports (WNBA 26, NHL 12, NCAAF 9) | same as (c): WNBA −16.0%, NHL +1.0%, NCAAF −58.5% | no grade | |
+
+Reading: on 3,216 unseen real lines the grade has no edge (always-under did better, +1.9%); on March_edge's own picks it beat
+the game read, but on 43 picks, below the 100 needed. The game read itself removed more winners than losers ((a) < (c)).
+**Not switched.** The Kalshi demo prop path is unchanged (its `source: march_edge` path already trades March_edge's sent
+prop alerts without the game read; the legacy `marv` path still has the game-read veto). `marv-propgrade.timer` grades every
+March_edge pregame NFL prop into `state/propgrade/shadow.jsonl` and `state/propgrade/summary.json` ((a)/(b)/(c) on graded
+picks). Promotion bar: 100+ graded 👍 with ROI above (a) and (c), then Marvin decides; `MARV_PROPGRADE_LIVE=1` (default
+off) is the flag a Kalshi prop_feed hook would check.

@@ -148,9 +148,13 @@ SPORTS: dict[str, Sport] = {s.key: s for s in [
           espn_paths=[("soccer/eng.1", "Premier League"), ("soccer/esp.1", "La Liga"),
                       ("soccer/ita.1", "Serie A"), ("soccer/ger.1", "Bundesliga"),
                       ("soccer/fra.1", "Ligue 1"), ("soccer/usa.1", "MLS"),
+                      ("soccer/mex.1", "Liga MX"), ("soccer/arg.1", "Liga Profesional Argentina"),
+                      ("soccer/usa.nwsl", "NWSL"), ("soccer/usa.w.usl.1", "USL Super League"),
                       ("soccer/uefa.champions", "Champions League")],
+          # Odds API keys only where The Odds API lists the league (no NWSL / USL Super League key)
           odds_api_keys=["soccer_epl", "soccer_spain_la_liga", "soccer_italy_serie_a",
                          "soccer_germany_bundesliga", "soccer_france_ligue_one", "soccer_usa_mls",
+                         "soccer_mexico_ligamx", "soccer_argentina_primera_division",
                          "soccer_uefa_champs_league"]),
 ]}
 

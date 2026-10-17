@@ -170,6 +170,13 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
                 parlay.save_prices(state, sport, events, now)
             except Exception:  # noqa: BLE001
                 log.exception("bovada price save failed")
+            # Oct 16 2026 (Marvin): CFB +200..+299 ML dog shadow — reuse this pull, 0 extra credits
+            if sport == "cfb":
+                try:
+                    from . import cfb_dog_shadow
+                    cfb_dog_shadow.ingest(now)
+                except Exception:  # noqa: BLE001
+                    log.debug("cfb dog shadow ingest failed", exc_info=True)
         for rec in recs:
             ev = max(events, key=lambda e: min(similarity(rec["home"], e["home_team"]), similarity(rec["away"], e["away_team"])),
                      default=None)

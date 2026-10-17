@@ -1,0 +1,10 @@
+{
+ "params": {
+  "f2": 0.523,
+  "beta_lead": -0.024,
+  "beta_trail": 0.1022,
+  "end_minute": 93.0
+ },
+ "fit_on": "HT/FT train < 2026-08-21",
+ "version": "soccer-live-props-1.0"
+}

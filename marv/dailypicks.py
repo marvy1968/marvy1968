@@ -43,6 +43,7 @@ TIER_ICON = {"HIGH": "🔥", "SIGNAL": "📈", "LEAN": "🧮"}
 TIER_NAME = {"HIGH": "A·HIGH", "SIGNAL": "B·SIGNAL", "LEAN": "C·LEAN"}
 UF_MAX_FAV = float(os.environ.get("UF_MAX_FAV", "-500"))
 MIN_LEAN_EDGE = float(os.environ.get("DAILY_MIN_EDGE", "0.02"))
+MAX_LEG_REUSE = int(os.environ.get("DAILY_MAX_LEG_REUSE", "2"))  # 2026-10-17: a leg appears in <= 2 ranked parlays
 PARLAYS_PER_SPORT = int(os.environ.get("DAILY_PARLAYS_PER_SPORT", "5"))
 STRAIGHT_MAX = int(os.environ.get("DAILY_STRAIGHT_MAX", "10"))
 WINDOW_H = int(os.environ.get("DAILY_WINDOW_HOURS", "22"))
@@ -284,6 +285,7 @@ def dedupe(legs: list[dict]) -> list[dict]:
 def parlays(legs: list[dict], n: int = PARLAYS_PER_SPORT) -> list[dict]:
     """Ranked 2-leg parlays inside one sport, distinct games only (no correlated same-game legs)."""
     out = []
+    legs = [x for x in legs if _pool_ok(x)]
     for a, b in itertools.combinations(legs, 2):
         if a["game"] == b["game"] or _gkey(a) == _gkey(b):
             continue
@@ -291,11 +293,93 @@ def parlays(legs: list[dict], n: int = PARLAYS_PER_SPORT) -> list[dict]:
                     "score": round(a["strength"] + b["strength"], 3),
                     "tiers": "+".join(sorted({a["tier"], b["tier"]}, key=lambda t: -TIER_BASE[t]))})
     out.sort(key=lambda p: (-p["score"], -p["price"]))
-    return out[:n]
+    return _cap_reuse(out, n)
+
+
+def _lid(leg: dict) -> tuple:
+    return _gkey(leg) + (leg.get("market"), leg.get("side"))
+
+
+def _cap_reuse(ranked: list[dict], n: int, cap: int = MAX_LEG_REUSE) -> list[dict]:
+    """2026-10-17 (Marvin): the same leg may appear in at most `cap` of the ranked parlays."""
+    out, used = [], {}
+    for p in ranked:
+        ids = [_lid(x) for x in p["legs"]]
+        if any(used.get(i, 0) >= cap for i in ids):
+            continue
+        for i in ids:
+            used[i] = used.get(i, 0) + 1
+        out.append(p)
+        if len(out) >= n:
+            break
+    return out
+
+
+def _marv_total(leg: dict):
+    """Marv's own projected total for this leg's game (state/predictions.json), or None."""
+    from .data.teams import similarity
+    P = _jload(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")) / "predictions.json", {})
+    best, sc = None, 0.0
+    for r in P.values():
+        if r.get("sport") != leg.get("sport"):
+            continue
+        v = min(similarity(str(r.get("home")), str(leg.get("home"))), similarity(str(r.get("away")), str(leg.get("away"))))
+        if v > sc:
+            best, sc = r, v
+    return float(best["model_total"]) if best is not None and sc >= 0.75 and best.get("model_total") is not None else None
+
+
+def refine(legs: list[dict], uf: list) -> list[dict]:
+    """2026-10-17 (Marvin): (3) generic CFB OVER-FADE under counts as a B signal only when Marv's projected total is
+    also below the line; (2) a leg opposite a Master/Script extreme on the same game total is dropped (the extreme is
+    the stronger side), so /parlay and the /card plan never disagree."""
+    out = []
+    try:
+        mx = {(_gkey(x), "total"): x for x in master_extremes()}
+    except Exception:  # noqa: BLE001
+        mx = {}
+    for x in legs:
+        why = str(x.get("why", ""))
+        if (x.get("sport") == "cfb" and x.get("market") == "total" and x.get("side") == "Under" and x.get("tier") == "SIGNAL"
+                and why.split(":")[0].strip() == "OVER-FADE" and not x.get("master_extreme")):
+            mt = _marv_total(x)
+            if mt is None or x.get("line") is None or mt >= float(x["line"]):
+                uf.append(f"CFB {x.get('game')} Under {x.get('line')}: OVER-FADE without Marv under "
+                          f"(Marv {'n/a' if mt is None else f'{mt:.1f}'})")
+                continue
+        if x.get("sport") == "cfb" and x.get("market") == "ml" and x.get("price") is not None and \
+                not (-300 <= float(x["price"]) <= -101):  # option B: no CFB ML dogs (+100 or longer), favs -101..-300
+            uf.append(f"CFB {x.get('side')} ML {float(x['price']):+.0f}: outside the -101..-300 favorite band")
+            continue
+        m = mx.get((_gkey(x), x.get("market")))
+        if m is not None and not x.get("master_extreme") and m["side"] != x.get("side") and m["strength"] >= x["strength"]:
+            uf.append(f"{x['sport'].upper()} {x.get('game')} {x.get('side')} {x.get('line')}: conflicts with "
+                      f"Master extreme {m['side']} {m.get('line')} (kept the stronger side)")
+            continue
+        out.append(x)
+    return out
+
+
+def refine_card(card: dict, now=None) -> dict:
+    """Re-apply refine + leg cap to a stored card (no projections, no credits)."""
+    legs, seen = [], set()
+    for x in card["ml"] + card["ou"] + [l for ps in card["parlays"].values() for p in ps for l in p["legs"]]:
+        k = _lid(x)
+        if k not in seen:
+            seen.add(k); legs.append(x)
+    uf = list(card.get("uf_removed", []))
+    t = now or datetime.now(timezone.utc)
+    legs = [x for x in legs if not str(x.get("why", "")).startswith(ATS_LABEL)] + ats_legs(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")), t)
+    new = build(legs, uf, card["sports_checked"], t)
+    for k in ("date", "built", "upset_tags"):
+        if k in card:
+            new[k] = card[k]
+    new["refined"] = datetime.now(timezone.utc).isoformat()
+    return new
 
 
 def build(legs: list[dict], uf: list, sports_checked: list, now: datetime) -> dict:
-    legs = dedupe(legs)
+    legs = dedupe(refine(legs, uf))
     by_sport = {}
     for leg in legs:
         by_sport.setdefault(leg["sport"], []).append(leg)
@@ -305,6 +389,7 @@ def build(legs: list[dict], uf: list, sports_checked: list, now: datetime) -> di
             "parlays": {s: p for s in order if s in by_sport and (p := parlays(by_sport[s]))},
             "ml": [x for x in legs if x["market"] == "ml"][:STRAIGHT_MAX],
             "ou": [x for x in legs if x["market"] == "total"][:STRAIGHT_MAX],
+            "spread": [x for x in legs if x["market"] == "spread"][:STRAIGHT_MAX],
             "uf_removed": uf, "n_legs": len(legs)}
 
 
@@ -316,6 +401,8 @@ def _pick(leg: dict) -> str:
     t = leg["side"].split()[-1] if leg["sport"] == "nfl" else leg["side"]
     if leg["market"] == "ml":
         return f"{t} ML {leg['price']:+.0f}"
+    if leg["market"] == "spread":
+        return f"{leg['side']} {leg['line']:+g} ({leg['price']:+.0f})"
     return f"{leg['side']} {leg['line']:g} ({leg['price']:+.0f})"
 
 
@@ -360,9 +447,12 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
     if thin:
         lines.append(" only 1 qualifying game (no 2-leg combo): " + ", ".join(thin))
     if full:
-        for title, key in (("💰 BEST PREGAME MONEYLINES", "ml"), ("📐 BEST PREGAME OVER/UNDERS", "ou")):
+        for title, key in (("💰 BEST PREGAME MONEYLINES", "ml"), ("📏 TOP-30 ATS (B signal, tracking)", "spread"),
+                           ("📐 BEST PREGAME OVER/UNDERS", "ou")):
+            if key == "spread" and not card.get("spread"):
+                continue
             lines += ["", f"━━ {title} ━━"]
-            rows = [x for x in card[key] if not sport or x["sport"] == sport]
+            rows = [x for x in card.get(key, []) if not sport or x["sport"] == sport]
             if not rows:
                 lines.append(" none qualified today")
             for i, x in enumerate(rows, 1):
@@ -372,6 +462,13 @@ def text(card: dict, test: bool = False, paper: bool = True, sport: str | None =
     try:
         from . import ufp_uvf
         lines += ufp_uvf.card_lines([t for t in card.get("upset_tags", []) if not sport or t["sport"] == sport])
+    except Exception:  # noqa: BLE001
+        pass
+    try:  # 2026-10-17 (Marvin): one line, best Bovada CFB pregame prop 👍 (tracking; no % until proven)
+        from . import cfb_props_shadow as _cps
+        _pl = _cps.card_line() if sport in (None, "cfb") else ""
+        if _pl:
+            lines.extend(["", _pl])
     except Exception:  # noqa: BLE001
         pass
     lines += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked by leg "
@@ -401,7 +498,7 @@ def log_card(state: Path, card: dict) -> int:
     for s, ps in card["parlays"].items():
         for p in ps:
             add("parlay2", s, p["legs"], p["price"])
-    for x in card["ml"] + card["ou"]:
+    for x in card["ml"] + card["ou"] + card.get("spread", []):
         add("straight", x["sport"], [x], x["price"])
     _jsave(path, book)
     return n
@@ -427,6 +524,11 @@ def _settle(book: list) -> None:
 
 
 def _grade_leg(l: dict, hs: float, as_: float) -> str:
+    if l["market"] == "spread":  # 2026-10-17 option B: top-30 ATS legs (line = the picked team's spread)
+        from .data.teams import similarity
+        m = (hs - as_) if similarity(l["side"], l["home"]) >= similarity(l["side"], l["away"]) else (as_ - hs)
+        v = m + float(l["line"])
+        return "push" if v == 0 else ("win" if v > 0 else "loss")
     if l["market"] == "total":
         v = (hs + as_ - l["line"]) * (1 if l["side"] == "Over" else -1)
     else:
@@ -479,7 +581,69 @@ def record(state: Path) -> str:
         lo = sum(r["result"] == "loss" for r in rows)
         u = sum(r["profit"] or 0 for r in rows)
         out.append(f"{'2-leg parlays' if kind == 'parlay2' else 'straight ML/O-U'} {w}-{lo} ({u:+.1f}u, n={len(rows)})")
-    return "Paper record: " + " · ".join(out)
+    line = "Paper record: " + " · ".join(out)
+    try:  # 2026-10-17 (Marvin): one compact line per sport (ML / O/U / Props W-L)
+        bd = sport_breakdown(state)
+        if bd:
+            line += "\n" + bd
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: sport breakdown")
+    return line
+
+
+def _wl(rows, price_key="price"):
+    from . import edges as E
+    d = [r for r in rows if r.get("result") in ("win", "loss")]
+    w = sum(r["result"] == "win" for r in d)
+    u = sum((r.get("profit") if r.get("profit") is not None else
+             (0.5 * E.payout(r.get(price_key) or -110) if r["result"] == "win" else -0.5)) for r in d)
+    return w, len(d) - w, u
+
+
+def _fmt(name, w, l, u):
+    n = w + l
+    if n >= 100 and u > 0:  # proven: 100+ graded and profitable -> % allowed
+        return f"{name} {w}-{l} ({w / n:.0%})"
+    return f"{name} {w}-{l}"
+
+
+def sport_breakdown(state: Path) -> str:
+    """Per sport: straight ML, O/U (daily card paper log) and Props (Marv prop shadows). Empty categories omitted;
+    sports in TG_EXCLUDE (NBA until the Oct 27 review) hidden. No % unless 100+ graded and profitable."""
+    book = [r for r in _jload(_dir(state) / LOG, []) if r.get("kind") == "straight"]
+    cats: dict = {}
+    for r in book:
+        leg = (r.get("legs") or [{}])[0]
+        sp = r.get("sport") or leg.get("sport")
+        mk = leg.get("market")
+        cats.setdefault(sp, {}).setdefault("O/U" if mk == "total" else ("ATS" if mk == "spread" else "ML"), []).append(r)
+    props: dict = {}
+    for b in _jload(Path(state) / "props_cfb_shadow.json", []):  # CFB Bovada props 👍 (marv/cfb_props_shadow)
+        if b.get("grade") == "👍":
+            props.setdefault("cfb", []).append({"result": b.get("result"), "price": b.get("price")})
+    pg = Path(state) / "propgrade" / "shadow.jsonl"  # NFL prop grade v2 👍 (if graded)
+    if pg.exists():
+        for ln in pg.read_text().splitlines():
+            try:
+                b = json.loads(ln)
+            except ValueError:
+                continue
+            if str(b.get("grade", "")).startswith("👍") and b.get("result") in ("win", "loss"):
+                props.setdefault("nfl", []).append({"result": b["result"], "price": b.get("price")})
+    for sp, rows in props.items():
+        cats.setdefault(sp, {})["Props"] = rows
+    out = []
+    for sp in [x for x in SPORTS if x in cats] + sorted(x for x in cats if x not in SPORTS and x):
+        if sp in TG_EXCLUDE:
+            continue
+        parts = []
+        for name in ("ML", "ATS", "O/U", "Props"):
+            w, l, u = _wl(cats[sp].get(name, []))
+            if w + l:
+                parts.append(_fmt(name, w, l, u))
+        if parts:
+            out.append(f"{EMOJI.get(sp, '•')} {NAME.get(sp, sp.upper())}: " + " · ".join(parts))
+    return "\n".join(out)
 
 
 # ---------------------------------------------------------------- entry points
@@ -510,6 +674,10 @@ def collect(s, now: datetime, sports=SPORTS, refresh: bool = True) -> dict:
         checked.append("soccer")
     except Exception:  # noqa: BLE001
         log.exception("daily picks: soccer failed")
+    try:
+        legs += ats_legs(state, now, WINDOW_H)
+    except Exception:  # noqa: BLE001
+        log.exception("daily picks: top-30 ATS")
     card = build(legs, uf, checked, now)
     try:  # UFP Trap Warning / UVF Value Dog tags (tracking only, MARV_UPSET=1)
         from . import ufp_uvf
@@ -542,6 +710,13 @@ def answer(settings, parts=None, full: bool = True) -> str:
         from . import ufp_uvf
         if ufp_uvf.ON:
             extra = "\n" + html.escape(ufp_uvf.record_line(state))
+    except Exception:  # noqa: BLE001
+        pass
+    try:  # Oct 16 2026 (Marvin): CFB +200..+299 dog shadow (tracking-only)
+        from . import cfb_dog_shadow
+        _dog = cfb_dog_shadow.record_line(state)
+        if _dog:
+            extra += "\n" + html.escape(_dog)
     except Exception:  # noqa: BLE001
         pass
     return text(card, paper=getattr(settings, "paper_mode", True), sport=sport, full=full) + "\n" + \
@@ -578,8 +753,8 @@ def _just(leg):
 
 def _combos(legs, k, n):
     out = []
-    pool = legs[:12]
-    for c in itertools.combinations(pool, k):
+    pool = [x for x in legs if _pool_ok(x)][:12]
+    for c in itertools.combinations(pool, k):  # ranked; reuse capped by _cap_reuse
         if len({_gkey(x) for x in c}) < k:
             continue  # distinct games only
         tiers = sorted({x["tier"] for x in c if not x.get("master_extreme")}, key=lambda t: -TIER_BASE[t])
@@ -588,7 +763,7 @@ def _combos(legs, k, n):
                     "score": sum(x["strength"] for x in c) / k, "tiers": "+".join(tn),
                     "half": any((x.get("uf_stake") or 1) < 1 for x in c)})
     out.sort(key=lambda p: (-p["score"], -p["price"]))
-    return out[:n]
+    return _cap_reuse(out, n)
 
 
 MASTER_DIR = Path(os.environ.get("MARV_MASTER_STATE", "/opt/marv-bot/state/master"))
@@ -657,7 +832,7 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
     mx = [x for x in master_extremes() if x["sport"] not in TG_EXCLUDE]
     mkeys = {(x["sport"], x["away"].split()[0].lower(), x["home"].split()[0].lower()): x for x in mx}
     legs = []
-    for x in card["ml"] + card["ou"]:
+    for x in card["ml"] + card["ou"] + card.get("spread", []):
         if x["sport"] in TG_EXCLUDE:
             continue
         m = mkeys.get((x["sport"], str(x["away"]).split()[0].lower(), str(x["home"]).split()[0].lower()))
@@ -685,10 +860,10 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
     for k in (3, 4, 5):
         big += _combos(legs, k, 2)
     big.sort(key=lambda p: (-p["score"], -p["price"]))
-    plist("2️⃣ TOP RANKED 3- TO 5-LEG PARLAYS", big[:TG_TOP])
+    plist("2️⃣ TOP RANKED 3- TO 5-LEG PARLAYS", _cap_reuse(big, TG_TOP))
     for title, key in (("3️⃣ TOP RANKED STRAIGHT MONEYLINES / SIDES", "ml"), ("4️⃣ OVER/UNDERS", "total")):
         L.extend(["", f"━━ {title} ━━"])
-        rows = [x for x in legs if x["market"] == key][:STRAIGHT_MAX]
+        rows = [x for x in legs if x["market"] == key or (key == "ml" and x["market"] == "spread")][:STRAIGHT_MAX]
         if not rows:
             L.append(" none qualified today")
         for i, x in enumerate(rows, 1):
@@ -704,11 +879,25 @@ def telegram_text(card: dict, record_line: str, test: bool = False) -> str:
             record_line = record_line + "\n" + ufp_uvf.record_line(Path(os.environ.get("STATE_DIR", "/opt/marv-bot/state")))
     except Exception:  # noqa: BLE001
         pass
+    try:  # Oct 16 2026 (Marvin): CFB +200..+299 dog shadow tracking line
+        from . import cfb_dog_shadow
+        _dog = cfb_dog_shadow.record_line()
+        if _dog:
+            record_line = (record_line + "\n" if record_line else "") + _dog
+    except Exception:  # noqa: BLE001
+        pass
     try:  # 2026-10-15 Value Plays (tracking only unless state/value_play/validation.json passed)
         from . import value_play
         L += value_play.card_lines(TG_EXCLUDE)
     except Exception:  # noqa: BLE001
         log.exception("daily picks: value plays")
+    try:  # 2026-10-17 (Marvin): one line, best Bovada CFB pregame prop 👍 (tracking; no % until proven)
+        from . import cfb_props_shadow as _cps
+        _pl = _cps.card_line()
+        if _pl:
+            L.extend(["", _pl])
+    except Exception:  # noqa: BLE001
+        pass
     L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean. Ranked best → least by leg "
           "strength, not a probability; no model % (only proven backtests print one). Paper only.", record_line]
     try:
@@ -812,3 +1001,124 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# 2026-10-17 (Marvin): /parlay <league>
+LEAGUE_ALIAS = {"ncaaf": "cfb", "cfb": "cfb", "cfootball": "cfb", "college": "cfb", "nfl": "nfl", "wnba": "wnba",
+                "nba": "nba", "soccer": "soccer", "futbol": "soccer", "epl": "soccer", "mls": "soccer", "mlb": "mlb",
+                "nhl": "nhl", "ncaab": "ncaab", "cbb": "ncaab", "ncaam": "ncaab", "ncaaw": "ncaaw",
+                "euroleague": "euroleague", "el": "euroleague"}
+LEAGUE_HELP = "ncaaf (cfb), nfl, wnba, nba, soccer, mlb, nhl, ncaab, ncaaw, euroleague"
+
+
+def league_card(settings, arg: str = "", full: bool = False) -> str:
+    """/parlay [league]: plain = the all-sport parlay card (unchanged); a league = that league's 2-leg parlays +
+    ML + O/U picks (+ its best Bovada prop line where Marv prices one: CFB)."""
+    a = (arg or "").strip().lower().lstrip("/")
+    if not a:
+        return answer(settings, None, full=full)
+    key = LEAGUE_ALIAS.get(a)
+    if key is None:
+        return html.escape(f"Unknown league '{a}'. Try /parlay with one of: {LEAGUE_HELP}. Plain /parlay shows every sport.")
+    if key == "nba" and "nba" in TG_EXCLUDE:
+        return "🏀 NBA picks are off Telegram for now; they resume after the Oct 27 review."
+    try:  # 2026-10-17: same legs as the image card (/card plan legs: Master extremes own their totals)
+        return league_text(settings, key)
+    except Exception:  # noqa: BLE001
+        log.exception("league_text")
+    out = answer(settings, ["/parlay", key], full=True)
+    if key == "cfb" and out.startswith("No qualifying"):
+        try:
+            from . import cfb_props_shadow as _cps
+            _pl = _cps.card_line()
+            if _pl:
+                out += "\n\n" + html.escape(_pl)
+        except Exception:  # noqa: BLE001
+            pass
+    return out
+
+
+
+def league_text(settings, key: str) -> str:
+    """/parlay <league> text built from exactly the legs the PNG card uses (marv.cardimg._plan_legs + _combos)."""
+    from . import cardimg as CI
+    state = Path(settings.state_dir)
+    card = _jload(_dir(state) / CARD, None)
+    if not card or card.get("date") != datetime.now(CT).date().isoformat():
+        raise RuntimeError("no card today")
+    legs = CI._plan_legs(card, key)
+    ps = _combos(legs, 2, TG_TOP)
+    d = datetime.fromisoformat(card["date"])
+    L = [f"👽 MARV PREDICT · {NAME.get(key, key)} CARD · {d:%a %b %-d}" + (" · 📝 PAPER" if getattr(settings, "paper_mode", True) else ""),
+         "", "━━ 🎰 BEST 2-LEG PARLAYS (ranked best → least) ━━"]
+    if not ps:
+        L.append(" none today (need 2+ qualifying games)")
+    for i, p in enumerate(ps, 1):
+        L.append(f" {i}) {p['price']:+d} · " + " + ".join(f"{'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_mpick(x)}" for x in p["legs"]))
+        L.append("    " + " | ".join(f"{x['game']} {_when(x['start'])}" for x in p["legs"]))
+    for title, mk in (("💰 MONEYLINES / SIDES", "ml"), ("📐 OVER/UNDERS", "total")):
+        rows = [x for x in legs if x["market"] == mk or (mk == "ml" and x["market"] == "spread")][:STRAIGHT_MAX]
+        L += ["", f"━━ {title} ━━"] + ([" none qualified today"] if not rows else [])
+        for i, x in enumerate(rows, 1):
+            L.append(f" {i}) {'🎯' if x.get('master_extreme') else TIER_ICON[x['tier']]} {_mpick(x)} · {_when(x['start'])}")
+            L.append(f"    {_just(x)}")
+    if key == "cfb":
+        try:
+            from . import cfb_props_shadow as _cps
+            pl = _cps.card_line()
+            if pl:
+                L += ["", pl]
+        except Exception:  # noqa: BLE001
+            pass
+    bd = [ln for ln in sport_breakdown(state).splitlines() if f" {NAME.get(key, key)}:" in ln]
+    L += ["", "Tiers: 🔥A passed every veto · 📈B backtested paper signal · 🧮C model lean · 🎯 Master Extreme (tracking). "
+          "Ranked by leg strength, not a probability; no win % unless proven. Paper only."] + bd
+    return html.escape("\n".join(L))
+
+
+
+# ---------------------------------------------------------------- 2026-10-17 option B (Marvin): CFB top-30 ATS
+ATS_LABEL = "TOP30-ATS"
+
+
+def _pool_ok(leg: dict) -> bool:
+    """CFB parlay legs: gated OVER-FADE unders, top-30 ATS, Master Extreme overs only. Other sports unchanged."""
+    if leg.get("sport") != "cfb":
+        return True
+    why = str(leg.get("why", ""))
+    return bool((leg.get("master_extreme") and leg.get("side") == "Over")
+                or (leg.get("market") == "total" and leg.get("side") == "Under" and why.split(":")[0].strip() == "OVER-FADE")
+                or why.startswith(ATS_LABEL))
+
+
+def ats_legs(state: Path, now: datetime, hours: int = 24) -> list[dict]:
+    """Marv's ATS lean on games Marv's stats experts project (the top-30 focus; projection-only games excluded),
+    vs the cached Bovada spread. 6-week 2026 backtest: 55-37 (+14%), unseen weeks 23-14. B signal, tracking."""
+    from . import cardimg as CI
+    out = []
+    P = _jload(Path(state) / "predictions.json", {})
+    for v in P.values():
+        try:
+            if v.get("sport") != "cfb" or "formula " not in " ".join(v.get("notes") or []):
+                continue
+            st = datetime.fromisoformat(v["start"])
+            if not (now < st <= now + timedelta(hours=hours)):
+                continue
+            b = CI._bov("cfb", v["home"], v["away"])
+            if not b or not b.get("spread") or b["spread"][0] is None:
+                continue
+            hsp, hpx, apx = b["spread"]
+            mg = float(v["model_margin"])  # home margin
+            cover = mg + float(hsp)  # >0: home covers
+            if cover == 0:
+                continue
+            home = cover > 0
+            side, line, price = (v["home"], float(hsp), hpx) if home else (v["away"], -float(hsp), apx)
+            g = type("G", (), {"home": v["home"], "away": v["away"], "start": st})
+            out.append(_leg("cfb", g, "spread", side, line, float(price or -110), "SIGNAL",
+                            TIER_BASE["SIGNAL"] + min(abs(cover), 10) / 20,
+                            f"{ATS_LABEL}: Marv {v['home'] if mg >= 0 else v['away']} by {abs(mg):.1f} vs Bovada "
+                            f"{side} {line:+g} (B signal, tracking)"))
+        except Exception:  # noqa: BLE001
+            log.exception("ats leg")
+    return out

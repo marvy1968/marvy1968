@@ -90,6 +90,7 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         except Exception:
             log.exception("situational tags failed")
     bridge.export(Path(s.state_dir), sport.key, preds)  # lets the odds bot ask Marv about any game
+    preds = [p for p in preds if not getattr(p, "projection_only", False)]  # 2026-10-17: card/ledgers unchanged
     AuditDatabase(Path(s.state_dir) / "marv_bot_audit.db").log_predictions(sport.key, preds)
     # Projections for every upcoming game stay available for queries (/game, /board); the card that gets
     # sent only covers games starting today.
@@ -534,6 +535,17 @@ def cmd_serve(s: Settings, args) -> int:
                     o = bridge.game_h2h(state, q.get("sport", ""), q.get("team") or None, q.get("other") or None,
                                         q.get("text") or None)
                     body, code = bridge.overlay_json(o), 200
+                elif url.path == "/soccer_live":  # in-game soccer prop probabilities (March_edge SHADOW tracker; no Telegram)
+                    from .soccer_max import live_props as _slp
+                    body, code = json.dumps(_slp.live_prices(
+                        state, q.get("league", ""), q.get("team") or None, q.get("other") or None, int(q["hg"]),
+                        int(q["ag"]), float(q["minute"]), q.get("ht", "").lower() in ("1", "true", "yes"))), 200
+                elif url.path == "/mlb_live":  # in-game MLB run totals (March_edge SHADOW; Marvin 2026-10-16)
+                    from . import mlb_live_props as _mlp
+                    body, code = json.dumps(_mlp.live_prices(
+                        state, q.get("team") or None, q.get("other") or None, int(q["hg"]),
+                        int(q["ag"]), float(q.get("inning") or q.get("minute") or 1),
+                        q.get("text") or None)), 200
                 elif url.path == "/predictions":
                     path = state / "predictions.json"
                     body, code = (path.read_text() if path.exists() else "{}"), 200
@@ -547,11 +559,31 @@ def cmd_serve(s: Settings, args) -> int:
                                              q["player"], q["market"], q["side"], float(q["line"]), float(q["price"]),
                                              float(q["other"]) if q.get("other") else None)
                     body, code = json.dumps(g), 200
+                elif url.path == "/card_img":  # 2026-10-17: PNG bet cards for March_edge sendPhoto (paths on this host)
+                    from . import cardimg as _ci
+                    from . import dailypicks as _dp
+                    qs = parse_qs(url.query)
+                    sp = (qs.get("sport") or [""])[0].lower()
+                    sp = _dp.LEAGUE_ALIAS.get(sp, sp) if sp else None
+                    body, code = json.dumps({"paths": _ci.images((qs.get("kind") or ["parlay"])[0], sp)}), 200
+                elif url.path == "/card":  # March_edge /parlay [league] and /reportcard [league] (read-only, no credits)
+                    from . import dailypicks as _dp
+                    qs = parse_qs(url.query)
+                    sp = (qs.get("sport") or [""])[0]
+                    full = (qs.get("full") or ["0"])[0] == "1"
+                    if (qs.get("plan") or ["0"])[0] == "1":  # /card: the daily action plan text
+                        _c = _dp._jload(_dp._dir(state) / _dp.CARD, None)
+                        txt = _dp.telegram_text(_c, _dp.record(state)) if _c else "Today's daily card isn't built yet."
+                    elif not full:
+                        txt = _dp.league_card(s, sp, full=False)
+                    else:
+                        txt = _dp.answer(s, ["/reportcard", _dp.LEAGUE_ALIAS.get(sp.lower(), sp.lower())] if sp else None, full=True)
+                    body, code = json.dumps({"text": txt}), 200
                 elif url.path == "/board":  # current edges (games + props) for the odds bot
                     path = state / "board.json"
                     body, code = (path.read_text() if path.exists() else '{"entries": []}'), 200
                 else:
-                    body, code = '{"error": "use /check, /overlay, /h2h, /grade, /predictions or /board"}', 404
+                    body, code = '{"error": "use /check, /overlay, /h2h, /soccer_live, /mlb_live, /grade, /predictions, /card or /board"}', 404
             except (KeyError, ValueError) as exc:
                 body, code = json.dumps({"error": f"bad parameters: {exc}"}), 400
             data = body.encode()
