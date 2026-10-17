@@ -1,3 +1,20 @@
 $ alpaca run-all --phase validate --months3 --families trend_stairs
-started 2026-10-17 14:20:56 EDT
-RUNNING...
+started 2026-10-17 14:20:56 EDT, took 334s, exit 0
+
+daily data ready
+## trend_stairs: trend_stairs did not beat live in both halves (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live (no trend_stairs): 348t win 36% PF 0.57 avgR -0.28 daily -0.160% CAGR -32.7% maxDD -4.9%
+- train | live + trend_stairs (3 of 4): 355t win 35% PF 0.55 avgR -0.29 daily -0.180% CAGR -35.4% maxDD -5.5%
+- train | trend_stairs alone, 3 of 4 agree: 28t win 43% PF 0.51 avgR -0.27 daily -0.047% CAGR -9.1% maxDD -0.7%
+- train | trend_stairs alone, 2 of 4 agree: 59t win 44% PF 0.56 avgR -0.22 daily -0.050% CAGR -14.5% maxDD -1.1%
+- validate | live (no trend_stairs): 365t win 33% PF 0.47 avgR -0.29 daily -0.198% CAGR -40.2% maxDD -6.3%
+- validate | live + trend_stairs (3 of 4): 370t win 33% PF 0.47 avgR -0.29 daily -0.200% CAGR -40.5% maxDD -6.4%
+- validate | trend_stairs alone, 3 of 4 agree: 29t win 34% PF 0.50 avgR -0.25 daily -0.049% CAGR -9.0% maxDD -0.8%
+- validate | trend_stairs alone, 2 of 4 agree: 64t win 38% PF 0.39 avgR -0.30 daily -0.105% CAGR -22.5% maxDD -2.0%
+ALL DONE
