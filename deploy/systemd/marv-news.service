@@ -1,0 +1,8 @@
+[Unit]
+Description=Marv news-adjusted projections (injuries/QB; projections only, no messages)
+[Service]
+Type=oneshot
+User=marvbot
+WorkingDirectory=/opt/marv-bot
+Nice=19
+ExecStart=/opt/marv-bot/.venv/bin/python -m marv.news_adjust

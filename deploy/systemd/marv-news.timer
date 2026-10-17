@@ -1,0 +1,7 @@
+[Unit]
+Description=Marv news adjust every 20 min
+[Timer]
+OnCalendar=*:5/20
+Persistent=false
+[Install]
+WantedBy=timers.target
