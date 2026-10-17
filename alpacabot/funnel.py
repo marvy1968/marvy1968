@@ -67,7 +67,16 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
     return out
 
 
-def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005, slip_bps: float = 5.0, rules: dict | None = None) -> dict:
+def market_down(spy: pd.DataFrame) -> pd.Series:
+    """True on days the market itself is falling: SPY closes under its 50-day average and that average is lower than 10 days ago."""
+    c = spy["close"].astype(float)
+    m = c.rolling(50, min_periods=50).mean()
+    return (c < m) & (m < m.shift(10))
+
+
+def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005, slip_bps: float = 5.0, rules: dict | None = None,
+             sides: tuple = ("long", "short"), short_ok: pd.Series | None = None, short_rules: dict | None = None,
+             short_exit_vote: bool = True) -> dict:
     """Signals on days start..end: enter at the next open (a gap through the stop or past the take-profit is skipped, like the live runner),
     stop first then take-profit inside a day (conservative), the sell vote at a close exits at the next open. One position per stock at a
     time. Result per trade in R; return = sum(R) x risk_pct (no portfolio cap, so it overstates exposure on busy days)."""
@@ -77,6 +86,19 @@ def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005,
         if len(d) < 200:
             continue
         f = frame(d, rules)
+        if short_rules:                                         # a different rule set for the short side only
+            fs = frame(d, {**(rules or {}), **short_rules})
+            for col in ("short_entry", "short_stop", "short_tp", "short_exit"):
+                f[col] = fs[col]
+        if "long" not in sides:
+            f["long_entry"] = False
+        if "short" not in sides:
+            f["short_entry"] = False
+        elif short_ok is not None:                              # shorts only on days the market filter allows
+            ok_by_day = dict(zip(short_ok.index.date, short_ok.to_numpy(bool)))
+            f["short_entry"] = f["short_entry"] & np.array([ok_by_day.get(x, False) for x in f.index.date], dtype=bool)
+        if not short_exit_vote:
+            f["short_exit"] = False
         o, h, l, c = (d[x].to_numpy(float) for x in ("open", "high", "low", "close"))
         dates = np.asarray(d.index.date)
         i, n = 0, len(d)

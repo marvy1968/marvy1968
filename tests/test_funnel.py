@@ -48,6 +48,19 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class FunnelShortVariantTests(unittest.TestCase):
+    def test_market_filter_and_side_selection(self):
+        from alpacabot.funnel import backtest, market_down
+        d = _daily(drift=-0.15, seed=2)
+        a, b = d.index[200].date(), d.index[-1].date()
+        allowed = backtest({"AAA": d}, a, b, sides=("short",), short_ok=market_down(d))
+        blocked = backtest({"AAA": d}, a, b, sides=("short",), short_ok=market_down(d) & False)
+        self.assertGreater(allowed["shorts"], 0)
+        self.assertEqual((allowed["longs"], blocked["trades"]), (0, 0))
+        strict = backtest({"AAA": d}, a, b, sides=("short",), short_rules={"need": 4})
+        self.assertLessEqual(strict["trades"], backtest({"AAA": d}, a, b, sides=("short",))["trades"])
+
+
 class FunnelLiveTests(unittest.TestCase):
     class B:
         def __init__(self, shortable=True, held=None):

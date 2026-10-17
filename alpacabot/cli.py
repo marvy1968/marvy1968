@@ -127,6 +127,39 @@ def run_all(a) -> int:
                 res = {"family": fam, "verdict": "see state/fx/reports/summary.md" if code == 0 else "WAITING FOR KEYS (OANDA_API_TOKEN)"}
                 if summary.exists() and code == 0:
                     lines.append(summary.read_text())
+            elif fam == "funnel_shorts":          # owner 2026-10-17 "retest first": the funnel's short side in several versions
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt, market_down
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb = {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                spy_d = load("SPY", "1Day", end2 - _td(days=700), end2, cache)
+                mdown = market_down(spy_d)
+                variants = {
+                    "A. mirror of the longs (as built)": {},
+                    "B. only when the market falls (SPY under a falling 50-day)": {"short_ok": "mdown"},
+                    "C. all 4 of 4 must agree": {"short_rules": {"need": 4}},
+                    "D. B + C": {"short_ok": "mdown", "short_rules": {"need": 4}},
+                    "E. no sell vote (stop or 1.5R only)": {"short_exit_vote": False},
+                    "F. take-profit 1.0R": {"short_rules": {"tp_r": 1.0}},
+                    "G. stop at 2-3 ATR (wider)": {"short_rules": {"stop_min_atr": 2.0}},
+                }
+                res = {"family": fam, "verdict": "see the table"}
+                for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
+                    lines.append(f"### shorts, {label}")
+                    for name, kw in variants.items():
+                        kw = dict(kw)
+                        if kw.get("short_ok") == "mdown":
+                            kw["short_ok"] = mdown
+                        m_ = funnel_bt({k: v.copy() for k, v in fb.items()}, a_, end2 - _td(days=1), sides=("short",), **kw)
+                        lines.append(f"- {name}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
+                                     f"total {m_['shorts_r']:+}R, exits {m_['exits']}")
+                        res[f"{label} | {name}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "funnel_swing":           # owner's Stock Funnel as a daily swing strategy (alpacabot.funnel), last 3 months + 12 for context
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt
