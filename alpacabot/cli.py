@@ -292,6 +292,12 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = reversal_confirm_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_revc.json")
+                elif fam == "reversal_levels":      # owner 2026-10-17: at which indicator levels price usually reverses (alpacabot.levels)
+                    from .engine import resample_bars
+                    from .levels import report_lines, study
+                    res = study({s: resample_bars(df, 5) for s, df in minute.items()}, train[0], test[1])
+                    lines += report_lines(res)
+                    (out / f"reversal_levels{qtag}.json").write_text(json.dumps(res, indent=1, default=str))
                 elif fam == "expert_breakdown":     # each expert alone through the live configuration (research.expert_breakdown)
                     from .research import expert_breakdown
                     from .zonemap import attach
