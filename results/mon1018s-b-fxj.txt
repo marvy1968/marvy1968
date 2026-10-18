@@ -1,3 +1,4 @@
 $ show fx_paper/journal-20261018.jsonl
-started 2026-10-18 18:07:22 EDT
-RUNNING...
+started 2026-10-18 18:07:22 EDT, took 0s, exit 0
+
+{"t": "2026-10-18T21:00:26+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_CHF", "side": "long", "bar": "2026-10-16T20:00:00+00:00", "close": 0.8239449999999999, "stop_dist": 0.0027760349604880608, "result": "paused (signal logged)"}
