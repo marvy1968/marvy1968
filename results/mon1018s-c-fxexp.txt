@@ -1,0 +1,3 @@
+$ read-bot-reports /opt/fx-experts
+started 2026-10-18 18:07:25 EDT
+RUNNING...
