@@ -1,3 +1,568 @@
 $ read-bot-reports /opt/fx-experts
-started 2026-10-18 18:07:25 EDT
-RUNNING...
+started 2026-10-18 18:07:25 EDT, took 1s, exit 0
+
+
+===== /opt/fx-experts/.pytest_cache/README.md (8 lines, 2026-10-02)
+# pytest cache directory #
+
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+
+**Do not** commit this to version control.
+
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
+
+===== /opt/fx-experts/FOREX_NOTES.md (86 lines, 2026-10-02)
+# Forex notes that matter for these systems
+
+General market facts come from standard references: the BIS Triennial Survey 2022, OANDA and CME education pages, and Kathy Lien's book (chapters on sessions and pairs). Numbers marked **measured** I worked out myself fr
+
+## Sessions (New York time; CT is one hour earlier)
+| Session | NY time (approx.) | Character |
+|---|---|---|
+| Sydney/Tokyo (Asia) | 17:00/19:00 – 03:00/04:00 | Quietest for EUR, GBP, CHF and CAD. JPY, AUD and NZD are active. Ranges are often *set* here and then tested in London. |
+| London | 03:00 – 12:00 | Largest share of turnover (BIS 2022: UK about 38%). Most daily highs and lows are made here. Breakouts of the Asian range start here. |
+| New York | 08:00 – 17:00 | US data comes out at 08:30 NY. London/NY overlap 08:00–12:00 is the most liquid window. Liquidity dries up after the London close (about 11:00–12:00). |
+| Rollover | 16:55 – 17:15 | Daily candle boundary, financing booked, **spreads widen several-fold**. Weekend: market closes Fri 17:00 and reopens Sun about 17:00. |
+
+**Measured:** GBP/USD average hourly range (2024-26, Dukascopy H1, by NY hour):
+- 9-11 pips from 16:00 to 01:00
+- 17-21 pips in early London (02:00-07:00)
+- 24-28 pips at 08:00-10:00 (the overlap)
+- Tapering to about 12 pips by 15:00
+
+How this shapes the systems:
+- Every entry is a resting **stop order at OANDA**, so fills happen whenever the price gets there, in any session.
+- The runner never places orders during the rollover. It waits until 17:15 NY.
+- Crabel's "open" is the 17:00 NY daily open. That is a thin, wide-spread moment, so it is a known weak point of moving an equity-futures ORB to FX.
+
+## Spreads and costs
+Typical OANDA US spreads in liquid hours (what the backtest uses, deliberately a bit wide):
+
+| Pair | Spread (pips) |
+|---|---|
+| EUR/USD | 1.4 |
+| USD/JPY | 1.4 |
+| AUD/USD | 1.4 |
+| USD/CHF | 1.8 |
+| GBP/USD | 2.0 |
+| NZD/USD | 2.0 |
+| EUR/JPY | 2.0 |
+| USD/CAD | 2.2 |
+| GBP/JPY | 3.0 |
+
+- Spreads are 2-10× wider at rollover, at the Sunday open, and in the seconds around NFP, CPI, FOMC and central-bank decisions.
+- Spread as a fraction of the stop is what matters. A 30-pip stop on GBP/JPY pays about 10% of its risk in spread alone. A 150-pip Turtle stop pays about 1-2%.
+
+## Pips and pip values
+- A pip is 0.0001, or 0.01 for JPY pairs. OANDA quotes to 1/10 pip.
+- For a USD account, 10,000 units of a XXX/USD pair = $1 per pip.
+- For USD/XXX and crosses the dollar value moves with the rate: pip $ = units × pip ÷ (USD/quote rate).
+- The sizing code (`fxexp/sizing.py`) converts every pair to USD risk.
+
+## Majors vs crosses, trending vs mean-reverting (measured, 2016-2026 daily)
+| Pair | ADR (pips, 2024-26) | 5-day variance ratio | Note |
+|---|---|---|---|
+| EUR/USD | 74 | 0.97 | slight mean reversion |
+| GBP/USD | 89 | 1.03 | slight trending |
+| USD/JPY | 128 | 0.97 | |
+| AUD/USD | 58 | 0.99 | |
+| USD/CAD | 69 | 0.95 | mean-reverting |
+| USD/CHF | 61 | 1.01 | |
+| NZD/USD | 54 | 1.00 | |
+| EUR/JPY | 126 | **0.91** | most mean-reverting |
+| GBP/JPY | 158 | **1.04** | most trending / widest |
+
+Variance ratio below 1 means mean reversion; above 1 means trending.
+
+All ratios are close to 1. Daily FX is close to a random walk, so no system should be expected to have a big edge after costs. Lien's fixed 15/30/60-pip rules were written when EUR/USD ranged about 100 pips a day. Today 
+
+These ratios are **in-sample observations**. I did **not** use them to pick pairs per system, because that would be fitting to the backtest.
+
+## News risk
+- The biggest scheduled movers:
+  - US NFP (first Friday, 08:30 NY)
+  - CPI
+
+===== /opt/fx-experts/FX_EXPERTS.md (181 lines, 2026-10-02)
+# fx-experts: eleven book systems for OANDA forex (practice)
+
+Prepared Fri 2026-10-02 (CT). Labels work the same way as in xp-test:
+- **BOOK**: I checked the wording in the author's text, or in a reprint by the author or publisher.
+- **SUMMARY**: comes from a reputable secondary restatement.
+- **DEFAULT**: our own choice, made where the book gives no number.
+
+I didn't rely on pirated full-text mirrors. Some search results pointed to PDF copies of Lien's and Bollinger's books. I only used them to confirm wording that is also in the legitimate sources cited here.
+
+## Why these five
+Marvin asked for mean reversion **and** breakout systems that suit forex. I kept authors who give **mechanical rules with explicit stops**, and preferred authors who wrote for, or tested on, currencies.
+
+| # | System id | Expert / book | Edge type | Why it fits FX |
+|---|---|---|---|---|
+| 1 | `lien-fader` | **Kathy Lien**, *Day Trading and Swing Trading the Currency Market* (Wiley; 1st ed. *Day Trading the Currency Market* 2005, 3rd ed. 2015), ch. "Technical Trading Strategies – The Fader" | mean reve
+| 2 | `raschke-soup` | **Linda Bradford Raschke & Laurence Connors**, *Street Smarts* (1995), ch. 4 "Turtle Soup" | mean reversion (failed 20-day breakout) | Fades exactly the breakouts the Turtles bought. Written for fu
+| 3 | `faith-turtle` | **Curtis Faith**, *Way of the Turtle* (McGraw-Hill 2007) and his *Original Turtle Trading Rules* | breakout / trend following | The Turtles traded currency futures as a core market group. The rules
+| 4 | `bollinger-squeeze` | **John Bollinger**, *Bollinger on Bollinger Bands* (McGraw-Hill 2001), ch. 16 "Method I – Volatility Breakout" | breakout (volatility expansion) | FX has long quiet compressions (holidays, p
+| 5 | `crabel-idnr4` | **Toby Crabel**, *Day Trading with Short Term Price Patterns and Opening Range Breakout* (Traders Press 1990) | breakout (contraction → expansion, ORB) | Crabel's statistics included currency fut
+
+Considered and not chosen:
+- **Larry Connors RSI(2)**: it is a stock/ETF strategy, and Connors argues *against* stops, which conflicts with "book stops at the broker".
+- **Ed Ponsi**, **Boris Schlossberg**, **Jared Martinez**: I could not verify mechanical rules with exact stops from legitimate sources.
+- **Lien's Inside-Day Breakout** and **Double Bollinger Bands**: same author as #1; I wanted five different experts.
+- **Larry Williams**: rules vary a lot between his editions.
+
+## Common rules (all five systems)
+- **Data and clock:** OANDA daily candles aligned to 17:00 New York. Signals come only from *completed* daily candles. Orders for "today" are placed after 17:15 NY, once the rollover spread has settled.
+- **Stops and targets live at OANDA:**
+  - Stop-entry orders carry `stopLossOnFill` and, where the book has a target, `takeProfitOnFill`.
+  - Trailing exits are done by moving the broker stop once a day.
+  - Day trades are closed at 16:50 NY.
+- **Sizing (DEFAULT):** 0.5% of NAV at risk per trade, per system. Configurable from 0.5% to 1% (`risk_pct`). Margin cap: at most 25% of NAV in margin per position.
+- **One trade per pair per system.** When one side of an OCO fills, the other side is cancelled.
+- **Spread-aware:** no order is placed or sent while the live spread is more than 2.5× the pair's typical spread. Stop entries carry `priceBound` = level ± 3× typical spread, so a gap through the level cancels the ord
+- **Pairs:** EUR/USD, GBP/USD, USD/JPY, AUD/USD, USD/CAD, USD/CHF, NZD/USD, EUR/JPY, GBP/JPY. The same universe for every system; not chosen by backtest.
+- **No news filter.** We have no calendar feed; see FOREX_NOTES.
+- **US account rules:** FIFO and no hedging. The recommended setup is **one OANDA practice sub-account per system**.
+
+---
+
+## 1. Kathy Lien – The Fader (`lien-fader`)
+**BOOK** (strategy rules, reprinted verbatim at TradeWins Daily, "The Forex Fader Strategy"; exa.ai abstract of Lien's chapter, 2015):
+
+Long:
+1. "Locate a currency pair whose 14-period ADX is less than 35. Ideally the ADX should also be trending downward."
+2. "Wait for the market to break below the previous day's low by at least 15 pips."
+3. "Place an entry order to buy 15 pips above the previous day's high."
+4. "After getting filled, place your initial stop no more than 30 pips away."
+5. "Take profit on the position when prices increase by double your risk, or 60 pips."
+
+Short is the mirror image. The chapter adds: "It uses the daily charts to identify the range-bound environment and the hourly charts to pinpoint entry levels." It also says it works best without major data releases.
+
+**Ours:**
+- **Filter:** daily ADX(14) < 35. The "ideally falling" part is optional and not coded.
+- **Arm:** price trades 15 pips beyond the prior day's low (or high).
+- **Entry:** stop order 15 pips beyond the opposite prior-day extreme.
+- **Stop and target:** stop exactly 30 pips from the fill (`stopLossOnFill.distance`); target 60 pips (2R).
+- **Timeframe and validity:** daily setup, intraday stop entry, order good for the day (GTD 17:00 NY, DEFAULT). The trade is held until stop or target; the book has no time exit.
+
+## 2. Raschke & Connors – Turtle Soup (`raschke-soup`)
+**BOOK** (Street Smarts ch. 4 rules as reprinted by TradingMarkets/Connors Group, 2003):
+1. "The futures contract must make a new 20-day low."
+2. "The previous 20-day low must have occurred at least four trading sessions earlier."
+3. "After the market falls below the previous 20-day low, place an entry buy stop 5-10 ticks above the prior 20-day low. This buy stop will be good for today only."
+4. "If the trade is triggered, place an initial good-until-cancelled sell stop one tick under today's low."
+
+Also from the book:
+- The chapter text: trail the stop as the trade becomes profitable. If stopped out on day 1 or 2, re-enter at the original entry level.
+- The Turtle Soup Plus One text: "take profits within two to six days and trail stops."
+
+===== /opt/fx-experts/OANDA_NOTES.md (90 lines, 2026-10-02)
+# OANDA v20 REST API — notes for fx-experts
+
+Sources: developer.oanda.com/rest-live-v20 (Introduction, Development Guide, Best Practices, Order/Trade/Instrument/Pricing definitions). Read on 2026-10-02.
+
+## Environments and auth
+| | Practice (fxTrade Practice) | Live (fxTrade) |
+|---|---|---|
+| REST | `https://api-fxpractice.oanda.com` | `https://api-fxtrade.oanda.com` |
+| Streaming | `https://stream-fxpractice.oanda.com` | `https://stream-fxtrade.oanda.com` |
+
+- Every request needs the header `Authorization: Bearer <personal access token>`. Practice and live tokens are separate. A token is made (or revoked and re-made) under "Manage API Access" in the OANDA hub. Making a new t
+- Account IDs look like `101-001-XXXXXXXX-001`. `101` = practice (live starts `001`). The second group is the division: `001` = OANDA Corporation (US, NFA rules).
+- `GET /v3/accounts` lists the accounts a token can use. Sub-accounts (`…-002`, `…-003`) are created in the hub, not through the API.
+- Send `Accept-Datetime-Format: RFC3339` to get ISO times (the other option is UNIX).
+
+## Rate limits and connection practice (Best Practices page)
+- At most **2 new connections per second**.
+- At most **100 requests per second** on a persistent (keep-alive) connection.
+- Use one `requests.Session`. Our client spaces calls ≥60 ms apart and backs off on 429/5xx.
+- For a live account view: `GET /accounts/{id}` once, then `GET /accounts/{id}/changes?sinceTransactionID=…`. Our 5-minute one-shot runner only needs `openTrades`, `pendingOrders`, `summary` and `pricing`.
+
+## Market data
+- `GET /v3/instruments/{instrument}/candles` takes these parameters:
+  - `granularity`: S5…M1, M5, M15, H1, H4, D, W, M
+  - `price`: M (mid), B (bid), A (ask), or a combination like `MBA`
+  - `count` (max **5000**), or `from` / `to`
+  - `dailyAlignment` (default 17) and `alignmentTimezone` (default America/New_York): daily candles roll at **17:00 New York**
+  - `weeklyAlignment`
+  - `smooth`
+- Each candle has `complete: true/false`. Only complete candles are used for signals.
+- `GET /v3/accounts/{id}/pricing?instruments=A,B` returns current bids/asks, `tradeable`, and the `closeoutBid/Ask` used for margin. Spread = ask − bid.
+- `GET /v3/accounts/{id}/instruments` returns:
+  - `pipLocation` (−4 for EUR_USD, −2 for JPY pairs)
+  - `displayPrecision` (5 or 3)
+  - `tradeUnitsPrecision` (0 = whole units)
+  - `minimumTradeSize`
+  - `marginRate`
+  - `minimumTrailingStopDistance`
+  - `guaranteedStopLossOrderMode`, etc.
+
+## Orders (POST /v3/accounts/{id}/orders, body `{"order": {...}}`)
+- **MARKET**: `timeInForce` must be FOK (default) or IOC. Optional `priceBound` = worst acceptable price.
+- **LIMIT / STOP / MARKET_IF_TOUCHED**: price threshold; `timeInForce` GTC (default), GTD + `gtdTime`, or **GFD** (cancelled at 17:00 NY). A STOP fills at "equal or worse" than its price. If the market gaps through both 
+- `triggerCondition`: DEFAULT (ask for buys, bid for sells), INVERSE, BID, ASK, MID. Orders always *fill* on their default side.
+- `positionFill`: DEFAULT, OPEN_ONLY, REDUCE_FIRST, REDUCE_ONLY. We use **OPEN_ONLY** so one system can never reduce another system's position.
+- Dependent orders created when the entry fills:
+  - `takeProfitOnFill {price}`
+  - `stopLossOnFill {price | distance}`: `distance` is measured from the fill, so a book's "30 pips from entry" is exact even after slippage
+  - `trailingStopLossOnFill {distance}`
+  - `guaranteedStopLossOnFill`: needs GSLO enabled on the account, costs a premium, and has a minimum distance
+- `clientExtensions {id, tag, comment}` labels the order. `tradeClientExtensions` labels the trade it opens. We tag every order and trade `tag=fxexp`, `comment=<system id>`, so the runner and the scorecard only ever touc
+- Change a pending order: `PUT /orders/{id}` (cancel/replace: you get a new order ID, so use the client ID). Cancel: `PUT /orders/{id}/cancel`.
+- Trade management:
+  - `PUT /trades/{id}/orders` with `{"stopLoss": {...}, "takeProfit": {...}, "trailingStopLoss": {...}}` creates, replaces or cancels the trade's dependent orders. This is how we trail stops.
+  - `PUT /trades/{id}/close` with `{"units":"ALL"}` closes the trade.
+  - `GET /trades?state=CLOSED` lists closed trades.
+  - Positions: `GET /positions`, `PUT /positions/{instr}/close`.
+- Trailing stop: the TSL follows the price by a fixed distance and is checked on the bid (long) or ask (short). None of our books uses a fixed-distance trail, so we move a normal stop-loss instead (Turtle 10-day low, Bol
+
+## Units, pips, margin and costs
+- Units = base-currency amount. +units = long, −units = short. Minimum 1 unit.
+- Pip = 10^pipLocation: 0.0001, or 0.01 for JPY pairs. Prices quote to 1/10 pip.
+- P&L per unit is in the quote currency, converted to the account currency (USD). Sizing formula: `units = NAV × risk% / (|entry − stop| × quote→USD)`.
+  - quote→USD is 1 for XXX_USD.
+  - It is 1/USDJPY for JPY pairs, and 1/USDCAD or 1/USDCHF for CAD and CHF.
+- US (NFA) accounts:
+  - Leverage caps: 50:1 on majors (2% margin), 20:1 on others (5%).
+  - **No hedging.** You can't hold a long and a short on the same instrument.
+  - **FIFO.** Trades on one instrument close oldest-first.
+  - If two systems trade EUR_USD in one account, their trades and brackets interfere. **Fix: one OANDA sub-account per system** (`OANDA_ACCOUNT_<SYSTEM>` in the env file). Without sub-accounts the runner still works, but
+
+===== /opt/fx-experts/README.md (24 lines, 2026-10-02)
+# fx-experts
+
+Five independent forex systems taken from five experts' books, for OANDA v20. They run in **practice (paper) mode by default**.
+
+| File | What's in it |
+|---|---|
+| FX_EXPERTS.md | The experts and books, each system's exact rules, sources, and what is BOOK vs DEFAULT |
+| OANDA_NOTES.md | API notes: orders, stopLossOnFill/takeProfitOnFill, rate limits, US FIFO, and the state of the VM's tokens |
+| FOREX_NOTES.md | Sessions, spreads, pips, pair behaviour, news, gaps, rollover |
+| reports/ | Backtests and path-model checks (BACKTEST_duka_h1.md is the main one) |
+| deploy/ | systemd units, env example, install script, DEPLOY.md. Not installed. |
+
+Code:
+- `fxexp/strategies/*`: one file per system. Pure functions shared by the backtest and the live runner.
+- `fxexp/backtest.py`: event engine with an intrabar path, spreads, slippage and financing.
+- `fxexp/live.py`: runner with broker-side SL/TP.
+- `fxexp/oanda.py`: client.
+- `fxexp/sizing.py`
+- `fxexp/scorecard.py`
+- `fxexp/check.py`: read-only preflight.
+
+Commands:
+- Tests: `python -m pytest -q tests`
+- Backtest: `FX_DATA=data/duka_h1 FX_TF=H1 FX_TAG=duka_h1 python run_backtest.py`
+
+===== /opt/fx-experts/deploy/DEPLOY.md (42 lines, 2026-10-02)
+# fx-experts: VM deployment plan (prepared, NOT installed)
+
+Target: instance-stockbot, `/opt/fx-experts`, user moonrider1968.
+
+Nothing existing is touched:
+- no existing unit, cron entry, env file or directory is modified, restarted or stopped;
+- the new units are named `fx-experts*`.
+
+## Before installing (needs Marvin)
+1. **Make a new OANDA *practice* API token** (OANDA hub → Manage API Access). Every OANDA token on the VM currently returns 401.
+   - Regenerating the token invalidates the old one. The old ones already fail, so this changes nothing for the other bots unless Marvin also puts the new token into their env files. That is his call.
+2. Recommended: in the OANDA hub, **create 5 practice sub-accounts**, one per system. The account is US (FIFO, no hedging), so systems sharing a pair in one account would otherwise block each other.
+3. Approve the deploy.
+
+## Install steps (run by the agent after approval)
+1. Copy `fx-experts-bundle.tgz` to `/tmp` on the VM and untar it to `/tmp/fx-experts`.
+2. Run `bash /tmp/fx-experts/deploy/install.sh`. It:
+   - creates `/opt/fx-experts` and a venv;
+   - creates `.env` (mode 600) from env.example;
+   - runs the unit tests;
+   - runs the read-only preflight (`python -m fxexp.check`): token, practice account IDs and spreads, with no orders;
+   - does one `--dry-run` pass (computes orders, sends nothing);
+   - installs the four unit files, **not enabled**.
+3. Fill in `/opt/fx-experts/.env`:
+   - the token;
+   - the account ID or IDs;
+   - TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID, copied from the existing scorecard env.
+4. Enable: `sudo systemctl enable --now fx-experts.timer fx-experts-scorecard.timer`.
+
+## What runs
+| Unit | When | What |
+|---|---|---|
+| `fx-experts.timer` → `fx-experts.service` | every 5 min (no-op Fri 17:00 – Sun 17:00 NY) | one-shot runner: daily plan after 17:15 NY, arming/placing broker-side stop entries with SL/TP, daily stop trailing, Crabel
+| `fx-experts-scorecard.timer` | Mon-Fri 16:20 CT | send-only Telegram scorecard per system (day / week / total P&L, trades, win %, open) |
+
+- **Logs:** `/opt/fx-experts/logs/runner.log` and `/opt/scorecards/logs/fx-experts.log`.
+- **State:** `/opt/fx-experts/state/live_state.json`. If it is lost, broker-side stops still protect every trade.
+
+## Safety
+- `OANDA_ENV` must be `practice`. The client also refuses the live host unless `FX_ALLOW_LIVE=YES`, which is never set.
+- Secrets are only in the mode-600 `.env`. The unit files contain no secrets.
+- **Kill switch:** set `"no_new_entries": true` in config.json (existing trades keep their broker stops), or `sudo systemctl disable --now fx-experts.timer`.
+
+===== /opt/fx-experts/logs/runner.log (132898 lines, 2026-10-18)
+2026-10-18 18:00:22 EDT [lien-zeros] GBP_USD BUY limit 70269u @ 1.32950 SL 1.32750 TP 1.33350
+2026-10-18 18:00:22 EDT [lien-zeros] GBP_JPY spread 0.16399999999998727 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] GBP_USD BUY stop 27052u @ 1.33735 SL 1.33216 TP -
+2026-10-18 18:00:22 EDT [williams-vbo] GBP_USD SELL stop 27052u @ 1.32489 SL 1.33008 TP -
+2026-10-18 18:00:22 EDT [williams-vbo] USD_JPY spread 0.09300000000001774 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] USD_JPY spread 0.09300000000001774 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] USD_CHF spread 0.0006200000000000649 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] USD_CHF spread 0.0006200000000000649 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] NZD_USD spread 0.0006199999999999539 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] NZD_USD spread 0.0006199999999999539 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] GBP_JPY spread 0.16399999999998727 too wide; defer
+2026-10-18 18:00:22 EDT [williams-vbo] GBP_JPY spread 0.16399999999998727 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] EUR_GBP spread 0.0006499999999999284 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] EUR_CHF spread 0.0009500000000000064 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] AUD_JPY spread 0.09000000000000341 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] CAD_JPY spread 0.12600000000000477 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] AUD_NZD spread 0.0012999999999998568 too wide; defer
+2026-10-18 18:00:22 EDT [tharp-random] EUR_AUD spread 0.0013900000000000023 too wide; defer
+2026-10-18 18:00:22 EDT [dalton-value] AUD_USD signal SELL market {'VAL': 0.6942, 'VAH': 0.6966, 'POC': 0.6960000000000001, 'open': 0.69695}
+2026-10-18 18:00:22 EDT [dalton-value] AUD_USD SELL market 123280u @ 0.69616 SL 0.69730 TP 0.69420
+2026-10-18 18:05:22 EDT [faith-turtle] USD_JPY BUY stop 10572u @ 159.047 SL 156.950 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] USD_JPY SELL stop 10572u @ 156.365 SL 158.462 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] USD_CHF BUY stop 10975u @ 0.83962 SL 0.82908 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] USD_CHF SELL stop 10975u @ 0.79488 SL 0.80542 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] NZD_USD BUY stop 15786u @ 0.59890 SL 0.59001 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] NZD_USD SELL stop 15786u @ 0.55644 SL 0.56533 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] GBP_JPY BUY stop 7873u @ 210.982 SL 208.166 TP -
+2026-10-18 18:05:22 EDT [faith-turtle] GBP_JPY SELL stop 7873u @ 206.875 SL 209.691 TP -
+2026-10-18 18:05:22 EDT [crabel-idnr4] USD_JPY BUY stop 54096u @ 158.181 SL 157.771 TP -
+2026-10-18 18:05:22 EDT [crabel-idnr4] USD_JPY SELL stop 54096u @ 157.771 SL 158.181 TP -
+2026-10-18 18:05:22 EDT [lien-zeros] GBP_JPY BUY limit 110844u @ 209.950 SL 209.750 TP 210.350
+2026-10-18 18:05:22 EDT [williams-vbo] USD_JPY BUY stop 68422u @ 158.365 SL 158.041 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] USD_JPY SELL stop 68422u @ 157.587 SL 157.911 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] USD_CHF BUY stop 35931u @ 0.82861 SL 0.82539 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] USD_CHF SELL stop 35931u @ 0.82089 SL 0.82411 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] NZD_USD BUY stop 49259u @ 0.56896 SL 0.56611 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] NZD_USD SELL stop 49259u @ 0.56212 SL 0.56497 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] GBP_JPY BUY stop 33137u @ 211.087 SL 210.418 TP -
+2026-10-18 18:05:22 EDT [williams-vbo] GBP_JPY SELL stop 33137u @ 209.481 SL 210.150 TP -
+2026-10-18 18:05:22 EDT [tharp-random] EUR_GBP SELL market 11858u @ 0.84184 SL 0.85072 TP -
+2026-10-18 18:05:22 EDT [tharp-random] EUR_CHF BUY market 8709u @ 0.92489 SL 0.91160 TP -
+2026-10-18 18:05:22 EDT [tharp-random] AUD_JPY SELL market 8079u @ 110.060 SL 112.804 TP -
+2026-10-18 18:05:22 EDT [tharp-random] CAD_JPY SELL market 11160u @ 111.748 SL 113.734 TP -
+2026-10-18 18:05:22 EDT [tharp-random] AUD_NZD BUY market 11927u @ 1.23154 SL 1.21075 TP -
+2026-10-18 18:05:22 EDT [tharp-random] EUR_AUD BUY market 6429u @ 1.60990 SL 1.57857 TP -
+
+===== /opt/fx-experts/reports/BACKTEST_duka_h1.md (84 lines, 2026-10-02)
+# Backtest results (Dukascopy H1 bid/ask-mid candles, 2016-01-04 .. 2026-09-29; pairs: EUR_USD, GBP_USD, USD_JPY, AUD_USD, USD_CAD, USD_CHF, NZD_USD, EUR_JPY, GBP_JPY)
+
+Costs: typical spread per pair, +0.3 pip slippage on stop/market fills, 2x spread at the 17:00 NY open, 0.3 pip/night financing (x3 Wed). R = multiple of initial risk. % columns assume 0.5% risk per trade, non-compoundin
+
+## Per system (all pairs)
+
+| System | Trades | Win | PF | Net R | Avg R | MaxDD R | MaxDD % @0.5% | Net % @0.5% |
+|---|---|---|---|---|---|---|---|---|
+| lien-fader | 611 | 37.8% | 1.18 | +71.1 | +0.116 | 41.7 | 20.9% | +35.6% |
+| faith-turtle | 941 | 31.6% | 0.72 | -128.0 | -0.136 | 131.4 | 65.7% | -64.0% |
+| raschke-soup | 1941 | 21.1% | 1.02 | +34.8 | +0.018 | 83.0 | 41.5% | +17.4% |
+| bollinger-squeeze | 179 | 33.0% | 0.86 | -10.4 | -0.058 | 20.3 | 10.1% | -5.2% |
+| crabel-idnr4 | 2122 | 42.0% | 0.96 | -39.1 | -0.018 | 67.7 | 33.9% | -19.5% |
+| **all 5 combined** | 5794 | 32.6% | 0.98 | -71.5 | -0.012 | 156.9 | 78.5% | -35.8% |
+
+## Per system per pair
+
+| System | Pair | Trades | Win | PF | Net R | Avg R | MaxDD R | MaxDD % | Net % |
+|---|---|---|---|---|---|---|---|---|---|
+| lien-fader | EUR_USD | 52 | 46.2% | 1.67 | +19.1 | +0.368 | 5.2 | 2.6% | +9.6% |
+| lien-fader | GBP_USD | 100 | 35.0% | 1.05 | +3.6 | +0.036 | 16.6 | 8.3% | +1.8% |
+| lien-fader | USD_JPY | 77 | 33.8% | 1.00 | -0.0 | -0.001 | 11.2 | 5.6% | -0.0% |
+| lien-fader | AUD_USD | 48 | 29.2% | 0.80 | -6.9 | -0.144 | 12.6 | 6.3% | -3.5% |
+| lien-fader | USD_CAD | 72 | 37.5% | 1.13 | +6.1 | +0.085 | 12.1 | 6.0% | +3.0% |
+| lien-fader | USD_CHF | 45 | 44.4% | 1.56 | +14.2 | +0.316 | 4.3 | 2.1% | +7.1% |
+| lien-fader | NZD_USD | 36 | 27.8% | 0.74 | -6.9 | -0.191 | 14.5 | 7.3% | -3.4% |
+| lien-fader | EUR_JPY | 74 | 44.6% | 1.58 | +24.1 | +0.326 | 7.1 | 3.6% | +12.1% |
+| lien-fader | GBP_JPY | 107 | 39.3% | 1.27 | +17.8 | +0.166 | 10.3 | 5.1% | +8.9% |
+| faith-turtle | EUR_USD | 111 | 28.8% | 0.69 | -16.5 | -0.148 | 20.7 | 10.4% | -8.2% |
+| faith-turtle | GBP_USD | 103 | 35.9% | 0.77 | -9.9 | -0.096 | 11.0 | 5.5% | -4.9% |
+| faith-turtle | USD_JPY | 94 | 35.1% | 1.29 | +11.9 | +0.127 | 9.9 | 4.9% | +6.0% |
+| faith-turtle | AUD_USD | 110 | 31.8% | 0.58 | -23.7 | -0.215 | 27.4 | 13.7% | -11.8% |
+| faith-turtle | USD_CAD | 102 | 28.4% | 0.68 | -16.6 | -0.162 | 20.5 | 10.3% | -8.3% |
+| faith-turtle | USD_CHF | 101 | 32.7% | 0.81 | -9.5 | -0.094 | 22.5 | 11.2% | -4.7% |
+| faith-turtle | NZD_USD | 114 | 32.5% | 0.64 | -19.6 | -0.172 | 21.0 | 10.5% | -9.8% |
+| faith-turtle | EUR_JPY | 112 | 29.5% | 0.50 | -30.4 | -0.271 | 30.4 | 15.2% | -15.2% |
+| faith-turtle | GBP_JPY | 94 | 29.8% | 0.73 | -13.8 | -0.147 | 13.8 | 6.9% | -6.9% |
+| raschke-soup | EUR_USD | 198 | 23.7% | 1.68 | +97.1 | +0.491 | 23.1 | 11.6% | +48.6% |
+| raschke-soup | GBP_USD | 217 | 17.5% | 0.76 | -42.4 | -0.195 | 49.5 | 24.8% | -21.2% |
+| raschke-soup | USD_JPY | 194 | 22.7% | 0.99 | -2.0 | -0.010 | 35.2 | 17.6% | -1.0% |
+| raschke-soup | AUD_USD | 194 | 19.6% | 0.95 | -7.8 | -0.040 | 39.2 | 19.6% | -3.9% |
+| raschke-soup | USD_CAD | 215 | 22.3% | 1.23 | +36.6 | +0.170 | 22.0 | 11.0% | +18.3% |
+| raschke-soup | USD_CHF | 241 | 22.0% | 0.97 | -4.8 | -0.020 | 33.8 | 16.9% | -2.4% |
+| raschke-soup | NZD_USD | 221 | 17.6% | 0.79 | -34.7 | -0.157 | 57.8 | 28.9% | -17.4% |
+| raschke-soup | EUR_JPY | 237 | 23.6% | 1.11 | +18.9 | +0.080 | 31.9 | 16.0% | +9.4% |
+| raschke-soup | GBP_JPY | 224 | 20.5% | 0.85 | -26.1 | -0.116 | 39.2 | 19.6% | -13.0% |
+| bollinger-squeeze | EUR_USD | 18 | 55.6% | 3.16 | +8.6 | +0.478 | 1.4 | 0.7% | +4.3% |
+| bollinger-squeeze | GBP_USD | 21 | 38.1% | 0.92 | -0.7 | -0.032 | 4.3 | 2.2% | -0.3% |
+| bollinger-squeeze | USD_JPY | 16 | 37.5% | 0.61 | -2.3 | -0.141 | 3.9 | 2.0% | -1.1% |
+| bollinger-squeeze | AUD_USD | 22 | 13.6% | 0.29 | -8.1 | -0.369 | 10.3 | 5.1% | -4.1% |
+| bollinger-squeeze | USD_CAD | 21 | 38.1% | 1.61 | +5.6 | +0.265 | 4.8 | 2.4% | +2.8% |
+| bollinger-squeeze | USD_CHF | 23 | 34.8% | 0.73 | -2.9 | -0.125 | 6.4 | 3.2% | -1.4% |
+| bollinger-squeeze | NZD_USD | 16 | 25.0% | 0.34 | -5.2 | -0.327 | 5.2 | 2.6% | -2.6% |
+| bollinger-squeeze | EUR_JPY | 18 | 38.9% | 1.27 | +1.4 | +0.079 | 1.4 | 0.7% | +0.7% |
+| bollinger-squeeze | GBP_JPY | 24 | 20.8% | 0.48 | -6.8 | -0.285 | 11.9 | 6.0% | -3.4% |
+| crabel-idnr4 | EUR_USD | 223 | 37.2% | 0.82 | -21.0 | -0.094 | 29.1 | 14.5% | -10.5% |
+| crabel-idnr4 | GBP_USD | 240 | 43.8% | 0.97 | -3.9 | -0.016 | 19.7 | 9.9% | -1.9% |
+| crabel-idnr4 | USD_JPY | 247 | 43.3% | 1.07 | +8.1 | +0.033 | 12.4 | 6.2% | +4.1% |
+| crabel-idnr4 | AUD_USD | 242 | 44.2% | 1.11 | +12.7 | +0.053 | 11.7 | 5.9% | +6.4% |
+| crabel-idnr4 | USD_CAD | 213 | 37.1% | 0.76 | -27.0 | -0.127 | 32.5 | 16.2% | -13.5% |
+| crabel-idnr4 | USD_CHF | 228 | 37.7% | 0.76 | -28.1 | -0.123 | 35.5 | 17.8% | -14.1% |
+| crabel-idnr4 | NZD_USD | 254 | 39.0% | 0.73 | -34.8 | -0.137 | 37.1 | 18.6% | -17.4% |
+| crabel-idnr4 | EUR_JPY | 227 | 48.5% | 1.30 | +28.2 | +0.124 | 12.4 | 6.2% | +14.1% |
+| crabel-idnr4 | GBP_JPY | 248 | 46.4% | 1.24 | +26.7 | +0.107 | 11.5 | 5.8% | +13.3% |
+
+## Per system per year (net R)
+
+| system | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| bollinger-squeeze | 2.5 | -3.8 | 3.6 | -9.6 | 9.5 | 0.5 | -3.0 | -3.0 | -3.3 | -5.3 | 1.5 |
+
+===== /opt/fx-experts/reports/BACKTEST_oanda_h4.md (84 lines, 2026-10-02)
+# Backtest results (real OANDA H4 mid candles, 2016-01-04 .. 2026-09-07; pairs: EUR_USD, GBP_USD, USD_JPY, AUD_USD, USD_CAD, USD_CHF, NZD_USD, EUR_JPY, GBP_JPY)
+
+Costs: typical spread per pair, +0.3 pip slippage on stop/market fills, 2x spread at the 17:00 NY open, 0.3 pip/night financing (x3 Wed). R = multiple of initial risk. % columns assume 0.5% risk per trade, non-compoundin
+
+## Per system (all pairs)
+
+| System | Trades | Win | PF | Net R | Avg R | MaxDD R | MaxDD % @0.5% | Net % @0.5% |
+|---|---|---|---|---|---|---|---|---|
+| lien-fader | 612 | 40.8% | 1.34 | +126.3 | +0.206 | 30.4 | 15.2% | +63.1% |
+| faith-turtle | 944 | 32.3% | 0.73 | -122.0 | -0.129 | 124.7 | 62.3% | -61.0% |
+| raschke-soup | 1567 | 26.9% | 1.44 | +470.7 | +0.300 | 40.2 | 20.1% | +235.3% |
+| bollinger-squeeze | 179 | 33.5% | 0.90 | -7.5 | -0.042 | 16.4 | 8.2% | -3.7% |
+| crabel-idnr4 | 2090 | 42.2% | 0.98 | -16.6 | -0.008 | 62.6 | 31.3% | -8.3% |
+| **all 5 combined** | 5392 | 35.6% | 1.15 | +450.8 | +0.084 | 75.2 | 37.6% | +225.4% |
+
+## Per system per pair
+
+| System | Pair | Trades | Win | PF | Net R | Avg R | MaxDD R | MaxDD % | Net % |
+|---|---|---|---|---|---|---|---|---|---|
+| lien-fader | EUR_USD | 51 | 49.0% | 1.87 | +23.2 | +0.454 | 4.2 | 2.1% | +11.6% |
+| lien-fader | GBP_USD | 102 | 35.3% | 1.07 | +4.5 | +0.044 | 15.5 | 7.8% | +2.3% |
+| lien-fader | USD_JPY | 79 | 39.2% | 1.26 | +12.9 | +0.163 | 7.2 | 3.6% | +6.5% |
+| lien-fader | AUD_USD | 48 | 33.3% | 0.97 | -0.9 | -0.020 | 9.4 | 4.7% | -0.5% |
+| lien-fader | USD_CAD | 70 | 38.6% | 1.16 | +7.4 | +0.105 | 15.0 | 7.5% | +3.7% |
+| lien-fader | USD_CHF | 44 | 47.7% | 1.77 | +18.2 | +0.414 | 5.1 | 2.5% | +9.1% |
+| lien-fader | NZD_USD | 40 | 27.5% | 0.73 | -8.0 | -0.199 | 16.7 | 8.3% | -4.0% |
+| lien-fader | EUR_JPY | 72 | 48.6% | 1.86 | +32.2 | +0.447 | 5.2 | 2.6% | +16.1% |
+| lien-fader | GBP_JPY | 106 | 45.3% | 1.62 | +36.9 | +0.348 | 6.1 | 3.0% | +18.4% |
+| faith-turtle | EUR_USD | 112 | 29.5% | 0.70 | -16.1 | -0.144 | 21.1 | 10.6% | -8.1% |
+| faith-turtle | GBP_USD | 103 | 35.9% | 0.77 | -10.0 | -0.098 | 11.0 | 5.5% | -5.0% |
+| faith-turtle | USD_JPY | 91 | 37.4% | 1.35 | +13.5 | +0.148 | 8.9 | 4.5% | +6.7% |
+| faith-turtle | AUD_USD | 110 | 31.8% | 0.55 | -25.7 | -0.234 | 28.7 | 14.3% | -12.9% |
+| faith-turtle | USD_CAD | 106 | 29.2% | 0.72 | -15.3 | -0.144 | 18.9 | 9.4% | -7.6% |
+| faith-turtle | USD_CHF | 104 | 33.7% | 0.77 | -11.8 | -0.113 | 24.2 | 12.1% | -5.9% |
+| faith-turtle | NZD_USD | 112 | 33.0% | 0.66 | -17.7 | -0.158 | 19.0 | 9.5% | -8.9% |
+| faith-turtle | EUR_JPY | 112 | 29.5% | 0.50 | -30.8 | -0.275 | 30.9 | 15.5% | -15.4% |
+| faith-turtle | GBP_JPY | 94 | 31.9% | 0.83 | -8.1 | -0.086 | 11.3 | 5.6% | -4.0% |
+| raschke-soup | EUR_USD | 158 | 31.6% | 2.57 | +158.9 | +1.006 | 17.0 | 8.5% | +79.5% |
+| raschke-soup | GBP_USD | 181 | 21.5% | 0.99 | -1.1 | -0.006 | 35.8 | 17.9% | -0.5% |
+| raschke-soup | USD_JPY | 155 | 28.4% | 1.27 | +28.4 | +0.183 | 23.3 | 11.6% | +14.2% |
+| raschke-soup | AUD_USD | 157 | 25.5% | 1.30 | +33.4 | +0.213 | 26.0 | 13.0% | +16.7% |
+| raschke-soup | USD_CAD | 183 | 26.2% | 1.54 | +67.1 | +0.367 | 12.4 | 6.2% | +33.6% |
+| raschke-soup | USD_CHF | 190 | 28.4% | 1.48 | +60.7 | +0.320 | 18.5 | 9.3% | +30.4% |
+| raschke-soup | NZD_USD | 182 | 24.2% | 1.24 | +29.6 | +0.163 | 31.8 | 15.9% | +14.8% |
+| raschke-soup | EUR_JPY | 191 | 30.4% | 1.60 | +75.8 | +0.397 | 17.4 | 8.7% | +37.9% |
+| raschke-soup | GBP_JPY | 170 | 26.5% | 1.15 | +17.8 | +0.105 | 14.1 | 7.0% | +8.9% |
+| bollinger-squeeze | EUR_USD | 18 | 55.6% | 3.56 | +9.1 | +0.506 | 1.4 | 0.7% | +4.6% |
+| bollinger-squeeze | GBP_USD | 20 | 40.0% | 0.79 | -1.7 | -0.083 | 4.0 | 2.0% | -0.8% |
+| bollinger-squeeze | USD_JPY | 16 | 31.2% | 0.47 | -3.5 | -0.220 | 5.2 | 2.6% | -1.8% |
+| bollinger-squeeze | AUD_USD | 22 | 13.6% | 0.26 | -8.5 | -0.385 | 11.3 | 5.6% | -4.2% |
+| bollinger-squeeze | USD_CAD | 22 | 40.9% | 1.68 | +6.3 | +0.285 | 4.3 | 2.1% | +3.1% |
+| bollinger-squeeze | USD_CHF | 23 | 34.8% | 0.83 | -1.8 | -0.076 | 5.7 | 2.8% | -0.9% |
+| bollinger-squeeze | NZD_USD | 15 | 33.3% | 0.45 | -3.3 | -0.221 | 3.3 | 1.7% | -1.7% |
+| bollinger-squeeze | EUR_JPY | 19 | 42.1% | 1.54 | +2.7 | +0.144 | 1.4 | 0.7% | +1.4% |
+| bollinger-squeeze | GBP_JPY | 24 | 16.7% | 0.46 | -6.8 | -0.285 | 11.8 | 5.9% | -3.4% |
+| crabel-idnr4 | EUR_USD | 226 | 36.7% | 0.74 | -32.4 | -0.143 | 34.0 | 17.0% | -16.2% |
+| crabel-idnr4 | GBP_USD | 239 | 43.1% | 1.00 | -0.4 | -0.002 | 17.4 | 8.7% | -0.2% |
+| crabel-idnr4 | USD_JPY | 246 | 42.3% | 1.05 | +5.7 | +0.023 | 13.2 | 6.6% | +2.8% |
+| crabel-idnr4 | AUD_USD | 237 | 44.3% | 1.12 | +13.5 | +0.057 | 14.4 | 7.2% | +6.8% |
+| crabel-idnr4 | USD_CAD | 204 | 38.7% | 0.84 | -17.1 | -0.084 | 20.4 | 10.2% | -8.5% |
+| crabel-idnr4 | USD_CHF | 223 | 37.7% | 0.84 | -18.5 | -0.083 | 33.1 | 16.5% | -9.2% |
+| crabel-idnr4 | NZD_USD | 244 | 38.9% | 0.70 | -40.1 | -0.165 | 43.2 | 21.6% | -20.1% |
+| crabel-idnr4 | EUR_JPY | 223 | 48.4% | 1.38 | +34.6 | +0.155 | 9.5 | 4.8% | +17.3% |
+| crabel-idnr4 | GBP_JPY | 248 | 48.4% | 1.34 | +38.0 | +0.153 | 12.8 | 6.4% | +19.0% |
+
+## Per system per year (net R)
+
+| system | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| bollinger-squeeze | 2.3 | -4.7 | 1.0 | -8.7 | 11.1 | 1.3 | -3.0 | -2.8 | -3.2 | -4.9 | 4.0 |
+
+===== /opt/fx-experts/reports/H1_VALIDATION.md (9 lines, 2026-10-02)
+# Intrabar path check, 2025-11-12..2026-08-31 (same daily signals)
+
+| System | H4 trades | H4 win | H4 net R | H1 trades | H1 win | H1 net R |
+|---|---|---|---|---|---|---|
+| lien-fader | 37 | 43% | +10.5 | 37 | 38% | +4.5 |
+| faith-turtle | 69 | 32% | -14.7 | 69 | 32% | -14.7 |
+| raschke-soup | 97 | 25% | +15.6 | 123 | 18% | -19.0 |
+| bollinger-squeeze | 13 | 46% | +2.9 | 13 | 46% | +2.9 |
+| crabel-idnr4 | 182 | 40% | -8.4 | 182 | 40% | -8.4 |
+
+===== /opt/fx-experts/reports/M5_VALIDATION.md (11 lines, 2026-10-02)
+# H1 vs M5 execution (same daily signals)
+
+Windows: EUR_USD 2024-01-03..2024-12-29; GBP_USD 2024-01-03..2024-09-28; EUR_JPY 2024-01-03..2024-09-28
+
+| System | H1 trades | H1 net R | M5 trades | M5 net R |
+|---|---|---|---|---|
+| lien-fader | 13 | +10.8 | 13 | +4.8 |
+| faith-turtle | 28 | -3.5 | 27 | -4.8 |
+| raschke-soup | 42 | -7.0 | 46 | -13.3 |
+| bollinger-squeeze | 4 | -0.7 | 4 | -0.7 |
+| crabel-idnr4 | 50 | -7.2 | 49 | -4.2 |
+
+===== /opt/fx-experts/reports/SUMMARY.md (41 lines, 2026-10-02)
+# fx-experts backtest summary (honest, untuned)
+
+Prepared Fri 2026-10-02 (CT). Book rules only. No parameter was changed after seeing results, and the pair list was fixed in advance.
+
+## Main run
+- **Data:** Dukascopy H1 bid/ask mid, 2016-01-04 to 2026-09-29, 9 pairs. Daily candles are built at 17:00 NY, the same way OANDA builds them.
+- **Costs:** OANDA-typical spread, 0.3 pip slippage on stop and market fills, ×2 spread at the 17:00 open, 0.3 pip/night financing.
+
+| System (expert) | Trades | Win | PF | Net R | MaxDD R | Net % / MaxDD % at 0.5% risk |
+|---|---|---|---|---|---|---|
+| lien-fader (Lien) | 611 | 37.8% | 1.18 | +71.1 | 41.7 | +35.6% / 20.9% |
+| raschke-soup (Raschke/Connors) | 1941 | 21.1% | 1.02 | +34.8 | 83.0 | +17.4% / 41.5% |
+| faith-turtle (Faith) | 941 | 31.6% | 0.72 | −128.0 | 131.4 | −64.0% / 65.7% |
+| bollinger-squeeze (Bollinger) | 179 | 33.0% | 0.86 | −10.4 | 20.3 | −5.2% / 10.1% |
+| crabel-idnr4 (Crabel) | 2122 | 42.0% | 0.96 | −39.1 | 67.7 | −19.5% / 33.9% |
+| all five together | 5794 | 32.6% | 0.98 | −71.5 | 156.9 | −35.8% / 78.5% |
+
+Per-pair and per-year tables are in BACKTEST_duka_h1.md.
+
+## Cross-checks
+- **ZERO_COST.md** (gross, before costs):
+  - Fader PF 1.34, Soup PF 1.27, Crabel PF 1.13, Bollinger PF 0.96, Turtle PF 0.81.
+  - Costs turn Soup and Crabel from clearly positive to roughly flat or negative, because their stops are small.
+  - Turtle loses even before costs over 2016-2026. Trend following in FX has had a poor decade.
+- **H1_VALIDATION.md** (OANDA H4 vs OANDA H1, last 10 months):
+  - On H4 bars, Soup and Fader look much better than they really are; the H4 intrabar ordering flatters tight stops.
+  - The OANDA-H4 full run (BACKTEST_oanda_h4.md: Soup +471R, Fader +126R) is therefore **not trustworthy for those two**.
+  - For Turtle, Bollinger and Crabel, H4 and H1 gave identical results.
+- **M5_VALIDATION.md** (H1 vs M5, EUR/USD 2024, GBP/USD and EUR/JPY 2024 Q1-Q3): finer bars again lower Fader (+10.8 → +4.8 R) and Soup (−7.0 → −13.3 R). The H1 numbers for these two are probably still somewhat o
+
+## Plain-English read
+- **Fader (Lien)** is the only system positive in every check. Its edge shrinks as the data gets finer. Realistic expectation: small positive at best.
+  - Best pairs: EUR/USD, EUR/JPY, GBP/JPY, USD/CHF, USD/CAD.
+  - Losing pairs: AUD/USD, NZD/USD.
+- **Turtle Soup (Raschke)** is about breakeven after costs, with deep drawdowns, and is sensitive to intrabar detail. Unproven.
+- **Turtle (Faith)** is the clear loser: −128R over 10 years, every pair except USD/JPY negative.
+- **Bollinger squeeze** is slightly negative on few trades (about 17/yr).
+- **Crabel ID/NR4** is slightly negative after costs.
+- **All five together** is slightly negative.
+
+Paper forward-testing is the honest next step. Nothing here justifies live money.
+
+===== /opt/fx-experts/reports/ZERO_COST.md (9 lines, 2026-10-02)
+# Zero-cost run (no spread, slippage or financing) - Dukascopy H1, 2016-2026
+
+| System | Trades | Gross net R | Gross PF |
+|---|---|---|---|
+| lien-fader | 590 | +120.9 | 1.34 |
+| faith-turtle | 929 | -80.4 | 0.81 |
+| raschke-soup | 1864 | +364.9 | 1.27 |
+| bollinger-squeeze | 179 | -3.2 | 0.96 |
+| crabel-idnr4 | 2118 | +128.0 | 1.13 |
