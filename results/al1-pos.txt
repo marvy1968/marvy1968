@@ -1,3 +1,7 @@
 $ alpaca positions
-started 2026-10-19 14:07:56 EDT
-RUNNING...
+started 2026-10-19 14:07:56 EDT, took 1s, exit 0
+
+equity $52,667.14  cash $59,307.29  long mv $0.00  short mv $-6,640.16
+1 open positions:
+  BKNG       short qty          -41  value $ -6,640.15  unrealized $   -11.69
+0 open orders:
