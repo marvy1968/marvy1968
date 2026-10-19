@@ -91,6 +91,18 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "losscut_fx":                # the live strategies with a stop at 10% / 25% / 50% of the normal one (fxbot.research.losscut_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import losscut_check
+                today = _dt.date.today()
+                for label, days_ in (("last 3 months", 92), ("last 12 months", 365)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    fxd = {i: fx_load(i, "H1", a_ - _dt.timedelta(days=90), today, Path("state/fx/cache")) for i in MAJORS}
+                    lines += [f"## losscut_fx: the live strategies with the owner's loss cut, {label} ({a_} to {today}, H1, bid/ask, pessimistic)"] + losscut_check(fxd, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "inbox_fx":                  # the range experts inside the owner's range box (fxbot.research.inbox_check), 3 and 12 months
                 import datetime as _dt
                 from fxbot.data import MAJORS

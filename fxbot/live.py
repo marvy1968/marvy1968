@@ -70,7 +70,11 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
           # box_h1 (the plain fade, 0 for 6 live, PF 0.68 in 2016-22) now only LOGS its signals; confirm_h1 replaces it (owner, 2026-10-16)
           "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1"],
-          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005}}                                # the hybrid trades at half the normal 1% (owner)
+          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005},
+          # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
+          # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
+          # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.
+          "loss_cut_r": 0.10}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
@@ -332,7 +336,7 @@ class FxPaper:
             return f"rejected: {got['rejected']}"
         fill = got["price"]
         self.groups[gid] = {"id": gid, "strategy": name, "instrument": inst, "side": side, "opened": bar, "signal_close": close,
-                            "atr": a, "stop_px": stop_px, "stop0": stop_px, "fill": fill, "tp_steps": 0, "zone_tp": zone_tp, "tp_px": tp_px, "tier": tier, "avg": fill,
+                            "atr": a, "stop_px": stop_px, "stop0": stop_px, "fill": fill, "mid0": (bid + ask) / 2, "tp_steps": 0, "zone_tp": zone_tp, "tp_px": tp_px, "tier": tier, "avg": fill,
                             "trades": [got["trade_id"]], "units": {got["trade_id"]: abs(got["units"])}, "peak_units": abs(got["units"]),
                             "sold": 0, "be": False, "bias": bias}
         if math.isfinite(zone2_px) and side * (zone2_px - zone_tp) > 0 and a > 0:     # hybrid: the second take-profit step at its own line
@@ -360,6 +364,14 @@ class FxPaper:
             self.journal("error", where="price", instrument=inst, error=str(exc)[:300])
             return
         lad = self.cfg["ladder"]
+        cut = self.cfg.get("loss_cut_r")
+        if cut:                                  # owner: a trade that turns against us is closed at once (see CONFIG["loss_cut_r"])
+            risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+            mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
+            if risk0 > 0 and side * (mid0 - mid_now) >= cut * risk0:
+                self.journal("loss_cut", group=gid, against_r=round(side * (mid0 - mid_now) / risk0, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
+                self.close_group(gid, "loss_cut")
+                return
         # scale in: one more tier when price is that much deeper into the entry zone and still short of the stop
         k = g["tier"] + 1
         px_in = ask if side == 1 else bid

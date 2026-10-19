@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import InBox, BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import InBox, TightStop, BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -304,6 +304,25 @@ def inbox_check(data_by_gran: dict, a, b) -> list[str]:
                 "INSIDE the box, TP1 at the middle": InBox(make(), tp_frac=0.5), "INSIDE the box, TP1 at the far edge": InBox(make(), tp_frac=1.0)}
         out.append(f"### {key} ({gran})")
         for label, strat in rows.items():
+            m = run(strat, data, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
+def losscut_check(data: dict, a, b) -> list[str]:
+    """Owner 2026-10-19: the live strategies with the normal stop vs a stop at 10% of it (a trade is closed once it is 0.10 x its risk against us).
+    Hourly bars with bid/ask fills: the intrabar order is unknown and the spread counts against the tight stop here (live measures the mid), so
+    this is the PESSIMISTIC view of the rule."""
+    from .strategies import RangeMR
+    rows = {"lien_h1": lambda: LienFader(break_pips=20), "hybrid_h1": lambda: HybridBox(),
+            "confirm_h1": lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0),
+            "boxmr_h1": lambda: InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5)}
+    out = []
+    for name, make in rows.items():
+        out.append(f"### {name}")
+        for label, strat in (("normal stop", make()), ("loss cut at 0.10R", TightStop(make(), 0.10)), ("loss cut at 0.25R", TightStop(make(), 0.25)),
+                             ("loss cut at 0.50R", TightStop(make(), 0.50))):
             m = run(strat, data, a, b)
             out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                        f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")

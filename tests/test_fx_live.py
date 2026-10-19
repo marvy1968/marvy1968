@@ -163,11 +163,44 @@ class FxLiveTests(unittest.TestCase):
             r.manage(gid, 58000.0, "")
             self.assertEqual(g["sold"], 0)
 
+    def test_loss_cut_closes_a_trade_that_is_ten_percent_of_its_risk_against_us(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for side, sign in ((1, 1), (-1, -1)):
+                api = FakeOanda()
+                r = runner(tmp, api)
+                self.assertEqual(r.cfg["loss_cut_r"], 0.10)
+                r.try_open("lien_h1", "EUR_USD", side, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], f"2026-10-14T13:0{side + 1}:00+00:00")
+                gid, g = next(iter(r.groups.items()))
+                mid0 = g["mid0"]
+                api.px["EUR_USD"] = (mid0 - sign * 0.0002 - 0.00005, mid0 - sign * 0.0002 + 0.00005)     # 2 pips = 0.067R against: still held
+                r.manage(gid, 58000.0, "")
+                self.assertIn(gid, r.groups)
+                api.px["EUR_USD"] = (mid0 - sign * 0.00032 - 0.00005, mid0 - sign * 0.00032 + 0.00005)   # 3.2 pips = 0.107R against: closed
+                r.manage(gid, 58000.0, "")
+                self.assertNotIn(gid, r.groups)
+                self.assertEqual(r.ledger()[-1]["reason"], "loss_cut")
+
+    def test_loss_cut_off_and_spread_alone_never_triggers_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            api.px["EUR_USD"] = (1.0996, 1.1006)                                       # a 10-pip spread around the same mid: no move, no cut
+            api.px["EUR_USD"] = (g["mid0"] - 0.0005, g["mid0"] + 0.0005)
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+            r.cfg["loss_cut_r"] = None
+            api.px["EUR_USD"] = (g["mid0"] - 0.0020, g["mid0"] - 0.0019)               # 2/3 of the way to the stop: off means no cut
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+
     def test_against_the_trade_cuts_in_steps(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
             r = runner(tmp, api)
             r.cfg["ladder"] = {**r.cfg["ladder"], "cut_fracs": [0.25, 0.5], "cut_depth_r": [0.5, 0.75]}     # optional setting still works
+            r.cfg["loss_cut_r"] = None                                                  # (the 10% loss cut would close the trade first)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
             fill, total = g["fill"], g["peak_units"]

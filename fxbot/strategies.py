@@ -497,6 +497,21 @@ class InBox:
         return f
 
 
+class TightStop:
+    """Research only (owner 2026-10-19, "if a trade turns negative close it, don't wait for a reversal past 10%"): the strategy with its stop
+    distance scaled to `frac` of the original, so a trade is stopped when it is `frac` x the risk against it. Live: fxbot.live CONFIG loss_cut_r."""
+
+    def __init__(self, base, frac: float = 0.10):
+        self.base, self.frac = base, frac
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + f" stop x{frac}"
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        f["stop"] = f["stop"] * self.frac
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,
