@@ -327,3 +327,24 @@ def losscut_check(data: dict, a, b) -> list[str]:
             out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                        f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
     return out
+
+
+def scalp_check(data: dict, a, b) -> list[str]:
+    """Owner 2026-10-19 ("leave the loss cut at 10, tp and closeout at 30%"): the live strategies with a 0.10R loss cut and the whole position taken
+    off at +0.30R, against a few neighbours and the normal ladder. Hourly bars, bid/ask fills; PESSIMISTIC (spread counts against the tight levels and the
+    intrabar order of stop and target is unknown, so a bar touching both counts as the stop)."""
+    from .strategies import HybridBox, RangeMR
+    rows = {"lien_h1": lambda: LienFader(break_pips=20), "hybrid_h1": lambda: HybridBox(),
+            "confirm_h1": lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0),
+            "boxmr_h1": lambda: InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5)}
+    out = []
+    for name, make in rows.items():
+        out.append(f"### {name}")
+        variants = (("normal ladder (before)", make()), ("OWNER: cut 0.10R, all out at +0.30R", TightStop(make(), 0.10, 0.30)),
+                    ("cut 0.10R, all out at +0.20R", TightStop(make(), 0.10, 0.20)), ("cut 0.10R, all out at +0.50R", TightStop(make(), 0.10, 0.50)),
+                    ("cut 0.25R, all out at +0.75R", TightStop(make(), 0.25, 0.75)), ("cut 0.50R, all out at +1.50R", TightStop(make(), 0.50, 1.50)))
+        for label, strat in variants:
+            m = run(strat, data, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out

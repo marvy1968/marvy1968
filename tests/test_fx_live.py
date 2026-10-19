@@ -131,6 +131,8 @@ class FxLiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
             r = runner(tmp, api)
+            r.cfg["take_profit_r"] = None                                             # (the old scale-out ladder; the +0.30R close-out would pre-empt it)
+            r.cfg["loss_cut_r"] = None
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
             a, total, z = g["atr"], g["peak_units"], g["zone_tp"]
@@ -195,6 +197,35 @@ class FxLiveTests(unittest.TestCase):
             r.manage(gid, 58000.0, "")
             self.assertIn(gid, r.groups)
 
+    def test_take_profit_and_closeout_at_thirty_percent_of_the_risk(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for side, sign in ((1, 1), (-1, -1)):
+                api = FakeOanda()
+                r = runner(tmp, api)
+                self.assertEqual((r.cfg["loss_cut_r"], r.cfg["take_profit_r"]), (0.10, 0.30))
+                r.try_open("lien_h1", "EUR_USD", side, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], f"2026-10-14T13:0{side + 1}:00+00:00")
+                o = api.orders[-1]
+                px = 1.1001 if side == 1 else 1.1000
+                self.assertAlmostEqual(float(o["tp"]), px + sign * 0.30 * 0.0030, places=5)          # the OANDA take-profit sits at +0.30R
+                gid, g = next(iter(r.groups.items()))
+                mid0 = g["mid0"]
+                api.px["EUR_USD"] = (mid0 + sign * 0.0008 - 0.00005, mid0 + sign * 0.0008 + 0.00005)   # 8 pips = 0.27R in profit: held
+                r.manage(gid, 58000.0, "")
+                self.assertIn(gid, r.groups)
+                api.px["EUR_USD"] = (mid0 + sign * 0.00095 - 0.00005, mid0 + sign * 0.00095 + 0.00005)  # 9.5 pips = 0.32R: all out
+                r.manage(gid, 58000.0, "")
+                self.assertNotIn(gid, r.groups)
+                self.assertEqual(r.ledger()[-1]["reason"], "take_profit_r")
+                self.assertEqual(r.ledger()[-1]["side"], "long" if side == 1 else "short")
+
+    def test_take_profit_off_restores_the_ladder_targets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.cfg["take_profit_r"] = None
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            self.assertGreater(float(api.orders[-1]["tp"]), 1.1001 + 0.0030)                 # the old zone-based target, well past +0.30R
+
     def test_against_the_trade_cuts_in_steps(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
@@ -216,6 +247,8 @@ class FxLiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()
             r = runner(tmp, api)
+            r.cfg["take_profit_r"] = None                                             # (the old scale-out ladder; the +0.30R close-out would pre-empt it)
+            r.cfg["loss_cut_r"] = None
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
             a, z = g["atr"], g["zone_tp"]

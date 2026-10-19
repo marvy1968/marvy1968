@@ -501,14 +501,18 @@ class TightStop:
     """Research only (owner 2026-10-19, "if a trade turns negative close it, don't wait for a reversal past 10%"): the strategy with its stop
     distance scaled to `frac` of the original, so a trade is stopped when it is `frac` x the risk against it. Live: fxbot.live CONFIG loss_cut_r."""
 
-    def __init__(self, base, frac: float = 0.10):
-        self.base, self.frac = base, frac
+    def __init__(self, base, frac: float = 0.10, tp_frac: float | None = None):
+        self.base, self.frac, self.tp_frac = base, frac, tp_frac        # tp_frac: also take the profit at tp_frac x the ORIGINAL stop distance
         self.max_bars = base.max_bars
-        self.name = getattr(base, "name", type(base).__name__) + f" stop x{frac}"
+        self.name = getattr(base, "name", type(base).__name__) + f" stop x{frac}" + ("" if tp_frac is None else f" tp x{tp_frac}")
 
     def frame(self, m):
         f = self.base.frame(m).copy()
-        f["stop"] = f["stop"] * self.frac
+        orig = f["stop"]
+        f["stop"] = orig * self.frac
+        if self.tp_frac is not None:
+            f["target"] = orig * self.tp_frac
+            f["zone_px"] = np.nan
         return f
 
 

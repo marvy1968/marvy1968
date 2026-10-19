@@ -74,7 +74,11 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
           # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.
-          "loss_cut_r": 0.10}                                # the hybrid trades at half the normal 1% (owner)
+          "loss_cut_r": 0.10,
+          # owner 2026-10-19 ("leave at 10, tp and closeout at 30%"): the WHOLE position is taken off at +`take_profit_r` x its risk. The OANDA
+          # take-profit is placed there (it survives a VM outage) and the runner also closes at market when the mid is that far in profit.
+          # It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
+          "take_profit_r": 0.30}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
@@ -326,6 +330,8 @@ class FxPaper:
         tp_px = zone_tp + side * lad.get("ride_tp_atr", lad["tp_depth_atr"][-1]) * a   # OANDA take-profit for what rides the trend
         if math.isfinite(zone2_px) and side * (zone2_px + side * a - tp_px) > 0:          # never let OANDA's own TP close before the hybrid's TP2
             tp_px = zone2_px + side * a
+        if self.cfg.get("take_profit_r"):                                                  # owner: the whole position out at +take_profit_r x the risk
+            tp_px = px + side * float(self.cfg["take_profit_r"]) * sd
         risk_pct = float(self.cfg.get("risk_by_strategy", {}).get(name, lad["entry_risk"][tier]))
         units = self.size(inst, eq, risk_pct, 0.0, px, stop_px)
         if units < 1:
@@ -371,6 +377,14 @@ class FxPaper:
             if risk0 > 0 and side * (mid0 - mid_now) >= cut * risk0:
                 self.journal("loss_cut", group=gid, against_r=round(side * (mid0 - mid_now) / risk0, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
                 self.close_group(gid, "loss_cut")
+                return
+        tpr = self.cfg.get("take_profit_r")
+        if tpr:                                  # owner: take the profit and close the whole position out at +take_profit_r x the risk
+            risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+            mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
+            if risk0 > 0 and side * (mid_now - mid0) >= tpr * risk0:
+                self.journal("take_profit_r", group=gid, profit_r=round(side * (mid_now - mid0) / risk0, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
+                self.close_group(gid, "take_profit_r")
                 return
         # scale in: one more tier when price is that much deeper into the entry zone and still short of the stop
         k = g["tier"] + 1
