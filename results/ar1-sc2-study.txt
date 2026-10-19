@@ -1,3 +1,31 @@
 $ alpaca run-all --phase validate --months3 --families scalper
-started 2026-10-19 18:07:37 EDT
-RUNNING...
+started 2026-10-19 18:07:37 EDT, took 288s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 290 of 4060 stock-days, on the SHORT list 35
+## scalper: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 1. stop 0.5 R / target 1.25 R / 30 min (live): 6t win 0% PF 0.00 avgR -1.16 daily -0.029% CAGR -7.7% maxDD -0.1%
+- train | 2. stop 0.75 R: 6t win 17% PF 0.19 avgR -0.57 daily -0.024% CAGR -7.4% maxDD -0.2%
+- train | 3. stop 1.0 R: 6t win 17% PF 0.15 avgR -0.60 daily -0.032% CAGR -9.8% maxDD -0.2%
+- train | 4. 2 of 5 oversold: 12t win 8% PF 0.02 avgR -1.04 daily -0.032% CAGR -7.1% maxDD -0.3%
+- train | 5. hold 12 bars (1 hour): 6t win 17% PF 0.20 avgR -0.84 daily -0.018% CAGR -5.5% maxDD -0.1%
+- train | 6. 15-minute trend only: 6t win 0% PF 0.00 avgR -1.16 daily -0.029% CAGR -7.7% maxDD -0.1%
+- train | 7. 15-minute trend only + 2 of 5: 12t win 8% PF 0.02 avgR -1.04 daily -0.032% CAGR -7.1% maxDD -0.3%
+- train | 8. no intraday trend condition + 2 of 5: 81t win 21% PF 0.41 avgR -0.57 daily -0.040% CAGR -10.1% maxDD -1.1%
+- train | 9. no intraday trend, 3 of 5, stop 1.0 R: 50t win 28% PF 0.32 avgR -0.45 daily -0.046% CAGR -11.4% maxDD -1.2%
+- validate | 1. stop 0.5 R / target 1.25 R / 30 min (live): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 2. stop 0.75 R: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 3. stop 1.0 R: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 4. 2 of 5 oversold: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 5. hold 12 bars (1 hour): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 6. 15-minute trend only: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 7. 15-minute trend only + 2 of 5: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 8. no intraday trend condition + 2 of 5: 25t win 8% PF 0.10 avgR -0.98 daily -0.061% CAGR -14.5% maxDD -0.6%
+- validate | 9. no intraday trend, 3 of 5, stop 1.0 R: 13t win 8% PF 0.04 avgR -0.93 daily -0.078% CAGR -17.4% maxDD -0.6%
+ALL DONE
