@@ -1,0 +1,3 @@
+$ alpaca-paper-status
+started 2026-10-19 07:20:56 EDT
+RUNNING...
