@@ -1,3 +1,63 @@
 $ alpaca run-all --phase validate --families scalp_fx
-started 2026-10-19 04:02:41 EDT
-RUNNING...
+started 2026-10-19 04:02:41 EDT, took 107s, exit 0
+
+daily data ready
+## scalp_fx: the owner's 0.10R cut / +0.30R close-out on the live strategies, last 3 months (2026-07-19 to 2026-10-19, H1, bid/ask, pessimistic)
+### lien_h1
+- normal ladder (before): 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- OWNER: cut 0.10R, all out at +0.30R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- cut 0.10R, all out at +0.20R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- cut 0.10R, all out at +0.50R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- cut 0.25R, all out at +0.75R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- cut 0.50R, all out at +1.50R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### hybrid_h1
+- normal ladder (before): 18 trades, win 17%, PF 0.43, total -3.10%, maxDD -3.9%
+- OWNER: cut 0.10R, all out at +0.30R: 23 trades, win 0%, PF 0.00, total -0.88%, maxDD -0.8%
+- cut 0.10R, all out at +0.20R: 23 trades, win 0%, PF 0.00, total -0.88%, maxDD -0.8%
+- cut 0.10R, all out at +0.50R: 23 trades, win 0%, PF 0.00, total -0.88%, maxDD -0.8%
+- cut 0.25R, all out at +0.75R: 23 trades, win 0%, PF 0.00, total -2.20%, maxDD -2.1%
+- cut 0.50R, all out at +1.50R: 22 trades, win 14%, PF 0.45, total -2.02%, maxDD -2.8%
+### confirm_h1
+- normal ladder (before): 6 trades, win 0%, PF 0.00, total -2.96%, maxDD -2.5%
+- OWNER: cut 0.10R, all out at +0.30R: 6 trades, win 0%, PF 0.00, total -0.40%, maxDD -0.3%
+- cut 0.10R, all out at +0.20R: 6 trades, win 0%, PF 0.00, total -0.40%, maxDD -0.3%
+- cut 0.10R, all out at +0.50R: 6 trades, win 0%, PF 0.00, total -0.40%, maxDD -0.3%
+- cut 0.25R, all out at +0.75R: 6 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.8%
+- cut 0.50R, all out at +1.50R: 6 trades, win 17%, PF 0.62, total -0.63%, maxDD -1.3%
+### boxmr_h1
+- normal ladder (before): 16 trades, win 38%, PF 0.88, total -0.30%, maxDD -1.0%
+- OWNER: cut 0.10R, all out at +0.30R: 70 trades, win 11%, PF 0.42, total -3.97%, maxDD -3.6%
+- cut 0.10R, all out at +0.20R: 71 trades, win 11%, PF 0.27, total -5.04%, maxDD -4.7%
+- cut 0.10R, all out at +0.50R: 67 trades, win 6%, PF 0.28, total -5.01%, maxDD -4.6%
+- cut 0.25R, all out at +0.75R: 37 trades, win 22%, PF 0.86, total -0.92%, maxDD -2.4%
+- cut 0.50R, all out at +1.50R: 23 trades, win 30%, PF 1.11, total +0.53%, maxDD -1.3%
+## scalp_fx: the owner's 0.10R cut / +0.30R close-out on the live strategies, last 12 months (2025-10-19 to 2026-10-19, H1, bid/ask, pessimistic)
+### lien_h1
+- normal ladder (before): 13 trades, win 46%, PF 1.83, total +2.67%, maxDD -1.1%
+- OWNER: cut 0.10R, all out at +0.30R: 15 trades, win 7%, PF 0.20, total -1.33%, maxDD -1.6%
+- cut 0.10R, all out at +0.20R: 15 trades, win 7%, PF 0.13, total -1.44%, maxDD -1.6%
+- cut 0.10R, all out at +0.50R: 15 trades, win 7%, PF 0.33, total -1.11%, maxDD -1.6%
+- cut 0.25R, all out at +0.75R: 15 trades, win 27%, PF 0.90, total -0.33%, maxDD -3.1%
+- cut 0.50R, all out at +1.50R: 15 trades, win 40%, PF 1.93, total +4.18%, maxDD -1.0%
+### hybrid_h1
+- normal ladder (before): 77 trades, win 25%, PF 0.73, total -6.32%, maxDD -6.6%
+- OWNER: cut 0.10R, all out at +0.30R: 95 trades, win 0%, PF 0.00, total -4.78%, maxDD -4.7%
+- cut 0.10R, all out at +0.20R: 95 trades, win 0%, PF 0.00, total -4.78%, maxDD -4.7%
+- cut 0.10R, all out at +0.50R: 95 trades, win 0%, PF 0.00, total -4.78%, maxDD -4.7%
+- cut 0.25R, all out at +0.75R: 94 trades, win 9%, PF 0.42, total -6.08%, maxDD -6.0%
+- cut 0.50R, all out at +1.50R: 88 trades, win 16%, PF 0.70, total -5.25%, maxDD -6.3%
+### confirm_h1
+- normal ladder (before): 14 trades, win 0%, PF 0.00, total -6.57%, maxDD -6.1%
+- OWNER: cut 0.10R, all out at +0.30R: 14 trades, win 7%, PF 0.34, total -0.65%, maxDD -1.0%
+- cut 0.10R, all out at +0.20R: 14 trades, win 7%, PF 0.23, total -0.77%, maxDD -1.0%
+- cut 0.10R, all out at +0.50R: 14 trades, win 7%, PF 0.57, total -0.43%, maxDD -1.0%
+- cut 0.25R, all out at +0.75R: 14 trades, win 7%, PF 0.35, total -1.57%, maxDD -2.4%
+- cut 0.50R, all out at +1.50R: 14 trades, win 14%, PF 0.63, total -1.50%, maxDD -2.9%
+### boxmr_h1
+- normal ladder (before): 118 trades, win 42%, PF 0.66, total -4.55%, maxDD -5.3%
+- OWNER: cut 0.10R, all out at +0.30R: 318 trades, win 13%, PF 0.44, total -21.75%, maxDD -21.5%
+- cut 0.10R, all out at +0.20R: 324 trades, win 14%, PF 0.39, total -23.46%, maxDD -23.2%
+- cut 0.10R, all out at +0.50R: 310 trades, win 11%, PF 0.49, total -20.17%, maxDD -19.9%
+- cut 0.25R, all out at +0.75R: 215 trades, win 26%, PF 0.61, total -16.20%, maxDD -15.6%
+- cut 0.50R, all out at +1.50R: 137 trades, win 38%, PF 0.72, total -6.93%, maxDD -8.9%
+ALL DONE
