@@ -314,7 +314,7 @@ def losscut_check(data: dict, a, b) -> list[str]:
     """Owner 2026-10-19: the live strategies with the normal stop vs a stop at 10% of it (a trade is closed once it is 0.10 x its risk against us).
     Hourly bars with bid/ask fills: the intrabar order is unknown and the spread counts against the tight stop here (live measures the mid), so
     this is the PESSIMISTIC view of the rule."""
-    from .strategies import RangeMR
+    from .strategies import HybridBox, RangeMR
     rows = {"lien_h1": lambda: LienFader(break_pips=20), "hybrid_h1": lambda: HybridBox(),
             "confirm_h1": lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0),
             "boxmr_h1": lambda: InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5)}
