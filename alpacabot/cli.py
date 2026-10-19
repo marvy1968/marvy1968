@@ -480,7 +480,7 @@ def run_all(a) -> int:
                         fbd = {s_: d_ for s_, d_ in d58.items() if s_ in _u.STOCKS}
                         for label, a_ in (("last 3 months", end - _td(days=92)), ("last 12 months", end - _td(days=365))):
                             for nm, rules in (("as built (stop 1.0, out at 1.5)", {}), ("stop 0.5, out at 1.5", {"stop_frac": 0.5}),
-                                              ("stop 0.5, out at 1.0", {"stop_frac": 0.5, "tp_r": 1.0}), ("stop 0.25, out at 0.75", {"stop_frac": 0.25, "tp_r": 0.75}),
+                                              ("stop 0.5, out at 1.0", {"stop_frac": 0.5, "tp_r": 1.0}), ("stop 0.5, out at 1.25", {"stop_frac": 0.5, "tp_r": 1.25}), ("stop 0.25, out at 0.75", {"stop_frac": 0.25, "tp_r": 0.75}),
                                               ("stop 1.0, out at 3.0", {"tp_r": 3.0})):
                                 m_ = funnel_bt(fbd, a_, end - _td(days=1), sides=("long",), rules=rules)
                                 lines.append(f"- funnel longs (daily), {label}, {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, "

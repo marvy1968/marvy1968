@@ -1060,7 +1060,8 @@ def fixed_r_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio =
     keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
     cp = Checkpoint(ckpt)
     pairs = {"live exits (ladder)": None, "OWNER: stop 0.5R, out at 1.5R": (0.5, 1.5), "stop 0.25R, out at 0.75R": (0.25, 0.75),
-             "stop 1.0R, out at 2.0R": (1.0, 2.0), "stop 1.0R, out at 3.0R": (1.0, 3.0), "stop 0.5R, out at 1.0R": (0.5, 1.0)}
+             "stop 1.0R, out at 2.0R": (1.0, 2.0), "stop 1.0R, out at 3.0R": (1.0, 3.0), "stop 0.5R, out at 1.0R": (0.5, 1.0),
+             "stop 0.5R, out at 1.25R": (0.5, 1.25)}          # (owner 2026-10-19: "test over 3 months .5 r and 1.25 r")
 
     def run(kind, pair, a, b):
         ts = kind == "trend_stairs"
