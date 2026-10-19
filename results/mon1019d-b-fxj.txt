@@ -1,3 +1,5 @@
 $ show fx_paper/journal-20261019.jsonl
-started 2026-10-19 02:16:06 EDT
-RUNNING...
+started 2026-10-19 02:16:06 EDT, took 0s, exit 0
+
+{"t": "2026-10-19T01:01:31+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "USD_CHF", "side": "long", "bar": "2026-10-18T21:00:00+00:00", "close": 0.82422, "stop_dist": 0.0030463593670270184, "result": "paused (signal logged)"}
+{"t": "2026-10-19T06:00:41+00:00", "kind": "error", "where": "scan", "strategy": "lien_h1", "instrument": "EUR_USD", "error": "OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
