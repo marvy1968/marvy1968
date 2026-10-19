@@ -1,3 +1,12 @@
 $ alpaca swing close
-started 2026-10-19 13:14:56 EDT
-RUNNING...
+started 2026-10-19 13:14:56 EDT, took 4s, exit 0
+
+{
+ "WMT": "closed @ 118.70",
+ "COST": "closed @ 994.12",
+ "COP": "closed @ 145.28"
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 7, 3W/4L, P&L $-233
+  holding: nothing
