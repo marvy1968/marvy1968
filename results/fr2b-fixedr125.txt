@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --months3 --families fixed_r
+started 2026-10-19 09:12:05 EDT
+RUNNING...
