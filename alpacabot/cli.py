@@ -865,7 +865,20 @@ def main(argv=None) -> int:
         return 0
     if a.cmd == "positions" and a.fx:                   # forex lives in fxbot; only routed through here for the VM link
         from fxbot.cli import main as fx_main
-        return fx_main(["paper-status"])
+        rc = fx_main(["paper-status"])
+        try:                                            # the REAL OANDA account (shared with other bots), read-only
+            from fxbot.oanda import Oanda
+            o = Oanda()
+            sm = o.summary()
+            print(f"\nOANDA ACCOUNT (all bots on it): NAV ${float(sm.get('NAV', 0)):,.2f}  balance ${float(sm.get('balance', 0)):,.2f}  "
+                  f"unrealized ${float(sm.get('unrealizedPL', 0)):+,.2f}  realized P&L (lifetime) ${float(sm.get('pl', 0)):+,.2f}  "
+                  f"open trades {sm.get('openTradeCount')}")
+            for t in o.open_trades():
+                tag = (t.get("clientExtensions") or {}).get("tag", "-")
+                print(f"  {t.get('instrument')} {t.get('currentUnits')} @ {t.get('price')} unrealized {float(t.get('unrealizedPL', 0)):+,.2f} tag {tag}")
+        except Exception as exc:
+            print(f"OANDA account read failed: {type(exc).__name__}: {str(exc)[:150]}")
+        return rc
     if a.cmd == "positions":
         import requests
 
