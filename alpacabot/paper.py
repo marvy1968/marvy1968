@@ -781,6 +781,13 @@ class PaperRunner:
                                            bool(ts_cfg.get("sr_rsi", False)), int(ts_cfg.get("need6", 4)),
                                            tuple(ts_cfg.get("sides", [1, -1])), float(ts_cfg.get("confirm", 0.0)),
                                            bool(ts_cfg.get("select", False)), bool(ts_cfg.get("tp_zone", False)))
+            sc_cfg = self.zone_config().get("scalper") or {}
+            if sc_cfg.get("live") and self.zone_config().get("live"):                                              # owner's scalper redesign (2026-10-19)
+                from .brain import OnlyTags, ScalperSignals
+                brain = ScalperSignals(brain, int(sc_cfg.get("need", 3)), float(sc_cfg.get("stop_r", 0.5)), float(sc_cfg.get("tp_r", 1.25)),
+                                       int(sc_cfg.get("hold", 6)), float(sc_cfg.get("vol_mult", 1.2)))
+                if sc_cfg.get("only"):
+                    brain = OnlyTags(brain, {ScalperSignals.TAG})
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue

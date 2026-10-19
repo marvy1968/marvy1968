@@ -224,3 +224,39 @@ class OversoldGateTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScalperTests(unittest.TestCase):
+    def _day(self):
+        import numpy as np
+        import pandas as pd
+        n = 30
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = np.full(n, 100.0)
+        d = pd.DataFrame({"open": c, "high": c + 0.2, "low": c - 0.2, "close": c, "volume": 1000.0, "f_atr": 0.4, "f_m15_dir": 1, "f_h1_dir": 1,
+                          "f_rsi14": 50.0, "f_stk": 50.0, "f_willr": -40.0, "f_bb_lo": 99.0, "f_bb_mid": 100.0, "f_vwap": 100.0}, index=idx)
+        i = 24                                                        # 11:30: an up bar on volume (20 prior bars), 5 of 5 oversold
+        d.loc[d.index[i], ["open", "close", "volume", "f_rsi14", "f_stk", "f_willr", "f_vwap"]] = [99.5, 99.7, 3000.0, 25.0, 10.0, -90.0, 101.0]
+        d.loc[d.index[i], "f_bb_lo"] = 99.8
+        return d, i
+
+    def test_signal_and_only_tags(self):
+        from alpacabot.brain import OnlyTags, ScalperSignals
+
+        class Stub:
+            def signals(self, day):
+                from alpacabot.strategies import Signal
+                return [Signal(i=len(day) - 1, side=1, stop_dist=1.0, tag="williams_r")]
+        d, i = self._day()
+        sc = ScalperSignals(Stub(), need=3).box_signals(d)
+        self.assertEqual([(s.i, s.side, s.tag, s.max_bars) for s in sc], [(i, 1, "scalper", 6)])
+        self.assertAlmostEqual(sc[0].stop_dist, 0.5 * 0.4)
+        self.assertAlmostEqual(sc[0].target_px, 99.7 + 1.25 * 0.4)
+        out = OnlyTags(ScalperSignals(Stub(), need=3), {"scalper"}).signals(d)
+        self.assertTrue(out and all(s.tag == "scalper" for s in out))
+        d2 = d.copy()
+        d2.loc[d2.index[i], "volume"] = 900.0                         # no volume: no setup
+        self.assertEqual(ScalperSignals(Stub()).box_signals(d2), [])
+        d3 = d.copy()
+        d3["f_h1_dir"] = -1                                           # the 1-hour trend is down: no setup
+        self.assertEqual(ScalperSignals(Stub()).box_signals(d3), [])

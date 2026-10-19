@@ -74,6 +74,8 @@ def zone_profile(zones: dict | None, tag: str) -> dict | None:
 EXPERT_ZONES = {
     "trend_stairs": {"chase_atr": 0.25, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"},
     # owner's trend_stairs (2026-10-17): buy the pullback, never chase; TP1 comes from the signal (+1.3 ATR), no exhaustion exit
+    "scalper": {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.25, "exhaust_r": 99.0, "target": "extreme"},
+    # owner 2026-10-19 scalper redesign: the signal's own target (+1.25 R) is the take-profit; no chasing past the signal bar
     "velez_elephant": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 1.5, "target": "extreme"},
     # Velez: buy the elephant bar's follow-through at once or not at all; stop under the bar; first target the prior swing high
     "raschke_grail": {"chase_atr": 0.25, "lookback": 20, "min_r": 1.0, "default_r": 2.0, "exhaust_r": 2.0, "target": "extreme"},
@@ -95,6 +97,7 @@ EXPERT_LADDERS = {
                      "trail_atr": 1.0, "trail_from_entry_r": 0.5, "trail_start_r": 0.5},
     # owner's drawing: one hard stop, a third at TP1 (+1.3 ATR) and TP2 (+1.9 ATR, the median move after a pullback low), the stop climbs the
     # stairs (0.5R behind the best price once +0.5R is reached), the last third rides with a 1 ATR trail
+    "scalper": {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []},     # one hard stop, all out at the target
     "velez_elephant": {"tp_fracs": [0.33, 0.66], "tp_depth_atr": [0.0, 0.5], "lock": ["breakeven", "tp"], "trail_atr": 0.75},  # Velez: 1/3 at
     # the first target, stop to break-even, trail the rest tight under the bars
     "velez_180": {"tp_fracs": [0.5, 1.0], "tp_depth_atr": [0.0, 0.25], "lock": ["breakeven"]},          # a fast reversal: bank it quickly

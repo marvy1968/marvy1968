@@ -408,6 +408,57 @@ class TrendStairsSignals(BoxSignals):
         return out
 
 
+class ScalperSignals(BoxSignals):
+    """Owner 2026-10-19 (scalper redesign), longs only, 5-minute bars, between 10:00 and 15:00 ET: buy a pullback inside an uptrend.
+      trend      the 15-minute AND 1-hour trends are up (the daily stage / direction come from the live chain's wrappers),
+      oversold   at least `need` of 5 oversold readings (confirm.oversold_votes) on the signal bar,
+      reversal   the bar closes up and its volume is at least `vol_mult` x the average of the prior 20 bars.
+    R = one 5-minute ATR: the hard stop is stop_r R under the close, the one take-profit tp_r R over it (target_px), and the time stop is `hold`
+    bars (6 = 30 minutes). Tag "scalper"."""
+
+    TAG = "scalper"
+    NEED = ("f_atr", "f_m15_dir", "f_h1_dir", "volume")
+
+    def __init__(self, brain, need: int = 3, stop_r: float = 0.5, tp_r: float = 1.25, hold: int = 6, vol_mult: float = 1.2):
+        super().__init__(brain)
+        self.need, self.stop_r, self.tp_r, self.hold, self.vol_mult = need, stop_r, tp_r, hold, vol_mult
+
+    def box_signals(self, day) -> list:
+        if len(day) < 25 or any(k not in day for k in self.NEED):
+            return []
+        from .confirm import oversold_votes
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "10:00") & (t <= "15:00"))
+        o, c, v = (day[k].to_numpy(float) for k in ("open", "close", "volume"))
+        a = day["f_atr"].to_numpy(float)
+        vavg = pd.Series(v).rolling(20, min_periods=20).mean().shift(1).to_numpy()
+        with np.errstate(invalid="ignore"):
+            trend = (day["f_m15_dir"].to_numpy(float) == 1) & (day["f_h1_dir"].to_numpy(float) == 1)
+            base = win & trend & (c > o) & (v >= self.vol_mult * vavg) & (a > 0)
+        out = []
+        prev = False
+        for i in range(len(day)):
+            ok = bool(base[i]) and oversold_votes(day, i)[0] >= self.need
+            if ok and not prev:                                    # a new setup, not every bar of the same one
+                out.append(Signal(i=i, side=1, stop_dist=float(self.stop_r * a[i]), max_bars=int(self.hold), tag=self.TAG, atr=float(a[i]),
+                                  target_px=float(c[i] + self.tp_r * a[i])))
+            prev = ok
+        return out
+
+
+class OnlyTags:
+    """Keeps only the signals whose tag is in `tags` (the scalper redesign trades nothing else)."""
+
+    def __init__(self, brain, tags):
+        self.brain, self.tags = brain, set(tags)
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        return [s for s in self.brain.signals(day) if (s.tag or "") in self.tags]
+
+
 class OversoldGate:
     """Owner 2026-10-19: every BUY (long signal, any expert or strategy) must show at least `need` of the five oversold readings
     (confirm.oversold_votes) on its signal bar. Shorts pass untouched. Backtest wrapper; the live bot applies the same rule in paper.py."""

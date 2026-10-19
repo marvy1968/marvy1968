@@ -1036,7 +1036,7 @@ class LadderWalkTests(unittest.TestCase):
         self.assertEqual(ladder_for(lad, "S:donchian_turtle")["tp_fracs"], [])          # shorts use the same expert's plan
         self.assertEqual(ladder_for(lad, "unknown")["tp_fracs"], [0.25, 0.5])            # default plan
         from alpacabot.experts import ALL_EXPERTS, CANDIDATE_EXPERTS
-        self.assertEqual(set(EXPERT_LADDERS), set(ALL_EXPERTS) | set(CANDIDATE_EXPERTS) | {"trend_stairs"})   # + the owner's own strategy
+        self.assertEqual(set(EXPERT_LADDERS), set(ALL_EXPERTS) | set(CANDIDATE_EXPERTS) | {"trend_stairs", "scalper"})   # + the owner's own strategy
         bars = [(100, 102.1, 99.9, 102.0), (102.0, 103.0, 101.9, 102.9)]
         j, pnl, why = self.walk(bars, ladder_for(lad, "connors_rsi2"))
         self.assertEqual((j, pnl, why), (0, 2.0, "zone100"))                            # Connors: all out at the zone
