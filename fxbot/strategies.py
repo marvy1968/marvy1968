@@ -449,6 +449,54 @@ class BoxGated:
         return f
 
 
+class InBox:
+    """The owner's range experts placed INSIDE the owner's range box (2026-10-19: "modify my paper range idea and place my experts inside it").
+    The earlier BoxGated only filtered an expert's signal and left its own stop and target. Here the box is the arena and its drawing sets the
+    trade: the pair must be RANGING (200 MA flat on 80% of the last `lookback` bars, the 20 MA crossing it at least twice, box 2-20 ATR high,
+    the box as it stood BEFORE the signal bar); the expert supplies the timing but a long only counts in the LOWER half of the box and a short in
+    the UPPER half; the sell line ("Sell ALL") is `stop_atr` ATR outside the edge being faded; the first take-profit line is `tp_frac` of the way
+    to the far edge (0.5 = the box middle, 1.0 = the edge less 0.25 ATR) and the full target is the far edge. A trade whose stop is farther than
+    `max_stop_atr` ATR or whose target is under `min_r` x the risk is skipped. The expert's own exit rule and time stop stay."""
+
+    def __init__(self, base, lookback: int = 100, min_crosses: int = 2, flat_atr: float = 0.5, stop_atr: float = 0.5, tp_frac: float = 0.5,
+                 max_stop_atr: float = 4.0, min_r: float = 0.75, label: str = ""):
+        self.base, self.lookback, self.min_crosses, self.flat_atr = base, lookback, min_crosses, flat_atr
+        self.stop_atr, self.tp_frac, self.max_stop_atr, self.min_r = stop_atr, tp_frac, max_stop_atr, min_r
+        self.max_bars = base.max_bars
+        self.name = (label or getattr(base, "name", type(base).__name__)) + " in the owner's range box"
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        f = self.base.frame(m).copy()
+        c, a = m["close"], atr(m, 14)
+        s20, s200 = sma(c, 20), sma(c, 200)
+        flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+        side_ = np.sign(s20 - s200)
+        crosses = (side_ != side_.shift(1)).astype(float).where(side_.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+        ranging = (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (ranging.shift(1).fillna(False).astype(bool) & (h >= 2 * a) & (h <= 20 * a)).fillna(False)
+        pos = (c - bot) / h.where(h > 0)
+        long_ = f["long"] & ok & (pos <= 0.5)
+        short = f["short"] & ok & (pos >= 0.5)
+        stop_l, stop_s = c - (bot - self.stop_atr * a), (top + self.stop_atr * a) - c
+        tgt_l, tgt_s = top - c, c - bot                                                  # the far edge
+        stop = pd.Series(np.where(long_, stop_l, stop_s), index=m.index)
+        tgt = pd.Series(np.where(long_, tgt_l, tgt_s), index=m.index)
+        sane = (stop > 0) & (stop <= self.max_stop_atr * a) & (tgt >= self.min_r * stop)
+        long_, short = long_ & sane, short & sane
+        f["long"], f["short"] = long_.fillna(False), short.fillna(False)
+        f["stop"] = stop.where(long_ | short, f["stop"])
+        full = self.tp_frac >= 1.0
+        first_l = top - 0.25 * a if full else c + self.tp_frac * (top - c)
+        first_s = bot + 0.25 * a if full else c - self.tp_frac * (c - bot)
+        f["zone_px"] = np.where(long_, first_l, np.where(short, first_s, np.nan))
+        f["target"] = np.where(long_, tgt_l, np.where(short, tgt_s, np.nan))
+        f["zone2_px"] = np.where(long_, top - 0.25 * a, np.where(short, bot + 0.25 * a, np.nan))      # TP2 = the far edge
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,

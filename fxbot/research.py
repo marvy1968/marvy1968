@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import InBox, BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -288,3 +288,23 @@ def recent_vote_check(data: dict, a, b) -> tuple[list[str], float]:
             best = (pf, vote)
     out.append(f"- PICK (pre-declared rule): vote {best[1]:.0%}" + ("" if best[0] else " (no vote was profitable with 10+ trades: all-indicators rule)"))
     return out, best[1]
+
+
+IN_BOX_EXPERTS = {"lien": ("H1", lambda: LienFader(break_pips=20)), "rangemr": ("H1", lambda: RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False)),
+                  "consensus": ("H1", lambda: ConsensusMR(votes=3)), "f0": ("H4", lambda: F0Reversion(n=100))}
+
+
+def inbox_check(data_by_gran: dict, a, b) -> list[str]:
+    """Owner 2026-10-19 ("modify my paper range idea and place my experts inside it", OANDA): each range expert plain, gated by the box (the
+    earlier BoxGated, its own stop / target) and placed INSIDE the box (InBox: the box's stop and take-profit lines), over a..b."""
+    out = []
+    for key, (gran, make) in IN_BOX_EXPERTS.items():
+        data = data_by_gran[gran]
+        rows = {"plain (expert alone)": make(), "gated by the box (own stop/target)": BoxGated(make(), position="half"),
+                "INSIDE the box, TP1 at the middle": InBox(make(), tp_frac=0.5), "INSIDE the box, TP1 at the far edge": InBox(make(), tp_frac=1.0)}
+        out.append(f"### {key} ({gran})")
+        for label, strat in rows.items():
+            m = run(strat, data, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out

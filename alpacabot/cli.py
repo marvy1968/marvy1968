@@ -91,6 +91,18 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "inbox_fx":                  # the range experts inside the owner's range box (fxbot.research.inbox_check), 3 and 12 months
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import inbox_check
+                today = _dt.date.today()
+                for label, days_ in (("last 3 months", 92), ("last 12 months", 365)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    dbg = {g: {i: fx_load(i, g, a_ - _dt.timedelta(days=90), today, Path("state/fx/cache")) for i in MAJORS} for g in ("H1", "H4")}
+                    lines += [f"## inbox_fx: the owner's range experts inside the range box, {label} ({a_} to {today}, bid/ask)"] + inbox_check(dbg, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "votecheck_fx":              # 60% / 80% / 100% indicator vote for confirmed breakouts (fxbot.research.vote_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS
