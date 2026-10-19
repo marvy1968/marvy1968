@@ -74,11 +74,14 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
           # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.
-          "loss_cut_r": 0.10,
+          # 2026-10-19 scalp_fx backtest (4 live strategies, last 12 months, hourly bid/ask, pessimistic): cut 0.10R / out +0.30R -28.5% in total,
+          # 0.25R / 0.75R -24.2%, 0.50R / 1.50R -9.5% (old ladder -14.8%); last 3 months -5.3% / -4.1% / -2.1%. The owner said "deploy the best":
+          # 0.50 / 1.50. At 0.10R normal price noise stops a trade out almost every time (Lien Fader won 1 of 15, range box 318 trades at 13%).
+          "loss_cut_r": 0.50,
           # owner 2026-10-19 ("leave at 10, tp and closeout at 30%"): the WHOLE position is taken off at +`take_profit_r` x its risk. The OANDA
           # take-profit is placed there (it survives a VM outage) and the runner also closes at market when the mid is that far in profit.
           # It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
-          "take_profit_r": 0.30}                                # the hybrid trades at half the normal 1% (owner)
+          "take_profit_r": 1.50}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
