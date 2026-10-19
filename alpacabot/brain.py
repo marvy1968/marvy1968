@@ -408,6 +408,21 @@ class TrendStairsSignals(BoxSignals):
         return out
 
 
+class OversoldGate:
+    """Owner 2026-10-19: every BUY (long signal, any expert or strategy) must show at least `need` of the five oversold readings
+    (confirm.oversold_votes) on its signal bar. Shorts pass untouched. Backtest wrapper; the live bot applies the same rule in paper.py."""
+
+    def __init__(self, brain, need: int = 3):
+        self.brain, self.need = brain, need
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        from .confirm import oversold_votes
+        return [s for s in self.brain.signals(day) if s.side != 1 or oversold_votes(day, s.i)[0] >= self.need]
+
+
 def fib_ladder_cfg(cfg: dict, tp1: float, tp2: float, atr: float) -> dict:
     """Per-trade ladder for a Fibonacci box trade: the first take-profit step at TP1 (the zone itself) and the second at TP2, written as
     ATRs beyond TP1 so the live ladder code needs no change."""

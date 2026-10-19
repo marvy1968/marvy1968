@@ -284,6 +284,11 @@
    "confirm": 0.6,
    "select": false,
    "tp_zone": false
+  },
+  "oversold_gate": {
+   "_note": "owner 2026-10-19: only BUY when the majority of five indicators say oversold on the signal bar (5-minute RSI14 <= 35, stochastic <= 20, Bollinger %B <= 0.15, close >= 1 ATR under VWAP, Williams %R <= -80): need of 5. Applies to every long entry of every expert and strategy; shorts are untouched. Set live to false to switch it off.",
+   "live": true,
+   "need": 3
   }
  },
  "swing": {

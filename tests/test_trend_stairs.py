@@ -183,3 +183,44 @@ class FixedRTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OversoldGateTests(unittest.TestCase):
+    def _day(self, **over):
+        n = 30
+        idx = pd.date_range("2026-10-19 09:30", periods=n, freq="5min", tz="America/New_York")
+        base = {"open": 100.0, "high": 100.2, "low": 99.8, "close": 100.0, "volume": 1000.0, "f_rsi14": 50.0, "f_stk": 50.0, "f_willr": -50.0,
+                "f_bb_lo": 99.0, "f_bb_mid": 100.0, "f_vwap": 100.0, "f_atr": 0.5}
+        base.update(over)
+        return pd.DataFrame({k: [v] * n for k, v in base.items()}, index=idx)
+
+    def test_votes(self):
+        from alpacabot.confirm import oversold_votes
+        self.assertEqual(oversold_votes(self._day(), 10)[0], 0)
+        d = self._day(f_rsi14=25.0, f_stk=10.0, f_willr=-90.0, close=98.9)                  # RSI, stochastic, Williams; %B: (98.9-99)/(101-99)<0 -> Bollinger; VWAP: -1.1/0.5 -> VWAP
+        k, names = oversold_votes(d, 10)
+        self.assertEqual(k, 5, names)
+        self.assertEqual(oversold_votes(self._day(f_rsi14=25.0, f_stk=10.0), 10)[0], 2)
+        self.assertEqual(oversold_votes(self._day(f_rsi14=float("nan")), 10)[0], 0)          # missing data = not oversold
+
+    def test_gate_filters_longs_only(self):
+        from alpacabot.brain import OversoldGate
+        from alpacabot.strategies import Signal
+
+        class Base:
+            def signals(self, day):
+                return [Signal(i=10, side=1, stop_dist=0.5, tag="x"), Signal(i=10, side=-1, stop_dist=0.5, tag="S:x")]
+        calm, deep = self._day(), self._day(f_rsi14=25.0, f_stk=10.0, f_willr=-90.0)
+        self.assertEqual([s.side for s in OversoldGate(Base(), 3).signals(calm)], [-1])        # the buy is blocked, the short passes
+        self.assertEqual(sorted(s.side for s in OversoldGate(Base(), 3).signals(deep)), [-1, 1])
+        self.assertEqual([s.side for s in OversoldGate(Base(), 4).signals(deep)], [-1])        # 3 of 5 is not enough for need 4
+
+    def test_live_config_switch(self):
+        import json
+        from pathlib import Path
+        g = json.loads((Path(__file__).parent.parent / "alpacabot" / "zones.json").read_text())["intraday"]["oversold_gate"]
+        self.assertEqual((g["live"], g["need"]), (True, 3))
+
+
+if __name__ == "__main__":
+    unittest.main()

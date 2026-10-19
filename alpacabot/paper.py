@@ -823,6 +823,14 @@ class PaperRunner:
                         self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
                                      result=f"reversal not confirmed ({k}/4; failed: {', '.join(failed)})")
                         continue
+                og = zcfg.get("oversold_gate") or {}
+                if og.get("live") and sig.side == 1:                                         # owner: only buy when most indicators say oversold
+                    from .confirm import oversold_votes
+                    k, names = oversold_votes(day, len(day) - 1)
+                    if k < int(og.get("need", 3)):
+                        self.journal("signal", symbol=sym, side="long", tag=sig.tag, ref=ref,
+                                     result=f"not oversold ({k}/5 say oversold{': ' + ', '.join(names) if names else ''}; need {int(og.get('need', 3))})")
+                        continue
                 why = self.regime_block(sig, zcfg)
                 if why:
                     self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref, result=why)

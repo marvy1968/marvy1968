@@ -1080,6 +1080,30 @@ def fixed_r_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio =
     return out
 
 
+def oversold_gate_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-19 ("only buy when the majority of indicators say oversold"): the live stock set (the 11 experts + trend_stairs, live filters and
+    exits) with no gate vs OversoldGate needing 2, 3 or 4 of the five oversold readings on every long signal. Shorts are untouched."""
+    from .brain import DirectionFirst, OversoldGate, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(need, a, b):
+        br = Brain(experts=list(ALL_EXPERTS), short_experts=list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {**EXPERT_LADDERS, "trend_stairs": EXPERT_LADDERS["trend_stairs"]}}}
+        inner = TrendConfirm(StageFilter(DirectionFirst(TrendStairsSignals(br, confirm=0.6))))
+        r = run_intraday(OversoldGate(inner, need) if need else inner, days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    names = {0: "no gate (before)", 2: "buy only when 2 of 5 say oversold", 3: "OWNER: majority, 3 of 5 say oversold", 4: "4 of 5 say oversold"}
+    out = {"periods": {"train": {}, "validate": {}}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        for need, label in names.items():
+            out["periods"][per][label] = cp.get(f"og-{per}-{need}", lambda need=need, a=a, b=b: run(need, a, b))
+    out.update({"family": "oversold_gate", "passes": False, "verdict": "research: see the table"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

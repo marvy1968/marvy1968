@@ -151,3 +151,20 @@ def reversal_votes(day, i: int, side: int, vola_max: float = 1.2, stretch_atr: f
     else:
         ok.append(False)
     return sum(ok), [n for n, x in zip(names, ok) if not x]
+
+
+def oversold_votes(day, i: int, rsi_max: float = 35.0, stoch_max: float = 20.0, pctb_max: float = 0.15, vwap_atr: float = 1.0,
+                   willr_max: float = -80.0) -> tuple[int, list[str]]:
+    """Owner 2026-10-19 ("only buy when the majority of indicators say oversold"): how many of FIVE indicators read oversold on bar i (5-minute chart):
+    RSI14 <= rsi_max, stochastic %K(14,3) <= stoch_max, Bollinger %B (20, 2) <= pctb_max (price at or under the lower band), the close at least vwap_atr
+    ATR under VWAP, Williams %R(14) <= willr_max. Missing data counts as not oversold. Returns (how many, the names that say oversold)."""
+    def g(col):
+        return float(day[col].iloc[i]) if col in day else float("nan")
+    c, rsi, stk, willr = g("close"), g("f_rsi14"), g("f_stk"), g("f_willr")
+    lo, mid, vw, a = g("f_bb_lo"), g("f_bb_mid"), g("f_vwap"), g("f_atr")
+    up = 2 * mid - lo
+    pctb = (c - lo) / (up - lo) if up == up and lo == lo and up > lo else float("nan")
+    checks = {"RSI": rsi <= rsi_max, "stochastic": stk <= stoch_max, "Bollinger": pctb <= pctb_max,
+              "VWAP": a > 0 and (c - vw) / a <= -vwap_atr, "Williams %R": willr <= willr_max}
+    names = [k for k, v in checks.items() if bool(v)]
+    return len(names), names
