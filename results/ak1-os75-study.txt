@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families oversold_swing
+started 2026-10-19 14:05:12 EDT
+RUNNING...
