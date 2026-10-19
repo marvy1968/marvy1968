@@ -1,0 +1,3 @@
+$ alpaca paper-flatten --state state/fx_paper
+started 2026-10-19 13:17:23 EDT
+RUNNING...
