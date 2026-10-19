@@ -1,3 +1,47 @@
 $ alpaca run-all --phase validate --families losscut_fx
-started 2026-10-19 03:47:33 EDT
-RUNNING...
+started 2026-10-19 03:47:33 EDT, took 124s, exit 0
+
+daily data ready
+## losscut_fx: the live strategies with the owner's loss cut, last 3 months (2026-07-19 to 2026-10-19, H1, bid/ask, pessimistic)
+### lien_h1
+- normal stop: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- loss cut at 0.10R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- loss cut at 0.25R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- loss cut at 0.50R: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### hybrid_h1
+- normal stop: 18 trades, win 17%, PF 0.43, total -3.10%, maxDD -3.9%
+- loss cut at 0.10R: 23 trades, win 0%, PF 0.00, total -0.88%, maxDD -0.8%
+- loss cut at 0.25R: 23 trades, win 0%, PF 0.00, total -2.20%, maxDD -2.1%
+- loss cut at 0.50R: 22 trades, win 14%, PF 0.67, total -1.21%, maxDD -2.1%
+### confirm_h1
+- normal stop: 6 trades, win 0%, PF 0.00, total -2.96%, maxDD -2.5%
+- loss cut at 0.10R: 6 trades, win 0%, PF 0.00, total -0.40%, maxDD -0.3%
+- loss cut at 0.25R: 6 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.8%
+- loss cut at 0.50R: 6 trades, win 0%, PF 0.00, total -1.99%, maxDD -1.6%
+### boxmr_h1
+- normal stop: 16 trades, win 38%, PF 0.88, total -0.30%, maxDD -1.0%
+- loss cut at 0.10R: 59 trades, win 3%, PF 0.49, total -3.14%, maxDD -3.5%
+- loss cut at 0.25R: 32 trades, win 16%, PF 1.10, total +0.54%, maxDD -2.2%
+- loss cut at 0.50R: 23 trades, win 30%, PF 1.25, total +1.19%, maxDD -1.3%
+## losscut_fx: the live strategies with the owner's loss cut, last 12 months (2025-10-19 to 2026-10-19, H1, bid/ask, pessimistic)
+### lien_h1
+- normal stop: 13 trades, win 46%, PF 1.83, total +2.67%, maxDD -1.1%
+- loss cut at 0.10R: 15 trades, win 0%, PF 0.00, total -1.81%, maxDD -1.7%
+- loss cut at 0.25R: 15 trades, win 13%, PF 1.03, total +0.11%, maxDD -3.3%
+- loss cut at 0.50R: 15 trades, win 33%, PF 1.92, total +4.64%, maxDD -1.5%
+### hybrid_h1
+- normal stop: 77 trades, win 25%, PF 0.73, total -6.32%, maxDD -6.6%
+- loss cut at 0.10R: 95 trades, win 0%, PF 0.00, total -4.78%, maxDD -4.7%
+- loss cut at 0.25R: 94 trades, win 5%, PF 0.69, total -3.42%, maxDD -5.8%
+- loss cut at 0.50R: 87 trades, win 15%, PF 0.85, total -2.66%, maxDD -4.4%
+### confirm_h1
+- normal stop: 14 trades, win 0%, PF 0.00, total -6.57%, maxDD -6.1%
+- loss cut at 0.10R: 14 trades, win 0%, PF 0.00, total -1.15%, maxDD -1.0%
+- loss cut at 0.25R: 14 trades, win 0%, PF 0.00, total -2.78%, maxDD -2.4%
+- loss cut at 0.50R: 14 trades, win 0%, PF 0.00, total -4.84%, maxDD -4.3%
+### boxmr_h1
+- normal stop: 118 trades, win 42%, PF 0.66, total -4.55%, maxDD -5.3%
+- loss cut at 0.10R: 276 trades, win 9%, PF 0.47, total -18.80%, maxDD -19.2%
+- loss cut at 0.25R: 193 trades, win 23%, PF 0.68, total -12.27%, maxDD -12.9%
+- loss cut at 0.50R: 137 trades, win 37%, PF 0.74, total -6.49%, maxDD -9.0%
+ALL DONE
