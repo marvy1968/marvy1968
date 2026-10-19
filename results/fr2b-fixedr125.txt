@@ -1,3 +1,5 @@
 $ alpaca run-all --phase validate --months3 --families fixed_r
-started 2026-10-19 09:12:05 EDT
-RUNNING...
+started 2026-10-19 09:12:05 EDT, took 7201s, exit timeout
+
+b'daily data ready\n'
+TIMED OUT after 7200s
