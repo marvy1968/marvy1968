@@ -1,3 +1,47 @@
 $ alpaca run-all --phase validate --families inbox_fx
-started 2026-10-18 21:45:18 EDT
-RUNNING...
+started 2026-10-18 21:45:18 EDT, took 137s, exit 0
+
+daily data ready
+## inbox_fx: the owner's range experts inside the range box, last 3 months (2026-07-18 to 2026-10-18, bid/ask)
+### lien (H1)
+- plain (expert alone): 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- gated by the box (own stop/target): 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- INSIDE the box, TP1 at the middle: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- INSIDE the box, TP1 at the far edge: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### rangemr (H1)
+- plain (expert alone): 1399 trades, win 34%, PF 0.42, total -69.64%, maxDD -69.6%
+- gated by the box (own stop/target): 31 trades, win 39%, PF 0.97, total -0.18%, maxDD -2.1%
+- INSIDE the box, TP1 at the middle: 16 trades, win 38%, PF 0.88, total -0.30%, maxDD -1.0%
+- INSIDE the box, TP1 at the far edge: 16 trades, win 38%, PF 0.88, total -0.30%, maxDD -1.0%
+### consensus (H1)
+- plain (expert alone): 443 trades, win 43%, PF 0.66, total -33.71%, maxDD -35.0%
+- gated by the box (own stop/target): 35 trades, win 43%, PF 0.51, total -4.91%, maxDD -5.3%
+- INSIDE the box, TP1 at the middle: 30 trades, win 20%, PF 0.17, total -7.06%, maxDD -6.1%
+- INSIDE the box, TP1 at the far edge: 30 trades, win 20%, PF 0.17, total -7.06%, maxDD -6.1%
+### f0 (H4)
+- plain (expert alone): 19 trades, win 26%, PF 0.72, total -2.05%, maxDD -4.7%
+- gated by the box (own stop/target): 1 trades, win 0%, PF 0.00, total -0.55%, maxDD 0.0%
+- INSIDE the box, TP1 at the middle: 1 trades, win 0%, PF 0.00, total -0.57%, maxDD 0.0%
+- INSIDE the box, TP1 at the far edge: 1 trades, win 0%, PF 0.00, total -0.57%, maxDD 0.0%
+## inbox_fx: the owner's range experts inside the range box, last 12 months (2025-10-18 to 2026-10-18, bid/ask)
+### lien (H1)
+- plain (expert alone): 13 trades, win 46%, PF 1.83, total +2.67%, maxDD -1.1%
+- gated by the box (own stop/target): 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- INSIDE the box, TP1 at the middle: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- INSIDE the box, TP1 at the far edge: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### rangemr (H1)
+- plain (expert alone): 5782 trades, win 35%, PF 0.48, total -98.61%, maxDD -98.6%
+- gated by the box (own stop/target): 209 trades, win 37%, PF 0.68, total -10.86%, maxDD -12.8%
+- INSIDE the box, TP1 at the middle: 118 trades, win 42%, PF 0.66, total -4.55%, maxDD -5.3%
+- INSIDE the box, TP1 at the far edge: 118 trades, win 42%, PF 0.66, total -4.55%, maxDD -5.3%
+### consensus (H1)
+- plain (expert alone): 1795 trades, win 44%, PF 0.66, total -81.57%, maxDD -82.0%
+- gated by the box (own stop/target): 192 trades, win 45%, PF 0.63, total -17.65%, maxDD -18.6%
+- INSIDE the box, TP1 at the middle: 173 trades, win 31%, PF 0.44, total -20.91%, maxDD -21.0%
+- INSIDE the box, TP1 at the far edge: 173 trades, win 31%, PF 0.44, total -20.91%, maxDD -21.0%
+### f0 (H4)
+- plain (expert alone): 79 trades, win 34%, PF 0.83, total -4.68%, maxDD -6.5%
+- gated by the box (own stop/target): 3 trades, win 67%, PF 1.56, total +0.31%, maxDD -0.6%
+- INSIDE the box, TP1 at the middle: 3 trades, win 33%, PF 0.07, total -1.00%, maxDD -0.6%
+- INSIDE the box, TP1 at the far edge: 3 trades, win 33%, PF 0.07, total -1.00%, maxDD -0.6%
+ALL DONE
