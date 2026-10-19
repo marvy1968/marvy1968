@@ -1,3 +1,23 @@
 $ alpaca run-all --phase validate --months3 --families scalper
-started 2026-10-19 16:50:06 EDT
-RUNNING...
+started 2026-10-19 16:50:06 EDT, took 282s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 290 of 4060 stock-days, on the SHORT list 35
+## scalper: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 1. stop 0.5 R / target 1.25 R / 30 min (live): 6t win 0% PF 0.00 avgR -1.16 daily -0.029% CAGR -7.7% maxDD -0.1%
+- train | 2. stop 0.75 R: 6t win 17% PF 0.19 avgR -0.57 daily -0.024% CAGR -7.4% maxDD -0.2%
+- train | 3. stop 1.0 R: 6t win 17% PF 0.15 avgR -0.60 daily -0.032% CAGR -9.8% maxDD -0.2%
+- train | 4. 2 of 5 oversold: 12t win 8% PF 0.02 avgR -1.04 daily -0.032% CAGR -7.1% maxDD -0.3%
+- train | 5. hold 12 bars (1 hour): 6t win 17% PF 0.20 avgR -0.84 daily -0.018% CAGR -5.5% maxDD -0.1%
+- validate | 1. stop 0.5 R / target 1.25 R / 30 min (live): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 2. stop 0.75 R: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 3. stop 1.0 R: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 4. 2 of 5 oversold: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 5. hold 12 bars (1 hour): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+ALL DONE
