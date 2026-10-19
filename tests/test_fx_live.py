@@ -298,6 +298,18 @@ class FxLiveTests(unittest.TestCase):
             self.assertEqual((row["reason"], row["pl"]), ("broker_sl", -171.0))
             self.assertAlmostEqual(r.equity([]), 58000.0 - 171.0)
 
+    def test_flatten_now_file_closes_the_runners_groups(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            self.assertTrue(r.groups)
+            (Path(tmp) / "FLATTEN_NOW").write_text("owner\n")
+            r.step()
+            self.assertEqual(r.groups, {})
+            self.assertFalse((Path(tmp) / "FLATTEN_NOW").exists())
+            self.assertEqual(r.ledger()[-1]["reason"], "owner flatten")
+
     def test_step_runs_end_to_end(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()

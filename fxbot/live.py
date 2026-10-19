@@ -204,6 +204,13 @@ class FxPaper:
         now = self.clock()
         trades = self.api.open_trades()
         self.sync(trades)
+        flat = self.dir / "FLATTEN_NOW"
+        if flat.exists():                                  # owner: close this runner's own groups now (never the fx-experts bot's trades)
+            for gid in list(self.groups):
+                self.close_group(gid, "owner flatten")
+            flat.unlink(missing_ok=True)
+            self.journal("flatten_now", closed=True)
+            trades = self.api.open_trades()
         if not market_open(now):
             self.status(trades)
             return
