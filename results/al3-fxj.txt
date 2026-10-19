@@ -1,3 +1,10 @@
 $ show fx_paper/journal-20261019.jsonl
-started 2026-10-19 14:08:03 EDT
-RUNNING...
+started 2026-10-19 14:08:03 EDT, took 0s, exit 0
+
+{"t": "2026-10-19T01:01:31+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "USD_CHF", "side": "long", "bar": "2026-10-18T21:00:00+00:00", "close": 0.82422, "stop_dist": 0.0030463593670270184, "result": "paused (signal logged)"}
+{"t": "2026-10-19T06:00:41+00:00", "kind": "error", "where": "scan", "strategy": "lien_h1", "instrument": "EUR_USD", "error": "OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-10-19T13:00:27+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "GBP_USD", "side": "short", "bar": "2026-10-19T09:00:00+00:00", "close": 1.332535, "stop_dist": 0.004077180402457081, "result": "paused (signal logged)"}
+{"t": "2026-10-19T15:00:28+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-10-19T15:23:26+00:00", "kind": "error", "where": "scan", "strategy": "lien_h1", "instrument": "EUR_USD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-19T16:25:42+00:00", "kind": "error", "where": "scan", "strategy": "box_h1", "instrument": "USD_CHF", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-19T17:18:03+00:00", "kind": "flatten_now", "closed": true}
