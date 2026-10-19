@@ -1,3 +1,21 @@
 $ alpaca run-all --phase validate --months3 --families oversold_gate
-started 2026-10-19 07:58:17 EDT
-RUNNING...
+started 2026-10-19 07:58:17 EDT, took 4420s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 286 of 4002 stock-days, on the SHORT list 34
+## oversold_gate: research: see the table
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | no gate (before): 1466t win 36% PF 0.59 avgR -0.22 daily -0.623% CAGR -80.4% maxDD -18.2%
+- train | buy only when 2 of 5 say oversold: 1098t win 39% PF 0.57 avgR -0.20 daily -0.443% CAGR -69.3% maxDD -13.3%
+- train | OWNER: majority, 3 of 5 say oversold: 947t win 38% PF 0.55 avgR -0.21 daily -0.414% CAGR -67.2% maxDD -12.5%
+- train | 4 of 5 say oversold: 690t win 39% PF 0.61 avgR -0.18 daily -0.281% CAGR -52.9% maxDD -8.7%
+- validate | no gate (before): 1205t win 35% PF 0.53 avgR -0.25 daily -0.618% CAGR -79.4% maxDD -17.0%
+- validate | buy only when 2 of 5 say oversold: 987t win 35% PF 0.52 avgR -0.25 daily -0.535% CAGR -73.1% maxDD -14.9%
+- validate | OWNER: majority, 3 of 5 say oversold: 922t win 34% PF 0.51 avgR -0.26 daily -0.509% CAGR -71.9% maxDD -14.2%
+- validate | 4 of 5 say oversold: 814t win 33% PF 0.48 avgR -0.28 daily -0.482% CAGR -69.7% maxDD -13.5%
+ALL DONE
