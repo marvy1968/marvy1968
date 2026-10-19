@@ -1,3 +1,6 @@
 $ alpaca positions
-started 2026-10-19 07:21:00 EDT
-RUNNING...
+started 2026-10-19 07:21:00 EDT, took 2s, exit 0
+
+equity $52,894.53  cash $52,894.53  long mv $0.00  short mv $0.00
+0 open positions:
+0 open orders:
