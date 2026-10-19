@@ -230,6 +230,16 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             if col in df:
                 tl = (df[col].to_numpy() == -1)
         lad = ladder_for(zones.get("ladder"), s.tag) if (zp and zones) else None
+        if lad and lad.get("fixed_r"):            # research (owner 2026-10-19 "test the .5 r to 1.5 tp"): a stop at cut x the strategy's risk and the whole
+            cut_r, tp_r = lad["fixed_r"]          # position out at tp x that risk; the trade is sized on the stop actually used (equal risk per trade)
+            atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
+            ex = (lambda j: bool(df[xcol].iloc[j])) if (xcol and not s.managed) else None
+            risk_u = cut_r * s.stop_dist
+            j, pnl, why = ladder_walk(o, h, l, c, j0, n, fill, fill - risk_u, fill + tp_r * s.stop_dist, atr_l, risk_u,
+                                      {"tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}, sell, s.max_bars, ex, None)
+            trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(fill + pnl), risk_u, why, j - j0 + 1, s.tag, side))
+            busy = j
+            continue
         if lad:                                   # owner's scaled exits: the expert's fixed target is off, the zones take profit
             atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale) if s.managed else None

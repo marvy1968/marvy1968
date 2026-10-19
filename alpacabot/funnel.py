@@ -27,6 +27,7 @@ from .indicators import atr
 RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop_max_atr": 3.0, "tp_r": 1.5, "stoch_top": 75.0,
          "stage_ma": 150, "stage_slope": 20,
          # owner 2026-10-17 ("S/R and RSI determine buy zones"): two more votes, then `need6` of 6 must agree
+         "stop_frac": 1.0,                       # research: the stop at this share of the band distance (take-profit stays tp_r x the FULL distance)
          "sr_rsi": False, "need6": 4, "sr_atr": 0.5, "sr_lookback": 120, "sr_wing": 2, "sr_min_touches": 2,
          "rsi_long": (40.0, 55.0), "rsi_short": (45.0, 60.0)}
 
@@ -109,7 +110,7 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         dist = (side * (c - band)).clip(lower=r["stop_min_atr"] * a, upper=r["stop_max_atr"] * a)
         tag = "long" if side == 1 else "short"
         out[f"{tag}_entry"] = (stage == want) & (votes >= need) & a.notna() & (a > 0) & ma.notna()
-        out[f"{tag}_stop"] = c - side * dist
+        out[f"{tag}_stop"] = c - side * r["stop_frac"] * dist
         out[f"{tag}_tp"] = c + side * r["tp_r"] * dist
         under = (c < ma) if side == 1 else (c > ma)
         three = under & under.shift(1, fill_value=False) & under.shift(2, fill_value=False)

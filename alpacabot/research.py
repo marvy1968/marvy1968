@@ -1050,6 +1050,35 @@ def no_stop_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio =
     return out
 
 
+def fixed_r_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-19 ("test the .5 r to 1.5 tp", the OANDA setting, on the stock bots): the live exits against a fixed stop at `cut` x the strategy's
+    risk with the WHOLE position out at `tp` x that risk (engine ladder "fixed_r"), for the 11 experts and for trend_stairs, both periods. Each trade is
+    sized on the stop it actually uses, so risk per trade is equal across variants. The 11 experts run through the live filters (direction first,
+    Weinstein stage, trend confirmation)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, TrendStairsSignals
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    pairs = {"live exits (ladder)": None, "OWNER: stop 0.5R, out at 1.5R": (0.5, 1.5), "stop 0.25R, out at 0.75R": (0.25, 0.75),
+             "stop 1.0R, out at 2.0R": (1.0, 2.0), "stop 1.0R, out at 3.0R": (1.0, 3.0), "stop 0.5R, out at 1.0R": (0.5, 1.0)}
+
+    def run(kind, pair, a, b):
+        ts = kind == "trend_stairs"
+        br = Brain(experts=[] if ts else list(ALL_EXPERTS), short_experts=[] if ts else list(ALL_EXPERTS), sector_filter=True, short_gate="red")
+        lad = {**_OWNER_LADDER, "by_expert": ({"trend_stairs": EXPERT_LADDERS["trend_stairs"]} if ts else EXPERT_LADDERS)} if pair is None else {"fixed_r": pair}
+        br.zones = {"profiles": {**ZONE_PROFILES, "trend_stairs": EXPERT_ZONES["trend_stairs"]}, "levels": True, "trend_exit": True, "ladder": lad}
+        inner = TrendStairsSignals(br, confirm=0.6) if ts else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {"train": {}, "validate": {}}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        for kind, label in (("experts", "11 experts"), ("trend_stairs", "trend_stairs")):
+            for name, pair in pairs.items():
+                out["periods"][per][f"{label}: {name}"] = cp.get(f"fr-{per}-{kind}-{pair}", lambda kind=kind, pair=pair, a=a, b=b: run(kind, pair, a, b))
+    out.update({"family": "fixed_r", "passes": False, "verdict": "research: see the table"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

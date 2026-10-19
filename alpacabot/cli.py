@@ -431,7 +431,7 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
-                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
+                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
                     from datetime import timedelta as _td
                     from . import gates as _g
                     from . import universe as _u
@@ -473,7 +473,19 @@ def run_all(a) -> int:
                             ns += f_.attrs["ts_ok"][1]
                             nd += 1
                     lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
-                    if fam == "no_stops":
+                    if fam == "fixed_r":
+                        from .funnel import backtest as funnel_bt
+                        from .research import fixed_r_study
+                        res = fixed_r_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_fixedr.json")
+                        fbd = {s_: d_ for s_, d_ in d58.items() if s_ in _u.STOCKS}
+                        for label, a_ in (("last 3 months", end - _td(days=92)), ("last 12 months", end - _td(days=365))):
+                            for nm, rules in (("as built (stop 1.0, out at 1.5)", {}), ("stop 0.5, out at 1.5", {"stop_frac": 0.5}),
+                                              ("stop 0.5, out at 1.0", {"stop_frac": 0.5, "tp_r": 1.0}), ("stop 0.25, out at 0.75", {"stop_frac": 0.25, "tp_r": 0.75}),
+                                              ("stop 1.0, out at 3.0", {"tp_r": 3.0})):
+                                m_ = funnel_bt(fbd, a_, end - _td(days=1), sides=("long",), rules=rules)
+                                lines.append(f"- funnel longs (daily), {label}, {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, "
+                                             f"avg R {m_['avg_r']}, total {m_['longs_r']:+}R, exits {m_['exits']}")
+                    elif fam == "no_stops":
                         from .funnel import backtest as funnel_bt
                         from .research import no_stop_study
                         res = no_stop_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_nostop.json")
@@ -579,7 +591,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

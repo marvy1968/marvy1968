@@ -150,3 +150,36 @@ class NoStopResearchTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FixedRTests(unittest.TestCase):
+    def test_fixed_r_ladder_walk_semantics(self):
+        import numpy as np
+        from alpacabot.engine import ladder_walk
+        sell = lambda px: px                                     # noqa: E731
+        lad = {"tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+        # entry 100, original risk 2: cut 0.5R = stop 99, out at 1.5R = 103
+        o = np.array([100.0, 100.2, 100.5]); h = np.array([100.3, 100.6, 103.2]); l = np.array([99.6, 99.4, 100.4]); c = np.array([100.1, 100.4, 103.0])
+        j, pnl, why = ladder_walk(o, h, l, c, 0, 3, 100.0, 99.0, 103.0, 1.0, 1.0, lad, sell)
+        self.assertEqual((j, why, round(pnl, 6)), (2, "zone100", 3.0))               # +1.5R of the original risk 2 = 3.0, all out
+        l2 = np.array([99.6, 98.9, 100.4])
+        j, pnl, why = ladder_walk(o, h, l2, c, 0, 3, 100.0, 99.0, 103.0, 1.0, 1.0, lad, sell)
+        self.assertEqual((j, why, round(pnl, 6)), (1, "stop", -1.0))                 # stopped at 0.5R = 1.0 against
+
+    def test_funnel_stop_frac_scales_the_stop_only(self):
+        sys_path = None
+        import pandas as pd  # noqa: F401
+        from alpacabot.funnel import frame
+        import sys
+        sys.path.insert(0, "tests")
+        from test_funnel import _daily
+        d = _daily()
+        a, b = frame(d), frame(d, {"stop_frac": 0.5})
+        i = a.index[a["long_entry"]][0]
+        dist = a.loc[i, "close"] - a.loc[i, "long_stop"]
+        self.assertAlmostEqual(float(b.loc[i, "close"] - b.loc[i, "long_stop"]), 0.5 * float(dist), places=9)
+        self.assertAlmostEqual(float(b.loc[i, "long_tp"]), float(a.loc[i, "long_tp"]), places=9)      # take-profit unchanged
+
+
+if __name__ == "__main__":
+    unittest.main()
