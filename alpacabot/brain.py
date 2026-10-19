@@ -419,9 +419,10 @@ class ScalperSignals(BoxSignals):
     TAG = "scalper"
     NEED = ("f_atr", "f_m15_dir", "f_h1_dir", "volume")
 
-    def __init__(self, brain, need: int = 3, stop_r: float = 0.5, tp_r: float = 1.25, hold: int = 6, vol_mult: float = 1.2):
+    def __init__(self, brain, need: int = 3, stop_r: float = 0.5, tp_r: float = 1.25, hold: int = 6, vol_mult: float = 1.2, trend: str = "both"):
         super().__init__(brain)
         self.need, self.stop_r, self.tp_r, self.hold, self.vol_mult = need, stop_r, tp_r, hold, vol_mult
+        self.trend = trend      # "both" = 15-minute AND 1-hour up, "m15" = the 15-minute only, "none" = no intraday trend condition (research)
 
     def box_signals(self, day) -> list:
         if len(day) < 25 or any(k not in day for k in self.NEED):
@@ -433,7 +434,8 @@ class ScalperSignals(BoxSignals):
         a = day["f_atr"].to_numpy(float)
         vavg = pd.Series(v).rolling(20, min_periods=20).mean().shift(1).to_numpy()
         with np.errstate(invalid="ignore"):
-            trend = (day["f_m15_dir"].to_numpy(float) == 1) & (day["f_h1_dir"].to_numpy(float) == 1)
+            m15, h1 = day["f_m15_dir"].to_numpy(float) == 1, day["f_h1_dir"].to_numpy(float) == 1
+            trend = (m15 & h1) if self.trend == "both" else m15 if self.trend == "m15" else np.ones(len(day), bool)
             base = win & trend & (c > o) & (v >= self.vol_mult * vavg) & (a > 0)
         out = []
         prev = False

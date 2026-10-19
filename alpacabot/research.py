@@ -983,7 +983,9 @@ def scalper_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio =
         r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(ScalperSignals(br, **kw)))), days, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     variants = {"1. stop 0.5 R / target 1.25 R / 30 min (live)": {}, "2. stop 0.75 R": {"stop_r": 0.75}, "3. stop 1.0 R": {"stop_r": 1.0},
-                "4. 2 of 5 oversold": {"need": 2}, "5. hold 12 bars (1 hour)": {"hold": 12}}
+                "4. 2 of 5 oversold": {"need": 2}, "5. hold 12 bars (1 hour)": {"hold": 12},
+                "6. 15-minute trend only": {"trend": "m15"}, "7. 15-minute trend only + 2 of 5": {"trend": "m15", "need": 2},
+                "8. no intraday trend condition + 2 of 5": {"trend": "none", "need": 2}, "9. no intraday trend, 3 of 5, stop 1.0 R": {"trend": "none", "stop_r": 1.0}}
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
         out["periods"][per] = {name: cp.get(f"sc-{per}-{name[:2]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
