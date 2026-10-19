@@ -266,6 +266,26 @@ def run_all(a) -> int:
                         lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
                                      f"total {m_['longs_r']:+}R, return {m_['return_pct']:+}% at 0.5% risk, exits {m_['exits']}")
                         res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
+            elif fam == "funnel_r":               # the live daily funnel (longs) at several stop / target pairs, 3 and 12 months
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb = {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                res = {"family": fam}
+                for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
+                    for nm, rules in (("stop 1.0 / out 1.5 (before 2026-10-19)", {}), ("stop 0.5 / out 1.25 (owner 10-19)", {"stop_frac": 0.5, "tp_r": 1.25}),
+                                      ("stop 1.0 / out 1.25", {"tp_r": 1.25}), ("stop 0.75 / out 1.25", {"stop_frac": 0.75, "tp_r": 1.25}),
+                                      ("stop 0.5 / out 1.5", {"stop_frac": 0.5})):
+                        m_ = funnel_bt(fb, a_, end2 - _td(days=1), sides=("long",), rules=rules)
+                        lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
+                                     f"total {m_['longs_r']:+}R, return {m_['return_pct']:+}% at 0.5% risk, exits {m_['exits']}")
+                        res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "funnel_swing":           # owner's Stock Funnel as a daily swing strategy (alpacabot.funnel), last 3 months + 12 for context
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt
