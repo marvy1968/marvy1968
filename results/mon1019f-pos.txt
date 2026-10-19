@@ -1,3 +1,17 @@
 $ alpaca positions
-started 2026-10-19 11:15:35 EDT
-RUNNING...
+started 2026-10-19 11:15:35 EDT, took 3s, exit 0
+
+equity $52,723.84  cash $9,935.93  long mv $56,245.96  short mv $-13,458.05
+8 open positions:
+  MA         long  qty           22  value $ 13,520.32  unrealized $    23.10
+  XOM        long  qty           76  value $ 13,478.60  unrealized $    -8.36
+  TMUS       short qty          -85  value $-13,458.05  unrealized $   -65.48
+  LLY        long  qty           10  value $ 12,465.60  unrealized $    12.90
+  CVX        long  qty           45  value $ 10,055.70  unrealized $   -17.91
+  COST       long  qty            3  value $  2,977.83  unrealized $    14.32
+  WMT        long  qty           17  value $  2,014.67  unrealized $     4.22
+  COP        long  qty           12  value $  1,731.24  unrealized $   -17.55
+3 open orders:
+  COP        sell 12 limit new  id sw-o-COP-20261019
+  COST       sell 3 limit new  id sw-o-COST-20261019
+  WMT        sell 17 limit new  id sw-o-WMT-20261019
