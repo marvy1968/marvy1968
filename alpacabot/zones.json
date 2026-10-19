@@ -311,9 +311,9 @@
    "need": 3
   },
   "scalper": {
-   "_note": "owner 2026-10-19 scalper redesign (brain.ScalperSignals), paper from 2026-10-20: longs only, 10:00-15:00 ET, 15-min AND 1-hour trend up (plus direction first / Weinstein stage / the oversold gate), at least `need` of 5 oversold readings, an up bar on volume >= vol_mult x the prior 20-bar average. R = one 5-minute ATR: stop stop_r R, target tp_r R, time stop hold bars (6 = 30 minutes). `only` true = the old intraday experts are switched off, the scalper trades alone. 0.5% risk (risk_by_expert). Set live to false to switch it off.",
+   "_note": "owner 2026-10-19 scalper redesign (brain.ScalperSignals), paper from 2026-10-20: longs only, 10:00-15:00 ET, 15-min AND 1-hour trend up (plus direction first / Weinstein stage / the oversold gate), at least `need` of 5 oversold readings, an up bar on volume >= vol_mult x the prior 20-bar average. R = one 5-minute ATR: stop stop_r R, target tp_r R, time stop hold bars (6 = 30 minutes). `only` true = the old intraday experts are switched off, the scalper trades alone (owner 2026-10-19: false, it runs ALONGSIDE the intraday experts). 0.5% risk (risk_by_expert). Set live to false to switch it off.",
    "live": true,
-   "only": true,
+   "only": false,
    "need": 3,
    "stop_r": 0.5,
    "tp_r": 1.25,
