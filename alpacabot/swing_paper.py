@@ -171,15 +171,18 @@ class SwingRunner:
             entries.append({"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px,
                             **swing_zone(bars_[s], px, stop, self.zone_config())})
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
+        exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
 
-    def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now) -> tuple:
+    def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now,
+                    name: str = "funnel") -> tuple:
         """The owner's Stock Funnel (alpacabot.funnel) beside Sector Top-Down: its own exits (2-of-3 sell vote or the stage changed), its own
-        3 slots and 0.5% risk, longs and shorts. Never a stock either strategy already holds or plans to buy. Off with zones.json swing.funnel.live."""
-        cfg = self.zone_config().get("funnel") or {}
+        3 slots and 0.5% risk, longs and shorts. Never a stock either strategy already holds or plans to buy. Off with zones.json swing.funnel.live.
+        name="oversold" runs the same machinery for the owner's majority-oversold confluence longs (zones.json swing.oversold, funnel.py oversold mode)."""
+        cfg = self.zone_config().get(name) or {}
         if not cfg.get("live"):
             return exits, entries
         from .funnel import frame as funnel_frame
@@ -188,10 +191,10 @@ class SwingRunner:
         except Exception:
             log.exception("funnel frames")
             return exits, entries
-        fn_held = {s: p for s, p in held.items() if p.get("strategy") == "funnel"}
+        fn_held = {s: p for s, p in held.items() if p.get("strategy") == name}
         f_exits = [s for s, p in fn_held.items() if s in ff and bool(ff[s]["long_exit" if p.get("side", 1) == 1 else "short_exit"].iloc[-1])]
         exits = exits + [s for s in f_exits if s not in exits]
-        free = FUNNEL_MAX - (len(fn_held) - len(f_exits))
+        free = int(cfg.get("max", FUNNEL_MAX)) - (len(fn_held) - len(f_exits))
         if locked or free <= 0:
             return exits, entries
         taken = set(held) | {e["symbol"] for e in entries}
@@ -213,9 +216,9 @@ class SwingRunner:
             if qty < 1:
                 continue
             cash -= qty * px
-            entries.append({"symbol": s, "qty": qty, "stop": round(stop, 2), "side": side, "strategy": "funnel", "signal_close": px,
+            entries.append({"symbol": s, "qty": qty, "stop": round(stop, 2), "side": side, "strategy": name, "signal_close": px,
                             "zone_tp": round(tp, 2), "atr": round(float(f["atr"].iloc[-1]), 4)})
-        self.journal("funnel_plan", now, exits=f_exits, entries=[e["symbol"] for e in entries if e.get("strategy") == "funnel"])
+        self.journal(f"{name}_plan", now, exits=f_exits, entries=[e["symbol"] for e in entries if e.get("strategy") == name])
         return exits, entries
 
     # ---------------------------------------------------------------- at the open
@@ -416,13 +419,13 @@ def summary(state_dir="state/alpaca_swing") -> list[str]:
     w = sum(t["pnl"] > 0 for t in trades)
     lines = ["", "SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)",
              f"  closed trades {len(trades)}, {w}W/{len(trades) - w}L, P&L ${sum(t['pnl'] for t in trades):+,.0f}"]
-    for strat in ("topdown", "funnel"):
+    for strat in ("topdown", "funnel", "oversold"):
         ts = [t for t in trades if t.get("strategy", "topdown") == strat]
-        if ts and strat == "funnel":
-            lines.append(f"  funnel: {len(ts)} trades, {sum(t['pnl'] > 0 for t in ts)}W, P&L ${sum(t['pnl'] for t in ts):+,.0f}")
+        if ts and strat != "topdown":
+            lines.append(f"  {strat}: {len(ts)} trades, {sum(t['pnl'] > 0 for t in ts)}W, P&L ${sum(t['pnl'] for t in ts):+,.0f}")
     pos = st.get("positions") or {}
     lines.append("  holding: " + (", ".join(f"{s} {'short ' if p.get('side', 1) == -1 else ''}{p['qty']} @ {p['entry']:.2f} (stop {p['stop']:.2f}"
-                                           f"{', funnel' if p.get('strategy') == 'funnel' else ''})" for s, p in pos.items()) or "nothing"))
+                                           f"{', ' + p['strategy'] if p.get('strategy', 'topdown') != 'topdown' else ''})" for s, p in pos.items()) or "nothing"))
     plan = st.get("plan") or {}
     if plan and not plan.get("done"):
         lines.append(f"  next open: buy {[e['symbol'] for e in plan.get('entries', [])] or 'nothing'}, sell {plan.get('exits') or 'nothing'}")

@@ -310,6 +310,14 @@
    "risk_pct": 0.005,
    "shorts": false,
    "rules": {"stop_frac": 0.5, "tp_r": 1.25}
+  },
+  "oversold": {
+   "_note": "owner 2026-10-19 (adopt): majority-oversold confluence longs on daily bars - 3 of 4 (RSI14<30, stochastic<20, close at/under the lower Bollinger band, 1.5 SD under the 20-day average) plus volume 1.1x, any stage, 0.5% risk, stop 1.0 band distance, take-profit 1.25R, out when back over the 20-day average. 3-month backtest +7.8R PF 1.55, 12-month +7.7R PF 1.09 (live funnel 12-month +24R): adopted by the owner, own tag, 2 slots, paper decides. The 0.5 stop variant lost (PF 0.5-0.6) so the stop stays 1.0.",
+   "live": true,
+   "risk_pct": 0.005,
+   "max": 2,
+   "shorts": false,
+   "rules": {"oversold": true, "os_stage": null, "tp_r": 1.25, "stop_frac": 1.0}
   }
  }
 }
