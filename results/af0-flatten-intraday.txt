@@ -1,0 +1,3 @@
+$ alpaca paper-flatten
+started 2026-10-19 13:14:52 EDT
+RUNNING...
