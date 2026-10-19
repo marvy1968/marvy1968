@@ -80,8 +80,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           "loss_cut_r": 0.50,
           # owner 2026-10-19 ("leave at 10, tp and closeout at 30%"): the WHOLE position is taken off at +`take_profit_r` x its risk. The OANDA
           # take-profit is placed there (it survives a VM outage) and the runner also closes at market when the mid is that far in profit.
-          # It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
-          "take_profit_r": 1.50}                                # the hybrid trades at half the normal 1% (owner)
+          # owner 2026-10-19: both bots 0.5R stop / 1.25R target. It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
+          "take_profit_r": 1.25}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:

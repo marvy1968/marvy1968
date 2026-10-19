@@ -202,7 +202,7 @@ class FxLiveTests(unittest.TestCase):
             for side, sign in ((1, 1), (-1, -1)):
                 api = FakeOanda()
                 r = runner(tmp, api)
-                r.cfg["loss_cut_r"], r.cfg["take_profit_r"] = 0.10, 0.30                      # (the rule at 0.10 / 0.30; the live default is 0.50 / 1.50)
+                r.cfg["loss_cut_r"], r.cfg["take_profit_r"] = 0.10, 0.30                      # (the rule at 0.10 / 0.30; the live default is 0.50 / 1.25)
                 r.try_open("lien_h1", "EUR_USD", side, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], f"2026-10-14T13:0{side + 1}:00+00:00")
                 o = api.orders[-1]
                 px = 1.1001 if side == 1 else 1.1000
@@ -220,7 +220,7 @@ class FxLiveTests(unittest.TestCase):
 
     def test_live_default_is_the_backtested_best_pair(self):
         from fxbot.live import CONFIG
-        self.assertEqual((CONFIG["loss_cut_r"], CONFIG["take_profit_r"]), (0.50, 1.50))
+        self.assertEqual((CONFIG["loss_cut_r"], CONFIG["take_profit_r"]), (0.50, 1.25))
 
     def test_take_profit_off_restores_the_ladder_targets(self):
         with tempfile.TemporaryDirectory() as tmp:
