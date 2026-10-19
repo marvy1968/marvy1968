@@ -1,3 +1,8 @@
 $ show fx_paper/status.txt
-started 2026-10-19 13:55:11 EDT
-RUNNING...
+started 2026-10-19 13:55:11 EDT, took 0s, exit 0
+
+MARV FX PRACTICE RUNNER 2026-10-19 17:54 UTC  (OANDA practice; forex only)
+book equity $56,804.80 (start $59,021.37)  realized $-2,216.57  today $+0.00 (0 fills)
+market OPEN  kill switch off
+last completed bar scanned: lien_h1 7/7 pairs @ 2026-10-19T16:00, f0_h4 7/7 pairs @ 2026-10-19T13:00, box_h1 7/7 pairs @ 2026-10-19T16:00, hybrid_h1 7/7 pairs @ 2026-10-19T16:00, confirm_h1 7/7 pairs @ 2026-10-19T16:00, boxmr_h1 7/7 pairs @ 2026-10-19T16:00, boxcons_h1 7/7 pairs @ 2026-10-19T16:00, boxf0_h4 7/7 pairs @ 2026-10-19T13:00
+open groups 0, OANDA trades 0:
