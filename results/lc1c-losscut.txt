@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families losscut_fx
-started 2026-10-19 03:45:47 EDT
-RUNNING...
+started 2026-10-19 03:45:47 EDT, took 24s, exit 0
+
+daily data ready
+## losscut_fx: ERROR NameError("name 'HybridBox' is not defined")
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
