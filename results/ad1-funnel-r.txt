@@ -1,3 +1,22 @@
 $ alpaca run-all --phase validate --families funnel_r
-started 2026-10-19 12:08:19 EDT
-RUNNING...
+started 2026-10-19 12:08:19 EDT, took 71s, exit 0
+
+daily data ready
+- last 3 months | stop 1.0 / out 1.5 (before 2026-10-19): 67 trades, win 0.448, PF 1.17, avg R 0.055, total +3.69R, return +1.85% at 0.5% risk, exits {'stop': 6, 'tp': 15, 'signal': 42, 'open': 4}
+- last 3 months | stop 0.5 / out 1.25 (owner 10-19): 82 trades, win 0.354, PF 0.94, avg R -0.036, total -2.92R, return -1.46% at 0.5% risk, exits {'stop': 42, 'tp': 19, 'signal': 18, 'open': 3}
+- last 3 months | stop 1.0 / out 1.25: 72 trades, win 0.458, PF 1.22, avg R 0.07, total +5.05R, return +2.52% at 0.5% risk, exits {'stop': 6, 'tp': 22, 'signal': 41, 'open': 3}
+- last 3 months | stop 0.75 / out 1.25: 74 trades, win 0.446, PF 1.14, avg R 0.062, total +4.62R, return +2.31% at 0.5% risk, exits {'stop': 21, 'tp': 22, 'signal': 28, 'open': 3}
+- last 3 months | stop 0.5 / out 1.5: 78 trades, win 0.333, PF 0.9, avg R -0.065, total -5.09R, return -2.54% at 0.5% risk, exits {'stop': 42, 'tp': 14, 'signal': 19, 'open': 3}
+- last 12 months | stop 1.0 / out 1.5 (before 2026-10-19): 281 trades, win 0.409, PF 1.24, avg R 0.086, total +24.17R, return +12.09% at 0.5% risk, exits {'stop': 36, 'tp': 81, 'signal': 160, 'open': 4}
+- last 12 months | stop 0.5 / out 1.25 (owner 10-19): 332 trades, win 0.37, PF 1.25, avg R 0.144, total +47.84R, return +23.92% at 0.5% risk, exits {'stop': 158, 'tp': 100, 'signal': 71, 'open': 3}
+- last 12 months | stop 1.0 / out 1.25: 300 trades, win 0.443, PF 1.33, avg R 0.107, total +32.23R, return +16.12% at 0.5% risk, exits {'stop': 34, 'tp': 106, 'signal': 157, 'open': 3}
+- last 12 months | stop 0.75 / out 1.25: 309 trades, win 0.424, PF 1.29, avg R 0.123, total +37.93R, return +18.97% at 0.5% risk, exits {'stop': 83, 'tp': 105, 'signal': 118, 'open': 3}
+- last 12 months | stop 0.5 / out 1.5: 318 trades, win 0.336, PF 1.17, avg R 0.104, total +33.1R, return +16.55% at 0.5% risk, exits {'stop': 160, 'tp': 79, 'signal': 76, 'open': 3}
+## funnel_r: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
