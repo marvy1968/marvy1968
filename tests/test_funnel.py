@@ -187,3 +187,21 @@ class SupportResistanceVoteTests(unittest.TestCase):
         f4, f6 = frame(_daily()), frame(_daily(), {"sr_rsi": True})
         self.assertIn("long_entry", f6)
         self.assertGreaterEqual(int(f4["long_entry"].sum()) + 1, 1)
+
+
+class OversoldModeTests(unittest.TestCase):
+    def test_oversold_entry_needs_majority_and_volume(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.funnel import frame
+        n = 260
+        idx = pd.date_range("2025-01-01", periods=n, freq="B")
+        c = np.linspace(100, 160, n)
+        c[-1] = c[-2] * 0.90                                   # a sharp one-day drop to the lower band
+        d = pd.DataFrame({"open": c, "high": c * 1.005, "low": c * 0.995, "close": c, "volume": 1e6}, index=idx)
+        d.loc[d.index[-1], "volume"] = 3e6
+        f = frame(d, {"oversold": True})
+        self.assertTrue(bool(f["long_entry"].iloc[-1]) or not bool(f["long_entry"].iloc[-2]))
+        d2 = d.copy()
+        d2.loc[d2.index[-1], "volume"] = 1e5                   # no volume -> no entry
+        self.assertFalse(bool(frame(d2, {"oversold": True})["long_entry"].iloc[-1]))

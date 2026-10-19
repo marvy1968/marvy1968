@@ -239,6 +239,33 @@ def run_all(a) -> int:
                         lines.append(f"- {name}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
                                      f"total {m_['shorts_r']:+}R, exits {m_['exits']}")
                         res[f"{label} | {name}"] = {k: v for k, v in m_.items() if k != "list"}
+            elif fam == "oversold_swing":         # owner 2026-10-19: majority-oversold confluence as a daily swing long, vs the live funnel
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb = {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                res = {"family": fam, "verdict": "adopt only if clearly better than the live funnel on 3 AND 12 months"}
+                os_ = {"oversold": True}
+                variants = (("LIVE funnel (as built)", {}),
+                            ("oversold 3/4, stage 2 only", {**os_}),
+                            ("oversold 3/4, stages 1-2", {**os_, "os_stage": (1, 2)}),
+                            ("oversold 3/4, any stage (as pasted)", {**os_, "os_stage": None}),
+                            ("oversold 3/4 vwap 4th vote, stage 2", {**os_, "os_fourth": "vwap"}),
+                            ("oversold 2/4, stage 2 only", {**os_, "os_need": 2}),
+                            ("oversold 3/4, stage 2, tp 1.25R, stop 1.0", {**os_, "tp_r": 1.25}),
+                            ("oversold 3/4, stage 2, stop 0.5, tp 1.25R", {**os_, "tp_r": 1.25, "stop_frac": 0.5}))
+                for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
+                    for nm, rules in variants:
+                        m_ = funnel_bt(fb, a_, end2 - _td(days=1), sides=("long",), rules=rules)
+                        lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
+                                     f"total {m_['longs_r']:+}R, return {m_['return_pct']:+}% at 0.5% risk, exits {m_['exits']}")
+                        res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "funnel_swing":           # owner's Stock Funnel as a daily swing strategy (alpacabot.funnel), last 3 months + 12 for context
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt

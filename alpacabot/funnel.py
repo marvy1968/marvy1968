@@ -29,7 +29,12 @@ RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop
          # owner 2026-10-17 ("S/R and RSI determine buy zones"): two more votes, then `need6` of 6 must agree
          "stop_frac": 1.0,                       # research: the stop at this share of the band distance (take-profit stays tp_r x the FULL distance)
          "sr_rsi": False, "need6": 4, "sr_atr": 0.5, "sr_lookback": 120, "sr_wing": 2, "sr_min_touches": 2,
-         "rsi_long": (40.0, 55.0), "rsi_short": (45.0, 60.0)}
+         "rsi_long": (40.0, 55.0), "rsi_short": (45.0, 60.0),
+         # owner 2026-10-19 (majority oversold confluence, longs only): RSI14 < 30, stochastic %K < 20, close at / under the lower Bollinger
+         # band, and a 4th price-stretch vote ("sd" = 1.5 SD under the 20-day average, "vwap" = 1 ATR under the 20-day VWAP); `os_need` of 4
+         # plus volume; `os_stage` = stages allowed (None = any stage)
+         "oversold": False, "os_need": 3, "os_fourth": "sd", "os_stage": (2,), "os_vol": 1.1,
+         "os_rsi": 30.0, "os_stoch": 20.0}
 
 
 def sr_votes(d: pd.DataFrame, a: pd.Series, lookback: int = 120, wing: int = 2, tol_atr: float = 0.5, min_touches: int = 2) -> tuple:
@@ -110,6 +115,17 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         dist = (side * (c - band)).clip(lower=r["stop_min_atr"] * a, upper=r["stop_max_atr"] * a)
         tag = "long" if side == 1 else "short"
         out[f"{tag}_entry"] = (stage == want) & (votes >= need) & a.notna() & (a > 0) & ma.notna()
+        if r["oversold"] and side == 1:
+            from .indicators import rsi as _rsi_os
+            rr = _rsi_os(c, 14)
+            raw_k = 100 * (c - lo14) / (hi14 - lo14).replace(0, np.nan)
+            fourth = (c <= ma - 1.5 * sd) if r["os_fourth"] == "sd" else (c <= vw - a)
+            ov = ((rr < r["os_rsi"]).astype(int) + (raw_k < r["os_stoch"]).astype(int) + (c <= lo).astype(int) + fourth.astype(int))
+            ok = (ov >= r["os_need"]) & (v >= r["os_vol"] * vavg) & a.notna() & (a > 0) & ma.notna()
+            if r["os_stage"] is not None:
+                ok &= stage.isin(list(r["os_stage"]))
+            out[f"{tag}_entry"] = ok
+            out[f"{tag}_exit"] = c > ma                                    # mean reversion done: back over the 20-day average
         out[f"{tag}_stop"] = c - side * r["stop_frac"] * dist
         out[f"{tag}_tp"] = c + side * r["tp_r"] * dist
         under = (c < ma) if side == 1 else (c > ma)
