@@ -1,3 +1,32 @@
 $ alpaca run-all --phase validate --families oversold_swing
-started 2026-10-19 14:05:12 EDT
-RUNNING...
+started 2026-10-19 14:05:12 EDT, took 88s, exit 0
+
+daily data ready
+- last 3 months | LIVE funnel (as built): 67 trades, win 0.448, PF 1.18, avg R 0.058, total +3.88R, return +1.94% at 0.5% risk, exits {'stop': 6, 'tp': 15, 'signal': 42, 'open': 4}
+- last 3 months | oversold 3/4, stage 2 only: 19 trades, win 0.579, PF 1.75, avg R 0.112, total +2.12R, return +1.06% at 0.5% risk, exits {'stop': 1, 'tp': 0, 'signal': 18, 'open': 0}
+- last 3 months | oversold 3/4, stages 1-2: 43 trades, win 0.581, PF 1.61, avg R 0.12, total +5.16R, return +2.58% at 0.5% risk, exits {'stop': 4, 'tp': 2, 'signal': 36, 'open': 1}
+- last 3 months | oversold 3/4, any stage (as pasted): 72 trades, win 0.597, PF 1.53, avg R 0.106, total +7.66R, return +3.83% at 0.5% risk, exits {'stop': 7, 'tp': 3, 'signal': 61, 'open': 1}
+- last 3 months | oversold 3/4 vwap 4th vote, stage 2: 19 trades, win 0.579, PF 1.75, avg R 0.112, total +2.12R, return +1.06% at 0.5% risk, exits {'stop': 1, 'tp': 0, 'signal': 18, 'open': 0}
+- last 3 months | oversold 2/4, stage 2 only: 38 trades, win 0.553, PF 1.2, avg R 0.041, total +1.54R, return +0.77% at 0.5% risk, exits {'stop': 4, 'tp': 0, 'signal': 34, 'open': 0}
+- last 3 months | oversold 3/4, stage 2, tp 1.25R, stop 1.0: 19 trades, win 0.579, PF 1.75, avg R 0.112, total +2.12R, return +1.06% at 0.5% risk, exits {'stop': 1, 'tp': 0, 'signal': 18, 'open': 0}
+- last 3 months | oversold 3/4, stage 2, stop 0.5, tp 1.25R: 21 trades, win 0.381, PF 0.6, avg R -0.213, total -4.47R, return -2.23% at 0.5% risk, exits {'stop': 9, 'tp': 0, 'signal': 12, 'open': 0}
+- last 3 months | oversold 3/4, any stage, stop 0.75, tp 1.25R (owner 10-19 script): 72 trades, win 0.569, PF 1.33, avg R 0.083, total +5.97R, return +2.99% at 0.5% risk, exits {'stop': 9, 'tp': 5, 'signal': 57, 'open': 1}
+- last 3 months | oversold 3/4, any stage, stop 1.0, tp 1.25R (live): 72 trades, win 0.597, PF 1.52, avg R 0.103, total +7.44R, return +3.72% at 0.5% risk, exits {'stop': 7, 'tp': 5, 'signal': 59, 'open': 1}
+- last 12 months | LIVE funnel (as built): 281 trades, win 0.409, PF 1.25, avg R 0.087, total +24.36R, return +12.18% at 0.5% risk, exits {'stop': 36, 'tp': 81, 'signal': 160, 'open': 4}
+- last 12 months | oversold 3/4, stage 2 only: 87 trades, win 0.529, PF 1.21, avg R 0.057, total +4.99R, return +2.49% at 0.5% risk, exits {'stop': 14, 'tp': 2, 'signal': 71, 'open': 0}
+- last 12 months | oversold 3/4, stages 1-2: 192 trades, win 0.531, PF 1.19, avg R 0.051, total +9.78R, return +4.89% at 0.5% risk, exits {'stop': 25, 'tp': 6, 'signal': 160, 'open': 1}
+- last 12 months | oversold 3/4, any stage (as pasted): 320 trades, win 0.528, PF 1.09, avg R 0.024, total +7.58R, return +3.79% at 0.5% risk, exits {'stop': 42, 'tp': 14, 'signal': 263, 'open': 1}
+- last 12 months | oversold 3/4 vwap 4th vote, stage 2: 86 trades, win 0.535, PF 1.22, avg R 0.059, total +5.09R, return +2.54% at 0.5% risk, exits {'stop': 14, 'tp': 2, 'signal': 70, 'open': 0}
+- last 12 months | oversold 2/4, stage 2 only: 169 trades, win 0.467, PF 0.83, avg R -0.049, total -8.25R, return -4.13% at 0.5% risk, exits {'stop': 26, 'tp': 7, 'signal': 136, 'open': 0}
+- last 12 months | oversold 3/4, stage 2, tp 1.25R, stop 1.0: 87 trades, win 0.529, PF 1.19, avg R 0.05, total +4.32R, return +2.16% at 0.5% risk, exits {'stop': 14, 'tp': 5, 'signal': 68, 'open': 0}
+- last 12 months | oversold 3/4, stage 2, stop 0.5, tp 1.25R: 85 trades, win 0.412, PF 0.52, avg R -0.261, total -22.17R, return -11.09% at 0.5% risk, exits {'stop': 37, 'tp': 5, 'signal': 43, 'open': 0}
+- last 12 months | oversold 3/4, any stage, stop 0.75, tp 1.25R (owner 10-19 script): 323 trades, win 0.505, PF 1.11, avg R 0.039, total +12.54R, return +6.27% at 0.5% risk, exits {'stop': 68, 'tp': 26, 'signal': 228, 'open': 1}
+- last 12 months | oversold 3/4, any stage, stop 1.0, tp 1.25R (live): 319 trades, win 0.527, PF 1.06, avg R 0.015, total +4.8R, return +2.4% at 0.5% risk, exits {'stop': 42, 'tp': 25, 'signal': 251, 'open': 1}
+## oversold_swing: adopt only if clearly better than the live funnel on 3 AND 12 months
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
