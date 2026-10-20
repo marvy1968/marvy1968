@@ -1,3 +1,23 @@
 $ show fx_paper/journal-20261020.jsonl
-started 2026-10-20 18:07:44 EDT
-RUNNING...
+started 2026-10-20 18:07:44 EDT, took 0s, exit 0
+
+{"t": "2026-10-20T03:00:41+00:00", "kind": "open", "group": "hybrid_h1-USD_JPY-2026-10-20T0200", "side": -1, "units": -565959, "fill": 158.436, "stop": "158.502", "zone_tp": "158.341", "tp": "158.353", "tier": 0, "risk_pct": 0.005, "bias": 0}
+{"t": "2026-10-20T03:00:41+00:00", "kind": "signal", "strategy": "hybrid_h1", "instrument": "USD_JPY", "side": "short", "bar": "2026-10-20T02:00:00+00:00", "result": "opened"}
+{"t": "2026-10-20T03:21:27+00:00", "kind": "take_profit_r", "group": "hybrid_h1-USD_JPY-2026-10-20T0200", "profit_r": 1.276, "mid": 158.3595, "entry_mid": 158.444}
+{"t": "2026-10-20T03:21:27+00:00", "kind": "group_closed", "group": "hybrid_h1-USD_JPY-2026-10-20T0200", "reason": "take_profit_r"}
+{"t": "2026-10-20T08:00:25+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T07:00:00+00:00", "close": 0.6996500000000001, "stop_dist": 0.002083865802108842, "result": "paused (signal logged)"}
+{"t": "2026-10-20T09:00:50+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T08:00:00+00:00", "close": 0.69952, "stop_dist": 0.0022062682448154014, "result": "paused (signal logged)"}
+{"t": "2026-10-20T09:01:21+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T08:00:00+00:00", "close": 0.69952, "stop_dist": 0.0022062682448154014, "result": "paused (signal logged)"}
+{"t": "2026-10-20T10:00:16+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T09:00:00+00:00", "close": 0.699025, "stop_dist": 0.002715820513042866, "result": "paused (signal logged)"}
+{"t": "2026-10-20T13:00:42+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T12:00:00+00:00", "close": 0.699235, "stop_dist": 0.002526474186281047, "result": "paused (signal logged)"}
+{"t": "2026-10-20T14:00:22+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T13:00:00+00:00", "close": 0.700015, "stop_dist": 0.001762618887260925, "result": "paused (signal logged)"}
+{"t": "2026-10-20T14:00:51+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T13:00:00+00:00", "close": 0.700015, "stop_dist": 0.001762618887260925, "result": "paused (signal logged)"}
+{"t": "2026-10-20T15:00:27+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T14:00:00+00:00", "close": 0.70089, "stop_dist": 0.0009283246810281032, "result": "paused (signal logged)"}
+{"t": "2026-10-20T15:01:33+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T14:00:00+00:00", "close": 0.70089, "stop_dist": 0.0009283246810281032, "result": "paused (signal logged)"}
+{"t": "2026-10-20T16:00:36+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T15:00:00+00:00", "close": 0.700315, "stop_dist": 0.0018825514895259854, "result": "paused (signal logged)"}
+{"t": "2026-10-20T17:00:38+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T16:00:00+00:00", "close": 0.69977, "stop_dist": 0.0024255835259884284, "result": "paused (signal logged)"}
+{"t": "2026-10-20T18:00:18+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T17:00:00+00:00", "close": 0.700265, "stop_dist": 0.0019273275598463702, "result": "paused (signal logged)"}
+{"t": "2026-10-20T19:01:10+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T18:00:00+00:00", "close": 0.700225, "stop_dist": 0.0019469827341431767, "result": "paused (signal logged)"}
+{"t": "2026-10-20T20:00:20+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T19:00:00+00:00", "close": 0.700095, "stop_dist": 0.0020627339674186285, "result": "paused (signal logged)"}
+{"t": "2026-10-20T21:01:00+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T20:00:00+00:00", "close": 0.70042, "stop_dist": 0.0017207529697458313, "result": "paused (signal logged)"}
+{"t": "2026-10-20T22:00:17+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-20T21:00:00+00:00", "close": 0.7007049999999999, "stop_dist": 0.0014423063290498472, "result": "paused (signal logged)"}
