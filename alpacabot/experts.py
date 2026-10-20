@@ -47,6 +47,7 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     f["f_atr50"] = atr(df, 50)
     f["f_ema20"], f["f_ema50"] = ema(c, 20), ema(c, 50)
     f["f_sma200"], f["f_sma5"] = sma(c, 200), sma(c, 5)
+    f["f_sma20"] = sma(c, 20)                                                  # Velez works with the SIMPLE 20 and 200 averages
     f["f_rsi2"], f["f_rsi14"] = rsi(c, 2), rsi(c, 14)
     lo, mid, up = bollinger(c)
     f["f_bb_lo"], f["f_bb_mid"] = lo, mid
@@ -90,6 +91,7 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     tp_votes = (stk >= 80).astype(int) + (f["f_rsi14"] >= 70).astype(int) + (c >= mid + 0.8 * (up - mid)).astype(int) + (c >= up).astype(int)
     f["x_stairs_tp"] = f["x_stairs"] | (tp_votes >= 2)
     # indicator exits ("sell when they say sell"): decided at a close, filled at the next open
+    f["x_velez"] = c < f["f_sma20"]                                              # Velez: the 20 SMA no longer holds
     f["x_connors"] = (c > f["f_sma5"]) | (f["f_rsi2"] > 70)
     f["x_boll"] = c >= f["f_bb_mid"]
     f["x_willr"] = f["f_willr"] > -20

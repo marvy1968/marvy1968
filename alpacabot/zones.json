@@ -86,6 +86,30 @@
     "default_r": 1.25,
     "exhaust_r": 99.0,
     "target": "extreme"
+   },
+   "velez_halt": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_vbs": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_rbi": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
    }
   },
   "ladder": {
@@ -228,6 +252,39 @@
       0.0
      ],
      "lock": []
+    },
+    "velez_halt": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_vbs": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_rbi": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
     }
    },
    "_note_by_expert": "owner 2026-10-16: every TREND expert uses its own philosophy's zones: take-profit steps, stop locks and trail from engine.EXPERT_LADDERS, one hard stop (its sell zone, no cut steps); buy / take-profit zone distances in profiles.<expert> (engine.EXPERT_ZONES). Range experts and the box strategies keep the drawn plan."
@@ -278,7 +335,10 @@
    "opening_range_breakout": 0.005,
    "donchian_turtle": 0.005,
    "trend_stairs": 0.005,
-   "scalper": 0.005
+   "scalper": 0.005,
+   "velez_halt": 0.005,
+   "velez_vbs": 0.005,
+   "velez_rbi": 0.005
   },
   "reversal_confirm": {
    "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only when the move against them is FAILING: at least `need` of 4 checks (reversal candle incl. Velez's bottoming tail and 180; the last 3 bars show no strong continuation against the trade; 5-minute ATR <= vola_max x session average; Velez's rubber band: stretched >= stretch_atr ATR from the 20 EMA). A filter only. Set live to false to switch it off.",
@@ -308,7 +368,12 @@
   "oversold_gate": {
    "_note": "owner 2026-10-19: only BUY when the majority of five indicators say oversold on the signal bar (5-minute RSI14 <= 35, stochastic <= 20, Bollinger %B <= 0.15, close >= 1 ATR under VWAP, Williams %R <= -80): need of 5. Applies to every long entry of every expert and strategy; shorts are untouched. Set live to false to switch it off.",
    "live": true,
-   "need": 3
+   "need": 3,
+   "exempt": [
+    "velez_halt",
+    "velez_vbs",
+    "velez_rbi"
+   ]
   },
   "scalper": {
    "_note": "owner 2026-10-19 scalper redesign (brain.ScalperSignals), paper from 2026-10-20: longs only, 10:00-15:00 ET, 15-min AND 1-hour trend up (plus direction first / Weinstein stage / the oversold gate), at least `need` of 5 oversold readings, an up bar on volume >= vol_mult x the prior 20-bar average. R = one 5-minute ATR: stop stop_r R, target tp_r R, time stop hold bars (6 = 30 minutes). `only` true = the old intraday experts are switched off, the scalper trades alone (owner 2026-10-19: false, it runs ALONGSIDE the intraday experts). 0.5% risk (risk_by_expert). Set live to false to switch it off.",
@@ -319,6 +384,17 @@
    "tp_r": 1.25,
    "hold": 6,
    "vol_mult": 1.2
+  },
+  "velez": {
+   "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off.",
+   "live": true,
+   "tp_r": 1.5,
+   "hold": 18,
+   "setups": [
+    "velez_halt",
+    "velez_vbs",
+    "velez_rbi"
+   ]
   }
  },
  "swing": {

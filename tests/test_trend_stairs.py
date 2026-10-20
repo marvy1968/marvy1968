@@ -260,3 +260,51 @@ class ScalperTests(unittest.TestCase):
         d3 = d.copy()
         d3["f_h1_dir"] = -1                                           # the 1-hour trend is down: no setup
         self.assertEqual(ScalperSignals(Stub()).box_signals(d3), [])
+
+
+class VelezTests(unittest.TestCase):
+    def _day(self):
+        import numpy as np
+        import pandas as pd
+        n = 60
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 + 0.05 * np.arange(n)                         # a steady uptrend: the simple 20 average rises and sits above the 200
+        d = pd.DataFrame({"open": c - 0.02, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0, "f_atr": 0.3, "f_sma200": 95.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+        d["x_velez"] = d["close"] < d["f_sma20"]
+        return d
+
+    class Stub:
+        def signals(self, day):
+            return []
+
+    def test_vbs_three_lower_closes_then_a_bar_through_the_high(self):
+        from alpacabot.brain import VelezSignals
+        d = self._day()
+        i = 40
+        for k, px in zip((i - 4, i - 3, i - 2, i - 1), (103.1, 103.0, 102.9, 102.8)):   # three lower closes in a row
+            d.loc[d.index[k], ["open", "high", "low", "close"]] = [px + 0.05, px + 0.1, px - 0.1, px]
+        d.loc[d.index[i], ["open", "high", "low", "close"]] = [102.8, 103.2, 102.7, 103.1]   # an up bar through the prior high
+        sig = VelezSignals(self.Stub(), setups=("velez_vbs",)).box_signals(d)
+        self.assertTrue(any(s.i == i and s.tag == "velez_vbs" and s.side == 1 for s in sig))
+        s = next(s for s in sig if s.i == i)
+        self.assertGreaterEqual(s.stop_dist, 0.5 * 0.3)
+        self.assertLessEqual(s.stop_dist, 2.0 * 0.3)
+        self.assertAlmostEqual(s.target_px, 103.1 + 1.5 * s.stop_dist)
+        self.assertEqual((s.exit_col, s.max_bars), ("x_velez", 18))
+
+    def test_no_signals_in_a_downtrend(self):
+        from alpacabot.brain import VelezSignals
+        d = self._day()
+        d["f_sma200"] = 120.0                                  # the 20 is under the 200: no Velez environment
+        self.assertEqual(VelezSignals(self.Stub()).box_signals(d), [])
+
+    def test_halt_and_rbi(self):
+        from alpacabot.brain import VelezSignals
+        d = self._day()
+        i = 40
+        ma = float(d["f_sma20"].iloc[i])
+        d.loc[d.index[i - 1], ["open", "high", "low", "close"]] = [ma + 0.2, ma + 0.25, ma + 0.1, ma + 0.12]    # a red bar near the 20
+        d.loc[d.index[i], ["open", "high", "low", "close"]] = [ma + 0.1, ma + 0.4, ma + 0.05, ma + 0.35]       # an up bar tagging it and closing above
+        tags = {s.tag for s in VelezSignals(self.Stub()).box_signals(d) if s.i == i}
+        self.assertTrue({"velez_halt", "velez_rbi"} & tags)

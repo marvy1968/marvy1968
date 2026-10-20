@@ -993,6 +993,30 @@ def scalper_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio =
     return out
 
 
+def velez_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-20 Velez rules (brain.VelezSignals) on the live filters (direction first, Weinstein stage, multi-timeframe), longs, 0.5% risk:
+    all three setups, each alone, and the target at 1R / 2R. Goes live on paper at the first variant (live-paper rule)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals, VELEZ_TAGS
+    from .engine import EXPERT_LADDERS, EXPERT_ZONES, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+
+    def run(kw, a, b):
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, **{t: EXPERT_ZONES[t] for t in VELEZ_TAGS}}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {t: EXPERT_LADDERS[t] for t in VELEZ_TAGS}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, **kw)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"1. all three setups, 1.5R (live)": {}, "2. 20 MA halt only": {"setups": ("velez_halt",)},
+                "3. VBS (3-5 bar dip) only": {"setups": ("velez_vbs",)}, "4. red bar ignored only": {"setups": ("velez_rbi",)},
+                "5. all three, target 1R": {"tp_r": 1.0}, "6. all three, target 2R": {"tp_r": 2.0}}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"vz-{per}-{name[:2]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
+    out.update({"family": "velez", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},

@@ -448,6 +448,59 @@ class ScalperSignals(BoxSignals):
         return out
 
 
+VELEZ_TAGS = ("velez_halt", "velez_vbs", "velez_rbi")
+
+
+class VelezSignals(BoxSignals):
+    """Owner 2026-10-20: Oliver Velez's price-action rules as a long scalper on the 5-minute chart (his older Micro Trading charts; his newer 2-minute
+    chart is not in our data). Environment: the SIMPLE 20 average rising and above the 200 (the 20 SMA is the trend guide and support), between
+    09:45 and 15:15. Three isolated setups, each its own tag so the live record is kept apart:
+      velez_halt  20 MA Halt: a pullback tags the 20 SMA (low within 0.3 ATR of it), the close holds above it and the bar closes up,
+      velez_vbs   Velez Buy Setup / 3-5 bar rule: 3 to 5 lower closes in a row, then a bar that closes up through the prior bar's high,
+      velez_rbi   Red Bar Ignored: a red bar, then a green bar that closes above the red bar's high.
+    Confirmed entries (the completed bar, filled at the next open). One-bar stop: under the trigger bar's low (0.1 ATR buffer, kept between 0.5 and
+    2 ATR). Target tp_r x the stop distance, the 20 SMA breaking (x_velez) or a time stop of `hold` bars exits early. Shorts are not built
+    (every short test so far lost)."""
+
+    NEED = ("f_atr", "f_sma20", "f_sma200", "x_velez")
+
+    def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3):
+        super().__init__(brain)
+        self.setups, self.tp_r, self.hold, self.buffer, self.halt_atr = tuple(setups), tp_r, hold, buffer_atr, halt_atr
+
+    def box_signals(self, day) -> list:
+        if len(day) < 8 or any(k not in day for k in self.NEED):
+            return []
+        t = day.index.strftime("%H:%M")
+        win = np.asarray((t >= "09:45") & (t <= "15:15"))
+        o, h, l, c = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        a, ma, m200 = (day[k].to_numpy(float) for k in ("f_atr", "f_sma20", "f_sma200"))
+        n = len(day)
+        sh = lambda x, k: np.r_[np.full(k, np.nan), x[:-k]]               # noqa: E731  (x shifted k bars back)
+        with np.errstate(invalid="ignore"):
+            env = win & (ma > sh(ma, 3)) & (ma > m200) & (a > 0)
+            up = c > o
+            halt = env & up & (l <= ma + self.halt_atr * a) & (c > ma) & (sh(c, 1) <= sh(ma, 1) + self.halt_atr * a)
+            down = [sh(c, k) < sh(c, k + 1) for k in (1, 2, 3)]                   # closes 1, 2, 3 bars back each lower than the one before
+            run = down[0] & down[1] & down[2]
+            vbs = env & up & run & (c > sh(h, 1))
+            rbi = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(h, 1))
+        masks = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
+        out, taken = [], set()
+        for tag in self.setups:
+            m = masks[tag]
+            prev = np.r_[False, m[:-1]]
+            for i in np.flatnonzero(m & ~prev):
+                if int(i) in taken:
+                    continue
+                taken.add(int(i))
+                lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
+                sd = float(np.clip(c[i] - lo + self.buffer * a[i], 0.5 * a[i], 2.0 * a[i]))
+                out.append(Signal(i=int(i), side=1, stop_dist=sd, max_bars=int(self.hold), tag=tag, atr=float(a[i]), exit_col="x_velez",
+                                  target_px=float(c[i] + self.tp_r * sd)))
+        return sorted(out, key=lambda s: s.i)
+
+
 class OnlyTags:
     """Keeps only the signals whose tag is in `tags` (the scalper redesign trades nothing else)."""
 

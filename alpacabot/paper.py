@@ -788,6 +788,11 @@ class PaperRunner:
                                        int(sc_cfg.get("hold", 6)), float(sc_cfg.get("vol_mult", 1.2)))
                 if sc_cfg.get("only"):
                     brain = OnlyTags(brain, {ScalperSignals.TAG})
+            vz_cfg = self.zone_config().get("velez") or {}
+            if vz_cfg.get("live") and self.zone_config().get("live"):                                              # owner's Velez rules (2026-10-20)
+                from .brain import VelezSignals
+                brain = VelezSignals(brain, tuple(vz_cfg.get("setups") or ("velez_halt", "velez_vbs", "velez_rbi")), float(vz_cfg.get("tp_r", 1.5)),
+                                     int(vz_cfg.get("hold", 18)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
@@ -831,7 +836,7 @@ class PaperRunner:
                                      result=f"reversal not confirmed ({k}/4; failed: {', '.join(failed)})")
                         continue
                 og = zcfg.get("oversold_gate") or {}
-                if og.get("live") and sig.side == 1:                                         # owner: only buy when most indicators say oversold
+                if og.get("live") and sig.side == 1 and (sig.tag or "") not in (og.get("exempt") or []):   # owner: only buy when most indicators say oversold
                     from .confirm import oversold_votes
                     k, names = oversold_votes(day, len(day) - 1)
                     if k < int(og.get("need", 3)):
