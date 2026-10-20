@@ -1,3 +1,33 @@
 $ logs marv-alpaca-paper 30
-started 2026-10-19 20:58:38 EDT
-RUNNING...
+started 2026-10-19 20:58:38 EDT, took 0s, exit 0
+
+Oct 19 16:05:14 instance-stockbot python[489220]: WARNING telegram refused the message: HTTP 403
+Oct 19 16:05:14 instance-stockbot python[489220]: WARNING report card NOT delivered to Telegram (check TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
+Oct 19 16:49:55 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 19 16:49:55 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 19 16:49:55 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 16:49:55 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 9min 50.149s CPU time.
+Oct 19 16:49:55 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 16:49:57 instance-stockbot python[501753]: INFO brain: {'experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'short_experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 19 16:49:57 instance-stockbot python[501753]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 19 16:56:14 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 19 16:56:14 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 19 16:56:14 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 16:56:14 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1.548s CPU time.
+Oct 19 16:56:14 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 16:56:16 instance-stockbot python[502733]: INFO brain: {'experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'short_experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 19 16:56:16 instance-stockbot python[502733]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 19 18:07:34 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 19 18:07:34 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 19 18:07:34 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 18:07:34 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1.616s CPU time.
+Oct 19 18:07:34 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 18:07:35 instance-stockbot python[508010]: INFO brain: {'experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'short_experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 19 18:07:35 instance-stockbot python[508010]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 19 20:58:35 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 19 20:58:35 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 19 20:58:35 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 20:58:35 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 2.013s CPU time.
+Oct 19 20:58:35 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 19 20:58:38 instance-stockbot python[520247]: INFO brain: {'experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'short_experts': ['velez_elephant', 'velez_180', 'raschke_grail', 'brooks_pullback', 'connors_rsi2', 'bollinger_bounce', 'williams_r', 'donchian_turtle', 'vwap_dev', 'dual_regime', 'opening_range_breakout'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 19 20:58:38 instance-stockbot python[520247]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
