@@ -1,3 +1,8 @@
 $ alpaca swing status
-started 2026-10-20 18:07:33 EDT
-RUNNING...
+started 2026-10-20 18:07:33 EDT, took 1s, exit 0
+
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 7, 3W/4L, P&L $-233
+  holding: XOM 14 @ 180.12 (stop 165.90), AMZN 27 @ 264.14 (stop 252.85, funnel), EOG 14 @ 159.41 (stop 144.57)
+  next open: buy ['COP', 'MRK', 'GEV'], sell nothing
