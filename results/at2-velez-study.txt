@@ -1,3 +1,25 @@
 $ alpaca run-all --phase validate --months3 --families velez
-started 2026-10-19 20:52:09 EDT
-RUNNING...
+started 2026-10-19 20:52:09 EDT, took 299s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 290 of 4060 stock-days, on the SHORT list 35
+## velez: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 1. all three setups, 1.5R (live): 330t win 30% PF 0.56 avgR -0.25 daily -0.152% CAGR -31.5% maxDD -4.8%
+- train | 2. 20 MA halt only: 201t win 26% PF 0.50 avgR -0.28 daily -0.093% CAGR -21.6% maxDD -2.8%
+- train | 3. VBS (3-5 bar dip) only: 58t win 29% PF 0.61 avgR -0.22 daily -0.031% CAGR -8.4% maxDD -1.2%
+- train | 4. red bar ignored only: 226t win 30% PF 0.56 avgR -0.27 daily -0.117% CAGR -24.8% maxDD -3.7%
+- train | 5. all three, target 1R: 335t win 39% PF 0.61 avgR -0.20 daily -0.128% CAGR -26.7% maxDD -4.1%
+- train | 6. all three, target 2R: 324t win 27% PF 0.62 avgR -0.23 daily -0.133% CAGR -28.2% maxDD -4.2%
+- validate | 1. all three setups, 1.5R (live): 119t win 28% PF 0.59 avgR -0.35 daily -0.069% CAGR -14.4% maxDD -1.9%
+- validate | 2. 20 MA halt only: 65t win 20% PF 0.34 avgR -0.44 daily -0.067% CAGR -14.3% maxDD -1.5%
+- validate | 3. VBS (3-5 bar dip) only: 18t win 33% PF 0.60 avgR -0.14 daily -0.018% CAGR -3.8% maxDD -0.3%
+- validate | 4. red bar ignored only: 91t win 31% PF 0.73 avgR -0.29 daily -0.041% CAGR -7.3% maxDD -1.4%
+- validate | 5. all three, target 1R: 122t win 35% PF 0.65 avgR -0.32 daily -0.049% CAGR -11.3% maxDD -1.4%
+- validate | 6. all three, target 2R: 118t win 25% PF 0.59 avgR -0.34 daily -0.077% CAGR -14.9% maxDD -2.1%
+ALL DONE
