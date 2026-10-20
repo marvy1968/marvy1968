@@ -1,3 +1,153 @@
 $ logs marv-alpaca-paper 150
-started 2026-10-20 18:07:37 EDT
-RUNNING...
+started 2026-10-20 18:07:37 EDT, took 0s, exit 0
+
+Oct 20 10:00:10 instance-stockbot python[520247]:                        ^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 1403, in getresponse
+Oct 20 10:00:10 instance-stockbot python[520247]:     response.begin()
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 323, in begin
+Oct 20 10:00:10 instance-stockbot python[520247]:     version, status, reason = self._read_status()
+Oct 20 10:00:10 instance-stockbot python[520247]:                               ^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 292, in _read_status
+Oct 20 10:00:10 instance-stockbot python[520247]:     raise RemoteDisconnected("Remote end closed connection without"
+Oct 20 10:00:10 instance-stockbot python[520247]: http.client.RemoteDisconnected: Remote end closed connection without response
+Oct 20 10:00:10 instance-stockbot python[520247]: During handling of the above exception, another exception occurred:
+Oct 20 10:00:10 instance-stockbot python[520247]: Traceback (most recent call last):
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 696, in send
+Oct 20 10:00:10 instance-stockbot python[520247]:     resp = conn.urlopen(
+Oct 20 10:00:10 instance-stockbot python[520247]:            ^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 847, in urlopen
+Oct 20 10:00:10 instance-stockbot python[520247]:     retries = retries.increment(
+Oct 20 10:00:10 instance-stockbot python[520247]:               ^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/retry.py", line 510, in increment
+Oct 20 10:00:10 instance-stockbot python[520247]:     raise reraise(type(error), error, _stacktrace)
+Oct 20 10:00:10 instance-stockbot python[520247]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/util.py", line 38, in reraise
+Oct 20 10:00:10 instance-stockbot python[520247]:     raise value.with_traceback(tb)
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 793, in urlopen
+Oct 20 10:00:10 instance-stockbot python[520247]:     response = self._make_request(
+Oct 20 10:00:10 instance-stockbot python[520247]:                ^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 540, in _make_request
+Oct 20 10:00:10 instance-stockbot python[520247]:     response = conn.getresponse()
+Oct 20 10:00:10 instance-stockbot python[520247]:                ^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 638, in getresponse
+Oct 20 10:00:10 instance-stockbot python[520247]:     httplib_response = super().getresponse()
+Oct 20 10:00:10 instance-stockbot python[520247]:                        ^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 1403, in getresponse
+Oct 20 10:00:10 instance-stockbot python[520247]:     response.begin()
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 323, in begin
+Oct 20 10:00:10 instance-stockbot python[520247]:     version, status, reason = self._read_status()
+Oct 20 10:00:10 instance-stockbot python[520247]:                               ^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/usr/lib/python3.11/http/client.py", line 292, in _read_status
+Oct 20 10:00:10 instance-stockbot python[520247]:     raise RemoteDisconnected("Remote end closed connection without"
+Oct 20 10:00:10 instance-stockbot python[520247]: urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+Oct 20 10:00:10 instance-stockbot python[520247]: During handling of the above exception, another exception occurred:
+Oct 20 10:00:10 instance-stockbot python[520247]: Traceback (most recent call last):
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/alpacabot/paper.py", line 1072, in run
+Oct 20 10:00:10 instance-stockbot python[520247]:     if now.weekday() >= 5 or not self.broker.clock_open():
+Oct 20 10:00:10 instance-stockbot python[520247]:                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/alpacabot/paper.py", line 51, in clock_open
+Oct 20 10:00:10 instance-stockbot python[520247]:     return bool(self.clock()["is_open"])
+Oct 20 10:00:10 instance-stockbot python[520247]:                 ^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/alpacabot/paper.py", line 54, in clock
+Oct 20 10:00:10 instance-stockbot python[520247]:     return self._req("GET", f"{TRADE_URL}/clock").json()
+Oct 20 10:00:10 instance-stockbot python[520247]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/alpacabot/paper.py", line 40, in _req
+Oct 20 10:00:10 instance-stockbot python[520247]:     r = self.s.request(method, url, headers=_headers(), timeout=30, **kw)
+Oct 20 10:00:10 instance-stockbot python[520247]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 651, in request
+Oct 20 10:00:10 instance-stockbot python[520247]:     resp = self.send(prep, **send_kwargs)
+Oct 20 10:00:10 instance-stockbot python[520247]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:10 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 784, in send
+Oct 20 10:00:10 instance-stockbot python[520247]:     r = adapter.send(request, **kwargs)
+Oct 20 10:00:11 instance-stockbot python[520247]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 20 10:00:11 instance-stockbot python[520247]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 711, in send
+Oct 20 10:00:11 instance-stockbot python[520247]:     raise ConnectionError(err, request=request)
+Oct 20 10:00:11 instance-stockbot python[520247]: requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+Oct 20 10:15:46 instance-stockbot python[520247]: INFO ordered LONG MA x21 stop 621.52 target None
+Oct 20 10:20:32 instance-stockbot python[520247]: INFO ordered LONG COP x93 stop 143.98 target None
+Oct 20 10:24:15 instance-stockbot python[520247]: INFO virtual stop exit long COP at 144.22 (level crossed)
+Oct 20 10:25:30 instance-stockbot python[520247]: INFO ordered LONG V x32 stop 406.68 target None
+Oct 20 10:28:08 instance-stockbot python[520247]: INFO virtual stop exit long MA at 620.76 (level crossed)
+Oct 20 10:45:20 instance-stockbot python[520247]: INFO ordered SHORT TMUS x83 stop 161.07 target None
+Oct 20 11:00:31 instance-stockbot python[520247]: INFO ordered LONG MA x21 stop 621.60 target None
+Oct 20 11:02:30 instance-stockbot python[520247]: INFO virtual stop exit long MA at 621.51 (level crossed)
+Oct 20 11:06:04 instance-stockbot python[520247]: INFO ordered SHORT PLD x107 stop 125.91 target None
+Oct 20 11:08:58 instance-stockbot python[520247]: INFO virtual stop exit short PLD at 125.89 (level crossed)
+Oct 20 11:10:32 instance-stockbot python[520247]: INFO ordered LONG LLY x10 stop 1295.49 target None
+Oct 20 11:11:57 instance-stockbot python[520247]: INFO virtual stop exit long LLY at 1295.49 (level crossed)
+Oct 20 11:20:26 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 288.31 target None
+Oct 20 11:20:29 instance-stockbot python[520247]: INFO ordered SHORT GE x44 stop 303.31 target None
+Oct 20 11:21:19 instance-stockbot python[520247]: INFO virtual stop exit long ABBV at 288.43 (level crossed)
+Oct 20 11:25:38 instance-stockbot python[520247]: INFO ordered SHORT PLD x106 stop 126.16 target None
+Oct 20 11:45:23 instance-stockbot python[520247]: INFO ordered LONG DIS x120 stop 111.24 target None
+Oct 20 11:45:34 instance-stockbot python[520247]: INFO ordered LONG LLY x10 stop 1297.59 target None
+Oct 20 11:50:34 instance-stockbot python[520247]: INFO ordered LONG MA x21 stop 623.26 target None
+Oct 20 11:51:49 instance-stockbot python[520247]: INFO virtual stop exit long DIS at 111.19 (level crossed)
+Oct 20 11:55:30 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 289.05 target None
+Oct 20 11:56:13 instance-stockbot python[520247]: INFO virtual stop exit long MA at 622.88 (level crossed)
+Oct 20 11:56:28 instance-stockbot python[520247]: INFO virtual stop exit long ABBV at 289.05 (level crossed)
+Oct 20 12:08:20 instance-stockbot python[520247]: INFO virtual stop exit short PLD at 126.15 (level crossed)
+Oct 20 12:20:18 instance-stockbot python[520247]: INFO ordered SHORT NFLX x192 stop 69.86 target None
+Oct 20 12:20:37 instance-stockbot python[520247]: INFO ordered LONG KO x144 stop 92.75 target None
+Oct 20 12:25:25 instance-stockbot python[520247]: INFO ordered LONG DIS x120 stop 111.14 target None
+Oct 20 12:25:36 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 288.97 target None
+Oct 20 12:31:32 instance-stockbot python[520247]: INFO virtual stop exit long ABBV at 289.02 (level crossed)
+Oct 20 12:35:20 instance-stockbot python[520247]: INFO ordered LONG V x33 stop 405.66 target None
+Oct 20 12:35:33 instance-stockbot python[520247]: INFO ordered LONG PM x66 stop 200.27 target None
+Oct 20 12:40:21 instance-stockbot python[520247]: INFO ordered LONG BRK.B x24 stop 537.55 target None
+Oct 20 12:42:21 instance-stockbot python[520247]: INFO virtual stop exit short NFLX at 69.76 (level crossed)
+Oct 20 12:42:37 instance-stockbot python[520247]: INFO virtual stop exit long BRK.B at 537.68 (level crossed)
+Oct 20 12:50:33 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 288.90 target None
+Oct 20 12:55:20 instance-stockbot python[520247]: INFO ordered SHORT NFLX x193 stop 69.69 target 69.35
+Oct 20 13:00:16 instance-stockbot python[520247]: INFO virtual stop exit long PM at 201.34 (level crossed)
+Oct 20 13:02:53 instance-stockbot python[520247]: INFO virtual stop exit long KO at 92.80 (level crossed)
+Oct 20 13:15:21 instance-stockbot python[520247]: INFO ordered SHORT TMUS x84 stop 159.09 target None
+Oct 20 13:17:08 instance-stockbot python[520247]: INFO virtual stop exit short NFLX at 69.19 (level crossed)
+Oct 20 13:25:33 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 289.32 target None
+Oct 20 13:25:42 instance-stockbot python[520247]: INFO ordered LONG PM x66 stop 200.25 target None
+Oct 20 13:31:36 instance-stockbot python[520247]: INFO virtual stop exit short GE at 299.28 (level crossed)
+Oct 20 13:36:12 instance-stockbot python[520247]: INFO virtual stop exit long PM at 200.26 (level crossed)
+Oct 20 13:40:18 instance-stockbot python[520247]: INFO ordered LONG MSFT x25 stop 533.47 target None
+Oct 20 13:40:30 instance-stockbot python[520247]: INFO ordered LONG BRK.B x24 stop 537.98 target None
+Oct 20 13:40:38 instance-stockbot python[520247]: INFO ordered SHORT RTX x70 stop 192.38 target None
+Oct 20 13:45:50 instance-stockbot python[520247]: INFO ordered SHORT PLD x106 stop 126.71 target None
+Oct 20 13:48:04 instance-stockbot python[520247]: INFO virtual stop exit long MSFT at 533.41 (level crossed)
+Oct 20 13:55:38 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 290.39 target None
+Oct 20 13:56:17 instance-stockbot python[520247]: INFO virtual stop exit short PLD at 126.68 (level crossed)
+Oct 20 14:00:36 instance-stockbot python[520247]: INFO ordered SHORT GE x44 stop 301.96 target None
+Oct 20 14:02:12 instance-stockbot python[520247]: INFO virtual stop exit long ABBV at 290.45 (level crossed)
+Oct 20 14:05:32 instance-stockbot python[520247]: INFO ordered SHORT NFLX x193 stop 69.50 target 68.76
+Oct 20 14:05:37 instance-stockbot python[520247]: INFO ordered LONG DIS x120 stop 111.70 target None
+Oct 20 14:05:59 instance-stockbot python[520247]: INFO ordered SHORT RTX x70 stop 191.45 target 188.81
+Oct 20 14:06:04 instance-stockbot python[520247]: INFO ordered SHORT UBER x194 stop 69.20 target None
+Oct 20 14:06:14 instance-stockbot python[520247]: INFO ordered LONG CVX x59 stop 224.56 target None
+Oct 20 14:07:14 instance-stockbot python[520247]: INFO virtual stop exit long DIS at 111.71 (level crossed)
+Oct 20 14:10:33 instance-stockbot python[520247]: INFO ordered LONG MSFT x25 stop 532.20 target None
+Oct 20 14:15:27 instance-stockbot python[520247]: INFO ordered SHORT ORCL x101 stop 132.28 target None
+Oct 20 14:21:50 instance-stockbot python[520247]: INFO virtual stop exit short RTX at 191.65 (level crossed)
+Oct 20 14:30:43 instance-stockbot python[520247]: INFO ordered SHORT RTX x70 stop 191.75 target 190.7
+Oct 20 14:35:15 instance-stockbot python[520247]: INFO ordered LONG DIS x120 stop 111.65 target None
+Oct 20 14:36:03 instance-stockbot python[520247]: INFO virtual stop exit short RTX at 191.76 (level crossed)
+Oct 20 14:36:34 instance-stockbot python[520247]: INFO virtual stop exit long DIS at 111.59 (level crossed)
+Oct 20 14:40:27 instance-stockbot python[520247]: INFO ordered SHORT GE x44 stop 300.55 target 295.69
+Oct 20 14:43:51 instance-stockbot python[520247]: INFO virtual stop exit short ORCL at 131.37 (level crossed)
+Oct 20 14:45:26 instance-stockbot python[520247]: INFO ordered LONG JNJ x51 stop 258.19 target None
+Oct 20 14:45:34 instance-stockbot python[520247]: INFO ordered SHORT RTX x70 stop 192.12 target 189.54
+Oct 20 14:47:24 instance-stockbot python[520247]: INFO virtual stop exit short NFLX at 68.65 (level crossed)
+Oct 20 15:00:43 instance-stockbot python[520247]: INFO ordered LONG ABBV x46 stop 288.13 target None
+Oct 20 15:00:50 instance-stockbot python[520247]: INFO ordered SHORT UBER x194 stop 69.03 target 68.81
+Oct 20 15:01:27 instance-stockbot python[520247]: INFO virtual stop exit short RTX at 192.13 (level crossed)
+Oct 20 15:08:15 instance-stockbot python[520247]: INFO virtual stop exit short GE at 300.64 (level crossed)
+Oct 20 15:10:27 instance-stockbot python[520247]: INFO ordered SHORT TMUS x85 stop 157.95 target None
+Oct 20 15:13:13 instance-stockbot python[520247]: INFO virtual stop exit long ABBV at 288.26 (level crossed)
+Oct 20 15:15:34 instance-stockbot python[520247]: INFO ordered LONG MA x21 stop 621.70 target None
+Oct 20 15:15:43 instance-stockbot python[520247]: INFO ordered SHORT GE x44 stop 300.89 target 298.47
+Oct 20 15:15:46 instance-stockbot python[520247]: INFO ordered SHORT RTX x69 stop 193.04 target None
+Oct 20 15:17:23 instance-stockbot python[520247]: INFO virtual stop exit long MA at 621.48 (level crossed)
+Oct 20 15:19:40 instance-stockbot python[520247]: INFO virtual stop exit short TMUS at 157.60 (level crossed)
+Oct 20 15:25:08 instance-stockbot python[520247]: INFO ordered LONG SPY x17 stop 767.15 target None
+Oct 20 15:25:24 instance-stockbot python[520247]: INFO ordered LONG V x33 stop 405.93 target None
+Oct 20 15:26:22 instance-stockbot python[520247]: INFO virtual stop exit short RTX at 192.88 (level crossed)
+Oct 20 15:30:33 instance-stockbot python[520247]: INFO ordered LONG JNJ x51 stop 257.95 target None
+Oct 20 16:05:14 instance-stockbot python[520247]: WARNING telegram refused the message: HTTP 403
+Oct 20 16:05:14 instance-stockbot python[520247]: WARNING report card NOT delivered to Telegram (check TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
