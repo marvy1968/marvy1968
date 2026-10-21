@@ -802,7 +802,7 @@ class PaperRunner:
             if vz_cfg.get("live") and self.zone_config().get("live"):                                              # owner's Velez rules (2026-10-20)
                 from .brain import VelezSignals
                 brain = VelezSignals(brain, tuple(vz_cfg.get("setups") or ("velez_halt", "velez_vbs", "velez_rbi")), float(vz_cfg.get("tp_r", 1.5)),
-                                     int(vz_cfg.get("hold", 18)))
+                                     int(vz_cfg.get("hold", 18)), sides=tuple(vz_cfg.get("sides") or [1]))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue

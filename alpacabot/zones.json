@@ -110,6 +110,126 @@
     "default_r": 1.5,
     "exhaust_r": 99.0,
     "target": "extreme"
+   },
+   "velez_gift": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_nrb": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_orb": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_trap": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_ldb": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_bt": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_clear": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_bull180": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_2020": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_mortgage": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_flat20": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_flat200": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_gbr": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_pause": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
+   },
+   "velez_brk": {
+    "chase_atr": 0.1,
+    "lookback": 20,
+    "min_r": 0.5,
+    "default_r": 1.5,
+    "exhaust_r": 99.0,
+    "target": "extreme"
    }
   },
   "ladder": {
@@ -285,6 +405,171 @@
       0.0
      ],
      "lock": []
+    },
+    "velez_gift": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_nrb": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_orb": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_trap": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_ldb": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_bt": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_clear": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_bull180": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_2020": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_mortgage": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_flat20": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_flat200": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_gbr": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_pause": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
+    },
+    "velez_brk": {
+     "cut_fracs": [],
+     "cut_depth_r": [],
+     "tp_fracs": [
+      1.0
+     ],
+     "tp_depth_atr": [
+      0.0
+     ],
+     "lock": []
     }
    },
    "_note_by_expert": "owner 2026-10-16: every TREND expert uses its own philosophy's zones: take-profit steps, stop locks and trail from engine.EXPERT_LADDERS, one hard stop (its sell zone, no cut steps); buy / take-profit zone distances in profiles.<expert> (engine.EXPERT_ZONES). Range experts and the box strategies keep the drawn plan."
@@ -336,9 +621,24 @@
    "donchian_turtle": 0.005,
    "trend_stairs": 0.005,
    "scalper": 0.005,
-   "velez_halt": 0.005,
-   "velez_vbs": 0.005,
-   "velez_rbi": 0.005
+   "velez_halt": 0.001,
+   "velez_vbs": 0.001,
+   "velez_rbi": 0.001,
+   "velez_gift": 0.001,
+   "velez_nrb": 0.001,
+   "velez_orb": 0.001,
+   "velez_trap": 0.001,
+   "velez_ldb": 0.001,
+   "velez_bt": 0.001,
+   "velez_clear": 0.001,
+   "velez_bull180": 0.001,
+   "velez_2020": 0.001,
+   "velez_mortgage": 0.001,
+   "velez_flat20": 0.001,
+   "velez_flat200": 0.001,
+   "velez_gbr": 0.001,
+   "velez_pause": 0.001,
+   "velez_brk": 0.001
   },
   "reversal_confirm": {
    "_note": "owner 2026-10-16: mean-reversion experts (connors_rsi2, bollinger_bounce, williams_r, vwap_dev, velez_180) enter only when the move against them is FAILING: at least `need` of 4 checks (reversal candle incl. Velez's bottoming tail and 180; the last 3 bars show no strong continuation against the trade; 5-minute ATR <= vola_max x session average; Velez's rubber band: stretched >= stretch_atr ATR from the 20 EMA). A filter only. Set live to false to switch it off.",
@@ -375,7 +675,22 @@
    "exempt": [
     "velez_halt",
     "velez_vbs",
-    "velez_rbi"
+    "velez_rbi",
+    "velez_gift",
+    "velez_nrb",
+    "velez_orb",
+    "velez_trap",
+    "velez_ldb",
+    "velez_bt",
+    "velez_clear",
+    "velez_bull180",
+    "velez_2020",
+    "velez_mortgage",
+    "velez_flat20",
+    "velez_flat200",
+    "velez_gbr",
+    "velez_pause",
+    "velez_brk"
    ]
   },
   "scalper": {
@@ -389,14 +704,33 @@
    "vol_mult": 1.2
   },
   "velez": {
-   "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off. Owner 2026-10-20: switched OFF with the other unprofitable experts (live 22 trades -$259, every backtest lost).",
-   "live": false,
+   "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off. Owner 2026-10-20: switched OFF with the other unprofitable experts (live 22 trades -$259, every backtest lost). Owner 2026-10-21: ALL 18 Velez setups live, longs and shorts (mirrored chart), at 0.1% risk each (risk_by_expert), to collect live paper data although every setup lost in the 3-month test.",
+   "live": true,
    "tp_r": 1.5,
    "hold": 18,
    "setups": [
     "velez_halt",
     "velez_vbs",
-    "velez_rbi"
+    "velez_rbi",
+    "velez_gift",
+    "velez_nrb",
+    "velez_orb",
+    "velez_trap",
+    "velez_ldb",
+    "velez_bt",
+    "velez_clear",
+    "velez_bull180",
+    "velez_2020",
+    "velez_mortgage",
+    "velez_flat20",
+    "velez_flat200",
+    "velez_gbr",
+    "velez_pause",
+    "velez_brk"
+   ],
+   "sides": [
+    1,
+    -1
    ]
   },
   "velez_hybrid": {
