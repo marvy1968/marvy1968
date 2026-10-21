@@ -597,8 +597,10 @@ class VelezHybrid:
       one_bar    replace the expert's stop with Velez's one-bar stop: beyond the signal bar's extreme + 0.1 ATR (kept 0.5-2 ATR)
       no_chase   skip "wide state" entries: price more than 2 ATR away from the 20 SMA (overextended)."""
 
-    def __init__(self, brain, env: bool = True, look_left: bool = False, one_bar: bool = False, no_chase: bool = False):
+    def __init__(self, brain, env: bool = True, look_left: bool = False, one_bar: bool = False, no_chase: bool = False,
+                 stop_r: float = 0.0, target_r: float = 0.0):
         self.brain, self.env, self.look_left, self.one_bar, self.no_chase = brain, env, look_left, one_bar, no_chase
+        self.stop_r, self.target_r = stop_r, target_r   # owner 2026-10-21 win-rate tune: stop at stop_r x the expert's risk, all out at target_r x it
 
     def __getattr__(self, name):
         return getattr(self.brain, name)
@@ -633,6 +635,10 @@ class VelezHybrid:
                 blk = h[i - 20:i].max() if side == 1 else l[i - 20:i].min()
                 if (side == 1 and c[i] < blk < tgt) or (side == -1 and tgt < blk < c[i]):
                     continue
+            if self.stop_r > 0 and self.target_r > 0:
+                tgt = float(c[i] + side * self.target_r * sd)
+                out.append(_rep(s, stop_dist=float(self.stop_r * sd), target_px=tgt, target2_px=0.0, exit_col=""))
+                continue
             out.append(_rep(s, stop_dist=sd) if sd != s.stop_dist else s)
         return out
 

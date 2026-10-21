@@ -1305,6 +1305,37 @@ def winrate_tune_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def winrate_live_check(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """The win-rate tune as the LIVE bot will run it (signal-level stop 1.5R / target 0.5R through the live zones, one take-profit, no cuts),
+    beside the research fixed_r version, so the live change is known to behave like the tested one. One month."""
+    import json as _json
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+    one = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+
+    def run(mode, a, b):
+        br = Brain(experts=list(live["experts"]), short_experts=list(live["short_experts"]), sector_filter=True, short_gate="red")
+        if mode == "research":
+            br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True, "ladder": {"fixed_r": (1.5, 0.5)}}
+            inner = VelezHybrid(br, env=True, look_left=True)
+        else:
+            names = set(live["experts"]) | set(live["short_experts"])
+            br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True,
+                        "ladder": {**_OWNER_LADDER, "by_expert": {**EXPERT_LADDERS, **{n: one for n in names}}}}
+            inner = VelezHybrid(br, env=True, look_left=True, stop_r=1.5, target_r=0.5)
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"wl-{per}-{name[:3]}", lambda name=name, a=a, b=b: run(name, a, b)) for name in ("research", "live")}
+    out.update({"family": "winrate_live", "passes": False, "verdict": "see the table"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

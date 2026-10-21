@@ -480,7 +480,7 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
-                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
+                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
                     from datetime import timedelta as _td
                     from . import gates as _g
                     from . import universe as _u
@@ -522,7 +522,10 @@ def run_all(a) -> int:
                             ns += f_.attrs["ts_ok"][1]
                             nd += 1
                     lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
-                    if fam == "winrate_tune":
+                    if fam == "winrate_live":
+                        from .research import winrate_live_check
+                        res = winrate_live_check(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_wl.json")
+                    elif fam == "winrate_tune":
                         from .research import winrate_tune_study
                         res = winrate_tune_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_wr.json")
                     elif fam == "velez_hybrid":
@@ -664,7 +667,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "
