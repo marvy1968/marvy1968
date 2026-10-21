@@ -1336,6 +1336,55 @@ def winrate_live_check(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def velez_all_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-21 ("hybrid these rules into our experts, build new Velez intraday experts, backtest all 3 months, incorporate all"): every
+    Velez setup alone on each side (longs on the chart, shorts on the mirrored chart), all of them together with the default and the win-rate exits,
+    with a volume filter, and the experts with the Velez hybrid rules. Live filters (direction first, stage, multi-timeframe). Three months."""
+    import json as _json
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid, VelezSignals, VELEZ_ALL
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"}
+    one = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+
+    def run(kind, kw, a, b):
+        if kind == "velez":
+            br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+            br.zones = {"profiles": {**ZONE_PROFILES, **{t: prof for t in VELEZ_ALL}}, "levels": True, "trend_exit": True,
+                        "ladder": {**_OWNER_LADDER, "by_expert": {t: one for t in VELEZ_ALL}}}
+            inner = VelezSignals(br, **kw)
+        else:
+            ex, sx = (live["experts"], live["short_experts"]) if kind == "live" else (list(ALL_EXPERTS), list(ALL_EXPERTS))
+            br = Brain(experts=list(ex), short_experts=list(sx), sector_filter=True, short_gate="red")
+            names = set(ex) | set(sx)
+            tuned = kw and kw.get("stop_r")
+            br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True,
+                        "ladder": {**_OWNER_LADDER, "by_expert": {**EXPERT_LADDERS, **({n: one for n in names} if tuned else {})}}}
+            inner = VelezHybrid(br, **kw) if kw is not None else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    tune = {"stop_mult": 1.5, "tp_r": 0.5 / 1.5, "sig_exit": False}         # stop 1.5R, everything out at 0.5R (the installed win-rate tune)
+    v = {}
+    for tag in VELEZ_ALL:
+        v[f"L {tag}"] = ("velez", {"setups": (tag,), "sides": (1,)})
+        v[f"S {tag}"] = ("velez", {"setups": (tag,), "sides": (-1,)})
+    v["ALL velez, both sides"] = ("velez", {"setups": VELEZ_ALL, "sides": (1, -1)})
+    v["ALL velez, both sides, win-rate exit"] = ("velez", {"setups": VELEZ_ALL, "sides": (1, -1), **tune})
+    v["ALL velez, both sides, volume 1.2x + look left"] = ("velez", {"setups": VELEZ_ALL, "sides": (1, -1), "vol_mult": 1.2, "look_left": True})
+    v["EXPERTS live lists, as is"] = ("live", None)
+    v["EXPERTS live lists + Velez trend + look left"] = ("live", {"env": True, "look_left": True})
+    v["EXPERTS live lists + Velez + win-rate exit (LIVE NOW)"] = ("live", {"env": True, "look_left": True, "stop_r": 1.5, "target_r": 0.5})
+    v["EXPERTS all 11 + Velez + win-rate exit"] = ("all", {"env": True, "look_left": True, "stop_r": 1.5, "target_r": 0.5})
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"va-{per}-{name}", lambda kind=kind, kw=kw, a=a, b=b: run(kind, kw, a, b)) for name, (kind, kw) in v.items()}
+    out.update({"family": "velez_all", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

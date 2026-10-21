@@ -409,3 +409,28 @@ class VelezHybridTuneTests(unittest.TestCase):
         self.assertAlmostEqual(a.stop_dist, 0.6)
         self.assertAlmostEqual(a.target_px, float(c[30]) + 0.2)
         self.assertEqual((b.stop_dist, b.target_px), (0.4, 0.0))      # not an expert in the list: untouched
+
+
+class VelezShortMirrorTests(unittest.TestCase):
+    def test_vss_short_on_the_mirrored_chart(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VelezSignals
+        n = 60
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 - 0.05 * np.arange(n)                         # a steady downtrend: the 20 SMA falls and sits under the 200
+        d = pd.DataFrame({"open": c + 0.02, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0, "f_atr": 0.3, "f_sma200": 105.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+        d["x_velez"], d["x_velez_s"] = d["close"] < d["f_sma20"], d["close"] > d["f_sma20"]
+        i = 40
+        for k, px in zip((i - 4, i - 3, i - 2, i - 1), (97.9, 98.0, 98.1, 98.2)):   # three higher closes (a 3-bar rally)
+            d.loc[d.index[k], ["open", "high", "low", "close"]] = [px - 0.05, px + 0.1, px - 0.1, px]
+        d.loc[d.index[i], ["open", "high", "low", "close"]] = [98.2, 98.3, 97.8, 97.9]   # a down bar through the prior low
+
+        class Stub:
+            def signals(self, day):
+                return []
+        sig = VelezSignals(Stub(), setups=("velez_vbs",), sides=(-1,)).box_signals(d)
+        s = next(s for s in sig if s.i == i)
+        self.assertEqual((s.side, s.tag, s.exit_col), (-1, "S:velez_vbs", "x_velez_s"))
+        self.assertAlmostEqual(s.target_px, 97.9 - 1.5 * s.stop_dist)

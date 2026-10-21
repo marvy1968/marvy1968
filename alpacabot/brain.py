@@ -451,6 +451,9 @@ class ScalperSignals(BoxSignals):
 VELEZ_TAGS = ("velez_halt", "velez_vbs", "velez_rbi")
 VELEZ_RESEARCH = ("velez_gift", "velez_nrb", "velez_orb", "velez_trap", "velez_ldb")      # owner 2026-10-20 second list (research only, not live)
 VELEZ_RESEARCH2 = ("velez_bt", "velez_clear", "velez_bull180", "velez_2020", "velez_mortgage", "velez_flat20", "velez_flat200")   # owner 2026-10-21 "all those rules"
+VELEZ_RESEARCH3 = ("velez_gbr", "velez_pause", "velez_brk")      # owner 2026-10-21 master rulebook (research)
+VELEZ_ALL = ("velez_halt", "velez_vbs", "velez_rbi", "velez_gift", "velez_nrb", "velez_orb", "velez_trap", "velez_ldb", "velez_bt", "velez_clear",
+             "velez_bull180", "velez_2020", "velez_mortgage", "velez_flat20", "velez_flat200", "velez_gbr", "velez_pause", "velez_brk")
 VELEZ_TOD = ("09:35", "10:00", "10:30", "11:15", "12:00", "13:30", "14:30", "15:00")      # his historical reversal-time watchlist (ET)
 
 
@@ -468,58 +471,92 @@ class VelezSignals(BoxSignals):
     NEED = ("f_atr", "f_sma20", "f_sma200", "x_velez")
 
     def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3,
-                 look_left: bool = False, tod: tuple = (), stop_mult: float = 1.0, sig_exit: bool = True):
+                 look_left: bool = False, tod: tuple = (), stop_mult: float = 1.0, sig_exit: bool = True, sides: tuple = (1,),
+                 vol_mult: float = 0.0):
         super().__init__(brain)
         self.setups, self.tp_r, self.hold, self.buffer, self.halt_atr = tuple(setups), tp_r, hold, buffer_atr, halt_atr
         self.look_left = look_left      # research: reject a setup when a prior 20-bar high sits between the entry and the target (Velez's "look left")
         self.stop_mult = stop_mult      # research: widen the one-bar stop (day-trade style holds)
         self.sig_exit = sig_exit        # research: False = no "20 SMA broke" exit, only the stop, the target and the time stop
+        self.sides = tuple(sides)       # owner 2026-10-21: (1,) longs, (-1,) shorts on the mirrored chart, (1, -1) both
+        self.vol_mult = vol_mult        # research: the signal bar's volume at least vol_mult x the prior 20-bar average (0 = off)
         self.tod = tuple(tod)           # research: only setups within 10 minutes after one of these times (his reversal-time watchlist)
 
     def box_signals(self, day) -> list:
         if len(day) < 8 or any(k not in day for k in self.NEED):
             return []
         t = day.index.strftime("%H:%M")
-        win = np.asarray((t >= "09:45") & (t <= "15:15"))
-        o, h, l, c = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
-        a, ma, m200 = (day[k].to_numpy(float) for k in ("f_atr", "f_sma20", "f_sma200"))
         n = len(day)
+        ro, rh, rl, rc = (day[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        a, rma, r200 = (day[k].to_numpy(float) for k in ("f_atr", "f_sma20", "f_sma200"))
+        vol = day["volume"].to_numpy(float) if "volume" in day else np.full(n, np.nan)
+        vavg = pd.Series(vol).rolling(20, min_periods=20).mean().shift(1).to_numpy()
         sh = lambda x, k: np.r_[np.full(k, np.nan), x[:-k]]               # noqa: E731  (x shifted k bars back)
-        with np.errstate(invalid="ignore"):
-            env = win & (ma > sh(ma, 3)) & (ma > m200) & (a > 0)
-            up = c > o
-            halt = env & up & (l <= ma + self.halt_atr * a) & (c > ma) & (sh(c, 1) <= sh(ma, 1) + self.halt_atr * a)
-            down = [sh(c, k) < sh(c, k + 1) for k in (1, 2, 3)]                   # closes 1, 2, 3 bars back each lower than the one before
-            run = down[0] & down[1] & down[2]
-            vbs = env & up & run & (c > sh(h, 1))
-            rbi = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(h, 1))
-        masks = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
-        if any(x in self.setups for x in VELEZ_RESEARCH):
-            masks.update(self._research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh))
-        if any(x in self.setups for x in VELEZ_RESEARCH2):
-            masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
-        if self.tod:
-            mins = np.array([int(x[:2]) * 60 + int(x[3:]) for x in t])
-            near = np.zeros(n, bool)
-            for x in self.tod:
-                near |= (mins >= int(x[:2]) * 60 + int(x[3:])) & (mins < int(x[:2]) * 60 + int(x[3:]) + 10)
-            masks = {k: v & near for k, v in masks.items()}
-        out, taken = [], set()
-        for tag in self.setups:
-            m = masks[tag]
-            prev = np.r_[False, m[:-1]]
-            for i in np.flatnonzero(m & ~prev):
-                if int(i) in taken:
-                    continue
-                taken.add(int(i))
-                lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
-                sd = float(np.clip((c[i] - lo + self.buffer * a[i]) * self.stop_mult, 0.5 * a[i], 2.0 * self.stop_mult * a[i]))
-                if self.look_left and i >= 20 and c[i] < h[i - 20:i].max() < c[i] + self.tp_r * sd:
-                    continue                                   # a prior high blocks the way to the target
-                out.append(Signal(i=int(i), side=1, stop_dist=sd, max_bars=int(self.hold), tag=tag, atr=float(a[i]), exit_col="x_velez" if self.sig_exit else "",
-                                  target_px=float(c[i] + self.tp_r * sd)))
+        out = []
+        for side in self.sides:
+            # shorts: the same rules on the mirrored chart (price and averages negated; highs and lows swap)
+            if side == 1:
+                o, h, l, c, ma, m200 = ro, rh, rl, rc, rma, r200
+            else:
+                o, h, l, c, ma, m200 = -ro, -rl, -rh, -rc, -rma, -r200
+            win = np.asarray((t >= "09:45") & (t <= "15:15"))
+            with np.errstate(invalid="ignore"):
+                env = win & (ma > sh(ma, 3)) & (ma > m200) & (a > 0)
+                up = c > o
+                halt = env & up & (l <= ma + self.halt_atr * a) & (c > ma) & (sh(c, 1) <= sh(ma, 1) + self.halt_atr * a)
+                down = [sh(c, k) < sh(c, k + 1) for k in (1, 2, 3)]               # closes 1, 2, 3 bars back each lower than the one before
+                run = down[0] & down[1] & down[2]
+                vbs = env & up & run & (c > sh(h, 1))
+                rbi = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(h, 1))
+            masks = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
+            if any(x in self.setups for x in VELEZ_RESEARCH):
+                masks.update(self._research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+            if any(x in self.setups for x in VELEZ_RESEARCH2):
+                masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+            if any(x in self.setups for x in VELEZ_RESEARCH3):
+                masks.update(self._research_masks3(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+            if self.tod:
+                mins = np.array([int(x[:2]) * 60 + int(x[3:]) for x in t])
+                near = np.zeros(n, bool)
+                for x in self.tod:
+                    near |= (mins >= int(x[:2]) * 60 + int(x[3:])) & (mins < int(x[:2]) * 60 + int(x[3:]) + 10)
+                masks = {k: v & near for k, v in masks.items()}
+            if self.vol_mult > 0:
+                with np.errstate(invalid="ignore"):
+                    vok = vol >= self.vol_mult * vavg
+                masks = {k: v & vok for k, v in masks.items()}
+            taken = set()
+            for tag in self.setups:
+                m = masks[tag]
+                prev = np.r_[False, m[:-1]]
+                for i in np.flatnonzero(m & ~prev):
+                    if int(i) in taken:
+                        continue
+                    taken.add(int(i))
+                    lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
+                    sd = float(np.clip((c[i] - lo + self.buffer * a[i]) * self.stop_mult, 0.5 * a[i], 2.0 * self.stop_mult * a[i]))
+                    if self.look_left and i >= 20 and c[i] < h[i - 20:i].max() < c[i] + self.tp_r * sd:
+                        continue                               # a prior high (low, for shorts) blocks the way to the target
+                    ex = ("x_velez" if side == 1 else "x_velez_s") if self.sig_exit else ""
+                    out.append(Signal(i=int(i), side=side, stop_dist=sd, max_bars=int(self.hold), tag=tag if side == 1 else "S:" + tag,
+                                      atr=float(a[i]), exit_col=ex, target_px=float(side * (c[i] + self.tp_r * sd))))
         return sorted(out, key=lambda s: s.i)
 
+    @staticmethod
+    def _research_masks3(day, t, o, h, l, c, a, ma, m200, env, up, sh) -> dict:
+        """Owner 2026-10-21 master rulebook, the long patterns still missing (shorts come from the mirrored chart): Green Bar Reversal at the rising
+        20 SMA, the Bullish Pause (two small bars, then a break of their high) and the Bullish Breakout (a close through a tight 12-bar range)."""
+        n = len(day)
+        rng = np.maximum(h - l, 1e-9)
+        with np.errstate(invalid="ignore"):
+            gbr = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(o, 1)) & (np.abs(l - ma) <= 0.5 * a)
+            small = (sh(rng, 1) <= 0.6 * a) & (sh(rng, 2) <= 0.6 * a)
+            pause = env & up & small & (c > np.fmax(sh(h, 1), sh(h, 2)))
+            hi12, lo12 = np.full(n, np.nan), np.full(n, np.nan)
+            for i in range(12, n):
+                hi12[i], lo12[i] = h[i - 12:i].max(), l[i - 12:i].min()
+            brk = env & up & ((hi12 - lo12) <= 2.5 * a) & (c > hi12) & (sh(c, 1) <= hi12)
+        return {"velez_gbr": gbr, "velez_pause": pause, "velez_brk": brk}
 
     @staticmethod
     def _research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh) -> dict:
