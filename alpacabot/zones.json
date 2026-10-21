@@ -363,7 +363,10 @@
    "stop_atr": 1.2,
    "confirm": 0.6,
    "select": false,
-   "tp_zone": false
+   "tp_zone": false,
+   "sides": [
+    1
+   ]
   },
   "oversold_gate": {
    "_note": "owner 2026-10-19: only BUY when the majority of five indicators say oversold on the signal bar (5-minute RSI14 <= 35, stochastic <= 20, Bollinger %B <= 0.15, close >= 1 ATR under VWAP, Williams %R <= -80): need of 5. Applies to every long entry of every expert and strategy; shorts are untouched. Set live to false to switch it off.",
@@ -386,8 +389,8 @@
    "vol_mult": 1.2
   },
   "velez": {
-   "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off.",
-   "live": true,
+   "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off. Owner 2026-10-20: switched OFF with the other unprofitable experts (live 22 trades -$259, every backtest lost).",
+   "live": false,
    "tp_r": 1.5,
    "hold": 18,
    "setups": [

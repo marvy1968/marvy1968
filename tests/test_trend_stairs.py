@@ -333,3 +333,15 @@ class VelezResearchTests(unittest.TestCase):
         # every research setup and both filters run without error on a plain frame
         VelezSignals(Stub(), setups=VELEZ_RESEARCH, look_left=True).box_signals(d)
         VelezSignals(Stub(), tod=VELEZ_TOD).box_signals(d)
+
+
+class BrainConfigTests(unittest.TestCase):
+    def test_default_brain_uses_the_committed_expert_lists(self):
+        import tempfile
+        from alpacabot.paper import default_brain
+        with tempfile.TemporaryDirectory() as d:
+            b = default_brain(d)
+        self.assertNotIn("dual_regime", b.experts)
+        self.assertIn("dual_regime", b.short_experts)
+        self.assertNotIn("williams_r", b.short_experts)
+        self.assertNotIn("velez_180", b.experts + b.short_experts)

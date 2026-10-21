@@ -746,7 +746,8 @@ class EngagedConfigTests(unittest.TestCase):
             with mock.patch.object(paper, "ENGAGED", cfg):
                 b = paper.default_brain(d)
             self.assertEqual((b.experts, b.short_experts, b.route, b.consensus), (["connors_rsi2"], [], False, 2))
-            b = paper.default_brain(d)                      # no engaged file: the default (all experts both ways, gated)
+            with mock.patch.object(paper, "ENGAGED", Path(d) / "missing.json"):
+                b = paper.default_brain(d)                  # no engaged file: the default (all experts both ways, gated)
             self.assertEqual(len(b.experts), 11)
 
 
