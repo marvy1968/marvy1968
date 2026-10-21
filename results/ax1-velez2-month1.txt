@@ -1,3 +1,33 @@
 $ alpaca run-all --phase validate --month1 --families velez2
-started 2026-10-20 20:23:28 EDT
-RUNNING...
+started 2026-10-20 20:23:28 EDT, took 149s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## velez2: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 01. original three (live): 23t win 26% PF 0.55 avgR -0.34 daily -0.050% CAGR -10.7% maxDD -0.4%
+- train | 02. GIFT (elephant, then the retracement): 1t win 0% PF 0.00 avgR -1.12 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 03. NRB (narrow range bar break): 6t win 50% PF 1.99 avgR +0.09 daily -0.009% CAGR +6.2% maxDD -0.1%
+- train | 04. 9:35 opening-range break: 6t win 50% PF 0.42 avgR -0.26 daily -0.057% CAGR -7.6% maxDD -0.2%
+- train | 05. bear trap: 14t win 29% PF 0.24 avgR -0.36 daily -0.034% CAGR -6.2% maxDD -0.2%
+- train | 06. late-day breakout: 2t win 50% PF 0.80 avgR +0.14 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 07. all five new setups: 28t win 39% PF 0.56 avgR -0.24 daily -0.055% CAGR -7.9% maxDD -0.6%
+- train | 08. original three + look-left filter: 16t win 38% PF 0.70 avgR -0.16 daily -0.032% CAGR -6.6% maxDD -0.3%
+- train | 09. original three, reversal-time windows only: 8t win 12% PF 0.11 avgR -0.70 daily -0.062% CAGR -11.2% maxDD -0.4%
+- train | 10. all eight + look-left: 34t win 38% PF 0.55 avgR -0.26 daily -0.066% CAGR -12.3% maxDD -0.7%
+- validate | 01. original three (live): 53t win 26% PF 0.44 avgR -0.36 daily -0.124% CAGR -23.7% maxDD -1.1%
+- validate | 02. GIFT (elephant, then the retracement): 5t win 40% PF 0.90 avgR +0.08 daily +0.015% CAGR -1.2% maxDD -0.1%
+- validate | 03. NRB (narrow range bar break): 14t win 50% PF 0.95 avgR +0.14 daily +0.001% CAGR -0.7% maxDD -0.3%
+- validate | 04. 9:35 opening-range break: 16t win 25% PF 0.13 avgR -0.69 daily -0.120% CAGR -27.2% maxDD -0.8%
+- validate | 05. bear trap: 31t win 13% PF 0.13 avgR -0.52 daily -0.101% CAGR -20.9% maxDD -0.8%
+- validate | 06. late-day breakout: 4t win 25% PF 0.51 avgR -0.59 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 07. all five new setups: 65t win 25% PF 0.30 avgR -0.40 daily -0.188% CAGR -38.3% maxDD -1.5%
+- validate | 08. original three + look-left filter: 44t win 30% PF 0.56 avgR -0.26 daily -0.084% CAGR -15.8% maxDD -0.8%
+- validate | 09. original three, reversal-time windows only: 14t win 29% PF 0.50 avgR -0.19 daily -0.032% CAGR -7.1% maxDD -0.2%
+- validate | 10. all eight + look-left: 82t win 26% PF 0.40 avgR -0.36 daily -0.194% CAGR -37.5% maxDD -1.8%
+ALL DONE
