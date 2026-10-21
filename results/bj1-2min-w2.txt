@@ -1,3 +1,99 @@
 $ alpaca run-all --phase validate --weeks2 --bar-min 2 --families velez_all
-started 2026-10-21 09:05:49 EDT
-RUNNING...
+started 2026-10-21 09:05:49 EDT, took 1233s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 53 of 1276 stock-days, on the SHORT list 27
+## velez_all: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | L velez_halt: 14t win 29% PF 1.43 avgR -0.02 daily +0.025% CAGR +4.6% maxDD -0.0%
+- train | S velez_halt: 22t win 14% PF 0.32 avgR -0.25 daily -0.052% CAGR -9.1% maxDD -0.2%
+- train | L velez_vbs: 6t win 17% PF 0.64 avgR -0.13 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_vbs: 7t win 29% PF 0.54 avgR -0.26 daily -0.009% CAGR -3.1% maxDD -0.1%
+- train | L velez_rbi: 20t win 25% PF 0.55 avgR -0.39 daily -0.043% CAGR -13.8% maxDD -0.3%
+- train | S velez_rbi: 35t win 29% PF 0.66 avgR -0.26 daily -0.028% CAGR -6.9% maxDD -0.1%
+- train | L velez_gift: 1t win 0% PF 0.00 avgR -0.06 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_gift: 4t win 25% PF 0.07 avgR -0.41 daily -0.007% CAGR -2.6% maxDD -0.0%
+- train | L velez_nrb: 6t win 33% PF 0.29 avgR -0.11 daily -0.014% CAGR -7.6% maxDD -0.1%
+- train | S velez_nrb: 13t win 23% PF 0.52 avgR -0.45 daily -0.026% CAGR -4.5% maxDD -0.1%
+- train | L velez_orb: 6t win 33% PF 0.56 avgR -0.12 daily -0.064% CAGR -6.1% maxDD -0.2%
+- train | S velez_orb: 18t win 50% PF 0.67 avgR -0.10 daily +0.002% CAGR -3.1% maxDD -0.1%
+- train | L velez_trap: 10t win 10% PF 0.31 avgR -0.81 daily -0.028% CAGR -7.4% maxDD -0.1%
+- train | S velez_trap: 25t win 40% PF 0.44 avgR -0.33 daily -0.021% CAGR -12.1% maxDD -0.1%
+- train | L velez_ldb: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_ldb: 1t win 0% PF 0.00 avgR -0.84 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | L velez_bt: 8t win 12% PF 0.33 avgR -0.54 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_bt: 31t win 26% PF 0.30 avgR -0.72 daily -0.114% CAGR -23.4% maxDD -0.5%
+- train | L velez_clear: 3t win 67% PF 6.77 avgR +0.27 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_clear: 12t win 8% PF 0.10 avgR -0.30 daily -0.033% CAGR -12.8% maxDD -0.1%
+- train | L velez_bull180: 9t win 33% PF 0.91 avgR -0.16 daily +0.027% CAGR -1.3% maxDD -0.1%
+- train | S velez_bull180: 7t win 0% PF 0.00 avgR -0.69 daily -0.034% CAGR -7.3% maxDD -0.2%
+- train | L velez_2020: 3t win 67% PF 3.47 avgR +0.30 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_2020: 11t win 27% PF 0.10 avgR -0.62 daily -0.060% CAGR -17.7% maxDD -0.3%
+- train | L velez_mortgage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_mortgage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | L velez_flat20: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_flat20: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | L velez_flat200: 2t win 50% PF 2.36 avgR +0.07 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_flat200: 16t win 44% PF 2.31 avgR +0.08 daily +0.001% CAGR +12.6% maxDD -0.1%
+- train | L velez_gbr: 13t win 23% PF 0.49 avgR -0.44 daily -0.061% CAGR -14.9% maxDD -0.4%
+- train | S velez_gbr: 16t win 38% PF 0.90 avgR -0.16 daily -0.024% CAGR -1.2% maxDD -0.1%
+- train | L velez_pause: 6t win 17% PF 0.21 avgR -0.70 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | S velez_pause: 5t win 20% PF 0.75 avgR -0.41 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | L velez_brk: 7t win 14% PF 0.07 avgR -0.81 daily -0.149% CAGR -27.9% maxDD -0.5%
+- train | S velez_brk: 6t win 33% PF 0.13 avgR -0.27 daily -0.011% CAGR -2.7% maxDD -0.0%
+- train | ALL velez, both sides: 132t win 36% PF 0.81 avgR -0.23 daily -0.059% CAGR -17.5% maxDD -0.5%
+- train | ALL velez, both sides, win-rate exit: 130t win 65% PF 0.71 avgR -0.19 daily -0.075% CAGR -28.0% maxDD -0.7%
+- train | ALL velez, both sides, volume 1.2x + look left: 28t win 18% PF 0.19 avgR -0.69 daily -0.140% CAGR -27.9% maxDD -0.7%
+- train | EXPERTS live lists, as is: 332t win 33% PF 0.51 avgR -0.27 daily -0.612% CAGR -79.6% maxDD -3.0%
+- train | EXPERTS live lists + Velez trend + look left: 69t win 36% PF 0.54 avgR -0.21 daily -0.139% CAGR -26.3% maxDD -0.8%
+- train | EXPERTS live lists + Velez + win-rate exit (LIVE NOW): 74t win 73% PF 0.57 avgR -0.08 daily -0.108% CAGR -25.7% maxDD -0.6%
+- train | EXPERTS all 11 + Velez + win-rate exit: 88t win 70% PF 0.67 avgR -0.08 daily -0.080% CAGR -23.2% maxDD -0.5%
+- validate | L velez_halt: 41t win 22% PF 0.57 avgR -0.39 daily -0.080% CAGR -17.3% maxDD -0.4%
+- validate | S velez_halt: 20t win 35% PF 0.37 avgR -0.26 daily -0.089% CAGR -13.0% maxDD -0.3%
+- validate | L velez_vbs: 7t win 14% PF 0.19 avgR -0.37 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_vbs: 4t win 25% PF 0.08 avgR -0.45 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_rbi: 33t win 27% PF 0.39 avgR -0.35 daily -0.143% CAGR -22.0% maxDD -0.6%
+- validate | S velez_rbi: 27t win 15% PF 0.25 avgR -0.34 daily -0.066% CAGR -14.6% maxDD -0.3%
+- validate | L velez_gift: 3t win 33% PF 0.52 avgR -0.30 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_gift: 3t win 33% PF 1.15 avgR -0.31 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_nrb: 15t win 20% PF 0.41 avgR -0.65 daily -0.131% CAGR -17.1% maxDD -0.4%
+- validate | S velez_nrb: 11t win 36% PF 1.34 avgR -0.07 daily +0.009% CAGR +1.8% maxDD -0.0%
+- validate | L velez_orb: 24t win 29% PF 0.27 avgR -0.45 daily -0.098% CAGR -37.1% maxDD -0.3%
+- validate | S velez_orb: 17t win 35% PF 0.44 avgR -0.09 daily -0.079% CAGR -14.5% maxDD -0.3%
+- validate | L velez_trap: 29t win 14% PF 0.36 avgR -0.44 daily -0.081% CAGR -14.9% maxDD -0.3%
+- validate | S velez_trap: 12t win 58% PF 1.39 avgR +0.14 daily +0.004% CAGR +3.7% maxDD -0.0%
+- validate | L velez_ldb: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_ldb: 7t win 57% PF 0.53 avgR -0.21 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_bt: 33t win 9% PF 0.12 avgR -0.62 daily -0.139% CAGR -26.7% maxDD -0.6%
+- validate | S velez_bt: 22t win 32% PF 0.60 avgR -0.36 daily -0.022% CAGR -9.9% maxDD -0.2%
+- validate | L velez_clear: 7t win 29% PF 0.19 avgR -0.48 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_clear: 7t win 14% PF 0.05 avgR -0.32 daily -0.024% CAGR -7.2% maxDD -0.1%
+- validate | L velez_bull180: 11t win 36% PF 0.89 avgR +0.05 daily -0.001% CAGR -1.9% maxDD -0.0%
+- validate | S velez_bull180: 9t win 22% PF 0.46 avgR -0.26 daily -0.011% CAGR -5.3% maxDD -0.1%
+- validate | L velez_2020: 8t win 12% PF 0.01 avgR -0.43 daily -0.012% CAGR -6.3% maxDD -0.0%
+- validate | S velez_2020: 3t win 67% PF 0.57 avgR +0.14 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_mortgage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_mortgage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_flat20: 1t win 100% PF inf avgR +0.26 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_flat20: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_flat200: 9t win 11% PF 0.07 avgR -0.58 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_flat200: 2t win 0% PF 0.00 avgR -0.43 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | L velez_gbr: 23t win 26% PF 0.40 avgR -0.39 daily -0.063% CAGR -13.2% maxDD -0.3%
+- validate | S velez_gbr: 14t win 7% PF 0.01 avgR -0.62 daily -0.069% CAGR -17.8% maxDD -0.2%
+- validate | L velez_pause: 10t win 20% PF 0.24 avgR -0.73 daily -0.031% CAGR -6.8% maxDD -0.1%
+- validate | S velez_pause: 7t win 14% PF 0.10 avgR -0.42 daily -0.027% CAGR -7.4% maxDD -0.1%
+- validate | L velez_brk: 9t win 33% PF 1.04 avgR -0.38 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | S velez_brk: 6t win 17% PF 0.11 avgR -0.19 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | ALL velez, both sides: 146t win 25% PF 0.36 avgR -0.41 daily -0.596% CAGR -73.0% maxDD -2.4%
+- validate | ALL velez, both sides, win-rate exit: 146t win 61% PF 0.52 avgR -0.24 daily -0.456% CAGR -63.6% maxDD -1.8%
+- validate | ALL velez, both sides, volume 1.2x + look left: 42t win 26% PF 0.33 avgR -0.34 daily -0.116% CAGR -26.0% maxDD -0.5%
+- validate | EXPERTS live lists, as is: 169t win 41% PF 0.78 avgR -0.19 daily -0.048% CAGR -32.8% maxDD -0.6%
+- validate | EXPERTS live lists + Velez trend + look left: 43t win 37% PF 0.50 avgR -0.34 daily -0.091% CAGR -20.1% maxDD -0.4%
+- validate | EXPERTS live lists + Velez + win-rate exit (LIVE NOW): 47t win 74% PF 1.13 avgR -0.04 daily +0.024% CAGR +4.5% maxDD -0.2%
+- validate | EXPERTS all 11 + Velez + win-rate exit: 57t win 67% PF 0.91 avgR -0.13 daily -0.038% CAGR -5.8% maxDD -0.6%
+ALL DONE
