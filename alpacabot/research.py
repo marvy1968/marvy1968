@@ -1277,6 +1277,34 @@ def velez_hybrid_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def winrate_tune_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-21 ("fine tune until all are 62% win rate"): the live expert lists + Velez trend + look-left (the least-losing hybrid) with
+    exits that trade reward for hit rate: a fixed stop at `cut` x the expert's risk and everything out at `tp` x that risk. Win rate alone can be
+    bought with a near target, so profit factor and daily return are reported beside it. One-month test."""
+    import json as _json
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+    pairs = {"live exits (ladder)": None, "stop 1.0R / target 0.5R": (1.0, 0.5), "stop 1.0R / target 0.75R": (1.0, 0.75),
+             "stop 1.5R / target 0.75R": (1.5, 0.75), "stop 1.0R / target 1.0R": (1.0, 1.0), "stop 2.0R / target 1.0R": (2.0, 1.0),
+             "stop 1.5R / target 0.5R": (1.5, 0.5)}
+
+    def run(pair, a, b):
+        br = Brain(experts=list(live["experts"]), short_experts=list(live["short_experts"]), sector_filter=True, short_gate="red")
+        lad = {**_OWNER_LADDER, "by_expert": dict(EXPERT_LADDERS)} if pair is None else {"fixed_r": pair}
+        br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True, "ladder": lad}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezHybrid(br, env=True, look_left=True)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"wr-{per}-{pair}", lambda pair=pair, a=a, b=b: run(pair, a, b)) for name, pair in pairs.items()}
+    out.update({"family": "winrate_tune", "passes": False, "verdict": "see the table (win rate AND profit factor)"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""
