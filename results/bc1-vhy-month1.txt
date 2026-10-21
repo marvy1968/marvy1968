@@ -1,3 +1,33 @@
 $ alpaca run-all --phase validate --month1 --families velez_hybrid
-started 2026-10-21 00:28:13 EDT
-RUNNING...
+started 2026-10-21 00:28:13 EDT, took 2928s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## velez_hybrid: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | all 11: a. as is (no Velez rules): 446t win 38% PF 0.65 avgR -0.21 daily -0.432% CAGR -70.6% maxDD -4.6%
+- train | all 11: b. + Velez trend (20 SMA rising over the 200): 252t win 29% PF 0.44 avgR -0.34 daily -0.492% CAGR -72.1% maxDD -4.8%
+- train | all 11: c. + trend + look left: 164t win 27% PF 0.44 avgR -0.36 daily -0.361% CAGR -61.8% maxDD -3.6%
+- train | all 11: d. + trend + look left + one-bar stop: 223t win 25% PF 0.39 avgR -0.51 daily -0.427% CAGR -67.3% maxDD -4.2%
+- train | all 11: e. + trend + look left + no wide-state chase: 127t win 25% PF 0.41 avgR -0.37 daily -0.285% CAGR -53.7% maxDD -2.8%
+- train | live lists: a. as is (no Velez rules): 426t win 41% PF 0.68 avgR -0.15 daily -0.325% CAGR -61.3% maxDD -3.8%
+- train | live lists: b. + Velez trend (20 SMA rising over the 200): 190t win 35% PF 0.50 avgR -0.22 daily -0.260% CAGR -49.8% maxDD -2.7%
+- train | live lists: c. + trend + look left: 101t win 34% PF 0.57 avgR -0.23 daily -0.112% CAGR -29.3% maxDD -1.4%
+- train | live lists: d. + trend + look left + one-bar stop: 166t win 26% PF 0.38 avgR -0.54 daily -0.250% CAGR -48.6% maxDD -2.6%
+- train | live lists: e. + trend + look left + no wide-state chase: 83t win 31% PF 0.45 avgR -0.27 daily -0.129% CAGR -31.7% maxDD -1.3%
+- validate | all 11: a. as is (no Velez rules): 397t win 34% PF 0.50 avgR -0.24 daily -0.693% CAGR -80.1% maxDD -7.0%
+- validate | all 11: b. + Velez trend (20 SMA rising over the 200): 173t win 31% PF 0.47 avgR -0.33 daily -0.235% CAGR -51.5% maxDD -2.3%
+- validate | all 11: c. + trend + look left: 119t win 28% PF 0.43 avgR -0.34 daily -0.183% CAGR -45.4% maxDD -1.9%
+- validate | all 11: d. + trend + look left + one-bar stop: 153t win 29% PF 0.50 avgR -0.38 daily -0.150% CAGR -40.7% maxDD -1.5%
+- validate | all 11: e. + trend + look left + no wide-state chase: 92t win 28% PF 0.48 avgR -0.35 daily -0.118% CAGR -33.0% maxDD -1.4%
+- validate | live lists: a. as is (no Velez rules): 336t win 38% PF 0.56 avgR -0.20 daily -0.468% CAGR -67.6% maxDD -4.9%
+- validate | live lists: b. + Velez trend (20 SMA rising over the 200): 115t win 41% PF 0.56 avgR -0.20 daily -0.120% CAGR -29.8% maxDD -1.4%
+- validate | live lists: c. + trend + look left: 63t win 33% PF 0.56 avgR -0.22 daily -0.062% CAGR -19.6% maxDD -0.7%
+- validate | live lists: d. + trend + look left + one-bar stop: 101t win 34% PF 0.61 avgR -0.27 daily -0.060% CAGR -19.4% maxDD -0.7%
+- validate | live lists: e. + trend + look left + no wide-state chase: 51t win 33% PF 0.62 avgR -0.23 daily -0.047% CAGR -14.2% maxDD -0.6%
+ALL DONE
