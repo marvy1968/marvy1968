@@ -1557,7 +1557,13 @@ class ExpertZoneTests(unittest.TestCase):
         import tempfile
         from alpacabot.engine import EXPERT_LADDERS, EXPERT_ZONES, ladder_for, zone_profile
         with tempfile.TemporaryDirectory() as tmp:
-            cfg = LadderTests("test_tier_from_depth")._runner(tmp).zone_config()
+            r = LadderTests("test_tier_from_depth")._runner(tmp)
+            (Path(tmp) / "zones_override.json").write_text(json.dumps({"velez_hybrid": {"live": False}}))   # the experts' own plans
+            cfg = r.zone_config()
+            (Path(tmp) / "zones_override.json").write_text(json.dumps({}))
+            tuned = r.zone_config()                     # owner 2026-10-21 win-rate tune live: one take-profit, no cuts, for the live experts
+        self.assertEqual(ladder_for(tuned["ladder"], "connors_rsi2")["cut_fracs"], [])
+        self.assertEqual(ladder_for(tuned["ladder"], "connors_rsi2")["tp_fracs"], [1.0])
         for name in ("velez_elephant", "raschke_grail", "brooks_pullback", "donchian_turtle"):
             zp = zone_profile({"profiles": cfg["profiles"]}, "S:" + name)
             self.assertEqual(zp["chase_atr"], EXPERT_ZONES[name]["chase_atr"])               # its own buy zone

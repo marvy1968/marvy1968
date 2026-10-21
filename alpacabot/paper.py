@@ -428,6 +428,10 @@ class PaperRunner:
             for k, v in prof.items():                                  # per-expert zones (trend experts' own philosophy)
                 if k not in ZONE_PROFILES and isinstance(v, dict):
                     cfg["profiles"][k] = {**ZONE_PROFILES["trend"], **v}
+            vh = cfg.get("velez_hybrid") or {}
+            if vh.get("live") and vh.get("ladder") and isinstance(cfg.get("ladder"), dict):   # the win-rate tune: one take-profit, no cuts
+                cfg["ladder"] = {**cfg["ladder"], "by_expert": {**(cfg["ladder"].get("by_expert") or {}),
+                                                                **{n: dict(vh["ladder"]) for n in vh.get("experts", [])}}}
             return cfg
         except Exception:
             log.exception("zones.json unreadable: zones off until fixed")
@@ -788,6 +792,12 @@ class PaperRunner:
                                        int(sc_cfg.get("hold", 6)), float(sc_cfg.get("vol_mult", 1.2)))
                 if sc_cfg.get("only"):
                     brain = OnlyTags(brain, {ScalperSignals.TAG})
+            vh_cfg = self.zone_config().get("velez_hybrid") or {}
+            if vh_cfg.get("live") and self.zone_config().get("live"):                                       # owner 2026-10-21: Velez rules on every expert
+                from .brain import VelezHybrid
+                brain = VelezHybrid(brain, bool(vh_cfg.get("env", True)), bool(vh_cfg.get("look_left", True)), False, False,
+                                    float(vh_cfg.get("stop_r", 0.0)), float(vh_cfg.get("target_r", 0.0)),
+                                    tags=set(self.brain.experts) | set(self.brain.short_experts))
             vz_cfg = self.zone_config().get("velez") or {}
             if vz_cfg.get("live") and self.zone_config().get("live"):                                              # owner's Velez rules (2026-10-20)
                 from .brain import VelezSignals

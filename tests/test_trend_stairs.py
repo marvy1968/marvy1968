@@ -387,3 +387,25 @@ class VelezHybridTests(unittest.TestCase):
         out = VelezHybrid(Stub(), env=True, one_bar=True).signals(d)
         self.assertEqual([s.side for s in out], [1])                 # the short is against the rising 20 over the 200
         self.assertAlmostEqual(out[0].stop_dist, 0.2 + 0.1 * 0.3)    # under the signal bar's low + 0.1 ATR
+
+
+class VelezHybridTuneTests(unittest.TestCase):
+    def test_stop_and_target_tune_only_on_listed_experts(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VelezHybrid
+        from alpacabot.strategies import Signal
+        n = 40
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 + 0.05 * np.arange(n)
+        d = pd.DataFrame({"open": c, "high": c + 0.1, "low": c - 0.2, "close": c, "f_atr": 0.3, "f_sma200": 95.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+
+        class Stub:
+            def signals(self, day):
+                return [Signal(i=30, side=1, stop_dist=0.4, tag="connors_rsi2"), Signal(i=31, side=1, stop_dist=0.4, tag="range_box")]
+        out = VelezHybrid(Stub(), env=True, stop_r=1.5, target_r=0.5, tags={"connors_rsi2"}).signals(d)
+        a, b = out
+        self.assertAlmostEqual(a.stop_dist, 0.6)
+        self.assertAlmostEqual(a.target_px, float(c[30]) + 0.2)
+        self.assertEqual((b.stop_dist, b.target_px), (0.4, 0.0))      # not an expert in the list: untouched

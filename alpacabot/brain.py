@@ -598,9 +598,10 @@ class VelezHybrid:
       no_chase   skip "wide state" entries: price more than 2 ATR away from the 20 SMA (overextended)."""
 
     def __init__(self, brain, env: bool = True, look_left: bool = False, one_bar: bool = False, no_chase: bool = False,
-                 stop_r: float = 0.0, target_r: float = 0.0):
+                 stop_r: float = 0.0, target_r: float = 0.0, tags=None):
         self.brain, self.env, self.look_left, self.one_bar, self.no_chase = brain, env, look_left, one_bar, no_chase
         self.stop_r, self.target_r = stop_r, target_r   # owner 2026-10-21 win-rate tune: stop at stop_r x the expert's risk, all out at target_r x it
+        self.tags = set(tags) if tags else None         # only these experts (tag without "S:"); None = every signal
 
     def __getattr__(self, name):
         return getattr(self.brain, name)
@@ -616,6 +617,9 @@ class VelezHybrid:
         out = []
         for s in sigs:
             i, side = s.i, (-1 if s.side == -1 else 1)
+            if self.tags is not None and (s.tag or "").removeprefix("S:") not in self.tags:
+                out.append(s)
+                continue
             if i < 3 or not (a[i] > 0):
                 out.append(s)
                 continue

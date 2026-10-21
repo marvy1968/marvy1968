@@ -114,7 +114,7 @@ class ReplayTest(unittest.TestCase):
 
         # ---------------- paper bot, bar by bar
         cls.tmp = tempfile.TemporaryDirectory()
-        (Path(cls.tmp.name) / "zones_override.json").write_text(json.dumps({"live": cls.ZONES_LIVE, "scalper": {"live": False}, "velez": {"live": False}, **(cls.OVERRIDE or {})}))   # parity: zone-free
+        (Path(cls.tmp.name) / "zones_override.json").write_text(json.dumps({"live": cls.ZONES_LIVE, "scalper": {"live": False}, "velez": {"live": False}, "velez_hybrid": {"live": False}, **(cls.OVERRIDE or {})}))   # parity: zone-free
         broker = SimBroker(cls.daily)
         for s in SYMS:
             broker.px[s] = float(cls.minute[s]["open"].iloc[0])

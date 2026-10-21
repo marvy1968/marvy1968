@@ -398,6 +398,35 @@
     "velez_vbs",
     "velez_rbi"
    ]
+  },
+  "velez_hybrid": {
+   "_note": "owner 2026-10-21 ('hybrid all experts with the Velez rules', 'install the most accurate, tune toward a 62% win rate'): every live expert's signal must trade WITH the simple 20/200 averages (longs: 20 rising over the 200; shorts: 20 falling under it) and with no prior 20-bar high/low blocking the way (look left); the stop sits at stop_r x the expert's risk and the WHOLE position comes out at target_r x it (velez_hybrid.ladder replaces these experts' ladders while live: one take-profit, no cuts). One-month test, live-style: train 109 trades 59% win PF 0.78, validate 64 trades 72% win PF 0.88 (still below break-even; win rate is bought with a near target). Set live to false to switch it off.",
+   "live": true,
+   "env": true,
+   "look_left": true,
+   "stop_r": 1.5,
+   "target_r": 0.5,
+   "experts": [
+    "bollinger_bounce",
+    "brooks_pullback",
+    "connors_rsi2",
+    "dual_regime",
+    "opening_range_breakout",
+    "raschke_grail",
+    "vwap_dev",
+    "williams_r"
+   ],
+   "ladder": {
+    "cut_fracs": [],
+    "cut_depth_r": [],
+    "tp_fracs": [
+     1.0
+    ],
+    "tp_depth_atr": [
+     0.0
+    ],
+    "lock": []
+   }
   }
  },
  "swing": {
