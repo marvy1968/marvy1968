@@ -1,3 +1,43 @@
 $ alpaca run-all --phase validate --month1 --families velez4
-started 2026-10-21 00:23:20 EDT
-RUNNING...
+started 2026-10-21 00:23:20 EDT, took 194s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## velez4: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 1a. velez_bt, default exit: 15t win 47% PF 1.18 avgR +0.09 daily +0.003% CAGR +1.6% maxDD -0.1%
+- train | 1b. velez_bt, day style (2R, 3h, wide stop): 14t win 21% PF 0.38 avgR -0.28 daily -0.088% CAGR -14.8% maxDD -0.6%
+- train | 2a. velez_clear, default exit: 4t win 25% PF 0.03 avgR -0.56 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 2b. velez_clear, day style (2R, 3h, wide stop): 4t win 25% PF 0.25 avgR -0.24 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 3a. velez_bull180, default exit: 14t win 21% PF 0.66 avgR -0.28 daily -0.016% CAGR -6.0% maxDD -0.2%
+- train | 3b. velez_bull180, day style (2R, 3h, wide stop): 10t win 40% PF 0.65 avgR -0.29 daily -0.019% CAGR -7.1% maxDD -0.5%
+- train | 4a. velez_2020, default exit: 1t win 0% PF 0.00 avgR -1.09 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 4b. velez_2020, day style (2R, 3h, wide stop): 1t win 100% PF inf avgR +0.58 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 5a. velez_mortgage, default exit: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 5b. velez_mortgage, day style (2R, 3h, wide stop): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 6a. velez_flat20, default exit: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 6b. velez_flat20, day style (2R, 3h, wide stop): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | 7a. velez_flat200, default exit: 9t win 22% PF 0.14 avgR -0.59 daily -0.039% CAGR -9.7% maxDD -0.2%
+- train | 7b. velez_flat200, day style (2R, 3h, wide stop): 8t win 25% PF 0.16 avgR -0.50 daily -0.047% CAGR -11.9% maxDD -0.3%
+- train | 8. all seven new, day style: 29t win 31% PF 0.42 avgR -0.38 daily -0.104% CAGR -22.6% maxDD -1.3%
+- validate | 1a. velez_bt, default exit: 47t win 23% PF 0.24 avgR -0.36 daily -0.087% CAGR -19.0% maxDD -0.9%
+- validate | 1b. velez_bt, day style (2R, 3h, wide stop): 41t win 32% PF 0.52 avgR -0.25 daily -0.089% CAGR -20.9% maxDD -0.9%
+- validate | 2a. velez_clear, default exit: 10t win 40% PF 1.19 avgR -0.04 daily -0.000% CAGR +2.0% maxDD -0.1%
+- validate | 2b. velez_clear, day style (2R, 3h, wide stop): 9t win 44% PF 1.20 avgR -0.06 daily +0.054% CAGR +3.6% maxDD -0.1%
+- validate | 3a. velez_bull180, default exit: 13t win 31% PF 0.45 avgR -0.21 daily -0.040% CAGR -9.4% maxDD -0.3%
+- validate | 3b. velez_bull180, day style (2R, 3h, wide stop): 12t win 33% PF 0.46 avgR -0.13 daily -0.051% CAGR -12.7% maxDD -0.4%
+- validate | 4a. velez_2020, default exit: 10t win 20% PF 0.21 avgR -0.44 daily -0.085% CAGR -17.1% maxDD -0.4%
+- validate | 4b. velez_2020, day style (2R, 3h, wide stop): 10t win 30% PF 0.48 avgR -0.17 daily -0.093% CAGR -15.9% maxDD -0.5%
+- validate | 5a. velez_mortgage, default exit: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 5b. velez_mortgage, day style (2R, 3h, wide stop): 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 6a. velez_flat20, default exit: 1t win 0% PF 0.00 avgR -0.24 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 6b. velez_flat20, day style (2R, 3h, wide stop): 1t win 0% PF 0.00 avgR -1.13 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 7a. velez_flat200, default exit: 1t win 100% PF inf avgR +1.38 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 7b. velez_flat200, day style (2R, 3h, wide stop): 1t win 0% PF 0.00 avgR -1.12 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | 8. all seven new, day style: 61t win 34% PF 0.63 avgR -0.16 daily -0.120% CAGR -24.4% maxDD -1.2%
+ALL DONE
