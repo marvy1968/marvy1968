@@ -450,6 +450,7 @@ class ScalperSignals(BoxSignals):
 
 VELEZ_TAGS = ("velez_halt", "velez_vbs", "velez_rbi")
 VELEZ_RESEARCH = ("velez_gift", "velez_nrb", "velez_orb", "velez_trap", "velez_ldb")      # owner 2026-10-20 second list (research only, not live)
+VELEZ_RESEARCH2 = ("velez_bt", "velez_clear", "velez_bull180", "velez_2020", "velez_mortgage", "velez_flat20", "velez_flat200")   # owner 2026-10-21 "all those rules"
 VELEZ_TOD = ("09:35", "10:00", "10:30", "11:15", "12:00", "13:30", "14:30", "15:00")      # his historical reversal-time watchlist (ET)
 
 
@@ -495,6 +496,8 @@ class VelezSignals(BoxSignals):
         masks = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
         if any(x in self.setups for x in VELEZ_RESEARCH):
             masks.update(self._research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+        if any(x in self.setups for x in VELEZ_RESEARCH2):
+            masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
         if self.tod:
             mins = np.array([int(x[:2]) * 60 + int(x[3:]) for x in t])
             near = np.zeros(n, bool)
@@ -517,6 +520,37 @@ class VelezSignals(BoxSignals):
                                   target_px=float(c[i] + self.tp_r * sd)))
         return sorted(out, key=lambda s: s.i)
 
+
+    @staticmethod
+    def _research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh) -> dict:
+        """Velez's remaining setups that fit 5-minute bars (owner 2026-10-21): bottoming tail, clearing elephant, Bull 180 on the SIMPLE averages,
+        the 20/20 bar and the Mortgage play, the flat-20 range scalp and the flat-200 reversal. Long side only."""
+        n = len(day)
+        rng = np.maximum(h - l, 1e-9)
+        win = np.asarray((t >= "09:45") & (t <= "15:15"))
+        with np.errstate(invalid="ignore"):
+            # Bottoming tail: a long lower wick (at least 60% of the range) closing in the top third, at or under the 20 SMA's reach, in an uptrend
+            bt = win & (ma > m200) & ((np.minimum(o, c) - l) >= 0.6 * rng) & ((h - c) <= 0.34 * rng) & (rng >= 0.6 * a) & (l <= ma + 0.5 * a)
+            # Clearing elephant: an elephant bar that closes above the highs of the last 5 bars out of a narrow (compressed) range
+            hi5 = np.full(n, np.nan)
+            for i in range(5, n):
+                hi5[i] = h[i - 5:i].max()
+            spread = np.abs(ma - m200)
+            ele = (rng >= 1.5 * a) & ((c - o) >= 0.7 * rng) & ((h - c) <= 0.2 * rng) & up
+            clear = win & ele & (c > hi5) & (spread <= 3.0 * a)
+            # Bull 180 (simple averages): a bullish bar that fully reverses the prior bearish bar, in an uptrend (20 over the 200, 20 rising)
+            b180 = win & (ma > m200) & (ma > sh(ma, 3)) & (sh(c, 1) < sh(o, 1)) & up & (c > sh(o, 1)) & (o < sh(c, 1)) & (rng >= 0.8 * a)
+            # 20/20 bar: a big bearish bar (range >= 1.5 ATR, closing in its bottom 20%); the Mortgage play = the next bar opens ABOVE its high (shorts trapped)
+            bear2020 = (rng >= 1.5 * a) & ((o - c) >= 0.6 * rng) & ((c - l) <= 0.2 * rng)
+            m2020 = win & sh(bear2020.astype(float), 1).astype(bool) & (o > sh(h, 1)) & up
+            # the plain 20/20 reversal: the bar AFTER a bearish 20/20 closes up through its midpoint
+            r2020 = win & sh(bear2020.astype(float), 1).astype(bool) & up & (c > (sh(h, 1) + sh(l, 1)) / 2)
+            # Flat 20 range scalp: the 20 SMA is flat (under 0.1 ATR of change in 6 bars); buy a bar below it that closes back up near the range support
+            flat20 = win & (np.abs(ma - sh(ma, 6)) <= 0.1 * a) & (np.abs(ma - m200) <= 2.0 * a) & up & (c < ma) & (l <= np.minimum.accumulate(l) + 0.3 * a)
+            # Flat 200 reversal: price sharply down to a flat 200 SMA (within 0.3 ATR), rejection bar (closes up in its top half)
+            flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+        return {"velez_bt": bt, "velez_clear": clear, "velez_bull180": b180, "velez_2020": r2020, "velez_mortgage": m2020,
+                "velez_flat20": flat20, "velez_flat200": flat200}
 
     @staticmethod
     def _research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh) -> dict:

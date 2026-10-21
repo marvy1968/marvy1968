@@ -1079,6 +1079,37 @@ def velez3_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = 
     return out
 
 
+def velez4_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-21 ("all those rules"): Velez's remaining 5-minute setups (bottoming tail, clearing elephant, Bull 180 on simple averages,
+    20/20 + Mortgage, flat-20 range scalp, flat-200 reversal) each alone, and the best-looking exit style from velez3 (2R, 3 hours, no signal exit,
+    stop x1.5) beside the default. One-month test (--month1). Gap plays, TICK/TRIN breadth and the 2-minute chart are not in our data."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals, VELEZ_RESEARCH, VELEZ_RESEARCH2, VELEZ_TAGS
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    tags = VELEZ_TAGS + VELEZ_RESEARCH + VELEZ_RESEARCH2
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 2.0, "exhaust_r": 99.0, "target": "extreme"}
+    lad = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+    day_style = {"tp_r": 2.0, "hold": 36, "sig_exit": False, "stop_mult": 1.5}
+
+    def run(kw, a, b):
+        from .engine import ZONE_PROFILES
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, **{t: prof for t in tags}}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {t: lad for t in tags}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, **kw)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {}
+    for i, tag in enumerate(VELEZ_RESEARCH2, 1):
+        variants[f"{i}a. {tag}, default exit"] = {"setups": (tag,)}
+        variants[f"{i}b. {tag}, day style (2R, 3h, wide stop)"] = {"setups": (tag,), **day_style}
+    variants["8. all seven new, day style"] = {"setups": VELEZ_RESEARCH2, **day_style}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"vz4-{per}-{name[:2]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
+    out.update({"family": "velez4", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},
