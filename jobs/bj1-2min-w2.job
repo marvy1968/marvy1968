@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --phase validate --weeks2 --bar-min 2 --families velez_all
