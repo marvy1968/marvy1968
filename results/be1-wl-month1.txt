@@ -1,3 +1,17 @@
 $ alpaca run-all --phase validate --month1 --families winrate_live
-started 2026-10-21 01:52:08 EDT
-RUNNING...
+started 2026-10-21 01:52:08 EDT, took 610s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## winrate_live: see the table
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | research: 107t win 57% PF 0.70 avgR -0.12 daily -0.068% CAGR -20.5% maxDD -1.4%
+- train | live: 109t win 59% PF 0.78 avgR -0.12 daily -0.023% CAGR -14.8% maxDD -0.8%
+- validate | research: 67t win 69% PF 0.93 avgR -0.03 daily +0.004% CAGR -3.0% maxDD -0.7%
+- validate | live: 64t win 72% PF 0.88 avgR -0.04 daily -0.002% CAGR -4.9% maxDD -0.6%
+ALL DONE
