@@ -1,3 +1,12 @@
 $ alpaca positions
-started 2026-10-21 08:14:03 EDT
-RUNNING...
+started 2026-10-21 08:14:03 EDT, took 2s, exit 0
+
+equity $52,327.98  cash $40,524.18  long mv $11,803.80  short mv $0.00
+3 open positions:
+  AMZN       long  qty           27  value $  7,101.00  unrealized $   -30.90
+  XOM        long  qty           14  value $  2,490.80  unrealized $   -30.88
+  EOG        long  qty           14  value $  2,212.00  unrealized $   -19.70
+3 open orders:
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  AMZN       sell 27 limit new  id sw-o-AMZN-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
