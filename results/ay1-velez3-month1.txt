@@ -1,3 +1,29 @@
 $ alpaca run-all --phase validate --month1 --families velez3
-started 2026-10-20 20:53:07 EDT
-RUNNING...
+started 2026-10-20 20:53:07 EDT, took 131s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## velez3: see the table (live-paper rule decides)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | 1. live: 1.5R, 90 min, 20 SMA exit: 23t win 26% PF 0.55 avgR -0.34 daily -0.050% CAGR -10.7% maxDD -0.4%
+- train | 2. day hold: 2R, 6 hours, 20 SMA exit: 21t win 24% PF 0.49 avgR -0.34 daily -0.055% CAGR -11.3% maxDD -0.4%
+- train | 3. day hold: 2R, 6 hours, no signal exit, stop x1.5: 18t win 28% PF 0.57 avgR -0.14 daily -0.061% CAGR -12.3% maxDD -0.5%
+- train | 4. day hold: 3R, 6 hours, no signal exit, stop x1.5: 16t win 31% PF 0.61 avgR +0.01 daily -0.052% CAGR -9.4% maxDD -0.5%
+- train | 5. 2R, 3 hours, no signal exit, stop x1.5: 18t win 33% PF 0.64 avgR -0.12 daily -0.051% CAGR -10.3% maxDD -0.4%
+- train | 6. 2R, 6 hours, no signal exit, normal stop: 21t win 19% PF 0.41 avgR -0.48 daily -0.080% CAGR -16.1% maxDD -0.6%
+- train | 7. NRB only, 2R, 6 hours, no signal exit: 5t win 40% PF 2.07 avgR +0.03 daily -0.004% CAGR +6.7% maxDD -0.1%
+- train | 8. all eight, 2R, 6 hours, no signal exit, stop x1.5: 30t win 30% PF 0.60 avgR -0.20 daily -0.117% CAGR -19.3% maxDD -1.4%
+- validate | 1. live: 1.5R, 90 min, 20 SMA exit: 53t win 26% PF 0.44 avgR -0.36 daily -0.124% CAGR -23.7% maxDD -1.1%
+- validate | 2. day hold: 2R, 6 hours, 20 SMA exit: 53t win 21% PF 0.35 avgR -0.44 daily -0.148% CAGR -28.8% maxDD -1.3%
+- validate | 3. day hold: 2R, 6 hours, no signal exit, stop x1.5: 46t win 35% PF 0.67 avgR -0.15 daily -0.074% CAGR -19.5% maxDD -0.8%
+- validate | 4. day hold: 3R, 6 hours, no signal exit, stop x1.5: 43t win 28% PF 0.53 avgR -0.30 daily -0.115% CAGR -26.7% maxDD -1.1%
+- validate | 5. 2R, 3 hours, no signal exit, stop x1.5: 47t win 36% PF 0.72 avgR -0.11 daily -0.065% CAGR -15.6% maxDD -0.7%
+- validate | 6. 2R, 6 hours, no signal exit, normal stop: 53t win 17% PF 0.32 avgR -0.60 daily -0.177% CAGR -35.6% maxDD -1.6%
+- validate | 7. NRB only, 2R, 6 hours, no signal exit: 13t win 31% PF 0.60 avgR -0.10 daily -0.030% CAGR -7.2% maxDD -0.4%
+- validate | 8. all eight, 2R, 6 hours, no signal exit, stop x1.5: 70t win 30% PF 0.47 avgR -0.27 daily -0.237% CAGR -47.6% maxDD -2.1%
+ALL DONE
