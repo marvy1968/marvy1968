@@ -1047,6 +1047,38 @@ def velez2_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = 
     return out
 
 
+def velez3_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-20: the Velez setups held like DAY trades (the live data shows scalps <= 30 min lose, longer day trades win): a wider stop,
+    a 2-3R target, hours instead of 90 minutes, with and without the "20 SMA broke" exit. One-month test (--month1)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals, VELEZ_RESEARCH, VELEZ_TAGS
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    tags = VELEZ_TAGS + VELEZ_RESEARCH
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 2.0, "exhaust_r": 99.0, "target": "extreme"}
+    lad = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+
+    def run(kw, a, b):
+        from .engine import ZONE_PROFILES
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, **{t: prof for t in tags}}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {t: lad for t in tags}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, **kw)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"1. live: 1.5R, 90 min, 20 SMA exit": {},
+                "2. day hold: 2R, 6 hours, 20 SMA exit": {"tp_r": 2.0, "hold": 72},
+                "3. day hold: 2R, 6 hours, no signal exit, stop x1.5": {"tp_r": 2.0, "hold": 72, "sig_exit": False, "stop_mult": 1.5},
+                "4. day hold: 3R, 6 hours, no signal exit, stop x1.5": {"tp_r": 3.0, "hold": 72, "sig_exit": False, "stop_mult": 1.5},
+                "5. 2R, 3 hours, no signal exit, stop x1.5": {"tp_r": 2.0, "hold": 36, "sig_exit": False, "stop_mult": 1.5},
+                "6. 2R, 6 hours, no signal exit, normal stop": {"tp_r": 2.0, "hold": 72, "sig_exit": False},
+                "7. NRB only, 2R, 6 hours, no signal exit": {"setups": ("velez_nrb",), "tp_r": 2.0, "hold": 72, "sig_exit": False},
+                "8. all eight, 2R, 6 hours, no signal exit, stop x1.5": {"setups": tags, "tp_r": 2.0, "hold": 72, "sig_exit": False, "stop_mult": 1.5}}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"vz3-{per}-{name[:1]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
+    out.update({"family": "velez3", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},

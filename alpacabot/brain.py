@@ -467,10 +467,12 @@ class VelezSignals(BoxSignals):
     NEED = ("f_atr", "f_sma20", "f_sma200", "x_velez")
 
     def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3,
-                 look_left: bool = False, tod: tuple = ()):
+                 look_left: bool = False, tod: tuple = (), stop_mult: float = 1.0, sig_exit: bool = True):
         super().__init__(brain)
         self.setups, self.tp_r, self.hold, self.buffer, self.halt_atr = tuple(setups), tp_r, hold, buffer_atr, halt_atr
         self.look_left = look_left      # research: reject a setup when a prior 20-bar high sits between the entry and the target (Velez's "look left")
+        self.stop_mult = stop_mult      # research: widen the one-bar stop (day-trade style holds)
+        self.sig_exit = sig_exit        # research: False = no "20 SMA broke" exit, only the stop, the target and the time stop
         self.tod = tuple(tod)           # research: only setups within 10 minutes after one of these times (his reversal-time watchlist)
 
     def box_signals(self, day) -> list:
@@ -508,10 +510,10 @@ class VelezSignals(BoxSignals):
                     continue
                 taken.add(int(i))
                 lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
-                sd = float(np.clip(c[i] - lo + self.buffer * a[i], 0.5 * a[i], 2.0 * a[i]))
+                sd = float(np.clip((c[i] - lo + self.buffer * a[i]) * self.stop_mult, 0.5 * a[i], 2.0 * self.stop_mult * a[i]))
                 if self.look_left and i >= 20 and c[i] < h[i - 20:i].max() < c[i] + self.tp_r * sd:
                     continue                                   # a prior high blocks the way to the target
-                out.append(Signal(i=int(i), side=1, stop_dist=sd, max_bars=int(self.hold), tag=tag, atr=float(a[i]), exit_col="x_velez",
+                out.append(Signal(i=int(i), side=1, stop_dist=sd, max_bars=int(self.hold), tag=tag, atr=float(a[i]), exit_col="x_velez" if self.sig_exit else "",
                                   target_px=float(c[i] + self.tp_r * sd)))
         return sorted(out, key=lambda s: s.i)
 
