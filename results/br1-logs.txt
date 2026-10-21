@@ -1,3 +1,18 @@
 $ logs marv-alpaca-paper 15
-started 2026-10-21 13:56:48 EDT
-RUNNING...
+started 2026-10-21 13:56:48 EDT, took 0s, exit 0
+
+Oct 21 13:11:52 instance-stockbot python[692204]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 21 13:15:29 instance-stockbot python[692204]: INFO ordered LONG UNH x1 stop 415.52 target None
+Oct 21 13:16:54 instance-stockbot python[692204]: INFO virtual stop exit long UNH at 415.56 (level crossed)
+Oct 21 13:17:09 instance-stockbot python[692204]: INFO virtual stop exit short NFLX at 65.64 (level crossed)
+Oct 21 13:20:29 instance-stockbot python[692204]: INFO ordered SHORT GE x1 stop 300.24 target None
+Oct 21 13:35:25 instance-stockbot python[692204]: INFO ordered LONG V x1 stop 408.34 target None
+Oct 21 13:55:11 instance-stockbot python[692204]: INFO ordered LONG MSFT x1 stop 532.25 target None
+Oct 21 13:55:26 instance-stockbot python[692204]: INFO ordered LONG UNH x1 stop 415.35 target None
+Oct 21 13:56:45 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 21 13:56:45 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 21 13:56:45 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 21 13:56:45 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 4min 11.380s CPU time.
+Oct 21 13:56:45 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 21 13:56:47 instance-stockbot python[695867]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 21 13:56:47 instance-stockbot python[695867]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
