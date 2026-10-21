@@ -1,3 +1,29 @@
 $ alpaca positions --fx
-started 2026-10-21 13:01:13 EDT
-RUNNING...
+started 2026-10-21 13:01:13 EDT, took 1s, exit 0
+
+MARV FX PRACTICE RUNNER 2026-10-21 17:00 UTC  (OANDA practice; forex only)
+book equity $57,192.08 (start $59,021.37)  realized $-1,829.29  today $+355.57 (2 fills)
+market OPEN  kill switch off
+last completed bar scanned: lien_h1 7/7 pairs @ 2026-10-21T16:00, f0_h4 7/7 pairs @ 2026-10-21T09:00, box_h1 7/7 pairs @ 2026-10-21T15:00, hybrid_h1 7/7 pairs @ 2026-10-21T15:00, confirm_h1 7/7 pairs @ 2026-10-21T15:00, boxmr_h1 7/7 pairs @ 2026-10-21T15:00, boxcons_h1 7/7 pairs @ 2026-10-21T15:00, boxf0_h4 7/7 pairs @ 2026-10-21T09:00
+open groups 0, OANDA trades 0:
+
+last fills:
+{"date": "2026-10-14", "closed": "2026-10-15T14:20:34+00:00", "group": "box_h1-GBP_USD-2026-10-15T1100", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492019", "units": 157342, "entry": 1.32455, "exit": 1.32622, "pl": -262.76, "reason": "broker_sl", "partial": false, "opened": "2026-10-15T11:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T02:55:03+00:00", "group": "box_h1-GBP_USD-2026-10-15T1400", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492076", "units": 180477, "entry": 1.3249, "exit": 1.32818, "pl": -597.47, "reason": "broker_sl", "partial": false, "opened": "2026-10-15T14:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T03:55:10+00:00", "group": "box_h1-USD_CHF-2026-10-15T2200", "strategy": "box_h1", "instrument": "USD_CHF", "side": "long", "trade_id": "492149", "units": 281200, "entry": 0.82757, "exit": 0.82651, "pl": -364.21, "reason": "closed_outside_runner", "partial": false, "opened": "2026-10-15T22:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T07:01:06+00:00", "group": "box_h1-USD_CHF-2026-10-16T0400", "strategy": "box_h1", "instrument": "USD_CHF", "side": "long", "trade_id": "492221", "units": 463484, "entry": 0.82691, "exit": 0.82588, "pl": -583.77, "reason": "broker_sl", "partial": false, "opened": "2026-10-16T04:00:00+00:00", "tier": 0}
+{"date": "2026-10-15", "closed": "2026-10-16T08:21:03+00:00", "group": "box_h1-GBP_USD-2026-10-16T0700", "strategy": "box_h1", "instrument": "GBP_USD", "side": "short", "trade_id": "492247", "units": 429850, "entry": 1.331, "exit": 1.33195, "pl": -408.36, "reason": "broker_sl", "partial": false, "opened": "2026-10-16T07:00:00+00:00", "tier": 0}
+{"date": "2026-10-19", "closed": "2026-10-19T22:05:26+00:00", "group": "hybrid_h1-USD_JPY-2026-10-19T2100", "strategy": "hybrid_h1", "instrument": "USD_JPY", "side": "short", "trade_id": "492619", "units": 415015, "entry": 158.465, "exit": 158.544, "pl": -208.88, "reason": "loss_cut", "partial": false, "opened": "2026-10-19T21:00:00+00:00", "tier": 0}
+{"date": "2026-10-19", "closed": "2026-10-20T03:21:27+00:00", "group": "hybrid_h1-USD_JPY-2026-10-20T0200", "strategy": "hybrid_h1", "instrument": "USD_JPY", "side": "short", "trade_id": "492693", "units": 565959, "entry": 158.436, "exit": 158.368, "pl": 240.59, "reason": "take_profit_r", "partial": false, "opened": "2026-10-20T02:00:00+00:00", "tier": 0}
+{"date": "2026-10-20", "closed": "2026-10-21T11:00:52+00:00", "group": "boxmr_h1-USD_JPY-2026-10-21T0000", "strategy": "boxmr_h1", "instrument": "USD_JPY", "side": "short", "trade_id": "492909", "units": 140140, "entry": 158.337, "exit": 158.057, "pl": 245.79, "reason": "signal", "partial": false, "opened": "2026-10-21T00:00:00+00:00", "tier": 0}
+{"date": "2026-10-20", "closed": "2026-10-21T14:01:36+00:00", "group": "boxmr_h1-USD_JPY-2026-10-21T1100", "strategy": "boxmr_h1", "instrument": "USD_JPY", "side": "long", "trade_id": "492938", "units": 111615, "entry": 157.869, "exit": 158.026, "pl": 109.78, "reason": "signal", "partial": false, "opened": "2026-10-21T11:00:00+00:00", "tier": 0}
+
+OANDA ACCOUNT (all bots on it): NAV $56,878.76  balance $56,938.34  unrealized $-59.57  realized P&L (lifetime) $-72,798.57  open trades 8
+  AUD_USD 60688 @ 0.70307 unrealized -5.46 tag fxexp
+  CAD_JPY -11709 @ 112.534 unrealized +5.33 tag fxexp
+  EUR_AUD 6592 @ 1.60388 unrealized -29.25 tag fxexp
+  AUD_NZD 13691 @ 1.23248 unrealized +5.85 tag fxexp
+  AUD_JPY 8791 @ 110.876 unrealized +13.62 tag fxexp
+  EUR_CHF -8308 @ 0.92666 unrealized +5.24 tag fxexp
+  EUR_GBP -10820 @ 0.83978 unrealized +17.68 tag fxexp
+  GBP_USD -48399 @ 1.33823 unrealized -72.60 tag fxexp
