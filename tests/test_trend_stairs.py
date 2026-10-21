@@ -308,3 +308,28 @@ class VelezTests(unittest.TestCase):
         d.loc[d.index[i], ["open", "high", "low", "close"]] = [ma + 0.1, ma + 0.4, ma + 0.05, ma + 0.35]       # an up bar tagging it and closing above
         tags = {s.tag for s in VelezSignals(self.Stub()).box_signals(d) if s.i == i}
         self.assertTrue({"velez_halt", "velez_rbi"} & tags)
+
+
+class VelezResearchTests(unittest.TestCase):
+    def test_nrb_trap_orb_masks_fire_and_filters_run(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VELEZ_RESEARCH, VELEZ_TOD, VelezSignals
+        n = 60
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 + 0.05 * np.arange(n)
+        d = pd.DataFrame({"open": c - 0.02, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0, "f_atr": 0.3, "f_sma200": 95.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+        d["x_velez"] = d["close"] < d["f_sma20"]
+        i = 30
+        d.loc[d.index[i - 1], ["open", "high", "low", "close"]] = [c[i - 1], c[i - 1] + 0.03, c[i - 1] - 0.03, c[i - 1]]     # a narrow range bar
+        d.loc[d.index[i], ["open", "high", "low", "close"]] = [c[i - 1], c[i - 1] + 0.2, c[i - 1] - 0.02, c[i - 1] + 0.15]   # closes up through its high
+
+        class Stub:
+            def signals(self, day):
+                return []
+        sig = VelezSignals(Stub(), setups=("velez_nrb",)).box_signals(d)
+        self.assertTrue(any(s.i == i and s.tag == "velez_nrb" for s in sig))
+        # every research setup and both filters run without error on a plain frame
+        VelezSignals(Stub(), setups=VELEZ_RESEARCH, look_left=True).box_signals(d)
+        VelezSignals(Stub(), tod=VELEZ_TOD).box_signals(d)

@@ -449,6 +449,8 @@ class ScalperSignals(BoxSignals):
 
 
 VELEZ_TAGS = ("velez_halt", "velez_vbs", "velez_rbi")
+VELEZ_RESEARCH = ("velez_gift", "velez_nrb", "velez_orb", "velez_trap", "velez_ldb")      # owner 2026-10-20 second list (research only, not live)
+VELEZ_TOD = ("09:35", "10:00", "10:30", "11:15", "12:00", "13:30", "14:30", "15:00")      # his historical reversal-time watchlist (ET)
 
 
 class VelezSignals(BoxSignals):
@@ -464,9 +466,12 @@ class VelezSignals(BoxSignals):
 
     NEED = ("f_atr", "f_sma20", "f_sma200", "x_velez")
 
-    def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3):
+    def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3,
+                 look_left: bool = False, tod: tuple = ()):
         super().__init__(brain)
         self.setups, self.tp_r, self.hold, self.buffer, self.halt_atr = tuple(setups), tp_r, hold, buffer_atr, halt_atr
+        self.look_left = look_left      # research: reject a setup when a prior 20-bar high sits between the entry and the target (Velez's "look left")
+        self.tod = tuple(tod)           # research: only setups within 10 minutes after one of these times (his reversal-time watchlist)
 
     def box_signals(self, day) -> list:
         if len(day) < 8 or any(k not in day for k in self.NEED):
@@ -486,6 +491,14 @@ class VelezSignals(BoxSignals):
             vbs = env & up & run & (c > sh(h, 1))
             rbi = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(h, 1))
         masks = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
+        if any(x in self.setups for x in VELEZ_RESEARCH):
+            masks.update(self._research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+        if self.tod:
+            mins = np.array([int(x[:2]) * 60 + int(x[3:]) for x in t])
+            near = np.zeros(n, bool)
+            for x in self.tod:
+                near |= (mins >= int(x[:2]) * 60 + int(x[3:])) & (mins < int(x[:2]) * 60 + int(x[3:]) + 10)
+            masks = {k: v & near for k, v in masks.items()}
         out, taken = [], set()
         for tag in self.setups:
             m = masks[tag]
@@ -496,9 +509,49 @@ class VelezSignals(BoxSignals):
                 taken.add(int(i))
                 lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
                 sd = float(np.clip(c[i] - lo + self.buffer * a[i], 0.5 * a[i], 2.0 * a[i]))
+                if self.look_left and i >= 20 and c[i] < h[i - 20:i].max() < c[i] + self.tp_r * sd:
+                    continue                                   # a prior high blocks the way to the target
                 out.append(Signal(i=int(i), side=1, stop_dist=sd, max_bars=int(self.hold), tag=tag, atr=float(a[i]), exit_col="x_velez",
                                   target_px=float(c[i] + self.tp_r * sd)))
         return sorted(out, key=lambda s: s.i)
+
+
+    @staticmethod
+    def _research_masks(day, t, o, h, l, c, a, ma, m200, env, up, sh) -> dict:
+        n = len(day)
+        rng = h - l
+        with np.errstate(invalid="ignore"):
+            # GIFT: an elephant bar within the last 6 bars, then an up bar that pulled back into its lower half without breaking its low
+            ele = (rng >= 1.5 * a) & ((c - o) >= 0.7 * rng) & ((h - c) <= 0.2 * rng) & up
+            gift = np.zeros(n, bool)
+            for i in range(2, n):
+                for j in range(max(0, i - 6), i - 1):
+                    if ele[j] and env[i] and up[i] and l[i] <= l[j] + 0.5 * rng[j] and l[i] > l[j] and c[i] >= l[j] + 0.5 * rng[j]:
+                        gift[i] = True
+                        break
+            # NRB: the prior bar is the narrowest of the last 7 and under half an ATR; this bar closes up through its high
+            r7 = np.full(n, np.nan)
+            for i in range(7, n):
+                r7[i] = rng[i - 7:i].min()
+            nrb = env & up & (sh(rng, 1) <= 0.5 * a) & (sh(rng, 1) <= r7) & (c > sh(h, 1))
+            # ORB: the first close above the high of the first 5-minute bar (09:30), between 09:40 and 10:30
+            orb = np.zeros(n, bool)
+            if t[0] == "09:30":
+                inwin = np.asarray((t >= "09:40") & (t <= "10:30"))
+                brk = (c > h[0]) & (sh(c, 1) <= h[0]) & up & (a > 0)
+                orb = inwin & brk
+            # Bear trap: a new 12-bar low is taken out and the bar closes back above it, up (an uptrend: the 20 over the 200)
+            low12 = np.full(n, np.nan)
+            for i in range(12, n):
+                low12[i] = l[i - 12:i].min()
+            trap = (ma > m200) & up & (l < low12) & (c > low12) & np.asarray((t >= "09:45") & (t <= "15:15"))
+            # Late-day breakout: after 14:30, above the day's open, near the day high, through the prior 12-bar high
+            hi12 = np.full(n, np.nan)
+            dayhi = np.maximum.accumulate(h)
+            for i in range(12, n):
+                hi12[i] = h[i - 12:i].max()
+            ldb = np.asarray(t >= "14:30") & (c > o[0]) & (c >= sh(dayhi, 1) - 0.3 * a) & (c > hi12) & up & (a > 0)
+        return {"velez_gift": gift, "velez_nrb": nrb, "velez_orb": orb, "velez_trap": trap, "velez_ldb": ldb}
 
 
 class OnlyTags:

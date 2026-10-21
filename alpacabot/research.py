@@ -1017,6 +1017,36 @@ def velez_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = P
     return out
 
 
+def velez2_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-20, Velez's second list (brain.VelezSignals research setups): GIFT, NRB, 9:35 opening-range break, bear trap, late-day
+    breakout, each alone and together; plus the "look left" obstruction filter and his reversal-time windows on the first three setups. Live filters
+    (direction first, stage, multi-timeframe), longs, 0.5% risk. Meant for the one-month test (--month1): small samples, read with care."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals, VELEZ_RESEARCH, VELEZ_TAGS, VELEZ_TOD
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    tags = VELEZ_TAGS + VELEZ_RESEARCH
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"}
+    lad = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+
+    def run(kw, a, b):
+        from .engine import ZONE_PROFILES
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red")
+        br.zones = {"profiles": {**ZONE_PROFILES, **{t: prof for t in tags}}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {t: lad for t in tags}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, **kw)))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    variants = {"01. original three (live)": {}, "02. GIFT (elephant, then the retracement)": {"setups": ("velez_gift",)},
+                "03. NRB (narrow range bar break)": {"setups": ("velez_nrb",)}, "04. 9:35 opening-range break": {"setups": ("velez_orb",)},
+                "05. bear trap": {"setups": ("velez_trap",)}, "06. late-day breakout": {"setups": ("velez_ldb",)},
+                "07. all five new setups": {"setups": VELEZ_RESEARCH}, "08. original three + look-left filter": {"look_left": True},
+                "09. original three, reversal-time windows only": {"tod": VELEZ_TOD}, "10. all eight + look-left": {"setups": tags, "look_left": True}}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {name: cp.get(f"vz2-{per}-{name[:2]}", lambda kw=kw, a=a, b=b: run(kw, a, b)) for name, kw in variants.items()}
+    out.update({"family": "velez2", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},
