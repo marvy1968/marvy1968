@@ -367,3 +367,23 @@ class VelezResearch2Tests(unittest.TestCase):
                 return []
         sig = VelezSignals(Stub(), setups=VELEZ_RESEARCH2).box_signals(d)
         self.assertTrue(any(s.i == i and s.tag == "velez_bt" for s in sig))
+
+
+class VelezHybridTests(unittest.TestCase):
+    def test_trend_filter_and_one_bar_stop(self):
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VelezHybrid
+        from alpacabot.strategies import Signal
+        n = 40
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 + 0.05 * np.arange(n)
+        d = pd.DataFrame({"open": c, "high": c + 0.1, "low": c - 0.2, "close": c, "f_atr": 0.3, "f_sma200": 95.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+
+        class Stub:
+            def signals(self, day):
+                return [Signal(i=30, side=1, stop_dist=1.0, tag="x"), Signal(i=31, side=-1, stop_dist=1.0, tag="S:x")]
+        out = VelezHybrid(Stub(), env=True, one_bar=True).signals(d)
+        self.assertEqual([s.side for s in out], [1])                 # the short is against the rising 20 over the 200
+        self.assertAlmostEqual(out[0].stop_dist, 0.2 + 0.1 * 0.3)    # under the signal bar's low + 0.1 ATR

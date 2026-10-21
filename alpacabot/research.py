@@ -1247,6 +1247,36 @@ def oversold_gate_study(days, train, validate, costs: Costs = Costs(), pf: Portf
     return out
 
 
+def velez_hybrid_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-21 ("hybrid all Alpaca experts with those rules"): Velez's context rules (brain.VelezHybrid) on top of every expert, with the
+    live filters and exits. Two expert sets: all 11 both ways, and the lists live since 2026-10-20 (alpacabot/brain_config.json). One-month test."""
+    import json as _json
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+    sets = {"all 11": (list(ALL_EXPERTS), list(ALL_EXPERTS)), "live lists": (live["experts"], live["short_experts"])}
+
+    def run(set_name, kw, a, b):
+        ex, sx = sets[set_name]
+        br = Brain(experts=list(ex), short_experts=list(sx), sector_filter=True, short_gate="red")
+        br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True, "ladder": {**_OWNER_LADDER, "by_expert": dict(EXPERT_LADDERS)}}
+        inner = VelezHybrid(br, **kw) if kw is not None else br
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(inner))), days, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    hy = {"a. as is (no Velez rules)": None, "b. + Velez trend (20 SMA rising over the 200)": {"env": True},
+          "c. + trend + look left": {"env": True, "look_left": True}, "d. + trend + look left + one-bar stop": {"env": True, "look_left": True, "one_bar": True},
+          "e. + trend + look left + no wide-state chase": {"env": True, "look_left": True, "no_chase": True}}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {f"{sn}: {name}": cp.get(f"vh-{per}-{sn[:3]}-{name[:1]}", lambda sn=sn, kw=kw, a=a, b=b: run(sn, kw, a, b))
+                               for sn in sets for name, kw in hy.items()}
+    out.update({"family": "velez_hybrid", "passes": False, "verdict": "see the table (live-paper rule decides)"})
+    return out
+
+
 def box_diag(days, a, b) -> dict:
     """Why does the range box strategy trade or not? Counts, over sessions a..b: sessions with a valid daily box, raw box / Fibonacci-box
     signals, and how many survive direction first, the Weinstein stage and the multi-timeframe check (the live filter order)."""

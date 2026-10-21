@@ -590,6 +590,53 @@ class VelezSignals(BoxSignals):
         return {"velez_gift": gift, "velez_nrb": nrb, "velez_orb": orb, "velez_trap": trap, "velez_ldb": ldb}
 
 
+class VelezHybrid:
+    """Owner 2026-10-21 ("hybrid all Alpaca experts with those rules"): Velez's context rules applied to EVERY expert's signal.
+      env        trade WITH the simple averages: longs only while the 20 SMA rises and sits over the 200; shorts only while it falls under it
+      look_left  skip a trade when a prior 20-bar high (longs) / low (shorts) sits between the entry and 1.5 x the stop distance (obstruction)
+      one_bar    replace the expert's stop with Velez's one-bar stop: beyond the signal bar's extreme + 0.1 ATR (kept 0.5-2 ATR)
+      no_chase   skip "wide state" entries: price more than 2 ATR away from the 20 SMA (overextended)."""
+
+    def __init__(self, brain, env: bool = True, look_left: bool = False, one_bar: bool = False, no_chase: bool = False):
+        self.brain, self.env, self.look_left, self.one_bar, self.no_chase = brain, env, look_left, one_bar, no_chase
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        sigs = self.brain.signals(day)
+        if not sigs or "f_sma20" not in day or "f_sma200" not in day:
+            return sigs
+        from dataclasses import replace as _rep
+        h, l, c = (day[k].to_numpy(float) for k in ("high", "low", "close"))
+        ma, m200 = day["f_sma20"].to_numpy(float), day["f_sma200"].to_numpy(float)
+        a = day["f_atr"].to_numpy(float) if "f_atr" in day else np.full(len(day), np.nan)
+        out = []
+        for s in sigs:
+            i, side = s.i, (-1 if s.side == -1 else 1)
+            if i < 3 or not (a[i] > 0):
+                out.append(s)
+                continue
+            if self.env:
+                rising = ma[i] > ma[i - 3]
+                ok = (ma[i] > m200[i] and rising) if side == 1 else (ma[i] < m200[i] and not rising)
+                if not ok:
+                    continue
+            if self.no_chase and abs(c[i] - ma[i]) > 2.0 * a[i]:
+                continue
+            sd = s.stop_dist
+            if self.one_bar:
+                ext = l[i] if side == 1 else h[i]
+                sd = float(np.clip(side * (c[i] - ext) + 0.1 * a[i], 0.5 * a[i], 2.0 * a[i]))
+            if self.look_left and i >= 20:
+                tgt = c[i] + side * 1.5 * sd
+                blk = h[i - 20:i].max() if side == 1 else l[i - 20:i].min()
+                if (side == 1 and c[i] < blk < tgt) or (side == -1 and tgt < blk < c[i]):
+                    continue
+            out.append(_rep(s, stop_dist=sd) if sd != s.stop_dist else s)
+        return out
+
+
 class OnlyTags:
     """Keeps only the signals whose tag is in `tags` (the scalper redesign trades nothing else)."""
 
