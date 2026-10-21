@@ -43,7 +43,12 @@ def run_all(a) -> int:
     start = date(2016, 1, 4)
     qtag = "_quick" if getattr(a, "quick", False) else ""
     mstart = start                                   # first day of 1-minute data (the memory-heavy part)
-    if a.phase == "validate" and getattr(a, "month1", False):   # --month1 (owner: "a quick one-month test"): the last month, two halves
+    if a.phase == "validate" and getattr(a, "weeks2", False):   # --weeks2 (owner 2026-10-21: "a 2-week test to make it faster"): two 1-week halves
+        from datetime import timedelta as _td
+        today = date.today()
+        qtag, start, mstart = "_w2", today - _td(days=400), today - _td(days=30)
+        train, test, end = (today - _td(days=15), today - _td(days=8)), (today - _td(days=7), today - _td(days=1)), today
+    elif a.phase == "validate" and getattr(a, "month1", False):   # --month1 (owner: "a quick one-month test"): the last month, two halves
         from datetime import timedelta as _td
         today = date.today()
         qtag, start, mstart = "_m1", today - _td(days=400), today - _td(days=45)
@@ -499,7 +504,8 @@ def run_all(a) -> int:
                         except Exception as exc:
                             print(f"skip {s_}: {exc}", flush=True)
                     d58 = {s_: load(s_, "1Day", end - _td(days=700), end, cache) for s_ in m58}
-                    days = add_gates(split_days(m58, minutes=5, feature_fn=features_both), {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
+                    days = add_gates(split_days(m58, minutes=int(getattr(a, "bar_min", 5)), feature_fn=features_both),
+                                     {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     del m58
                     days = attach(days, d58)
                     spy_d = d58.get("SPY") if "SPY" in d58 else load("SPY", "1Day", end - _td(days=700), end, cache)
@@ -524,7 +530,7 @@ def run_all(a) -> int:
                     lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
                     if fam == "velez_all":
                         from .research import velez_all_study
-                        res = velez_all_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vall.json")
+                        res = velez_all_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vall_b{int(getattr(a, 'bar_min', 5))}.json")
                     elif fam == "winrate_live":
                         from .research import winrate_live_check
                         res = winrate_live_check(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_wl.json")
@@ -769,6 +775,8 @@ def main(argv=None) -> int:
     ra.add_argument("--out", default="state/reports")
     ra.add_argument("--phase", choices=["validate", "final"], default="validate",
                     help="validate: train 2016-2020, test 2021-2022 (design iterations allowed). final: train 2016-2022, test 2023-today, run ONCE after freezing")
+    ra.add_argument("--weeks2", action="store_true", help="validate phase: the last two weeks only (two halves); fastest look, provisional")
+    ra.add_argument("--bar-min", type=int, default=5, help="intraday bar length in minutes for the 58-stock studies (owner 2026-10-21: 2-minute Velez test)")
     ra.add_argument("--month1", action="store_true", help="validate phase: the last month only (two halves); quickest look, provisional")
     ra.add_argument("--months3", action="store_true", help="validate phase: the last 3 months only (train = first half, validate = second half); fast, provisional")
     ra.add_argument("--year", action="store_true", help="validate phase: ONE year of data (train 2021-H2, validate 2022-H1); small memory, provisional")
