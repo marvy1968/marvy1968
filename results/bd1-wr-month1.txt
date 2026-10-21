@@ -1,3 +1,27 @@
 $ alpaca run-all --phase validate --month1 --families winrate_tune
-started 2026-10-21 01:18:38 EDT
-RUNNING...
+started 2026-10-21 01:18:38 EDT, took 1929s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 90 of 1798 stock-days, on the SHORT list 29
+## winrate_tune: see the table (win rate AND profit factor)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | live exits (ladder): 101t win 34% PF 0.57 avgR -0.23 daily -0.112% CAGR -29.3% maxDD -1.4%
+- train | stop 1.0R / target 0.5R: 108t win 52% PF 0.67 avgR -0.16 daily -0.082% CAGR -21.7% maxDD -1.3%
+- train | stop 1.0R / target 0.75R: 108t win 46% PF 0.73 avgR -0.18 daily -0.068% CAGR -20.3% maxDD -1.1%
+- train | stop 1.5R / target 0.75R: 106t win 51% PF 0.71 avgR -0.14 daily -0.075% CAGR -23.0% maxDD -1.3%
+- train | stop 1.0R / target 1.0R: 103t win 41% PF 0.65 avgR -0.21 daily -0.116% CAGR -27.9% maxDD -1.4%
+- train | stop 2.0R / target 1.0R: 97t win 48% PF 0.62 avgR -0.12 daily -0.141% CAGR -33.0% maxDD -1.6%
+- train | stop 1.5R / target 0.5R: 107t win 57% PF 0.70 avgR -0.12 daily -0.068% CAGR -20.5% maxDD -1.4%
+- validate | live exits (ladder): 63t win 33% PF 0.56 avgR -0.22 daily -0.062% CAGR -19.6% maxDD -0.7%
+- validate | stop 1.0R / target 0.5R: 70t win 60% PF 0.81 avgR -0.11 daily -0.020% CAGR -8.7% maxDD -0.7%
+- validate | stop 1.0R / target 0.75R: 67t win 49% PF 0.75 avgR -0.16 daily -0.041% CAGR -12.7% maxDD -0.8%
+- validate | stop 1.5R / target 0.75R: 64t win 59% PF 0.91 avgR -0.05 daily -0.007% CAGR -4.7% maxDD -0.7%
+- validate | stop 1.0R / target 1.0R: 65t win 40% PF 0.54 avgR -0.30 daily -0.073% CAGR -25.6% maxDD -1.0%
+- validate | stop 2.0R / target 1.0R: 61t win 54% PF 0.72 avgR -0.09 daily -0.013% CAGR -15.2% maxDD -0.8%
+- validate | stop 1.5R / target 0.5R: 67t win 69% PF 0.93 avgR -0.03 daily +0.004% CAGR -3.0% maxDD -0.7%
+ALL DONE
