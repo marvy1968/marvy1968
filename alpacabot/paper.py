@@ -882,6 +882,19 @@ class PaperRunner:
                 self.exec.risk_pct = float((zcfg.get("box_confirm") or {}).get("risk_pct", 0.005))
             if (sig.tag or "").removeprefix("S:") == "hybrid_box":      # the hybrid zones, also at reduced size
                 self.exec.risk_pct = float((zcfg.get("hybrid") or {}).get("risk_pct", 0.005))
+            # owner 2026-10-21: signal-strength sizing. The score (0-1) = how many of the 5 candle / volume / volatility checks agree with the
+            # trade on its signal bar (confirm.trend_votes). Always journaled so the live record shows whether stronger signals win more;
+            # with zones.json score_sizing.live the risk is min_risk + score x (max_risk - min_risk) (the notional cap still applies).
+            try:
+                from .confirm import trend_votes
+                _score = trend_votes(day, len(day) - 1, -1 if sig.side == -1 else 1)[0] / 5.0
+            except Exception:
+                _score = None
+            _ss = zcfg.get("score_sizing") or {}
+            if _ss.get("live") and _score is not None:
+                lo_, hi_ = float(_ss.get("min_risk", 0.001)), float(_ss.get("max_risk", 0.005))
+                self.exec.risk_pct = lo_ + _score * (hi_ - lo_)
+            self.journal("signal_score", symbol=sym, tag=sig.tag, score=_score, risk_pct=round(self.exec.risk_pct, 5))
             try:
                 verdict = self.exec.try_enter(sym, sig, ref, now_et)   # spread guard, window, breaker, duplicate-id guard
             except requests.HTTPError as exc:                          # a rejected order must not abort the rest of this bar's symbols

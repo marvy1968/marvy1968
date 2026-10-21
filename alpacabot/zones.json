@@ -763,7 +763,13 @@
    }
   },
   "max_pos_frac": 0.01,
-  "_note_max_pos_frac": "owner 2026-10-21: no intraday position larger than 1% of equity in market value (it was 25%; NFLX and GE shorts were ~$13k each)."
+  "_note_max_pos_frac": "owner 2026-10-21: no intraday position larger than 1% of equity in market value (it was 25%; NFLX and GE shorts were ~$13k each).",
+  "score_sizing": {
+   "_note": "owner 2026-10-21: risk by signal strength - score = share of the 5 candle/volume/volatility checks agreeing on the signal bar; risk = min_risk + score x (max_risk - min_risk). OFF until the journal (signal_score rows) shows stronger scores win more; the 1% notional cap (max_pos_frac) still applies.",
+   "live": false,
+   "min_risk": 0.001,
+   "max_risk": 0.005
+  }
  },
  "swing": {
   "live": true,
