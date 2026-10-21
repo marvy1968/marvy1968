@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --month1 --families velez2
+started 2026-10-20 20:23:28 EDT
+RUNNING...
