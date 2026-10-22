@@ -27,5 +27,20 @@
    "dual_regime",
    "opening_range_breakout"
   ]
- }
+ },
+ "symbols": [
+  "SOFI",
+  "RKLB",
+  "HIMS",
+  "RIVN",
+  "MARA"
+ ],
+ "sectors": {
+  "SOFI": "XLF",
+  "RKLB": "XLI",
+  "HIMS": "XLV",
+  "RIVN": "XLY",
+  "MARA": "XLK"
+ },
+ "_note_symbols": "owner 2026-10-22 ('try scalping 5 mid caps and small caps, not the big caps'): five liquid mid / small caps join the intraday universe with their sector ETF for the heat map; zones.json entry_symbols limits NEW intraday entries to them (the big caps are still scanned for the market gate and their open trades are managed). Swap names here."
 }

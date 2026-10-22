@@ -831,6 +831,9 @@ class PaperRunner:
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue
+            _es = self.zone_config().get("entry_symbols")
+            if _es and sym not in _es:                                    # owner 2026-10-22: scalp the mid / small caps only
+                continue
             _cd = self.zone_config().get("expert_cooldown_min")
             _lx = self.last_exit_by.get((sym, str(sig.tag)))
             if _cd and _lx is not None and now_et < _lx + timedelta(minutes=float(_cd)):   # owner 2026-10-22: the same expert waits
