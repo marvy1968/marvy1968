@@ -1,0 +1,3 @@
+$ show alpaca_paper/journal-20261016.jsonl
+started 2026-10-22 16:30:00 EDT
+RUNNING...
