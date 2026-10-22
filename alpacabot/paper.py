@@ -1432,12 +1432,16 @@ def send_telegram(text: str) -> bool:
     import os
     try:
         from marv.config import ROOT, load_dotenv
-        from marv.telegram import send_message
+        from marv.telegram import _post, esc, mirror_token
         load_dotenv(Path(os.environ.get("MARV_ENV", ROOT / ".env")))
         tok, chat = _telegram_settings()
+        m_tok = mirror_token()
+        m_chat = os.environ.get("MIRROR_CHAT_ID", "") or chat
+        if m_tok and m_chat:
+            tok, chat = m_tok, m_chat
         if not tok or not chat:
             return False
-        send_message(tok, chat, "ALPACA PAPER\n" + text[:3800])
+        _post(tok, chat, esc("ALPACA PAPER\n" + text[:3800]))   # raises on any Telegram refusal
         return True
     except Exception as exc:                                      # never fails the end-of-day snapshot
         log.warning("telegram send failed: %s", str(exc)[:200])
