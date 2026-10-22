@@ -1,2 +1,0 @@
-# timeout 7200
-alpaca run-all --phase validate --families velez_repair --weeks2
