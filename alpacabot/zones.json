@@ -610,7 +610,7 @@
    "vote": 0.6,
    "vol_mult": 1.2
   },
-  "shadow_tags": ["velez_vbs", "velez_bt", "velez_trap", "velez_2020", "S:velez_bt"],
+  "shadow_tags": ["velez_halt", "S:velez_halt", "velez_vbs", "velez_bt", "velez_trap", "velez_2020", "S:velez_bt"],
   "_shadow_note": "owner 2026-10-22 (rescue plan): Velez setups with a losing live record stop placing orders but keep logging every signal that passes all gates (journal result 'shadow ...'). Remove a tag to trade it again.",
   "risk_by_expert": {
    "_note": "2026-10-16 expert breakdown (last 3 months, each expert alone through the live setup, two halves): these lost in BOTH halves and make ~90% of the trades - halved to 0.5% risk under the owner's live-paper rule (live results decide; restore 0.01 or switch off later). velez_180 PF 0.42/0.38 (212 trades), williams_r 0.46/0.60 (409), dual_regime 0.43/0.38 (241), connors_rsi2 0.30/0.81 (187), vwap_dev 0.77/0.54 (266), opening_range_breakout 0.10/0.11 (20), donchian_turtle 0.55/0.11 (21).",
@@ -711,12 +711,13 @@
    "tp_r": 1.5,
    "hold": 18,
    "repair": {
+    "_note_bt": "velez_repair 3-month backtest 2026-10-22 (train / validate PF): velez_rbi baseline 0.61 / 0.76, next-bar confirmation 0.84 / 0.97 (the only change that helped on both), 1.5 ATR stop 0.67 / 0.71, first per day 0.63 / 0.74. velez_halt: baseline 0.55 / 0.27, nothing above 0.50 on validate (confirmation 0.92 / 0.28) -> shadow. So: confirmation only, the one-bar stop kept; tune on the fly from the live record.",
     "_note": "owner 2026-10-22 ('run the new scripts now, lower the risk'): velez_rbi and velez_halt back on paper with the rescue-plan rules before the velez_repair backtest is in: stop 1.5 x ATR(14) instead of the one-bar stop, next-bar confirmation (the next bar closes up and above the signal bar's high), the first setup of the day per stock only (no repeat entries). Both sides. Risk 0.05% each (risk_by_expert).",
     "setups": ["velez_rbi", "velez_halt"],
     "sides": [1, -1],
-    "stop_atr": 1.5,
+    "stop_atr": 0.0,
     "confirm": true,
-    "first_only": true,
+    "first_only": false,
     "tp_r": 1.5,
     "hold": 18
    },
