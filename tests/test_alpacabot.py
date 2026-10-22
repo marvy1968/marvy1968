@@ -765,6 +765,18 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertEqual(b.closed, [("AAPL", 10)])
             self.assertEqual(paper._jl(Path(d) / "trades.jsonl")[0]["reason"], "neg_exit")
 
+    def test_velez_forward_scorecard(self):
+        from alpacabot import paper
+        rows = [{"symbol": "DIS", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": -10.0, "r": -1.0, "reason": "stop", "peak_r": 0.0, "mae_r": 1.0},
+                {"symbol": "DIS", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": 15.0, "r": 1.5, "reason": "zone", "peak_r": 1.6, "mae_r": 0.2},
+                {"symbol": "MA", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": -3.0, "r": -0.3, "reason": "neg_exit", "peak_r": 0.1, "mae_r": 0.4},
+                {"symbol": "MA", "date": "2026-10-22", "expert": "vwap_dev", "pnl": 5.0, "r": 0.5, "reason": "zone"}]
+        out = "\n".join(paper._velez_forward_lines(rows))
+        self.assertIn("velez_rbi [v2]: 3 trades, win 33%, stopped 1, never green 1, 10-min exits 1", out)
+        self.assertIn("net +0.20R", out)
+        self.assertIn("repeat entries 1", out)
+        self.assertNotIn("vwap_dev", out)
+
 
 class EngagedConfigTests(unittest.TestCase):
     def test_engaged_config_is_applied_and_unknown_keys_ignored(self):

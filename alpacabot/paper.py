@@ -346,6 +346,8 @@ class PaperRunner:
                                 "entry": entry, "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk else 0.0,
                                 "reason": reason, "opened": pos["opened"], "closed": self.clock().isoformat(), "expert": pos.get("expert"),
                                 "peak_r": round(peak / risk, 3) if risk else 0.0,
+                                "mae_r": round(max(side * (entry - (pos.get("worst_px") if pos.get("worst_px") is not None else px)) * qty, 0.0) / risk, 3)
+                                if risk else 0.0, **({"ver": pos["ver"]} if pos.get("ver") else {}),
                                 **({"zone_chase": bool(z.get("chase")), "zone_hit": z_hit, "zone_profile": z.get("profile"),
                                     "zone_pnl": round(side * (z["target"] - entry) * qty, 2) if z_hit else None} if z else {}),
                                 **({"bias": z["bias"], "against": bool(z["against"]), "map_target": z.get("map_target"), "stage": z.get("stage")} if "bias" in z else {})}) + "\n")
@@ -369,6 +371,7 @@ class PaperRunner:
             self.last_px[sym] = px
             side = pos.get("side", 1)                         # best exit-side price seen while open (peak open profit)
             pos["best_px"] = px if pos.get("best_px") is None else (max(pos["best_px"], px) if side == 1 else min(pos["best_px"], px))
+            pos["worst_px"] = px if pos.get("worst_px") is None else (min(pos["worst_px"], px) if side == 1 else max(pos["worst_px"], px))
             lad = pos.get("ladder")
             if lad:
                 self.ladder_add(sym, pos, bid, ask, now_et)   # optional scale-in tiers (owner's current plan: one 1%-risk entry, none)
@@ -950,6 +953,9 @@ class PaperRunner:
                 zone["stage"] = (getattr(self, "zonemap", {}).get(sym) or {}).get("stage")
                 pos["zone"], pos["risk"] = zone, float(sig.stop_dist)
                 pos["expert"] = str(sig.tag)
+                _rp = (zcfg.get("velez") or {}).get("repair") or {}
+                if (sig.tag or "").removeprefix("S:") in (_rp.get("setups") or []) and _rp.get("version"):
+                    pos["ver"] = str(_rp["version"])                    # owner 2026-10-22: each forward-test version keeps its own record
                 if zcfg["live"]:                                         # LIVE: take profit at the zone-map level, else the style zone
                     pos["zone_tp"] = zone.get("map_target") if (zcfg.get("use_map") and zone.get("map_target") is not None) else zone["target"]
                     if getattr(sig, "target_px", 0) > 0:                  # the range box's far edge is this trade's take-profit zone
@@ -1246,6 +1252,30 @@ def _ladder_lines(raw: list, day: str) -> list:
         block([t for t in raw if t["date"] == day], "today") + block(raw, "all time")
 
 
+def _velez_forward_lines(trades: list) -> list:
+    """Owner 2026-10-22 Velez forward-test scorecard, per expert and config version: stop-outs, never green (peak open profit <= 0.05R),
+    10-minute exits, average winner / loser, MFE / MAE (R), net R and repeat entries (same stock, same day, after the first)."""
+    ts = [t for t in trades if t.get("ver")]
+    if not ts:
+        return []
+    out = ["", "VELEZ FORWARD TEST (paper, per expert and config version)"]
+    for key in sorted({(t.get("expert"), t["ver"]) for t in ts}):
+        g = [t for t in ts if (t.get("expert"), t["ver"]) == key]
+        w, l = [t["r"] for t in g if t["pnl"] > 0], [t["r"] for t in g if t["pnl"] <= 0]
+        seen, rep = set(), 0
+        for t in g:
+            k = (t["symbol"], t["date"])
+            rep += k in seen
+            seen.add(k)
+        avg = lambda xs: sum(xs) / len(xs) if xs else 0.0          # noqa: E731
+        out.append(f"  {key[0]} [{key[1]}]: {len(g)} trades, win {len(w) / len(g):.0%}, stopped {sum('stop' in str(t['reason']) for t in g)}, "
+                   f"never green {sum(t.get('peak_r', 0) <= 0.05 for t in g)}, 10-min exits {sum(t['reason'] == 'neg_exit' for t in g)}, "
+                   f"avg win {avg(w):+.2f}R / loss {avg(l):+.2f}R, MFE {avg([t.get('peak_r', 0) for t in g]):+.2f}R, "
+                   f"MAE {avg([t.get('mae_r', 0) for t in g]):.2f}R, net {sum(t['r'] for t in g):+.2f}R (${sum(t['pnl'] for t in g):+,.0f}), "
+                   f"repeat entries {rep}")
+    return out
+
+
 def _giveback_lines(trades: list, today: list) -> list:
     """How much open profit was kept: peak open profit (R) vs the result (R), and trades that were +1R up but closed at <= 0."""
     def block(ts, label):
@@ -1341,6 +1371,7 @@ def report_card(state_dir, day=None) -> str:
             lines.append(f"  {k}: {n_}, {w_}W/{l_}L, P&L ${sum(t['pnl'] for t in ts):+,.0f}, profit factor {pf_:.2f}")
     lines += _style_lines(trades, today)
     lines += _giveback_lines(trades, today)
+    lines += _velez_forward_lines(trades)
     lines += _zone_lines(trades)
     lines += _ladder_lines(_jl(d / "trades.jsonl"), day)
     if gate:

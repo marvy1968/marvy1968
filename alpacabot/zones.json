@@ -713,6 +713,7 @@
    "repair": {
     "_note_bt": "velez_repair 3-month backtest 2026-10-22 (train / validate PF): velez_rbi baseline 0.61 / 0.76, next-bar confirmation 0.84 / 0.97 (the only change that helped on both), 1.5 ATR stop 0.67 / 0.71, first per day 0.63 / 0.74. velez_halt: baseline 0.55 / 0.27, nothing above 0.50 on validate (confirmation 0.92 / 0.28) -> shadow. So: confirmation only, the one-bar stop kept; tune on the fly from the live record.",
     "_note": "owner 2026-10-22 ('run the new scripts now, lower the risk'): velez_rbi and velez_halt back on paper with the rescue-plan rules before the velez_repair backtest is in: stop 1.5 x ATR(14) instead of the one-bar stop, next-bar confirmation (the next bar closes up and above the signal bar's high), the first setup of the day per stock only (no repeat entries). Both sides. Risk 0.05% each (risk_by_expert).",
+    "version": "v2 confirm-only 2026-10-22",
     "setups": ["velez_rbi", "velez_halt"],
     "sides": [1, -1],
     "stop_atr": 0.0,
