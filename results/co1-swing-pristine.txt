@@ -1,3 +1,66 @@
 $ alpaca run-all --phase validate --families swing_pristine
-started 2026-10-22 07:15:39 EDT
-RUNNING...
+started 2026-10-22 07:15:39 EDT, took 225s, exit 0
+
+daily data ready
+- 2 weeks | FUNNEL live: 2 trades, win 1.0, PF inf, total +8.42R, return +4.21% at 0.5% risk
+- 2 weeks | FUNNEL + COG confirm: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | FUNNEL + PBS confirm: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | OVERSOLD live: 7 trades, win 0.857, PF 11.32, total +2.79R, return +1.39% at 0.5% risk
+- 2 weeks | OVERSOLD + COG confirm: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | OVERSOLD + CBS confirm: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | PRISTINE pbs trail stop: 5 trades, win 0.2, PF 0.04, total -1.81R, return -0.91% at 0.5% risk
+- 2 weeks | PRISTINE pbs trail bar: 5 trades, win 0.2, PF 0.04, total -1.79R, return -0.9% at 0.5% risk
+- 2 weeks | PRISTINE pbs trail ma20: 5 trades, win 0.2, PF 0.04, total -1.81R, return -0.91% at 0.5% risk
+- 2 weeks | PRISTINE cbs trail stop: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | PRISTINE cbs trail bar: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | PRISTINE cbs trail ma20: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 2 weeks | PRISTINE cog trail stop: 7 trades, win 0.286, PF 0.49, total -1.8R, return -0.9% at 0.5% risk
+- 2 weeks | PRISTINE cog trail bar: 7 trades, win 0.143, PF 0.22, total -2.26R, return -1.13% at 0.5% risk
+- 2 weeks | PRISTINE cog trail ma20: 7 trades, win 0.143, PF 0.18, total -2.91R, return -1.46% at 0.5% risk
+- 2 weeks | PRISTINE pbo trail stop: 2 trades, win 0.0, PF 0.0, total -1.07R, return -0.54% at 0.5% risk
+- 2 weeks | PRISTINE pbo trail bar: 2 trades, win 0.0, PF 0.0, total -1.29R, return -0.65% at 0.5% risk
+- 2 weeks | PRISTINE pbo trail ma20: 2 trades, win 0.0, PF 0.0, total -1.07R, return -0.54% at 0.5% risk
+- 3 months | FUNNEL live: 32 trades, win 0.438, PF 1.8, total +12.99R, return +6.49% at 0.5% risk
+- 3 months | FUNNEL + COG confirm: 2 trades, win 0.0, PF 0.0, total -2.04R, return -1.02% at 0.5% risk
+- 3 months | FUNNEL + PBS confirm: 3 trades, win 0.0, PF 0.0, total -2.25R, return -1.12% at 0.5% risk
+- 3 months | OVERSOLD live: 72 trades, win 0.569, PF 1.27, total +5.02R, return +2.51% at 0.5% risk
+- 3 months | OVERSOLD + COG confirm: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- 3 months | OVERSOLD + CBS confirm: 1 trades, win 0.0, PF 0.0, total -1.05R, return -0.52% at 0.5% risk
+- 3 months | PRISTINE pbs trail stop: 48 trades, win 0.396, PF 0.6, total -11.37R, return -5.68% at 0.5% risk
+- 3 months | PRISTINE pbs trail bar: 53 trades, win 0.377, PF 0.56, total -10.89R, return -5.45% at 0.5% risk
+- 3 months | PRISTINE pbs trail ma20: 49 trades, win 0.347, PF 0.51, total -11.81R, return -5.9% at 0.5% risk
+- 3 months | PRISTINE cbs trail stop: 2 trades, win 0.5, PF 0.89, total -0.12R, return -0.06% at 0.5% risk
+- 3 months | PRISTINE cbs trail bar: 2 trades, win 0.5, PF 0.89, total -0.12R, return -0.06% at 0.5% risk
+- 3 months | PRISTINE cbs trail ma20: 2 trades, win 0.5, PF 0.44, total -0.58R, return -0.29% at 0.5% risk
+- 3 months | PRISTINE cog trail stop: 53 trades, win 0.472, PF 0.97, total -0.79R, return -0.4% at 0.5% risk
+- 3 months | PRISTINE cog trail bar: 60 trades, win 0.417, PF 0.91, total -2.21R, return -1.11% at 0.5% risk
+- 3 months | PRISTINE cog trail ma20: 55 trades, win 0.455, PF 0.9, total -1.94R, return -0.97% at 0.5% risk
+- 3 months | PRISTINE pbo trail stop: 18 trades, win 0.444, PF 1.24, total +2.21R, return +1.11% at 0.5% risk
+- 3 months | PRISTINE pbo trail bar: 18 trades, win 0.5, PF 1.35, total +2.51R, return +1.25% at 0.5% risk
+- 3 months | PRISTINE pbo trail ma20: 18 trades, win 0.444, PF 1.39, total +3.27R, return +1.63% at 0.5% risk
+- 12 months | FUNNEL live: 99 trades, win 0.374, PF 1.42, total +24.07R, return +12.04% at 0.5% risk
+- 12 months | FUNNEL + COG confirm: 8 trades, win 0.25, PF 0.82, total -1.13R, return -0.56% at 0.5% risk
+- 12 months | FUNNEL + PBS confirm: 14 trades, win 0.357, PF 1.91, total +6.47R, return +3.24% at 0.5% risk
+- 12 months | OVERSOLD live: 324 trades, win 0.509, PF 1.13, total +14.3R, return +7.15% at 0.5% risk
+- 12 months | OVERSOLD + COG confirm: 1 trades, win 1.0, PF inf, total +0.88R, return +0.44% at 0.5% risk
+- 12 months | OVERSOLD + CBS confirm: 5 trades, win 0.2, PF 0.4, total -1.3R, return -0.65% at 0.5% risk
+- 12 months | PRISTINE pbs trail stop: 203 trades, win 0.488, PF 1.04, total +4.21R, return +2.11% at 0.5% risk
+- 12 months | PRISTINE pbs trail bar: 228 trades, win 0.377, PF 0.8, total -20.11R, return -10.06% at 0.5% risk
+- 12 months | PRISTINE pbs trail ma20: 207 trades, win 0.42, PF 0.93, total -6.46R, return -3.23% at 0.5% risk
+- 12 months | PRISTINE cbs trail stop: 10 trades, win 0.7, PF 2.87, total +6.05R, return +3.02% at 0.5% risk
+- 12 months | PRISTINE cbs trail bar: 10 trades, win 0.7, PF 3.46, total +6.6R, return +3.3% at 0.5% risk
+- 12 months | PRISTINE cbs trail ma20: 10 trades, win 0.5, PF 1.25, total +0.59R, return +0.29% at 0.5% risk
+- 12 months | PRISTINE cog trail stop: 259 trades, win 0.517, PF 1.17, total +21.97R, return +10.99% at 0.5% risk
+- 12 months | PRISTINE cog trail bar: 283 trades, win 0.431, PF 0.93, total -8.08R, return -4.04% at 0.5% risk
+- 12 months | PRISTINE cog trail ma20: 271 trades, win 0.432, PF 0.92, total -7.32R, return -3.66% at 0.5% risk
+- 12 months | PRISTINE pbo trail stop: 45 trades, win 0.467, PF 1.1, total +2.27R, return +1.13% at 0.5% risk
+- 12 months | PRISTINE pbo trail bar: 46 trades, win 0.413, PF 0.88, total -2.13R, return -1.06% at 0.5% risk
+- 12 months | PRISTINE pbo trail ma20: 45 trades, win 0.422, PF 1.1, total +2.1R, return +1.05% at 0.5% risk
+## swing_pristine: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
