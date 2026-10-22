@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --phase validate --families swing_open_delay
