@@ -308,6 +308,33 @@ def run_all(a) -> int:
                         lines.append(f"- {name}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "
                                      f"total {m_['shorts_r']:+}R, exits {m_['exits']}")
                         res[f"{label} | {name}"] = {k: v for k, v in m_.items() if k != "list"}
+            elif fam == "swing_pristine":          # owner 2026-10-22: Pristine rules on the swing bot (daily stock bars, longs)
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb = {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                res = {"family": fam}
+                live_funnel = {"stop_frac": 0.5, "tp_r": 1.25, "v_tail": True}
+                live_os = {"oversold": True, "os_stage": None, "tp_r": 1.25, "stop_frac": 0.75}
+                var = {"FUNNEL live": live_funnel, "FUNNEL + COG confirm": {**live_funnel, "pr_confirm": "cog"},
+                       "FUNNEL + PBS confirm": {**live_funnel, "pr_confirm": "pbs"},
+                       "OVERSOLD live": live_os, "OVERSOLD + COG confirm": {**live_os, "pr_confirm": "cog"},
+                       "OVERSOLD + CBS confirm": {**live_os, "pr_confirm": "cbs"}}
+                for kind in ("pbs", "cbs", "cog", "pbo"):
+                    for tr in ("stop", "bar", "ma20"):
+                        var[f"PRISTINE {kind} trail {tr}"] = {"pristine": kind, "pr_trail": tr, "stop_frac": 1.0, "tp_r": 1.25}
+                for label, a_ in (("2 weeks", end2 - _td(days=14)), ("3 months", end2 - _td(days=92)), ("12 months", end2 - _td(days=365))):
+                    for nm, rules in var.items():
+                        m_ = funnel_bt(fb, a_, end2 - _td(days=1), sides=("long",), rules=rules)
+                        lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, total {m_['longs_r']:+}R, "
+                                     f"return {m_['return_pct']:+}% at 0.5% risk")
+                        res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "swing_velez":             # owner 2026-10-22: Velez rules on the swing longs (funnel + oversold), 2 weeks / 3 / 12 months
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt

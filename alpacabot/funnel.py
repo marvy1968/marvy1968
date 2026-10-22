@@ -38,7 +38,11 @@ RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop
          # owner 2026-10-22 Velez hybrid on the daily swing longs: env = the 20-day SMA rising over the 200-day; look_left = no prior 20-day high
          # between the entry and the target; no_chase = close within 2 ATR of the 20-day SMA; tail = a bottoming tail on the signal day;
          # bars35 = 3+ lower closes in the 5 days before (his 3-5 bar dip)
-         "v_env": False, "v_look_left": False, "v_no_chase": False, "v_tail": False, "v_bars35": False}
+         "v_env": False, "v_look_left": False, "v_no_chase": False, "v_tail": False, "v_bars35": False,
+         # owner 2026-10-22 Pristine hybrid (fxbot.strategies.PristineFx rules on daily stock bars, longs): pristine = a setup kind ("pbs", "cbs",
+         # "cog", "pbo") REPLACES the entry (its own one-bar stop distance and trail exit pr_trail); pr_confirm = a kind that must also have fired
+         # on the signal day or the day before (confirmation for the funnel / oversold entries)
+         "pristine": None, "pr_trail": "stop", "pr_confirm": None}
 
 
 def sr_votes(d: pd.DataFrame, a: pd.Series, lookback: int = 120, wing: int = 2, tol_atr: float = 0.5, min_touches: int = 2) -> tuple:
@@ -137,6 +141,18 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         lost_vwap = (c < vw) if side == 1 else (c > vw)
         turn = ((k < dd) & (k.shift(1) >= r["stoch_top"])) if side == 1 else ((k > dd) & (k.shift(1) <= 100 - r["stoch_top"]))
         out[f"{tag}_exit"] = ((three.astype(int) + lost_vwap.astype(int) + turn.astype(int)) >= 2) | (stage != want)
+    if r["pristine"] or r["pr_confirm"]:
+        from fxbot.strategies import PristineFx
+        if r["pristine"]:
+            pf = PristineFx(r["pristine"], r["pr_trail"], cbs_atr=2.5).frame(d)
+            dist = pf["stop"].where(pf["long"])
+            out["long_entry"] = pf["long"] & a.notna() & (a > 0)
+            out["long_stop"] = c - r["stop_frac"] * dist
+            out["long_tp"] = c + r["tp_r"] * dist
+            out["long_exit"] = pf["exit_long"] if r["pr_trail"] != "stop" else pd.Series(False, index=d.index)
+        if r["pr_confirm"]:
+            pc = PristineFx(r["pr_confirm"], "stop", cbs_atr=2.5).frame(d)["long"]
+            out["long_entry"] = out["long_entry"] & (pc | pc.shift(1, fill_value=False))
     if r["v_env"] or r["v_look_left"] or r["v_no_chase"] or r["v_tail"] or r["v_bars35"]:
         sma20, sma200 = c.rolling(20, min_periods=20).mean(), c.rolling(200, min_periods=200).mean()
         vok = pd.Series(True, index=d.index)
