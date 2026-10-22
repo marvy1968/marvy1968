@@ -53,3 +53,22 @@ class InBoxTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OversoldConfluenceTests(unittest.TestCase):
+    def test_majority_oversold_long_and_overbought_short(self):
+        import numpy as np
+        import pandas as pd
+        from fxbot.strategies import OversoldConfluence
+        n = 80
+        idx = pd.date_range("2026-01-01", periods=n, freq="4h", tz="UTC")
+        c = np.full(n, 1.10) + 0.0005 * np.sin(np.arange(n))
+        c[-1] = 1.085                                          # a sharp drop: RSI, stochastic, lower band and 1.5 SD all say oversold
+        m = pd.DataFrame({"open": c, "high": c + 0.0005, "low": c - 0.0005, "close": c, "volume": 1000.0}, index=idx)
+        m.loc[m.index[-1], "volume"] = 3000.0
+        f = OversoldConfluence().frame(m)
+        self.assertTrue(bool(f["long"].iloc[-1]))
+        self.assertFalse(bool(f["short"].iloc[-1]))
+        m2 = m.copy()
+        m2.loc[m2.index[-1], ["open", "high", "low", "close"]] = [1.115, 1.1155, 1.1145, 1.115]
+        self.assertTrue(bool(OversoldConfluence().frame(m2)["short"].iloc[-1]))

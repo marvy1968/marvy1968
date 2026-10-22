@@ -127,6 +127,35 @@ class ConsensusMR:
         return _frame(m.index, ok & (lv >= self.votes), ok & (sv >= self.votes), xl, xs, self.stop_atr * atr(m, 14), (lv - sv).abs().astype(float))
 
 
+class OversoldConfluence:
+    """Owner 2026-10-22 (daily_confluence_strategy.py, "hybrid OANDA"): enter when a MAJORITY of 4 readings say oversold (long) / overbought
+    (short): RSI14 < 30, stochastic %K(14) < 20, close at / under the lower Bollinger band (20, 2), close 1.5 SD under the 20 average (shorts
+    mirror), and the bar's tick volume >= vol_mult x its 20-bar average (skipped when the feed has no volume). R = 1 ATR14: the stop is
+    stop_atr ATR away (the runner then applies its own 0.5R loss cut / 1.25R take-profit); out when price is back at the middle band."""
+
+    def __init__(self, need: int = 3, vol_mult: float = 1.1, stop_atr: float = 1.0, max_bars: int = 30):
+        self.need, self.vol_mult, self.stop_atr, self.max_bars = need, vol_mult, stop_atr, max_bars
+        self.name = f"oversold_confluence {need}/4"
+
+    def frame(self, m):
+        from alpacabot.indicators import rsi
+        c = m["close"]
+        r = rsi(c, 14)
+        mid_, up, lo = bollinger(c, 20, 2.0)
+        sd = c.rolling(20).std()
+        ll, hh = m["low"].rolling(14).min(), m["high"].rolling(14).max()
+        k = 100 * (c - ll) / (hh - ll).replace(0, np.nan)
+        lv = (r < 30).astype(int) + (k < 20).astype(int) + (c <= lo).astype(int) + (c <= mid_ - 1.5 * sd).astype(int)
+        sv = (r > 70).astype(int) + (k > 80).astype(int) + (c >= up).astype(int) + (c >= mid_ + 1.5 * sd).astype(int)
+        if "volume" in m and m["volume"].astype(float).sum() > 0:
+            v = m["volume"].astype(float)
+            vok = v >= self.vol_mult * v.rolling(20).mean()
+        else:
+            vok = pd.Series(True, index=m.index)
+        return _frame(m.index, (lv >= self.need) & vok, (sv >= self.need) & vok, c >= mid_, c <= mid_, self.stop_atr * atr(m, 14),
+                      (lv - sv).abs().astype(float))
+
+
 class AsianBreakout:
     """Asian-range breakout at the London open (H1). Range = high/low of bars 00:00-06:59 UTC; only on days the range is narrower than
     1.5x its 20-day median. Entry on a bar closing 07:00-10:00 UTC: long when close > Asian high + buffer x ATR14, short when close <
