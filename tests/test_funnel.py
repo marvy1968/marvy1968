@@ -123,11 +123,11 @@ class FunnelLiveTests(unittest.TestCase):
         from alpacabot.swing_paper import SwingRunner
         et = __import__("zoneinfo").ZoneInfo("America/New_York")
         full = _daily()
-        f = frame(full)
-        cut = int(next(i for i in np.flatnonzero(f["long_entry"].to_numpy()) if i >= 199))   # the runner needs 200 days of history
-        bars = full.iloc[:cut + 1]
         with tempfile.TemporaryDirectory() as d:
             r = SwingRunner(self.B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            f = frame(full, (r.zone_config().get("funnel") or {}).get("rules"))           # the LIVE funnel rules (zones.json)
+            cut = int(next(i for i in np.flatnonzero(f["long_entry"].to_numpy()) if i >= 199))   # the runner needs 200 days of history
+            bars = full.iloc[:cut + 1]
             exits, entries = r.funnel_plan({"AAA": bars}, {"AAA": float(bars["close"].iloc[-1])}, {}, [], [], 50000.0, 50000.0, False,
                                            datetime(2025, 10, 14, 16, 20, tzinfo=et))
             self.assertEqual(len(entries), 1)
