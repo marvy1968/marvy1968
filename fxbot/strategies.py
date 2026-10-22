@@ -660,6 +660,59 @@ class VelezSetupsFx:
         return _frame(m.index, long, short, m["close"] < ma, m["close"] > ma, stop, pd.Series(0.0, index=m.index))
 
 
+class PristineFx:
+    """Owner 2026-10-22: the historical Pristine / iFundTraders FX rules (2001 Pristine swing deck, 2010 7-Day FX course), longs and mirrored
+    shorts. kind:
+      pbs   Pristine / Velez Buy Setup: 8 > 20 > 200 SMA with a rising 20, 3+ lower highs or red bars, then a close above the prior bar's high
+      cbs   Climactic Buy Setup: 5+ lower closes / highs, close cbs_atr ATR under the 20 SMA, a bullish reversal bar on above-average volume
+      cog   Changing of the Guard: 3-5 red bars, then a green bar that closes above the prior high
+      pbo   Pristine Breakout: a compact base (10-bar range <= base_atr ATR) broken upward while the 8 and 20 SMA rise
+    Stop beyond the low of the signal / prior bar (+0.1 ATR, 0.5-2.5 ATR). trail: "stop" (stop only), "bar" (exit when a close loses the prior
+    bar's low after 2 bars - bar-by-bar), "ma8" (close under the 8 SMA), "ma20" (close under the 20 SMA)."""
+
+    def __init__(self, kind: str = "pbs", trail: str = "ma20", cbs_atr: float = 2.5, base_atr: float = 2.0, max_bars: int = 40):
+        self.kind, self.trail, self.cbs_atr, self.base_atr, self.max_bars = kind, trail, cbs_atr, base_atr, max_bars
+        self.name = f"pristine_{kind}_{trail}"
+
+    def _side(self, o, h, l, c, v, a):
+        sh = lambda x, k=1: x.shift(k)                                         # noqa: E731
+        m8, m20, m200 = c.rolling(8).mean(), c.rolling(20).mean(), c.rolling(200).mean()
+        red = c < o
+        if self.kind == "pbs":
+            trend = (m8 > m20) & (m20 > m200) & (m20 > sh(m20, 3))
+            pull = ((sh(h) < sh(h, 2)) & (sh(h, 2) < sh(h, 3)) & (sh(l) < sh(l, 2))) | (sh(red) & sh(red, 2) & sh(red, 3))
+            sig = trend & pull & (c > sh(h))
+        elif self.kind == "cbs":
+            down = sum((sh(c, k) < sh(c, k + 1)).astype(int) for k in range(1, 6)) >= 5
+            vok = (v >= v.rolling(20).mean()) if v is not None else True
+            sig = down & ((m20 - c) >= self.cbs_atr * a) & (c > o) & (c > sh(c)) & vok
+        elif self.kind == "cog":
+            reds = sh(red) & sh(red, 2) & sh(red, 3)
+            sig = reds & (c > o) & (c > sh(h))
+        else:   # pbo
+            hi10, lo10 = sh(h).rolling(10).max(), sh(l).rolling(10).min()
+            sig = ((hi10 - lo10) <= self.base_atr * a) & (c > hi10) & (sh(c) <= hi10) & (m8 > sh(m8, 3)) & (m20 > sh(m20, 3))
+        stop = (c - np.minimum(l, sh(l)) + 0.1 * a).clip(lower=0.5 * a, upper=2.5 * a)
+        if self.trail == "ma8":
+            ex = c < m8
+        elif self.trail == "ma20":
+            ex = c < m20
+        elif self.trail == "bar":
+            ex = c < sh(l)
+        else:
+            ex = pd.Series(False, index=c.index)
+        return sig.fillna(False), stop, ex.fillna(False)
+
+    def frame(self, m):
+        a = atr(m, 14)
+        v = m["volume"].astype(float) if "volume" in m and m["volume"].astype(float).sum() > 0 else None
+        o, h, l, c = m["open"], m["high"], m["low"], m["close"]
+        ls, lstop, lex = self._side(o, h, l, c, v, a)
+        ss, sstop, sex = self._side(-o, -l, -h, -c, v, a)
+        stop = lstop.where(ls, sstop)
+        return _frame(m.index, ls, ss & ~ls, lex, sex, stop, pd.Series(0.0, index=m.index))
+
+
 class VelezConfirmFx:
     """Owner 2026-10-22 hybrid: a forex expert's entry is taken only when a Velez setup fired the same way on the signal bar or the `look`
     bars before it."""

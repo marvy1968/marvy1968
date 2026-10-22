@@ -96,6 +96,19 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "pristine_fx":               # owner 2026-10-22: Pristine / iFundTraders FX rules (fxbot.research.pristine_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import pristine_check
+                today = _dt.date.today()
+                for label, days_ in (("last 2 weeks", 14), ("last 3 months", 92)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    dg = {g: {i: fx_load(i, g, a_ - _dt.timedelta(days=200 if g == "D" else 60), today, Path("state/fx/cache")) for i in MAJORS}
+                          for g in ("H4", "H1")}
+                    lines += [f"## pristine_fx: Pristine / iFundTraders FX rules, {label} ({a_} to {today}, bid/ask)"] + pristine_check(dg, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam in ("hybrid_tune_fx", "hybrid_tune_fx12", "hybrid_tune_fx1"):   # owner 2026-10-22: tune hybrid_h1 with more Velez rules (fxbot.research.hybrid_tune)
                 import datetime as _dt
                 from fxbot.data import MAJORS

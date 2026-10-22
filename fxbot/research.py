@@ -443,3 +443,19 @@ def hybrid_tune(data_h1: dict, train, validate, recent) -> list[str]:
     passing = [r for r in res if r["train"][2] > 1 and r["validate"][2] > 1 and r["train"][0] >= 10 and r["validate"][0] >= 8]
     out.insert(1, "PROFITABLE IN BOTH HALVES: " + (", ".join(f"{r['name']} (PF {r['train'][2]:.2f}/{r['validate'][2]:.2f})" for r in passing) or "none"))
     return out
+
+
+def pristine_check(data_by_gran: dict, a, b) -> list[str]:
+    """Owner 2026-10-22 (deep research: Pristine 2001 + iFundTraders 2010 FX course): PBS/VBS, CBS, COG and PBO with each trailing method
+    (stop only, bar-by-bar, 8 SMA, 20 SMA) and with the live exits (cut 0.5R, out 1.25R). Bid/ask, pessimistic."""
+    from .strategies import PristineFx
+    out = []
+    for gran, data in data_by_gran.items():
+        out.append(f"### {gran}")
+        for kind in ("pbs", "cbs", "cog", "pbo"):
+            for label, strat in [(f"{kind} live exits", TightStop(PristineFx(kind, "stop"), 0.50, 1.25))] + \
+                                [(f"{kind} trail {t}", PristineFx(kind, t)) for t in ("bar", "ma8", "ma20")]:
+                m = run(strat, data, a, b)
+                out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                           f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
