@@ -96,15 +96,15 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam == "hybrid_tune_fx":            # owner 2026-10-22: tune hybrid_h1 with more Velez rules (fxbot.research.hybrid_tune)
+            if fam in ("hybrid_tune_fx", "hybrid_tune_fx12"):   # owner 2026-10-22: tune hybrid_h1 with more Velez rules (fxbot.research.hybrid_tune)
                 import datetime as _dt
                 from fxbot.data import MAJORS
                 from fxbot.data import load as fx_load
                 from fxbot.research import hybrid_tune
                 today = _dt.date.today()
-                a3 = today - _dt.timedelta(days=92)
+                a3 = today - _dt.timedelta(days=365 if fam == "hybrid_tune_fx12" else 92)
                 h1 = {i: fx_load(i, "H1", a3 - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
-                mid_ = today - _dt.timedelta(days=46)
+                mid_ = today - _dt.timedelta(days=120 if fam == "hybrid_tune_fx12" else 46)
                 lines += [f"## hybrid_tune_fx: hybrid_h1 + Velez rules, train {a3}..{mid_}, validate {mid_}..{today}, H1 bid/ask"] + \
                     hybrid_tune(h1, (a3, mid_ - _dt.timedelta(days=1)), (mid_, today), (today - _dt.timedelta(days=14), today))
                 print("\n".join(lines[first:]), flush=True)
