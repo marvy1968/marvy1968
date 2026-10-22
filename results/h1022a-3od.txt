@@ -1,3 +1,25 @@
 $ alpaca run-all --phase validate --families swing_open_delay
-started 2026-10-22 17:27:56 EDT
-RUNNING...
+started 2026-10-22 17:27:56 EDT, took 249s, exit 0
+
+daily data ready
+- 55 stocks with 1-minute bars (entries without them are left out of every row, so rows compare like for like)
+- 1 month | OVERSOLD live | enter 09:31: 32 trades, win 0.406, PF 0.44, total -6.92R, return -3.46%, exits {'stop': 6, 'tp': 2, 'signal': 23, 'open': 1}
+- 1 month | OVERSOLD live | enter 10:00: 29 trades, win 0.448, PF 0.71, total -2.54R, return -1.27%, exits {'stop': 3, 'tp': 2, 'signal': 23, 'open': 1}
+- 1 month | OVERSOLD live | enter 10:30: 29 trades, win 0.379, PF 0.4, total -5.15R, return -2.58%, exits {'stop': 2, 'tp': 2, 'signal': 24, 'open': 1}
+- 1 month | FUNNEL live | enter 09:31: 6 trades, win 0.667, PF 3.95, total +6.14R, return +3.07%, exits {'stop': 2, 'tp': 3, 'signal': 0, 'open': 1}
+- 1 month | FUNNEL live | enter 10:00: 6 trades, win 0.667, PF 2.69, total +3.48R, return +1.74%, exits {'stop': 2, 'tp': 3, 'signal': 0, 'open': 1}
+- 1 month | FUNNEL live | enter 10:30: 6 trades, win 0.667, PF 2.13, total +2.34R, return +1.17%, exits {'stop': 2, 'tp': 3, 'signal': 0, 'open': 1}
+- 3 months | OVERSOLD live | enter 09:31: 74 trades, win 0.541, PF 1.27, total +5.33R, return +2.67%, exits {'stop': 10, 'tp': 5, 'signal': 58, 'open': 1}
+- 3 months | OVERSOLD live | enter 10:00: 69 trades, win 0.58, PF 1.57, total +8.23R, return +4.12%, exits {'stop': 6, 'tp': 4, 'signal': 58, 'open': 1}
+- 3 months | OVERSOLD live | enter 10:30: 69 trades, win 0.565, PF 1.25, total +3.47R, return +1.73%, exits {'stop': 5, 'tp': 4, 'signal': 59, 'open': 1}
+- 3 months | FUNNEL live | enter 09:31: 32 trades, win 0.406, PF 1.41, total +6.93R, return +3.47%, exits {'stop': 12, 'tp': 10, 'signal': 9, 'open': 1}
+- 3 months | FUNNEL live | enter 10:00: 32 trades, win 0.406, PF 0.95, total -0.93R, return -0.46%, exits {'stop': 12, 'tp': 10, 'signal': 9, 'open': 1}
+- 3 months | FUNNEL live | enter 10:30: 32 trades, win 0.406, PF 0.82, total -3.12R, return -1.56%, exits {'stop': 12, 'tp': 10, 'signal': 9, 'open': 1}
+## swing_open_delay: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
