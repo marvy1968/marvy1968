@@ -1,3 +1,32 @@
 $ alpaca run-all --phase validate --families velez_redesign --weeks2
-started 2026-10-22 17:36:56 EDT
-RUNNING...
+started 2026-10-22 17:36:56 EDT, took 435s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 63 of 1886 stock-days, on the SHORT list 28
+- loaded: large 55, mid 12, small 12
+## velez_redesign: see the table (one month: provisional)
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- first half | large | vz_scalp: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first half | large | vz_day: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first half | large | kept experts: 220t win 22% PF 0.33 avgR -0.28 daily -0.785% CAGR -85.4% maxDD -3.9%
+- first half | mid | vz_scalp: 1t win 0% PF 0.00 avgR -0.21 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first half | mid | vz_day: 2t win 50% PF 0.39 avgR -0.05 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first half | mid | kept experts: 57t win 39% PF 1.04 avgR -0.03 daily -0.001% CAGR +3.3% maxDD -0.3%
+- first half | small | vz_scalp: 2t win 50% PF 6.14 avgR +0.09 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first half | small | vz_day: 15t win 53% PF 2.06 avgR +0.06 daily +0.013% CAGR +6.7% maxDD -0.0%
+- first half | small | kept experts: 90t win 33% PF 0.90 avgR -0.06 daily -0.034% CAGR -20.1% maxDD -0.6%
+- second half | large | vz_scalp: 6t win 50% PF 2.99 avgR +0.18 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second half | large | vz_day: 8t win 12% PF 0.22 avgR -0.20 daily -0.031% CAGR -9.3% maxDD -0.1%
+- second half | large | kept experts: 113t win 41% PF 1.09 avgR -0.03 daily +0.014% CAGR +13.4% maxDD -0.1%
+- second half | mid | vz_scalp: 1t win 100% PF inf avgR +0.96 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second half | mid | vz_day: 1t win 100% PF inf avgR +0.86 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second half | mid | kept experts: 25t win 24% PF 0.60 avgR -0.09 daily -0.123% CAGR -27.6% maxDD -0.6%
+- second half | small | vz_scalp: 1t win 100% PF inf avgR +1.21 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second half | small | vz_day: 4t win 25% PF 0.02 avgR -0.26 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second half | small | kept experts: 58t win 43% PF 1.23 avgR +0.11 daily +0.406% CAGR +65.1% maxDD -1.9%
+ALL DONE
