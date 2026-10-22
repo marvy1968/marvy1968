@@ -832,7 +832,9 @@ class PaperRunner:
             if not sig:
                 continue
             _es = self.zone_config().get("entry_symbols")
-            if _es and sym not in _es:                                    # owner 2026-10-22: scalp the mid / small caps only
+            if _es and sym not in _es:                                    # owner 2026-10-22: scalp the mid / small caps only; the
+                self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag,   # big caps' signals are
+                             ref=float(day["close"].iloc[-1]), result="shadow: not in entry_symbols")          # kept for comparison
                 continue
             _cd = self.zone_config().get("expert_cooldown_min")
             _lx = self.last_exit_by.get((sym, str(sig.tag)))
