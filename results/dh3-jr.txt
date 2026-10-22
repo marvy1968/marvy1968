@@ -1,3 +1,407 @@
 $ show alpaca_paper/journal-20261022.jsonl
-started 2026-10-22 12:22:25 EDT
-RUNNING...
+started 2026-10-22 12:22:25 EDT, took 0s, exit 0
+
+{"t": "2026-10-22T09:30:43-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T09:30:43-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T09:53:26-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T09:53:26-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T09:55:15-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T09:55:15-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T09:55:15-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:dual_regime", "ref": 526.07, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T09:55:15-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "connors_rsi2", "ref": 157.825, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T09:58:56-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T09:58:56-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T09:58:56-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:dual_regime", "ref": 526.07, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T09:58:56-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "connors_rsi2", "ref": 157.825, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:00:15-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "connors_rsi2", "ref": 157.62, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:03:25-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:03:25-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:03:25-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "connors_rsi2", "ref": 157.62, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:06:28-04:00", "kind": "signal", "symbol": "GOOGL", "side": "long", "tag": "range_box", "ref": 328.19, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:06:28-04:00", "kind": "signal", "symbol": "COST", "side": "short", "tag": "S:range_box", "ref": 1003.71, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:06:28-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "hybrid_box", "ref": 70.75, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:06:28-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "fib_box", "ref": 264.25, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T10:06:28-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "opening_range_breakout", "ref": 303.95, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "TMUS", "side": "short", "tag": "S:velez_bt", "ref": 159.01, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_rbi", "ref": 387.035, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_nrb", "ref": 545.23, "result": "chase: 545.61 is past the entry zone (545.23 + 0.1 ATR)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:velez_clear", "ref": 334.41, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "connors_rsi2", "ref": 410.38, "result": "reversal not confirmed (1/4; failed: reversal candle, push weakening, stretched)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "BAC", "side": "short", "tag": "S:velez_clear", "ref": 50.73, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:dual_regime", "ref": 288.45, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_clear", "ref": 700.5, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "WMT", "side": "short", "tag": "S:velez_bt", "ref": 118.87, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:velez_clear", "ref": 258.5, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "VST", "side": "short", "tag": "S:velez_clear", "ref": 144.27, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:30:10-04:00", "kind": "signal", "symbol": "AMT", "side": "short", "tag": "S:velez_bt", "ref": 181.12, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:velez_rbi", "ref": 327.035, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "TMUS", "side": "short", "tag": "S:velez_bt", "ref": 159.01, "result": "chase: 158.37 is past the entry zone (159.01 + 0.1 ATR)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_gbr", "ref": 387.035, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_nrb", "score": 0.4, "risk_pct": 0.001}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_nrb", "ref": 545.23, "result": "size < 1 share"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:velez_clear", "ref": 334.41, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "connors_rsi2", "ref": 410.38, "result": "reversal not confirmed (1/4; failed: reversal candle, push weakening, stretched)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "BAC", "side": "short", "tag": "S:velez_clear", "ref": 50.73, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:dual_regime", "ref": 288.45, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_clear", "ref": 700.5, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "WMT", "side": "short", "tag": "S:velez_bt", "ref": 118.87, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:velez_clear", "ref": 258.5, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "VST", "side": "short", "tag": "S:velez_clear", "ref": 144.27, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:33:09-04:00", "kind": "signal", "symbol": "AMT", "side": "short", "tag": "S:velez_bt", "ref": 181.12, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_bull180", "ref": 326.63, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:velez_nrb", "ref": 650.955, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_rbi", "ref": 387.54, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "connors_rsi2", "ref": 544.16, "result": "1-hour market is trending (ADX 26), not a range"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "connors_rsi2", "ref": 409.74, "result": "reversal not confirmed (1/4; failed: reversal candle, push weakening, stretched)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "GE", "side": "long", "tag": "velez_2020", "ref": 290.19, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "CAT", "side": "long", "tag": "velez_2020", "ref": 702.6, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "velez_flat200", "ref": 192.445, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "COP", "side": "long", "tag": "velez_bt", "ref": 144.54, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "velez_bt", "ref": 156.46, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:35:12-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "velez_bt", "ref": 257.79, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_bull180", "ref": 326.63, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:velez_nrb", "ref": 650.955, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_rbi", "ref": 387.54, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "connors_rsi2", "ref": 544.16, "result": "1-hour market is trending (ADX 26), not a range"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "connors_rsi2", "ref": 409.74, "result": "reversal not confirmed (1/4; failed: reversal candle, push weakening, stretched)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "GE", "side": "long", "tag": "velez_2020", "ref": 290.19, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "CAT", "side": "long", "tag": "velez_2020", "ref": 702.6, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "velez_flat200", "ref": 192.445, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "COP", "side": "long", "tag": "velez_bt", "ref": 144.54, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "velez_bt", "ref": 156.46, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:37:37-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "velez_bt", "ref": 257.79, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_bull180", "ref": 326.63, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:velez_nrb", "ref": 650.955, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_rbi", "ref": 387.54, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "connors_rsi2", "ref": 544.16, "result": "chase: 545.03 is past the entry zone (544.16 + 0.5 ATR)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "connors_rsi2", "ref": 409.74, "result": "reversal not confirmed (1/4; failed: reversal candle, push weakening, stretched)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "GE", "side": "long", "tag": "velez_2020", "ref": 290.19, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "CAT", "side": "long", "tag": "velez_2020", "ref": 702.6, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "velez_flat200", "ref": 192.445, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "COP", "side": "long", "tag": "velez_bt", "ref": 144.54, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "velez_bt", "ref": 156.46, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:39:19-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "velez_bt", "ref": 257.79, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "IWM", "side": "long", "tag": "velez_bt", "ref": 274.84, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:velez_bull180", "ref": 523.105, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_2020", "ref": 545.04, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_trap", "ref": 625.42, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_vbs", "ref": 1307.31, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "velez_bull180", "ref": 263.96, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal_score", "symbol": "UNH", "tag": "velez_bull180", "score": 0.8, "risk_pct": 0.001}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "UNH", "side": "long", "tag": "velez_bull180", "ref": 423.5, "result": "size < 1 share"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "MRK", "side": "long", "tag": "velez_nrb", "ref": 152.82, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_gift", "ref": 701.89, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "PG", "side": "long", "tag": "velez_bull180", "ref": 165.71, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "velez_2020", "ref": 94.345, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:40:19-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "velez_vbs", "ref": 290.425, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "velez_vbs", "ref": 322.0, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_bt", "ref": 624.62, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal_score", "symbol": "PLD", "tag": "S:velez_clear", "score": 0.8, "risk_pct": 0.001}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "PLD", "side": "short", "tag": "S:velez_clear", "ref": 127.305, "result": "ordered"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "fill", "symbol": "PLD", "side": -1, "qty": 2, "quote": 127.38, "fill": 127.43, "slip_bps": -3.93}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "ladder_open", "symbol": "PLD", "tier": 0, "risk_pct": 0.01, "qty": 2}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_gift", "ref": 940.45, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_vbs", "ref": 340.43, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:45:11-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "velez_nrb", "ref": 303.275, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "velez_vbs", "ref": 322.0, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_bt", "ref": 624.62, "result": "chase: 625.94 is past the entry zone (624.62 + 0.1 ATR)"}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_gift", "ref": 940.45, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_vbs", "ref": 340.43, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:47:25-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "velez_nrb", "ref": 303.275, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "velez_vbs", "ref": 322.0, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_bt", "ref": 624.62, "result": "chase: 625.63 is past the entry zone (624.62 + 0.1 ATR)"}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_gift", "ref": 940.45, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_vbs", "ref": 340.43, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:48:55-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "velez_nrb", "ref": 303.275, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "DIS", "side": "long", "tag": "velez_pause", "ref": 112.24, "result": "chase: 112.35 is past the entry zone (112.24 + 0.1 ATR)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "opening_range_breakout", "ref": 248.9, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_gbr", "score": 0.8, "risk_pct": 0.001}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_gbr", "ref": 545.8, "result": "size < 1 share"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_gbr", "ref": 410.21, "result": "chase: 410.39 is past the entry zone (410.21 + 0.1 ATR)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "williams_r", "ref": 625.76, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal_score", "symbol": "LLY", "tag": "velez_bull180", "score": 0.8, "risk_pct": 0.001}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_bull180", "ref": 1307.68, "result": "size < 1 share"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_pause", "ref": 699.715, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "opening_range_breakout", "ref": 119.4, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "CVX", "side": "long", "tag": "velez_bt", "ref": 224.69, "result": "chase: 224.89 is past the entry zone (224.69 + 0.1 ATR)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "WMB", "side": "short", "tag": "S:velez_pause", "ref": 70.41, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "range_box", "ref": 256.93, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "velez_nrb", "ref": 123.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_pause", "ref": 341.13, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:50:17-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "velez_pause", "ref": 291.17, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "ORCL", "side": "short", "tag": "S:velez_rbi", "ref": 126.45, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:velez_nrb", "ref": 650.86, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "DIS", "side": "long", "tag": "velez_halt", "ref": 112.51, "result": "shadow (passed every gate; signal logged, no order)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "velez_rbi", "ref": 249.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "BKNG", "side": "long", "tag": "velez_nrb", "ref": 162.71, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_rbi", "score": 0.6, "risk_pct": 0.0005}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_rbi", "ref": 545.96, "result": "size < 1 share"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "trend_stairs", "ref": 626.335, "result": "chase: 627.19 is past the entry zone (626.34 + 0.25 ATR)"}
+{"t": "2026-10-22T10:55:08-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "velez_bt", "ref": 50.55, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "ORCL", "side": "short", "tag": "S:velez_rbi", "ref": 126.45, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:velez_nrb", "ref": 650.86, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal_score", "symbol": "DIS", "tag": "velez_halt", "score": 0.8, "risk_pct": 0.0005}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "DIS", "side": "long", "tag": "velez_halt", "ref": 112.51, "result": "ordered"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "fill", "symbol": "DIS", "side": 1, "qty": 2, "quote": 112.51, "fill": 112.57, "slip_bps": 5.33}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "ladder_open", "symbol": "DIS", "tier": 0, "risk_pct": 0.01, "qty": 2}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "donchian_turtle", "ref": 323.63, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "velez_rbi", "ref": 249.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "BKNG", "side": "long", "tag": "velez_nrb", "ref": 162.71, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_rbi", "ref": 545.96, "result": "chase: 546.09 is past the entry zone (545.96 + 0.1 ATR)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "trend_stairs", "ref": 626.335, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "velez_bt", "ref": 50.55, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal_score", "symbol": "LLY", "tag": "velez_rbi", "score": 0.6, "risk_pct": 0.0005}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_rbi", "ref": 1308.7, "result": "size < 1 share"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "UNH", "side": "long", "tag": "velez_rbi", "ref": 424.315, "result": "chase: 424.70 is past the entry zone (424.31 + 0.1 ATR)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:brooks_pullback", "ref": 289.755, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "velez_rbi", "ref": 119.54, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "COST", "side": "long", "tag": "velez_rbi", "ref": 1010.74, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_180", "ref": 175.95, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "exit", "symbol": "PLD", "reason": "signal", "px": 127.325, "side": -1}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "AMT", "side": "short", "tag": "S:velez_trap", "ref": 181.545, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_2020", "ref": 944.08, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "velez_rbi", "ref": 505.67, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_elephant", "ref": 342.405, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T10:55:32-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "dual_regime", "ref": 291.475, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:donchian_turtle", "ref": 324.25, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "donchian_turtle", "ref": 323.71, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_180", "ref": 410.97, "result": "chase: 411.38 is past the entry zone (410.97 + 0.5 ATR)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal_score", "symbol": "MA", "tag": "velez_nrb", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_nrb", "ref": 627.15, "result": "size < 1 share"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal_score", "symbol": "LLY", "tag": "velez_nrb", "score": 0.8, "risk_pct": 0.001}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_nrb", "ref": 1312.59, "result": "size < 1 share"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "dual_regime", "ref": 263.84, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "vwap_dev", "ref": 192.39, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_pause", "ref": 200.83, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_rbi", "ref": 175.86, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_vbs", "ref": 144.51, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:00:06-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "fib_box", "ref": 70.17, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "zonemap", "up": 21, "down": 11, "range": 26, "stocks": 58, "stage2": 25, "stage4": 14, "stage1": 8, "stage3": 11}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:donchian_turtle", "ref": 324.25, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "donchian_turtle", "ref": 323.71, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_180", "ref": 410.97, "result": "chase: 411.76 is past the entry zone (410.97 + 0.5 ATR)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_nrb", "ref": 627.15, "result": "chase: 627.74 is past the entry zone (627.15 + 0.1 ATR)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_nrb", "ref": 1312.59, "result": "chase: 1313.00 is past the entry zone (1312.59 + 0.1 ATR)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "dual_regime", "ref": 263.84, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "vwap_dev", "ref": 192.39, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_pause", "ref": 200.83, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_rbi", "ref": 175.86, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_vbs", "ref": 144.51, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:03:26-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "fib_box", "ref": 70.17, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_bull180", "ref": 707.78, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:brooks_pullback", "ref": 525.94, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal_score", "symbol": "V", "tag": "velez_rbi", "score": 0.4, "risk_pct": 0.0005}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_rbi", "ref": 411.435, "result": "size < 1 share"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "opening_range_breakout", "ref": 627.58, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "BAC", "side": "short", "tag": "S:dual_regime", "ref": 50.535, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "velez_nrb", "ref": 264.17, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "MRK", "side": "long", "tag": "dual_regime", "ref": 153.065, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:brooks_pullback", "ref": 289.09, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "RTX", "side": "short", "tag": "S:velez_flat200", "ref": 191.645, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "PG", "side": "long", "tag": "velez_nrb", "ref": 165.99, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "velez_pause", "ref": 94.48, "result": "chase: 94.51 is past the entry zone (94.48 + 0.1 ATR)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "CVX", "side": "long", "tag": "velez_trap", "ref": 224.68, "result": "chase: 224.74 is past the entry zone (224.68 + 0.1 ATR)"}
+{"t": "2026-10-22T11:05:17-04:00", "kind": "signal", "symbol": "ECL", "side": "short", "tag": "S:range_box", "ref": 291.475, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "velez_halt", "ref": 344.74, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "velez_rbi", "ref": 264.625, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "vwap_dev", "ref": 191.77, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_bull180", "ref": 200.935, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "donchian_turtle", "ref": 92.565, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:velez_rbi", "ref": 255.55, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "PLD", "side": "long", "tag": "velez_bt", "ref": 127.395, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "velez_pause", "ref": 209.56, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:10:15-04:00", "kind": "signal", "symbol": "NEM", "side": "short", "tag": "S:opening_range_breakout", "ref": 112.64, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:donchian_turtle", "ref": 706.745, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:velez_pause", "ref": 212.925, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "velez_pause", "ref": 345.16, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:velez_nrb", "ref": 322.88, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_bt", "ref": 382.145, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "velez_nrb", "ref": 249.74, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "BKNG", "side": "long", "tag": "brooks_pullback", "ref": 162.76, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal_score", "symbol": "LLY", "tag": "velez_nrb", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_nrb", "ref": 1315.23, "result": "size < 1 share"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_nrb", "ref": 698.04, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "vwap_dev", "ref": 191.95, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "PG", "side": "long", "tag": "velez_nrb", "ref": 166.25, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal_score", "symbol": "KO", "tag": "velez_nrb", "score": 0.2, "risk_pct": 0.001}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "velez_nrb", "ref": 94.56, "result": "ordered"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "fill", "symbol": "KO", "side": 1, "qty": 2, "quote": 94.54, "fill": 94.54, "slip_bps": 0.0}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "ladder_open", "symbol": "KO", "tier": 0, "risk_pct": 0.01, "qty": 2}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_rbi", "ref": 201.2, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_nrb", "ref": 175.725, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_nrb", "ref": 144.71, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "WMB", "side": "short", "tag": "S:velez_elephant", "ref": 69.55, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "dual_regime", "ref": 123.29, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_nrb", "ref": 939.16, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "NEM", "side": "short", "tag": "S:velez_rbi", "ref": 112.41, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:15:07-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_nrb", "ref": 342.67, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:17:17-04:00", "kind": "exit", "symbol": "KO", "reason": "stop", "px": 94.45, "side": 1}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "IWM", "side": "long", "tag": "velez_clear", "ref": 275.88, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:raschke_grail", "ref": 525.88, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_180", "ref": 383.37, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_rbi", "score": 0.6, "risk_pct": 0.0005}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_rbi", "ref": 546.95, "result": "size < 1 share"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_rbi", "ref": 628.045, "result": "chase: 628.26 is past the entry zone (628.04 + 0.1 ATR)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_rbi", "ref": 1315.74, "result": "chase: 1316.94 is past the entry zone (1315.74 + 0.1 ATR)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "MRK", "side": "long", "tag": "velez_bt", "ref": 152.88, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "WMB", "side": "short", "tag": "S:donchian_turtle", "ref": 69.535, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_rbi", "ref": 343.13, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "donchian_turtle", "ref": 292.06, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:20:18-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "velez_nrb", "ref": 304.76, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_rbi", "ref": 386.17, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "velez_nrb", "ref": 324.69, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "dual_regime", "ref": 250.155, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "ABBV", "side": "short", "tag": "S:velez_trap", "ref": 284.67, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:raschke_grail", "ref": 290.4, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal_score", "symbol": "KO", "tag": "velez_bull180", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "KO", "side": "long", "tag": "velez_bull180", "ref": 94.575, "result": "ordered"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "fill", "symbol": "KO", "side": 1, "qty": 2, "quote": 94.56, "fill": 94.56, "slip_bps": 0.0}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "ladder_open", "symbol": "KO", "tier": 0, "risk_pct": 0.01, "qty": 2}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_bull180", "ref": 175.295, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_180", "ref": 144.015, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "EOG", "side": "short", "tag": "S:velez_180", "ref": 155.55, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "PLD", "side": "short", "tag": "S:velez_clear", "ref": 125.79, "result": "chase: 125.74 is past the entry zone (125.79 + 0.1 ATR)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "velez_pause", "ref": 344.12, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:25:10-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "donchian_turtle", "ref": 292.18, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:velez_trap", "ref": 763.43, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_gbr", "ref": 708.145, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:velez_bull180", "ref": 213.505, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:velez_bull180", "ref": 323.0, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "ORCL", "side": "short", "tag": "S:velez_nrb", "ref": 126.08, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:brooks_pullback", "ref": 327.395, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "TMUS", "side": "long", "tag": "velez_flat200", "ref": 156.73, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:velez_vbs", "ref": 251.94, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "MCD", "side": "long", "tag": "velez_rbi", "ref": 250.515, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_pause", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_pause", "ref": 547.83, "result": "size < 1 share"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_rbi", "ref": 412.83, "result": "chase: 412.89 is past the entry zone (412.83 + 0.1 ATR)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "dual_regime", "ref": 630.21, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "donchian_turtle", "ref": 1319.31, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:dual_regime", "ref": 696.82, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "GEV", "side": "short", "tag": "S:dual_regime", "ref": 823.64, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "PG", "side": "long", "tag": "velez_brk", "ref": 166.61, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:velez_rbi", "ref": 175.14, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "CVX", "side": "short", "tag": "S:dual_regime", "ref": 223.43, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "EOG", "side": "short", "tag": "S:velez_rbi", "ref": 155.35, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "donchian_turtle", "ref": 92.705, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "VST", "side": "short", "tag": "S:donchian_turtle", "ref": 140.67, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:30:06-04:00", "kind": "signal", "symbol": "EQIX", "side": "short", "tag": "S:velez_rbi", "ref": 936.73, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:velez_rbi", "ref": 763.3, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_rbi", "ref": 707.945, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:velez_rbi", "ref": 213.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "velez_bt", "ref": 344.915, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "AVGO", "side": "short", "tag": "S:velez_rbi", "ref": 322.57, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "TMUS", "side": "long", "tag": "velez_bt", "ref": 156.8, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "BKNG", "side": "long", "tag": "velez_gbr", "ref": 163.085, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_brk", "ref": 696.605, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_nrb", "ref": 201.33, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "XOM", "side": "short", "tag": "S:donchian_turtle", "ref": 174.845, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "CVX", "side": "short", "tag": "S:donchian_turtle", "ref": 223.24, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "NEE", "side": "long", "tag": "velez_pause", "ref": 80.73, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "velez_rbi", "ref": 92.775, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "velez_nrb", "ref": 123.38, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "raschke_grail", "ref": 208.64, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:35:19-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "dual_regime", "ref": 305.56, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:raschke_grail", "ref": 327.51, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:velez_gbr", "ref": 251.94, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:connors_rsi2", "ref": 334.3, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal_score", "symbol": "MA", "tag": "velez_nrb", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_nrb", "ref": 630.07, "result": "size < 1 share"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "BAC", "side": "short", "tag": "S:connors_rsi2", "ref": 50.8, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "velez_rbi", "ref": 265.94, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "MRK", "side": "long", "tag": "velez_bt", "ref": 152.145, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:velez_trap", "ref": 68.555, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_rbi", "ref": 201.51, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_rbi", "ref": 143.46, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "NEE", "side": "long", "tag": "velez_brk", "ref": 80.85, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "donchian_turtle", "ref": 123.41, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "velez_rbi", "ref": 209.22, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:40:12-04:00", "kind": "signal", "symbol": "NEM", "side": "short", "tag": "S:velez_nrb", "ref": 112.31, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:velez_gbr", "ref": 763.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_nrb", "ref": 707.72, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "MSFT", "side": "short", "tag": "S:velez_halt", "ref": 524.295, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "ORCL", "side": "short", "tag": "S:velez_nrb", "ref": 126.02, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:trend_stairs", "ref": 251.7, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:connors_rsi2", "ref": 334.49, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "BAC", "side": "short", "tag": "S:dual_regime", "ref": 50.92, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:velez_trap", "ref": 290.555, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "velez_nrb", "ref": 120.06, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "velez_nrb", "ref": 123.54, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:45:05-04:00", "kind": "signal", "symbol": "NEM", "side": "short", "tag": "S:velez_pause", "ref": 112.1, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:50:05-04:00", "kind": "signal", "symbol": "NVDA", "side": "short", "tag": "S:velez_bull180", "ref": 212.81, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:50:05-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:connors_rsi2", "ref": 334.86, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-22T11:50:05-04:00", "kind": "signal_score", "symbol": "V", "tag": "velez_2020", "score": 0.2, "risk_pct": 0.001}
+{"t": "2026-10-22T11:50:05-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_2020", "ref": 411.96, "result": "size < 1 share"}
+{"t": "2026-10-22T11:50:05-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "donchian_turtle", "ref": 123.67, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:dual_regime", "ref": 335.01, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "ABBV", "side": "short", "tag": "S:velez_nrb", "ref": 283.41, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "UNH", "side": "long", "tag": "velez_nrb", "ref": 425.94, "result": "chase: 426.02 is past the entry zone (425.94 + 0.1 ATR)"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "velez_nrb", "ref": 120.135, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "velez_nrb", "ref": 201.615, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal_score", "symbol": "PLD", "tag": "S:velez_pause", "score": 0.6, "risk_pct": 0.001}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "signal", "symbol": "PLD", "side": "short", "tag": "S:velez_pause", "ref": 125.7, "result": "ordered"}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "fill", "symbol": "PLD", "side": -1, "qty": 2, "quote": 125.7, "fill": 125.75, "slip_bps": -3.98}
+{"t": "2026-10-22T11:55:16-04:00", "kind": "ladder_open", "symbol": "PLD", "tier": 0, "risk_pct": 0.01, "qty": 2}
+{"t": "2026-10-22T11:58:12-04:00", "kind": "exit", "symbol": "DIS", "reason": "zone100", "px": 113.23, "side": 1}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "donchian_turtle", "ref": 548.73, "result": "not oversold (0/5 say oversold; need 3)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_bull180", "ref": 412.335, "result": "chase: 412.48 is past the entry zone (412.33 + 0.1 ATR)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "CVX", "side": "short", "tag": "S:velez_bt", "ref": 224.1, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "COP", "side": "short", "tag": "S:velez_bt", "ref": 144.26, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "exit", "symbol": "PLD", "reason": "signal", "px": 125.75, "side": -1}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "velez_pause", "ref": 210.05, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "velez_nrb", "ref": 508.99, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "velez_trap", "ref": 291.455, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T12:00:13-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "donchian_turtle", "ref": 306.125, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "QQQ", "side": "short", "tag": "S:velez_trap", "ref": 709.27, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "IWM", "side": "short", "tag": "S:velez_trap", "ref": 276.23, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "AAPL", "side": "long", "tag": "velez_pause", "ref": 345.69, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "ORCL", "side": "short", "tag": "S:brooks_pullback", "ref": 126.37, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:velez_trap", "ref": 327.8, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:velez_trap", "ref": 252.74, "result": "swing bot holds this stock"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "TSLA", "side": "short", "tag": "S:velez_clear", "ref": 380.85, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal_score", "symbol": "BRK.B", "tag": "velez_rbi", "score": 0.6, "risk_pct": 0.0005}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "BRK.B", "side": "long", "tag": "velez_rbi", "ref": 549.16, "result": "size < 1 share"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal_score", "symbol": "V", "tag": "velez_rbi", "score": 1.0, "risk_pct": 0.0005}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_rbi", "ref": 413.045, "result": "size < 1 share"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal_score", "symbol": "MA", "tag": "velez_rbi", "score": 0.8, "risk_pct": 0.0005}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "MA", "side": "long", "tag": "velez_rbi", "ref": 631.565, "result": "size < 1 share"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "JNJ", "side": "long", "tag": "velez_pause", "ref": 266.47, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:velez_trap", "ref": 702.035, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "velez_bt", "ref": 192.17, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "GEV", "side": "short", "tag": "S:velez_bull180", "ref": 822.155, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:velez_trap", "ref": 257.98, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "VST", "side": "short", "tag": "S:velez_bt", "ref": 142.1, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:05:12-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "donchian_turtle", "ref": 306.48, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal_score", "symbol": "NFLX", "tag": "S:velez_trap", "score": 0.2, "risk_pct": 0.001}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "NFLX", "side": "short", "tag": "S:velez_trap", "ref": 67.35, "result": "ordered"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "fill", "symbol": "NFLX", "side": -1, "qty": 3, "quote": 67.39, "fill": 67.37, "slip_bps": 2.97}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "ladder_open", "symbol": "NFLX", "tier": 0, "risk_pct": 0.01, "qty": 3}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "velez_trap", "ref": 380.93, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "HD", "side": "long", "tag": "velez_nrb", "ref": 325.48, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "JPM", "side": "short", "tag": "S:velez_flat200", "ref": 334.96, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:velez_trap", "ref": 68.8, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "CVX", "side": "short", "tag": "S:velez_nrb", "ref": 224.47, "result": "against direction (bias +1)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "WELL", "side": "long", "tag": "velez_clear", "ref": 235.675, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "velez_elephant", "ref": 210.295, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "donchian_turtle", "ref": 509.57, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T12:10:14-04:00", "kind": "signal", "symbol": "ECL", "side": "long", "tag": "brooks_pullback", "ref": 291.8, "result": "stage 3 (needs 2)"}
+{"t": "2026-10-22T12:15:16-04:00", "kind": "signal", "symbol": "TMUS", "side": "long", "tag": "velez_bt", "ref": 157.705, "result": "against direction (bias -1)"}
+{"t": "2026-10-22T12:15:16-04:00", "kind": "signal_score", "symbol": "LLY", "tag": "velez_pause", "score": 0.2, "risk_pct": 0.001}
+{"t": "2026-10-22T12:15:16-04:00", "kind": "signal", "symbol": "LLY", "side": "long", "tag": "velez_pause", "ref": 1312.77, "result": "size < 1 share"}
+{"t": "2026-10-22T12:15:16-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "velez_rbi", "ref": 210.305, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:15:16-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "velez_pause", "ref": 306.6, "result": "against direction (bias +0)"}
+{"t": "2026-10-22T12:20:12-04:00", "kind": "signal", "symbol": "V", "side": "long", "tag": "velez_nrb", "ref": 413.68, "result": "chase: 413.88 is past the entry zone (413.68 + 0.1 ATR)"}
+{"t": "2026-10-22T12:20:12-04:00", "kind": "signal", "symbol": "PG", "side": "long", "tag": "velez_vbs", "ref": 166.635, "result": "stage 3 (needs 2)"}
