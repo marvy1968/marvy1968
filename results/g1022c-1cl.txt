@@ -1,3 +1,63 @@
 $ alpaca positions --closed ALL
-started 2026-10-22 16:29:55 EDT
-RUNNING...
+started 2026-10-22 16:29:55 EDT, took 2s, exit 0
+
+equity $51,842.91  cash $28,835.33  long mv $23,007.58  short mv $0.00
+5 open positions:
+  MRK        long  qty           61  value $  8,990.79  unrealized $   -17.69
+  PM         long  qty           36  value $  7,272.00  unrealized $   100.82
+  XOM        long  qty           14  value $  2,494.53  unrealized $   -27.15
+  EOG        long  qty           14  value $  2,211.44  unrealized $   -20.26
+  COP        long  qty           14  value $  2,038.82  unrealized $     3.42
+5 open orders:
+  PM         sell 36 limit new  id sw-o-PM-20261022
+  COP        sell 14 limit new  id sw-o-COP-20261021
+  MRK        sell 61 limit new  id sw-o-MRK-20261021
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
+closed orders today for ALL:
+  RIVN   buy  44 market     filled    filled 44 @ 12.08 at 2026-10-22T19:19:53  stop None limit None  id ab-x-RIVN-1792696791133
+  SOFI   buy  36 market     filled    filled 36 @ 14.72 at 2026-10-22T19:11:29  stop None limit None  id ab-x-SOFI-1792696288462
+  RIVN   sell 44 market     filled    filled 44 @ 12.02 at 2026-10-22T19:07:31  stop None limit None  id ab-RIVN-20261022-66
+  SOFI   sell 36 market     filled    filled 36 @ 14.73 at 2026-10-22T19:07:22  stop None limit None  id ab-SOFI-20261022-66
+  RKLB   buy  10 market     filled    filled 10 @ 50.39 at 2026-10-22T18:55:52  stop None limit None  id ab-x-RKLB-1792695351818
+  RKLB   sell 10 market     filled    filled 10 @ 50.38 at 2026-10-22T18:50:55  stop None limit None  id ab-RKLB-20261022-63
+  RIVN   buy  44 market     filled    filled 44 @ 12.03 at 2026-10-22T18:35:53  stop None limit None  id ab-x-RIVN-1792694150233
+  RIVN   sell 44 market     filled    filled 44 @ 12.01 at 2026-10-22T18:31:06  stop None limit None  id ab-RIVN-20261022-59
+  RKLB   buy  10 market     filled    filled 10 @ 50.041 at 2026-10-22T18:02:23  stop None limit None  id ab-x-RKLB-1792692140354
+  SOFI   buy  36 market     filled    filled 36 @ 14.74 at 2026-10-22T18:02:21  stop None limit None  id ab-x-SOFI-1792692140248
+  RKLB   sell 10 market     filled    filled 10 @ 50.25 at 2026-10-22T18:01:02  stop None limit None  id ab-RKLB-20261022-53
+  SOFI   sell 36 market     filled    filled 36 @ 14.77 at 2026-10-22T17:55:55  stop None limit None  id ab-SOFI-20261022-52
+  SOFI   buy  36 market     filled    filled 36 @ 14.78 at 2026-10-22T17:30:59  stop None limit None  id ab-x-SOFI-1792690258717
+  SOFI   sell 36 market     filled    filled 36 @ 14.75 at 2026-10-22T17:25:51  stop None limit None  id ab-SOFI-20261022-46
+  RIVN   buy  44 market     filled    filled 44 @ 12.14 at 2026-10-22T17:10:56  stop None limit None  id ab-x-RIVN-1792689056421
+  SOFI   buy  36 market     filled    filled 36 @ 14.74 at 2026-10-22T17:10:58  stop None limit None  id ab-x-SOFI-1792689054761
+  RIVN   sell 44 market     filled    filled 44 @ 12.14 at 2026-10-22T17:05:58  stop None limit None  id ab-RIVN-20261022-42
+  SOFI   sell 36 market     filled    filled 36 @ 14.73 at 2026-10-22T17:05:54  stop None limit None  id ab-SOFI-20261022-42
+  KO     sell 2 market     filled    filled 2 @ 94.78 at 2026-10-22T16:43:12  stop None limit None  id ab-x-KO-1792687391183
+  RKLB   buy  10 market     filled    filled 10 @ 51.04 at 2026-10-22T16:40:54  stop None limit None  id ab-x-RKLB-1792687253523
+  SOFI   buy  36 market     filled    filled 36 @ 14.78 at 2026-10-22T16:40:55  stop None limit None  id ab-x-SOFI-1792687252863
+  PLD    buy  4 market     filled    filled 4 @ 125.93 at 2026-10-22T16:40:46  stop None limit None  id ab-x-PLD-1792687246424
+  DIS    sell 4 market     filled    filled 4 @ 113.12 at 2026-10-22T16:37:44  stop None limit None  id ab-x-DIS-1792687061981
+  RKLB   sell 10 market     filled    filled 10 @ 51.17 at 2026-10-22T16:37:09  stop None limit None  id ab-RKLB-20261022-36
+  SOFI   sell 36 market     filled    filled 36 @ 14.78 at 2026-10-22T16:37:07  stop None limit None  id ab-SOFI-20261022-36
+  PLD    sell 4 market     filled    filled 4 @ 125.85 at 2026-10-22T16:35:46  stop None limit None  id ab-PLD-20261022-36
+  DIS    buy  4 market     filled    filled 4 @ 113.225 at 2026-10-22T16:35:21  stop None limit None  id ab-DIS-20261022-36
+  NFLX   buy  3 market     filled    filled 3 @ 67.1 at 2026-10-22T16:31:20  stop None limit None  id ab-x-NFLX-1792686679971
+  NFLX   sell 3 market     filled    filled 3 @ 67.37 at 2026-10-22T16:10:27  stop None limit None  id ab-NFLX-20261022-31
+  PLD    buy  2 market     filled    filled 2 @ 125.93 at 2026-10-22T16:00:49  stop None limit None  id ab-x-PLD-1792684849132
+  DIS    sell 2 market     filled    filled 2 @ 113.28 at 2026-10-22T15:58:13  stop None limit None  id ab-x-DIS-1792684692414
+  PLD    sell 2 market     filled    filled 2 @ 125.75 at 2026-10-22T15:55:50  stop None limit None  id ab-PLD-20261022-28
+  KO     buy  2 market     filled    filled 2 @ 94.56 at 2026-10-22T15:25:36  stop None limit None  id ab-KO-20261022-22
+  KO     sell 2 market     filled    filled 2 @ 94.45 at 2026-10-22T15:17:18  stop None limit None  id ab-x-KO-1792682237698
+  KO     buy  2 market     filled    filled 2 @ 94.54 at 2026-10-22T15:15:34  stop None limit None  id ab-KO-20261022-20
+  PLD    buy  2 market     filled    filled 2 @ 127.42 at 2026-10-22T14:56:29  stop None limit None  id ab-x-PLD-1792680987756
+  DIS    buy  2 market     filled    filled 2 @ 112.57 at 2026-10-22T14:56:05  stop None limit None  id ab-DIS-20261022-16
+  PLD    sell 2 market     filled    filled 2 @ 127.43 at 2026-10-22T14:45:51  stop None limit None  id ab-PLD-20261022-14
+  AMZN   sell 27 stop       filled    filled 27 @ 252.8 at 2026-10-22T13:47:07  stop 252.85 limit None  id fb04bc4d-a7c3-424c-bd76-
+  GOOGL  sell 30 limit      canceled  filled 0 @ None at None  stop None limit 345.55  id sw-o-GOOGL-20261022
+  GOOGL  sell 30 stop       filled    filled 30 @ 326.14 at 2026-10-22T16:52:45  stop 326.13 limit None  id 4a646ad4-db71-46f8-8258-
+  GE     sell 30 limit      canceled  filled 0 @ None at None  stop None limit 306.54  id sw-o-GE-20261022
+  GE     sell 30 stop       filled    filled 30 @ 287.3 at 2026-10-22T13:48:16  stop 287.36 limit None  id 21728bb4-0073-4586-b3a2-
+  GOOGL  buy  30 market     filled    filled 30 @ 330.454333 at 2026-10-22T13:34:00  stop None limit None  id sw-e-GOOGL-20261022
+  GE     buy  30 market     filled    filled 30 @ 293.13 at 2026-10-22T13:32:20  stop None limit None  id sw-e-GE-20261022
+  PM     buy  36 market     filled    filled 36 @ 199.199444 at 2026-10-22T13:33:47  stop None limit None  id sw-e-PM-20261022
