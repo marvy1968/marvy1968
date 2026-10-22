@@ -1,3 +1,4 @@
 $ marv test-telegram
-started 2026-10-22 16:31:22 EDT
-RUNNING...
+started 2026-10-22 16:31:22 EDT, took 4s, exit 0
+
+Test message sent.
