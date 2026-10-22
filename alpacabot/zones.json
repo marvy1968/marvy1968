@@ -761,7 +761,10 @@
     "opening_range_breakout",
     "raschke_grail",
     "vwap_dev",
-    "williams_r"
+    "williams_r",
+    "velez_180",
+    "donchian_turtle",
+    "velez_elephant"
    ],
    "ladder": {
     "cut_fracs": [],
