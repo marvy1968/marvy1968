@@ -33,7 +33,7 @@ import pandas as pd
 
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
-from .strategies import BoxConfirm, ConsensusMR, F0Reversion, HybridBox, InBox, LienFader, OversoldConfluence, RangeBox200, RangeMR
+from .strategies import BoxConfirm, ConsensusMR, F0Reversion, HybridBox, InBox, LienFader, OversoldConfluence, VelezFx, RangeBox200, RangeMR
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
@@ -47,12 +47,15 @@ STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "c
           "hybrid_h1": {"make": HybridBox, "gran": "H1", "count": 600, "minutes": 60},
           # owner 2026-10-16 "fix the box": candles + volume + volatility confirm a break of the box -> trade the CONTINUING breakout
           # (2016-22: PF 1.54 on 120 trades before costs; the plain box fade lost, PF 0.68 on 1,308). Half size; vote from the 3-month test.
-          "confirm_h1": {"make": lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=CONFIRM_VOTE), "gran": "H1",
+          # owner 2026-10-22 Velez hybrid: with the 20/200 SMA trend only (3 months PF 0.52 -> 1.63, 2 weeks -1.27% -> -0.53%; few trades)
+          "confirm_h1": {"make": lambda: VelezFx(BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=CONFIRM_VOTE), env=True), "gran": "H1",
                          "count": 600, "minutes": 60},
           # owner 2026-10-19 "place my experts inside the range box" (fxbot.strategies.InBox: ranging pairs only, longs in the lower half / shorts in
           # the upper half, the box's stop and take-profit lines). Check (last 12 months): range mean-reversion alone PF 0.48, -98.6% -> inside the
           # box PF 0.66 (118 trades, -4.5%); consensus inside the box PF 0.44 (harmful) and F0 3 trades: those two only LOG their signals.
-          "boxmr_h1": {"make": lambda: InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5, label="range_mr"), "gran": "H1",
+          # owner 2026-10-22 Velez hybrid: + look left (no prior 20-bar high / low in the way; 3 months PF 1.84 -> 2.21, +3.22% -> +3.83%)
+          "boxmr_h1": {"make": lambda: VelezFx(InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5, label="range_mr"),
+                                               env=False, look_left=True), "gran": "H1",
                        "count": 600, "minutes": 60},
           "boxcons_h1": {"make": lambda: InBox(ConsensusMR(votes=3), tp_frac=0.5, label="consensus"), "gran": "H1", "count": 600, "minutes": 60},
           "boxf0_h4": {"make": lambda: InBox(F0Reversion(n=100), tp_frac=0.5, label="f0"), "gran": "H4", "count": 400, "minutes": 240},
