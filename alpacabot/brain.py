@@ -495,7 +495,7 @@ class VelezSignals(BoxSignals):
         a, rma, r200 = (day[k].to_numpy(float) for k in ("f_atr", "f_sma20", "f_sma200"))
         vol = day["volume"].to_numpy(float) if "volume" in day else np.full(n, np.nan)
         vavg = pd.Series(vol).rolling(20, min_periods=20).mean().shift(1).to_numpy()
-        sh = lambda x, k: np.r_[np.full(k, np.nan), x[:-k]]               # noqa: E731  (x shifted k bars back)
+        sh = lambda x, k: np.r_[np.full(min(k, len(x)), np.nan), x[:max(len(x) - k, 0)]]   # noqa: E731  (x shifted k bars back; early in the day k may exceed the bars)
         out = []
         for side in self.sides:
             # shorts: the same rules on the mirrored chart (price and averages negated; highs and lows swap)

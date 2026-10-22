@@ -368,6 +368,23 @@ class VelezResearch2Tests(unittest.TestCase):
         sig = VelezSignals(Stub(), setups=VELEZ_RESEARCH2).box_signals(d)
         self.assertTrue(any(s.i == i and s.tag == "velez_bt" for s in sig))
 
+    def test_all_setups_run_early_in_the_day(self):
+        """Live 2026-10-22: with fewer bars than a setup's look-back (12-bar flat-200 check before 10:30) every symbol errored."""
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VELEZ_ALL, VelezSignals
+        for n in (1, 5, 10, 11, 12, 13):
+            idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+            c = 100 + 0.05 * np.arange(n)
+            d = pd.DataFrame({"open": c - 0.02, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0, "f_atr": 0.3, "f_sma200": 95.0,
+                              "f_sma20": c - 0.5, "x_velez": False}, index=idx)
+
+            class Stub:
+                def signals(self, day):
+                    return []
+            for kw in ({}, {"sides": (1, -1)}, {"confirm": True, "first_only": True, "stop_atr": 1.5}):
+                VelezSignals(Stub(), setups=VELEZ_ALL, **kw).box_signals(d)        # must not raise
+
 
 class VelezHybridTests(unittest.TestCase):
     def test_trend_filter_and_one_bar_stop(self):
