@@ -1,3 +1,33 @@
 $ show fx_paper/journal-20261022.jsonl
-started 2026-10-22 08:10:21 EDT
-RUNNING...
+started 2026-10-22 08:10:21 EDT, took 0s, exit 0
+
+{"t": "2026-10-22T00:14:09+00:00", "kind": "closed_at_broker", "group": "boxmr_h1-USD_JPY-2026-10-21T1900", "trade": "492980", "reason": "closed_outside_runner", "pl": -83.14, "px": 158.207}
+{"t": "2026-10-22T00:14:09+00:00", "kind": "group_closed", "group": "boxmr_h1-USD_JPY-2026-10-21T1900"}
+{"t": "2026-10-22T01:02:27+00:00", "kind": "open", "group": "conf_h4-NZD_USD-2026-10-21T2100", "side": -1, "units": -183407, "fill": 0.57069, "stop": "0.57224", "zone_tp": "0.56840", "tp": "0.56875", "tier": 0, "risk_pct": 0.005, "bias": 0}
+{"t": "2026-10-22T01:02:27+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "short", "bar": "2026-10-21T21:00:00+00:00", "result": "opened"}
+{"t": "2026-10-22T01:12:04+00:00", "kind": "closed_at_broker", "group": "conf_h4-NZD_USD-2026-10-21T2100", "trade": "493118", "reason": "closed_outside_runner", "pl": -12.84, "px": 0.57076}
+{"t": "2026-10-22T01:12:04+00:00", "kind": "group_closed", "group": "conf_h4-NZD_USD-2026-10-21T2100"}
+{"t": "2026-10-22T03:00:44+00:00", "kind": "signal", "strategy": "boxmr_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T02:00:00+00:00", "result": "another bot holds this pair"}
+{"t": "2026-10-22T03:00:50+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T02:00:00+00:00", "close": 157.88850000000002, "stop_dist": 0.26033069536978815, "result": "paused (signal logged)"}
+{"t": "2026-10-22T04:00:20+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T03:00:00+00:00", "close": 157.7015, "stop_dist": 0.07919993141479154, "result": "paused (signal logged)"}
+{"t": "2026-10-22T04:01:03+00:00", "kind": "open", "group": "boxmr_h1-USD_JPY-2026-10-22T0300", "side": 1, "units": 570119, "fill": 157.75, "stop": "157.671", "zone_tp": "158.154", "tp": "157.849", "tier": 0, "risk_pct": 0.01, "bias": 0}
+{"t": "2026-10-22T04:01:03+00:00", "kind": "signal", "strategy": "boxmr_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T03:00:00+00:00", "result": "opened"}
+{"t": "2026-10-22T04:01:06+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T03:00:00+00:00", "close": 157.7015, "stop_dist": 0.07919993141479154, "result": "paused (signal logged)"}
+{"t": "2026-10-22T04:07:08+00:00", "kind": "loss_cut", "group": "boxmr_h1-USD_JPY-2026-10-22T0300", "against_r": 0.619, "mid": 157.692, "entry_mid": 157.741}
+{"t": "2026-10-22T04:07:08+00:00", "kind": "group_closed", "group": "boxmr_h1-USD_JPY-2026-10-22T0300", "reason": "loss_cut"}
+{"t": "2026-10-22T05:00:23+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T04:00:00+00:00", "close": 157.714, "stop_dist": 0.19166779345658824, "result": "paused (signal logged)"}
+{"t": "2026-10-22T05:00:36+00:00", "kind": "open", "group": "boxmr_h1-USD_JPY-2026-10-22T0400", "side": 1, "units": 467199, "fill": 157.734, "stop": "157.542", "zone_tp": "158.160", "tp": "157.974", "tier": 0, "risk_pct": 0.01, "bias": 0}
+{"t": "2026-10-22T05:00:36+00:00", "kind": "signal", "strategy": "boxmr_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T04:00:00+00:00", "result": "opened"}
+{"t": "2026-10-22T05:00:38+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T04:00:00+00:00", "close": 157.714, "stop_dist": 0.19166779345658824, "result": "paused (signal logged)"}
+{"t": "2026-10-22T05:01:10+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "NZD_USD", "side": "short", "bar": "2026-10-22T01:00:00+00:00", "close": 0.5689249999999999, "stop_dist": 0.00504162084263482, "result": "paused (signal logged)"}
+{"t": "2026-10-22T05:25:05+00:00", "kind": "loss_cut", "group": "boxmr_h1-USD_JPY-2026-10-22T0400", "against_r": 0.545, "mid": 157.6215, "entry_mid": 157.726}
+{"t": "2026-10-22T05:25:05+00:00", "kind": "group_closed", "group": "boxmr_h1-USD_JPY-2026-10-22T0400", "reason": "loss_cut"}
+{"t": "2026-10-22T08:00:34+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T07:00:00+00:00", "close": 157.239, "stop_dist": 0.3029771837551607, "result": "paused (signal logged)"}
+{"t": "2026-10-22T08:00:56+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T07:00:00+00:00", "close": 157.239, "stop_dist": 0.3029771837551607, "result": "paused (signal logged)"}
+{"t": "2026-10-22T09:00:36+00:00", "kind": "signal", "strategy": "boxcons_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T08:00:00+00:00", "close": 157.0205, "stop_dist": 0.3048180992011851, "result": "paused (signal logged)"}
+{"t": "2026-10-22T09:00:51+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "GBP_USD", "side": "short", "bar": "2026-10-22T05:00:00+00:00", "close": 1.34071, "stop_dist": 0.0025448677148851876, "result": "paused (signal logged)"}
+{"t": "2026-10-22T09:00:51+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_CAD", "side": "long", "bar": "2026-10-22T05:00:00+00:00", "close": 1.401735, "stop_dist": 0.0021336951234134627, "result": "paused (signal logged)"}
+{"t": "2026-10-22T09:00:52+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_CHF", "side": "long", "bar": "2026-10-22T05:00:00+00:00", "close": 0.819965, "stop_dist": 0.002261627330549841, "result": "paused (signal logged)"}
+{"t": "2026-10-22T09:01:56+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T08:00:00+00:00", "close": 157.0205, "stop_dist": 0.3048180992011851, "result": "paused (signal logged)"}
+{"t": "2026-10-22T11:00:45+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T10:00:00+00:00", "close": 156.8835, "stop_dist": 0.22997581002553602, "result": "paused (signal logged)"}
+{"t": "2026-10-22T12:01:50+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-22T11:00:00+00:00", "close": 157.0125, "stop_dist": 0.36606682359513343, "result": "paused (signal logged)"}
