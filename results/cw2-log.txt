@@ -1,3 +1,153 @@
 $ logs marv-alpaca-paper 150
-started 2026-10-22 10:33:20 EDT
-RUNNING...
+started 2026-10-22 10:33:20 EDT, took 0s, exit 0
+
+Oct 22 05:43:15 instance-stockbot python[768437]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 05:43:15 instance-stockbot python[768437]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 05:46:54 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 05:46:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 05:46:54 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 05:46:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1.300s CPU time.
+Oct 22 05:46:54 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 05:46:56 instance-stockbot python[769304]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 05:46:56 instance-stockbot python[769304]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 05:48:51 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 05:48:51 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 05:48:51 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 05:48:51 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1.348s CPU time.
+Oct 22 05:48:51 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 05:48:53 instance-stockbot python[770131]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 05:48:53 instance-stockbot python[770131]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 07:15:36 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 07:15:36 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 07:15:36 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 07:15:36 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1.651s CPU time.
+Oct 22 07:15:36 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 07:15:38 instance-stockbot python[777596]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 07:15:38 instance-stockbot python[777596]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 09:53:24 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 09:53:24 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 09:53:24 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:53:24 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1min 32.837s CPU time.
+Oct 22 09:53:24 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:53:26 instance-stockbot python[789471]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 09:53:26 instance-stockbot python[789471]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 09:55:12 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 09:55:12 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 09:55:12 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:55:12 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 29.937s CPU time.
+Oct 22 09:55:12 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:55:15 instance-stockbot python[790311]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 09:55:15 instance-stockbot python[790311]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 09:58:54 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 09:58:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 09:58:54 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:58:54 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 27.900s CPU time.
+Oct 22 09:58:54 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 09:58:56 instance-stockbot python[791250]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 09:58:56 instance-stockbot python[791250]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 10:03:22 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 10:03:22 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 10:03:22 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:03:22 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1min 3.944s CPU time.
+Oct 22 10:03:22 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:03:24 instance-stockbot python[792616]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 10:03:24 instance-stockbot python[792616]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 10:10:13 instance-stockbot python[792616]: ERROR paper loop error (continuing)
+Oct 22 10:10:13 instance-stockbot python[792616]: Traceback (most recent call last):
+Oct 22 10:10:13 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 1122, in run
+Oct 22 10:10:13 instance-stockbot python[792616]:     self.on_bar_close(now)
+Oct 22 10:10:13 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 819, in on_bar_close
+Oct 22 10:10:13 instance-stockbot python[792616]:     sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+Oct 22 10:10:13 instance-stockbot python[792616]:                            ^^^^^^^^^^^^^^^^^^
+Oct 22 10:10:13 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 211, in signals
+Oct 22 10:10:13 instance-stockbot python[792616]:     return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+Oct 22 10:10:13 instance-stockbot python[792616]:                                                   ^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:10:13 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 519, in box_signals
+Oct 22 10:10:13 instance-stockbot python[792616]:     masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+Oct 22 10:10:13 instance-stockbot python[792616]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:10:13 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 606, in _research_masks2
+Oct 22 10:10:13 instance-stockbot python[792616]:     flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+Oct 22 10:10:13 instance-stockbot python[792616]:                             ~~~~~^~~~~~~~~~~~~~
+Oct 22 10:10:13 instance-stockbot python[792616]: ValueError: operands could not be broadcast together with shapes (8,) (12,)
+Oct 22 10:15:17 instance-stockbot python[792616]: ERROR paper loop error (continuing)
+Oct 22 10:15:17 instance-stockbot python[792616]: Traceback (most recent call last):
+Oct 22 10:15:17 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 1122, in run
+Oct 22 10:15:17 instance-stockbot python[792616]:     self.on_bar_close(now)
+Oct 22 10:15:17 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 819, in on_bar_close
+Oct 22 10:15:17 instance-stockbot python[792616]:     sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+Oct 22 10:15:17 instance-stockbot python[792616]:                            ^^^^^^^^^^^^^^^^^^
+Oct 22 10:15:17 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 211, in signals
+Oct 22 10:15:17 instance-stockbot python[792616]:     return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+Oct 22 10:15:17 instance-stockbot python[792616]:                                                   ^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:15:17 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 519, in box_signals
+Oct 22 10:15:17 instance-stockbot python[792616]:     masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+Oct 22 10:15:17 instance-stockbot python[792616]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:15:17 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 606, in _research_masks2
+Oct 22 10:15:17 instance-stockbot python[792616]:     flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+Oct 22 10:15:17 instance-stockbot python[792616]:                             ~~~~~^~~~~~~~~~~~~~
+Oct 22 10:15:17 instance-stockbot python[792616]: ValueError: operands could not be broadcast together with shapes (9,) (12,)
+Oct 22 10:20:20 instance-stockbot python[792616]: ERROR paper loop error (continuing)
+Oct 22 10:20:20 instance-stockbot python[792616]: Traceback (most recent call last):
+Oct 22 10:20:20 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 1122, in run
+Oct 22 10:20:20 instance-stockbot python[792616]:     self.on_bar_close(now)
+Oct 22 10:20:20 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 819, in on_bar_close
+Oct 22 10:20:20 instance-stockbot python[792616]:     sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+Oct 22 10:20:20 instance-stockbot python[792616]:                            ^^^^^^^^^^^^^^^^^^
+Oct 22 10:20:20 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 211, in signals
+Oct 22 10:20:20 instance-stockbot python[792616]:     return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+Oct 22 10:20:20 instance-stockbot python[792616]:                                                   ^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:20:20 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 519, in box_signals
+Oct 22 10:20:20 instance-stockbot python[792616]:     masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+Oct 22 10:20:20 instance-stockbot python[792616]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:20:20 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 606, in _research_masks2
+Oct 22 10:20:20 instance-stockbot python[792616]:     flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+Oct 22 10:20:20 instance-stockbot python[792616]:                             ~~~~~^~~~~~~~~~~~~~
+Oct 22 10:20:20 instance-stockbot python[792616]: ValueError: operands could not be broadcast together with shapes (10,) (12,)
+Oct 22 10:25:09 instance-stockbot python[792616]: ERROR paper loop error (continuing)
+Oct 22 10:25:09 instance-stockbot python[792616]: Traceback (most recent call last):
+Oct 22 10:25:09 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 1122, in run
+Oct 22 10:25:09 instance-stockbot python[792616]:     self.on_bar_close(now)
+Oct 22 10:25:09 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 819, in on_bar_close
+Oct 22 10:25:09 instance-stockbot python[792616]:     sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+Oct 22 10:25:09 instance-stockbot python[792616]:                            ^^^^^^^^^^^^^^^^^^
+Oct 22 10:25:09 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 211, in signals
+Oct 22 10:25:09 instance-stockbot python[792616]:     return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+Oct 22 10:25:09 instance-stockbot python[792616]:                                                   ^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:25:09 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 519, in box_signals
+Oct 22 10:25:09 instance-stockbot python[792616]:     masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+Oct 22 10:25:09 instance-stockbot python[792616]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:25:09 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 606, in _research_masks2
+Oct 22 10:25:09 instance-stockbot python[792616]:     flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+Oct 22 10:25:09 instance-stockbot python[792616]:                             ~~~~~^~~~~~~~~~~~~~
+Oct 22 10:25:09 instance-stockbot python[792616]: ValueError: operands could not be broadcast together with shapes (11,) (12,)
+Oct 22 10:31:35 instance-stockbot python[792616]: ERROR paper loop error (continuing)
+Oct 22 10:31:35 instance-stockbot python[792616]: Traceback (most recent call last):
+Oct 22 10:31:35 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 1122, in run
+Oct 22 10:31:35 instance-stockbot python[792616]:     self.on_bar_close(now)
+Oct 22 10:31:35 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/paper.py", line 819, in on_bar_close
+Oct 22 10:31:35 instance-stockbot python[792616]:     sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+Oct 22 10:31:35 instance-stockbot python[792616]:                            ^^^^^^^^^^^^^^^^^^
+Oct 22 10:31:35 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 211, in signals
+Oct 22 10:31:35 instance-stockbot python[792616]:     return sorted(list(self.brain.signals(day)) + self.box_signals(day), key=lambda s: s.i)
+Oct 22 10:31:35 instance-stockbot python[792616]:                                                   ^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:31:35 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 519, in box_signals
+Oct 22 10:31:35 instance-stockbot python[792616]:     masks.update(self._research_masks2(day, t, o, h, l, c, a, ma, m200, env, up, sh))
+Oct 22 10:31:35 instance-stockbot python[792616]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 22 10:31:35 instance-stockbot python[792616]:   File "/opt/marv-bot/alpacabot/brain.py", line 606, in _research_masks2
+Oct 22 10:31:35 instance-stockbot python[792616]:     flat200 = win & (np.abs(m200 - sh(m200, 12)) <= 0.1 * a) & (l <= m200 + 0.3 * a) & (c > m200) & up & ((c - l) >= 0.5 * rng)
+Oct 22 10:31:35 instance-stockbot python[792616]:                             ~~~~~^~~~~~~~~~~~~~
+Oct 22 10:31:35 instance-stockbot python[792616]: ValueError: operands could not be broadcast together with shapes (10,) (12,)
+Oct 22 10:32:23 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 10:32:23 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 10:32:23 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:32:23 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 3min 21.806s CPU time.
+Oct 22 10:32:23 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:32:29 instance-stockbot python[795139]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 10:32:29 instance-stockbot python[795139]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
+Oct 22 10:33:02 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 22 10:33:02 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 22 10:33:02 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:33:02 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 16.239s CPU time.
+Oct 22 10:33:02 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 22 10:33:09 instance-stockbot python[795897]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 22 10:33:09 instance-stockbot python[795897]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD']
