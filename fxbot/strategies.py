@@ -545,6 +545,42 @@ class TightStop:
         return f
 
 
+class VelezFx:
+    """Owner 2026-10-22: Oliver Velez's context rules on any forex strategy's entries (the Alpaca brain.VelezHybrid, ported):
+      env        trade WITH the simple averages: longs only while the 20 SMA rises over the 200, shorts only while it falls under it
+      look_left  skip an entry when the prior 20-bar high (longs) / low (shorts) sits between the close and 1.25 x the stop distance
+      no_chase   skip "wide state" entries: close more than 2 ATR from the 20 SMA."""
+
+    def __init__(self, base, env: bool = True, look_left: bool = False, no_chase: bool = False):
+        self.base, self.env, self.look_left, self.no_chase = base, env, look_left, no_chase
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + " +velez" + ("E" if env else "") + ("L" if look_left else "") + ("C" if no_chase else "")
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        c = m["close"]
+        ma, m200 = c.rolling(20).mean(), c.rolling(200).mean()
+        a = atr(m, 14)
+        lo_ok = pd.Series(True, index=m.index)
+        sh_ok = pd.Series(True, index=m.index)
+        if self.env:
+            rising = ma > ma.shift(3)
+            lo_ok &= (ma > m200) & rising
+            sh_ok &= (ma < m200) & ~rising
+        if self.no_chase:
+            near = (c - ma).abs() <= 2.0 * a
+            lo_ok &= near
+            sh_ok &= near
+        if self.look_left:
+            hi20, lo20 = m["high"].rolling(20).max().shift(1), m["low"].rolling(20).min().shift(1)
+            reach = 1.25 * f["stop"]
+            lo_ok &= ~((hi20 > c) & (hi20 < c + reach))
+            sh_ok &= ~((lo20 < c) & (lo20 > c - reach))
+        f["long"] = f["long"] & lo_ok.fillna(False)
+        f["short"] = f["short"] & sh_ok.fillna(False)
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,

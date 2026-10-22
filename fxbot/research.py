@@ -365,3 +365,25 @@ def confluence_check(data_by_gran: dict, a, b) -> list[str]:
             out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                        f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
     return out
+
+
+def velez_fx_check(data_h1: dict, data_d: dict, a, b) -> list[str]:
+    """Owner 2026-10-22 ("hybrid our OANDA experts with the Velez list to optimize the weaker experts"): every live / logged forex strategy with
+    the live exits (cut 0.5R, out at 1.25R), alone and with Velez's trend / look-left / no-chase rules (strategies.VelezFx)."""
+    from .strategies import ConsensusMR, F0Reversion, HybridBox, OversoldConfluence, RangeBox200, RangeMR, VelezFx
+    rows = {"lien_h1": (lambda: LienFader(break_pips=20), data_h1), "hybrid_h1": (lambda: HybridBox(), data_h1),
+            "confirm_h1": (lambda: BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0), data_h1),
+            "boxmr_h1": (lambda: InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5), data_h1),
+            "conf_d1": (lambda: OversoldConfluence(), data_d), "box_h1 (log-only)": (lambda: RangeBox200(), data_h1)}
+    variants = (("as live", {}), ("+ Velez trend", {"env": True}), ("+ look left", {"env": False, "look_left": True}),
+                ("+ no chase", {"env": False, "no_chase": True}), ("+ trend + look left", {"env": True, "look_left": True}),
+                ("+ all three", {"env": True, "look_left": True, "no_chase": True}))
+    out = []
+    for name, (make, data) in rows.items():
+        out.append(f"### {name}")
+        for label, kw in variants:
+            base = make() if not kw else VelezFx(make(), **kw)
+            m = run(TightStop(base, 0.50, 1.25), data, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out

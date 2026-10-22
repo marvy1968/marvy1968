@@ -72,3 +72,24 @@ class OversoldConfluenceTests(unittest.TestCase):
         m2 = m.copy()
         m2.loc[m2.index[-1], ["open", "high", "low", "close"]] = [1.115, 1.1155, 1.1145, 1.115]
         self.assertTrue(bool(OversoldConfluence().frame(m2)["short"].iloc[-1]))
+
+
+class VelezFxTests(unittest.TestCase):
+    def test_trend_filter_blocks_counter_trend_entries(self):
+        import numpy as np
+        import pandas as pd
+        from fxbot.strategies import VelezFx
+
+        class Always:
+            max_bars = 10
+
+            def frame(self, m):
+                t = pd.Series(True, index=m.index)
+                return pd.DataFrame({"long": t, "short": t, "exit_long": ~t, "exit_short": ~t, "stop": 0.001, "rank": 0.0}, index=m.index)
+        n = 260
+        idx = pd.date_range("2026-01-01", periods=n, freq="h", tz="UTC")
+        c = 1.10 + 0.0002 * np.arange(n)                       # an uptrend: the 20 SMA rises over the 200
+        m = pd.DataFrame({"open": c, "high": c + 0.0003, "low": c - 0.0003, "close": c}, index=idx)
+        f = VelezFx(Always(), env=True).frame(m)
+        self.assertTrue(bool(f["long"].iloc[-1]))
+        self.assertFalse(bool(f["short"].iloc[-1]))
