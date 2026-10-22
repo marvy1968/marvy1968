@@ -1,0 +1,2 @@
+# timeout 1800
+alpaca run-all --phase validate --families oversold_swing
