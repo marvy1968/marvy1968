@@ -47,6 +47,21 @@ class RestBroker:
     def equity(self) -> float:
         return float(self._req("GET", f"{TRADE_URL}/account").json()["equity"])
 
+    def account_day_pnl(self) -> tuple[float, float]:
+        """(fraction, dollars) the WHOLE account is up or down today: equity vs yesterday's closing equity (Alpaca last_equity), less today's
+        cash deposits / withdrawals (activities CSD / CSW), so a transfer is not counted as a gain or a loss."""
+        acct = self._req("GET", f"{TRADE_URL}/account").json()
+        eq, last = float(acct["equity"]), float(acct.get("last_equity") or acct["equity"])
+        net = 0.0
+        try:
+            day = datetime.now(ET).date().isoformat()
+            for x in self._req("GET", f"{TRADE_URL}/account/activities", params={"activity_types": "CSD,CSW", "date": day}).json() or []:
+                net += float(x.get("net_amount") or 0)
+        except (requests.RequestException, ValueError, TypeError):
+            pass
+        pnl = eq - last - net
+        return (pnl / last if last > 0 else 0.0), pnl
+
     def clock_open(self) -> bool:
         return bool(self.clock()["is_open"])
 
@@ -429,6 +444,38 @@ class PaperRunner:
         self.heat, self.heat_day = gates.heat_map(daily), now_et.date()
         self.refresh_zonemap(now_et)
         self.journal("heat_map", **{k: gates.state_on(v, now_et.date()) for k, v in self.heat.items()})
+
+    def account_breaker(self, now_et: datetime) -> str | None:
+        """Owner 2026-10-22: when the WHOLE account (every bot on it, transfers excluded) is down account_breaker_pct today, the stock bot
+        opens nothing new for the rest of the day; exits, stops and position management carry on, and the bot's own 2% breaker stays.
+        Locked until the next trading day (state file, so a restart keeps it). Checked at most once a minute."""
+        lim = self.zone_config().get("account_breaker_pct")
+        if not lim or not hasattr(self.raw, "account_day_pnl"):
+            return None
+        today = now_et.date().isoformat()
+        f = self.dir / "account_breaker.json"
+        try:
+            lock = json.loads(f.read_text())
+        except (OSError, ValueError):
+            lock = {}
+        if lock.get("day") == today:
+            return f"account breaker: account {lock['pct']:+.2%} today (limit -{float(lim):.2%}), no new entries until tomorrow"
+        last = getattr(self, "_acct_chk", None)
+        if last and last[0] == today and (now_et - last[1]).total_seconds() < 60:
+            return None
+        try:
+            pct, pnl = self.raw.account_day_pnl()
+        except Exception:                                            # a failed read never blocks or crashes the loop
+            log.warning("account breaker: could not read the account", exc_info=True)
+            return None
+        self._acct_chk = (today, now_et)
+        if pct <= -float(lim):
+            f.write_text(json.dumps({"day": today, "pct": round(pct, 5), "pnl": round(pnl, 2), "at": now_et.isoformat()}))
+            self.journal("account_breaker", pct=round(pct, 5), pnl=round(pnl, 2), limit=float(lim))
+            log.warning("ACCOUNT BREAKER: whole account %+.2f%% ($%+.0f) today, limit -%.2f%%: no new entries until tomorrow",
+                        100 * pct, pnl, 100 * float(lim))
+            return f"account breaker: account {pct:+.2%} today (limit -{float(lim):.2%}), no new entries until tomorrow"
+        return None
 
     def zone_config(self) -> dict:
         """Live zone settings: <state>/zones.json (written with the defaults on first use; the 2-hour optimizer edits it). LIVE by the
@@ -828,6 +875,12 @@ class PaperRunner:
                     brain = VelezSignals(brain, tuple(rp["setups"]), float(rp.get("tp_r", 1.5)), int(rp.get("hold", 18)),   # confirmation,
                                          sides=tuple(rp.get("sides") or [1]), stop_atr=float(rp.get("stop_atr", 0.0)),    # one per day)
                                          confirm=bool(rp.get("confirm", False)), first_only=bool(rp.get("first_only", False)))
+            why = self.account_breaker(now_et)
+            if why:                                                       # owner 2026-10-22: account-wide -1% -> no new entries today
+                for s_ in [x for x in brain.signals(day) if x.i == len(day) - 1][:1]:
+                    self.journal("signal", symbol=sym, side="short" if s_.side == -1 else "long", tag=s_.tag,
+                                 ref=float(day["close"].iloc[-1]), result=why)
+                continue
             vzs = self.zone_config().get("vz_systems") or {}
             if vzs.get("live") and self.zone_config().get("live"):                      # owner 2026-10-22: the redesigned Velez systems
                 from .brain import VZ_DAY, VZ_SCALP, VelezSignals
@@ -835,7 +888,13 @@ class PaperRunner:
                     brain = VelezSignals(brain, **VZ_SCALP)
                 if vzs.get("day", True):
                     brain = VelezSignals(brain, **VZ_DAY)
-            sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
+            sigs = [s for s in brain.signals(day) if s.i == len(day) - 1]
+            vz_shadow = set(self.zone_config().get("vz_shadow") or [])     # owner 2026-10-22: Velez systems in shadow (raw signals logged,
+            for s_ in sigs:                                                # never ordered, never taking the bar from a live expert)
+                if (s_.tag or "").removeprefix("S:") in vz_shadow:
+                    self.journal("signal", symbol=sym, side="short" if s_.side == -1 else "long", tag=s_.tag, ref=float(day["close"].iloc[-1]),
+                                 stop_dist=round(float(s_.stop_dist), 4), result="vz shadow (raw signal, not ordered)")
+            sig = next((s for s in sigs if (s.tag or "").removeprefix("S:") not in vz_shadow), None)
             if not sig:
                 continue
             _es = self.zone_config().get("entry_symbols")

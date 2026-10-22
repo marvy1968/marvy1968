@@ -335,6 +335,30 @@ def run_all(a) -> int:
                         lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, total {m_['longs_r']:+}R, "
                                      f"return {m_['return_pct']:+}% at 0.5% risk")
                         res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
+            elif fam == "swing_open_delay":         # owner 2026-10-22: oversold (and funnel) swing entries at 10:00 instead of the open
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from .universe import STOCKS as _ST
+                end2 = date.today()
+                fb, mb = {}, {}
+                for s_ in _ST:
+                    try:
+                        fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                        mb[s_] = load(s_, "1Min", end2 - _td(days=95), end2, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                res = {"family": fam}
+                lines.append(f"- {len(mb)} stocks with 1-minute bars (entries without them are left out of every row, so rows compare like for like)")
+                rules_ = {"OVERSOLD live": {"oversold": True, "os_stage": None, "tp_r": 1.25, "stop_frac": 0.75},
+                          "FUNNEL live": {"stop_frac": 0.5, "tp_r": 1.25, "v_tail": True}}
+                for label, a_ in (("1 month", end2 - _td(days=31)), ("3 months", end2 - _td(days=92))):
+                    for nm, rules in rules_.items():
+                        for when in ("09:31", "10:00", "10:30"):
+                            m_ = funnel_bt({k: v for k, v in fb.items() if k in mb}, a_, end2 - _td(days=1), sides=("long",), rules=rules,
+                                           entry_at=when, minute=mb)
+                            lines.append(f"- {label} | {nm} | enter {when}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, "
+                                         f"total {m_['longs_r']:+}R, return {m_['return_pct']:+}%, exits {m_['exits']}")
+                            res[f"{label} | {nm} | {when}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "velez_swing_redesign":     # owner 2026-10-22: the Velez-style swing trader (funnel velez_swing), large / mid / small caps
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt

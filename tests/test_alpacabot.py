@@ -790,6 +790,33 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertEqual(r.last_exit_by[("AAPL", "vwap_dev")], datetime(2026, 10, 12, 10, 5, tzinfo=paper.ET))
             self.assertEqual(r.zone_config().get("expert_cooldown_min"), 10)
 
+    def test_account_breaker_locks_the_day(self):
+        """Owner 2026-10-22: the whole account down 1% -> no new entries for the rest of the day (persisted); 0.9% down does nothing."""
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            pct = -0.009
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.02)
+            def clock_open(self): return True
+            def account_day_pnl(self): return self.pct, self.pct * 50000
+
+        t = lambda h, m: datetime(2026, 10, 22, h, m, tzinfo=paper.ET)
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "zones_override.json").write_text(json.dumps({"account_breaker_pct": 0.01}))
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            self.assertIsNone(r.account_breaker(t(10, 0)))
+            b.pct = -0.012
+            self.assertIsNone(r.account_breaker(t(10, 0)))                    # checked at most once a minute
+            self.assertIn("-1.20%", r.account_breaker(t(10, 2)))
+            b.pct = 0.0                                                         # recovered: still locked today, also after a restart
+            r2 = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            self.assertIn("no new entries", r2.account_breaker(t(14, 0)))
+            self.assertIsNone(r2.account_breaker(datetime(2026, 10, 23, 9, 35, tzinfo=paper.ET)))   # next session: reset
+
     def test_velez_forward_scorecard(self):
         from alpacabot import paper
         rows = [{"symbol": "DIS", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": -10.0, "r": -1.0, "reason": "stop", "peak_r": 0.0, "mae_r": 1.0},

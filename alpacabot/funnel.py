@@ -253,10 +253,14 @@ def market_down(spy: pd.DataFrame) -> pd.Series:
 
 def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005, slip_bps: float = 5.0, rules: dict | None = None,
              sides: tuple = ("long", "short"), short_ok=None, short_rules: dict | None = None,
-             short_exit_vote: bool = True, no_stop: bool = False) -> dict:
+             short_exit_vote: bool = True, no_stop: bool = False, entry_at: str | None = None, minute: dict | None = None) -> dict:
     """Signals on days start..end: enter at the next open (a gap through the stop or past the take-profit is skipped, like the live runner),
     stop first then take-profit inside a day (conservative), the sell vote at a close exits at the next open. One position per stock at a
-    time. Result per trade in R; return = sum(R) x risk_pct (no portfolio cap, so it overstates exposure on busy days)."""
+    time. Result per trade in R; return = sum(R) x risk_pct (no portfolio cap, so it overstates exposure on busy days).
+    entry_at = "HH:MM" (owner 2026-10-22, "no new entries before 10:00"): enter at that minute's open on the entry day instead of the 09:30 open,
+    from `minute` = {symbol: 1-minute bars}; skipped when price already went through the stop or the take-profit before then (the live
+    runner skips a trade whose stop is already gone), and only the rest of that day counts for the stop / take-profit. A stock or day without
+    minute bars is skipped."""
     slip = slip_bps / 1e4
     trades = []
     for sym, d in bars.items():
@@ -292,17 +296,35 @@ def backtest(bars: dict[str, pd.DataFrame], start, end, risk_pct: float = 0.005,
                 continue
             tag = "long" if side == 1 else "short"
             stop, tp = float(f[f"{tag}_stop"].iloc[i]), float(f[f"{tag}_tp"].iloc[i])
-            fill = o[i + 1] * (1 + side * slip)
+            o1, h1, l1 = o[i + 1], h[i + 1], l[i + 1]                  # the entry day as the trade sees it
+            if entry_at:
+                mb = (minute or {}).get(sym)
+                if mb is None or not len(mb):
+                    i += 1
+                    continue
+                day_ = mb[mb.index.date == dates[i + 1]]
+                t_ = day_.index.strftime("%H:%M")
+                pre, post = day_[(t_ >= "09:30") & (t_ < entry_at)], day_[t_ >= entry_at]
+                if not len(post) or not len(pre):
+                    i += 1
+                    continue
+                if (side == 1 and (pre["low"].min() <= stop or pre["high"].max() >= tp)) or \
+                        (side == -1 and (pre["high"].max() >= stop or pre["low"].min() <= tp)):
+                    i += 1                                       # gone through the stop (or the target) before the entry time
+                    continue
+                o1, h1, l1 = float(post["open"].iloc[0]), float(post["high"].max()), float(post["low"].min())
+            fill = o1 * (1 + side * slip)
             risk = side * (fill - stop)
             if risk <= 0 or side * (tp - fill) <= 0:
                 i += 1
                 continue
             j, px, why = i + 1, None, ""
             while j < n:
-                if not no_stop and ((side == 1 and l[j] <= stop) or (side == -1 and h[j] >= stop)):
-                    px, why = (min(stop, o[j]) if side == 1 else max(stop, o[j])), "stop"
-                elif (side == 1 and h[j] >= tp) or (side == -1 and l[j] <= tp):
-                    px, why = (max(tp, o[j]) if side == 1 else min(tp, o[j])), "tp"
+                oj, hj, lj = (o1, h1, l1) if j == i + 1 else (o[j], h[j], l[j])
+                if not no_stop and ((side == 1 and lj <= stop) or (side == -1 and hj >= stop)):
+                    px, why = (min(stop, oj) if side == 1 else max(stop, oj)), "stop"
+                elif (side == 1 and hj >= tp) or (side == -1 and lj <= tp):
+                    px, why = (max(tp, oj) if side == 1 else min(tp, oj)), "tp"
                 elif bool(f[f"{tag}_exit"].iloc[j]) and j + 1 < n:
                     j, px, why = j + 1, o[j + 1], "signal"
                 elif j == n - 1:
