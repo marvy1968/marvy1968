@@ -1,3 +1,16 @@
 $ alpaca paper-trades --expert velez_rbi
-started 2026-10-22 09:56:22 EDT
-RUNNING...
+started 2026-10-22 09:56:22 EDT, took 1s, exit 0
+
+closed=2026-10-20T10:28:08.108643-04:00 symbol=MA side=long qty=21 entry=621.79 exit=620.765 pnl=-21.52 r=-1.266 peak_r=0.803 reason=stop partial=None
+closed=2026-10-20T11:51:49.046793-04:00 symbol=DIS side=long qty=120 entry=111.37 exit=111.195 pnl=-21.0 r=-1.037 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T11:56:12.864679-04:00 symbol=MA side=long qty=21 entry=623.869524 exit=622.88 pnl=-20.78 r=-1.382 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T11:56:28.299301-04:00 symbol=ABBV side=long qty=41 entry=289.39 exit=289.05 pnl=-13.94 r=-1.281 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T12:30:17.305730-04:00 symbol=DIS side=long qty=120 entry=111.312833 exit=111.32 pnl=0.86 r=0.043 peak_r=0.043 reason=signal partial=None
+closed=2026-10-20T12:31:32.247767-04:00 symbol=ABBV side=long qty=46 entry=289.34 exit=289.02 pnl=-14.72 r=-1.039 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T13:48:04.432216-04:00 symbol=MSFT side=long qty=25 entry=534.05 exit=533.41 pnl=-16.0 r=-1.171 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T14:02:12.472575-04:00 symbol=ABBV side=long qty=46 entry=290.68 exit=290.45 pnl=-10.58 r=-1.172 peak_r=0.917 reason=stop partial=None
+closed=2026-10-20T14:07:14.396992-04:00 symbol=DIS side=long qty=120 entry=111.78 exit=111.71 pnl=-8.4 r=-1.058 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T14:36:34.360052-04:00 symbol=DIS side=long qty=119 entry=111.81 exit=111.59 pnl=-26.18 r=-1.012 peak_r=0.0 reason=stop partial=None
+closed=2026-10-20T15:15:14.425517-04:00 symbol=CVX side=long qty=59 entry=224.861017 exit=224.645 pnl=-12.75 r=-0.675 peak_r=0.559 reason=signal partial=None
+closed=2026-10-21T14:48:25.107110-04:00 symbol=CVX side=long qty=2 entry=226.98 exit=227.33 pnl=0.7 r=1.615 peak_r=1.615 reason=zone100 partial=None
+12 rows, P&L $-164.31
