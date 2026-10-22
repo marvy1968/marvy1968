@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families hybrid_tune_fx12
+started 2026-10-21 21:51:10 EDT
+RUNNING...
