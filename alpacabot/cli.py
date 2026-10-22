@@ -928,6 +928,7 @@ def main(argv=None) -> int:
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
     pt = sub.add_parser("paper-trades", help="read-only: the intraday ledger rows, optionally for one expert tag (e.g. velez_rbi, S:velez_bt)")
     pt.add_argument("--expert"); pt.add_argument("--state", default="state/alpaca_paper")
+    pt.add_argument("--by-expert", action="store_true", help="one line per expert: the stocks it traded, trades and P&L")
     sub.add_parser("paper-flatten", help="close the intraday bot's own positions now (the running service does it within 15 s)").add_argument(
         "--state", default="state/alpaca_paper")
     pz = sub.add_parser("paper-pause", help="on: the intraday bot takes no new entries (open trades keep their exits); off: resume")
@@ -1105,9 +1106,20 @@ def main(argv=None) -> int:
     if a.cmd == "paper-trades":
         rows = [json.loads(l) for l in (Path(a.state) / "trades.jsonl").read_text().splitlines() if l.strip()]
         rows = [t for t in rows if a.expert is None or t.get("expert") == a.expert]
-        keys = ("closed", "symbol", "side", "qty", "entry", "exit", "pnl", "r", "peak_r", "reason", "partial")
-        for t in rows:
-            print(" ".join(f"{k}={t.get(k)}" for k in keys))
+        keys = ("closed", "expert", "symbol", "side", "qty", "entry", "exit", "pnl", "r", "peak_r", "reason", "partial")
+        if a.by_expert:                                   # one line per expert: its stocks (trades, P&L) and its total
+            from collections import defaultdict
+            agg = defaultdict(lambda: defaultdict(lambda: [0, 0.0]))
+            for t in rows:
+                if not t.get("partial"):
+                    agg[t.get("expert")][t["symbol"]][0] += 1
+                agg[t.get("expert")][t["symbol"]][1] += t["pnl"]
+            for ex, syms in sorted(agg.items(), key=lambda kv: -sum(v[0] for v in kv[1].values())):
+                n, pl = sum(v[0] for v in syms.values()), sum(v[1] for v in syms.values())
+                print(f"{ex}: {n} trades, P&L ${pl:+,.2f} | " + ", ".join(f"{s} {v[0]} (${v[1]:+,.0f})" for s, v in sorted(syms.items(), key=lambda kv: -kv[1][0])))
+        else:
+            for t in rows:
+                print(" ".join(f"{k}={t.get(k)}" for k in keys))
         print(f"{len(rows)} rows, P&L ${sum(t['pnl'] for t in rows):+,.2f}")
         return 0
     if a.cmd == "paper-report":
