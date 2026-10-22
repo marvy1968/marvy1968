@@ -33,7 +33,7 @@ import pandas as pd
 
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
-from .strategies import BoxConfirm, ConsensusMR, F0Reversion, HybridBox, InBox, LienFader, OversoldConfluence, VelezFx, RangeBox200, RangeMR
+from .strategies import BoxConfirm, ConsensusMR, F0Reversion, HybridBox, InBox, LienFader, OversoldConfluence, PristineFx, VelezFx, RangeBox200, RangeMR
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
@@ -61,7 +61,11 @@ STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "c
           "boxf0_h4": {"make": lambda: InBox(F0Reversion(n=100), tp_frac=0.5, label="f0"), "gran": "H4", "count": 400, "minutes": 240},
           # owner 2026-10-22 (daily_confluence_strategy.py): majority of 4 oversold / overbought readings + volume, daily and 4-hour bars, 0.5%
           "conf_d1": {"make": lambda: OversoldConfluence(), "gran": "D", "count": 300, "minutes": 1440},
-          "conf_h4": {"make": lambda: OversoldConfluence(), "gran": "H4", "count": 400, "minutes": 240}}     # owner's range box (ranging pairs); levels = the
+          "conf_h4": {"make": lambda: OversoldConfluence(), "gran": "H4", "count": 400, "minutes": 240},
+          # owner 2026-10-22 (Pristine / iFundTraders FX research): Changing of the Guard on 4-hour bars - 3 red bars then a green bar closing
+          # above the prior high (shorts mirror), live exits. 2 weeks: 15 trades 73% PF 6.06 +10.7%; 3 months: 89 trades 38% PF 1.52 +13.8%
+          # (the only Pristine rule profitable in both windows; on 1-hour bars it lost, PF 0.35). 0.5% risk.
+          "cog_h4": {"make": lambda: PristineFx("cog", "stop"), "gran": "H4", "count": 400, "minutes": 240}}     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -75,8 +79,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
           # box_h1 (the plain fade, 0 for 6 live, PF 0.68 in 2016-22) now only LOGS its signals; confirm_h1 replaces it (owner, 2026-10-16)
-          "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
-          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
+          "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
           # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.

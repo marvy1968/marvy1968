@@ -157,7 +157,7 @@ class FxLiveTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
-            self.assertEqual(r.cfg["trade"], ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1"])   # F0, the plain box and the other in-box experts only log
+            self.assertEqual(r.cfg["trade"], ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4"])   # F0, the plain box and the other in-box experts only log
             self.assertEqual(r.cfg["risk_by_strategy"]["confirm_h1"], 0.005)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
