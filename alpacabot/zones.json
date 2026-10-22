@@ -626,6 +626,8 @@
    "velez_halt": 0.0005,
    "velez_vbs": 0.001,
    "velez_rbi": 0.0005,
+   "vz_scalp": 0.005,
+   "vz_day": 0.005,
    "velez_gift": 0.001,
    "velez_nrb": 0.001,
    "velez_orb": 0.001,
@@ -763,7 +765,9 @@
     "williams_r",
     "velez_180",
     "donchian_turtle",
-    "velez_elephant"
+    "velez_elephant",
+    "vz_scalp",
+    "vz_day"
    ],
    "ladder": {
     "cut_fracs": [],
@@ -781,7 +785,8 @@
   "neg_exit_min": 10,
   "expert_cooldown_min": 10,
   "vz_systems": {"_note": "owner 2026-10-22 redesign: the Velez-style scalper (vz_scalp) and day trader (vz_day), brain.VZ_SCALP / VZ_DAY. Owner 2026-10-22 evening: shadow ON, paper orders OFF (vz_shadow below); remove a tag from vz_shadow to let it order.", "live": true, "scalp": true, "day": true},
-  "vz_shadow": ["vz_scalp", "vz_day"],
+  "vz_shadow": [],
+  "_note_vz_shadow": "owner 2026-10-22 night ('I want all new experts operating in the am'): vz_scalp and vz_day place paper orders from 2026-10-23 at 0.5% risk (risk_by_expert), one take-profit (velez_hybrid ladder list), 10-minute under-water exit, same-expert cooldown, account breaker; new entries still only in entry_symbols. Put a tag back here to return it to shadow.",
   "account_breaker_pct": 0.01,
   "_note_account_breaker_pct": "owner 2026-10-22: the WHOLE account down 1% today (equity vs yesterday close, transfers excluded) -> no new stock-bot entries until the next trading day; exits / stops / management continue; the bot's own 2% breaker stays. Every blocked signal is logged with the account loss.",
   "entry_symbols": ["SOFI", "RKLB", "HIMS", "RIVN", "MARA"],
