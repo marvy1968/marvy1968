@@ -1,3 +1,60 @@
 $ alpaca run-all --phase validate --families swing_velez
-started 2026-10-22 05:39:50 EDT
-RUNNING...
+started 2026-10-22 05:39:50 EDT, took 115s, exit 0
+
+daily data ready
+- FUNNEL | 2 weeks | as live: 7 trades, win 0.429, PF 4.02, total +7.59R, return +3.8% at 0.5% risk
+- FUNNEL | 2 weeks | + trend (20 over 200): 5 trades, win 0.4, PF 6.21, total +7.77R, return +3.89% at 0.5% risk
+- FUNNEL | 2 weeks | + look left: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- FUNNEL | 2 weeks | + no chase: 7 trades, win 0.429, PF 4.02, total +7.59R, return +3.8% at 0.5% risk
+- FUNNEL | 2 weeks | + tail bar: 2 trades, win 1.0, PF inf, total +8.42R, return +4.21% at 0.5% risk
+- FUNNEL | 2 weeks | + 3-5 bar dip: 3 trades, win 0.333, PF 0.7, total -0.35R, return -0.18% at 0.5% risk
+- FUNNEL | 2 weeks | + trend + look left: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- FUNNEL | 2 weeks | + look left + no chase: 0 trades, win None, PF None, total +0R, return +0.0% at 0.5% risk
+- FUNNEL | 3 months | as live: 82 trades, win 0.354, PF 0.99, total -0.66R, return -0.33% at 0.5% risk
+- FUNNEL | 3 months | + trend (20 over 200): 64 trades, win 0.359, PF 0.94, total -2.1R, return -1.05% at 0.5% risk
+- FUNNEL | 3 months | + look left: 17 trades, win 0.412, PF 1.15, total +1.56R, return +0.78% at 0.5% risk
+- FUNNEL | 3 months | + no chase: 79 trades, win 0.354, PF 1.04, total +1.83R, return +0.91% at 0.5% risk
+- FUNNEL | 3 months | + tail bar: 32 trades, win 0.438, PF 1.8, total +12.99R, return +6.49% at 0.5% risk
+- FUNNEL | 3 months | + 3-5 bar dip: 51 trades, win 0.314, PF 0.85, total -5.4R, return -2.7% at 0.5% risk
+- FUNNEL | 3 months | + trend + look left: 10 trades, win 0.4, PF 1.21, total +1.13R, return +0.57% at 0.5% risk
+- FUNNEL | 3 months | + look left + no chase: 13 trades, win 0.462, PF 1.6, total +4.36R, return +2.18% at 0.5% risk
+- FUNNEL | 12 months | as live: 329 trades, win 0.368, PF 1.25, total +48.65R, return +24.32% at 0.5% risk
+- FUNNEL | 12 months | + trend (20 over 200): 245 trades, win 0.355, PF 1.19, total +26.92R, return +13.46% at 0.5% risk
+- FUNNEL | 12 months | + look left: 56 trades, win 0.446, PF 1.91, total +27.62R, return +13.81% at 0.5% risk
+- FUNNEL | 12 months | + no chase: 309 trades, win 0.356, PF 1.2, total +36.01R, return +18.0% at 0.5% risk
+- FUNNEL | 12 months | + tail bar: 99 trades, win 0.374, PF 1.42, total +24.07R, return +12.04% at 0.5% risk
+- FUNNEL | 12 months | + 3-5 bar dip: 195 trades, win 0.359, PF 1.17, total +20.36R, return +10.18% at 0.5% risk
+- FUNNEL | 12 months | + trend + look left: 38 trades, win 0.474, PF 2.37, total +25.1R, return +12.55% at 0.5% risk
+- FUNNEL | 12 months | + look left + no chase: 33 trades, win 0.394, PF 1.32, total +6.42R, return +3.21% at 0.5% risk
+- OVERSOLD | 2 weeks | as live: 7 trades, win 0.857, PF 11.32, total +2.79R, return +1.39% at 0.5% risk
+- OVERSOLD | 2 weeks | + trend (20 over 200): 1 trades, win 1.0, PF inf, total +0.33R, return +0.17% at 0.5% risk
+- OVERSOLD | 2 weeks | + look left: 7 trades, win 0.857, PF 11.32, total +2.79R, return +1.39% at 0.5% risk
+- OVERSOLD | 2 weeks | + no chase: 2 trades, win 1.0, PF inf, total +0.38R, return +0.19% at 0.5% risk
+- OVERSOLD | 2 weeks | + tail bar: 2 trades, win 1.0, PF inf, total +0.55R, return +0.28% at 0.5% risk
+- OVERSOLD | 2 weeks | + 3-5 bar dip: 4 trades, win 0.75, PF 2.23, total +0.33R, return +0.17% at 0.5% risk
+- OVERSOLD | 2 weeks | + trend + look left: 1 trades, win 1.0, PF inf, total +0.33R, return +0.17% at 0.5% risk
+- OVERSOLD | 2 weeks | + look left + no chase: 2 trades, win 1.0, PF inf, total +0.38R, return +0.19% at 0.5% risk
+- OVERSOLD | 3 months | as live: 72 trades, win 0.569, PF 1.27, total +5.02R, return +2.51% at 0.5% risk
+- OVERSOLD | 3 months | + trend (20 over 200): 2 trades, win 0.5, PF 2.76, total +0.21R, return +0.11% at 0.5% risk
+- OVERSOLD | 3 months | + look left: 72 trades, win 0.569, PF 1.27, total +5.02R, return +2.51% at 0.5% risk
+- OVERSOLD | 3 months | + no chase: 35 trades, win 0.514, PF 0.67, total -4.34R, return -2.17% at 0.5% risk
+- OVERSOLD | 3 months | + tail bar: 18 trades, win 0.444, PF 0.86, total -0.85R, return -0.42% at 0.5% risk
+- OVERSOLD | 3 months | + 3-5 bar dip: 59 trades, win 0.525, PF 1.08, total +1.32R, return +0.66% at 0.5% risk
+- OVERSOLD | 3 months | + trend + look left: 2 trades, win 0.5, PF 2.76, total +0.21R, return +0.11% at 0.5% risk
+- OVERSOLD | 3 months | + look left + no chase: 35 trades, win 0.514, PF 0.67, total -4.34R, return -2.17% at 0.5% risk
+- OVERSOLD | 12 months | as live: 324 trades, win 0.509, PF 1.13, total +14.3R, return +7.15% at 0.5% risk
+- OVERSOLD | 12 months | + trend (20 over 200): 24 trades, win 0.5, PF 1.9, total +7.32R, return +3.66% at 0.5% risk
+- OVERSOLD | 12 months | + look left: 324 trades, win 0.509, PF 1.13, total +14.3R, return +7.15% at 0.5% risk
+- OVERSOLD | 12 months | + no chase: 120 trades, win 0.475, PF 0.79, total -9.78R, return -4.89% at 0.5% risk
+- OVERSOLD | 12 months | + tail bar: 82 trades, win 0.512, PF 1.29, total +6.6R, return +3.3% at 0.5% risk
+- OVERSOLD | 12 months | + 3-5 bar dip: 271 trades, win 0.509, PF 1.01, total +0.65R, return +0.33% at 0.5% risk
+- OVERSOLD | 12 months | + trend + look left: 24 trades, win 0.5, PF 1.9, total +7.32R, return +3.66% at 0.5% risk
+- OVERSOLD | 12 months | + look left + no chase: 120 trades, win 0.475, PF 0.79, total -9.78R, return -4.89% at 0.5% risk
+## swing_velez: NO RESULT
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
