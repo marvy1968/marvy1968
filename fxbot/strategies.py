@@ -551,10 +551,16 @@ class VelezFx:
       look_left  skip an entry when the prior 20-bar high (longs) / low (shorts) sits between the close and 1.25 x the stop distance
       no_chase   skip "wide state" entries: close more than 2 ATR from the 20 SMA."""
 
-    def __init__(self, base, env: bool = True, look_left: bool = False, no_chase: bool = False):
+    def __init__(self, base, env: bool = True, look_left: bool = False, no_chase: bool = False, narrow: bool = False, wide: bool = False,
+                 bars35: bool = False, tail: bool = False, counter: bool = False):
         self.base, self.env, self.look_left, self.no_chase = base, env, look_left, no_chase
+        # owner 2026-10-22 ("keep altering hybrid_h1 with more Velez"): narrow = his narrow state (20 SMA flat and near the 200: a range),
+        # wide = overextension (close 1.5+ ATR from the 20 SMA: reversal territory), bars35 = his 3-5 bar rule (3+ bars against the trade first),
+        # tail = a bottoming (topping) tail on the signal bar, counter = trade AGAINST the 20 SMA slope (fade a stretched move)
+        self.narrow, self.wide, self.bars35, self.tail, self.counter = narrow, wide, bars35, tail, counter
         self.max_bars = base.max_bars
-        self.name = getattr(base, "name", type(base).__name__) + " +velez" + ("E" if env else "") + ("L" if look_left else "") + ("C" if no_chase else "")
+        self.name = getattr(base, "name", type(base).__name__) + " +velez" + ("E" if env else "") + ("L" if look_left else "") + ("C" if no_chase else "") \
+            + ("N" if narrow else "") + ("W" if wide else "") + ("3" if bars35 else "") + ("T" if tail else "") + ("X" if counter else "")
 
     def frame(self, m):
         f = self.base.frame(m).copy()
@@ -571,6 +577,27 @@ class VelezFx:
             near = (c - ma).abs() <= 2.0 * a
             lo_ok &= near
             sh_ok &= near
+        if self.narrow:
+            flat = ((ma - ma.shift(6)).abs() <= 0.2 * a) & ((ma - m200).abs() <= 2.0 * a)
+            lo_ok &= flat
+            sh_ok &= flat
+        if self.wide:
+            lo_ok &= (ma - c) >= 1.5 * a
+            sh_ok &= (c - ma) >= 1.5 * a
+        if self.counter:
+            rising = ma > ma.shift(3)
+            lo_ok &= ~rising
+            sh_ok &= rising
+        if self.bars35:
+            dn = (c < c.shift(1)) & (c.shift(1) < c.shift(2)) & (c.shift(2) < c.shift(3))
+            upr = (c > c.shift(1)) & (c.shift(1) > c.shift(2)) & (c.shift(2) > c.shift(3))
+            lo_ok &= dn.shift(1, fill_value=False) | dn
+            sh_ok &= upr.shift(1, fill_value=False) | upr
+        if self.tail:
+            o, h, l = m["open"], m["high"], m["low"]
+            rng = (h - l).replace(0, np.nan)
+            lo_ok &= (np.minimum(o, c) - l) >= 0.5 * rng
+            sh_ok &= (h - np.maximum(o, c)) >= 0.5 * rng
         if self.look_left:
             hi20, lo20 = m["high"].rolling(20).max().shift(1), m["low"].rolling(20).min().shift(1)
             reach = 1.25 * f["stop"]

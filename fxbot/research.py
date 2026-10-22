@@ -407,3 +407,39 @@ def velez_fx2_check(data_h1: dict, a, b) -> list[str]:
             out.append(f"- {name} {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                        f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
     return out
+
+
+HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
+                       "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
+                       "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
+                       "3-5 bar + tail": {"bars35": True, "tail": True}, "narrow + 3-5 bar": {"narrow": True, "bars35": True},
+                       "counter + 3-5 bar": {"counter": True, "bars35": True}, "wide + 3-5 bar": {"wide": True, "bars35": True},
+                       "narrow + tail": {"narrow": True, "tail": True}, "look left + tail": {"look_left": True, "tail": True}}
+HYBRID_GRID_EXITS = {"cut 0.5R / out 1.25R (live)": (0.50, 1.25), "stop 1R / out 1R": (1.0, 1.0), "stop 1R / out 2R": (1.0, 2.0),
+                     "stop 1.5R / out 0.5R": (1.5, 0.5), "stop 1R / out 0.75R": (1.0, 0.75)}
+
+
+def hybrid_tune(data_h1: dict, train, validate, recent) -> list[str]:
+    """Owner 2026-10-22 ("keep altering hybrid_h1 with more Velez until profitable"): hybrid_h1 x Velez filters x exit pairs. Pre-declared rule:
+    pick on TRAIN the best profit factor with 15+ trades; it is ADOPTED only if VALIDATE is also profitable (PF > 1) with 8+ trades. The last
+    2 weeks are shown for reference."""
+    from .strategies import HybridBox, VelezFx
+    res = []
+    for fn, fkw in HYBRID_GRID_FILTERS.items():
+        for en, (cut, tp) in HYBRID_GRID_EXITS.items():
+            make = (lambda fkw=fkw: VelezFx(HybridBox(), env=False, **fkw) if fkw else HybridBox())
+            row = {"name": f"{fn} | {en}"}
+            for per, (a, b) in (("train", train), ("validate", validate), ("2w", recent)):
+                m = run(TightStop(make(), cut, tp), data_h1, a, b)
+                row[per] = (m.get("trades") or 0, m.get("win_rate") or 0.0, m.get("profit_factor") or 0.0, m.get("total_return") or 0.0)
+            res.append(row)
+    fmt = lambda t: f"{t[0]}t {t[1]:.0%} PF {t[2]:.2f} {t[3]:+.2%}"     # noqa: E731
+    out = [f"- {r['name']}: TRAIN {fmt(r['train'])} | VALIDATE {fmt(r['validate'])} | 2W {fmt(r['2w'])}" for r in res]
+    ok = [r for r in res if r["train"][0] >= 15]
+    best = max(ok, key=lambda r: r["train"][2]) if ok else None
+    if best:
+        adopt = best["validate"][2] > 1.0 and best["validate"][0] >= 8
+        out.insert(0, f"CHOSEN ON TRAIN: {best['name']} -> {'ADOPT (validate profitable)' if adopt else 'NOT adopted (validate not profitable)'}")
+    passing = [r for r in res if r["train"][2] > 1 and r["validate"][2] > 1 and r["train"][0] >= 10 and r["validate"][0] >= 8]
+    out.insert(1, "PROFITABLE IN BOTH HALVES: " + (", ".join(f"{r['name']} (PF {r['train'][2]:.2f}/{r['validate'][2]:.2f})" for r in passing) or "none"))
+    return out
