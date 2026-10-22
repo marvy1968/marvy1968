@@ -1110,6 +1110,50 @@ def velez4_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = 
     return out
 
 
+def velez_repair_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6), ckpt=None) -> dict:
+    """Owner 2026-10-22 rescue plan for the two Velez setups with the most live trades (velez_rbi, velez_halt; live audit: tight stops, repeat
+    entries, 15 of 24 never green). Each change ALONE against the live baseline (one-bar stop, 1.5R, 20-SMA exit, 18 bars, 3 trades / stock / day,
+    1-bar cooldown): ATR stops, a structural stop with a wider buffer, cooldowns, one-per-day (fresh setup), max attempts, next-bar confirmation,
+    exits (1.5R no signal exit, 2R, 8-SMA trail) and time exits. Live filters (direction first, stage, trend confirm), longs, 0.5% risk, the usual
+    slippage. Read train AND validate: a change counts only when it helps on the unseen half. 'stopped' = stop exits, 'never green' = trades whose
+    exit was a stop at or below the entry without ever closing a bar above it (approximated by exit reason stop and R <= -0.9)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"}
+    lad = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+    tags = ("velez_rbi", "velez_halt")
+
+    def run(tag, kw, bkw, a, b):
+        br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red", **bkw)
+        br.zones = {"profiles": {**ZONE_PROFILES, **{t: prof for t in tags}}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {t: lad for t in tags}}}
+        r = run_intraday(TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, setups=(tag,), **kw)))), days, costs, pf, a, b)
+        m = {k: r["metrics"].get(k) for k in keys}
+        f = r["fills"]
+        if len(f):
+            st = f["reason"].astype(str).str.contains("stop")
+            m["stopped"], m["never_green"] = int(st.sum()), int((st & (f["r"] <= -0.9)).sum())
+        return m
+    variants = {"00 baseline (live rules)": ({}, {}),
+                "01 stop 1.0 ATR": ({"stop_atr": 1.0}, {}), "02 stop 1.5 ATR": ({"stop_atr": 1.5}, {}), "03 stop 2.0 ATR": ({"stop_atr": 2.0}, {}),
+                "04 structural stop + 0.5 ATR buffer": ({"buffer_atr": 0.5}, {}),
+                "05 cooldown 30 min": ({}, {"cooldown": 6}), "06 cooldown 60 min": ({}, {"cooldown": 12}),
+                "07 fresh setup only (first per day)": ({"first_only": True}, {}),
+                "08 max 1 attempt / stock / day": ({}, {"max_trades": 1}), "09 max 2 attempts": ({}, {"max_trades": 2}),
+                "10 next-bar confirmation": ({"confirm": True}, {}),
+                "11 exit 1.5R, no 20-SMA exit": ({"sig_exit": False}, {}), "12 exit 2R": ({"tp_r": 2.0}, {}),
+                "13 exit 8-SMA trail": ({"tp_r": 10.0, "exit_col": "x_sma8", "hold": 78}, {}),
+                "14 time exit 6 bars": ({"hold": 6}, {}), "15 time exit 12 bars": ({"hold": 12}, {})}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        out["periods"][per] = {f"{tag} | {name}": cp.get(f"vrep-{per}-{tag}-{name[:2]}", lambda tag=tag, kw=kw, bkw=bkw, a=a, b=b: run(tag, kw, bkw, a, b))
+                               for tag in tags for name, (kw, bkw) in variants.items()}
+    out.update({"family": "velez_repair", "passes": False, "verdict": "see the table: a change counts only if it helps on validate too"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},

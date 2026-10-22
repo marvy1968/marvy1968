@@ -93,6 +93,7 @@ def features_all(df: pd.DataFrame) -> pd.DataFrame:
     # indicator exits ("sell when they say sell"): decided at a close, filled at the next open
     f["x_velez"] = c < f["f_sma20"]                                              # Velez: the 20 SMA no longer holds
     f["x_velez_s"] = c > f["f_sma20"]                                            # (shorts: price back over the 20 SMA)
+    f["x_sma8"] = c < sma(c, 8)                                                  # research: Velez 8-SMA trail (a close under it)
     f["x_connors"] = (c > f["f_sma5"]) | (f["f_rsi2"] > 70)
     f["x_boll"] = c >= f["f_bb_mid"]
     f["x_willr"] = f["f_willr"] > -20

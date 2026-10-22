@@ -472,8 +472,12 @@ class VelezSignals(BoxSignals):
 
     def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3,
                  look_left: bool = False, tod: tuple = (), stop_mult: float = 1.0, sig_exit: bool = True, sides: tuple = (1,),
-                 vol_mult: float = 0.0):
+                 vol_mult: float = 0.0, stop_atr: float = 0.0, confirm: bool = False, first_only: bool = False, exit_col: str | None = None):
         super().__init__(brain)
+        self.stop_atr = stop_atr        # research 2026-10-22: a fixed stop of stop_atr x ATR(14) instead of the one-bar stop (0 = off)
+        self.confirm = confirm          # research: enter one bar later, only when that bar closes up and above the signal bar's high
+        self.first_only = first_only    # research: only the first occurrence of each setup per day (no repeat entries)
+        self.exit_col = exit_col        # research: override the signal exit column (e.g. "x_sma8" = 8-SMA trail)
         self.setups, self.tp_r, self.hold, self.buffer, self.halt_atr = tuple(setups), tp_r, hold, buffer_atr, halt_atr
         self.look_left = look_left      # research: reject a setup when a prior 20-bar high sits between the entry and the target (Velez's "look left")
         self.stop_mult = stop_mult      # research: widen the one-bar stop (day-trade style holds)
@@ -529,15 +533,29 @@ class VelezSignals(BoxSignals):
             for tag in self.setups:
                 m = masks[tag]
                 prev = np.r_[False, m[:-1]]
-                for i in np.flatnonzero(m & ~prev):
-                    if int(i) in taken:
+                starts = np.flatnonzero(m & ~prev)
+                if self.first_only:
+                    starts = starts[:1]
+                for i0 in starts:
+                    i = int(i0)
+                    if self.confirm:                           # the next bar must close up and above the signal bar's high
+                        if i + 1 >= n or not (c[i + 1] > h[i] and c[i + 1] > o[i + 1]):
+                            continue
+                        i += 1
+                    if i in taken:
                         continue
-                    taken.add(int(i))
-                    lo = min(l[i], l[i - 1]) if tag == "velez_vbs" else l[i]
-                    sd = float(np.clip((c[i] - lo + self.buffer * a[i]) * self.stop_mult, 0.5 * a[i], 2.0 * self.stop_mult * a[i]))
+                    taken.add(i)
+                    i_s = i - 1 if self.confirm else i         # the setup bar (its low is the structural stop)
+                    lo = min(l[i_s], l[i_s - 1]) if tag == "velez_vbs" else min(l[i_s], l[i])
+                    if self.stop_atr > 0:
+                        sd = float(self.stop_atr * a[i])
+                    else:
+                        sd = float(np.clip((c[i] - lo + self.buffer * a[i]) * self.stop_mult, 0.5 * a[i], 2.0 * self.stop_mult * a[i]))
                     if self.look_left and i >= 20 and c[i] < h[i - 20:i].max() < c[i] + self.tp_r * sd:
                         continue                               # a prior high (low, for shorts) blocks the way to the target
                     ex = ("x_velez" if side == 1 else "x_velez_s") if self.sig_exit else ""
+                    if self.exit_col is not None and side == 1:
+                        ex = self.exit_col
                     out.append(Signal(i=int(i), side=side, stop_dist=sd, max_bars=int(self.hold), tag=tag if side == 1 else "S:" + tag,
                                       atr=float(a[i]), exit_col=ex, target_px=float(side * (c[i] + self.tp_r * sd))))
         return sorted(out, key=lambda s: s.i)
