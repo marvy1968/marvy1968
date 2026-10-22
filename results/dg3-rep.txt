@@ -1,3 +1,95 @@
 $ alpaca paper-report
-started 2026-10-22 12:08:11 EDT
-RUNNING...
+started 2026-10-22 12:08:11 EDT, took 1s, exit 0
+
+ALPACA PAPER REPORT CARD 2026-10-22
+PAPER account only. Nothing here is a live result. Figures are this bot's own trades only (the account is shared with your other bots).
+
+Today: 4 trades, 2W/2L (50%), P&L $+1
+Equity $53,693  day -0.01%
+ROI since start (2026-10-12): -1.33% over 8 days   SPY -0.62%   avg daily -0.17% (goal 0.75-1.0%)
+Max drawdown 1.3%
+
+All trades: 236, 98W/138L (42%), profit factor 0.77, avg R -0.19
+  longs: 141, 53W/88L (38%), P&L $-732, profit factor 0.58
+  shorts: 95, 45W/50L (47%), P&L $+8, profit factor 1.01
+By symbol: NFLX $+189, AMD $+86, GE $+85, AMZN $-164, META $-270
+BY EXPERT (trades opened since the expert was logged)
+  dual_regime: 23, 7W/16L, P&L $-209, profit factor 0.37
+  S:dual_regime: 13, 6W/7L, P&L $+109, profit factor 1.64
+  velez_halt: 13, 4W/9L, P&L $-59, profit factor 0.36
+  connors_rsi2: 12, 8W/4L, P&L $+53, profit factor 1.66
+  velez_rbi: 12, 2W/10L, P&L $-164, profit factor 0.01
+  S:williams_r: 8, 4W/4L, P&L $-54, profit factor 0.67
+  S:velez_180: 6, 2W/4L, P&L $-155, profit factor 0.19
+  S:connors_rsi2: 5, 3W/2L, P&L $+38, profit factor 2.25
+  S:velez_rbi: 5, 1W/4L, P&L $+11, profit factor 1.69
+  vwap_dev: 4, 3W/1L, P&L $+81, profit factor 4.15
+  S:brooks_pullback: 3, 3W/0L, P&L $+177, profit factor inf
+  bollinger_bounce: 3, 2W/1L, P&L $+5, profit factor 1.15
+  williams_r: 3, 2W/1L, P&L $+4, profit factor 1.10
+  S:opening_range_breakout: 3, 1W/2L, P&L $-88, profit factor 0.37
+  S:trend_stairs: 3, 0W/3L, P&L $-72, profit factor 0.00
+  velez_vbs: 3, 1W/2L, P&L $-29, profit factor 0.34
+  velez_bt: 3, 0W/3L, P&L $-1, profit factor 0.00
+  S:donchian_turtle: 2, 0W/2L, P&L $-40, profit factor 0.00
+  donchian_turtle: 2, 1W/1L, P&L $-50, profit factor 0.11
+  velez_180: 2, 0W/2L, P&L $-82, profit factor 0.00
+  S:bollinger_bounce: 2, 1W/1L, P&L $+6, profit factor 1.44
+  velez_trap: 2, 1W/1L, P&L $-7, profit factor 0.01
+  S:velez_nrb: 2, 2W/0L, P&L $+1, profit factor inf
+  velez_nrb: 2, 1W/1L, P&L $+0, profit factor 3.11
+  brooks_pullback: 1, 1W/0L, P&L $+57, profit factor inf
+  opening_range_breakout: 1, 1W/0L, P&L $+10, profit factor inf
+  raschke_grail: 1, 0W/1L, P&L $-23, profit factor 0.00
+  S:vwap_dev: 1, 1W/0L, P&L $+59, profit factor inf
+  S:raschke_grail: 1, 1W/0L, P&L $+105, profit factor inf
+  S:velez_halt: 1, 1W/0L, P&L $+8, profit factor inf
+  velez_2020: 1, 0W/1L, P&L $-11, profit factor 0.00
+  S:velez_bt: 1, 0W/1L, P&L $-33, profit factor 0.00
+  S:velez_trap: 1, 1W/0L, P&L $+1, profit factor inf
+  S:velez_clear: 1, 1W/0L, P&L $+0, profit factor inf
+  S:velez_pause: 1, 0W/1L, P&L $+0, profit factor 0.00
+
+BY STYLE (scalp = held <= 30 min, day = longer, flat by 3:50 pm)
+  scalp: today 3 trades $+0 | all 122, 44W/78L, P&L $-922, profit factor 0.47
+  day: today 1 trades $+1 | all 40, 25W/15L, P&L $+648, profit factor 2.83
+  unclassified (before close times were logged): today 0 trades $+0 | all 74, 29W/45L, P&L $-451, profit factor 0.56
+
+PROFIT GIVEBACK (peak open profit vs what was kept)
+  today: 4 trades, avg peak open profit +0.58R, avg kept +0.15R, gave back 0.43R; 0 of 1 trades that reached +1R closed at break-even or a loss
+  all: 162 trades, avg peak open profit +0.70R, avg kept -0.19R, gave back 0.89R; 2 of 42 trades that reached +1R closed at break-even or a loss
+
+VELEZ FORWARD TEST (paper, per expert and config version)
+  velez_halt [v2 confirm-only 2026-10-22]: 1 trades, win 100%, stopped 0, never green 0, 10-min exits 0, avg win +1.41R / loss +0.00R, MFE +1.41R, MAE 0.13R, net +1.41R ($+1), repeat entries 0
+
+TRADE ZONES (logged on every trade; LIVE when zones.json says live)
+  entry zone: 20 of 162 trades were chases the zone would have skipped (their P&L $-180)
+  exhaustion zone: 21 trades reached it; taking profit there would have made $+755 vs $+904 actual
+  direction first: 0 of 155 trades went against their stock's daily direction (their P&L $+0; with the direction $-548)
+
+ZONE PLAN (owner's drawing: 1% risk, cut 25/50%, take profit 25/50%, the rest rides a trailing stop)
+  today:
+    take-profit steps (25/50% in the zone): 1 fills, $+1
+    stops (full stop / locked stop / trail): 1 fills, $-0
+    other exits (time, signal, close): 2 fills, $+0
+    by stage: stage 2 $+1 (2), stage 4 $+0 (2)
+  all time:
+    sell zone cuts (25/50% before the stop): 41 fills, $-358
+    take-profit steps (25/50% in the zone): 21 fills, $+358
+    stops (full stop / locked stop / trail): 132 fills, $-2,251
+    other exits (time, signal, close): 94 fills, $+1,526
+    by stage: stage 2 $-543 (115), stage 4 $+73 (89)
+
+GO-LIVE GATE (every line must pass, then it is your decision):
+  wait  30+ trading days: 8
+  PASS  100+ trades: 236
+  wait  net ROI > 0: -1.33%
+  wait  profit factor >= 1.3: 0.77
+  PASS  max drawdown <= 10%: 1.3%
+  wait  beats SPY: -1.33% vs -0.62%
+  wait  avg daily >= 0.75%: -0.17%
+GATE NOT MET: keep paper trading.
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 7, 3W/4L, P&L $-233
+  holding: XOM 14 @ 180.12 (stop 165.90), AMZN 27 @ 264.14 (stop 252.85, funnel), EOG 14 @ 159.41 (stop 144.57), MRK 61 @ 147.68 (stop 144.05, funnel), COP 14 @ 145.39 (stop 133.52), GE 30 @ 293.13 (stop 287.36, oversold), PM 36 @ 199.20 (stop 190.29, funnel), GOOGL 30 @ 330.45 (stop 326.13, oversold)
