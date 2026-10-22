@@ -1,3 +1,53 @@
 $ alpaca run-all --phase validate --families velez_fx2
-started 2026-10-21 21:25:41 EDT
-RUNNING...
+started 2026-10-21 21:25:41 EDT, took 44s, exit 0
+
+daily data ready
+## velez_fx2: Velez setups on OANDA, last 2 weeks (2026-10-07 to 2026-10-21, H1, live exits, bid/ask)
+### Velez setups as forex experts
+- all 14 setups: 282 trades, win 21%, PF 0.54, total -24.69%, maxDD -24.5%
+- velez_halt: 88 trades, win 16%, PF 0.36, total -12.52%, maxDD -9.2%
+- velez_vbs: 18 trades, win 0%, PF 0.00, total -7.57%, maxDD -5.5%
+- velez_rbi: 66 trades, win 20%, PF 0.40, total -9.80%, maxDD -8.0%
+- velez_gift: 13 trades, win 15%, PF 0.30, total -2.46%, maxDD -2.2%
+- velez_nrb: 24 trades, win 12%, PF 0.24, total -3.45%, maxDD -2.3%
+- velez_trap: 59 trades, win 17%, PF 0.22, total -8.43%, maxDD -8.2%
+- velez_bt: 54 trades, win 26%, PF 0.50, total -4.59%, maxDD -4.2%
+- velez_clear: 35 trades, win 40%, PF 1.46, total +4.40%, maxDD -0.4%
+- velez_bull180: 42 trades, win 17%, PF 0.37, total -6.82%, maxDD -6.6%
+- velez_2020: 19 trades, win 11%, PF 0.05, total -5.30%, maxDD -4.7%
+- velez_flat200: 51 trades, win 24%, PF 0.69, total -3.03%, maxDD -2.3%
+- velez_gbr: 43 trades, win 21%, PF 0.50, total -5.12%, maxDD -3.8%
+- velez_pause: 23 trades, win 13%, PF 0.33, total -3.23%, maxDD -3.1%
+- velez_brk: 27 trades, win 15%, PF 0.39, total -4.39%, maxDD -4.4%
+### live experts confirmed by a Velez setup
+- hybrid_h1 as live: 23 trades, win 17%, PF 0.40, total -2.07%, maxDD -2.1%
+- hybrid_h1 + Velez setup confirm: 2 trades, win 0%, PF 0.00, total -0.55%, maxDD 0.0%
+- confirm_h1 (live: + trend) as live: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- confirm_h1 (live: + trend) + Velez setup confirm: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- boxmr_h1 (live: + look left) as live: 13 trades, win 46%, PF 2.83, total +3.24%, maxDD -0.8%
+- boxmr_h1 (live: + look left) + Velez setup confirm: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+## velez_fx2: Velez setups on OANDA, last 3 months (2026-07-21 to 2026-10-21, H1, live exits, bid/ask)
+### Velez setups as forex experts
+- all 14 setups: 1667 trades, win 18%, PF 0.45, total -83.62%, maxDD -83.6%
+- velez_halt: 526 trades, win 18%, PF 0.50, total -42.19%, maxDD -42.7%
+- velez_vbs: 83 trades, win 12%, PF 0.29, total -13.25%, maxDD -13.2%
+- velez_rbi: 419 trades, win 16%, PF 0.43, total -42.98%, maxDD -42.9%
+- velez_gift: 61 trades, win 21%, PF 0.59, total -4.86%, maxDD -4.6%
+- velez_nrb: 168 trades, win 12%, PF 0.27, total -20.77%, maxDD -21.3%
+- velez_trap: 347 trades, win 22%, PF 0.52, total -23.62%, maxDD -23.5%
+- velez_bt: 436 trades, win 19%, PF 0.42, total -36.14%, maxDD -36.1%
+- velez_clear: 116 trades, win 27%, PF 0.86, total -4.72%, maxDD -12.9%
+- velez_bull180: 263 trades, win 17%, PF 0.47, total -29.44%, maxDD -29.3%
+- velez_2020: 83 trades, win 20%, PF 0.41, total -11.48%, maxDD -11.2%
+- velez_flat200: 133 trades, win 23%, PF 0.81, total -4.52%, maxDD -6.7%
+- velez_gbr: 312 trades, win 16%, PF 0.45, total -30.31%, maxDD -31.0%
+- velez_pause: 123 trades, win 14%, PF 0.35, total -14.89%, maxDD -15.3%
+- velez_brk: 159 trades, win 18%, PF 0.50, total -17.86%, maxDD -19.4%
+### live experts confirmed by a Velez setup
+- hybrid_h1 as live: 26 trades, win 19%, PF 0.54, total -1.82%, maxDD -3.0%
+- hybrid_h1 + Velez setup confirm: 2 trades, win 0%, PF 0.00, total -0.55%, maxDD 0.0%
+- confirm_h1 (live: + trend) as live: 3 trades, win 33%, PF 1.63, total +0.33%, maxDD -0.5%
+- confirm_h1 (live: + trend) + Velez setup confirm: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- boxmr_h1 (live: + look left) as live: 20 trades, win 45%, PF 2.21, total +3.83%, maxDD -0.8%
+- boxmr_h1 (live: + look left) + Velez setup confirm: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+ALL DONE
