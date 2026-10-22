@@ -1,0 +1,3 @@
+$ logs marv-alpaca-paper 80
+started 2026-10-22 13:51:58 EDT
+RUNNING...
