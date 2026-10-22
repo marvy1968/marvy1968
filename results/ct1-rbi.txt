@@ -1,0 +1,3 @@
+$ alpaca paper-trades --expert velez_rbi
+started 2026-10-22 09:56:22 EDT
+RUNNING...
