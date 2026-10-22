@@ -1,0 +1,2 @@
+$ alpaca paper-trades --expert velez_halt
+REFUSED: alpaca needs download, backtest, run-all, check or paper-report
