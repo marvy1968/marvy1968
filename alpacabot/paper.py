@@ -1426,21 +1426,22 @@ def _telegram_settings() -> tuple[str, str]:
 
 
 def send_telegram(text: str) -> bool:
-    tok, chat = _telegram_settings()
-    if not tok or not chat:
-        return False
+    """Through Marv's sender (marv/telegram.send_message): the Marv bot is blocked in the owner's chat ("403 Forbidden: bot was blocked by
+    the user", 2026-10-22), so the card goes to the mirror chat (MIRROR_BOT_TOKEN / MIRROR_CHAT_ID, the owner's March_edge chat) the way
+    every Marv message does. True when a delivery path exists and nothing raised."""
+    import os
     try:
-        r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage", data={"chat_id": chat, "text": text[:4000]}, timeout=20)
-    except requests.RequestException:
-        log.exception("telegram send failed")
+        from marv.config import ROOT, load_dotenv
+        from marv.telegram import send_message
+        load_dotenv(Path(os.environ.get("MARV_ENV", ROOT / ".env")))
+        tok, chat = _telegram_settings()
+        if not tok or not chat:
+            return False
+        send_message(tok, chat, "ALPACA PAPER\n" + text[:3800])
+        return True
+    except Exception as exc:                                      # never fails the end-of-day snapshot
+        log.warning("telegram send failed: %s", str(exc)[:200])
         return False
-    if not r.ok:
-        try:
-            why = str(r.json().get("description", ""))[:200]     # Telegram's reason (never contains the token)
-        except ValueError:
-            why = ""
-        log.warning("telegram refused the message: HTTP %s %s", r.status_code, why)
-    return r.ok
 
 
 def report(state_dir="state/alpaca_paper") -> str:
