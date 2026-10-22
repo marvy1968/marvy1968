@@ -1,3 +1,82 @@
 $ alpaca run-all --phase validate --families hybrid_tune_fx
-started 2026-10-21 21:27:55 EDT
-RUNNING...
+started 2026-10-21 21:27:55 EDT, took 1310s, exit 0
+
+daily data ready
+## hybrid_tune_fx: hybrid_h1 + Velez rules, train 2026-07-21..2026-09-05, validate 2026-09-05..2026-10-21, H1 bid/ask
+- none | cut 0.5R / out 1.25R (live): TRAIN 1t 100% PF inf +0.70% | VALIDATE 25t 16% PF 0.36 -2.50% | 2W 23t 17% PF 0.40 -2.07%
+PROFITABLE IN BOTH HALVES: none
+- none | stop 1R / out 1R: TRAIN 1t 100% PF inf +0.50% | VALIDATE 21t 29% PF 0.39 -3.04% | 2W 20t 30% PF 0.43 -2.65%
+- none | stop 1R / out 2R: TRAIN 1t 100% PF inf +1.00% | VALIDATE 21t 19% PF 0.38 -3.66% | 2W 20t 20% PF 0.41 -3.28%
+- none | stop 1.5R / out 0.5R: TRAIN 1t 100% PF inf +0.17% | VALIDATE 22t 59% PF 0.51 -1.90% | 2W 20t 55% PF 0.43 -2.19%
+- none | stop 1R / out 0.75R: TRAIN 1t 100% PF inf +0.37% | VALIDATE 21t 29% PF 0.30 -3.52% | 2W 20t 30% PF 0.32 -3.13%
+- look left | cut 0.5R / out 1.25R (live): TRAIN 1t 100% PF inf +0.70% | VALIDATE 24t 17% PF 0.38 -2.30% | 2W 22t 18% PF 0.43 -1.87%
+- look left | stop 1R / out 1R: TRAIN 1t 100% PF inf +0.50% | VALIDATE 21t 29% PF 0.39 -3.04% | 2W 20t 30% PF 0.43 -2.65%
+- look left | stop 1R / out 2R: TRAIN 1t 100% PF inf +1.00% | VALIDATE 21t 19% PF 0.38 -3.66% | 2W 20t 20% PF 0.41 -3.28%
+- look left | stop 1.5R / out 0.5R: TRAIN 1t 100% PF inf +0.17% | VALIDATE 21t 57% PF 0.46 -2.06% | 2W 19t 53% PF 0.39 -2.35%
+- look left | stop 1R / out 0.75R: TRAIN 1t 100% PF inf +0.37% | VALIDATE 21t 29% PF 0.30 -3.52% | 2W 20t 30% PF 0.32 -3.13%
+- narrow state | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.50% | 2W 1t 100% PF inf +0.50%
+- narrow state | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.40% | 2W 1t 100% PF inf +0.40%
+- narrow state | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.79% | 2W 1t 100% PF inf +0.79%
+- narrow state | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.17% | 2W 1t 100% PF inf +0.17%
+- narrow state | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.30% | 2W 1t 100% PF inf +0.30%
+- wide state | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 9t 11% PF 0.36 -0.87% | 2W 9t 11% PF 0.36 -0.87%
+- wide state | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 9t 33% PF 0.68 -0.57% | 2W 9t 33% PF 0.68 -0.57%
+- wide state | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 9t 22% PF 0.62 -0.87% | 2W 9t 22% PF 0.62 -0.87%
+- wide state | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 8t 50% PF 0.44 -0.83% | 2W 8t 50% PF 0.44 -0.83%
+- wide state | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 9t 33% PF 0.51 -0.87% | 2W 9t 33% PF 0.51 -0.87%
+- 3-5 bar rule | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -0.60% | 2W 3t 0% PF 0.00 -0.60%
+- 3-5 bar rule | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- 3-5 bar rule | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- 3-5 bar rule | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 67% PF 1.00 -0.00% | 2W 3t 67% PF 1.00 -0.00%
+- 3-5 bar rule | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- tail bar | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 7t 29% PF 0.71 -0.27% | 2W 6t 33% PF 0.96 -0.03%
+- tail bar | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.36 -0.95% | 2W 5t 40% PF 0.53 -0.47%
+- tail bar | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.72 -0.42% | 2W 5t 40% PF 1.06 +0.06%
+- tail bar | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 7t 71% PF 0.86 -0.12% | 2W 6t 67% PF 0.71 -0.25%
+- tail bar | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.27 -1.08% | 2W 5t 40% PF 0.40 -0.60%
+- counter-trend | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 21t 19% PF 0.44 -1.81% | 2W 19t 21% PF 0.50 -1.38%
+- counter-trend | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 18t 28% PF 0.38 -2.72% | 2W 17t 29% PF 0.41 -2.33%
+- counter-trend | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 18t 22% PF 0.47 -2.55% | 2W 17t 24% PF 0.52 -2.16%
+- counter-trend | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 18t 56% PF 0.45 -1.85% | 2W 16t 50% PF 0.36 -2.14%
+- counter-trend | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 18t 28% PF 0.28 -3.12% | 2W 17t 29% PF 0.31 -2.74%
+- narrow + look left | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.50% | 2W 1t 100% PF inf +0.50%
+- narrow + look left | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.40% | 2W 1t 100% PF inf +0.40%
+- narrow + look left | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.79% | 2W 1t 100% PF inf +0.79%
+- narrow + look left | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.17% | 2W 1t 100% PF inf +0.17%
+- narrow + look left | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.30% | 2W 1t 100% PF inf +0.30%
+- wide + tail | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 2t 0% PF 0.00 -0.29% | 2W 2t 0% PF 0.00 -0.29%
+- wide + tail | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 2t 0% PF 0.00 -0.57% | 2W 2t 0% PF 0.00 -0.57%
+- wide + tail | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 2t 0% PF 0.00 -0.57% | 2W 2t 0% PF 0.00 -0.57%
+- wide + tail | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 2t 50% PF 0.48 -0.18% | 2W 2t 50% PF 0.48 -0.18%
+- wide + tail | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 2t 0% PF 0.00 -0.57% | 2W 2t 0% PF 0.00 -0.57%
+- 3-5 bar + tail | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.19% | 2W 1t 0% PF 0.00 -0.19%
+- 3-5 bar + tail | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.43% | 2W 1t 0% PF 0.00 -0.43%
+- 3-5 bar + tail | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.43% | 2W 1t 0% PF 0.00 -0.43%
+- 3-5 bar + tail | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 100% PF inf +0.17% | 2W 1t 100% PF inf +0.17%
+- 3-5 bar + tail | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.43% | 2W 1t 0% PF 0.00 -0.43%
+- narrow + 3-5 bar | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + 3-5 bar | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + 3-5 bar | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + 3-5 bar | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + 3-5 bar | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- counter + 3-5 bar | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -0.60% | 2W 3t 0% PF 0.00 -0.60%
+- counter + 3-5 bar | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- counter + 3-5 bar | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- counter + 3-5 bar | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 67% PF 1.00 -0.00% | 2W 3t 67% PF 1.00 -0.00%
+- counter + 3-5 bar | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 3t 0% PF 0.00 -1.15% | 2W 3t 0% PF 0.00 -1.15%
+- wide + 3-5 bar | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.11% | 2W 1t 0% PF 0.00 -0.11%
+- wide + 3-5 bar | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.22% | 2W 1t 0% PF 0.00 -0.22%
+- wide + 3-5 bar | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.22% | 2W 1t 0% PF 0.00 -0.22%
+- wide + 3-5 bar | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.33% | 2W 1t 0% PF 0.00 -0.33%
+- wide + 3-5 bar | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 1t 0% PF 0.00 -0.22% | 2W 1t 0% PF 0.00 -0.22%
+- narrow + tail | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + tail | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + tail | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + tail | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- narrow + tail | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 0t 0% PF 0.00 +0.00% | 2W 0t 0% PF 0.00 +0.00%
+- look left + tail | cut 0.5R / out 1.25R (live): TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 7t 29% PF 0.71 -0.27% | 2W 6t 33% PF 0.96 -0.03%
+- look left + tail | stop 1R / out 1R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.36 -0.95% | 2W 5t 40% PF 0.53 -0.47%
+- look left + tail | stop 1R / out 2R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.72 -0.42% | 2W 5t 40% PF 1.06 +0.06%
+- look left + tail | stop 1.5R / out 0.5R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 7t 71% PF 0.86 -0.12% | 2W 6t 67% PF 0.71 -0.25%
+- look left + tail | stop 1R / out 0.75R: TRAIN 0t 0% PF 0.00 +0.00% | VALIDATE 6t 33% PF 0.27 -1.08% | 2W 5t 40% PF 0.40 -0.60%
+ALL DONE
