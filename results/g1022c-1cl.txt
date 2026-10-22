@@ -1,0 +1,3 @@
+$ alpaca positions --closed ALL
+started 2026-10-22 16:29:55 EDT
+RUNNING...
