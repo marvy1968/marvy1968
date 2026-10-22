@@ -96,6 +96,19 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "conf_fx":                   # owner 2026-10-22: the oversold confluence on OANDA (fxbot.research.confluence_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import confluence_check
+                today = _dt.date.today()
+                for label, days_ in (("last 2 weeks", 14), ("last 3 months (context)", 92)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    dg = {g: {i: fx_load(i, g, a_ - _dt.timedelta(days=200 if g == "D" else 60), today, Path("state/fx/cache")) for i in MAJORS}
+                          for g in ("D", "H4", "H1")}
+                    lines += [f"## conf_fx: oversold confluence (3 of 4 + tick volume), {label} ({a_} to {today}, bid/ask, pessimistic)"] + confluence_check(dg, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "scalp_fx":                  # cut 0.10R + all out at 0.30R on the live strategies (fxbot.research.scalp_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS
@@ -267,7 +280,7 @@ def run_all(a) -> int:
                             ("oversold 3/4, stage 2, stop 0.5, tp 1.25R", {**os_, "tp_r": 1.25, "stop_frac": 0.5}),
                             ("oversold 3/4, any stage, stop 0.75, tp 1.25R (owner 10-19 script)", {**os_, "os_stage": None, "tp_r": 1.25, "stop_frac": 0.75}),
                             ("oversold 3/4, any stage, stop 1.0, tp 1.25R (live)", {**os_, "os_stage": None, "tp_r": 1.25}))
-                for label, a_ in (("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
+                for label, a_ in (("last 2 weeks", end2 - _td(days=14)), ("last 3 months", end2 - _td(days=92)), ("last 12 months", end2 - _td(days=365))):
                     for nm, rules in variants:
                         m_ = funnel_bt(fb, a_, end2 - _td(days=1), sides=("long",), rules=rules)
                         lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, avg R {m_['avg_r']}, "

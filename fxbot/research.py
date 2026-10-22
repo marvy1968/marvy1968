@@ -348,3 +348,20 @@ def scalp_check(data: dict, a, b) -> list[str]:
             out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                        f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
     return out
+
+
+def confluence_check(data_by_gran: dict, a, b) -> list[str]:
+    """Owner 2026-10-22: the oversold-confluence rules (strategies.OversoldConfluence, live as conf_d1 / conf_h4) on each bar size, with the
+    live exits (loss cut at 0.50R, all out at +1.25R) and with the plain stop / middle-band exit. Bid/ask fills, pessimistic."""
+    from .strategies import OversoldConfluence
+    out = []
+    for gran, data in data_by_gran.items():
+        out.append(f"### {gran}")
+        for label, strat in (("live exits (cut 0.5R, out at 1.25R)", TightStop(OversoldConfluence(), 0.50, 1.25)),
+                             ("plain: 1 ATR stop, out at the middle band", OversoldConfluence()),
+                             ("2 of 4 + live exits", TightStop(OversoldConfluence(need=2), 0.50, 1.25)),
+                             ("no volume filter + live exits", TightStop(OversoldConfluence(vol_mult=0.0), 0.50, 1.25))):
+            m = run(strat, data, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
