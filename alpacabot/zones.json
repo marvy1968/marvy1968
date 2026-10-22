@@ -778,12 +778,12 @@
     "lock": []
    }
   },
-  "max_pos_frac": 0.005,
+  "max_pos_frac": 0.01,
   "neg_exit_min": 10,
   "expert_cooldown_min": 10,
   "_note_expert_cooldown_min": "owner 2026-10-22: after an expert's trade in a stock closes, that expert waits 10 minutes before trading the same stock again (other experts are not blocked). The shadow list was emptied the same day: every dropped expert and Velez setup trades again.",
   "_note_neg_exit_min": "owner 2026-10-22: an intraday trade under water (mid vs its entry mid) for 10 minutes in a row is closed (same rule as OANDA).",
-  "_note_max_pos_frac": "owner 2026-10-22: no intraday position larger than 0.5% of equity in market value (2026-10-21: 1%; before that 25%, NFLX and GE shorts were ~$13k each).",
+  "_note_max_pos_frac": "owner 2026-10-22 (afternoon): no intraday position larger than 1% of equity in market value (morning 0.5%; 2026-10-21 1%; before that 25%, NFLX and GE shorts were ~$13k each).",
   "score_sizing": {
    "_note": "owner 2026-10-21: risk by signal strength - score = share of the 5 candle/volume/volatility checks agreeing on the signal bar; risk = min_risk + score x (max_risk - min_risk). OFF until the journal (signal_score rows) shows stronger scores win more; the 1% notional cap (max_pos_frac) still applies.",
    "live": false,
