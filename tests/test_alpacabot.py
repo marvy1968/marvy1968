@@ -759,6 +759,7 @@ class HeatMapAndShortTests(unittest.TestCase):
             r.poll_exits(t(6))
             b.px = (99.80, 99.82)
             r.poll_exits(t(8))
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)            # a restart keeps the 10-minute clock
             r.poll_exits(t(17))
             self.assertEqual(b.closed, [])                                          # 9 minutes under water: still open
             r.poll_exits(t(18))

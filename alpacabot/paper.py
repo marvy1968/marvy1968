@@ -386,12 +386,14 @@ class PaperRunner:
                     since = pos.get("neg_since")
                     if not since:
                         pos["neg_since"] = now_et.isoformat()
+                        self.store.save(self.exits.positions)  # the 10-minute clock survives a restart
                     elif (now_et - datetime.fromisoformat(since)).total_seconds() >= 60 * float(neg_min):
                         self.journal("neg_exit", symbol=sym, minutes=float(neg_min), mid=round(mid, 4), entry_mid=round(mid0, 4))
                         self.close_now(sym, "neg_exit", bar_start(now_et) + pd.Timedelta(minutes=5))
                         continue
-                else:
+                elif pos.get("neg_since"):
                     pos["neg_since"] = None
+                    self.store.save(self.exits.positions)
             tp = pos.get("zone_tp")
             if tp is not None and side * (px - tp) >= 0:     # LIVE take-profit zone reached
                 if lad and self.ladder_take(sym, pos, px, now_et):    # scaled out: 25% at the zone, 50% beyond; the rest rides the trend
