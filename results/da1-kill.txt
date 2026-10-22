@@ -1,3 +1,6 @@
 $ show alpaca_paper/KILL_SWITCH
-started 2026-10-22 10:46:02 EDT
-RUNNING...
+started 2026-10-22 10:46:02 EDT, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_paper/KILL_SWITCH' for reading: No such file or directory
