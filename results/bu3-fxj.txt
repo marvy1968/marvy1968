@@ -1,3 +1,5 @@
 $ show fx_paper/journal-20261022.jsonl
-started 2026-10-21 20:45:16 EDT
-RUNNING...
+started 2026-10-21 20:45:16 EDT, took 0s, exit 0
+
+{"t": "2026-10-22T00:14:09+00:00", "kind": "closed_at_broker", "group": "boxmr_h1-USD_JPY-2026-10-21T1900", "trade": "492980", "reason": "closed_outside_runner", "pl": -83.14, "px": 158.207}
+{"t": "2026-10-22T00:14:09+00:00", "kind": "group_closed", "group": "boxmr_h1-USD_JPY-2026-10-21T1900"}
