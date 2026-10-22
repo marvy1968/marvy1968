@@ -1090,8 +1090,8 @@ def main(argv=None) -> int:
             print(f"  {o['symbol']:10s} {o['side']:4s} {o.get('qty') or o.get('notional')} {o['type']} {o['status']}  id {str(o.get('client_order_id'))[:24]}")
         if getattr(a, "closed", None):                       # read-only: today's closed orders (OCO legs included) for these symbols
             done = requests.get(f"{api}/orders", headers=_headers(), timeout=30,
-                                params={"status": "closed", "limit": 500, "nested": "true", "symbols": a.closed,
-                                        "after": date.today().isoformat() + "T00:00:00Z"}).json()
+                                params={"status": "closed", "limit": 500, "nested": "true", "after": date.today().isoformat() + "T00:00:00Z",
+                                        **({} if a.closed.upper() == "ALL" else {"symbols": a.closed})}).json()
             print(f"closed orders today for {a.closed}:")
             for o in done:
                 for x in [o] + list(o.get("legs") or []):
