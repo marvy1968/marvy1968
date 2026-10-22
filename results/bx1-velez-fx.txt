@@ -1,3 +1,91 @@
 $ alpaca run-all --phase validate --families velez_fx
-started 2026-10-21 21:20:39 EDT
-RUNNING...
+started 2026-10-21 21:20:39 EDT, took 66s, exit 0
+
+daily data ready
+## velez_fx: Velez rules on the forex strategies, last 2 weeks (2026-10-07 to 2026-10-21, live exits, bid/ask)
+### lien_h1
+- as live: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + Velez trend: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + look left: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + no chase: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + trend + look left: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### hybrid_h1
+- as live: 23 trades, win 17%, PF 0.40, total -2.07%, maxDD -2.1%
+- + Velez trend: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+- + look left: 22 trades, win 18%, PF 0.43, total -1.87%, maxDD -2.1%
+- + no chase: 18 trades, win 17%, PF 0.32, total -1.92%, maxDD -1.5%
+- + trend + look left: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+- + all three: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+### confirm_h1
+- as live: 4 trades, win 0%, PF 0.00, total -1.27%, maxDD -0.5%
+- + Velez trend: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- + look left: 4 trades, win 0%, PF 0.00, total -1.27%, maxDD -0.5%
+- + no chase: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + trend + look left: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### boxmr_h1
+- as live: 15 trades, win 47%, PF 2.83, total +3.24%, maxDD -0.8%
+- + Velez trend: 3 trades, win 67%, PF 2.20, total +0.60%, maxDD 0.0%
+- + look left: 13 trades, win 46%, PF 2.83, total +3.24%, maxDD -0.8%
+- + no chase: 12 trades, win 50%, PF 3.01, total +3.16%, maxDD -0.8%
+- + trend + look left: 1 trades, win 100%, PF inf, total +0.91%, maxDD 0.0%
+- + all three: 1 trades, win 100%, PF inf, total +0.91%, maxDD 0.0%
+### conf_d1
+- as live: 3 trades, win 67%, PF 4.69, total +1.89%, maxDD -0.5%
+- + Velez trend: 1 trades, win 0%, PF 0.00, total -0.50%, maxDD 0.0%
+- + look left: 3 trades, win 67%, PF 4.69, total +1.89%, maxDD -0.5%
+- + no chase: 1 trades, win 0%, PF 0.00, total -0.50%, maxDD 0.0%
+- + trend + look left: 1 trades, win 0%, PF 0.00, total -0.50%, maxDD 0.0%
+- + all three: 1 trades, win 0%, PF 0.00, total -0.50%, maxDD 0.0%
+### box_h1 (log-only)
+- as live: 62 trades, win 19%, PF 0.74, total -4.14%, maxDD -8.2%
+- + Velez trend: 2 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.5%
+- + look left: 60 trades, win 18%, PF 0.69, total -4.75%, maxDD -8.1%
+- + no chase: 41 trades, win 15%, PF 0.51, total -5.87%, maxDD -9.1%
+- + trend + look left: 2 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.5%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+## velez_fx: Velez rules on the forex strategies, last 3 months (2026-07-21 to 2026-10-21, live exits, bid/ask)
+### lien_h1
+- as live: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + Velez trend: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + look left: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + no chase: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + trend + look left: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### hybrid_h1
+- as live: 26 trades, win 19%, PF 0.54, total -1.82%, maxDD -3.0%
+- + Velez trend: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+- + look left: 25 trades, win 20%, PF 0.56, total -1.62%, maxDD -2.8%
+- + no chase: 21 trades, win 19%, PF 0.49, total -1.67%, maxDD -2.4%
+- + trend + look left: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+- + all three: 1 trades, win 0%, PF 0.00, total -0.21%, maxDD 0.0%
+### confirm_h1
+- as live: 6 trades, win 17%, PF 0.52, total -0.80%, maxDD -1.3%
+- + Velez trend: 3 trades, win 33%, PF 1.63, total +0.33%, maxDD -0.5%
+- + look left: 6 trades, win 17%, PF 0.52, total -0.80%, maxDD -1.3%
+- + no chase: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+- + trend + look left: 3 trades, win 33%, PF 1.63, total +0.33%, maxDD -0.5%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+### boxmr_h1
+- as live: 25 trades, win 44%, PF 1.84, total +3.22%, maxDD -1.3%
+- + Velez trend: 3 trades, win 67%, PF 2.20, total +0.60%, maxDD 0.0%
+- + look left: 20 trades, win 45%, PF 2.21, total +3.83%, maxDD -0.8%
+- + no chase: 22 trades, win 45%, PF 1.86, total +3.14%, maxDD -1.3%
+- + trend + look left: 1 trades, win 100%, PF inf, total +0.91%, maxDD 0.0%
+- + all three: 1 trades, win 100%, PF inf, total +0.91%, maxDD 0.0%
+### conf_d1
+- as live: 46 trades, win 28%, PF 0.53, total -7.15%, maxDD -9.0%
+- + Velez trend: 5 trades, win 20%, PF 0.59, total -0.86%, maxDD -1.1%
+- + look left: 46 trades, win 28%, PF 0.53, total -7.15%, maxDD -9.0%
+- + no chase: 16 trades, win 19%, PF 0.53, total -3.10%, maxDD -2.8%
+- + trend + look left: 5 trades, win 20%, PF 0.59, total -0.86%, maxDD -1.1%
+- + all three: 4 trades, win 25%, PF 0.78, total -0.35%, maxDD -1.1%
+### box_h1 (log-only)
+- as live: 107 trades, win 17%, PF 0.55, total -12.87%, maxDD -11.3%
+- + Velez trend: 2 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.5%
+- + look left: 103 trades, win 17%, PF 0.54, total -12.67%, maxDD -11.1%
+- + no chase: 69 trades, win 16%, PF 0.53, total -9.47%, maxDD -9.1%
+- + trend + look left: 2 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.5%
+- + all three: 0 trades, win 0%, PF 0.00, total +0.00%, maxDD 0.0%
+ALL DONE
