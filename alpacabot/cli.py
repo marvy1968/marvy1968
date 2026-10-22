@@ -96,6 +96,18 @@ def run_all(a) -> int:
                 lines += [f"## recentvote_fx: confirmed box breakouts, last 3 months ({a3} to {today}, H1, bid/ask)"] + body
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "velez_fx2":                 # owner 2026-10-22: Velez setups as forex experts + as confirmation (fxbot.research.velez_fx2_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import velez_fx2_check
+                today = _dt.date.today()
+                for label, days_ in (("last 2 weeks", 14), ("last 3 months", 92)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    h1 = {i: fx_load(i, "H1", a_ - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                    lines += [f"## velez_fx2: Velez setups on OANDA, {label} ({a_} to {today}, H1, live exits, bid/ask)"] + velez_fx2_check(h1, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "velez_fx":                  # owner 2026-10-22: Velez rules on the OANDA strategies (fxbot.research.velez_fx_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS

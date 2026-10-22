@@ -581,6 +581,79 @@ class VelezFx:
         return f
 
 
+FX_VELEZ = ("velez_halt", "velez_vbs", "velez_rbi", "velez_gift", "velez_nrb", "velez_trap", "velez_bt", "velez_clear", "velez_bull180",
+            "velez_2020", "velez_flat200", "velez_gbr", "velez_pause", "velez_brk")   # the session-free Velez setups (no 9:35 ORB / late-day / mortgage)
+
+
+def velez_masks(m, side: int = 1) -> dict:
+    """The Velez setups (alpacabot.brain.VelezSignals rules) on any bar series, for one side; shorts run the long rules on the mirrored chart."""
+    from alpacabot.brain import VelezSignals
+    ro, rh, rl, rc = (m[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+    a = atr(m, 14).to_numpy(float)
+    rma = m["close"].rolling(20).mean().to_numpy(float)
+    r200 = m["close"].rolling(200).mean().to_numpy(float)
+    if side == 1:
+        o, h, l, c, ma, m200 = ro, rh, rl, rc, rma, r200
+    else:
+        o, h, l, c, ma, m200 = -ro, -rl, -rh, -rc, -rma, -r200
+    n = len(m)
+    t = np.array(["12:00"] * n)
+    sh = lambda x, k: np.r_[np.full(k, np.nan), x[:-k]]                    # noqa: E731
+    with np.errstate(invalid="ignore"):
+        env = (ma > sh(ma, 3)) & (ma > m200) & (a > 0)
+        up = c > o
+        halt = env & up & (l <= ma + 0.3 * a) & (c > ma) & (sh(c, 1) <= sh(ma, 1) + 0.3 * a)
+        run = (sh(c, 1) < sh(c, 2)) & (sh(c, 2) < sh(c, 3)) & (sh(c, 3) < sh(c, 4))
+        vbs = env & up & run & (c > sh(h, 1))
+        rbi = env & up & (sh(c, 1) < sh(o, 1)) & (c > sh(h, 1))
+    out = {"velez_halt": halt, "velez_vbs": vbs, "velez_rbi": rbi}
+    out.update(VelezSignals._research_masks(m, t, o, h, l, c, a, ma, m200, env, up, sh))
+    out.update(VelezSignals._research_masks2(m, t, o, h, l, c, a, ma, m200, env, up, sh))
+    out.update(VelezSignals._research_masks3(m, t, o, h, l, c, a, ma, m200, env, up, sh))
+    return {k: np.nan_to_num(v.astype(float)).astype(bool) for k, v in out.items() if k in FX_VELEZ}
+
+
+class VelezSetupsFx:
+    """Owner 2026-10-22: Oliver Velez's setups as forex experts (longs and mirrored shorts). One-bar stop (beyond the signal bar + 0.1 ATR,
+    0.5-2 ATR); out when the close crosses back over the 20 SMA; the runner's live loss cut / take-profit apply on top."""
+
+    def __init__(self, setups=FX_VELEZ, max_bars: int = 24):
+        self.setups, self.max_bars = tuple(setups), max_bars
+        self.name = "velez_fx " + ("all" if len(self.setups) > 3 else ",".join(self.setups))
+
+    def frame(self, m):
+        a = atr(m, 14)
+        ma = m["close"].rolling(20).mean()
+        lm, sm = velez_masks(m, 1), velez_masks(m, -1)
+        long = pd.Series(np.any([lm[k] for k in self.setups], axis=0), index=m.index)
+        short = pd.Series(np.any([sm[k] for k in self.setups], axis=0), index=m.index)
+        sd_l = (m["close"] - m["low"] + 0.1 * a).clip(lower=0.5 * a, upper=2.0 * a)
+        sd_s = (m["high"] - m["close"] + 0.1 * a).clip(lower=0.5 * a, upper=2.0 * a)
+        stop = sd_l.where(long, sd_s)
+        return _frame(m.index, long, short, m["close"] < ma, m["close"] > ma, stop, pd.Series(0.0, index=m.index))
+
+
+class VelezConfirmFx:
+    """Owner 2026-10-22 hybrid: a forex expert's entry is taken only when a Velez setup fired the same way on the signal bar or the `look`
+    bars before it."""
+
+    def __init__(self, base, look: int = 2, setups=FX_VELEZ):
+        self.base, self.look, self.setups = base, look, tuple(setups)
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + " +velez confirm"
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        lm, sm = velez_masks(m, 1), velez_masks(m, -1)
+        lv = pd.Series(np.any([lm[k] for k in self.setups], axis=0), index=m.index).astype(float)
+        sv = pd.Series(np.any([sm[k] for k in self.setups], axis=0), index=m.index).astype(float)
+        lw = lv.rolling(self.look + 1, min_periods=1).max().astype(bool)
+        sw = sv.rolling(self.look + 1, min_periods=1).max().astype(bool)
+        f["long"] = f["long"] & lw
+        f["short"] = f["short"] & sw
+        return f
+
+
 class EmaPullback:
     """Trend pullback to EMA20 (from the owner's Velez 20-EMA / Weinstein bots). Long: close > EMA20 > SMA(trend_n), EMA20 rising over 5
     bars, the bar's low touched EMA20 and it closed back above it as an up bar; short mirrors. Stop = distance to EMA20 - 0.5 x bar range,
