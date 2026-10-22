@@ -1,3 +1,37 @@
 $ alpaca run-all --phase validate --families conf_fx
-started 2026-10-21 20:46:36 EDT
-RUNNING...
+started 2026-10-21 20:46:36 EDT, took 45s, exit 0
+
+daily data ready
+## conf_fx: oversold confluence (3 of 4 + tick volume), last 2 weeks (2026-10-07 to 2026-10-21, bid/ask, pessimistic)
+### D
+- live exits (cut 0.5R, out at 1.25R): 3 trades, win 67%, PF 4.69, total +1.89%, maxDD -0.5%
+- plain: 1 ATR stop, out at the middle band: 3 trades, win 67%, PF 4.15, total +1.58%, maxDD 0.0%
+- 2 of 4 + live exits: 6 trades, win 50%, PF 2.17, total +1.78%, maxDD -0.5%
+- no volume filter + live exits: 14 trades, win 29%, PF 0.72, total -1.22%, maxDD -2.8%
+### H4
+- live exits (cut 0.5R, out at 1.25R): 25 trades, win 24%, PF 0.57, total -3.58%, maxDD -5.5%
+- plain: 1 ATR stop, out at the middle band: 19 trades, win 32%, PF 1.62, total +3.36%, maxDD -2.0%
+- 2 of 4 + live exits: 88 trades, win 27%, PF 0.73, total -8.17%, maxDD -13.2%
+- no volume filter + live exits: 74 trades, win 19%, PF 0.51, total -13.39%, maxDD -15.5%
+### H1
+- live exits (cut 0.5R, out at 1.25R): 176 trades, win 21%, PF 0.63, total -11.70%, maxDD -12.4%
+- plain: 1 ATR stop, out at the middle band: 87 trades, win 22%, PF 0.71, total -8.46%, maxDD -9.8%
+- 2 of 4 + live exits: 397 trades, win 21%, PF 0.57, total -27.70%, maxDD -27.6%
+- no volume filter + live exits: 302 trades, win 20%, PF 0.53, total -24.67%, maxDD -24.9%
+## conf_fx: oversold confluence (3 of 4 + tick volume), last 3 months (context) (2026-07-21 to 2026-10-21, bid/ask, pessimistic)
+### D
+- live exits (cut 0.5R, out at 1.25R): 46 trades, win 28%, PF 0.53, total -7.15%, maxDD -9.0%
+- plain: 1 ATR stop, out at the middle band: 25 trades, win 36%, PF 0.72, total -2.06%, maxDD -3.6%
+- 2 of 4 + live exits: 72 trades, win 26%, PF 0.45, total -13.13%, maxDD -13.7%
+- no volume filter + live exits: 95 trades, win 21%, PF 0.39, total -20.16%, maxDD -19.9%
+### H4
+- live exits (cut 0.5R, out at 1.25R): 238 trades, win 26%, PF 0.76, total -17.96%, maxDD -22.6%
+- plain: 1 ATR stop, out at the middle band: 130 trades, win 29%, PF 0.78, total -9.23%, maxDD -13.2%
+- 2 of 4 + live exits: 490 trades, win 26%, PF 0.71, total -38.83%, maxDD -37.9%
+- no volume filter + live exits: 466 trades, win 23%, PF 0.72, total -38.44%, maxDD -40.2%
+### H1
+- live exits (cut 0.5R, out at 1.25R): 1039 trades, win 20%, PF 0.52, total -62.99%, maxDD -62.7%
+- plain: 1 ATR stop, out at the middle band: 594 trades, win 25%, PF 0.77, total -36.37%, maxDD -39.7%
+- 2 of 4 + live exits: 2331 trades, win 20%, PF 0.47, total -90.59%, maxDD -90.4%
+- no volume filter + live exits: 1880 trades, win 19%, PF 0.48, total -86.56%, maxDD -86.6%
+ALL DONE
