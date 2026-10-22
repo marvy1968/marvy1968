@@ -952,8 +952,9 @@ def main(argv=None) -> int:
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
-    sub.add_parser("positions", help="read-only: every open position and open order on the paper account").add_argument(
-        "--fx", action="store_true", help="the FOREX practice runner instead (fxbot; OANDA practice, separate book)")
+    ps_ = sub.add_parser("positions", help="read-only: every open position and open order on the paper account")
+    ps_.add_argument("--fx", action="store_true", help="the FOREX practice runner instead (fxbot; OANDA practice, separate book)")
+    ps_.add_argument("--closed", help="also today's closed orders (OCO legs included) for these comma-separated symbols, e.g. GE,GOOGL")
     hs = sub.add_parser("history", help="read-only: which bot traded which symbols, P&L, win rate, hold times (paper account)")
     hs.add_argument("--days", type=int, default=365)
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
@@ -1087,6 +1088,16 @@ def main(argv=None) -> int:
         print(f"{len(orders)} open orders:")
         for o in orders:
             print(f"  {o['symbol']:10s} {o['side']:4s} {o.get('qty') or o.get('notional')} {o['type']} {o['status']}  id {str(o.get('client_order_id'))[:24]}")
+        if getattr(a, "closed", None):                       # read-only: today's closed orders (OCO legs included) for these symbols
+            done = requests.get(f"{api}/orders", headers=_headers(), timeout=30,
+                                params={"status": "closed", "limit": 500, "nested": "true", "symbols": a.closed,
+                                        "after": date.today().isoformat() + "T00:00:00Z"}).json()
+            print(f"closed orders today for {a.closed}:")
+            for o in done:
+                for x in [o] + list(o.get("legs") or []):
+                    print(f"  {x['symbol']:6s} {x['side']:4s} {x.get('qty')} {x['type']:10s} {x['status']:9s} filled {x.get('filled_qty')} @ "
+                          f"{x.get('filled_avg_price')} at {str(x.get('filled_at'))[:19]}  stop {x.get('stop_price')} limit {x.get('limit_price')}  "
+                          f"id {str(x.get('client_order_id'))[:24]}")
         return 0
     if a.cmd == "history":
         from .history import report
