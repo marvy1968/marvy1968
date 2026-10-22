@@ -233,6 +233,22 @@ class ReplayHoldToCloseTest(ReplayTest):
         self.assertGreaterEqual(len(self.bt), 3)
 
 
+class ReplayShadowTest(ReplayTest):
+    """Every expert in shadow_tags (owner 2026-10-22): signals are still logged, no order is ever placed."""
+    OVERRIDE = {"shadow_tags": list(ALL_EXPERTS) + ["S:" + e for e in ALL_EXPERTS]}
+
+    def test_1_paper_trades_equal_backtest_trades(self):
+        self.assertEqual(self.ledger, [], "a shadowed expert placed an order")
+        rows = [json.loads(l) for f in Path(self.tmp.name).glob("journal*.jsonl") for l in f.read_text().splitlines() if l.strip()]
+        self.assertTrue(any(str(j.get("result", "")).startswith("shadow") for j in rows), "shadow signals were not logged")
+
+    def test_2_ledger_pnl_equals_broker_pnl(self):
+        self.assertEqual(self.broker.positions(), {})
+
+    def test_5_report_card_matches_ledger(self):
+        pass
+
+
 if __name__ == "__main__":
     unittest.main()
 

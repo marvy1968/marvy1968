@@ -923,6 +923,8 @@ def main(argv=None) -> int:
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
+    pt = sub.add_parser("paper-trades", help="read-only: the intraday ledger rows, optionally for one expert tag (e.g. velez_rbi, S:velez_bt)")
+    pt.add_argument("--expert"); pt.add_argument("--state", default="state/alpaca_paper")
     sub.add_parser("paper-flatten", help="close the intraday bot's own positions now (the running service does it within 15 s)").add_argument(
         "--state", default="state/alpaca_paper")
     pz = sub.add_parser("paper-pause", help="on: the intraday bot takes no new entries (open trades keep their exits); off: resume")
@@ -1096,6 +1098,14 @@ def main(argv=None) -> int:
             return 0
         r.end_of_day(now)
         print((Path(a.state) / "report_card.txt").read_text() if (Path(a.state) / "report_card.txt").exists() else "no card written")
+        return 0
+    if a.cmd == "paper-trades":
+        rows = [json.loads(l) for l in (Path(a.state) / "trades.jsonl").read_text().splitlines() if l.strip()]
+        rows = [t for t in rows if a.expert is None or t.get("expert") == a.expert]
+        keys = ("closed", "symbol", "side", "qty", "entry", "exit", "pnl", "r", "peak_r", "reason", "partial")
+        for t in rows:
+            print(" ".join(f"{k}={t.get(k)}" for k in keys))
+        print(f"{len(rows)} rows, P&L ${sum(t['pnl'] for t in rows):+,.2f}")
         return 0
     if a.cmd == "paper-report":
         from .paper import report

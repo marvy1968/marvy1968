@@ -610,6 +610,8 @@
    "vote": 0.6,
    "vol_mult": 1.2
   },
+  "shadow_tags": ["velez_rbi", "velez_halt", "velez_vbs", "velez_bt", "velez_trap", "velez_2020", "S:velez_bt"],
+  "_shadow_note": "owner 2026-10-22 (rescue plan): Velez setups with a losing live record stop placing orders but keep logging every signal that passes all gates (journal result 'shadow ...'). Remove a tag to trade it again.",
   "risk_by_expert": {
    "_note": "2026-10-16 expert breakdown (last 3 months, each expert alone through the live setup, two halves): these lost in BOTH halves and make ~90% of the trades - halved to 0.5% risk under the owner's live-paper rule (live results decide; restore 0.01 or switch off later). velez_180 PF 0.42/0.38 (212 trades), williams_r 0.46/0.60 (409), dual_regime 0.43/0.38 (241), connors_rsi2 0.30/0.81 (187), vwap_dev 0.77/0.54 (266), opening_range_breakout 0.10/0.11 (20), donchian_turtle 0.55/0.11 (21).",
    "velez_180": 0.005,

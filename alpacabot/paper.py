@@ -866,6 +866,10 @@ class PaperRunner:
                         self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
                                      result=f"trend not confirmed ({k}/5; failed: {', '.join(failed)})")
                         continue
+            if (sig.tag or "") in (zcfg.get("shadow_tags") or []):     # owner 2026-10-22: losing setups keep signalling, no orders
+                self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag, ref=ref,
+                             result="shadow (passed every gate; signal logged, no order)")
+                continue
             risk_before, tier = self.exec.risk_pct, None
             lad_cfg = zcfg.get("ladder") if zcfg["live"] else None
             if lad_cfg:                                                  # owner's scaling: size by how deep price is into the entry zone
