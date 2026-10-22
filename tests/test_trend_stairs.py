@@ -341,10 +341,11 @@ class BrainConfigTests(unittest.TestCase):
         from alpacabot.paper import default_brain
         with tempfile.TemporaryDirectory() as d:
             b = default_brain(d)
-        self.assertNotIn("dual_regime", b.experts)
-        self.assertIn("dual_regime", b.short_experts)
-        self.assertNotIn("williams_r", b.short_experts)
-        self.assertNotIn("velez_180", b.experts + b.short_experts)
+        import json
+        from pathlib import Path
+        cfg = json.loads((Path(__file__).resolve().parent.parent / "alpacabot" / "brain_config.json").read_text())["brain"]
+        self.assertEqual(list(b.experts), cfg["experts"])            # owner 2026-10-22: every expert back on, both sides
+        self.assertEqual(list(b.short_experts), cfg["short_experts"])
 
 
 class VelezResearch2Tests(unittest.TestCase):

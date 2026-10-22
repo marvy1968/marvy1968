@@ -1,7 +1,31 @@
 {
- "_note": "owner 2026-10-20 ('drop all unprofitable Alpaca experts'): decided on the LIVE paper record by expert and side (report card BY EXPERT, 2026-10-12..20; small samples) and the backtests. LONG experts kept: connors_rsi2 +$32, vwap_dev +$81, bollinger_bounce +$5, williams_r +$4, brooks_pullback +$57, opening_range_breakout +$10. SHORT experts kept: dual_regime +$108, connors_rsi2 +$39, brooks_pullback +$177, bollinger_bounce +$6, vwap_dev +$59, raschke_grail +$105. Dropped (losing): longs dual_regime -$209, velez_180 -$82, donchian_turtle -$50, raschke_grail -$23, velez_elephant (backtest PF 0.70-0.82); shorts williams_r -$54, velez_180 -$155, opening_range_breakout -$88, donchian_turtle -$40, velez_elephant, trend_stairs shorts -$72; the Velez rule setups (velez_halt/vbs/rbi) are off in zones.json. To bring one back add it to the list.",
+ "_note": "owner 2026-10-22 ('restart dropped experts with the 10 min negative sell-off, wait 10 min before trading the same stock by the same expert'): ALL experts back on, longs and shorts, at their risk_by_expert sizes under the 0.5% position cap; the 10-minute under-water exit and a 10-minute same-expert cooldown per stock (zones.json neg_exit_min, expert_cooldown_min). Earlier (2026-10-20) they were dropped on the live record: longs dual_regime -$209, velez_180 -$82, donchian_turtle -$50, raschke_grail -$23; shorts williams_r -$54, velez_180 -$155, opening_range_breakout -$88, donchian_turtle -$40.",
  "brain": {
-  "experts": ["connors_rsi2", "vwap_dev", "bollinger_bounce", "williams_r", "brooks_pullback", "opening_range_breakout"],
-  "short_experts": ["dual_regime", "connors_rsi2", "brooks_pullback", "bollinger_bounce", "vwap_dev", "raschke_grail"]
+  "experts": [
+   "velez_elephant",
+   "velez_180",
+   "raschke_grail",
+   "brooks_pullback",
+   "connors_rsi2",
+   "bollinger_bounce",
+   "williams_r",
+   "donchian_turtle",
+   "vwap_dev",
+   "dual_regime",
+   "opening_range_breakout"
+  ],
+  "short_experts": [
+   "velez_elephant",
+   "velez_180",
+   "raschke_grail",
+   "brooks_pullback",
+   "connors_rsi2",
+   "bollinger_bounce",
+   "williams_r",
+   "donchian_turtle",
+   "vwap_dev",
+   "dual_regime",
+   "opening_range_breakout"
+  ]
  }
 }

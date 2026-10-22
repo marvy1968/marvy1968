@@ -240,6 +240,7 @@ class PaperRunner:
         self.last_px: dict[str, float] = {}      # last exit-side price: bid for longs, ask for shorts
         self.heat, self.heat_day, self.borrow = {}, None, {}
         self.day, self.trades_today, self.last_exit = None, {}, {}
+        self.last_exit_by = {}          # (symbol, expert) -> last exit time (owner 2026-10-22: same expert waits before the same stock)
         self.now = None   # per-symbol daily trade cap and post-exit cooldown, as in the backtest
         base = self.dir / "base_equity.json"
         if not base.exists():                    # the bot's starting capital = the account equity the first time it runs
@@ -332,6 +333,7 @@ class PaperRunner:
         pos = pos or self.exits.positions.get(sym)
         if not pos:
             return
+        self.last_exit_by[(sym, str(pos.get("expert")))] = self.clock()
         qty, side, entry = pos["qty"], pos.get("side", 1), self.entry_px(pos)
         risk = pos["state"].atr * pos["state"].trail * qty
         pnl = side * (px - entry) * qty
@@ -826,6 +828,12 @@ class PaperRunner:
                                          confirm=bool(rp.get("confirm", False)), first_only=bool(rp.get("first_only", False)))
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
+                continue
+            _cd = self.zone_config().get("expert_cooldown_min")
+            _lx = self.last_exit_by.get((sym, str(sig.tag)))
+            if _cd and _lx is not None and now_et < _lx + timedelta(minutes=float(_cd)):   # owner 2026-10-22: the same expert waits
+                self.journal("signal", symbol=sym, side="short" if sig.side == -1 else "long", tag=sig.tag,          # before trading the
+                             ref=float(day["close"].iloc[-1]), result=f"same expert cooldown ({float(_cd):.0f} min after its last exit)")   # same stock
                 continue
             zcfg = self.zone_config()
             cap = int(zcfg.get("repeat_max", self.brain.max_trades)) if zcfg["live"] else self.brain.max_trades

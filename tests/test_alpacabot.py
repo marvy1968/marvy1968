@@ -765,6 +765,30 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertEqual(b.closed, [("AAPL", 10)])
             self.assertEqual(paper._jl(Path(d) / "trades.jsonl")[0]["reason"], "neg_exit")
 
+    def test_same_expert_cooldown_is_recorded_per_expert(self):
+        """Owner 2026-10-22: an exit stamps (symbol, expert); on_bar_close then skips that expert on that stock for expert_cooldown_min."""
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def __init__(self): self.closed, self.px = [], (100.0, 100.02)
+            def positions(self): return {"AAPL": 10}
+            def equity(self): return 50000.0
+            def quote(self, s): return self.px
+            def submit_market(self, s, q, c=None, side="buy"): return {}
+            def close(self, s, qty=None): self.closed.append((s, qty))
+            def clock_open(self): return True
+
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            r.exits.open("AAPL", 10, 100.02, 1.0, 20.0, datetime(2026, 10, 12, 10, 0, tzinfo=paper.ET), 1.5, 1.0)
+            r.exits.positions["AAPL"]["expert"] = "vwap_dev"
+            b.px = (98.0, 98.02)                                                     # through the stop
+            r.poll_exits(datetime(2026, 10, 12, 10, 5, tzinfo=paper.ET))
+            self.assertEqual(r.last_exit_by[("AAPL", "vwap_dev")], datetime(2026, 10, 12, 10, 5, tzinfo=paper.ET))
+            self.assertEqual(r.zone_config().get("expert_cooldown_min"), 10)
+
     def test_velez_forward_scorecard(self):
         from alpacabot import paper
         rows = [{"symbol": "DIS", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": -10.0, "r": -1.0, "reason": "stop", "peak_r": 0.0, "mae_r": 1.0},

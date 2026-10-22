@@ -610,7 +610,7 @@
    "vote": 0.6,
    "vol_mult": 1.2
   },
-  "shadow_tags": ["velez_halt", "S:velez_halt", "velez_vbs", "velez_bt", "velez_trap", "velez_2020", "S:velez_bt"],
+  "shadow_tags": [],
   "_shadow_note": "owner 2026-10-22 (rescue plan): Velez setups with a losing live record stop placing orders but keep logging every signal that passes all gates (journal result 'shadow ...'). Remove a tag to trade it again.",
   "risk_by_expert": {
    "_note": "2026-10-16 expert breakdown (last 3 months, each expert alone through the live setup, two halves): these lost in BOTH halves and make ~90% of the trades - halved to 0.5% risk under the owner's live-paper rule (live results decide; restore 0.01 or switch off later). velez_180 PF 0.42/0.38 (212 trades), williams_r 0.46/0.60 (409), dual_regime 0.43/0.38 (241), connors_rsi2 0.30/0.81 (187), vwap_dev 0.77/0.54 (266), opening_range_breakout 0.10/0.11 (20), donchian_turtle 0.55/0.11 (21).",
@@ -667,7 +667,8 @@
    "select": false,
    "tp_zone": false,
    "sides": [
-    1
+    1,
+    -1
    ]
   },
   "oversold_gate": {
@@ -776,6 +777,8 @@
   },
   "max_pos_frac": 0.005,
   "neg_exit_min": 10,
+  "expert_cooldown_min": 10,
+  "_note_expert_cooldown_min": "owner 2026-10-22: after an expert's trade in a stock closes, that expert waits 10 minutes before trading the same stock again (other experts are not blocked). The shadow list was emptied the same day: every dropped expert and Velez setup trades again.",
   "_note_neg_exit_min": "owner 2026-10-22: an intraday trade under water (mid vs its entry mid) for 10 minutes in a row is closed (same rule as OANDA).",
   "_note_max_pos_frac": "owner 2026-10-22: no intraday position larger than 0.5% of equity in market value (2026-10-21: 1%; before that 25%, NFLX and GE shorts were ~$13k each).",
   "score_sizing": {
