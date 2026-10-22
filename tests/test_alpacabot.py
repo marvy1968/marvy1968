@@ -733,6 +733,38 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertAlmostEqual(t["pnl"], -20.0)    # (100 - 102) * 10
             self.assertIn("shorts: 1, 0W/1L", paper.report_card(d, date(2026, 10, 12)))
 
+    def test_paper_neg_exit_after_10_minutes(self):
+        """Owner 2026-10-22: a trade under water for neg_exit_min (10) minutes in a row is closed; a recovery resets the clock."""
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            def __init__(self): self.closed, self.px = [], (100.0, 100.02)
+            def positions(self): return {"AAPL": 10}
+            def equity(self): return 50000.0
+            def quote(self, s): return self.px
+            def submit_market(self, s, q, c=None, side="buy"): return {}
+            def close(self, s, qty=None): self.closed.append((s, qty))
+            def clock_open(self): return True
+
+        t = lambda m: datetime(2026, 10, 12, 10, m, tzinfo=paper.ET)
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "zones_override.json").write_text(json.dumps({"neg_exit_min": 10}))
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            r.exits.open("AAPL", 10, 100.02, 1.0, 20.0, t(0), 1.5, 1.0)          # long at the ask, stop 98.52
+            b.px = (99.80, 99.82)                                                   # under water
+            r.poll_exits(t(1))
+            b.px = (100.10, 100.12)                                                 # back above entry: clock resets
+            r.poll_exits(t(6))
+            b.px = (99.80, 99.82)
+            r.poll_exits(t(8))
+            r.poll_exits(t(17))
+            self.assertEqual(b.closed, [])                                          # 9 minutes under water: still open
+            r.poll_exits(t(18))
+            self.assertEqual(b.closed, [("AAPL", 10)])
+            self.assertEqual(paper._jl(Path(d) / "trades.jsonl")[0]["reason"], "neg_exit")
+
 
 class EngagedConfigTests(unittest.TestCase):
     def test_engaged_config_is_applied_and_unknown_keys_ignored(self):

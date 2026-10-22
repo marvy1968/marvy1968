@@ -374,6 +374,19 @@ class PaperRunner:
                 self.ladder_add(sym, pos, bid, ask, now_et)   # optional scale-in tiers (owner's current plan: one 1%-risk entry, none)
                 if self.ladder_cut(sym, pos, px, now_et):     # against the trade: sell 25%, then 50%, the rest at the stop
                     continue
+            neg_min = self.zone_config().get("neg_exit_min")
+            if neg_min:                                       # owner 2026-10-22: under water (mid vs the mid at entry) for neg_exit_min minutes in a row -> out
+                mid, mid0 = (bid + ask) / 2, abs(self.entry_px(pos)) - side * (ask - bid) / 2   # fill less half the spread
+                if side * (mid - mid0) < 0:
+                    since = pos.get("neg_since")
+                    if not since:
+                        pos["neg_since"] = now_et.isoformat()
+                    elif (now_et - datetime.fromisoformat(since)).total_seconds() >= 60 * float(neg_min):
+                        self.journal("neg_exit", symbol=sym, minutes=float(neg_min), mid=round(mid, 4), entry_mid=round(mid0, 4))
+                        self.close_now(sym, "neg_exit", bar_start(now_et) + pd.Timedelta(minutes=5))
+                        continue
+                else:
+                    pos["neg_since"] = None
             tp = pos.get("zone_tp")
             if tp is not None and side * (px - tp) >= 0:     # LIVE take-profit zone reached
                 if lad and self.ladder_take(sym, pos, px, now_et):    # scaled out: 25% at the zone, 50% beyond; the rest rides the trend
