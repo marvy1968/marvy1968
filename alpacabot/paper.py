@@ -1406,9 +1406,27 @@ def report_card(state_dir, day=None) -> str:
     return "\n".join(lines)
 
 
-def send_telegram(text: str) -> bool:
+def _telegram_settings() -> tuple[str, str]:
+    """Token and chat id read the way Marv's working sender reads them (marv/config.py: the first value in .env wins, inline " #" comments
+    and quotes stripped); systemd's EnvironmentFile parses .env differently (last duplicate wins, comments kept) and Telegram refused the
+    report card with HTTP 403 every day while Marv's own messages went through (2026-10-22). Falls back to the process environment."""
     import os
-    tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
+    vals = {}
+    env = Path(os.environ.get("MARV_ENV", Path(__file__).resolve().parent.parent / ".env"))
+    try:
+        for line in env.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                vals.setdefault(k.strip(), v.split(" #")[0].strip().strip('"').strip("'"))
+    except OSError:
+        pass
+    return (vals.get("TELEGRAM_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", ""),
+            vals.get("TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID", ""))
+
+
+def send_telegram(text: str) -> bool:
+    tok, chat = _telegram_settings()
     if not tok or not chat:
         return False
     try:
@@ -1417,7 +1435,11 @@ def send_telegram(text: str) -> bool:
         log.exception("telegram send failed")
         return False
     if not r.ok:
-        log.warning("telegram refused the message: HTTP %s", r.status_code)
+        try:
+            why = str(r.json().get("description", ""))[:200]     # Telegram's reason (never contains the token)
+        except ValueError:
+            why = ""
+        log.warning("telegram refused the message: HTTP %s %s", r.status_code, why)
     return r.ok
 
 

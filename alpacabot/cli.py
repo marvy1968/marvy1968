@@ -960,6 +960,7 @@ def main(argv=None) -> int:
     hs.add_argument("--stocks-only", action="store_true", help="leave crypto out")
     sub.add_parser("check", help="are the keys present and do they open the PAPER account (values never printed)")
     sub.add_parser("paper-report").add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("paper-telegram", help="resend today's report card to Telegram (delivery check)").add_argument("--state", default="state/alpaca_paper")
     pt = sub.add_parser("paper-trades", help="read-only: the intraday ledger rows, optionally for one expert tag (e.g. velez_rbi, S:velez_bt)")
     pt.add_argument("--expert"); pt.add_argument("--state", default="state/alpaca_paper")
     pt.add_argument("--by-expert", action="store_true", help="one line per expert: the stocks it traded, trades and P&L")
@@ -1165,6 +1166,11 @@ def main(argv=None) -> int:
             for t in rows:
                 print(" ".join(f"{k}={t.get(k)}" for k in keys))
         print(f"{len(rows)} rows, P&L ${sum(t['pnl'] for t in rows):+,.2f}")
+        return 0
+    if a.cmd == "paper-telegram":                       # resend today's saved report card to the owner's chat (delivery check)
+        from .paper import send_telegram
+        card = Path(a.state) / "report_card.txt"
+        print("sent" if send_telegram(card.read_text() if card.exists() else "Alpaca paper bot: Telegram test") else "NOT sent (see the log line above)")
         return 0
     if a.cmd == "paper-report":
         from .paper import report
