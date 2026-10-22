@@ -1,31 +1,21 @@
 {
- "_note": "owner 2026-10-22 ('restart dropped experts with the 10 min negative sell-off, wait 10 min before trading the same stock by the same expert'): ALL experts back on, longs and shorts, at their risk_by_expert sizes under the 0.5% position cap; the 10-minute under-water exit and a 10-minute same-expert cooldown per stock (zones.json neg_exit_min, expert_cooldown_min). Earlier (2026-10-20) they were dropped on the live record: longs dual_regime -$209, velez_180 -$82, donchian_turtle -$50, raschke_grail -$23; shorts williams_r -$54, velez_180 -$155, opening_range_breakout -$88, donchian_turtle -$40.",
+ "_note": "owner 2026-10-22 evening ('cancel all losing experts based on what we have learned'): only the expert sides with a positive live record stay. LONG: connors_rsi2 +$53, vwap_dev +$81, bollinger_bounce +$5, williams_r +$4, brooks_pullback +$57, opening_range_breakout +$10. SHORT: dual_regime +$109, connors_rsi2 +$38, brooks_pullback +$177, bollinger_bounce +$6, vwap_dev +$59, raschke_grail +$105. Cancelled (live record by side, Oct 12-22): longs dual_regime -$209, velez_180 -$82, donchian_turtle -$50, raschke_grail -$23, velez_elephant (backtest PF 0.70-0.82, no live trades); shorts williams_r -$54, velez_180 -$155, opening_range_breakout -$88, donchian_turtle -$40, velez_elephant; trend_stairs shorts -$72; the 18 old Velez setups (net -$278 live, every 3-month backtest lost) - replaced by the redesigned Velez scalper / day trader (brain.VZ_SCALP / VZ_DAY, zones.json vz_systems).",
  "brain": {
   "experts": [
-   "velez_elephant",
-   "velez_180",
-   "raschke_grail",
-   "brooks_pullback",
    "connors_rsi2",
+   "vwap_dev",
    "bollinger_bounce",
    "williams_r",
-   "donchian_turtle",
-   "vwap_dev",
-   "dual_regime",
+   "brooks_pullback",
    "opening_range_breakout"
   ],
   "short_experts": [
-   "velez_elephant",
-   "velez_180",
-   "raschke_grail",
-   "brooks_pullback",
-   "connors_rsi2",
-   "bollinger_bounce",
-   "williams_r",
-   "donchian_turtle",
-   "vwap_dev",
    "dual_regime",
-   "opening_range_breakout"
+   "connors_rsi2",
+   "brooks_pullback",
+   "bollinger_bounce",
+   "vwap_dev",
+   "raschke_grail"
   ]
  },
  "symbols": [

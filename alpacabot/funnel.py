@@ -42,7 +42,13 @@ RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop
          # owner 2026-10-22 Pristine hybrid (fxbot.strategies.PristineFx rules on daily stock bars, longs): pristine = a setup kind ("pbs", "cbs",
          # "cog", "pbo") REPLACES the entry (its own one-bar stop distance and trail exit pr_trail); pr_confirm = a kind that must also have fired
          # on the signal day or the day before (confirmation for the funnel / oversold entries)
-         "pristine": None, "pr_trail": "stop", "pr_confirm": None}
+         "pristine": None, "pr_trail": "stop", "pr_confirm": None,
+         # owner 2026-10-22 redesign: a Velez-style swing trader of its own (longs, daily bars) REPLACING the entry: trend = the 20-day SMA
+         # rising over a rising 200-day; signal day = a pullback that tags the 20 (low within vz_touch ATR of it, close holding near it) with a
+         # Velez bar: bottoming tail, red bar ignored, narrow range bar or a 3-5 bar dip; the NEXT day confirms (closes up, above the signal
+         # day's high, volume >= vz_vol x average); look left (at least 1R of room before the prior 20-day high); not extended (within 2 ATR of
+         # the 20). Stop under the two-day low less 0.25 ATR (1-3 ATR); take-profit tp_r; out on vz_exit_days closes under the 20.
+         "velez_swing": False, "vz_touch": 0.5, "vz_vol": 1.0, "vz_exit_days": 2}
 
 
 def sr_votes(d: pd.DataFrame, a: pd.Series, lookback: int = 120, wing: int = 2, tol_atr: float = 0.5, min_touches: int = 2) -> tuple:
@@ -153,6 +159,32 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         if r["pr_confirm"]:
             pc = PristineFx(r["pr_confirm"], "stop", cbs_atr=2.5).frame(d)["long"]
             out["long_entry"] = out["long_entry"] & (pc | pc.shift(1, fill_value=False))
+    if r["velez_swing"]:
+        o_ = d["open"].astype(float)
+        s20, s200 = c.rolling(20, min_periods=20).mean(), c.rolling(200, min_periods=200).mean()
+        env = (s20 > s200) & (s20 > s20.shift(3)) & (s200 > s200.shift(10)) & (c > s200)
+        rng = (h - l).replace(0, np.nan)
+        tail = (np.minimum(o_, c) - l) >= 0.4 * rng
+        rbi = (c.shift(1) < o_.shift(1)) & (c > h.shift(1))
+        nrb = (h - l) <= 0.6 * (h - l).rolling(10, min_periods=10).mean().shift(1)
+        dip = (c < c.shift(1)).astype(int).shift(1).rolling(5, min_periods=5).sum() >= 3
+        touch = (l <= s20 + r["vz_touch"] * a) & (c >= s20 - 0.25 * a)
+        setup = env & touch & (tail | rbi | nrb | dip)
+        prev = setup.shift(1, fill_value=False)
+        conf = prev & (c > o_) & (c > h.shift(1)) & (v >= r["vz_vol"] * vavg) & ((c - s20).abs() <= 2.0 * a)
+        low2 = np.minimum(l, l.shift(1))
+        vdist = (c - (low2 - 0.25 * a)).clip(lower=r["stop_min_atr"] * a, upper=r["stop_max_atr"] * a)
+        hi20 = h.rolling(20, min_periods=20).max().shift(1)
+        clear = ~((hi20 > c) & (hi20 < c + vdist))             # look left: at least 1R of room before the prior 20-day high
+        out["long_entry"] = (conf & clear & a.notna() & (a > 0)).fillna(False)
+        out["long_stop"] = c - r["stop_frac"] * vdist
+        out["long_tp"] = c + r["tp_r"] * vdist
+        under = c < s20
+        ex = under
+        for k_ in range(1, int(r["vz_exit_days"])):
+            ex = ex & under.shift(k_, fill_value=False)
+        out["long_exit"] = ex
+        out["short_entry"] = False
     if r["v_env"] or r["v_look_left"] or r["v_no_chase"] or r["v_tail"] or r["v_bars35"]:
         sma20, sma200 = c.rolling(20, min_periods=20).mean(), c.rolling(200, min_periods=200).mean()
         vok = pd.Series(True, index=d.index)

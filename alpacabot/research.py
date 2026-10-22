@@ -1154,6 +1154,44 @@ def velez_repair_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
     return out
 
 
+def velez_redesign_study(days, train, validate, groups: dict, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6),
+                         ckpt=None) -> dict:
+    """Owner 2026-10-22 redesign: the Velez-style scalper (brain.VZ_SCALP) and intraday trader (brain.VZ_DAY) through the live filters
+    (direction first, stage, trend confirm), next to the experts kept after cancelling the live losers, on large / mid / small caps separately
+    (`groups` = {name: set of symbols}). 2-bar (10-minute) cooldown per stock, 3 trades per stock per day. One-month test (--month1)."""
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezSignals, VZ_DAY, VZ_SCALP
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    cp = Checkpoint(ckpt)
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"}
+    lad = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+    keep_long = ["connors_rsi2", "vwap_dev", "bollinger_bounce", "williams_r", "brooks_pullback", "opening_range_breakout"]
+    keep_short = ["dual_regime", "connors_rsi2", "brooks_pullback", "bollinger_bounce", "vwap_dev", "raschke_grail"]
+
+    def run(system, syms, a, b):
+        sub = {s_: fr for s_, fr in days.items() if s_ in syms or s_ in ("SPY", "QQQ", "IWM")}
+        if system == "kept experts":
+            br = Brain(experts=keep_long, short_experts=keep_short, sector_filter=True, short_gate="red", cooldown=2)
+            strat = TrendConfirm(StageFilter(DirectionFirst(br)))
+        else:
+            br = Brain(experts=[], short_experts=[], sector_filter=True, short_gate="red", cooldown=2)
+            kw = VZ_SCALP if system == "vz_scalp" else VZ_DAY
+            br.zones = {"profiles": {**ZONE_PROFILES, kw["tag_as"]: prof}, "levels": True, "trend_exit": True,
+                        "ladder": {**_OWNER_LADDER, "by_expert": {kw["tag_as"]: lad}}}
+            strat = TrendConfirm(StageFilter(DirectionFirst(VelezSignals(br, **kw))))
+        sub = {s_: fr for s_, fr in sub.items() if s_ in syms}
+        if not sub:
+            return {"trades": 0}
+        r = run_intraday(strat, sub, costs, pf, a, b)
+        return {k: r["metrics"].get(k) for k in keys}
+    out = {"periods": {}}
+    for per, (a, b) in (("first half", train), ("second half", validate)):
+        out["periods"][per] = {f"{g} | {sysn}": cp.get(f"vzr-{per[:3]}-{g}-{sysn}", lambda sysn=sysn, syms=syms, a=a, b=b: run(sysn, syms, a, b))
+                               for g, syms in groups.items() for sysn in ("vz_scalp", "vz_day", "kept experts")}
+    out.update({"family": "velez_redesign", "passes": False, "verdict": "see the table (one month: provisional)"})
+    return out
+
+
 TS58_GRID = {   # owner 2026-10-17 "optimize refine test": one knob at a time around the drawn design, chosen on train, checked on validate
     "base: lists + TP box": {},
     "entry 2 of 4": {"need": 2},

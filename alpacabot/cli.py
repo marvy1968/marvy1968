@@ -335,6 +335,30 @@ def run_all(a) -> int:
                         lines.append(f"- {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, total {m_['longs_r']:+}R, "
                                      f"return {m_['return_pct']:+}% at 0.5% risk")
                         res[f"{label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
+            elif fam == "velez_swing_redesign":     # owner 2026-10-22: the Velez-style swing trader (funnel velez_swing), large / mid / small caps
+                from datetime import timedelta as _td
+                from .funnel import backtest as funnel_bt
+                from . import universe as _u
+                end2 = date.today()
+                res = {"family": fam}
+                groups = {"large": list(_u.STOCKS), "mid": list(_u.MID_CAPS), "small": list(_u.SMALL_CAPS)}
+                rules_v = {"velez_swing": True, "tp_r": 2.0}
+                for g, syms in groups.items():
+                    fb = {}
+                    for s_ in syms:
+                        try:
+                            fb[s_] = load(s_, "1Day", end2 - _td(days=700), end2, cache)
+                        except Exception as exc:
+                            print(f"skip {s_}: {exc}", flush=True)
+                    lines.append(f"### {g} caps ({len(fb)} stocks loaded)")
+                    for label, a_ in (("1 month", end2 - _td(days=31)), ("3 months (context)", end2 - _td(days=92)),
+                                      ("12 months (context)", end2 - _td(days=365))):
+                        for nm, rules in (("VELEZ SWING 2R", rules_v), ("VELEZ SWING 1.5R", {**rules_v, "tp_r": 1.5}),
+                                          ("FUNNEL live (compare)", {"stop_frac": 0.5, "tp_r": 1.25, "v_tail": True})):
+                            m_ = funnel_bt(fb, a_, end2 - _td(days=1), sides=("long",), rules=rules)
+                            lines.append(f"- {g} | {label} | {nm}: {m_['trades']} trades, win {m_['win_rate']}, PF {m_['profit_factor']}, "
+                                         f"total {m_['longs_r']:+}R, return {m_['return_pct']:+}% at 0.5% risk")
+                            res[f"{g} | {label} | {nm}"] = {k: v for k, v in m_.items() if k != "list"}
             elif fam == "swing_velez":             # owner 2026-10-22: Velez rules on the swing longs (funnel + oversold), 2 weeks / 3 / 12 months
                 from datetime import timedelta as _td
                 from .funnel import backtest as funnel_bt
@@ -600,7 +624,7 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
-                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
+                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
                     from datetime import timedelta as _td
                     from . import gates as _g
                     from . import universe as _u
@@ -612,6 +636,10 @@ def run_all(a) -> int:
                     for s_ in _u.STOCKS:
                         _g.add_sector(s_, _u.SECTOR_OF[s_])
                     syms58 = sorted(set(_PS) | set(_u.STOCKS))
+                    if fam == "velez_redesign":                     # owner 2026-10-22: large, mid and small caps
+                        for s_, etf_ in {**_u.MID_CAPS, **_u.SMALL_CAPS}.items():
+                            _g.add_sector(s_, etf_)
+                        syms58 = sorted(set(syms58) | set(_u.MID_CAPS) | set(_u.SMALL_CAPS))
                     m58 = {}
                     for s_ in syms58:
                         try:
@@ -643,7 +671,12 @@ def run_all(a) -> int:
                             ns += f_.attrs["ts_ok"][1]
                             nd += 1
                     lines.append(f"- daily lists from {src}: a stock was on the LONG list {nl} of {nd} stock-days, on the SHORT list {ns}")
-                    if fam == "velez_repair":
+                    if fam == "velez_redesign":
+                        from .research import velez_redesign_study
+                        groups = {"large": set(_u.STOCKS), "mid": set(_u.MID_CAPS), "small": set(_u.SMALL_CAPS)}
+                        lines.append("- loaded: " + ", ".join(f"{g} {len([x for x in v if x in days])}" for g, v in groups.items()))
+                        res = velez_redesign_study(days, train, test, groups, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vzr.json")
+                    elif fam == "velez_repair":
                         from .research import velez_repair_study
                         res = velez_repair_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vrep.json")
                     elif fam == "velez_all":
@@ -794,7 +827,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair"):
+        if fam in ("ladder_intraday", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

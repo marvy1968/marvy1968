@@ -386,6 +386,28 @@ class VelezResearch2Tests(unittest.TestCase):
             for kw in ({}, {"sides": (1, -1)}, {"confirm": True, "first_only": True, "stop_atr": 1.5}):
                 VelezSignals(Stub(), setups=VELEZ_ALL, **kw).box_signals(d)        # must not raise
 
+    def test_redesigned_systems_tag_and_confirm(self):
+        """Owner 2026-10-22 redesign: VZ_SCALP / VZ_DAY trade under their own tags, only after a confirming bar, inside their windows."""
+        import numpy as np
+        import pandas as pd
+        from alpacabot.brain import VZ_DAY, VZ_SCALP, VelezSignals
+        n = 60
+        idx = pd.date_range("2026-10-20 09:30", periods=n, freq="5min", tz="America/New_York")
+        c = 100 + 0.05 * np.arange(n)
+        d = pd.DataFrame({"open": c - 0.02, "high": c + 0.1, "low": c - 0.1, "close": c, "volume": 1000.0, "f_atr": 0.3, "f_sma200": 95.0}, index=idx)
+        d["f_sma20"] = d["close"].rolling(20, min_periods=1).mean()
+        d["x_velez"] = d["close"] < d["f_sma20"]
+        d["volume"] = 5000.0
+
+        class Stub:
+            def signals(self, day):
+                return []
+        for kw, tag in ((VZ_SCALP, "vz_scalp"), (VZ_DAY, "vz_day")):
+            sig = VelezSignals(Stub(), **kw).box_signals(d)
+            self.assertTrue(all(s.tag in (tag, "S:" + tag) for s in sig))
+            t = [d.index[s.i].strftime("%H:%M") for s in sig]
+            self.assertTrue(all(any(w0 <= x <= w1 for w0, w1 in kw["windows"]) for x in t), t)
+
 
 class VelezHybridTests(unittest.TestCase):
     def test_trend_filter_and_one_bar_stop(self):

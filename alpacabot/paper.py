@@ -828,6 +828,13 @@ class PaperRunner:
                     brain = VelezSignals(brain, tuple(rp["setups"]), float(rp.get("tp_r", 1.5)), int(rp.get("hold", 18)),   # confirmation,
                                          sides=tuple(rp.get("sides") or [1]), stop_atr=float(rp.get("stop_atr", 0.0)),    # one per day)
                                          confirm=bool(rp.get("confirm", False)), first_only=bool(rp.get("first_only", False)))
+            vzs = self.zone_config().get("vz_systems") or {}
+            if vzs.get("live") and self.zone_config().get("live"):                      # owner 2026-10-22: the redesigned Velez systems
+                from .brain import VZ_DAY, VZ_SCALP, VelezSignals
+                if vzs.get("scalp", True):
+                    brain = VelezSignals(brain, **VZ_SCALP)
+                if vzs.get("day", True):
+                    brain = VelezSignals(brain, **VZ_DAY)
             sig = next((s for s in brain.signals(day) if s.i == len(day) - 1), None)
             if not sig:
                 continue

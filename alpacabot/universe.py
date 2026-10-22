@@ -29,3 +29,10 @@ SECTOR_ETFS = list(SECTOR_TOP5)
 CONTROL_SECTOR_OF = {"XOM": "XLE", "CVX": "XLE", "JNJ": "XLV", "PFE": "XLV", "MRK": "XLV", "GE": "XLI", "JPM": "XLF", "WFC": "XLF",
                      "BAC": "XLF", "C": "XLF", "T": "XLC", "VZ": "XLC", "DIS": "XLC", "PG": "XLP", "KO": "XLP", "WMT": "XLP",
                      "INTC": "XLK", "CSCO": "XLK", "ORCL": "XLK", "IBM": "XLK", "HD": "XLY"}
+
+# Owner 2026-10-22 ("1 month test on small, mid and large cap stocks"): liquid mid caps and small caps with the sector ETF each one rates in the
+# heat map. Picked for volume and tight spreads, size class approximate (market caps move); a stock the data feed cannot load is skipped.
+MID_CAPS = {"AFRM": "XLF", "SOFI": "XLF", "RKLB": "XLI", "HIMS": "XLV", "DKNG": "XLY", "CHWY": "XLY", "ROKU": "XLC", "ELF": "XLP",
+            "CELH": "XLP", "PATH": "XLK", "U": "XLK", "TOST": "XLK"}
+SMALL_CAPS = {"MARA": "XLK", "RIOT": "XLK", "IONQ": "XLK", "SOUN": "XLK", "BBAI": "XLK", "PLUG": "XLI", "JOBY": "XLI", "ACHR": "XLI",
+              "LCID": "XLY", "RIVN": "XLY", "OPEN": "XLRE", "RUN": "XLU"}

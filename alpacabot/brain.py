@@ -472,8 +472,11 @@ class VelezSignals(BoxSignals):
 
     def __init__(self, brain, setups=VELEZ_TAGS, tp_r: float = 1.5, hold: int = 18, buffer_atr: float = 0.1, halt_atr: float = 0.3,
                  look_left: bool = False, tod: tuple = (), stop_mult: float = 1.0, sig_exit: bool = True, sides: tuple = (1,),
-                 vol_mult: float = 0.0, stop_atr: float = 0.0, confirm: bool = False, first_only: bool = False, exit_col: str | None = None):
+                 vol_mult: float = 0.0, stop_atr: float = 0.0, confirm: bool = False, first_only: bool = False, exit_col: str | None = None,
+                 tag_as: str | None = None, windows: tuple = ()):
         super().__init__(brain)
+        self.tag_as = tag_as            # owner 2026-10-22 redesign: every setup trades under one system tag (e.g. "vz_scalp", "vz_day")
+        self.windows = tuple(windows)   # ((start, end), ...) "HH:MM" entry windows; empty = the default 09:45-15:15
         self.stop_atr = stop_atr        # research 2026-10-22: a fixed stop of stop_atr x ATR(14) instead of the one-bar stop (0 = off)
         self.confirm = confirm          # research: enter one bar later, only when that bar closes up and above the signal bar's high
         self.first_only = first_only    # research: only the first occurrence of each setup per day (no repeat entries)
@@ -503,7 +506,12 @@ class VelezSignals(BoxSignals):
                 o, h, l, c, ma, m200 = ro, rh, rl, rc, rma, r200
             else:
                 o, h, l, c, ma, m200 = -ro, -rl, -rh, -rc, -rma, -r200
-            win = np.asarray((t >= "09:45") & (t <= "15:15"))
+            if self.windows:
+                win = np.zeros(n, bool)
+                for w0, w1 in self.windows:
+                    win |= np.asarray((t >= w0) & (t <= w1))
+            else:
+                win = np.asarray((t >= "09:45") & (t <= "15:15"))
             with np.errstate(invalid="ignore"):
                 env = win & (ma > sh(ma, 3)) & (ma > m200) & (a > 0)
                 up = c > o
@@ -556,7 +564,8 @@ class VelezSignals(BoxSignals):
                     ex = ("x_velez" if side == 1 else "x_velez_s") if self.sig_exit else ""
                     if self.exit_col is not None and side == 1:
                         ex = self.exit_col
-                    out.append(Signal(i=int(i), side=side, stop_dist=sd, max_bars=int(self.hold), tag=tag if side == 1 else "S:" + tag,
+                    _t = self.tag_as or tag
+                    out.append(Signal(i=int(i), side=side, stop_dist=sd, max_bars=int(self.hold), tag=_t if side == 1 else "S:" + _t,
                                       atr=float(a[i]), exit_col=ex, target_px=float(side * (c[i] + self.tp_r * sd))))
         return sorted(out, key=lambda s: s.i)
 
@@ -643,6 +652,19 @@ class VelezSignals(BoxSignals):
                 hi12[i] = h[i - 12:i].max()
             ldb = np.asarray(t >= "14:30") & (c > o[0]) & (c >= sh(dayhi, 1) - 0.3 * a) & (c > hi12) & up & (a > 0)
         return {"velez_gift": gift, "velez_nrb": nrb, "velez_orb": orb, "velez_trap": trap, "velez_ldb": ldb}
+
+
+# owner 2026-10-22 redesign ("cancel all losing experts; a Velez-style scalper, intraday trader and swing trader with all the listed features"),
+# built on what the live record and the backtests taught: next-bar confirmation was the only entry change that helped on unseen data, tight
+# stops + repeat entries + chasing lost, wider stops alone did not help, day holds beat scalps. Both systems: trend with the simple 20 over a
+# rising 200 (shorts mirrored), his continuation setups at the 20 (20 MA halt, red bar ignored, narrow range bar, green bar reversal, pause,
+# 3-5 bar dip), the next bar must confirm (close up through the signal bar's high), volume on the signal bar, "look left" (no prior high in the
+# way of the target), one-bar stop. Live adds the 10-minute under-water exit and the same-expert cooldown.
+VZ_PULLBACK = ("velez_halt", "velez_rbi", "velez_nrb", "velez_gbr", "velez_pause", "velez_vbs")
+VZ_SCALP = dict(setups=VZ_PULLBACK, tp_r=1.0, hold=6, confirm=True, look_left=True, vol_mult=1.2, sig_exit=False, sides=(1, -1),
+                windows=(("09:45", "11:30"), ("13:30", "15:15")), tag_as="vz_scalp")
+VZ_DAY = dict(setups=VZ_PULLBACK + ("velez_brk", "velez_bull180"), tp_r=2.0, hold=60, confirm=True, look_left=True, vol_mult=1.0,
+              sig_exit=True, sides=(1, -1), windows=(("09:45", "14:30"),), tag_as="vz_day")
 
 
 class VelezHybrid:

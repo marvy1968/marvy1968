@@ -667,8 +667,7 @@
    "select": false,
    "tp_zone": false,
    "sides": [
-    1,
-    -1
+    1
    ]
   },
   "oversold_gate": {
@@ -708,7 +707,7 @@
   },
   "velez": {
    "_note": "owner 2026-10-20 (Oliver Velez rules, brain.VelezSignals), paper at 0.5% risk, longs only, 5-minute bars 09:45-15:15: the simple 20 average rising and above the 200, then velez_halt (pullback holds the 20 SMA), velez_vbs (3-5 lower closes then a bar through the prior high), velez_rbi (red bar ignored). One-bar stop, target tp_r x the stop, out when the 20 SMA breaks, time stop `hold` bars. Runs alongside the other intraday experts. Exempt from the oversold gate (its pullback entries are not oversold readings; oversold_gate.exempt). Set live to false to switch it off. Owner 2026-10-20: switched OFF with the other unprofitable experts (live 22 trades -$259, every backtest lost). Owner 2026-10-21: ALL 18 Velez setups live, longs and shorts (mirrored chart), at 0.1% risk each (risk_by_expert), to collect live paper data although every setup lost in the 3-month test.",
-   "live": true,
+   "live": false,
    "tp_r": 1.5,
    "hold": 18,
    "repair": {
@@ -781,6 +780,7 @@
   "max_pos_frac": 0.01,
   "neg_exit_min": 10,
   "expert_cooldown_min": 10,
+  "vz_systems": {"_note": "owner 2026-10-22 redesign: the Velez-style scalper (vz_scalp) and day trader (vz_day), brain.VZ_SCALP / VZ_DAY. Off until the one-month test is read; live = true turns both on (scalp / day pick which).", "live": false, "scalp": true, "day": true},
   "entry_symbols": ["SOFI", "RKLB", "HIMS", "RIVN", "MARA"],
   "_note_entry_symbols": "owner 2026-10-22: new intraday entries only in these mid / small caps (brain_config.json symbols); remove the key to trade the big caps again.",
   "_note_expert_cooldown_min": "owner 2026-10-22: after an expert's trade in a stock closes, that expert waits 10 minutes before trading the same stock again (other experts are not blocked). The shadow list was emptied the same day: every dropped expert and Velez setup trades again.",
