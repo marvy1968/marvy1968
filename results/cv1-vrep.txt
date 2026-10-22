@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families velez_repair --months3
+started 2026-10-22 10:03:25 EDT
+RUNNING...
