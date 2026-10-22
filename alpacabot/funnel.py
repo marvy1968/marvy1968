@@ -34,7 +34,11 @@ RULES = {"need": 3, "near_atr": 1.0, "vol_mult": 1.2, "stop_min_atr": 1.0, "stop
          # band, and a 4th price-stretch vote ("sd" = 1.5 SD under the 20-day average, "vwap" = 1 ATR under the 20-day VWAP); `os_need` of 4
          # plus volume; `os_stage` = stages allowed (None = any stage)
          "oversold": False, "os_need": 3, "os_fourth": "sd", "os_stage": (2,), "os_vol": 1.1,
-         "os_rsi": 30.0, "os_stoch": 20.0}
+         "os_rsi": 30.0, "os_stoch": 20.0,
+         # owner 2026-10-22 Velez hybrid on the daily swing longs: env = the 20-day SMA rising over the 200-day; look_left = no prior 20-day high
+         # between the entry and the target; no_chase = close within 2 ATR of the 20-day SMA; tail = a bottoming tail on the signal day;
+         # bars35 = 3+ lower closes in the 5 days before (his 3-5 bar dip)
+         "v_env": False, "v_look_left": False, "v_no_chase": False, "v_tail": False, "v_bars35": False}
 
 
 def sr_votes(d: pd.DataFrame, a: pd.Series, lookback: int = 120, wing: int = 2, tol_atr: float = 0.5, min_touches: int = 2) -> tuple:
@@ -133,6 +137,24 @@ def frame(d: pd.DataFrame, rules: dict | None = None) -> pd.DataFrame:
         lost_vwap = (c < vw) if side == 1 else (c > vw)
         turn = ((k < dd) & (k.shift(1) >= r["stoch_top"])) if side == 1 else ((k > dd) & (k.shift(1) <= 100 - r["stoch_top"]))
         out[f"{tag}_exit"] = ((three.astype(int) + lost_vwap.astype(int) + turn.astype(int)) >= 2) | (stage != want)
+    if r["v_env"] or r["v_look_left"] or r["v_no_chase"] or r["v_tail"] or r["v_bars35"]:
+        sma20, sma200 = c.rolling(20, min_periods=20).mean(), c.rolling(200, min_periods=200).mean()
+        vok = pd.Series(True, index=d.index)
+        if r["v_env"]:
+            vok &= (sma20 > sma200) & (sma20 > sma20.shift(3))
+        if r["v_no_chase"]:
+            vok &= (c - sma20).abs() <= 2.0 * a
+        if r["v_tail"]:
+            o_ = d["open"].astype(float)
+            rng = (h - l).replace(0, np.nan)
+            vok &= (np.minimum(o_, c) - l) >= 0.4 * rng
+        if r["v_bars35"]:
+            dn = (c < c.shift(1)).astype(int)
+            vok &= dn.shift(1).rolling(5, min_periods=5).sum() >= 3
+        if r["v_look_left"]:
+            hi20 = h.rolling(20, min_periods=20).max().shift(1)
+            vok &= ~((hi20 > c) & (hi20 < out["long_tp"]))
+        out["long_entry"] = out["long_entry"] & vok.fillna(False)
     return out
 
 
