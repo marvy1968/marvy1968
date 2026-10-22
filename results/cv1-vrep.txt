@@ -1,3 +1,77 @@
 $ alpaca run-all --phase validate --families velez_repair --months3
-started 2026-10-22 10:03:25 EDT
-RUNNING...
+started 2026-10-22 10:03:25 EDT, took 1638s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 293 of 4118 stock-days, on the SHORT list 37
+## velez_repair: see the table: a change counts only if it helps on validate too
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | velez_rbi | 00 baseline (live rules): 227t win 32% PF 0.61 avgR -0.24 daily -0.097% CAGR -22.5% maxDD -3.2% | stopped 103, never green 103
+- train | velez_rbi | 01 stop 1.0 ATR: 223t win 32% PF 0.67 avgR -0.22 daily -0.075% CAGR -18.2% maxDD -2.7% | stopped 96, never green 96
+- train | velez_rbi | 02 stop 1.5 ATR: 215t win 32% PF 0.67 avgR -0.15 daily -0.083% CAGR -20.2% maxDD -3.0% | stopped 54, never green 54
+- train | velez_rbi | 03 stop 2.0 ATR: 208t win 33% PF 0.72 avgR -0.11 daily -0.069% CAGR -17.0% maxDD -2.5% | stopped 21, never green 21
+- train | velez_rbi | 04 structural stop + 0.5 ATR buffer: 216t win 34% PF 0.73 avgR -0.12 daily -0.064% CAGR -15.7% maxDD -2.6% | stopped 50, never green 50
+- train | velez_rbi | 05 cooldown 30 min: 209t win 33% PF 0.62 avgR -0.24 daily -0.085% CAGR -20.0% maxDD -2.9% | stopped 94, never green 94
+- train | velez_rbi | 06 cooldown 60 min: 196t win 32% PF 0.61 avgR -0.24 daily -0.080% CAGR -19.5% maxDD -2.7% | stopped 90, never green 90
+- train | velez_rbi | 07 fresh setup only (first per day): 108t win 31% PF 0.63 avgR -0.25 daily -0.049% CAGR -13.1% maxDD -2.0% | stopped 54, never green 54
+- train | velez_rbi | 08 max 1 attempt / stock / day: 138t win 31% PF 0.62 avgR -0.25 daily -0.062% CAGR -15.7% maxDD -2.5% | stopped 67, never green 67
+- train | velez_rbi | 09 max 2 attempts: 203t win 32% PF 0.61 avgR -0.24 daily -0.087% CAGR -20.7% maxDD -3.1% | stopped 91, never green 91
+- train | velez_rbi | 10 next-bar confirmation: 79t win 35% PF 0.84 avgR -0.11 daily -0.016% CAGR -4.5% maxDD -0.5% | stopped 21, never green 21
+- train | velez_rbi | 11 exit 1.5R, no 20-SMA exit: 223t win 35% PF 0.64 avgR -0.24 daily -0.096% CAGR -22.4% maxDD -3.2% | stopped 137, never green 137
+- train | velez_rbi | 12 exit 2R: 224t win 29% PF 0.69 avgR -0.21 daily -0.076% CAGR -18.0% maxDD -3.1% | stopped 102, never green 102
+- train | velez_rbi | 13 exit 8-SMA trail: 227t win 24% PF 0.52 avgR -0.27 daily -0.107% CAGR -24.0% maxDD -3.6% | stopped 66, never green 66
+- train | velez_rbi | 14 time exit 6 bars: 235t win 34% PF 0.64 avgR -0.22 daily -0.083% CAGR -19.8% maxDD -2.7% | stopped 103, never green 103
+- train | velez_rbi | 15 time exit 12 bars: 231t win 31% PF 0.60 avgR -0.25 daily -0.099% CAGR -23.0% maxDD -3.3% | stopped 106, never green 106
+- train | velez_halt | 00 baseline (live rules): 206t win 27% PF 0.55 avgR -0.26 daily -0.095% CAGR -19.9% maxDD -2.8% | stopped 69, never green 69
+- train | velez_halt | 01 stop 1.0 ATR: 203t win 23% PF 0.55 avgR -0.26 daily -0.096% CAGR -20.0% maxDD -2.9% | stopped 44, never green 44
+- train | velez_halt | 02 stop 1.5 ATR: 199t win 20% PF 0.54 avgR -0.19 daily -0.104% CAGR -21.5% maxDD -3.1% | stopped 15, never green 15
+- train | velez_halt | 03 stop 2.0 ATR: 197t win 18% PF 0.50 avgR -0.16 daily -0.110% CAGR -23.4% maxDD -3.2% | stopped 6, never green 6
+- train | velez_halt | 04 structural stop + 0.5 ATR buffer: 200t win 22% PF 0.53 avgR -0.23 daily -0.107% CAGR -21.9% maxDD -3.2% | stopped 23, never green 23
+- train | velez_halt | 05 cooldown 30 min: 188t win 28% PF 0.55 avgR -0.25 daily -0.083% CAGR -17.6% maxDD -2.5% | stopped 63, never green 63
+- train | velez_halt | 06 cooldown 60 min: 172t win 29% PF 0.58 avgR -0.22 daily -0.068% CAGR -15.0% maxDD -2.1% | stopped 58, never green 58
+- train | velez_halt | 07 fresh setup only (first per day): 102t win 32% PF 0.78 avgR -0.08 daily -0.028% CAGR -5.3% maxDD -1.0% | stopped 25, never green 25
+- train | velez_halt | 08 max 1 attempt / stock / day: 135t win 27% PF 0.57 avgR -0.25 daily -0.060% CAGR -13.0% maxDD -1.9% | stopped 45, never green 45
+- train | velez_halt | 09 max 2 attempts: 190t win 27% PF 0.54 avgR -0.27 daily -0.090% CAGR -18.7% maxDD -2.7% | stopped 66, never green 66
+- train | velez_halt | 10 next-bar confirmation: 71t win 32% PF 0.92 avgR -0.10 daily -0.010% CAGR -1.9% maxDD -0.6% | stopped 13, never green 13
+- train | velez_halt | 11 exit 1.5R, no 20-SMA exit: 199t win 36% PF 0.62 avgR -0.26 daily -0.096% CAGR -20.0% maxDD -3.2% | stopped 123, never green 123
+- train | velez_halt | 12 exit 2R: 202t win 23% PF 0.56 avgR -0.27 daily -0.094% CAGR -19.4% maxDD -2.8% | stopped 70, never green 70
+- train | velez_halt | 13 exit 8-SMA trail: 206t win 24% PF 0.46 avgR -0.34 daily -0.103% CAGR -22.2% maxDD -3.1% | stopped 64, never green 64
+- train | velez_halt | 14 time exit 6 bars: 210t win 32% PF 0.63 avgR -0.22 daily -0.073% CAGR -15.4% maxDD -2.2% | stopped 69, never green 69
+- train | velez_halt | 15 time exit 12 bars: 209t win 29% PF 0.58 avgR -0.24 daily -0.087% CAGR -18.4% maxDD -2.6% | stopped 69, never green 69
+- validate | velez_rbi | 00 baseline (live rules): 95t win 34% PF 0.76 avgR -0.19 daily -0.022% CAGR -6.0% maxDD -1.4% | stopped 41, never green 41
+- validate | velez_rbi | 01 stop 1.0 ATR: 94t win 37% PF 0.82 avgR -0.10 daily -0.016% CAGR -4.8% maxDD -1.0% | stopped 39, never green 39
+- validate | velez_rbi | 02 stop 1.5 ATR: 89t win 35% PF 0.71 avgR -0.13 daily -0.032% CAGR -8.2% maxDD -1.2% | stopped 22, never green 22
+- validate | velez_rbi | 03 stop 2.0 ATR: 87t win 36% PF 0.65 avgR -0.12 daily -0.040% CAGR -10.1% maxDD -1.7% | stopped 11, never green 11
+- validate | velez_rbi | 04 structural stop + 0.5 ATR buffer: 90t win 36% PF 0.76 avgR -0.08 daily -0.025% CAGR -6.6% maxDD -1.1% | stopped 22, never green 22
+- validate | velez_rbi | 05 cooldown 30 min: 88t win 34% PF 0.76 avgR -0.19 daily -0.021% CAGR -5.9% maxDD -1.2% | stopped 41, never green 41
+- validate | velez_rbi | 06 cooldown 60 min: 78t win 32% PF 0.68 avgR -0.23 daily -0.027% CAGR -7.3% maxDD -1.4% | stopped 37, never green 37
+- validate | velez_rbi | 07 fresh setup only (first per day): 46t win 35% PF 0.74 avgR -0.19 daily -0.013% CAGR -4.1% maxDD -0.8% | stopped 22, never green 22
+- validate | velez_rbi | 08 max 1 attempt / stock / day: 63t win 33% PF 0.76 avgR -0.21 daily -0.014% CAGR -4.3% maxDD -1.0% | stopped 31, never green 31
+- validate | velez_rbi | 09 max 2 attempts: 84t win 36% PF 0.85 avgR -0.15 daily -0.010% CAGR -3.2% maxDD -1.0% | stopped 36, never green 36
+- validate | velez_rbi | 10 next-bar confirmation: 39t win 41% PF 0.97 avgR -0.03 daily -0.002% CAGR -0.6% maxDD -0.7% | stopped 10, never green 10
+- validate | velez_rbi | 11 exit 1.5R, no 20-SMA exit: 95t win 41% PF 0.88 avgR -0.12 daily -0.010% CAGR -3.2% maxDD -1.0% | stopped 52, never green 52
+- validate | velez_rbi | 12 exit 2R: 92t win 27% PF 0.54 avgR -0.31 daily -0.052% CAGR -12.6% maxDD -1.8% | stopped 44, never green 44
+- validate | velez_rbi | 13 exit 8-SMA trail: 95t win 24% PF 0.51 avgR -0.24 daily -0.047% CAGR -11.6% maxDD -2.0% | stopped 34, never green 34
+- validate | velez_rbi | 14 time exit 6 bars: 97t win 35% PF 0.70 avgR -0.19 daily -0.026% CAGR -7.1% maxDD -1.3% | stopped 39, never green 39
+- validate | velez_rbi | 15 time exit 12 bars: 95t win 36% PF 0.76 avgR -0.19 daily -0.022% CAGR -6.0% maxDD -1.2% | stopped 41, never green 41
+- validate | velez_halt | 00 baseline (live rules): 69t win 17% PF 0.27 avgR -0.46 daily -0.072% CAGR -16.2% maxDD -1.8% | stopped 22, never green 22
+- validate | velez_halt | 01 stop 1.0 ATR: 69t win 22% PF 0.50 avgR -0.26 daily -0.046% CAGR -11.0% maxDD -1.2% | stopped 14, never green 14
+- validate | velez_halt | 02 stop 1.5 ATR: 67t win 12% PF 0.32 avgR -0.27 daily -0.067% CAGR -15.3% maxDD -1.7% | stopped 2, never green 2
+- validate | velez_halt | 03 stop 2.0 ATR: 67t win 12% PF 0.39 avgR -0.17 daily -0.059% CAGR -13.6% maxDD -1.6% | stopped 0, never green 0
+- validate | velez_halt | 04 structural stop + 0.5 ATR buffer: 67t win 13% PF 0.30 avgR -0.32 daily -0.069% CAGR -15.7% maxDD -1.8% | stopped 6, never green 6
+- validate | velez_halt | 05 cooldown 30 min: 64t win 16% PF 0.28 avgR -0.48 daily -0.064% CAGR -14.6% maxDD -1.6% | stopped 20, never green 20
+- validate | velez_halt | 06 cooldown 60 min: 61t win 18% PF 0.30 avgR -0.43 daily -0.058% CAGR -13.5% maxDD -1.5% | stopped 19, never green 19
+- validate | velez_halt | 07 fresh setup only (first per day): 37t win 19% PF 0.32 avgR -0.39 daily -0.041% CAGR -9.8% maxDD -1.0% | stopped 12, never green 12
+- validate | velez_halt | 08 max 1 attempt / stock / day: 50t win 16% PF 0.26 avgR -0.49 daily -0.055% CAGR -12.8% maxDD -1.4% | stopped 17, never green 17
+- validate | velez_halt | 09 max 2 attempts: 65t win 18% PF 0.28 avgR -0.45 daily -0.067% CAGR -15.4% maxDD -1.7% | stopped 22, never green 22
+- validate | velez_halt | 10 next-bar confirmation: 20t win 20% PF 0.28 avgR -0.35 daily -0.036% CAGR -8.3% maxDD -0.6% | stopped 3, never green 3
+- validate | velez_halt | 11 exit 1.5R, no 20-SMA exit: 67t win 24% PF 0.34 avgR -0.55 daily -0.075% CAGR -16.9% maxDD -1.9% | stopped 48, never green 48
+- validate | velez_halt | 12 exit 2R: 69t win 14% PF 0.29 avgR -0.43 daily -0.070% CAGR -16.0% maxDD -1.8% | stopped 22, never green 22
+- validate | velez_halt | 13 exit 8-SMA trail: 72t win 18% PF 0.47 avgR -0.25 daily -0.046% CAGR -10.8% maxDD -1.3% | stopped 20, never green 20
+- validate | velez_halt | 14 time exit 6 bars: 72t win 21% PF 0.34 avgR -0.42 daily -0.061% CAGR -14.2% maxDD -1.6% | stopped 22, never green 22
+- validate | velez_halt | 15 time exit 12 bars: 70t win 19% PF 0.28 avgR -0.46 daily -0.071% CAGR -16.2% maxDD -1.8% | stopped 22, never green 22
+ALL DONE
