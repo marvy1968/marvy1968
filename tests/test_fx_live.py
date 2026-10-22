@@ -310,6 +310,47 @@ class FxLiveTests(unittest.TestCase):
             self.assertFalse((Path(tmp) / "FLATTEN_NOW").exists())
             self.assertEqual(r.ledger()[-1]["reason"], "owner flatten")
 
+    def test_negative_for_ten_minutes_is_closed(self):
+        from datetime import timedelta
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            t = [datetime(2026, 10, 14, 14, 0, 30, tzinfo=timezone.utc)]
+            r = live.FxPaper(api=api, state_dir=tmp, clock=lambda: t[0], sleep=lambda *_: None)
+            r.daily_bias = lambda inst: (0, [])
+            r.cfg["loss_cut_r"], r.cfg["take_profit_r"], r.cfg["neg_exit_min"] = None, None, 10
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            api.px["EUR_USD"] = (g["mid0"] - 0.00015, g["mid0"] - 0.00005)        # 1 pip under water
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+            t[0] += timedelta(minutes=9)
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)                                          # 9 minutes: still held
+            t[0] += timedelta(minutes=2)
+            r.manage(gid, 58000.0, "")
+            self.assertNotIn(gid, r.groups)                                       # 11 minutes negative: closed
+            self.assertEqual(r.ledger()[-1]["reason"], "neg_exit")
+
+    def test_back_above_entry_resets_the_negative_clock(self):
+        from datetime import timedelta
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            t = [datetime(2026, 10, 14, 14, 0, 30, tzinfo=timezone.utc)]
+            r = live.FxPaper(api=api, state_dir=tmp, clock=lambda: t[0], sleep=lambda *_: None)
+            r.daily_bias = lambda inst: (0, [])
+            r.cfg["loss_cut_r"], r.cfg["take_profit_r"], r.cfg["neg_exit_min"] = None, None, 10
+            r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
+            gid, g = next(iter(r.groups.items()))
+            api.px["EUR_USD"] = (g["mid0"] - 0.00015, g["mid0"] - 0.00005)
+            r.manage(gid, 58000.0, "")
+            t[0] += timedelta(minutes=6)
+            api.px["EUR_USD"] = (g["mid0"] + 0.00005, g["mid0"] + 0.00015)        # back in profit: the clock resets
+            r.manage(gid, 58000.0, "")
+            api.px["EUR_USD"] = (g["mid0"] - 0.00015, g["mid0"] - 0.00005)
+            t[0] += timedelta(minutes=6)
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+
     def test_step_runs_end_to_end(self):
         with tempfile.TemporaryDirectory() as tmp:
             api = FakeOanda()

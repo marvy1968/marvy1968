@@ -87,7 +87,9 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-19 ("leave at 10, tp and closeout at 30%"): the WHOLE position is taken off at +`take_profit_r` x its risk. The OANDA
           # take-profit is placed there (it survives a VM outage) and the runner also closes at market when the mid is that far in profit.
           # owner 2026-10-19: both bots 0.5R stop / 1.25R target. It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
-          "take_profit_r": 1.25}                                # the hybrid trades at half the normal 1% (owner)
+          "take_profit_r": 1.25,
+          # owner 2026-10-22: "if a trade is negative for more than 10 minutes, exit the trade" (mid vs entry mid, continuously). None = off.
+          "neg_exit_min": 10}                                # the hybrid trades at half the normal 1% (owner)
 
 
 def decimals(instrument: str) -> int:
@@ -394,6 +396,22 @@ class FxPaper:
                 self.journal("loss_cut", group=gid, against_r=round(side * (mid0 - mid_now) / risk0, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
                 self.close_group(gid, "loss_cut")
                 return
+        neg_min = self.cfg.get("neg_exit_min")
+        if neg_min:                              # owner 2026-10-22: a trade under water (mid vs entry mid) for neg_exit_min minutes in a row is closed
+            mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
+            now = self.clock()
+            if side * (mid_now - mid0) < 0:
+                since = g.get("neg_since")
+                if not since:
+                    g["neg_since"] = now.isoformat()
+                    self.save()
+                elif (now - datetime.fromisoformat(since)).total_seconds() >= 60 * float(neg_min):
+                    self.journal("neg_exit", group=gid, minutes=float(neg_min), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
+                    self.close_group(gid, "neg_exit")
+                    return
+            elif g.get("neg_since"):
+                g["neg_since"] = None
+                self.save()
         tpr = self.cfg.get("take_profit_r")
         if tpr:                                  # owner: take the profit and close the whole position out at +take_profit_r x the risk
             risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
