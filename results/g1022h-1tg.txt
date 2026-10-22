@@ -1,3 +1,7 @@
 $ alpaca paper-telegram
-started 2026-10-22 16:37:33 EDT
-RUNNING...
+started 2026-10-22 16:37:33 EDT, took 1s, exit 0
+
+sent
+
+--- stderr ---
+telegram mirror failed: 400 Bad Request: can't parse entities: Unsupported start tag "=" at byte offset 2818
