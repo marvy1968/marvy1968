@@ -1,3 +1,55 @@
 $ alpaca history
-started 2026-10-22 13:53:11 EDT
-RUNNING...
+started 2026-10-22 13:53:11 EDT, took 29s, exit 0
+
+ACCOUNT HISTORY (paper) 2026-01-08 .. 2026-10-22: 16298 fills, 216 symbols, bots by order-id prefix: ab, sw, untagged
+
+== BY BOT (closed round trips, before fees; 'ab' = the new Marv bot)
+bot         trips  win%      P&L $    avg $  avg %  med hold  scalp/day/swing short%  top symbols (trips)
+ab             31    26          1      0.0   0.03        5m    27/4/0         68  SOFI (12), DIS (6), PLD (6), KO (4), NFLX (1), RIVN (1)
+untagged    13827    38    -36,802     -2.7  -0.31       13m  7985/3169/2673      26  NVDA (2094), SOL/USD (1415), AAPL (966), AMD (796), LINK/USD (700), GOOGL (609)
+
+== BY STYLE (all bots)
+day    trips  3173  win  55%  P&L $    -5,907  avg +0.070%/trip  symbols: AAPL, AMD, ETH/USD, SOL/USD, NVDA, TSLA, AMZN, WMT
+scalp  trips  8012  win  27%  P&L $   -32,420  avg -0.340%/trip  symbols: NVDA, SOL/USD, LINK/USD, GOOGL, TSLA, AAPL, MSFT, AMD
+swing  trips  2673  win  52%  P&L $     1,527  avg -0.651%/trip  symbols: SOL/USD, ETH/USD, BTC/USD, DOGE/USD, AAPL, MSFT, GOOGL, NVDA
+
+== BY SYMBOL (all bots, best and worst by P&L)
+DE        trips   13  win 100%  P&L $   11,557  bots untagged     styles swing
+GOOGL     trips  609  win  60%  P&L $    5,814  bots untagged     styles day+scalp+swing
+MSFT      trips  494  win  32%  P&L $    4,843  bots untagged     styles day+scalp+swing
+TSLA      trips  562  win  47%  P&L $    2,095  bots untagged     styles day+scalp+swing
+COIN      trips   43  win  51%  P&L $    1,895  bots untagged     styles day+scalp+swing
+KO        trips   97  win  54%  P&L $    1,563  bots ab+untagged  styles day+scalp+swing
+AVGO      trips  127  win  21%  P&L $    1,456  bots untagged     styles day+scalp+swing
+CEG       trips   29  win  55%  P&L $    1,234  bots untagged     styles scalp+swing
+UNH       trips   35  win  51%  P&L $    1,208  bots untagged     styles day+scalp+swing
+SMH       trips    8  win  75%  P&L $      714  bots untagged     styles scalp+swing
+V         trips  181  win  24%  P&L $   -1,908  bots untagged     styles day+scalp+swing
+SHOP      trips   45  win  29%  P&L $   -2,010  bots untagged     styles day+scalp+swing
+LLY       trips   74  win  27%  P&L $   -2,070  bots untagged     styles day+scalp+swing
+CL        trips    9  win  33%  P&L $   -2,181  bots untagged     styles day+swing
+DOGE/USD  trips  173  win  41%  P&L $   -2,247  bots untagged     styles day+scalp+swing
+AMD       trips  796  win  63%  P&L $   -2,541  bots untagged     styles day+scalp+swing
+NVO       trips   11  win   0%  P&L $   -2,557  bots untagged     styles swing
+B         trips   19  win   0%  P&L $   -6,045  bots untagged     styles swing
+SOL/USD   trips 1415  win  24%  P&L $   -9,771  bots untagged     styles day+scalp+swing
+LINK/USD  trips  700  win   5%  P&L $  -21,621  bots untagged     styles day+scalp+swing
+
+== SYMBOLS TRADED BY MORE THAN ONE BOT (6): KO [ab+untagged], NFLX [ab+untagged], DIS [ab+untagged], SOFI [ab+untagged], RIVN [ab+untagged], PLD [ab+untagged]
+
+== STILL OPEN (net shares by bot, from fills): sw:GE +30, sw:GOOGL +30, sw:PM +36, untagged:AAVE/USD +0.995799, untagged:AVAX/USD +18.5867, untagged:BTC/USD +0.0129449, untagged:COP +14, untagged:DOGE/USD +3302.74, untagged:DOT/USD +3.16242, untagged:EOG +14, untagged:ETH/USD +0.223885, untagged:GE -30, untagged:GOOGL -30, untagged:LINK/USD +183.518, untagged:MRK +61, untagged:SOL/USD +19.1718, untagged:UNI/USD +2.64241, untagged:XOM +14, untagged:XRP/USD +23.9611
+
+Notes: P&L is from fill prices, before regulatory fees; crypto fills are included under their pair symbol.
+A round trip whose opening fill is older than the period start is not counted.
+== BY MONTH (closed trips)
+month     trips  win%      P&L $   scalp $ / day $ / swing $
+2026-01     250    48    -11,067   -20 / 0 / -11,047
+2026-02     126    41     11,343   -102 / -33 / 11,478
+2026-03     138    17     -7,581   -1,540 / -2,269 / -3,772
+2026-04    2141    65     15,512   2,600 / 1,840 / 11,072
+2026-05    2933    26    -25,174   -26,795 / -211 / 1,833
+2026-06    1118    49     -9,687   793 / -2,427 / -8,053
+2026-07     818    22     -2,934   -52 / -2,876 / -6
+2026-08    3018    37     -5,463   -3,894 / -1,648 / 79
+2026-09    1297    29       -495   -495 / 467 / -467
+2026-10    2019    39     -1,255   -2,916 / 1,250 / 411
