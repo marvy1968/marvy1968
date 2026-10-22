@@ -817,6 +817,18 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertIn("no new entries", r2.account_breaker(t(14, 0)))
             self.assertIsNone(r2.account_breaker(datetime(2026, 10, 23, 9, 35, tzinfo=paper.ET)))   # next session: reset
 
+    def test_backtest_neg_exit_two_bars(self):
+        """Owner 2026-10-22: in the backtest a trade under water for two 5-minute closes in a row is closed (the live 10-minute rule)."""
+        from alpacabot.engine import Costs, simulate_day
+        from alpacabot.strategies import Signal
+        idx = pd.date_range("2026-10-20 10:00", periods=8, freq="5min", tz="America/New_York")
+        c = [100.0, 100.0, 100.2, 99.9, 100.1, 99.95, 99.9, 99.8]
+        df = pd.DataFrame({"open": c, "high": [x + 0.05 for x in c], "low": [x - 0.05 for x in c], "close": c}, index=idx)
+        sig = Signal(i=0, side=1, stop_dist=1.0, target_r=2.0)
+        t = simulate_day("X", df, [sig], Costs(0, 0, 0), neg_bars=2)[0]
+        self.assertEqual((t.reason, t.exit_time), ("neg_exit", idx[6]))          # 99.9 (reset by 100.1), then 99.95 and 99.9 in a row
+        self.assertEqual(simulate_day("X", df, [sig], Costs(0, 0, 0))[0].reason, "eod")
+
     def test_velez_forward_scorecard(self):
         from alpacabot import paper
         rows = [{"symbol": "DIS", "date": "2026-10-22", "expert": "velez_rbi", "ver": "v2", "pnl": -10.0, "r": -1.0, "reason": "stop", "peak_r": 0.0, "mae_r": 1.0},

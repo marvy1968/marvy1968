@@ -1155,7 +1155,7 @@ def velez_repair_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
 
 
 def velez_redesign_study(days, train, validate, groups: dict, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6),
-                         ckpt=None) -> dict:
+                         ckpt=None, neg_bars: int = 0) -> dict:
     """Owner 2026-10-22 redesign: the Velez-style scalper (brain.VZ_SCALP) and intraday trader (brain.VZ_DAY) through the live filters
     (direction first, stage, trend confirm), next to the experts kept after cancelling the live losers, on large / mid / small caps separately
     (`groups` = {name: set of symbols}). 2-bar (10-minute) cooldown per stock, 3 trades per stock per day. One-month test (--month1)."""
@@ -1182,11 +1182,12 @@ def velez_redesign_study(days, train, validate, groups: dict, costs: Costs = Cos
         sub = {s_: fr for s_, fr in sub.items() if s_ in syms}
         if not sub:
             return {"trades": 0}
+        strat.neg_bars = neg_bars                                 # 2 = the live 10-minute under-water exit on 5-minute bars
         r = run_intraday(strat, sub, costs, pf, a, b)
         return {k: r["metrics"].get(k) for k in keys}
     out = {"periods": {}}
     for per, (a, b) in (("first half", train), ("second half", validate)):
-        out["periods"][per] = {f"{g} | {sysn}": cp.get(f"vzr-{per[:3]}-{g}-{sysn}", lambda sysn=sysn, syms=syms, a=a, b=b: run(sysn, syms, a, b))
+        out["periods"][per] = {f"{g} | {sysn}": cp.get(f"vzr-{per[:3]}-{g}-{sysn}-n{neg_bars}", lambda sysn=sysn, syms=syms, a=a, b=b: run(sysn, syms, a, b))
                                for g, syms in groups.items() for sysn in ("vz_scalp", "vz_day", "kept experts")}
     out.update({"family": "velez_redesign", "passes": False, "verdict": "see the table (one month: provisional)"})
     return out

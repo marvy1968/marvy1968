@@ -699,7 +699,8 @@ def run_all(a) -> int:
                         from .research import velez_redesign_study
                         groups = {"large": set(_u.STOCKS), "mid": set(_u.MID_CAPS), "small": set(_u.SMALL_CAPS)}
                         lines.append("- loaded: " + ", ".join(f"{g} {len([x for x in v if x in days])}" for g, v in groups.items()))
-                        res = velez_redesign_study(days, train, test, groups, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vzr.json")
+                        res = velez_redesign_study(days, train, test, groups, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vzr.json",
+                                                   neg_bars=2)                     # owner 2026-10-22: negative 10 minutes max, then out
                     elif fam == "velez_repair":
                         from .research import velez_repair_study
                         res = velez_repair_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vrep.json")

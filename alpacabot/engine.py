@@ -184,9 +184,11 @@ def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: flo
 
 
 def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs, max_trades: int = 3, cooldown: int = 0,
-                 zones: dict | None = None) -> list[Trade]:
+                 zones: dict | None = None, neg_bars: int = 0) -> list[Trade]:
     """Shorts are simulated as longs on the mirrored series (open -> -open, high -> -low, low -> -high, close -> -close): every level, stop,
-    trail and tie rule is then the same code as for longs, and slippage is always applied against the trader (abs(price) * slip)."""
+    trail and tie rule is then the same code as for longs, and slippage is always applied against the trader (abs(price) * slip).
+    neg_bars (owner 2026-10-22, the live 10-minute under-water exit): closed at the close of the neg_bars-th bar IN A ROW that closed below
+    the fill (2 five-minute bars = 10 minutes), reason "neg_exit", unless another exit came first."""
     long_arr = tuple(df[k].to_numpy(float) for k in ("open", "high", "low", "close"))
     short_arr = (-long_arr[0], -long_arr[2], -long_arr[1], -long_arr[3])
     n, slip, trades, busy = len(df), costs.slip_bps / 1e4, [], -1
@@ -210,6 +212,15 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             fill = min(lim, o[j0])
         else:
             fill = buy(o[j0])
+        nn = n                                    # the session as this trade sees it: it ends early at a neg_exit
+        if neg_bars:
+            run_ = 0
+            for jx in range(j0, n):
+                run_ = run_ + 1 if c[jx] < fill else 0
+                if run_ >= neg_bars:
+                    nn = jx + 1
+                    break
+        cut_ = nn < n
         stop = fill - s.stop_dist
         tgt = fill + s.target_r * s.stop_dist if s.target_r > 0 else np.inf
         ztgt = np.inf
@@ -241,8 +252,9 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             atr_l = s.atr if s.atr > 0 else s.stop_dist / max(s.trail, 1e-9)
             ex = (lambda j: bool(df[xcol].iloc[j])) if (xcol and not s.managed) else None
             risk_u = cut_r * s.stop_dist
-            j, pnl, why = ladder_walk(o, h, l, c, j0, n, fill, fill - risk_u, fill + tp_r * s.stop_dist, atr_l, risk_u,
+            j, pnl, why = ladder_walk(o, h, l, c, j0, nn, fill, fill - risk_u, fill + tp_r * s.stop_dist, atr_l, risk_u,
                                       {"tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}, sell, s.max_bars, ex, None)
+            why = "neg_exit" if (cut_ and j == nn - 1 and why in ("eod", "time")) else why
             trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(fill + pnl), risk_u, why, j - j0 + 1, s.tag, side))
             busy = j
             continue
@@ -251,27 +263,28 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale) if s.managed else None
             ex = (lambda j: bool(df[xcol].iloc[j]) or (tl is not None and bool(tl[j]))) if (xcol and not s.managed) else \
                  ((lambda j: bool(tl[j])) if tl is not None else None)
-            j, pnl, why = ladder_walk(o, h, l, c, j0, n, fill, stop if not s.managed else st.stop, ztgt, atr_l, s.stop_dist, lad, sell,
+            j, pnl, why = ladder_walk(o, h, l, c, j0, nn, fill, stop if not s.managed else st.stop, ztgt, atr_l, s.stop_dist, lad, sell,
                                       s.max_bars, ex, st)
+            why = "neg_exit" if (cut_ and j == nn - 1 and why in ("eod", "time")) else why
             trades.append(Trade(symbol, df.index[j0], df.index[j], real(fill), real(fill + pnl), s.stop_dist, why, j - j0 + 1, s.tag, side))
             busy = j
             continue
 
         def exhausted(j):                         # +exhaust_r reached and this bar closed under the previous bar's low
-            return (zp and j > j0 and j + 1 < n and np.max(h[j0:j + 1]) - fill >= zp["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])
+            return (zp and j > j0 and j + 1 < nn and np.max(h[j0:j + 1]) - fill >= zp["exhaust_r"] * s.stop_dist and c[j] < l[j - 1])
         if s.managed:
             st = ExitState.open(fill, s.atr, s.adx, s.trail, s.tp_scale)
-            for j in range(j0, n):
+            for j in range(j0, nn):
                 hit = st.check(o[j], h[j], l[j])
                 if hit:
                     px, why = sell(hit[1]), hit[0]          # virtual exit = market close after the cross: adverse slippage
                 elif h[j] >= ztgt:
                     px, why = max(ztgt, o[j]), "zone"
-                elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
-                    px, why = sell(c[j]), "time" if j < n - 1 else "eod"
+                elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == nn - 1:
+                    px, why = sell(c[j]), "time" if j < nn - 1 else ("neg_exit" if cut_ else "eod")
                 elif exhausted(j):
                     j, px, why = j + 1, sell(o[j + 1]), "exhausted"
-                elif tl is not None and tl[j] and j + 1 < n:
+                elif tl is not None and tl[j] and j + 1 < nn:
                     j, px, why = j + 1, sell(o[j + 1]), "trend_lost"
                 else:
                     st.ratchet(h[j])
@@ -280,18 +293,18 @@ def simulate_day(symbol: str, df: pd.DataFrame, sigs: list[Signal], costs: Costs
                 busy = j
                 break
             continue
-        for j in range(j0, n):
+        for j in range(j0, nn):
             if l[j] <= stop:
                 px, why = sell(min(stop, o[j])), "stop"
             elif h[j] >= tgt:
                 px, why = max(tgt, o[j]), ("zone" if tgt == ztgt else "target")
-            elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == n - 1:
-                px, why = sell(c[j]), "time" if j < n - 1 else "eod"
-            elif xcol and bool(df[xcol].iloc[j]) and j + 1 < n:      # the expert says "exit": decided at this close, filled at the next open
+            elif (s.max_bars and j - j0 + 1 >= s.max_bars) or j == nn - 1:
+                px, why = sell(c[j]), "time" if j < nn - 1 else ("neg_exit" if cut_ else "eod")
+            elif xcol and bool(df[xcol].iloc[j]) and j + 1 < nn:      # the expert says "exit": decided at this close, filled at the next open
                 j, px, why = j + 1, sell(o[j + 1]), "signal"
             elif exhausted(j):
                 j, px, why = j + 1, sell(o[j + 1]), "exhausted"
-            elif tl is not None and tl[j] and j + 1 < n:
+            elif tl is not None and tl[j] and j + 1 < nn:
                 j, px, why = j + 1, sell(o[j + 1]), "trend_lost"
             else:
                 continue
@@ -356,6 +369,7 @@ def raw_intraday(strategy, days: dict[str, list[pd.DataFrame]], costs: Costs, pl
                     rng.shuffle(sides)
                     sigs = [replace(p, side=sd) for p, sd in zip(sigs, sides)]
             out += simulate_day(sym, day, sigs, costs, max_trades=getattr(strategy, "max_trades", max_trades), cooldown=getattr(strategy, "cooldown", 0),
+                               neg_bars=int(getattr(strategy, "neg_bars", 0) or 0),
                                 zones=getattr(strategy, "zones", None))
     return sorted(out, key=lambda t: t.entry_time)
 
