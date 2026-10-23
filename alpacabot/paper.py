@@ -710,8 +710,8 @@ class PaperRunner:
                         zm[sym]["adx"] = None
             except Exception:
                 log.exception("zone map: %s skipped", sym)
-        if ((self.zone_config().get("trend_stairs") or {}).get("select")):
-            self.trend_lists(zm, dailies, now_et)
+        if ((self.zone_config().get("trend_stairs") or {}).get("select")) or (self.zone_config().get("vz_systems") or {}).get("live"):
+            self.trend_lists(zm, dailies, now_et)               # also the sector news verdict the Velez systems' news gate reads
         self.zonemap = zm
         try:
             (self.dir / "zonemap.json").write_text(json.dumps({"date": now_et.date().isoformat(), "stocks": zm}))
