@@ -741,6 +741,13 @@ class PaperRunner:
                 etf = {e: self.raw.daily_history(e, days=330) for e in _u.SECTOR_ETFS}
                 neg = sector_trend_negative({e: d[d.index.date < now_et.date()] for e, d in etf.items() if d is not None and len(d)})
                 src = "sector trend"
+            today_ = now_et.date()                                      # each sector's news verdict for today (as of the last close
+            self.news_neg = {}                                          # before today): used by the Velez systems' news gate too
+            for etf_, ser_ in (neg or {}).items():
+                prior_ = ser_[[x < today_ for x in ser_.index.date]] if len(ser_) else ser_
+                if len(prior_):
+                    self.news_neg[etf_] = bool(prior_.iloc[-1])
+            self.news_src = src
             lok, sok = lists(dailies, spy, _u.SECTOR_OF, neg)
             day_after = now_et.date()
             for sym, z in zm.items():
@@ -894,7 +901,26 @@ class PaperRunner:
                 if (s_.tag or "").removeprefix("S:") in vz_shadow:
                     self.journal("signal", symbol=sym, side="short" if s_.side == -1 else "long", tag=s_.tag, ref=float(day["close"].iloc[-1]),
                                  stop_dist=round(float(s_.stop_dist), 4), result="vz shadow (raw signal, not ordered)")
-            sig = next((s for s in sigs if (s.tag or "").removeprefix("S:") not in vz_shadow), None)
+            def _vz_gate(s_) -> str:                                      # owner 2026-10-23: the heat map and the sector news apply to the
+                if not (s_.tag or "").removeprefix("S:").startswith("vz_"):   # Velez systems as they do to the experts / the funnel
+                    return ""
+                r_ = day.iloc[-1]
+                if s_.side == 1 and "g_long_ok" in day and not bool(r_["g_long_ok"]):
+                    return "heat map: sector / market not up for longs"
+                if s_.side == -1 and "g_short_ok" in day and not (bool(r_["g_short_ok"]) or bool(r_.get("g_spy_red", False))):
+                    return "heat map: sector / market not down for shorts"
+                nn_ = getattr(self, "news_neg", {}).get(gates.SECTOR.get(sym))
+                if nn_ is not None and s_.side == 1 and nn_:
+                    return f"sector news negative ({gates.SECTOR.get(sym)})"
+                if nn_ is not None and s_.side == -1 and not nn_:
+                    return f"sector news not negative ({gates.SECTOR.get(sym)}): no short"
+                return ""
+            for s_ in sigs:
+                why_ = _vz_gate(s_)
+                if why_ and (s_.tag or "").removeprefix("S:") not in vz_shadow:
+                    self.journal("signal", symbol=sym, side="short" if s_.side == -1 else "long", tag=s_.tag, ref=float(day["close"].iloc[-1]),
+                                 result=why_)
+            sig = next((s for s in sigs if (s.tag or "").removeprefix("S:") not in vz_shadow and not _vz_gate(s)), None)
             if not sig:
                 continue
             _es = self.zone_config().get("entry_symbols")
