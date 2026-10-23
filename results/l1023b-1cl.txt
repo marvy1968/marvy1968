@@ -1,3 +1,22 @@
 $ alpaca positions --closed MRK,CAT,EQIX
-started 2026-10-23 10:15:22 EDT
-RUNNING...
+started 2026-10-23 10:15:22 EDT, took 3s, exit 0
+
+equity $51,699.28  cash $27,079.71  long mv $24,619.57  short mv $0.00
+5 open positions:
+  EQIX       long  qty           11  value $ 10,453.63  unrealized $    13.42
+  PM         long  qty           36  value $  7,247.70  unrealized $    76.52
+  XOM        long  qty           14  value $  2,541.00  unrealized $    19.32
+  EOG        long  qty           14  value $  2,267.58  unrealized $    35.88
+  COP        long  qty           14  value $  2,110.08  unrealized $    74.68
+5 open orders:
+  EQIX       sell 11 limit new  id sw-o-EQIX-20261023
+  PM         sell 36 limit new  id sw-o-PM-20261022
+  COP        sell 14 limit new  id sw-o-COP-20261021
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
+closed orders today for MRK,CAT,EQIX:
+  CAT    sell 12 limit      canceled  filled 0 @ None at None  stop None limit 738.71  id sw-o-CAT-20261023
+  CAT    sell 12 stop       filled    filled 12 @ 683 at 2026-10-23T13:37:26  stop 683.26 limit None  id a31cfd7a-5817-41ca-9269-
+  MRK    sell 61 stop       filled    filled 61 @ 144.390328 at 2026-10-23T13:33:38  stop 144.05 limit None  id fce57c08-c315-4d33-86dd-
+  EQIX   buy  11 market     filled    filled 11 @ 949.11 at 2026-10-23T13:32:21  stop None limit None  id sw-e-EQIX-20261023
+  CAT    buy  12 market     filled    filled 12 @ 693.21 at 2026-10-23T13:32:53  stop None limit None  id sw-e-CAT-20261023
