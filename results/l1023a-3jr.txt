@@ -1,3 +1,10 @@
 $ show alpaca_paper/journal-20261023.jsonl
-started 2026-10-23 10:10:28 EDT
-RUNNING...
+started 2026-10-23 10:10:28 EDT, took 0s, exit 0
+
+{"t": "2026-10-23T09:30:27-04:00", "kind": "zonemap", "up": 21, "down": 25, "range": 36, "stocks": 82, "stage2": 32, "stage4": 26, "stage1": 11, "stage3": 13}
+{"t": "2026-10-23T09:30:27-04:00", "kind": "heat_map", "IWM": 0, "QQQ": -1, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 0, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-23T09:55:18-04:00", "kind": "signal", "symbol": "DIS", "side": "long", "tag": "trend_stairs", "ref": 112.91, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-23T09:55:18-04:00", "kind": "signal", "symbol": "WMT", "side": "long", "tag": "brooks_pullback", "ref": 121.27, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-23T10:05:08-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "hybrid_box", "ref": 70.82, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-23T10:05:08-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "range_box", "ref": 252.03, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-23T10:05:08-04:00", "kind": "signal", "symbol": "ECL", "side": "short", "tag": "S:fib_box", "ref": 288.47, "result": "shadow: not in entry_symbols"}
