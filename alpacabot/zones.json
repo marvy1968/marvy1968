@@ -789,8 +789,8 @@
   "_note_vz_shadow": "owner 2026-10-22 night ('I want all new experts operating in the am'): vz_scalp and vz_day place paper orders from 2026-10-23 at 0.5% risk (risk_by_expert), one take-profit (velez_hybrid ladder list), 10-minute under-water exit, same-expert cooldown, account breaker; new entries still only in entry_symbols. Put a tag back here to return it to shadow.",
   "account_breaker_pct": 0.01,
   "_note_account_breaker_pct": "owner 2026-10-22: the WHOLE account down 1% today (equity vs yesterday close, transfers excluded) -> no new stock-bot entries until the next trading day; exits / stops / management continue; the bot's own 2% breaker stays. Every blocked signal is logged with the account loss.",
-  "entry_symbols": ["SOFI", "RKLB", "HIMS", "RIVN", "MARA"],
-  "_note_entry_symbols": "owner 2026-10-22: new intraday entries only in these mid / small caps (brain_config.json symbols); remove the key to trade the big caps again.",
+  "entry_symbols": ["AFRM", "SOFI", "RKLB", "HIMS", "DKNG", "CHWY", "ROKU", "ELF", "CELH", "PATH", "U", "TOST", "MARA", "RIOT", "IONQ", "SOUN", "BBAI", "PLUG", "JOBY", "ACHR", "LCID", "RIVN", "OPEN", "RUN"],
+  "_note_entry_symbols": "owner 2026-10-22: new intraday entries only in mid / small caps; 2026-10-24 ('ok at open'): widened from 5 names (1 signal in a morning) to all 24 of universe.MID_CAPS + SMALL_CAPS. Remove the key to trade the big caps again.",
   "_note_expert_cooldown_min": "owner 2026-10-22: after an expert's trade in a stock closes, that expert waits 10 minutes before trading the same stock again (other experts are not blocked). The shadow list was emptied the same day: every dropped expert and Velez setup trades again.",
   "_note_neg_exit_min": "owner 2026-10-22: an intraday trade under water (mid vs its entry mid) for 10 minutes in a row is closed (same rule as OANDA).",
   "_note_max_pos_frac": "owner 2026-10-22 (afternoon): no intraday position larger than 1% of equity in market value (morning 0.5%; 2026-10-21 1%; before that 25%, NFLX and GE shorts were ~$13k each).",
@@ -802,6 +802,7 @@
   }
  },
  "swing": {
+  "late_entry": {"_note": "owner 2026-10-24 ('ok at open'): oversold swing entries are sent at 10:00 ET instead of the 09:30 open (the same 09:20 job waits), skipped if the stock is already at its stop or take-profit by then. 10:00 backtest (55 stocks, 3 months): oversold PF 1.27 -> 1.57, stop-outs 10 -> 6; funnel worse when delayed, so it keeps the open. Empty strategies list = everything at the open again.", "strategies": ["oversold"], "at": "10:00"},
   "live": true,
   "use_map": true,
   "profiles": {

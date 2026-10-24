@@ -1,5 +1,5 @@
 [Unit]
-Description=Alpaca PAPER swing runner: open (Sector Top-Down, daily)
+Description=Alpaca PAPER swing runner: open (Sector Top-Down, daily; deferred oversold entries at 10:00)
 After=network-online.target
 
 [Service]
@@ -8,4 +8,4 @@ User=marvbot
 WorkingDirectory=/opt/marv-bot
 EnvironmentFile=/opt/marv-bot/.env
 ExecStart=/opt/marv-bot/.venv/bin/python -m alpacabot swing open
-TimeoutStartSec=1800
+TimeoutStartSec=3600

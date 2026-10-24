@@ -222,9 +222,15 @@ class SwingRunner:
         return exits, entries
 
     # ---------------------------------------------------------------- at the open
-    def open(self, now: datetime, wait_until: datetime | None = None) -> dict:
+    def open(self, now: datetime, wait_until: datetime | None = None, late: bool = False) -> dict:
+        """The plan's orders at the open. Owner 2026-10-23: entries of the strategies in zones.json swing.late_entry.strategies (oversold)
+        are deferred to late_entry.at (10:00 ET): open(..., late=True) sends them then, skipping any stock already at or through its stop or
+        take-profit (the 10:00 backtest: oversold PF 1.27 -> 1.57 over 3 months, stop-outs 10 -> 6; funnel worse, so it keeps the open)."""
         plan = self.state.get("plan")
-        if not plan or plan.get("done"):
+        if late:
+            if not plan or not plan.get("done") or plan.get("late_done") or not plan.get("deferred"):
+                return {}
+        elif not plan or plan.get("done"):
             return {}
         if date.fromisoformat(plan["made"]) >= now.astimezone(ET).date():
             return {}                                    # a plan is acted on in a LATER session only
@@ -234,12 +240,18 @@ class SwingRunner:
         # Alpaca's paper account let all three opening-auction (OPG) orders expire unfilled on 2026-10-13, so orders are plain
         # market day orders sent a few seconds after the 09:30 open (the backtest fills at the open price).
         d = now.astimezone(ET)
-        opens = datetime(d.year, d.month, d.day, 9, 30, 5, tzinfo=ET)
+        le = self.zone_config().get("late_entry") or {}
+        late_strats = set(le.get("strategies") or [])
+        if late:
+            hh, mm = (int(x) for x in str(le.get("at", "10:00")).split(":"))
+            opens = datetime(d.year, d.month, d.day, hh, mm, 5, tzinfo=ET)
+        else:
+            opens = datetime(d.year, d.month, d.day, 9, 30, 5, tzinfo=ET)
         wait = (opens.astimezone(timezone.utc) - datetime.now(timezone.utc)).total_seconds()
-        if 0 < wait <= 1800:                             # the 09:20 timer; a manual run far from the open does not block
+        if 0 < wait <= 3600:                             # the 09:20 timer; a manual run far from the open does not block
             self.sleep(wait)
         sent = {}
-        for sym in plan["exits"]:
+        for sym in ([] if late else plan["exits"]):
             pos = self.state["positions"].get(sym)
             if not pos:
                 continue
@@ -251,8 +263,22 @@ class SwingRunner:
             sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day",
                                                      f"sw-x-{sym}-{tag}"))
         zcfg = self.zone_config()
-        for e in plan["entries"]:
+        for e in ((plan.get("deferred") or []) if late else plan["entries"]):
             side = e.get("side", 1)
+            if not late and e.get("strategy") in late_strats:   # waits for late_entry.at (sent by open(..., late=True))
+                plan.setdefault("deferred", []).append(e)
+                self.journal("entry_deferred", now, symbol=e["symbol"], strategy=e.get("strategy"), until=le.get("at", "10:00"))
+                continue
+            if late and hasattr(self.b, "quote"):                 # already at / through its stop or its take-profit by now: no trade
+                try:
+                    bid, ask = (float(x) for x in self.b.quote(e["symbol"])[:2])
+                    px_now = ask if side == 1 else bid
+                    if side * (px_now - e["stop"]) <= 0 or (e.get("zone_tp") and side * (px_now - e["zone_tp"]) >= 0):
+                        self.journal("late_skip", now, symbol=e["symbol"], px=px_now, stop=e["stop"], zone_tp=e.get("zone_tp"))
+                        continue
+                except Exception:
+                    log.exception("late entry check %s (skipped)", e["symbol"])
+                    continue
             if side == -1:                               # a funnel short: easy to borrow, and no other bot holds this stock (a sell would cut THEIR long)
                 try:
                     if hasattr(self.b, "shortable") and not self.b.shortable(e["symbol"]):
@@ -275,9 +301,12 @@ class SwingRunner:
                     log.exception("chase check %s (entering anyway)", e["symbol"])
             sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy" if side == 1 else "sell", "market", "day",
                                                               f"sw-e-{e['symbol']}-{tag}"))
-        plan["done"] = True
+        if late:
+            plan["late_done"] = True
+        else:
+            plan["done"] = True
         self._save()
-        self.journal("orders", now, sent={k: v[0] for k, v in sent.items()})
+        self.journal("orders_late" if late else "orders", now, sent={k: v[0] for k, v in sent.items()})
         deadline = wait_until or max(now, opens) + timedelta(minutes=10)
         pending = dict(sent)
         while pending:

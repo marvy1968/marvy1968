@@ -104,6 +104,35 @@ class FunnelLiveTests(unittest.TestCase):
             t = json.loads((Path(d) / "trades.jsonl").read_text().splitlines()[-1])
             self.assertEqual((t["side"], t["pnl"], t["r"], t["strategy"]), ("short", 60.0, 1.5, "funnel"))
 
+    def test_oversold_entry_waits_for_10am_and_skips_a_broken_stop(self):
+        """Owner 2026-10-24: oversold entries are sent at 10:00 (open(late=True)), not at the open; funnel entries keep the open;
+        an oversold stock already at its stop by then is skipped."""
+        import tempfile
+        from datetime import datetime
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        t = datetime(2025, 10, 14, 9, 20, tzinfo=et)
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B()
+            r = self._runner(b, d, {"symbol": "OSD", "qty": 10, "stop": 97.0, "side": 1, "strategy": "oversold", "signal_close": 100.0,
+                                    "zone_tp": 104.0, "atr": 2.0})
+            r.state["plan"]["entries"].append({"symbol": "FUN", "qty": 5, "stop": 97.0, "side": 1, "strategy": "funnel", "signal_close": 100.0,
+                                               "zone_tp": 104.0, "atr": 2.0})
+            r.open(t, wait_until=t)
+            self.assertEqual([x[0] for x in b.sent], ["FUN"])                          # the funnel buys at the open, oversold waits
+            self.assertNotIn("OSD", r.state["positions"])
+            r.open(t, wait_until=t, late=True)
+            self.assertEqual([x[0] for x in b.sent], ["FUN", "OSD"])                   # 10:00: the deferred oversold entry
+            self.assertIn("OSD", r.state["positions"])
+            self.assertEqual(r.open(t, wait_until=t, late=True), {})                   # never twice
+        with tempfile.TemporaryDirectory() as d:
+            b = self.B()
+            b.quote = lambda s: (96.5, 96.6)                                            # already under its 97.00 stop at 10:00
+            r = self._runner(b, d, {"symbol": "OSD", "qty": 10, "stop": 97.0, "side": 1, "strategy": "oversold", "signal_close": 100.0,
+                                    "zone_tp": 104.0, "atr": 2.0})
+            r.open(t, wait_until=t)
+            r.open(t, wait_until=t, late=True)
+            self.assertEqual(b.sent, [])
+
     def test_short_skipped_when_not_borrowable_or_another_bot_holds_it(self):
         import tempfile
         from datetime import datetime

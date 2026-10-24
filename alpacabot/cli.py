@@ -1036,6 +1036,10 @@ def main(argv=None) -> int:
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
         out = r.scan(now) if a.action == "scan" else r.close_all(now) if a.action == "close" else r.open(now)
+        if a.action == "open":                           # owner 2026-10-23: deferred (oversold) entries at swing.late_entry.at (10:00)
+            late = r.open(_dt.now(_ET), late=True)
+            if late:
+                out = {**(out or {}), **{f"late {k}": v for k, v in late.items()}}
         print(json.dumps(out, indent=1, default=str))
         print("\n".join(summary(a.state)))
         return 0
