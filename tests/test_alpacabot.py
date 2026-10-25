@@ -2691,3 +2691,30 @@ class RepoZoneConfigTests(unittest.TestCase):
         self.assertTrue(cfg["intraday"]["live"] and cfg["swing"]["live"])
         for k in ("trend", "range"):
             self.assertEqual(set(cfg["intraday"]["profiles"][k]), set(ZONE_PROFILES[k]))
+
+
+class ZoneLearnTests(unittest.TestCase):
+    def test_events_are_causal_and_report_runs(self):
+        """Owner 2026-10-25 learned buy / sell zones (alpacabot.zonelearn): an event uses only bars up to itself (cutting the series after
+        an event leaves that event's features unchanged), the memory features see only resolved outcomes, and the report runs."""
+        import numpy as np
+        from alpacabot.zonelearn import FEATURES, instrument_events, zone_report
+        rng = np.random.default_rng(4)
+        n = 1500
+        idx = pd.date_range("2019-01-01", periods=n, freq="B")
+        c = 100 + np.cumsum(rng.normal(0, 1, n)) + 6 * np.sin(np.arange(n) / 30)
+        o = np.r_[c[0], c[:-1]]
+        d = pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.4, "low": np.minimum(o, c) - 0.4, "close": c}, index=idx)
+        full = instrument_events("X", d)
+        self.assertGreater(len(full), 50)
+        cut = d.iloc[:900]
+        part = instrument_events("X", cut)
+        early = full[full["i"] < 850].reset_index(drop=True)
+        same = part[part["i"] < 850].reset_index(drop=True)
+        self.assertEqual(len(early), len(same))
+        for col in FEATURES:                                   # the features do not depend on anything after the event
+            self.assertTrue(np.allclose(early[col].to_numpy(float), same[col].to_numpy(float)), col)
+        self.assertTrue((full["resolve"] > full["i"]).all())
+        text = "\n".join(zone_report({"X": d}, "t", {"X": 5.0}))
+        self.assertIn("NEXT ZONES", text)
+        self.assertIn("never saw", text)

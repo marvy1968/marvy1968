@@ -135,12 +135,12 @@ def run_all(a) -> int:
                             ("daily zones, 4-hour entries", "H4", PlaybookRules(htf="1D", zone_lookback=120))]
                 for label, days_ in (("last 12 months", 365), ("last 3 years", 1095)):
                     a_ = today - _dt.timedelta(days=days_)
-                    cache = {}
+                    pb_cache = {}
                     lines.append(f"## playbook_fx: Break & Retest Trading Playbook on OANDA, {label} ({a_} to {today}, bid/ask, 7 majors)")
                     for name, g, rules in variants:
-                        if g not in cache:
-                            cache[g] = {i: fx_load(i, g, a_ - _dt.timedelta(days=150 if g == "H1" else 400), today, Path("state/fx/cache")) for i in MAJORS}
-                        lines += playbook_report(cache[g], a_, today, rules, name)
+                        if g not in pb_cache:
+                            pb_cache[g] = {i: fx_load(i, g, a_ - _dt.timedelta(days=150 if g == "H1" else 400), today, Path("state/fx/cache")) for i in MAJORS}
+                        lines += playbook_report(pb_cache[g], a_, today, rules, name)
                     print("\n".join(lines[first:]), flush=True)
                     first = len(lines)
                 continue
@@ -171,6 +171,34 @@ def run_all(a) -> int:
                         dg = {i: fx_load(i, g, a_ - _dt.timedelta(days=warm), today, Path("state/fx/cache")) for i in MAJORS}
                         lines += [f"## retest_tf_fx: break-and-retest, {g} bars, {label} ({a_} to {today}, bid/ask)"] + retest_tf_check(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
+                continue
+            if fam == "zone_learn":                # owner 2026-10-25: learn each instrument's buy / sell zones, graded on touches it never saw
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.data import mid as fx_mid
+                from . import universe as _u
+                from .zonelearn import zone_report
+                today = _dt.date.today()
+                fxs = lambda i: 0.5 if "JPY" in i else 0.005                          # noqa: E731  (50 pips / half-figure levels)
+                for g, years in (("H4", 5), ("D", 9)):
+                    a_ = today - _dt.timedelta(days=365 * years)
+                    dd = {i: fx_mid(fx_load(i, g, a_, today, Path("state/fx/cache"))) for i in MAJORS}
+                    lines += zone_report(dd, f"FOREX {g} bars, {years} years, 7 majors", {i: fxs(i) for i in MAJORS})
+                    print("\n".join(lines[first:]), flush=True)
+                    first = len(lines)
+                a_ = today - _dt.timedelta(days=365 * 8)
+                for label, syms in (("LARGE-cap stocks", list(_u.STOCKS)), ("MID / SMALL-cap stocks", list(_u.MID_CAPS) + list(_u.SMALL_CAPS))):
+                    dd = {}
+                    for s_ in syms:
+                        try:
+                            dd[s_] = load(s_, "1Day", a_, today, cache)
+                        except Exception as exc:
+                            print(f"skip {s_}: {exc}", flush=True)
+                    steps = {k: (1.0 if v["close"].iloc[-1] < 50 else 5.0 if v["close"].iloc[-1] < 500 else 10.0) for k, v in dd.items() if len(v)}
+                    lines += zone_report(dd, f"{label}, daily bars, 8 years", steps)
+                    print("\n".join(lines[first:]), flush=True)
+                    first = len(lines)
                 continue
             if fam == "range_map_fx":              # owner 2026-10-25: the range-trading decision map on OANDA (fxbot.research.range_map_check)
                 import datetime as _dt
