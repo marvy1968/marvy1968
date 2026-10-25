@@ -122,6 +122,18 @@ def run_all(a) -> int:
                     hybrid_tune(h1, (a3, mid_ - _dt.timedelta(days=1)), (mid_, today), (today - _dt.timedelta(days=14), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "range_map_fx":              # owner 2026-10-25: the range-trading decision map on OANDA (fxbot.research.range_map_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import range_map_check
+                today = _dt.date.today()
+                for label, days_ in (("last 2 weeks", 14), ("last 3 months", 92), ("last 12 months", 365)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    h1 = {i: fx_load(i, "H1", a_ - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                    lines += [f"## range_map_fx: range decision map on OANDA, {label} ({a_} to {today}, H1, bid/ask)"] + range_map_check(h1, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "velez_fx2":                 # owner 2026-10-22: Velez setups as forex experts + as confirmation (fxbot.research.velez_fx2_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS

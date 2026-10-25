@@ -409,6 +409,35 @@ def velez_fx2_check(data_h1: dict, a, b) -> list[str]:
     return out
 
 
+def range_map_check(data_h1: dict, a, b) -> list[str]:
+    """Owner 2026-10-25 (PDF "Range trading: corrected decision map"): the three range setups on H1, each with the map's own exits (stop at the
+    setup / invalidation level, take-profit at the box middle or the far edge) and with the live exits (cut 0.5R, out at 1.25R), next to
+    what is live. A support reversal (buy the range low after it holds), B confirmed breakout, C failed-breakdown reclaim (a close below the
+    range, then back inside; stop under the false-break low; TP1 the middle, then the range high). "+ Velez confirm" = a Velez bullish
+    (bearish) setup the same way within 2 bars, i.e. the map's "defined bullish trigger". Shorts mirror every rule."""
+    from .strategies import RangeBox200, RangeBoxFailed, RangeMR, VelezConfirmFx, VelezFx
+    rows = [
+        ("A support reversal, exit at the middle", lambda: RangeBox200(target="mid")),
+        ("A support reversal, exit at the range high", lambda: RangeBox200(target="edge")),
+        ("A + Velez confirm, exit at the middle", lambda: VelezConfirmFx(RangeBox200(target="mid"))),
+        ("A live today: boxmr_h1", lambda: VelezFx(InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5), env=False, look_left=True)),
+        ("B breakout on a close", lambda: RangeBox200(breakout="only")),
+        ("B + Velez trend (20 over 200)", lambda: VelezFx(RangeBox200(breakout="only"), env=True)),
+        ("B live today: confirm_h1", lambda: VelezFx(BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0), env=True)),
+        ("C reclaim, TP the middle", lambda: RangeBoxFailed(target="mid")),
+        ("C reclaim, TP the range high", lambda: RangeBoxFailed(target="edge")),
+        ("C + Velez confirm, TP the middle", lambda: VelezConfirmFx(RangeBoxFailed(target="mid"))),
+        ("C + volume on the reclaim bar, TP the middle", lambda: RangeBoxFailed(target="mid", vol_mult=1.2)),
+    ]
+    out = []
+    for name, make in rows:
+        for label, strat in (("map exits", make()), ("live exits 0.5R/1.25R", TightStop(make(), 0.50, 1.25))):
+            m = run(strat, data_h1, a, b)
+            out.append(f"- {name} | {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
