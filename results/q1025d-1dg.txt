@@ -1,3 +1,70 @@
 $ alpaca run-all --phase validate --families retest_diag_fx
-started 2026-10-24 23:41:36 EDT
-RUNNING...
+started 2026-10-24 23:41:36 EDT, took 28s, exit 0
+
+daily data ready
+## retest_diag_fx: why the break-and-retest lost
+### 4-hour, any box, 1.5R, last 3 years
+  ALL: 370 trades, win 35%, avg -0.14R, PF 0.78
+  exits: stop 238 (avg -1.00R), target 121 (avg +1.50R), time 10 (avg +0.33R), end 1 (avg -0.12R)
+  trades stopped out: 238; of them reached +0.5R first: 40%, +1R first: 18%; median bars to the stop 3
+  all trades: median best open +0.87R, median worst 1.11R against; reached the target distance's half (+0.75R) 54%
+  spread at entry: avg 0.12R per trade (round trip about 0.24R)
+  by pair:
+      AUD_USD: 59 trades, win 37%, avg -0.09R, PF 0.85
+      EUR_USD: 52 trades, win 37%, avg -0.15R, PF 0.76
+      GBP_USD: 50 trades, win 36%, avg -0.12R, PF 0.81
+      NZD_USD: 57 trades, win 25%, avg -0.39R, PF 0.47
+      USD_CAD: 57 trades, win 51%, avg +0.28R, PF 1.60
+      USD_CHF: 51 trades, win 24%, avg -0.39R, PF 0.47
+      USD_JPY: 44 trades, win 34%, avg -0.17R, PF 0.74
+  by side:
+      long: 212 trades, win 35%, avg -0.14R, PF 0.78
+      short: 158 trades, win 34%, avg -0.15R, PF 0.77
+  by year:
+      2023: 37 trades, win 32%, avg -0.19R, PF 0.72
+      2024: 129 trades, win 35%, avg -0.15R, PF 0.77
+      2025: 104 trades, win 29%, avg -0.29R, PF 0.59
+      2026: 100 trades, win 42%, avg +0.03R, PF 1.05
+  by trend strength (ADX14 at the signal):
+      <20 (range): 24 trades, win 25%, avg -0.42R, PF 0.45
+      20-25: 67 trades, win 36%, avg -0.10R, PF 0.84
+      25-35 (trend): 134 trades, win 40%, avg -0.02R, PF 0.96
+      35+ (strong trend): 145 trades, win 31%, avg -0.23R, PF 0.66
+  by session (UTC entry hour):
+      Asia 00-06: 131 trades, win 34%, avg -0.17R, PF 0.73
+      London 07-11: 56 trades, win 29%, avg -0.31R, PF 0.57
+      NY overlap 12-16: 59 trades, win 31%, avg -0.24R, PF 0.64
+      late 17-23: 124 trades, win 41%, avg +0.01R, PF 1.01
+  RANDOM entries, same exits (3 seeds): PF 0.69, PF 0.75, PF 0.73 vs the setup PF 0.78
+### 1-hour, any box, 2R + Velez trend, last 12 months
+  ALL: 410 trades, win 28%, avg -0.22R, PF 0.71
+  exits: stop 291 (avg -1.04R), target 103 (avg +2.00R), time 16 (avg +0.51R)
+  trades stopped out: 291; of them reached +0.5R first: 40%, +1R first: 21%; median bars to the stop 3
+  all trades: median best open +0.66R, median worst 1.14R against; reached the target distance's half (+1.00R) 47%
+  spread at entry: avg 0.50R per trade (round trip about 1.00R)
+  by pair:
+      AUD_USD: 66 trades, win 38%, avg +0.11R, PF 1.17
+      EUR_USD: 45 trades, win 36%, avg -0.01R, PF 0.98
+      GBP_USD: 58 trades, win 19%, avg -0.47R, PF 0.42
+      NZD_USD: 58 trades, win 31%, avg -0.08R, PF 0.88
+      USD_CAD: 75 trades, win 27%, avg -0.28R, PF 0.64
+      USD_CHF: 55 trades, win 38%, avg -0.02R, PF 0.97
+      USD_JPY: 53 trades, win 9%, avg -0.78R, PF 0.14
+  by side:
+      long: 244 trades, win 28%, avg -0.21R, PF 0.71
+      short: 166 trades, win 29%, avg -0.22R, PF 0.70
+  by year:
+      2025: 89 trades, win 30%, avg -0.15R, PF 0.79
+      2026: 321 trades, win 28%, avg -0.23R, PF 0.69
+  by trend strength (ADX14 at the signal):
+      <20 (range): 48 trades, win 23%, avg -0.31R, PF 0.59
+      20-25: 60 trades, win 30%, avg -0.18R, PF 0.77
+      25-35 (trend): 141 trades, win 33%, avg -0.10R, PF 0.86
+      35+ (strong trend): 161 trades, win 25%, avg -0.31R, PF 0.60
+  by session (UTC entry hour):
+      Asia 00-06: 102 trades, win 28%, avg -0.16R, PF 0.78
+      London 07-11: 93 trades, win 26%, avg -0.28R, PF 0.62
+      NY overlap 12-16: 95 trades, win 27%, avg -0.27R, PF 0.62
+      late 17-23: 120 trades, win 31%, avg -0.17R, PF 0.78
+  RANDOM entries, same exits (3 seeds): PF 0.72, PF 0.57, PF 0.71 vs the setup PF 0.71
+ALL DONE
