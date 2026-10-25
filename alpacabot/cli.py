@@ -122,6 +122,28 @@ def run_all(a) -> int:
                     hybrid_tune(h1, (a3, mid_ - _dt.timedelta(days=1)), (mid_, today), (today - _dt.timedelta(days=14), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "playbook_fx":               # owner 2026-10-25: the Break & Retest Trading Playbook as written (fxbot.playbook)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.playbook import PlaybookRules, playbook_report
+                today = _dt.date.today()
+                variants = [("as written (H4 zones, 1-hour entries, 2R min, break-even at +1R)", "H1", PlaybookRules()),
+                            ("no break-even move", "H1", PlaybookRules(be_at_r=0.0)),
+                            ("1.5R minimum target", "H1", PlaybookRules(min_rr=1.5)),
+                            ("zones touched once allowed", "H1", PlaybookRules(require_two_touches=False)),
+                            ("daily zones, 4-hour entries", "H4", PlaybookRules(htf="1D", zone_lookback=120))]
+                for label, days_ in (("last 12 months", 365), ("last 3 years", 1095)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    cache = {}
+                    lines.append(f"## playbook_fx: Break & Retest Trading Playbook on OANDA, {label} ({a_} to {today}, bid/ask, 7 majors)")
+                    for name, g, rules in variants:
+                        if g not in cache:
+                            cache[g] = {i: fx_load(i, g, a_ - _dt.timedelta(days=150 if g == "H1" else 400), today, Path("state/fx/cache")) for i in MAJORS}
+                        lines += playbook_report(cache[g], a_, today, rules, name)
+                    print("\n".join(lines[first:]), flush=True)
+                    first = len(lines)
+                continue
             if fam == "retest_diag_fx":            # owner 2026-10-25 "analyze why it failed" (fxbot.research.retest_diag)
                 import datetime as _dt
                 from fxbot.data import MAJORS

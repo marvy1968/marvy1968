@@ -120,3 +120,25 @@ class BreakRetestTests(unittest.TestCase):
         m2 = pd.DataFrame({"open": np.r_[c2[0], c2[:-1]], "high": np.maximum(np.r_[c2[0], c2[:-1]], c2) + 0.0002,
                            "low": np.minimum(np.r_[c2[0], c2[:-1]], c2) - 0.0002, "close": c2}, index=idx)
         self.assertFalse(BreakRetest(lookback=100, ranging=False).frame(m2)["long"].iloc[151:].any())
+
+
+class PlaybookTests(unittest.TestCase):
+    def test_playbook_runs_and_trades_are_bounded(self):
+        """Owner 2026-10-25 Break & Retest Playbook (fxbot.playbook): runs on bid/ask bars, one position at a time, losses near -1R."""
+        import numpy as np
+        import pandas as pd
+        from fxbot.playbook import PlaybookRules, simulate_playbook
+        rng = np.random.default_rng(7)
+        n = 6000
+        idx = pd.date_range("2025-06-01", periods=n, freq="h", tz="UTC")
+        c = 1.10 + np.cumsum(rng.normal(0, 0.0010, n)) + 0.01 * np.sin(np.arange(n) / 150)
+        o = np.r_[c[0], c[:-1]]
+        m = pd.DataFrame(index=idx)
+        for p, off in (("b", -0.00004), ("a", 0.00004)):
+            m[p + "o"], m[p + "c"] = o + off, c + off
+            m[p + "h"] = np.maximum(o, c) + 0.0003 + off
+            m[p + "l"] = np.minimum(o, c) - 0.0003 + off
+        tr = simulate_playbook("EUR_USD", m, PlaybookRules(require_two_touches=False, min_rr=1.5), idx[1000].date(), idx[-1].date())
+        for x, y in zip(tr, tr[1:]):
+            self.assertGreater(y["entry"], x["exit"])                       # never two positions at once
+        self.assertTrue(all(t["r"] > -1.6 for t in tr if t["why"] == "stop"))
