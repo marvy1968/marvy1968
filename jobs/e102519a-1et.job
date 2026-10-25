@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --phase validate --families exit_time_fx
