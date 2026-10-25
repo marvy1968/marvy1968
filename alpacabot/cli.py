@@ -122,6 +122,19 @@ def run_all(a) -> int:
                     hybrid_tune(h1, (a3, mid_ - _dt.timedelta(days=1)), (mid_, today), (today - _dt.timedelta(days=14), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "retest_tf_fx":              # owner 2026-10-25: break-and-retest on 4-hour and daily bars (fxbot.research.retest_tf_check)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import retest_tf_check
+                today = _dt.date.today()
+                for g, warm in (("H4", 120), ("D", 400)):
+                    for label, days_ in (("last 3 months", 92), ("last 12 months", 365), ("last 3 years", 1095)):
+                        a_ = today - _dt.timedelta(days=days_)
+                        dg = {i: fx_load(i, g, a_ - _dt.timedelta(days=warm), today, Path("state/fx/cache")) for i in MAJORS}
+                        lines += [f"## retest_tf_fx: break-and-retest, {g} bars, {label} ({a_} to {today}, bid/ask)"] + retest_tf_check(dg, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "range_map_fx":              # owner 2026-10-25: the range-trading decision map on OANDA (fxbot.research.range_map_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS

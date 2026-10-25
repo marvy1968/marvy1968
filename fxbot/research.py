@@ -443,6 +443,22 @@ def range_map_check(data_h1: dict, a, b) -> list[str]:
     return out
 
 
+def retest_tf_check(data: dict, a, b) -> list[str]:
+    """Owner 2026-10-25: the break-and-retest (strategies.BreakRetest) on slower bars (data = one granularity), 2R and 1.5R targets, ranging
+    boxes vs any box, with and without the Velez 20/200 trend, the map's own exits (stop under the retest low, fixed target)."""
+    from .strategies import BreakRetest, VelezFx
+    rows = [("ranging boxes, 2R", lambda: BreakRetest()), ("ranging boxes, 1.5R", lambda: BreakRetest(target_r=1.5)),
+            ("any box, 2R", lambda: BreakRetest(ranging=False)), ("any box, 1.5R", lambda: BreakRetest(ranging=False, target_r=1.5)),
+            ("any box, 2R + Velez trend", lambda: VelezFx(BreakRetest(ranging=False), env=True)),
+            ("any 50-bar box, 2R + Velez trend", lambda: VelezFx(BreakRetest(lookback=50, ranging=False), env=True))]
+    out = []
+    for name, make in rows:
+        m = run(make(), data, a, b)
+        out.append(f"- {name}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                   f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
