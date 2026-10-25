@@ -415,7 +415,7 @@ def range_map_check(data_h1: dict, a, b) -> list[str]:
     what is live. A support reversal (buy the range low after it holds), B confirmed breakout, C failed-breakdown reclaim (a close below the
     range, then back inside; stop under the false-break low; TP1 the middle, then the range high). "+ Velez confirm" = a Velez bullish
     (bearish) setup the same way within 2 bars, i.e. the map's "defined bullish trigger". Shorts mirror every rule."""
-    from .strategies import RangeBox200, RangeBoxFailed, RangeMR, VelezConfirmFx, VelezFx
+    from .strategies import BreakRetest, RangeBox200, RangeBoxFailed, RangeMR, VelezConfirmFx, VelezFx
     rows = [
         ("A support reversal, exit at the middle", lambda: RangeBox200(target="mid")),
         ("A support reversal, exit at the range high", lambda: RangeBox200(target="edge")),
@@ -428,6 +428,11 @@ def range_map_check(data_h1: dict, a, b) -> list[str]:
         ("C reclaim, TP the range high", lambda: RangeBoxFailed(target="edge")),
         ("C + Velez confirm, TP the middle", lambda: VelezConfirmFx(RangeBoxFailed(target="mid"))),
         ("C + volume on the reclaim bar, TP the middle", lambda: RangeBoxFailed(target="mid", vol_mult=1.2)),
+        # owner 2026-10-25 break-and-retest (strategies.BreakRetest): break, retest of the broken edge, rejection bar, entry above its high
+        ("R break-retest, ranging boxes, 2R", lambda: BreakRetest()),
+        ("R break-retest, ranging boxes, 1.5R", lambda: BreakRetest(target_r=1.5)),
+        ("R break-retest, any 100-bar box, 2R", lambda: BreakRetest(ranging=False)),
+        ("R break-retest, any box, 2R + Velez trend", lambda: VelezFx(BreakRetest(ranging=False), env=True)),
     ]
     out = []
     for name, make in rows:

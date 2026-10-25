@@ -351,6 +351,70 @@ class RangeBoxFailed(RangeBox200):
         return f
 
 
+class BreakRetest:
+    """Owner 2026-10-25 break-and-retest of the box: price CLOSES beyond the box edge (the box = the last `lookback` bars' high / low, frozen
+    at the break; ranging pairs only unless ranging=False) -> returns to the broken edge within `wait` bars (low within tol_atr x ATR of it)
+    -> a bullish rejection bar there (closes up, above the edge, in the upper half of its range) -> entry when a later bar trades above that
+    bar's high within `trigger` bars (filled at the next open). Stop under the retest low less stop_buf_atr x ATR, take-profit target_r x
+    the risk. Cancelled when a bar closes back below the edge zone before entry, or no retest / no trigger in time. Shorts mirror."""
+
+    def __init__(self, lookback: int = 100, ranging: bool = True, tol_atr: float = 0.25, wait: int = 12, trigger: int = 6,
+                 stop_buf_atr: float = 0.1, target_r: float = 2.0, max_bars: int = 72, min_crosses: int = 2, flat_atr: float = 0.5):
+        self.lookback, self.ranging, self.tol, self.wait, self.trigger = lookback, ranging, tol_atr, wait, trigger
+        self.buf, self.target_r, self.max_bars, self.min_crosses, self.flat_atr = stop_buf_atr, target_r, max_bars, min_crosses, flat_atr
+        self.name = f"break-retest lb{lookback} {'ranging' if ranging else 'any box'} tgt {target_r}R"
+
+    def frame(self, m):
+        from alpacabot.indicators import sma
+        c, a = m["close"], atr(m, 14)
+        top, bot = m["high"].shift(1).rolling(self.lookback).max(), m["low"].shift(1).rolling(self.lookback).min()
+        h = top - bot
+        ok = (h >= 2 * a) & (h <= 20 * a)
+        if self.ranging:
+            s20, s200 = sma(c, 20), sma(c, 200)
+            flat = (s200 - s200.shift(20)).abs() <= self.flat_atr * a
+            side_ = np.sign(s20 - s200)
+            crosses = (side_ != side_.shift(1)).astype(float).where(side_.shift(1).notna(), 0.0).rolling(self.lookback).sum()
+            ok = ok & (flat.astype(float).rolling(self.lookback).mean() >= 0.8) & (crosses >= self.min_crosses)
+        okv = ok.fillna(False).to_numpy()
+        O, H, L, C = (m[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+        T, B, A = top.to_numpy(float), bot.to_numpy(float), a.to_numpy(float)
+        n = len(m)
+        L_, S_, stop = np.zeros(n, bool), np.zeros(n, bool), np.full(n, np.nan)
+        for side in (1, -1):
+            # mirrored arrays: a short is a long on the negated chart (highs and lows swap)
+            o, hi, lo, cl = (O, H, L, C) if side == 1 else (-O, -L, -H, -C)
+            edge = T if side == 1 else -B
+            brk = np.flatnonzero(okv & np.isfinite(edge) & (cl > edge) & (np.r_[np.inf, cl[:-1]] <= np.r_[np.inf, edge[:-1]]))
+            for k in brk:
+                lvl, tol = edge[k], self.tol * A[k]
+                conf, rlow = None, np.inf
+                for i in range(k + 1, min(n, k + 1 + self.wait)):
+                    if cl[i] < lvl - tol:
+                        break                                     # closed back below the zone: the setup failed
+                    if lo[i] <= lvl + tol:
+                        rlow = min(rlow, lo[i])                   # the retest
+                        rng = hi[i] - lo[i]
+                        if cl[i] > max(o[i], lvl) and rng > 0 and cl[i] >= lo[i] + 0.5 * rng:
+                            conf = i                              # bullish rejection at the old edge
+                            break
+                if conf is None:
+                    continue
+                for j in range(conf + 1, min(n, conf + 1 + self.trigger)):
+                    if cl[j - 1] < lvl - tol:
+                        break
+                    if hi[j] > hi[conf]:
+                        sd = cl[j] - (rlow - self.buf * A[j])
+                        if sd > 0 and not (L_[j] or S_[j]):
+                            (L_ if side == 1 else S_)[j] = True
+                            stop[j] = sd
+                        break
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, pd.Series(L_, index=m.index), pd.Series(S_, index=m.index), none, none, pd.Series(stop, index=m.index), h / a)
+        f["target"] = stop * self.target_r
+        return f
+
+
 class BoxConfirm:
     """The owner's range box with candlestick + volume + volatility confirmation (alpacabot.confirm, 2026-10-16): every close outside the box
     (100 hourly bars, pair ranging) is read as CONTINUING (strong candle, volume and volatility expanding -> trade the breakout) or FAILING

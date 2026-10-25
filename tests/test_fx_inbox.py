@@ -93,3 +93,30 @@ class VelezFxTests(unittest.TestCase):
         f = VelezFx(Always(), env=True).frame(m)
         self.assertTrue(bool(f["long"].iloc[-1]))
         self.assertFalse(bool(f["short"].iloc[-1]))
+
+
+class BreakRetestTests(unittest.TestCase):
+    def test_break_retest_rejection_then_trigger_long_and_cancel_on_close_back_inside(self):
+        """Owner 2026-10-25: break above the box, retest of the old top, bullish rejection, entry when price trades above that bar's high;
+        no trade when price closes back inside the box first."""
+        import numpy as np
+        import pandas as pd
+        from fxbot.strategies import BreakRetest
+        n = 200
+        idx = pd.date_range("2026-01-01", periods=n, freq="h", tz="UTC")
+        base = 1.005 + 0.004 * np.sin(np.arange(150) / 8)                      # the box: about 1.001 - 1.009
+        seq = [1.0100, 1.0110, 1.0095, 1.0102, 1.0115, 1.0130]                    # break, back to the edge, rejection, trigger
+        c = np.r_[base, seq, np.full(n - 150 - len(seq), 1.0135)]
+        o = np.r_[c[0], c[:-1]]
+        hi, lo = np.maximum(o, c) + 0.0002, np.minimum(o, c) - 0.0002
+        lo[152] = 1.0088                                                         # the retest dips to the old top
+        m = pd.DataFrame({"open": o, "high": hi, "low": lo, "close": c}, index=idx)
+        f = BreakRetest(lookback=100, ranging=False).frame(m)
+        longs = list(np.flatnonzero(f["long"].to_numpy()))
+        self.assertTrue(longs and 152 < longs[0] <= 160, longs)
+        self.assertAlmostEqual(float(f["target"].iloc[longs[0]]), 2 * float(f["stop"].iloc[longs[0]]))
+        c2 = c.copy()
+        c2[152:] = 1.0040                                                        # closes back inside the box: cancelled
+        m2 = pd.DataFrame({"open": np.r_[c2[0], c2[:-1]], "high": np.maximum(np.r_[c2[0], c2[:-1]], c2) + 0.0002,
+                           "low": np.minimum(np.r_[c2[0], c2[:-1]], c2) - 0.0002, "close": c2}, index=idx)
+        self.assertFalse(BreakRetest(lookback=100, ranging=False).frame(m2)["long"].iloc[151:].any())
