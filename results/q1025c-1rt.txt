@@ -1,3 +1,47 @@
 $ alpaca run-all --phase validate --families retest_tf_fx
-started 2026-10-24 23:36:37 EDT
-RUNNING...
+started 2026-10-24 23:36:37 EDT, took 156s, exit 0
+
+daily data ready
+## retest_tf_fx: break-and-retest, H4 bars, last 3 months (2026-07-24 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 3 trades, win 0%, PF 0.00, total -1.13%, maxDD -0.6%
+- ranging boxes, 1.5R: 3 trades, win 0%, PF 0.00, total -1.13%, maxDD -0.6%
+- any box, 2R: 28 trades, win 32%, PF 0.84, total -1.33%, maxDD -4.4%
+- any box, 1.5R: 33 trades, win 42%, PF 1.24, total +1.81%, maxDD -1.9%
+- any box, 2R + Velez trend: 23 trades, win 26%, PF 0.59, total -3.04%, maxDD -4.7%
+- any 50-bar box, 2R + Velez trend: 25 trades, win 28%, PF 0.68, total -2.43%, maxDD -5.0%
+## retest_tf_fx: break-and-retest, H4 bars, last 12 months (2025-10-24 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 7 trades, win 14%, PF 0.36, total -1.76%, maxDD -1.7%
+- ranging boxes, 1.5R: 7 trades, win 29%, PF 0.69, total -0.66%, maxDD -1.1%
+- any box, 2R: 86 trades, win 30%, PF 0.73, total -7.80%, maxDD -9.6%
+- any box, 1.5R: 93 trades, win 41%, PF 0.98, total -0.60%, maxDD -6.4%
+- any box, 2R + Velez trend: 74 trades, win 30%, PF 0.71, total -7.20%, maxDD -7.8%
+- any 50-bar box, 2R + Velez trend: 95 trades, win 31%, PF 0.78, total -6.88%, maxDD -11.5%
+## retest_tf_fx: break-and-retest, H4 bars, last 3 years (2023-10-25 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 27 trades, win 22%, PF 0.39, total -6.09%, maxDD -5.6%
+- ranging boxes, 1.5R: 28 trades, win 29%, PF 0.47, total -5.06%, maxDD -4.9%
+- any box, 2R: 275 trades, win 28%, PF 0.69, total -26.22%, maxDD -28.0%
+- any box, 1.5R: 300 trades, win 34%, PF 0.72, total -23.21%, maxDD -25.5%
+- any box, 2R + Velez trend: 250 trades, win 28%, PF 0.69, total -24.19%, maxDD -25.0%
+- any 50-bar box, 2R + Velez trend: 303 trades, win 28%, PF 0.72, total -25.79%, maxDD -27.2%
+## retest_tf_fx: break-and-retest, D bars, last 3 months (2026-07-24 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 1 trades, win 0%, PF 0.00, total -0.53%, maxDD 0.0%
+- ranging boxes, 1.5R: 1 trades, win 0%, PF 0.00, total -0.53%, maxDD 0.0%
+- any box, 2R: 3 trades, win 0%, PF 0.00, total -1.32%, maxDD -0.8%
+- any box, 1.5R: 3 trades, win 0%, PF 0.00, total -1.32%, maxDD -0.8%
+- any box, 2R + Velez trend: 3 trades, win 0%, PF 0.00, total -1.32%, maxDD -0.8%
+- any 50-bar box, 2R + Velez trend: 5 trades, win 20%, PF 0.42, total -1.22%, maxDD -1.6%
+## retest_tf_fx: break-and-retest, D bars, last 12 months (2025-10-24 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 3 trades, win 0%, PF 0.00, total -1.14%, maxDD -1.0%
+- ranging boxes, 1.5R: 3 trades, win 0%, PF 0.00, total -1.14%, maxDD -1.0%
+- any box, 2R: 13 trades, win 8%, PF 0.17, total -4.71%, maxDD -5.6%
+- any box, 1.5R: 13 trades, win 8%, PF 0.12, total -4.94%, maxDD -5.6%
+- any box, 2R + Velez trend: 12 trades, win 8%, PF 0.18, total -4.22%, maxDD -5.1%
+- any 50-bar box, 2R + Velez trend: 15 trades, win 13%, PF 0.27, total -4.81%, maxDD -5.7%
+## retest_tf_fx: break-and-retest, D bars, last 3 years (2023-10-25 to 2026-10-24, bid/ask)
+- ranging boxes, 2R: 14 trades, win 14%, PF 0.30, total -4.24%, maxDD -3.7%
+- ranging boxes, 1.5R: 14 trades, win 21%, PF 0.38, total -3.45%, maxDD -3.4%
+- any box, 2R: 44 trades, win 16%, PF 0.35, total -12.03%, maxDD -12.4%
+- any box, 1.5R: 45 trades, win 27%, PF 0.51, total -8.15%, maxDD -8.8%
+- any box, 2R + Velez trend: 42 trades, win 17%, PF 0.37, total -11.08%, maxDD -11.5%
+- any 50-bar box, 2R + Velez trend: 54 trades, win 19%, PF 0.40, total -13.31%, maxDD -15.3%
+ALL DONE
