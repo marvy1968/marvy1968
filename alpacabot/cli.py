@@ -122,6 +122,21 @@ def run_all(a) -> int:
                     hybrid_tune(h1, (a3, mid_ - _dt.timedelta(days=1)), (mid_, today), (today - _dt.timedelta(days=14), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "retest_diag_fx":            # owner 2026-10-25 "analyze why it failed" (fxbot.research.retest_diag)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import retest_diag
+                from fxbot.strategies import BreakRetest, VelezFx
+                today = _dt.date.today()
+                a4, a1 = today - _dt.timedelta(days=1095), today - _dt.timedelta(days=365)
+                h4 = {i: fx_load(i, "H4", a4 - _dt.timedelta(days=120), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += ["## retest_diag_fx: why the break-and-retest lost"]
+                lines += retest_diag(h4, a4, today, lambda: BreakRetest(ranging=False, target_r=1.5), "4-hour, any box, 1.5R, last 3 years")
+                h1 = {i: fx_load(i, "H1", a1 - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += retest_diag(h1, a1, today, lambda: VelezFx(BreakRetest(ranging=False), env=True), "1-hour, any box, 2R + Velez trend, last 12 months")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "retest_tf_fx":              # owner 2026-10-25: break-and-retest on 4-hour and daily bars (fxbot.research.retest_tf_check)
                 import datetime as _dt
                 from fxbot.data import MAJORS

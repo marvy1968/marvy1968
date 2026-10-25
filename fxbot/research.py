@@ -459,6 +459,61 @@ def retest_tf_check(data: dict, a, b) -> list[str]:
     return out
 
 
+def retest_diag(data: dict, a, b, make, label: str) -> list[str]:
+    """Owner 2026-10-25 ("analyze why it failed"): trade-level autopsy of a strategy: exits, how far trades went for / against before the
+    exit (MFE / MAE in R), spread cost in R, and R by pair, side, trend strength (ADX14 at the signal), session (UTC hour) and year, plus
+    the same exits from RANDOM entries (3 placebo seeds) - if random entries do as well, the entry has no edge."""
+    import numpy as np
+    import pandas as pd
+    from alpacabot.indicators import adx as _adx
+    from .data import mid as _mid
+    from .engine import simulate
+    rows = []
+    for inst, df in data.items():
+        m = _mid(df)
+        ad = _adx(m, 14)
+        for t in simulate(inst, df, make()):
+            if not (a <= t.entry_time.date() <= b):
+                continue
+            seg = df.loc[t.entry_time:t.exit_time]
+            if t.side == 1:
+                mfe, mae = (seg["bh"].max() - t.entry_px) / t.stop_dist, (t.entry_px - seg["bl"].min()) / t.stop_dist
+            else:
+                mfe, mae = (t.entry_px - seg["al"].min()) / t.stop_dist, (seg["ah"].max() - t.entry_px) / t.stop_dist
+            i = df.index.get_loc(t.entry_time)
+            sig = df.index[max(i - 1, 0)]
+            spread = float(df["ao"].iloc[i] - df["bo"].iloc[i]) / t.stop_dist
+            rows.append({"inst": inst, "side": "long" if t.side == 1 else "short", "r": t.side * (t.exit_px - t.entry_px) / t.stop_dist,
+                         "why": t.reason, "mfe": mfe, "mae": mae, "spread_r": spread, "adx": float(ad.get(sig, np.nan)),
+                         "hour": t.entry_time.hour, "year": t.entry_time.year, "bars": t.bars})
+    if not rows:
+        return [f"### {label}: no trades"]
+    d = pd.DataFrame(rows)
+
+    def line(g, name):
+        gw, gl = g.loc[g.r > 0, "r"].sum(), -g.loc[g.r <= 0, "r"].sum()
+        return f"  {name}: {len(g)} trades, win {(g.r > 0).mean():.0%}, avg {g.r.mean():+.2f}R, PF {gw / gl if gl > 0 else float('inf'):.2f}"
+    out = [f"### {label}", line(d, "ALL")]
+    out.append("  exits: " + ", ".join(f"{k} {v} (avg {d.loc[d.why == k, 'r'].mean():+.2f}R)" for k, v in d["why"].value_counts().items()))
+    st = d[d.why == "stop"]
+    out.append(f"  trades stopped out: {len(st)}; of them reached +0.5R first: {(st.mfe >= 0.5).mean():.0%}, +1R first: {(st.mfe >= 1.0).mean():.0%}; "
+               f"median bars to the stop {st.bars.median() if len(st) else 0:.0f}")
+    out.append(f"  all trades: median best open {d.mfe.median():+.2f}R, median worst {d.mae.median():.2f}R against; "
+               f"reached the target distance's half (+{0.5 * (d.r[d.why == 'target'].max() if (d.why == 'target').any() else 1):.2f}R) {(d.mfe >= 0.75).mean():.0%}")
+    out.append(f"  spread at entry: avg {d.spread_r.mean():.2f}R per trade (round trip about {2 * d.spread_r.mean():.2f}R)")
+    for col, name in (("inst", "by pair"), ("side", "by side"), ("year", "by year")):
+        out.append(f"  {name}:")
+        out += [line(g, f"    {k}") for k, g in d.groupby(col)]
+    out.append("  by trend strength (ADX14 at the signal):")
+    out += [line(g, f"    {k}") for k, g in d.groupby(pd.cut(d.adx, [0, 20, 25, 35, 100], labels=["<20 (range)", "20-25", "25-35 (trend)", "35+ (strong trend)"]), observed=True)]
+    out.append("  by session (UTC entry hour):")
+    out += [line(g, f"    {k}") for k, g in d.groupby(pd.cut(d.hour, [-1, 6, 11, 16, 23], labels=["Asia 00-06", "London 07-11", "NY overlap 12-16", "late 17-23"]), observed=True)]
+    pl = [run(make(), data, a, b, placebo_seed=sd_) for sd_ in (1, 2, 3)]
+    out.append("  RANDOM entries, same exits (3 seeds): " + ", ".join(f"PF {p_.get('profit_factor') or 0:.2f}" for p_ in pl)
+               + f" vs the setup PF {line(d, 'x').split('PF ')[-1]}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
