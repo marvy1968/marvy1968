@@ -1,3 +1,98 @@
 $ alpaca run-all --phase validate --families range_map_fx
-started 2026-10-24 23:33:35 EDT
-RUNNING...
+started 2026-10-24 23:33:35 EDT, took 37s, exit 0
+
+daily data ready
+## range_map_fx: range decision map on OANDA, last 2 weeks (2026-10-10 to 2026-10-24, H1, bid/ask)
+- A support reversal, exit at the middle | map exits: 33 trades, win 18%, PF 0.61, total -4.89%, maxDD -9.0%
+- A support reversal, exit at the middle | live exits 0.5R/1.25R: 68 trades, win 13%, PF 0.46, total -10.19%, maxDD -11.6%
+- A support reversal, exit at the range high | map exits: 33 trades, win 15%, PF 0.90, total -1.27%, maxDD -7.1%
+- A support reversal, exit at the range high | live exits 0.5R/1.25R: 68 trades, win 13%, PF 0.46, total -10.19%, maxDD -11.6%
+- A + Velez confirm, exit at the middle | map exits: 6 trades, win 50%, PF 0.77, total -0.37%, maxDD -1.0%
+- A + Velez confirm, exit at the middle | live exits 0.5R/1.25R: 9 trades, win 22%, PF 0.42, total -1.85%, maxDD -1.9%
+- A live today: boxmr_h1 | map exits: 10 trades, win 30%, PF 0.43, total -1.35%, maxDD -1.7%
+- A live today: boxmr_h1 | live exits 0.5R/1.25R: 10 trades, win 30%, PF 1.12, total +0.22%, maxDD -0.8%
+- B breakout on a close | map exits: 9 trades, win 22%, PF 0.51, total -1.56%, maxDD -1.9%
+- B breakout on a close | live exits 0.5R/1.25R: 17 trades, win 29%, PF 0.90, total -0.42%, maxDD -0.9%
+- B + Velez trend (20 over 200) | map exits: 7 trades, win 29%, PF 0.74, total -0.56%, maxDD -1.4%
+- B + Velez trend (20 over 200) | live exits 0.5R/1.25R: 13 trades, win 31%, PF 1.02, total +0.06%, maxDD -0.4%
+- B live today: confirm_h1 | map exits: 2 trades, win 0%, PF 0.00, total -1.00%, maxDD -0.5%
+- B live today: confirm_h1 | live exits 0.5R/1.25R: 2 trades, win 0%, PF 0.00, total -0.53%, maxDD -0.3%
+- C reclaim, TP the middle | map exits: 10 trades, win 40%, PF 1.10, total +0.31%, maxDD -3.0%
+- C reclaim, TP the middle | live exits 0.5R/1.25R: 12 trades, win 25%, PF 0.76, total -0.98%, maxDD -2.5%
+- C reclaim, TP the range high | map exits: 10 trades, win 40%, PF 2.26, total +4.03%, maxDD -2.0%
+- C reclaim, TP the range high | live exits 0.5R/1.25R: 12 trades, win 25%, PF 0.76, total -0.98%, maxDD -2.5%
+- C + Velez confirm, TP the middle | map exits: 2 trades, win 50%, PF 1.37, total +0.19%, maxDD -0.5%
+- C + Velez confirm, TP the middle | live exits 0.5R/1.25R: 2 trades, win 50%, PF 2.25, total +0.63%, maxDD -0.5%
+- C + volume on the reclaim bar, TP the middle | map exits: 7 trades, win 43%, PF 1.30, total +0.63%, maxDD -2.0%
+- C + volume on the reclaim bar, TP the middle | live exits 0.5R/1.25R: 8 trades, win 12%, PF 0.40, total -1.84%, maxDD -1.8%
+- R break-retest, ranging boxes, 2R | map exits: 4 trades, win 25%, PF 0.79, total -0.27%, maxDD -0.5%
+- R break-retest, ranging boxes, 2R | live exits 0.5R/1.25R: 5 trades, win 20%, PF 0.89, total -0.16%, maxDD 0.0%
+- R break-retest, ranging boxes, 1.5R | map exits: 5 trades, win 40%, PF 1.18, total +0.23%, maxDD -0.5%
+- R break-retest, ranging boxes, 1.5R | live exits 0.5R/1.25R: 5 trades, win 20%, PF 0.89, total -0.16%, maxDD 0.0%
+- R break-retest, any 100-bar box, 2R | map exits: 12 trades, win 33%, PF 0.97, total -0.10%, maxDD -1.3%
+- R break-retest, any 100-bar box, 2R | live exits 0.5R/1.25R: 15 trades, win 27%, PF 1.21, total +0.67%, maxDD -0.7%
+- R break-retest, any box, 2R + Velez trend | map exits: 10 trades, win 40%, PF 1.36, total +0.81%, maxDD -1.3%
+- R break-retest, any box, 2R + Velez trend | live exits 0.5R/1.25R: 13 trades, win 31%, PF 1.55, total +1.38%, maxDD -0.7%
+## range_map_fx: range decision map on OANDA, last 3 months (2026-07-24 to 2026-10-24, H1, bid/ask)
+- A support reversal, exit at the middle | map exits: 47 trades, win 15%, PF 0.47, total -9.34%, maxDD -9.0%
+- A support reversal, exit at the middle | live exits 0.5R/1.25R: 107 trades, win 17%, PF 0.57, total -12.98%, maxDD -13.1%
+- A support reversal, exit at the range high | map exits: 47 trades, win 11%, PF 0.60, total -7.52%, maxDD -7.1%
+- A support reversal, exit at the range high | live exits 0.5R/1.25R: 107 trades, win 17%, PF 0.57, total -12.98%, maxDD -13.1%
+- A + Velez confirm, exit at the middle | map exits: 11 trades, win 36%, PF 0.39, total -2.16%, maxDD -1.7%
+- A + Velez confirm, exit at the middle | live exits 0.5R/1.25R: 16 trades, win 25%, PF 0.63, total -1.92%, maxDD -2.7%
+- A live today: boxmr_h1 | map exits: 16 trades, win 50%, PF 1.40, total +1.19%, maxDD -1.7%
+- A live today: boxmr_h1 | live exits 0.5R/1.25R: 20 trades, win 45%, PF 2.22, total +3.88%, maxDD -0.8%
+- B breakout on a close | map exits: 13 trades, win 15%, PF 0.31, total -3.55%, maxDD -4.6%
+- B breakout on a close | live exits 0.5R/1.25R: 24 trades, win 25%, PF 0.79, total -1.27%, maxDD -1.5%
+- B + Velez trend (20 over 200) | map exits: 10 trades, win 20%, PF 0.44, total -2.05%, maxDD -3.2%
+- B + Velez trend (20 over 200) | live exits 0.5R/1.25R: 17 trades, win 29%, PF 1.09, total +0.34%, maxDD -1.0%
+- B live today: confirm_h1 | map exits: 3 trades, win 0%, PF 0.00, total -1.49%, maxDD -1.0%
+- B live today: confirm_h1 | live exits 0.5R/1.25R: 3 trades, win 33%, PF 1.63, total +0.33%, maxDD -0.5%
+- C reclaim, TP the middle | map exits: 16 trades, win 25%, PF 0.53, total -2.89%, maxDD -3.0%
+- C reclaim, TP the middle | live exits 0.5R/1.25R: 18 trades, win 22%, PF 0.68, total -2.01%, maxDD -2.5%
+- C reclaim, TP the range high | map exits: 16 trades, win 25%, PF 1.11, total +0.72%, maxDD -2.7%
+- C reclaim, TP the range high | live exits 0.5R/1.25R: 18 trades, win 22%, PF 0.68, total -2.01%, maxDD -2.5%
+- C + Velez confirm, TP the middle | map exits: 4 trades, win 25%, PF 0.42, total -0.93%, maxDD -0.6%
+- C + Velez confirm, TP the middle | live exits 0.5R/1.25R: 4 trades, win 50%, PF 2.27, total +1.28%, maxDD -0.5%
+- C + volume on the reclaim bar, TP the middle | map exits: 9 trades, win 33%, PF 0.84, total -0.49%, maxDD -2.0%
+- C + volume on the reclaim bar, TP the middle | live exits 0.5R/1.25R: 10 trades, win 20%, PF 0.66, total -1.20%, maxDD -1.8%
+- R break-retest, ranging boxes, 2R | map exits: 7 trades, win 14%, PF 0.39, total -1.52%, maxDD -1.3%
+- R break-retest, ranging boxes, 2R | live exits 0.5R/1.25R: 8 trades, win 12%, PF 0.44, total -1.55%, maxDD -1.2%
+- R break-retest, ranging boxes, 1.5R | map exits: 8 trades, win 25%, PF 0.59, total -1.03%, maxDD -1.3%
+- R break-retest, ranging boxes, 1.5R | live exits 0.5R/1.25R: 8 trades, win 12%, PF 0.44, total -1.55%, maxDD -1.2%
+- R break-retest, any 100-bar box, 2R | map exits: 82 trades, win 24%, PF 0.57, total -10.71%, maxDD -13.3%
+- R break-retest, any 100-bar box, 2R | live exits 0.5R/1.25R: 104 trades, win 15%, PF 0.51, total -12.41%, maxDD -13.2%
+- R break-retest, any box, 2R + Velez trend | map exits: 74 trades, win 26%, PF 0.65, total -7.80%, maxDD -11.7%
+- R break-retest, any box, 2R + Velez trend | live exits 0.5R/1.25R: 95 trades, win 17%, PF 0.61, total -8.51%, maxDD -9.8%
+## range_map_fx: range decision map on OANDA, last 12 months (2025-10-24 to 2026-10-24, H1, bid/ask)
+- A support reversal, exit at the middle | map exits: 215 trades, win 20%, PF 0.55, total -30.20%, maxDD -29.5%
+- A support reversal, exit at the middle | live exits 0.5R/1.25R: 468 trades, win 17%, PF 0.51, total -50.74%, maxDD -50.9%
+- A support reversal, exit at the range high | map exits: 200 trades, win 13%, PF 0.51, total -32.84%, maxDD -32.9%
+- A support reversal, exit at the range high | live exits 0.5R/1.25R: 468 trades, win 17%, PF 0.51, total -50.74%, maxDD -50.9%
+- A + Velez confirm, exit at the middle | map exits: 38 trades, win 37%, PF 0.73, total -3.20%, maxDD -2.8%
+- A + Velez confirm, exit at the middle | live exits 0.5R/1.25R: 52 trades, win 19%, PF 0.51, total -8.78%, maxDD -8.4%
+- A live today: boxmr_h1 | map exits: 74 trades, win 39%, PF 0.67, total -4.06%, maxDD -5.0%
+- A live today: boxmr_h1 | live exits 0.5R/1.25R: 93 trades, win 32%, PF 0.68, total -6.17%, maxDD -9.4%
+- B breakout on a close | map exits: 67 trades, win 10%, PF 0.54, total -12.90%, maxDD -19.9%
+- B breakout on a close | live exits 0.5R/1.25R: 108 trades, win 19%, PF 0.63, total -11.15%, maxDD -12.9%
+- B + Velez trend (20 over 200) | map exits: 62 trades, win 11%, PF 0.59, total -10.60%, maxDD -17.8%
+- B + Velez trend (20 over 200) | live exits 0.5R/1.25R: 96 trades, win 19%, PF 0.61, total -10.24%, maxDD -12.0%
+- B live today: confirm_h1 | map exits: 10 trades, win 0%, PF 0.00, total -4.73%, maxDD -4.2%
+- B live today: confirm_h1 | live exits 0.5R/1.25R: 10 trades, win 20%, PF 0.79, total -0.56%, maxDD -2.1%
+- C reclaim, TP the middle | map exits: 75 trades, win 31%, PF 0.90, total -2.66%, maxDD -7.2%
+- C reclaim, TP the middle | live exits 0.5R/1.25R: 79 trades, win 18%, PF 0.58, total -11.23%, maxDD -11.0%
+- C reclaim, TP the range high | map exits: 74 trades, win 20%, PF 0.75, total -6.93%, maxDD -14.4%
+- C reclaim, TP the range high | live exits 0.5R/1.25R: 79 trades, win 18%, PF 0.58, total -11.23%, maxDD -11.0%
+- C + Velez confirm, TP the middle | map exits: 11 trades, win 27%, PF 0.37, total -2.60%, maxDD -2.6%
+- C + Velez confirm, TP the middle | live exits 0.5R/1.25R: 11 trades, win 27%, PF 0.93, total -0.28%, maxDD -2.0%
+- C + volume on the reclaim bar, TP the middle | map exits: 37 trades, win 38%, PF 0.89, total -1.25%, maxDD -3.4%
+- C + volume on the reclaim bar, TP the middle | live exits 0.5R/1.25R: 38 trades, win 21%, PF 0.69, total -4.32%, maxDD -4.1%
+- R break-retest, ranging boxes, 2R | map exits: 38 trades, win 29%, PF 0.79, total -2.51%, maxDD -5.1%
+- R break-retest, ranging boxes, 2R | live exits 0.5R/1.25R: 44 trades, win 16%, PF 0.44, total -7.93%, maxDD -8.3%
+- R break-retest, ranging boxes, 1.5R | map exits: 40 trades, win 35%, PF 0.82, total -2.05%, maxDD -4.7%
+- R break-retest, ranging boxes, 1.5R | live exits 0.5R/1.25R: 44 trades, win 16%, PF 0.44, total -7.93%, maxDD -8.3%
+- R break-retest, any 100-bar box, 2R | map exits: 345 trades, win 25%, PF 0.65, total -33.94%, maxDD -35.8%
+- R break-retest, any 100-bar box, 2R | live exits 0.5R/1.25R: 451 trades, win 19%, PF 0.73, total -29.08%, maxDD -29.5%
+- R break-retest, any box, 2R + Velez trend | map exits: 324 trades, win 26%, PF 0.70, total -27.66%, maxDD -30.6%
+- R break-retest, any box, 2R + Velez trend | live exits 0.5R/1.25R: 424 trades, win 20%, PF 0.74, total -25.58%, maxDD -27.7%
+ALL DONE
