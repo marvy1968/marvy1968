@@ -97,6 +97,15 @@ def instrument_events(sym: str, d: pd.DataFrame, mirror: bool = False, round_ste
                 if hit_t:
                     y, ridx = 1.0, j
                     break
+            t2, s2, y2 = c[i] + UP * a[i], c[i] - DOWN * a[i], np.nan                # the same bracket measured from the ENTRY close
+            for j in range(i + 1, end + 1):
+                if l[j] <= s2:
+                    y2 = 0.0
+                    break
+                if h[j] >= t2:
+                    y2 = 1.0
+                    break
+            r2 = (UP if y2 == 1.0 else -DOWN if y2 == 0.0 else (c[end] - c[i]) / a[i]) - COST_ATR
             risk = (c[i] - brk)
             if y == 1.0:
                 r = (tgt - c[i]) / risk
@@ -113,10 +122,33 @@ def instrument_events(sym: str, d: pd.DataFrame, mirror: bool = False, round_ste
                          "local_rate": (sum(near) + 1) / (len(near) + 2), "n_local": np.log1p(len(near)),
                          "instr_rate": (sum(allr) + 2) / (len(allr) + 4), "trend": (c[i] - sma[i]) / a[i],
                          "dist": (c[i] - lv) / a[i], "atr_pct": a[i] / abs(c[i]), "round_dist": _round_dist(lv, a[i], round_step),
-                         "y": y, "R": r, "resolve": ridx, "rtime": d.index[min(ridx, n - 1)]})
+                         "y": y, "R": r, "y2": y2, "R2": r2, "resolve": ridx, "rtime": d.index[end]})
             if np.isfinite(y):
                 resolved.append((ridx, lv, y))
     return pd.DataFrame(rows)
+
+
+def all_bars(sym: str, d: pd.DataFrame, mirror: bool = False) -> pd.DataFrame:
+    """The same entry-relative bracket (+UP / -DOWN ATR from the close, HORIZON bars) for EVERY bar: what an arbitrary entry does."""
+    o, h, l, c = _chart(d, mirror)
+    n = len(c)
+    a = _atr(h, l, c)
+    rows = []
+    for i in range(60, n - 1):
+        if not np.isfinite(a[i]) or a[i] <= 0:
+            continue
+        end = min(n - 1, i + HORIZON)
+        t2, s2, y2 = c[i] + UP * a[i], c[i] - DOWN * a[i], np.nan
+        for j in range(i + 1, end + 1):
+            if l[j] <= s2:
+                y2 = 0.0
+                break
+            if h[j] >= t2:
+                y2 = 1.0
+                break
+        r2 = (UP if y2 == 1.0 else -DOWN if y2 == 0.0 else (c[end] - c[i]) / a[i]) - COST_ATR
+        rows.append((d.index[i], y2, r2, "sell" if mirror else "buy"))
+    return pd.DataFrame(rows, columns=["time", "y2", "R2", "kind"])
 
 
 def next_zones(sym: str, d: pd.DataFrame, model, scaler, mirror: bool, round_step, events: pd.DataFrame, top: int = 2) -> list[dict]:
@@ -155,55 +187,63 @@ def _pf(r):
 
 
 def zone_report(data: dict, label: str, round_steps: dict | None = None, train_frac: float = 0.65) -> list[str]:
-    """data = {symbol: OHLC frame (mid prices)}; the pooled model, its out-of-sample results, per-instrument table and the next zones."""
+    """data = {symbol: OHLC frame (mid prices)}. Pooled model on the entry-relative outcome (a long / short entered at the touch close with
+    target +UP ATR and stop -DOWN ATR), graded on later touches it never saw, against (a) every bar of the same instruments and (b) all touches."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
     from sklearn.preprocessing import StandardScaler
     round_steps = round_steps or {}
-    ev = {}
+    ev, base = {}, []
     for sym, d in data.items():
         for mirror in (False, True):
             e = instrument_events(sym, d, mirror, round_steps.get(sym))
             if len(e):
                 ev[(sym, mirror)] = e
+            base.append(all_bars(sym, d, mirror).assign(sym=sym))
     if not ev:
         return [f"### {label}: no events"]
     allev = pd.concat(ev.values(), ignore_index=True)
-    res = allev[np.isfinite(allev["y"])].copy()
+    res = allev[np.isfinite(allev["y2"])].copy()
     cut = res["time"].sort_values().iloc[int(len(res) * train_frac)]
-    tr, te = res[res["rtime"] < cut], res[res["time"] >= cut].copy()      # embargo: no training outcome resolves inside the test period
+    tr, te = res[res["rtime"] < cut], res[res["time"] >= cut].copy()
     sc = StandardScaler().fit(tr[FEATURES])
-    lr = LogisticRegression(max_iter=500, C=1.0).fit(sc.transform(tr[FEATURES]), tr["y"])
+    lr = LogisticRegression(max_iter=500, C=1.0).fit(sc.transform(tr[FEATURES]), tr["y2"])
     te["p"] = lr.predict_proba(sc.transform(te[FEATURES]))[:, 1]
-    auc = roc_auc_score(te["y"], te["p"]) if te["y"].nunique() > 1 else float("nan")
-    out = [f"### {label}: {len(allev)} zone touches ({len(res)} resolved) over {len(data)} instruments; trained before {str(cut)[:10]} on {len(tr)}, "
-           f"tested on {len(te)} later touches the model never saw",
-           f"  bounce rate (reaches +{UP} ATR over the zone before -{DOWN} ATR under it): train {tr['y'].mean():.1%}, test {te['y'].mean():.1%}; "
-           f"model AUC on the test touches {auc:.3f} (0.5 = no skill)",
-           "  features that matter (standardised logistic weights): " + ", ".join(f"{f} {w:+.2f}" for f, w in sorted(zip(FEATURES, lr.coef_[0]), key=lambda x: -abs(x[1]))[:6]),
-           "  by predicted bounce probability on the TEST touches (R = buy at the close, stop 1 ATR under the zone, target 1.5 ATR over it, costs in):"]
+    auc = roc_auc_score(te["y2"], te["p"]) if te["y2"].nunique() > 1 else float("nan")
+    b = pd.concat(base, ignore_index=True)
+    b = b[(b["time"] >= cut) & np.isfinite(b["y2"])]
+    out = [f"### {label}: {len(allev)} zone touches over {len(data)} instruments; model trained on touches before {str(cut)[:10]} ({len(tr)}), "
+           f"graded on {len(te)} later touches it never saw. A trade = enter at the close, target +{UP} ATR, stop -{DOWN} ATR, {HORIZON} bars max, costs in.",
+           f"  ANY bar, same bracket (the baseline): {len(b)} entries, hit target first {b['y2'].mean():.1%}, avg {b['R2'].mean():+.3f}R, PF {_pf(b['R2']):.2f}",
+           f"  EVERY zone touch (buy zones long, sell zones short): {len(te)} touches, hit target first {te['y2'].mean():.1%}, avg {te['R2'].mean():+.3f}R, PF {_pf(te['R2']):.2f}",
+           f"  model AUC on those touches {auc:.3f} (0.5 = no skill); weights: " +
+           ", ".join(f"{f} {w:+.2f}" for f, w in sorted(zip(FEATURES, lr.coef_[0]), key=lambda x: -abs(x[1]))[:6]),
+           "  by the model's predicted probability (test touches):"]
     te["q"] = pd.qcut(te["p"], 4, labels=["lowest 25%", "25-50%", "50-75%", "top 25%"], duplicates="drop")
     for q, g in te.groupby("q", observed=True):
-        out.append(f"    {q}: {len(g)} touches, predicted {g['p'].mean():.0%}, actually bounced {g['y'].mean():.0%}, avg {g['R'].mean():+.2f}R, PF {_pf(g['R']):.2f}")
+        out.append(f"    {q}: {len(g)} touches, predicted {g['p'].mean():.0%}, hit {g['y2'].mean():.0%}, avg {g['R2'].mean():+.3f}R, PF {_pf(g['R2']):.2f}")
     for kind in ("buy", "sell"):
-        g = te[te["kind"] == kind]
+        g, bk = te[te["kind"] == kind], b[b["kind"] == kind]
         top = g[g["p"] >= g["p"].quantile(0.75)]
-        out.append(f"  {kind} zones, top-quartile picks: {len(top)} touches, bounced {top['y'].mean():.0%} (all {kind} touches {g['y'].mean():.0%}), "
-                   f"avg {top['R'].mean():+.2f}R, PF {_pf(top['R']):.2f}")
-    out.append("  per instrument (test touches; top = the model's top-quartile picks for that instrument):")
+        out.append(f"  {kind} zones: any-bar baseline {bk['R2'].mean():+.3f}R (PF {_pf(bk['R2']):.2f}); all touches {g['R2'].mean():+.3f}R (PF {_pf(g['R2']):.2f}); "
+                   f"model top 25% {len(top)} touches {top['R2'].mean():+.3f}R (PF {_pf(top['R2']):.2f})")
+    ps = []
     for sym, g in te.groupby("sym"):
         t = g[g["p"] >= g["p"].quantile(0.75)]
-        out.append(f"    {sym}: {len(g)} touches, base bounce {g['y'].mean():.0%}, top picks {len(t)} bounced {t['y'].mean():.0%}, "
-                   f"avg {t['R'].mean():+.2f}R, PF {_pf(t['R']):.2f}")
-    out.append("  NEXT ZONES (last bar; probability the zone bounces when touched, ATR = how far from the close):")
+        ps.append((sym, len(g), g["R2"].mean(), len(t), t["R2"].mean(), _pf(t["R2"])))
+    pos = sum(1 for x in ps if x[4] > 0)
+    out.append(f"  per instrument: the model's top-quartile picks beat zero R on {pos} of {len(ps)} instruments (if it had no skill, about half would by chance): " +
+               "; ".join(f"{x[0]} {x[3]} picks {x[4]:+.2f}R" for x in sorted(ps, key=lambda x: -x[4])[:6]) + " ... worst: " +
+               "; ".join(f"{x[0]} {x[4]:+.2f}R" for x in sorted(ps, key=lambda x: x[4])[:3]))
+    out.append("  NEXT ZONES (last bar; probability that an entry at the zone hits +target before -stop; ATR = distance from the close):")
     full_sc = StandardScaler().fit(res[FEATURES])
-    full = LogisticRegression(max_iter=500, C=1.0).fit(full_sc.transform(res[FEATURES]), res["y"])
+    full = LogisticRegression(max_iter=500, C=1.0).fit(full_sc.transform(res[FEATURES]), res["y2"])
     for sym, d in data.items():
         for mirror in (False, True):
             e = ev.get((sym, mirror))
             if e is None:
                 continue
             for z in next_zones(sym, d, full, full_sc, mirror, round_steps.get(sym), e):
-                out.append(f"    {sym} {z['kind'].upper()} zone {z['level']:.5g}: {z['atr_away']:.1f} ATR away, bounce probability {z['prob']:.0%} "
+                out.append(f"    {sym} {z['kind'].upper()} zone {z['level']:.5g}: {z['atr_away']:.1f} ATR away, hit-target probability {z['prob']:.0%} "
                            f"({z['touches']} pivots, {z['past_here']} past touches here)")
     return out
