@@ -71,32 +71,25 @@ def htf_zones(m: pd.DataFrame, r: PlaybookRules) -> list[dict]:
     return out
 
 
-def simulate_playbook(inst: str, df: pd.DataFrame, r: PlaybookRules, a_date, b_date) -> list[dict]:
-    """Trades (dicts with r multiple) for one instrument; df = OANDA bid/ask bars on the entry timeframe (bo/bh/bl/bc, ao/ah/al/ac)."""
+def find_setups(df: pd.DataFrame, r: PlaybookRules) -> tuple[list[dict], dict]:
+    """Every qualifying setup up to its confirmation candle (stages 1-3, the 2R structure check), in MIRRORED prices (a short is a long on
+    the negated chart): side, k (breakout bar), first (first retest bar), conf, zu, rlow, trig, stop, tgt. Also returns the arrays."""
     mid = pd.DataFrame({k: (df["b" + k[0]] + df["a" + k[0]]) / 2 for k in ("open", "high", "low", "close")}, index=df.index)
     zones = htf_zones(mid, r)
     O, H, L, C = (mid[k].to_numpy(float) for k in ("open", "high", "low", "close"))
-    BO, BH, BL, BC = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "bc"))
-    AO, AH, AL, AC = (df[k].to_numpy(float) for k in ("ao", "ah", "al", "ac"))
     A = _atr(H, L, C)
     idx = df.index
     n = len(df)
-    trades = []
+    out = []
     for side in (1, -1):
-        # mirrored view: a short is a long on the negated chart
         o, h, l, c = (O, H, L, C) if side == 1 else (-O, -L, -H, -C)
         for z in zones:
-            if side == 1:
-                zl, zu = z["zl"], z["zu"]
-            else:
-                zl, zu = -z["zu"], -z["zl"]
+            zl, zu = (z["zl"], z["zu"]) if side == 1 else (-z["zu"], -z["zl"])
             s0 = idx.searchsorted(z["known"])
             s1 = min(n, idx.searchsorted(z["expires"]))
             for k in range(max(s0, 1), s1):
                 if not (c[k] > zu and c[k - 1] <= zu and min(o[k], c[k]) > zl):   # body closes above the zone (from at / below it)
                     continue
-                if not (a_date <= idx[k].date() <= b_date):
-                    break
                 first, conf = None, None
                 for i in range(k + 1, min(n, k + 1 + r.retest_bars)):
                     if c[i] <= zu:
@@ -117,65 +110,90 @@ def simulate_playbook(inst: str, df: pd.DataFrame, r: PlaybookRules, a_date, b_d
                 atr_c = A[conf] if np.isfinite(A[conf]) else (h[conf] - l[conf])
                 trig = h[conf] + r.entry_buf * atr_c
                 stop = rlow - r.stop_buf * atr_c
-                # nearest qualifying opposing HTF level above the trigger, known by the confirmation candle
                 opp = [(-q["px"] if side == -1 else q["px"]) for q in zones
                        if q["kind"] == ("hi" if side == 1 else "lo") and q["known"] <= idx[conf] and q["expires"] > idx[conf]]
-                opp = [p for p in opp if p > trig]
-                if not opp:
-                    break
-                tgt = min(opp)
-                if tgt - trig < r.min_rr * (trig - stop):
-                    break                                            # the premarked structure does not allow 2R: skip
-                fill_i = None
-                for j in range(conf + 1, min(n, conf + 1 + r.expiry)):
-                    if o[j] > trig:
-                        break                                        # chase rule: already through the trigger
-                    if l[j] < rlow:
-                        break                                        # traded below the frozen retest low before the fill
-                    if h[j] >= trig:
-                        fill_i = j
-                        break
-                    if c[j] <= zu:
-                        break
-                if fill_i is None:
-                    break
-                half = (AO[fill_i] - BO[fill_i]) / 2                  # the entry pays half the spread on top of the mid trigger
-                fill = max(trig, o[fill_i]) + half                   # (mirrored: a short sells at the bid, below the mid)
-                risk = fill - stop
-                if risk <= 0:
-                    break
-                cur_stop, exit_px, why, j = stop, None, "", fill_i
-                be_done = False
-                for j in range(fill_i, min(n, fill_i + r.max_bars)):
-                    # exit side of the book (bid for longs / ask for shorts), mirrored
-                    xo, xh, xl, xc = (BO[j], BH[j], BL[j], BC[j]) if side == 1 else (-AO[j], -AL[j], -AH[j], -AC[j])
-                    if j > fill_i and xo <= cur_stop:
-                        exit_px, why = xo, "stop"
-                    elif xl <= cur_stop:
-                        exit_px, why = cur_stop, ("stop" if not be_done else "breakeven")
-                    elif j > fill_i and xo >= tgt:
-                        exit_px, why = xo, "target"
-                    elif xh >= tgt:
-                        exit_px, why = tgt, "target"
-                    elif c[j] <= zu and j + 1 < n:                   # completed close back into the zone: exit at the next open
-                        exit_px, why = (BO[j + 1] if side == 1 else -AO[j + 1]), "invalidated"
-                        j += 1
-                    if exit_px is not None:
-                        break
-                    if r.be_at_r and not be_done and xh - fill >= r.be_at_r * risk:
-                        cur_stop, be_done = max(cur_stop, fill), True
-                if exit_px is None:
-                    exit_px, why = ((BC[j] if side == 1 else -AC[j]), "time")
-                trades.append({"inst": inst, "side": "long" if side == 1 else "short", "entry": idx[fill_i], "exit": idx[j],
-                               "r": (exit_px - fill) / risk, "why": why, "rr_target": (tgt - fill) / risk})
+                opp = [p_ for p_ in opp if p_ > trig]
+                if opp and min(opp) - trig >= r.min_rr * (trig - stop):
+                    out.append({"side": side, "k": k, "first": first, "conf": conf, "zu": zu, "rlow": rlow, "trig": trig, "stop": stop,
+                                "tgt": min(opp)})
+                break                                                # each zone's first breakout only
+    return out, {"O": O, "H": H, "L": L, "C": C}
+
+
+def simulate_playbook(inst: str, df: pd.DataFrame, r: PlaybookRules, a_date, b_date) -> list[dict]:
+    """Trades (dicts with r multiple) for one instrument; df = OANDA bid/ask bars on the entry timeframe (bo/bh/bl/bc, ao/ah/al/ac)."""
+    setups, arr = find_setups(df, r)
+    O, H, L, C = arr["O"], arr["H"], arr["L"], arr["C"]
+    BO, BH, BL, BC = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "bc"))
+    AO, AH, AL, AC = (df[k].to_numpy(float) for k in ("ao", "ah", "al", "ac"))
+    idx = df.index
+    n = len(df)
+    trades = []
+    for st in setups:
+        side, conf, zu, rlow, trig, stop, tgt = (st[k] for k in ("side", "conf", "zu", "rlow", "trig", "stop", "tgt"))
+        if not (a_date <= idx[st["k"]].date() <= b_date):
+            continue
+        o, h, l, c = (O, H, L, C) if side == 1 else (-O, -L, -H, -C)
+        fill_i = None
+        for j in range(conf + 1, min(n, conf + 1 + r.expiry)):
+            if o[j] > trig:
+                break                                                # chase rule: already through the trigger
+            if l[j] < rlow:
+                break                                                # traded below the frozen retest low before the fill
+            if h[j] >= trig:
+                fill_i = j
                 break
-    trades.sort(key=lambda t: t["entry"])                         # one position per pair at a time: an overlapping later setup is dropped
+            if c[j] <= zu:
+                break
+        if fill_i is None:
+            continue
+        half = (AO[fill_i] - BO[fill_i]) / 2                          # the entry pays half the spread on top of the mid trigger
+        fill = max(trig, o[fill_i]) + half                           # (mirrored: a short sells at the bid, below the mid)
+        risk = fill - stop
+        if risk <= 0:
+            continue
+        cur_stop, exit_px, why, j = stop, None, "", fill_i
+        be_done = False
+        for j in range(fill_i, min(n, fill_i + r.max_bars)):
+            xo, xh, xl, xc = (BO[j], BH[j], BL[j], BC[j]) if side == 1 else (-AO[j], -AL[j], -AH[j], -AC[j])
+            if j > fill_i and xo <= cur_stop:
+                exit_px, why = xo, "stop"
+            elif xl <= cur_stop:
+                exit_px, why = cur_stop, ("stop" if not be_done else "breakeven")
+            elif j > fill_i and xo >= tgt:
+                exit_px, why = xo, "target"
+            elif xh >= tgt:
+                exit_px, why = tgt, "target"
+            elif c[j] <= zu and j + 1 < n:                           # completed close back into the zone: exit at the next open
+                exit_px, why = (BO[j + 1] if side == 1 else -AO[j + 1]), "invalidated"
+                j += 1
+            if exit_px is not None:
+                break
+            if r.be_at_r and not be_done and xh - fill >= r.be_at_r * risk:
+                cur_stop, be_done = max(cur_stop, fill), True
+        if exit_px is None:
+            exit_px, why = ((BC[j] if side == 1 else -AC[j]), "time")
+        trades.append({"inst": inst, "side": "long" if side == 1 else "short", "entry": idx[fill_i], "exit": idx[j],
+                       "r": (exit_px - fill) / risk, "why": why, "rr_target": (tgt - fill) / risk})
+    trades.sort(key=lambda t: t["entry"])                             # one position per pair at a time: an overlapping later setup is dropped
     kept, free = [], None
     for t in trades:
         if free is None or t["entry"] > free:
             kept.append(t)
             free = t["exit"]
     return kept
+
+
+def live_setup(df: pd.DataFrame, r: PlaybookRules) -> dict | None:
+    """The setup whose confirmation candle is the LAST completed bar, in REAL prices (for the live runner): side, zone edge (zu: the close
+    that invalidates it - long: a close <= zu, short: a close >= zu), retest extreme, trigger, stop, target."""
+    setups, _ = find_setups(df, r)
+    last = [s_ for s_ in setups if s_["conf"] == len(df) - 1]
+    if not last:
+        return None
+    s_ = last[0]
+    sg = s_["side"]
+    return {"side": sg, "zu": sg * s_["zu"], "rlow": sg * s_["rlow"], "trig": sg * s_["trig"], "stop": sg * s_["stop"], "tgt": sg * s_["tgt"]}
 
 
 def playbook_report(data: dict, a, b, rules: PlaybookRules, label: str) -> list[str]:

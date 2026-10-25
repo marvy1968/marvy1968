@@ -157,7 +157,7 @@ class FxLiveTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
-            self.assertEqual(r.cfg["trade"], ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4"])   # F0, the plain box and the other in-box experts only log
+            self.assertEqual(r.cfg["trade"], ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4", "retest_h1"])   # F0, the plain box and the other in-box experts only log
             self.assertEqual(r.cfg["risk_by_strategy"]["confirm_h1"], 0.005)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
@@ -364,3 +364,37 @@ class FxLiveTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PlaybookLiveTests(unittest.TestCase):
+    """Owner 2026-10-25 Break & Retest Playbook live (retest_h1): a virtual buy-stop fills only at its trigger, the order carries the
+    structure stop and the swing target at OANDA, the trade is exempt from the 0.5R cut / 1.25R take-profit / 10-minute exit, and a
+    completed close back into the zone closes it."""
+
+    def test_trigger_fill_own_exits_and_close_back_exit(self):
+        with tempfile.TemporaryDirectory() as d:
+            api = FakeOanda()
+            r = runner(d, api)
+            r.pending["retest_h1:EUR_USD"] = {"side": 1, "zu": 1.0990, "rlow": 1.0975, "trig": 1.1010, "stop": 1.0970, "tgt": 1.1130,
+                                              "strategy": "retest_h1", "instrument": "EUR_USD", "bar": "x", "bars": 0}
+            api.px["EUR_USD"] = (1.1000, 1.1001)
+            r.check_pending(58000.0, "", [])
+            self.assertEqual(api.orders, [])                                   # below the trigger: still waiting
+            api.px["EUR_USD"] = (1.1011, 1.1012)
+            r.check_pending(58000.0, "", [])
+            self.assertEqual(len(api.orders), 1)
+            o = api.orders[0]
+            self.assertEqual((o["sl"], o["tp"]), ("1.09700", "1.11300"))      # the structure stop and the swing target at OANDA
+            self.assertEqual(r.pending, {})
+            gid = next(iter(r.groups))
+            self.assertTrue(r.groups[gid]["own_exits"])
+            api.px["EUR_USD"] = (1.0985, 1.0986)                               # 0.65R against, under water: no loss cut, no neg exit
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+            bars = live._to_frame(candles(300, start=1.0980))                   # last completed close below the zone edge 1.0990
+            bars.iloc[-1, bars.columns.get_loc("bc")] = 1.0980
+            bars.iloc[-1, bars.columns.get_loc("ac")] = 1.0981
+            from unittest import mock
+            with mock.patch.object(live, "live_setup", lambda df, rules: None):
+                r.scan_playbook("retest_h1", live.STRATS["retest_h1"], "EUR_USD", bars, live.mid(bars), "x")
+            self.assertNotIn(gid, r.groups)                                    # out on the close back into the zone

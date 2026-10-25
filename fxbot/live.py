@@ -34,6 +34,7 @@ import pandas as pd
 from .data import _to_frame, mid, usd_per_unit
 from .oanda import TAG, Oanda, OandaError
 from .strategies import BoxConfirm, ConsensusMR, F0Reversion, HybridBox, InBox, LienFader, OversoldConfluence, PristineFx, VelezFx, RangeBox200, RangeMR
+from .playbook import PlaybookRules, live_setup
 
 log = logging.getLogger("fxbot.live")
 NY = "America/New_York"
@@ -65,7 +66,13 @@ STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "c
           # owner 2026-10-22 (Pristine / iFundTraders FX research): Changing of the Guard on 4-hour bars - 3 red bars then a green bar closing
           # above the prior high (shorts mirror), live exits. 2 weeks: 15 trades 73% PF 6.06 +10.7%; 3 months: 89 trades 38% PF 1.52 +13.8%
           # (the only Pristine rule profitable in both windows; on 1-hour bars it lost, PF 0.35). 0.5% risk.
-          "cog_h4": {"make": lambda: PristineFx("cog", "stop"), "gran": "H4", "count": 400, "minutes": 240}}     # owner's range box (ranging pairs); levels = the
+          "cog_h4": {"make": lambda: PristineFx("cog", "stop"), "gran": "H4", "count": 400, "minutes": 240},
+          # owner 2026-10-25 "Break & Retest Trading Playbook" (fxbot.playbook, built as written): 4-hour swing zones touched twice, a body close
+          # beyond the zone, retest, pin bar / engulfing, buy-stop (sell-stop) beyond the confirmation candle valid 5 bars, stop under the whole
+          # retest structure, target the next opposing 4-hour swing level (>= 2R or no trade), out on a close back into the zone. No break-even
+          # move (it cut the winners: 3 years PF 1.27 -> 1.62 without it, 12 months 1.13 -> 1.42; 91 trades / 3 years, win 27%, +36.8R).
+          # Owner approved: its OWN exits only - exempt from loss_cut_r, take_profit_r and the 10-minute neg exit. 0.5% risk.
+          "retest_h1": {"playbook": PlaybookRules(be_at_r=0.0), "gran": "H1", "count": 1500, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -79,8 +86,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
           # box_h1 (the plain fade, 0 for 6 live, PF 0.68 in 2016-22) now only LOGS its signals; confirm_h1 replaces it (owner, 2026-10-16)
-          "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
-          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
+          "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4", "retest_h1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
           # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.
@@ -134,6 +141,7 @@ class FxPaper:
         self.sleep = sleep
         st = self._load("groups.json", {})
         self.groups, self.last_bar, self.day = st.get("groups", {}), st.get("last_bar", {}), st.get("day", {})
+        self.pending = st.get("pending", {})              # owner 2026-10-25 playbook: virtual buy-stop / sell-stop orders waiting for their trigger
         self.daily_cache, self.next_check = {}, {}
 
     # ---------------- persistence
@@ -147,7 +155,7 @@ class FxPaper:
 
     def save(self):
         tmp = self.dir / "groups.json.tmp"
-        tmp.write_text(json.dumps({"groups": self.groups, "last_bar": self.last_bar, "day": self.day}, indent=1, default=str))
+        tmp.write_text(json.dumps({"groups": self.groups, "last_bar": self.last_bar, "day": self.day, "pending": self.pending}, indent=1, default=str))
         tmp.replace(self.dir / "groups.json")
 
     def journal(self, kind: str, **kw):
@@ -230,6 +238,7 @@ class FxPaper:
         why = self.entries_allowed(eq)
         for gid in list(self.groups):
             self.manage(gid, eq, why)
+        self.check_pending(eq, why, trades)
         for name in self.cfg["strategies"]:
             spec = STRATS[name]
             for inst in PAIRS:
@@ -279,6 +288,8 @@ class FxPaper:
         self.last_bar[key] = last
         self.next_check[key] = bars.index[-1].to_pydatetime() + timedelta(minutes=2 * spec["minutes"], seconds=5)
         m = mid(bars)
+        if spec.get("playbook"):
+            return self.scan_playbook(name, spec, inst, bars, m, last)
         strat = spec["make"]()
         f = strat.frame(m)
         # exits on the bar close for our open group of this strategy/pair: the strategy's own exit and its time stop
@@ -374,6 +385,100 @@ class FxPaper:
         self.save()
         return "opened"
 
+    # ---------------- owner's Break & Retest Playbook (fxbot.playbook): virtual stop orders, its own exits
+    def scan_playbook(self, name: str, spec: dict, inst: str, bars: pd.DataFrame, m: pd.DataFrame, last: str):
+        close = float(m["close"].iloc[-1])
+        low, high = float(m["low"].iloc[-1]), float(m["high"].iloc[-1])
+        for gid, g in list(self.groups.items()):            # an open trade: out at market on a completed close back into the zone
+            if g["strategy"] == name and g["instrument"] == inst and g.get("zu") is not None and g["side"] * (close - g["zu"]) <= 0:
+                self.journal("playbook_invalidated", group=gid, close=close, zone_edge=g["zu"])
+                self.close_group(gid, "invalidated")
+        key = f"{name}:{inst}"
+        p = self.pending.get(key)
+        if p:                                                # a waiting order: expiry, close back into the zone, beyond the retest extreme
+            p["bars"] = p.get("bars", 0) + 1
+            sg = p["side"]
+            why = ("expired" if p["bars"] > spec["playbook"].expiry else "closed back into the zone" if sg * (close - p["zu"]) <= 0 else
+                   "traded beyond the retest extreme" if (low < p["rlow"] if sg == 1 else high > p["rlow"]) else "")
+            if why:
+                self.journal("playbook_cancel", strategy=name, instrument=inst, reason=why)
+                self.pending.pop(key, None)
+        st = live_setup(bars, spec["playbook"])
+        if not st:
+            self.save()
+            return
+        side_txt = "long" if st["side"] == 1 else "short"
+        if name not in self.cfg.get("trade", list(STRATS)):
+            self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="paused (signal logged)", **st)
+            return
+        try:
+            bid, ask = self.api.price(inst)
+        except OandaError as exc:
+            self.journal("error", where="price", instrument=inst, error=str(exc)[:300])
+            return
+        now_px = ask if st["side"] == 1 else bid
+        if st["side"] * (now_px - st["trig"]) >= 0:          # chase rule: price is already through the trigger
+            self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="chase: already through the trigger", **st)
+            return
+        self.pending[key] = {**st, "strategy": name, "instrument": inst, "bar": last, "bars": 0}
+        self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="stop order waiting", **st)
+        self.save()
+
+    def check_pending(self, eq: float, why: str, trades: list):
+        for key, p in list(self.pending.items()):
+            inst, sg = p["instrument"], p["side"]
+            try:
+                bid, ask = self.api.price(inst)
+            except OandaError as exc:
+                self.journal("error", where="price", instrument=inst, error=str(exc)[:300])
+                continue
+            px = ask if sg == 1 else bid
+            if sg * (px - p["trig"]) < 0:
+                continue                                     # not triggered yet
+            self.pending.pop(key, None)
+            res = self.open_playbook(p, px, bid, ask, eq, why, trades)
+            self.journal("playbook_trigger", strategy=p["strategy"], instrument=inst, side="long" if sg == 1 else "short", px=px, result=res)
+        self.save()
+
+    def open_playbook(self, p: dict, px: float, bid: float, ask: float, eq: float, why: str, trades: list) -> str:
+        name, inst, sg = p["strategy"], p["instrument"], p["side"]
+        if why:
+            return why
+        if any(g["instrument"] == inst for g in self.groups.values()):
+            return "already in this pair"
+        if any(t["instrument"] == inst and not self.is_ours(t) for t in trades):
+            return "another bot holds this pair"
+        if len(self.groups) >= self.cfg["max_groups"]:
+            return "max open trades"
+        sd = sg * (px - p["stop"])
+        if sd <= 0 or sg * (p["tgt"] - px) <= 0:
+            return "past the stop or the target"
+        if ask - bid > self.cfg["max_spread_frac"] * sd:
+            return f"spread {ask - bid:.5f} too wide"
+        risk_pct = float(self.cfg.get("risk_by_strategy", {}).get(name, 0.005))
+        units = self.size(inst, eq, risk_pct, 0.0, px, p["stop"])
+        if units < 1:
+            return "size 0"
+        gid = f"{name}-{inst}-{self.clock():%Y%m%dT%H%M}"
+        got = self.api.market(inst, sg * units, fmt(inst, p["stop"]), fmt(inst, p["tgt"]), f"mx-{gid}-0"[:60])
+        if "rejected" in got:
+            return f"rejected: {got['rejected']}"
+        fill = got["price"]
+        from alpacabot.indicators import atr as atr_fn
+        try:
+            a = float(atr_fn(mid(self.bars(inst, "H1", 60)), 14).iloc[-1])
+        except Exception:
+            a = sd
+        self.groups[gid] = {"id": gid, "strategy": name, "instrument": inst, "side": sg, "opened": self.clock().isoformat(timespec="seconds"),
+                            "signal_close": px, "atr": a, "stop_px": p["stop"], "stop0": p["stop"], "fill": fill, "mid0": (bid + ask) / 2,
+                            "tp_steps": 0, "zone_tp": p["tgt"], "tp_px": p["tgt"], "tier": 0, "avg": fill, "trades": [got["trade_id"]],
+                            "units": {got["trade_id"]: abs(got["units"])}, "peak_units": abs(got["units"]), "sold": 0, "be": False, "bias": 0,
+                            "own_exits": True, "zu": p["zu"]}
+        self.journal("open", group=gid, side=sg, units=got["units"], fill=fill, stop=fmt(inst, p["stop"]), tp=fmt(inst, p["tgt"]),
+                     risk_pct=risk_pct, playbook=True)
+        self.save()
+        return "opened"
+
     def size(self, inst: str, eq: float, risk_pct: float, risk_now: float, px: float, stop_px: float) -> int:
         """Units so the group's total risk to the stop reaches risk_pct of this book; notional capped at max_notional_x x equity."""
         per_unit = abs(usd_per_unit(inst, abs(px - stop_px), px))
@@ -385,6 +490,8 @@ class FxPaper:
 
     def manage(self, gid: str, eq: float, why: str):
         g = self.groups[gid]
+        if g.get("own_exits"):              # the playbook's own exits only (OANDA stop + target, close-back exit at the bar close)
+            return
         inst, side = g["instrument"], g["side"]
         try:
             bid, ask = self.api.price(inst)
