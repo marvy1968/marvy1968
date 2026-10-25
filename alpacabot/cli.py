@@ -172,6 +172,18 @@ def run_all(a) -> int:
                         lines += [f"## retest_tf_fx: break-and-retest, {g} bars, {label} ({a_} to {today}, bid/ask)"] + retest_tf_check(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "exit_time_fx":              # owner 2026-10-25: time exits (his manual-close pattern) vs the 0.5R cut / 1.25R take-profit
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import exit_time_check
+                today = _dt.date.today()
+                for label, days_ in (("last 3 months", 92), ("last 12 months", 365)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    h1 = {i: fx_load(i, "H1", a_ - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                    lines += [f"## exit_time_fx: time exits vs live exits, {label} ({a_} to {today}, H1, bid/ask)"] + exit_time_check(h1, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn":                # owner 2026-10-25: learn each instrument's buy / sell zones, graded on touches it never saw
                 import datetime as _dt
                 from fxbot.data import MAJORS

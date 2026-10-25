@@ -514,6 +514,31 @@ def retest_diag(data: dict, a, b, make, label: str) -> list[str]:
     return out
 
 
+def exit_time_check(data_h1: dict, a, b) -> list[str]:
+    """Owner 2026-10-25 (his manual closes on the OANDA ledger: held ~10 h, +$1,706, 57% winners, avg win +$109 / avg loss -$37; trades left to
+    the stop lost -$152 on average, trades held < 4 h lost -$1,404, 4-24 h held made +$2,015): each live H1 strategy with TIME exits instead of the
+    0.5R cut / 1.25R take-profit. All with the strategy's own stop (frac 1.0), bid/ask fills."""
+    from .strategies import HybridBox, InBox, LienFader, RangeMR, TightStop, VelezFx
+    rows = {"lien_h1": lambda: LienFader(break_pips=20), "hybrid_h1": lambda: HybridBox(),
+            "confirm_h1": lambda: VelezFx(BoxConfirm(mode="continuation", vol_mult=1.5, atr_ratio=1.1, vote=1.0), env=True),
+            "boxmr_h1": lambda: VelezFx(InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5), env=False, look_left=True)}
+    variants = [("LIVE exits: cut 0.5R, out at 1.25R", 0.50, 1.25, None), ("own stop, no TP, close after 6 h", 1.0, None, 6),
+                ("own stop, no TP, close after 10 h", 1.0, None, 10), ("own stop, no TP, close after 24 h", 1.0, None, 24),
+                ("own stop, TP 1.25R, close after 10 h", 1.0, 1.25, 10), ("own stop, TP 2R, close after 10 h", 1.0, 2.0, 10),
+                ("own stop, TP 2R, close after 24 h", 1.0, 2.0, 24)]
+    out = []
+    for name, make in rows.items():
+        out.append(f"### {name}")
+        for label, frac, tp, bars in variants:
+            st = TightStop(make(), frac, tp)
+            if bars:
+                st.max_bars = bars
+            m = run(st, data_h1, a, b)
+            out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                       f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
