@@ -1,3 +1,17 @@
 $ alpaca run-all --phase validate --families playbook_fx
-started 2026-10-24 23:58:36 EDT
-RUNNING...
+started 2026-10-24 23:58:36 EDT, took 312s, exit 0
+
+daily data ready
+## playbook_fx: Break & Retest Trading Playbook on OANDA, last 12 months (2025-10-24 to 2026-10-24, bid/ask, 7 majors)
+- as written (H4 zones, 1-hour entries, 2R min, break-even at +1R): 37 trades, win 14%, avg +0.06R, PF 1.13, total +2.4R (= +1.2% at 0.5% risk), avg target 5.1R | exits: stop 14, breakeven 11, invalidated 7, target 3, time 2
+- no break-even move: 37 trades, win 24%, avg +0.28R, PF 1.42, total +10.2R (= +5.1% at 0.5% risk), avg target 5.1R | exits: stop 18, invalidated 10, target 7, time 2
+- 1.5R minimum target: 45 trades, win 16%, avg +0.04R, PF 1.08, total +1.8R (= +0.9% at 0.5% risk), avg target 4.5R | exits: stop 17, breakeven 13, invalidated 8, target 5, time 2
+- zones touched once allowed: 51 trades, win 12%, avg -0.00R, PF 1.00, total -0.1R (= -0.0% at 0.5% risk), avg target 4.6R | exits: stop 25, breakeven 13, invalidated 7, target 5, time 1
+- daily zones, 4-hour entries: 10 trades, win 40%, avg +0.55R, PF 2.47, total +5.5R (= +2.7% at 0.5% risk), avg target 3.4R | exits: target 4, invalidated 3, stop 2, breakeven 1
+## playbook_fx: Break & Retest Trading Playbook on OANDA, last 3 years (2023-10-25 to 2026-10-24, bid/ask, 7 majors)
+- as written (H4 zones, 1-hour entries, 2R min, break-even at +1R): 91 trades, win 15%, avg +0.13R, PF 1.27, total +12.2R (= +6.1% at 0.5% risk), avg target 4.7R | exits: stop 32, breakeven 26, invalidated 19, target 12, time 2
+- no break-even move: 91 trades, win 27%, avg +0.40R, PF 1.62, total +36.8R (= +18.4% at 0.5% risk), avg target 4.7R | exits: stop 43, target 23, invalidated 23, time 2
+- 1.5R minimum target: 122 trades, win 20%, avg +0.12R, PF 1.24, total +14.5R (= +7.2% at 0.5% risk), avg target 3.9R | exits: stop 42, breakeven 32, invalidated 24, target 22, time 2
+- zones touched once allowed: 138 trades, win 12%, avg -0.02R, PF 0.97, total -2.4R (= -1.2% at 0.5% risk), avg target 4.2R | exits: stop 57, breakeven 44, invalidated 20, target 16, time 1
+- daily zones, 4-hour entries: 24 trades, win 25%, avg +0.24R, PF 1.51, total +5.9R (= +2.9% at 0.5% risk), avg target 5.0R | exits: stop 7, invalidated 6, target 6, breakeven 5
+ALL DONE
