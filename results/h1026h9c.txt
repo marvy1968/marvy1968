@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families eod_squeeze --month1
-started 2026-10-26 15:10:39 EDT
-RUNNING...
+started 2026-10-26 15:10:39 EDT, took 32s, exit 0
+
+daily data ready
+## eod_squeeze: no setting was profitable on the validate half: the end-of-day squeeze is not an edge here
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+ALL DONE
