@@ -1,0 +1,2 @@
+$ export-bot orchestrator /home/moonrider1968/orchestrator
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
