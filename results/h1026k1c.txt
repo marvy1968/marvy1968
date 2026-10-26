@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families eod_squeeze --months3
+started 2026-10-26 15:16:43 EDT
+RUNNING...
