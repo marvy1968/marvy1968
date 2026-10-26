@@ -1,0 +1,2 @@
+$ export-bot masterbot_oanda /home/moonrider1968/MasterBot_Center/Trading_Oanda
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
