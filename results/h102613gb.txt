@@ -1,3 +1,4 @@
 $ gemini
-started 2026-10-26 09:43:30 EDT
-RUNNING...
+started 2026-10-26 09:43:30 EDT, took 1s, exit 2
+
+GEMINI_API_KEY not found. Variable names seen in .env: none with GEMINI/GOOGLE
