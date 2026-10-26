@@ -1,0 +1,2 @@
+# timeout 120
+show alpaca_paper/trades.jsonl
