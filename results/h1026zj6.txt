@@ -1,0 +1,3 @@
+$ export-bot scalp_bot /home/moonrider1968/scalp_bot
+started 2026-10-26 07:48:07 EDT
+RUNNING...
