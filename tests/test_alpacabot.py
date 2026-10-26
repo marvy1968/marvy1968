@@ -2811,7 +2811,7 @@ class DailyAnomaliesStudyTests(unittest.TestCase):
             return pd.DataFrame({"open": c, "high": c * 1.01, "low": c * 0.99, "close": c, "volume": rng.integers(1_000_000, 3_000_000, len(idx))}, index=idx)
 
         etfs = ["XLK", "XLF", "XLE", "XLV"]
-        d = {s: mk(0.0003) for s in etfs + ["SPY", "AAA", "BBB", "CCC", "DDD"]}
+        d = {s: mk(0.0003) for s in etfs + ["SPY", "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"]}
         text = "\n".join(daily_anomalies_study(d, etfs, dt.date(2020, 12, 31)))
         for head in ("### A turn-of-the-month", "### B sector-ETF", "### C 52-week-high", "### D 12-1 momentum", "### E NR7"):
             self.assertIn(head, text)

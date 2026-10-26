@@ -902,17 +902,24 @@ def daily_anomalies_study(daily: dict, etfs: list, split: date, stocks_cost: flo
             out.append(f"- {nm} | {label}: {_trade_stats(half(idx)[i] if len(idx) else idx)}")
 
     # ---- D 12-1 momentum, top third monthly vs the equal-weight universe
-    px = pd.DataFrame({s: d["close"] for s, d in stocks.items()}).dropna(how="any")
+    px = pd.DataFrame({s: d["close"] for s, d in stocks.items()}).sort_index()        # NOT dropna(any): a young stock must not cut the history
     fwd = px.shift(-21) / px - 1 - 2 * stocks_cost
     sc = px.shift(21) / px.shift(252) - 1
     rows = []
     for t in range(252, len(px) - 21, 21):
         r_ = sc.iloc[t].dropna()
+        r_ = r_[fwd.iloc[t].reindex(r_.index).notna()]
+        if len(r_) < 6:
+            continue
         top = r_.nlargest(max(len(r_) // 3, 1)).index
-        rows.append((px.index[t], fwd.iloc[t][top].mean(), fwd.iloc[t].mean()))
+        rows.append((px.index[t], fwd.iloc[t][top].mean(), fwd.iloc[t][r_.index].mean()))
     mo = pd.DataFrame(rows, columns=["d", "top", "all"]).set_index("d")
+    mo.index = pd.to_datetime(mo.index)
     out.append("### D 12-1 momentum (top third of the universe by return from t-252 to t-21, held 21 days) vs the equal-weight universe")
     for nm, i in (("train", 0), ("validate", 1)):
+        if mo.empty:
+            out.append(f"- {nm}: not enough stocks with history")
+            continue
         m_ = half(mo["top"])[i]
         a_ = half(mo["all"])[i]
         out.append(f"- {nm}: {len(m_)} months, top third avg {m_.mean() * 100:+.2f}%/month, universe avg {a_.mean() * 100:+.2f}%/month, "

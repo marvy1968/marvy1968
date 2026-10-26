@@ -205,6 +205,12 @@ def run_all(a) -> int:
                 dd = {s: d for s, d in dd.items() if len(d) > 300}
                 lines += ["## daily_anomalies: Gemini round-2 ideas on daily bars (train to 2020-12-31, validate 2021 on; costs 5 bps/side stocks, 2 bps ETFs)"]
                 lines += daily_anomalies_study(dd, [s for s in SECTOR_ETFS if s in dd], _dt.date(2020, 12, 31))
+                # survivorship check (owner 2026-10-26): the same five on the hindsight-free list, 2016's largest companies (many laggards since)
+                cd = {s: load(s, "1Day", _dt.date(2014, 1, 1), _dt.date.today(), cache) for s in SECTOR_TD_CONTROL}
+                cd = {s: d for s, d in cd.items() if len(d) > 300}
+                keep = {s: d for s, d in dd.items() if s in SECTOR_ETFS or s == "SPY"}
+                lines += ["## daily_anomalies on the HINDSIGHT-FREE list (2016's 21 largest companies, no look-ahead on today's winners; A and B repeat)"]
+                lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
             if fam == "exit_time_fx":              # owner 2026-10-25: time exits (his manual-close pattern) vs the 0.5R cut / 1.25R take-profit
