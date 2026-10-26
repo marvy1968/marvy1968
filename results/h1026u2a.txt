@@ -1,0 +1,3 @@
+$ alpaca paper-pause on --reason owner-2026-10-26-intraday-off-evidence-PF0.77
+started 2026-10-26 18:04:41 EDT
+RUNNING...
