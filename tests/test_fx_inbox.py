@@ -142,3 +142,18 @@ class PlaybookTests(unittest.TestCase):
         for x, y in zip(tr, tr[1:]):
             self.assertGreater(y["entry"], x["exit"])                       # never two positions at once
         self.assertTrue(all(t["r"] > -1.6 for t in tr if t["why"] == "stop"))
+
+
+class SessionPullbackTests(unittest.TestCase):
+    def test_signals_only_inside_the_new_york_session(self):
+        import numpy as np
+        import pandas as pd
+        from fxbot.strategies import SessionPullback
+        idx = pd.date_range("2026-01-05", periods=400, freq="1h", tz="UTC")
+        c = 1.1 + np.cumsum(np.random.default_rng(1).normal(0, 0.0005, 400))
+        m = pd.DataFrame({"open": c, "high": c + 0.0004, "low": c - 0.0004, "close": c, "volume": 100}, index=idx)
+        f = SessionPullback(both=True).frame(m)
+        hrs = f.index[f["long"] | f["short"]].tz_convert("America/New_York").hour
+        self.assertTrue(len(hrs) and all(8 <= h < 12 for h in hrs))
+        free = SessionPullback(session=False).frame(m)
+        self.assertGreater(int(free["long"].sum()), int(SessionPullback().frame(m)["long"].sum()))

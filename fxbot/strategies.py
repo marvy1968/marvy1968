@@ -819,6 +819,30 @@ class EmaPullback:
         return _frame(m.index, long_, short, c < e - 0.5 * a, c > e + 0.5 * a, stop, ((c - e).abs() / a))
 
 
+class SessionPullback:
+    """Owner's paste 2026-10-26 (oanda_daily_target_bot.py), as written: value pullback in an EMA20 / EMA50 uptrend - close above the EMA50 and at
+    or under the EMA20 - inside the London / New York overlap (8:00-12:00 New York time). Stop 1.5 ATR14, target 2.25 ATR (1.5R). The paste is
+    long only; both=True mirrors it for shorts. session=False drops the hour filter (a control). Time stop max_bars."""
+
+    def __init__(self, both: bool = False, session: bool = True, max_bars: int = 30):
+        self.both, self.session, self.max_bars = both, session, max_bars
+        self.name = f"session_pullback{' both' if both else ' long'}{'' if session else ' 24h'}"
+
+    def frame(self, m):
+        c, a = m["close"], atr(m, 14)
+        e20, e50 = c.ewm(span=20, adjust=False).mean(), c.ewm(span=50, adjust=False).mean()
+        ok = pd.Series(True, index=m.index)
+        if self.session:
+            ny = m.index.tz_convert("America/New_York")
+            ok = pd.Series((ny.hour >= 8) & (ny.hour < 12) & (ny.weekday < 5), index=m.index)
+        long_ = ok & (c > e50) & (c <= e20)
+        short = (ok & (c < e50) & (c >= e20)) if self.both else pd.Series(False, index=m.index)
+        none = pd.Series(False, index=m.index)
+        f = _frame(m.index, long_, short, none, none, 1.5 * a)
+        f["target"] = 2.25 * a
+        return f
+
+
 class NR7Breakout:
     """Crabel NR7 (daily): yesterday's range was the narrowest of 7; today closes beyond it -> enter that way. Stop = distance to the NR7
     bar's far side; exit on a close back inside the NR7 bar or after 5 bars."""

@@ -539,6 +539,22 @@ def exit_time_check(data_h1: dict, a, b) -> list[str]:
     return out
 
 
+def session_pullback_check(data_h1: dict, a, b) -> list[str]:
+    """Owner's paste 2026-10-26 (oanda_daily_target_bot.py): EMA20/50 value pullback in the 8-12 New York session, stop 1.5 ATR / target 2.25 ATR,
+    long only as written, plus its mirror and a 24-hour control, with and without the live 0.5R cut / 1.25R take-profit. Bid/ask, pessimistic;
+    the same window at 2x the spread shows whether the edge survives costs."""
+    from .strategies import SessionPullback
+    out = []
+    for label, make in (("long only, session (as pasted)", lambda: SessionPullback()), ("long + short, session", lambda: SessionPullback(both=True)),
+                        ("long only, 24 h (control)", lambda: SessionPullback(session=False))):
+        for ex, wrap in (("own exits 1.5 ATR / 2.25 ATR", lambda s: s), ("live exits (0.5R cut / 1.25R)", lambda s: TightStop(s, 0.50, 1.25))):
+            for sm in (1.0, 2.0):
+                m = run(wrap(make()), data_h1, a, b, spread_mult=sm)
+                out.append(f"- {label} | {ex} | spread x{sm:g}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, "
+                           f"PF {m.get('profit_factor') or 0:.2f}, total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},
