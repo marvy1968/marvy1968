@@ -1,3 +1,40 @@
 $ alpaca run-all --phase validate --families ladder_intraday --month1
-started 2026-10-26 10:57:17 EDT
-RUNNING...
+started 2026-10-26 10:57:17 EDT, took 927s, exit 0
+
+daily data ready
+## ladder_intraday: 'own exits + profit lock (+1.0R, trail 0.5R)' had the best train ROI but did not hold on the validation years vs the single exit
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | zones, single exit (before today): 269t win 39% PF 0.52 avgR -0.29 daily -0.403% CAGR -68.1% maxDD -4.4%
+- train | owner (cut 25/50, TP 25/50, trail 1 ATR): 267t win 34% PF 0.48 avgR -0.28 daily -0.402% CAGR -67.9% maxDD -4.1%
+- train | no cut steps (one stop): 267t win 37% PF 0.50 avgR -0.28 daily -0.423% CAGR -69.0% maxDD -4.4%
+- train | TP 25% then +50% (75% banked): 267t win 34% PF 0.48 avgR -0.27 daily -0.398% CAGR -67.6% maxDD -4.0%
+- train | tighter cuts (0.35R / 0.6R): 267t win 32% PF 0.46 avgR -0.27 daily -0.398% CAGR -67.0% maxDD -4.1%
+- train | looser take-profit (0.5 / 1.0 ATR beyond the zone): 263t win 35% PF 0.50 avgR -0.27 daily -0.373% CAGR -65.6% maxDD -3.8%
+- train | tighter cuts + looser take-profit (owner's idea): 263t win 32% PF 0.48 avgR -0.26 daily -0.370% CAGR -64.8% maxDD -3.8%
+- train | each expert's own exits: 267t win 37% PF 0.53 avgR -0.27 daily -0.398% CAGR -67.2% maxDD -4.1%
+- train | own exits + profit lock (+0.5R, trail 0.5R): 273t win 47% PF 0.44 avgR -0.24 daily -0.374% CAGR -64.5% maxDD -3.9%
+- train | own exits + profit lock (+0.75R, trail 0.75R): 270t win 42% PF 0.52 avgR -0.25 daily -0.375% CAGR -64.5% maxDD -4.0%
+- train | own exits + profit lock (+1.0R, trail 1.0R): 267t win 41% PF 0.52 avgR -0.27 daily -0.379% CAGR -65.3% maxDD -4.0%
+- train | own exits + profit lock (+1.0R, trail 0.5R): 270t win 44% PF 0.58 avgR -0.24 daily -0.329% CAGR -60.8% maxDD -3.8%
+- train | own exits + profit lock (+1.0R, trail 0.5R) + stage filter: 203t win 43% PF 0.57 avgR -0.24 daily -0.289% CAGR -53.0% maxDD -3.3%
+- train | own exits + profit lock (+1.0R, trail 0.5R) + stage + repeat 10/day: 312t win 41% PF 0.56 avgR -0.24 daily -0.435% CAGR -66.8% maxDD -4.3%
+- validate | zones, single exit (before today): 204t win 48% PF 0.75 avgR -0.07 daily -0.181% CAGR -35.5% maxDD -1.6%
+- validate | owner (cut 25/50, TP 25/50, trail 1 ATR): 200t win 44% PF 0.68 avgR -0.14 daily -0.186% CAGR -41.8% maxDD -1.7%
+- validate | no cut steps (one stop): 200t win 47% PF 0.75 avgR -0.11 daily -0.160% CAGR -36.7% maxDD -1.4%
+- validate | TP 25% then +50% (75% banked): 200t win 44% PF 0.68 avgR -0.14 daily -0.186% CAGR -41.8% maxDD -1.7%
+- validate | tighter cuts (0.35R / 0.6R): 200t win 40% PF 0.65 avgR -0.15 daily -0.192% CAGR -42.6% maxDD -1.7%
+- validate | looser take-profit (0.5 / 1.0 ATR beyond the zone): 200t win 44% PF 0.69 avgR -0.13 daily -0.180% CAGR -41.1% maxDD -1.6%
+- validate | tighter cuts + looser take-profit (owner's idea): 200t win 40% PF 0.65 avgR -0.14 daily -0.187% CAGR -42.0% maxDD -1.7%
+- validate | each expert's own exits: 199t win 47% PF 0.77 avgR -0.10 daily -0.141% CAGR -34.0% maxDD -1.3%
+- validate | own exits + profit lock (+0.5R, trail 0.5R): 215t win 52% PF 0.70 avgR -0.10 daily -0.177% CAGR -38.5% maxDD -1.6%
+- validate | own exits + profit lock (+0.75R, trail 0.75R): 207t win 53% PF 0.84 avgR -0.02 daily -0.077% CAGR -22.9% maxDD -0.9%
+- validate | own exits + profit lock (+1.0R, trail 1.0R): 204t win 50% PF 0.73 avgR -0.08 daily -0.175% CAGR -38.2% maxDD -1.6%
+- validate | own exits + profit lock (+1.0R, trail 0.5R): 208t win 50% PF 0.69 avgR -0.11 daily -0.205% CAGR -42.6% maxDD -1.8%
+- validate | own exits + profit lock (+1.0R, trail 0.5R) + stage filter: 109t win 48% PF 0.57 avgR -0.16 daily -0.142% CAGR -32.3% maxDD -1.4%
+- validate | own exits + profit lock (+1.0R, trail 0.5R) + stage + repeat 10/day: 164t win 44% PF 0.52 avgR -0.24 daily -0.242% CAGR -48.3% maxDD -2.2%
+ALL DONE
