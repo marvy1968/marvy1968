@@ -43,3 +43,24 @@ bid/ask fills, 1-minute stock bars and 1-hour forex bars, parameter grids evalua
 Please suggest concrete speed-ups ranked by effort versus gain: vectorising the signal and exit logic, caching indicator frames across grid
 points, multiprocessing across symbols or grid points, successive halving / early stopping of clearly losing grid points, using numba, and
 smarter grid design. Show short code sketches where useful. Remember we need identical results to the slow path, so say how we should verify that.
+
+## ROUND 2 (2026-10-26, after your first reply): results of your ideas, all held-out, bid/ask, with controls
+1. **London-open fade of the Asian move (your idea 3), 7 FX majors, H1.** Best setting (move >= 0.7 daily ATR, target 1.0x the move): PF 0.93 / 0.92 /
+   0.90 over 3 months / 12 months / 3 years; at 2x spread 0.66 / 0.69 / 0.78. Looser setting (>= 0.4 ATR): PF 0.66-0.79, -15% to -29%. Win rate 43-58% but
+   the winners are too small. REJECTED.
+2. **End-of-day squeeze (your idea 2), 15:10 long, ~35-minute hold, on our liquid stock list.** Strict filter fired 0-2 times in 3 months; looser filter
+   12 / 13 trades (PF 0.26 train, 1.41 validate, 0.66 at 3x slippage). The no-filter control (every stock long at 15:10) lost: PF 0.59 / 0.44, avg
+   -0.35R / -0.50R. INCONCLUSIVE then shelved (the base structure loses).
+3. **Sector-confirmed momentum (your idea 1), 55 sector-ETF top holdings + 11 ETFs, 10:15 entry, hold to ~15:45, 3 months, 5-minute bars.** Validate PF:
+   top 1 / ETF > 0.5% = 0.77 (28 trades), top 3 / ETF > 0.5% = 0.95 (84), top 3 / ETF > 0.25% = 0.72 (93); controls: top 3 with no sector filter 0.83,
+   3 random stocks 0.82. The sector filter adds nothing; nothing beat the controls. REJECTED.
+Also rejected earlier: an EMA20/50 8-12 NY session pullback on the 7 FX majors (3-year PF 0.83).
+
+**What does earn money so far:** our multi-day swing positions (oversold dip buys entered at 10:00 ET, stops/targets at the broker; sector top-down). They are
+all green today, but the sample is tiny (5 open positions). Everything intraday we have tested (about 15 experts and 8 ideas) has no edge after costs.
+
+**Round 2 question:** please propose 5 NEW ideas for MULTI-DAY swing trading (hold 2-20 days) on liquid US stocks and sector ETFs (daily bars, 10 years of data
+available, costs: ~2 bps slippage per side), and 3 for forex on H4 / daily bars. Same format: the rule in one line, the inefficiency, the data, and the test
+that would kill it. Prefer ideas that are NOT mean-reversion on indicators or chart patterns. Also tell us which published, replicated anomalies you would
+test first (for example post-earnings drift, 12-1 month momentum with a trend filter, sector rotation, turn-of-the-month, short-term reversal after
+volume spikes) and what out-of-sample decay is typical for each.
