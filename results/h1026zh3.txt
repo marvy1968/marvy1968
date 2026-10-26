@@ -1,3 +1,44 @@
 $ alpaca run-all --phase validate --families session_pullback_fx
-started 2026-10-26 07:46:50 EDT
-RUNNING...
+started 2026-10-26 07:46:50 EDT, took 32s, exit 0
+
+daily data ready
+## session_pullback_fx: EMA20/50 session pullback, last 3 months (2026-07-26 to 2026-10-26, H1, bid/ask)
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x1: 73 trades, win 45%, PF 1.08, total +1.55%, maxDD -3.8%
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x2: 77 trades, win 36%, PF 0.70, total -7.30%, maxDD -8.4%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x1: 91 trades, win 22%, PF 0.62, total -10.51%, maxDD -11.6%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x2: 100 trades, win 13%, PF 0.31, total -23.22%, maxDD -22.6%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x1: 123 trades, win 41%, PF 0.92, total -2.67%, maxDD -8.9%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x2: 128 trades, win 36%, PF 0.69, total -12.26%, maxDD -12.2%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x1: 176 trades, win 23%, PF 0.67, total -16.39%, maxDD -16.8%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x2: 200 trades, win 14%, PF 0.33, total -38.88%, maxDD -38.3%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x1: 189 trades, win 34%, PF 0.69, total -17.35%, maxDD -18.4%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x2: 215 trades, win 27%, PF 0.48, total -33.49%, maxDD -32.6%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x1: 361 trades, win 16%, PF 0.42, total -47.78%, maxDD -47.0%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x2: 447 trades, win 11%, PF 0.23, total -69.22%, maxDD -68.7%
+## session_pullback_fx: EMA20/50 session pullback, last 12 months (2025-10-26 to 2026-10-26, H1, bid/ask)
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x1: 281 trades, win 42%, PF 0.96, total -3.19%, maxDD -14.2%
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x2: 290 trades, win 36%, PF 0.71, total -24.92%, maxDD -27.7%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x1: 363 trades, win 26%, PF 0.78, total -21.99%, maxDD -28.6%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x2: 382 trades, win 18%, PF 0.49, total -50.98%, maxDD -54.2%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x1: 465 trades, win 40%, PF 0.92, total -11.17%, maxDD -24.5%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x2: 480 trades, win 35%, PF 0.71, total -37.98%, maxDD -40.4%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x1: 641 trades, win 25%, PF 0.81, total -32.94%, maxDD -37.8%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x2: 682 trades, win 17%, PF 0.53, total -71.77%, maxDD -72.8%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x1: 777 trades, win 38%, PF 0.83, total -35.94%, maxDD -43.1%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x2: 872 trades, win 32%, PF 0.65, total -69.16%, maxDD -71.1%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x1: 1441 trades, win 22%, PF 0.72, total -77.79%, maxDD -80.3%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x2: 1761 trades, win 15%, PF 0.50, total -97.39%, maxDD -97.5%
+## session_pullback_fx: EMA20/50 session pullback, last 3 years (2023-10-27 to 2026-10-26, H1, bid/ask)
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x1: 877 trades, win 38%, PF 0.83, total -34.99%, maxDD -39.1%
+- long only, session (as pasted) | own exits 1.5 ATR / 2.25 ATR | spread x2: 902 trades, win 33%, PF 0.65, total -64.63%, maxDD -64.9%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x1: 1148 trades, win 24%, PF 0.74, total -64.76%, maxDD -66.4%
+- long only, session (as pasted) | live exits (0.5R cut / 1.25R) | spread x2: 1224 trades, win 17%, PF 0.49, total -90.53%, maxDD -90.3%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x1: 1443 trades, win 37%, PF 0.79, total -59.29%, maxDD -62.2%
+- long + short, session | own exits 1.5 ATR / 2.25 ATR | spread x2: 1481 trades, win 32%, PF 0.63, total -83.75%, maxDD -83.8%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x1: 2044 trades, win 23%, PF 0.70, total -87.25%, maxDD -87.8%
+- long + short, session | live exits (0.5R cut / 1.25R) | spread x2: 2185 trades, win 17%, PF 0.48, total -98.64%, maxDD -98.6%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x1: 2362 trades, win 36%, PF 0.79, total -79.44%, maxDD -80.2%
+- long only, 24 h (control) | own exits 1.5 ATR / 2.25 ATR | spread x2: 2574 trades, win 31%, PF 0.62, total -96.94%, maxDD -97.0%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x1: 4220 trades, win 22%, PF 0.70, total -99.14%, maxDD -99.2%
+- long only, 24 h (control) | live exits (0.5R cut / 1.25R) | spread x2: 5051 trades, win 15%, PF 0.45, total -100.00%, maxDD -100.0%
+ALL DONE
