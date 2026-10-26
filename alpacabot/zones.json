@@ -261,7 +261,9 @@
     "tp"
    ],
    "ride": true,
-   "trail_atr": 1.0,
+   "profit_lock": {"start_r": 0.75, "trail_r": 0.75},
+    "_note_profit_lock": "2026-10-26 (owner: 'as Alpaca goes up it must not give back profit'): once a trade is +0.75R the stop trails 0.75R behind its best price (= breakeven at +0.75R, then it ratchets), for every expert without its own trail. Live paper 2026-10-12..26: 21 of 82 trades that reached +0.5R ended as losers (-10.2R). ladder_intraday --month1 (all experts, own exits): validate PF 0.77 -> 0.84, daily -0.141% -> -0.077%, maxDD 1.3% -> 0.9%; train daily -0.398% -> -0.375% (not worse on either half; the other three locks were worse on validate). UNDO: delete the profit_lock key and redeploy.",
+    "trail_atr": 1.0,
    "by_expert": {
     "velez_elephant": {
      "tp_fracs": [

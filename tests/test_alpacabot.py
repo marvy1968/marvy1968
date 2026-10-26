@@ -848,6 +848,16 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertIn("profit lock", r2.account_breaker(t(14, 0)))        # persisted, also after a restart
             self.assertIsNone(r2.account_breaker(datetime(2026, 10, 27, 9, 35, tzinfo=paper.ET)))
 
+    def test_ladder_profit_lock_applies_to_plans_without_their_own_trail(self):
+        from alpacabot.engine import ladder_for
+        lad = {"tp_fracs": [0.5], "trail_atr": 1.0, "profit_lock": {"start_r": 0.75, "trail_r": 0.75},
+               "by_expert": {"a": {"tp_fracs": [1.0]}, "b": {"trail_start_r": 0.5, "trail_from_entry_r": 0.5}}}
+        self.assertEqual(ladder_for(lad, "a")["trail_from_entry_r"], 0.75)
+        self.assertEqual(ladder_for(lad, "S:a")["trail_start_r"], 0.75)
+        self.assertEqual(ladder_for(lad, "other")["trail_from_entry_r"], 0.75)
+        self.assertEqual(ladder_for(lad, "b")["trail_from_entry_r"], 0.5)           # its own trail wins
+        self.assertNotIn("trail_from_entry_r", ladder_for({"tp_fracs": [1.0]}, "a"))   # no profit_lock key: unchanged
+
     def test_backtest_neg_exit_two_bars(self):
         """Owner 2026-10-22: in the backtest a trade under water for two 5-minute closes in a row is closed (the live 10-minute rule)."""
         from alpacabot.engine import Costs, simulate_day

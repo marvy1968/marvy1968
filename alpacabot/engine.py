@@ -122,12 +122,21 @@ EXPERT_LADDERS = {
 
 
 def ladder_for(lad: dict | None, tag: str) -> dict | None:
-    """A ladder may hold per-expert plans ({"by_expert": {name: plan}, ...default plan keys}); the signal's expert picks its own."""
-    if not lad or "by_expert" not in lad:
+    """A ladder may hold per-expert plans ({"by_expert": {name: plan}, ...default plan keys}); the signal's expert picks its own.
+    A ladder-level "profit_lock": {"start_r": s, "trail_r": t} (owner 2026-10-26: do not give profit back) adds that R-trail to every
+    plan that has none of its own: once the trade is s R up the stop trails t R behind the best price (trail_start_r / trail_from_entry_r)."""
+    if not lad:
         return lad
-    name = (tag or "").removeprefix("S:")
-    base = {k: v for k, v in lad.items() if k != "by_expert"}
-    return {**base, **lad["by_expert"].get(name, {})} if name in lad["by_expert"] else base
+    if "by_expert" in lad:
+        name = (tag or "").removeprefix("S:")
+        base = {k: v for k, v in lad.items() if k != "by_expert"}
+        plan = {**base, **lad["by_expert"].get(name, {})} if name in lad["by_expert"] else base
+    else:
+        plan = lad
+    pl = lad.get("profit_lock")
+    if pl and not plan.get("trail_from_entry_r"):
+        plan = {**plan, "trail_start_r": pl["start_r"], "trail_from_entry_r": pl["trail_r"]}
+    return plan
 
 
 def ladder_walk(o, h, l, c, j0: int, n: int, fill: float, stop: float, ztgt: float, atr_i: float, risk: float, lad: dict, sell,
