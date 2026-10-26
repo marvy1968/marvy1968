@@ -1,0 +1,18 @@
+{
+  "team": "New Orleans Pelicans",
+  "fetched_at_utc": "2026-04-01T03:17:43.969802+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "New Orleans Pelicans",
+      "player": "Apr 2",
+      "position": "Out",
+      "status": "Mar 29: Murphy (ankle) is out for Sunday's game against the Rockets.",
+      "est_return_date": "Bryce McGowens",
+      "comment": "G Apr 2 Out Mar 28: McGowens (toe) has been ruled out for Sunday's game against the Rockets.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

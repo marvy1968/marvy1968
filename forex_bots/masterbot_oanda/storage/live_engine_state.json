@@ -1,0 +1,518 @@
+{
+  "last_seen": {
+    "TCU Horned Frogs @ Ohio State Buckeyes": 1773945628,
+    "Troy Trojans @ Nebraska Cornhuskers": 1773946347,
+    "South Florida Bulls @ Louisville Cardinals": 1773950940,
+    "High Point Panthers @ Wisconsin Badgers": 1773950843,
+    "Siena Saints @ Duke Blue Devils": 1773955140,
+    "McNeese Cowboys @ Vanderbilt Commodores": 1773956305,
+    "North Dakota St Bison @ Michigan St Spartans": 1773959101,
+    "Hawai'i Rainbow Warriors @ Arkansas Razorbacks": 1773959100,
+    "VCU Rams @ North Carolina Tar Heels": 1773970591,
+    "Howard Bison @ Michigan Wolverines": 1773971283,
+    "Texas Longhorns @ BYU Cougars": 1773972333,
+    "Texas A&M Aggies @ Saint Mary's Gaels": 1773971760,
+    "Pennsylvania Quakers @ Illinois Fighting Illini": 1773979237,
+    "Saint Louis Billikens @ Georgia Bulldogs": 1773980874,
+    "Kennesaw St Owls @ Gonzaga Bulldogs": 1773982259,
+    "Idaho Vandals @ Houston Cougars": 1773980773,
+    "Santa Clara Broncos @ Kentucky Wildcats": 1774032436,
+    "Akron Zips @ Texas Tech Red Raiders": 1774033355,
+    "LIU Sharks @ Arizona Wildcats": 1774036481,
+    "Wright St Raiders @ Virginia Cavaliers": 1774037446,
+    "Tennessee St Tigers @ Iowa State Cyclones": 1774042452,
+    "Hofstra Pride @ Alabama Crimson Tide": 1774042609,
+    "Utah State Aggies @ Villanova Wildcats": 1774046568,
+    "Miami (OH) RedHawks @ Tennessee Volunteers": 1774046733,
+    "Iowa Hawkeyes @ Clemson Tigers": 1774056185,
+    "Northern Iowa Panthers @ St. John's Red Storm": 1774057529,
+    "UCF Knights @ UCLA Bruins": 1774059173,
+    "Queens University Royals @ Purdue Boilermakers": 1774057474,
+    "Prairie View Panthers @ Florida Gators": 1774065445,
+    "Cal Baptist Lancers @ Kansas Jayhawks": 1774067250,
+    "Furman Paladins @ UConn Huskies": 1774068697,
+    "Missouri Tigers @ Miami Hurricanes": 1774068177,
+    "High Point Panthers @ Arkansas Razorbacks": 1774152378,
+    "Vanderbilt Commodores @ Nebraska Cornhuskers": 1774150135,
+    "Louisville Cardinals @ Michigan St Spartans": 1774127862,
+    "Saint Louis Billikens @ Michigan Wolverines": 1774117778,
+    "TCU Horned Frogs @ Duke Blue Devils": 1774137231,
+    "Texas A&M Aggies @ Houston Cougars": 1774140115,
+    "Dayton Flyers @ UNC Wilmington Seahawks": 1774142097,
+    "Texas Longhorns @ Gonzaga Bulldogs": 1774142506,
+    "VCU Rams @ Illinois Fighting Illini": 1774146738,
+    "Liberty Flames @ Nevada Wolf Pack": 1774149634,
+    "Utah State Aggies @ Arizona Wildcats": 1774234016,
+    "Kentucky Wildcats @ Iowa State Cyclones": 1774213741,
+    "Tennessee Volunteers @ Virginia Cavaliers": 1774227103,
+    "Texas Tech Red Raiders @ Alabama Crimson Tide": 1774240186,
+    "Illinois St Redbirds @ Wake Forest Demon Deacons": 1774219760,
+    "Seattle Redhawks @ Auburn Tigers": 1774226640,
+    "Iowa Hawkeyes @ Florida Gators": 1774230477,
+    "St. John's Red Storm @ Kansas Jayhawks": 1774223507,
+    "Miami Hurricanes @ Purdue Boilermakers": 1774204283,
+    "UCLA Bruins @ UConn Huskies": 1774237130,
+    "UNLV Rebels @ Tulsa Golden Hurricane": 1774228360,
+    "GW Revolutionaries @ New Mexico Lobos": 1774232009,
+    "Wichita St Shockers @ Oklahoma St Cowboys": 1774234075,
+    "Saint Joseph's Hawks @ California Golden Bears": 1774235614,
+    "Illinois Fighting Illini @ Houston Cougars": 1774472752,
+    "Texas Longhorns @ Purdue Boilermakers": 1774472751,
+    "St. John's Red Storm @ Duke Blue Devils": 1774472752,
+    "Tennessee Volunteers @ Iowa State Cyclones": 1774472752,
+    "Iowa Hawkeyes @ Nebraska Cornhuskers": 1774472751,
+    "Arkansas Razorbacks @ Arizona Wildcats": 1774472751,
+    "Michigan St Spartans @ UConn Huskies": 1774472752,
+    "Alabama Crimson Tide @ Michigan Wolverines": 1774472752,
+    "Wichita St Shockers @ Tulsa Golden Hurricane": 1774402304,
+    "Saint Joseph's Hawks @ New Mexico Lobos": 1774408980,
+    "Illinois St Redbirds @ Dayton Flyers": 1774472751,
+    "Nevada Wolf Pack @ Auburn Tigers": 1774472751,
+    "Oklahoma Sooners @ Colorado Buffaloes": 1774466913,
+    "Baylor Bears @ Minnesota Golden Gophers": 1774466914,
+    "Stanford Cardinal @ West Virginia Mountaineers": 1774466914,
+    "Rutgers Scarlet Knights @ Creighton Bluejays": 1774466914,
+    "Tulsa Golden Hurricane @ New Mexico Lobos": 1774466914,
+    "UConn Huskies @ Duke Blue Devils": 1774465456,
+    "Purdue Boilermakers @ Arizona Wildcats": 1774472752,
+    "Texas Longhorns @ Arizona Wildcats": 1774472752,
+    "Iowa Hawkeyes @ Houston Cougars": 1774472752,
+    "Nebraska Cornhuskers @ Houston Cougars": 1774472752,
+    "Arkansas Razorbacks @ Purdue Boilermakers": 1774472752,
+    "Nebraska Cornhuskers @ Illinois Fighting Illini": 1774472752,
+    "Iowa Hawkeyes @ Illinois Fighting Illini": 1774472752,
+    "Texas Longhorns @ Arkansas Razorbacks": 1774472752,
+    "Alabama Crimson Tide @ Iowa State Cyclones": 1774472752,
+    "Iowa State Cyclones @ Michigan Wolverines": 1774472752
+  },
+  "last_live_state": {
+    "TCU Horned Frogs @ Ohio State Buckeyes": {
+      "home_score": 64,
+      "away_score": 66,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Troy Trojans @ Nebraska Cornhuskers": {
+      "home_score": 76,
+      "away_score": 47,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "South Florida Bulls @ Louisville Cardinals": {
+      "home_score": 83,
+      "away_score": 79,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "High Point Panthers @ Wisconsin Badgers": {
+      "home_score": 82,
+      "away_score": 83,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Siena Saints @ Duke Blue Devils": {
+      "home_score": 71,
+      "away_score": 65,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "McNeese Cowboys @ Vanderbilt Commodores": {
+      "home_score": 78,
+      "away_score": 68,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "North Dakota St Bison @ Michigan St Spartans": {
+      "home_score": 82,
+      "away_score": 61,
+      "minutes_left": 3,
+      "seconds_left": 6,
+      "status_detail": "3:06 - 2nd Half"
+    },
+    "Hawai'i Rainbow Warriors @ Arkansas Razorbacks": {
+      "home_score": 91,
+      "away_score": 71,
+      "minutes_left": 2,
+      "seconds_left": 43,
+      "status_detail": "2:43 - 2nd Half"
+    },
+    "VCU Rams @ North Carolina Tar Heels": {
+      "home_score": 39,
+      "away_score": 28,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Halftime"
+    },
+    "Howard Bison @ Michigan Wolverines": {
+      "home_score": 35,
+      "away_score": 29,
+      "minutes_left": 6,
+      "seconds_left": 18,
+      "status_detail": "6:18 - 1st Half"
+    },
+    "Texas Longhorns @ BYU Cougars": {
+      "home_score": 21,
+      "away_score": 27,
+      "minutes_left": 9,
+      "seconds_left": 41,
+      "status_detail": "9:41 - 1st Half"
+    },
+    "Texas A&M Aggies @ Saint Mary's Gaels": {
+      "home_score": 13,
+      "away_score": 15,
+      "minutes_left": 9,
+      "seconds_left": 52,
+      "status_detail": "9:52 - 1st Half"
+    },
+    "Pennsylvania Quakers @ Illinois Fighting Illini": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 19th at 9:25 PM EDT"
+    },
+    "Saint Louis Billikens @ Georgia Bulldogs": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 19th at 9:55 PM EDT"
+    },
+    "Kennesaw St Owls @ Gonzaga Bulldogs": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 19th at 10:00 PM EDT"
+    },
+    "Idaho Vandals @ Houston Cougars": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 19th at 10:10 PM EDT"
+    },
+    "Santa Clara Broncos @ Kentucky Wildcats": {
+      "home_score": 89,
+      "away_score": 84,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final/OT"
+    },
+    "Akron Zips @ Texas Tech Red Raiders": {
+      "home_score": 91,
+      "away_score": 71,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "LIU Sharks @ Arizona Wildcats": {
+      "home_score": 92,
+      "away_score": 58,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Wright St Raiders @ Virginia Cavaliers": {
+      "home_score": 82,
+      "away_score": 73,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Tennessee St Tigers @ Iowa State Cyclones": {
+      "home_score": 108,
+      "away_score": 74,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Hofstra Pride @ Alabama Crimson Tide": {
+      "home_score": 90,
+      "away_score": 70,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Utah State Aggies @ Villanova Wildcats": {
+      "home_score": 76,
+      "away_score": 86,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Miami (OH) RedHawks @ Tennessee Volunteers": {
+      "home_score": 78,
+      "away_score": 56,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Iowa Hawkeyes @ Clemson Tigers": {
+      "home_score": 25,
+      "away_score": 32,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Halftime"
+    },
+    "Northern Iowa Panthers @ St. John's Red Storm": {
+      "home_score": 24,
+      "away_score": 8,
+      "minutes_left": 10,
+      "seconds_left": 29,
+      "status_detail": "10:29 - 1st Half"
+    },
+    "UCF Knights @ UCLA Bruins": {
+      "home_score": 22,
+      "away_score": 12,
+      "minutes_left": 9,
+      "seconds_left": 18,
+      "status_detail": "9:18 - 1st Half"
+    },
+    "Queens University Royals @ Purdue Boilermakers": {
+      "home_score": 24,
+      "away_score": 17,
+      "minutes_left": 9,
+      "seconds_left": 22,
+      "status_detail": "9:22 - 1st Half"
+    },
+    "Prairie View Panthers @ Florida Gators": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 20th at 9:25 PM EDT"
+    },
+    "Cal Baptist Lancers @ Kansas Jayhawks": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 20th at 9:45 PM EDT"
+    },
+    "Furman Paladins @ UConn Huskies": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 20th at 10:00 PM EDT"
+    },
+    "Missouri Tigers @ Miami Hurricanes": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 20th at 10:10 PM EDT"
+    },
+    "High Point Panthers @ Arkansas Razorbacks": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sat, March 21st at 9:45 PM EDT"
+    },
+    "Vanderbilt Commodores @ Nebraska Cornhuskers": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sat, March 21st at 8:45 PM EDT"
+    },
+    "Louisville Cardinals @ Michigan St Spartans": {
+      "home_score": 77,
+      "away_score": 69,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Saint Louis Billikens @ Michigan Wolverines": {
+      "home_score": 95,
+      "away_score": 72,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "TCU Horned Frogs @ Duke Blue Devils": {
+      "home_score": 81,
+      "away_score": 58,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Texas A&M Aggies @ Houston Cougars": {
+      "home_score": 71,
+      "away_score": 43,
+      "minutes_left": 9,
+      "seconds_left": 37,
+      "status_detail": "9:37 - 2nd Half"
+    },
+    "Texas Longhorns @ Gonzaga Bulldogs": {
+      "home_score": 33,
+      "away_score": 35,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Halftime"
+    },
+    "VCU Rams @ Illinois Fighting Illini": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sat, March 21st at 8:15 PM EDT"
+    },
+    "Utah State Aggies @ Arizona Wildcats": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sun, March 22nd at 8:11 PM EDT"
+    },
+    "Kentucky Wildcats @ Iowa State Cyclones": {
+      "home_score": 82,
+      "away_score": 63,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Tennessee Volunteers @ Virginia Cavaliers": {
+      "home_score": 58,
+      "away_score": 63,
+      "minutes_left": 7,
+      "seconds_left": 28,
+      "status_detail": "7:28 - 2nd Half"
+    },
+    "Texas Tech Red Raiders @ Alabama Crimson Tide": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sun, March 22nd at 9:45 PM EDT"
+    },
+    "Iowa Hawkeyes @ Florida Gators": {
+      "home_score": 25,
+      "away_score": 30,
+      "minutes_left": 2,
+      "seconds_left": 13,
+      "status_detail": "2:13 - 1st Half"
+    },
+    "St. John's Red Storm @ Kansas Jayhawks": {
+      "home_score": 65,
+      "away_score": 67,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "Miami Hurricanes @ Purdue Boilermakers": {
+      "home_score": 79,
+      "away_score": 69,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Final"
+    },
+    "UCLA Bruins @ UConn Huskies": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Sun, March 22nd at 8:45 PM EDT"
+    },
+    "Texas Longhorns @ Purdue Boilermakers": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 26th at 7:10 PM EDT"
+    },
+    "Iowa Hawkeyes @ Nebraska Cornhuskers": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 26th at 7:30 PM EDT"
+    },
+    "Arkansas Razorbacks @ Arizona Wildcats": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 26th at 9:45 PM EDT"
+    },
+    "Illinois Fighting Illini @ Houston Cougars": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Thu, March 26th at 10:05 PM EDT"
+    },
+    "St. John's Red Storm @ Duke Blue Devils": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 27th at 7:10 PM EDT"
+    },
+    "Alabama Crimson Tide @ Michigan Wolverines": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 27th at 7:35 PM EDT"
+    },
+    "Michigan St Spartans @ UConn Huskies": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 27th at 9:45 PM EDT"
+    },
+    "Tennessee Volunteers @ Iowa State Cyclones": {
+      "home_score": 0,
+      "away_score": 0,
+      "minutes_left": 0,
+      "seconds_left": 0,
+      "status_detail": "Fri, March 27th at 10:10 PM EDT"
+    }
+  },
+  "last_alert_count": {
+    "TCU Horned Frogs @ Ohio State Buckeyes": 0,
+    "Troy Trojans @ Nebraska Cornhuskers": 0,
+    "South Florida Bulls @ Louisville Cardinals": 0,
+    "High Point Panthers @ Wisconsin Badgers": 0,
+    "Siena Saints @ Duke Blue Devils": 0,
+    "McNeese Cowboys @ Vanderbilt Commodores": 0,
+    "North Dakota St Bison @ Michigan St Spartans": 1,
+    "Hawai'i Rainbow Warriors @ Arkansas Razorbacks": 2,
+    "VCU Rams @ North Carolina Tar Heels": 0,
+    "Howard Bison @ Michigan Wolverines": 0,
+    "Texas Longhorns @ BYU Cougars": 0,
+    "Texas A&M Aggies @ Saint Mary's Gaels": 0,
+    "Santa Clara Broncos @ Kentucky Wildcats": 0,
+    "Akron Zips @ Texas Tech Red Raiders": 1,
+    "LIU Sharks @ Arizona Wildcats": 0,
+    "Wright St Raiders @ Virginia Cavaliers": 0,
+    "Tennessee St Tigers @ Iowa State Cyclones": 0,
+    "Hofstra Pride @ Alabama Crimson Tide": 0,
+    "Utah State Aggies @ Villanova Wildcats": 0,
+    "Miami (OH) RedHawks @ Tennessee Volunteers": 0,
+    "Iowa Hawkeyes @ Clemson Tigers": 0,
+    "Northern Iowa Panthers @ St. John's Red Storm": 0,
+    "UCF Knights @ UCLA Bruins": 0,
+    "Queens University Royals @ Purdue Boilermakers": 0,
+    "Saint Louis Billikens @ Michigan Wolverines": 0,
+    "Louisville Cardinals @ Michigan St Spartans": 0,
+    "TCU Horned Frogs @ Duke Blue Devils": 0,
+    "Texas A&M Aggies @ Houston Cougars": 0,
+    "Texas Longhorns @ Gonzaga Bulldogs": 0,
+    "Miami Hurricanes @ Purdue Boilermakers": 0,
+    "Kentucky Wildcats @ Iowa State Cyclones": 0,
+    "St. John's Red Storm @ Kansas Jayhawks": 0,
+    "Tennessee Volunteers @ Virginia Cavaliers": 0,
+    "Iowa Hawkeyes @ Florida Gators": 0
+  }
+}

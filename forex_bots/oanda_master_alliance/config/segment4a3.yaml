@@ -1,0 +1,116 @@
+segment4a3:
+  enabled: true
+  deployment_mode: "research_services"
+
+  practice_only: true
+  live_environment_allowed: false
+  automatic_execution: false
+  practice_order_submission_enabled: false
+
+  systemd:
+    install_system_services: true
+    enable_main_service_on_boot: false
+    enable_watchdog_on_boot: false
+
+    main_service_name: "oanda-master-ai.service"
+    watchdog_service_name: "oanda-master-ai-watchdog.service"
+
+    health_service_name: "oanda-master-ai-health.service"
+    health_timer_name: "oanda-master-ai-health.timer"
+
+    recovery_service_name: "oanda-master-ai-recovery.service"
+
+    maintenance_service_name: "oanda-master-ai-maintenance.service"
+    maintenance_timer_name: "oanda-master-ai-maintenance.timer"
+
+    backup_service_name: "oanda-master-ai-backup.service"
+    backup_timer_name: "oanda-master-ai-backup.timer"
+
+    report_service_name: "oanda-master-ai-report.service"
+    report_timer_name: "oanda-master-ai-report.timer"
+
+    restart_policy: "on-failure"
+    restart_seconds: 30
+    start_limit_interval_seconds: 3600
+    start_limit_burst: 3
+
+  schedules:
+    health_check_minutes: 5
+    maintenance_hour: 3
+    maintenance_minute: 20
+    backup_hour: 3
+    backup_minute: 45
+    report_hour: 4
+    report_minute: 15
+
+  backups:
+    enabled: true
+    destination: "~/oanda_master_alliance_backups"
+    retention_count: 14
+    include_state: true
+    include_reports: true
+    include_logs: true
+    include_config: true
+    include_source: true
+    exclude_credentials: true
+    exclude_virtual_environment: true
+    minimum_free_disk_mb: 2048
+
+  maintenance:
+    enabled: true
+    maximum_jsonl_age_days: 30
+    maximum_console_log_age_days: 14
+    maximum_report_age_days: 90
+    maximum_backup_age_days: 30
+    compress_logs_after_days: 2
+    maximum_single_log_mb: 100
+    verify_python_compilation: true
+    verify_configuration_safety: true
+
+  log_rotation:
+    enabled: true
+    rotate_count: 14
+    daily: true
+    compress: true
+    delay_compress: true
+    copy_truncate: true
+    maximum_size_mb: 50
+
+  alerts:
+    enabled: true
+    console_enabled: true
+    file_enabled: true
+
+    telegram_enabled: false
+    telegram_bot_token_environment = "REDACTED"
+    telegram_chat_id_environment = "REDACTED"
+
+    minimum_severity: "warning"
+    cooldown_minutes: 30
+    repeat_critical_after_minutes: 60
+
+    alert_on:
+      health_failure: true
+      recovery_block: true
+      daemon_failure: true
+      watchdog_failure: true
+      backup_failure: true
+      maintenance_failure: true
+      low_disk_space: true
+      unsafe_configuration: true
+
+  files:
+    deployment_status: "state/segment4a3/deployment_status.json"
+    service_status: "state/segment4a3/service_status.json"
+
+    maintenance_status: "state/maintenance/maintenance_status.json"
+    maintenance_history: "logs/segment4a3_maintenance.jsonl"
+
+    backup_status: "state/backups/backup_status.json"
+    backup_history: "logs/segment4a3_backups.jsonl"
+
+    alert_status: "state/alerts/alert_status.json"
+    alert_history: "logs/segment4a3_alerts.jsonl"
+    alert_registry: "state/alerts/alert_registry.json"
+
+    report: "reports/segment4/segment4a3_report.md"

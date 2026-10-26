@@ -1,0 +1,246 @@
+{
+  "New Orleans Pelicans @ Detroit Pistons": {
+    "open_total": 227.0,
+    "open_spread": -4.0
+  },
+  "New York Knicks @ Charlotte Hornets": {
+    "open_total": 223.0,
+    "open_spread": -1.0
+  },
+  "Sacramento Kings @ Orlando Magic": {
+    "open_total": 230.5,
+    "open_spread": -15.5
+  },
+  "Arkansas Razorbacks @ Arizona Wildcats": {
+    "open_total": 165.0,
+    "open_spread": -8.0
+  },
+  "Duke Blue Devils @ LSU Tigers": {
+    "open_total": 146.5,
+    "open_spread": -8.5
+  },
+  "Illinois Fighting Illini @ Houston Cougars": {
+    "open_total": 140.0,
+    "open_spread": -2.5
+  },
+  "Iowa Hawkeyes @ Nebraska Cornhuskers": {
+    "open_total": 132.0,
+    "open_spread": -1.5
+  },
+  "Minnesota Golden Gophers @ UCLA Bruins": {
+    "open_total": 130.5,
+    "open_spread": -18.5
+  },
+  "North Carolina Tar Heels @ UConn Huskies": {
+    "open_total": 132.5,
+    "open_spread": -27.0
+  },
+  "Notre Dame Fighting Irish @ Vanderbilt Commodores": {
+    "open_total": 151.5,
+    "open_spread": -5.5
+  },
+  "Texas Longhorns @ Purdue Boilermakers": {
+    "open_total": 147.0,
+    "open_spread": -7.5
+  },
+  "Test Away @ Test Home": {
+    "open_total": 145.5,
+    "open_spread": -4.5
+  },
+  "Atlanta Hawks @ Boston Celtics": {
+    "open_total": 226.5,
+    "open_spread": -5.0
+  },
+  "Brooklyn Nets @ Los Angeles Lakers": {
+    "open_total": 222.5,
+    "open_spread": -16.0
+  },
+  "Chicago Bulls @ Oklahoma City Thunder": {
+    "open_total": 239.0,
+    "open_spread": -19.5
+  },
+  "Dallas Mavericks @ Portland Trail Blazers": {
+    "open_total": 239.5,
+    "open_spread": -10.5
+  },
+  "Houston Rockets @ Memphis Grizzlies": {
+    "open_total": 227.5,
+    "open_spread": 13.0
+  },
+  "Miami Heat @ Cleveland Cavaliers": {
+    "open_total": 242.0,
+    "open_spread": -5.0
+  },
+  "New Orleans Pelicans @ Toronto Raptors": {
+    "open_total": 228.5,
+    "open_spread": -8.5
+  },
+  "Utah Jazz @ Denver Nuggets": {
+    "open_total": 248.5,
+    "open_spread": -18.5
+  },
+  "Washington Wizards @ Golden State Warriors": {
+    "open_total": 232.5,
+    "open_spread": -14.0
+  },
+  "Alabama Crimson Tide @ Michigan Wolverines": {
+    "open_total": 172.5,
+    "open_spread": -9.5
+  },
+  "St. John's Red Storm @ Duke Blue Devils": {
+    "open_total": 140.5,
+    "open_spread": -6.5
+  },
+  "Tennessee Volunteers @ Iowa State Cyclones": {
+    "open_total": 140.0,
+    "open_spread": -4.0
+  },
+  "Chicago Bulls @ Memphis Grizzlies": {
+    "open_total": 245.5,
+    "open_spread": 4.0
+  },
+  "Detroit Pistons @ Minnesota Timberwolves": {
+    "open_total": 222.5,
+    "open_spread": -2.0
+  },
+  "Philadelphia 76ers @ Charlotte Hornets": {
+    "open_total": 233.0,
+    "open_spread": -6.0
+  },
+  "Sacramento Kings @ Atlanta Hawks": {
+    "open_total": 237.0,
+    "open_spread": -15.0
+  },
+  "San Antonio Spurs @ Milwaukee Bucks": {
+    "open_total": 226.0,
+    "open_spread": 18.0
+  },
+  "Utah Jazz @ Phoenix Suns": {
+    "open_total": 231.0,
+    "open_spread": -16.5
+  },
+  "Kentucky Wildcats @ Texas Longhorns": {
+    "open_total": 131.5,
+    "open_spread": -14.5
+  },
+  "Louisville Cardinals @ Michigan Wolverines": {
+    "open_total": 142.5,
+    "open_spread": -5.5
+  },
+  "Oklahoma Sooners @ South Carolina Gamecocks": {
+    "open_total": 153.5,
+    "open_spread": -18.0
+  },
+  "Virginia Cavaliers @ TCU Horned Frogs": {
+    "open_total": 129.5,
+    "open_spread": -8.5
+  },
+  "Iowa Hawkeyes @ Illinois Fighting Illini": {
+    "open_total": 137.5,
+    "open_spread": -7.0
+  },
+  "Purdue Boilermakers @ Arizona Wildcats": {
+    "open_total": 154.0,
+    "open_spread": -5.5
+  },
+  "Boston Celtics @ Charlotte Hornets": {
+    "open_total": 216.0,
+    "open_spread": -1.0
+  },
+  "Golden State Warriors @ Denver Nuggets": {
+    "open_total": 239.0,
+    "open_spread": -12.5
+  },
+  "Houston Rockets @ New Orleans Pelicans": {
+    "open_total": 225.5,
+    "open_spread": 6.0
+  },
+  "Miami Heat @ Indiana Pacers": {
+    "open_total": 245.0,
+    "open_spread": 8.5
+  },
+  "New York Knicks @ Oklahoma City Thunder": {
+    "open_total": 224.0,
+    "open_spread": -8.5
+  },
+  "Orlando Magic @ Toronto Raptors": {
+    "open_total": 225.5,
+    "open_spread": -2.5
+  },
+  "Sacramento Kings @ Brooklyn Nets": {
+    "open_total": 220.5,
+    "open_spread": 1.0
+  },
+  "Washington Wizards @ Portland Trail Blazers": {
+    "open_total": 237.5,
+    "open_spread": -16.0
+  },
+  "Duke Blue Devils @ UCLA Bruins": {
+    "open_total": 133.5,
+    "open_spread": -11.5
+  },
+  "Notre Dame Fighting Irish @ UConn Huskies": {
+    "open_total": 141.5,
+    "open_spread": -27.5
+  },
+  "Tennessee Volunteers @ Michigan Wolverines": {
+    "open_total": 146.0,
+    "open_spread": -8.0
+  },
+  "UConn Huskies @ Duke Blue Devils": {
+    "open_total": 135.0,
+    "open_spread": -5.0
+  },
+  "Boston Celtics @ Atlanta Hawks": {
+    "open_total": 222.0,
+    "open_spread": -1.5
+  },
+  "Chicago Bulls @ San Antonio Spurs": {
+    "open_total": 244.5,
+    "open_spread": -18.5
+  },
+  "Cleveland Cavaliers @ Utah Jazz": {
+    "open_total": 242.0,
+    "open_spread": 17.0
+  },
+  "Detroit Pistons @ Oklahoma City Thunder": {
+    "open_total": 217.5,
+    "open_spread": -12.0
+  },
+  "Minnesota Timberwolves @ Dallas Mavericks": {
+    "open_total": 236.0,
+    "open_spread": 7.0
+  },
+  "Philadelphia 76ers @ Miami Heat": {
+    "open_total": 246.0,
+    "open_spread": 2.0
+  },
+  "Phoenix Suns @ Memphis Grizzlies": {
+    "open_total": 229.0,
+    "open_spread": 13.0
+  },
+  "Washington Wizards @ Los Angeles Lakers": {
+    "open_total": 236.0,
+    "open_spread": -16.5
+  },
+  "Michigan Wolverines @ Texas Longhorns": {
+    "open_total": 138.5,
+    "open_spread": -10.5
+  },
+  "TCU Horned Frogs @ South Carolina Gamecocks": {
+    "open_total": 133.5,
+    "open_spread": -14.5
+  },
+  "Illinois Fighting Illini @ UConn Huskies": {
+    "open_total": 140.0,
+    "open_spread": 2.0
+  },
+  "Michigan Wolverines @ Arizona Wildcats": {
+    "open_total": 157.5,
+    "open_spread": 1.0
+  },
+  "Cleveland Cavaliers @ Los Angeles Lakers": {
+    "open_total": 241.0,
+    "open_spread": -2.5
+  }
+}

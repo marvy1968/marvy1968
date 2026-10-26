@@ -1,0 +1,39 @@
+{
+  "mode": "2h",
+  "home_team": "duke",
+  "away_team": "auburn",
+  "home_score": 34,
+  "away_score": 31,
+  "minutes_left": 20,
+  "seconds_left": 0,
+  "market_total": 72.5,
+  "over_odds": -110,
+  "under_odds": -110,
+  "projected_total": 73.56479999999999,
+  "projected_full_total": 138.5648,
+  "over_prob": 0.5332259629600463,
+  "under_prob": 0.4667740370399537,
+  "inefficiency_is_inefficient": false,
+  "inefficiency_gap": 1.064799999999991,
+  "inefficiency_direction": "NONE",
+  "inefficiency_reason": "No major inefficiency: model_total=73.56, market_total=72.50, gap=+1.06",
+  "foul_extension_active": false,
+  "foul_extension_points": 0.0,
+  "foul_extension_reason": "Outside foul-extension window.",
+  "top_bets": [
+    {
+      "label": "duke Team Total Over 36.25",
+      "edge_raw": 0.118627,
+      "edge_display": 0.118627,
+      "stake": 0.02,
+      "tier": "A"
+    },
+    {
+      "label": "auburn ML",
+      "edge_raw": 0.060605,
+      "edge_display": 0.060605,
+      "stake": 0.009775,
+      "tier": "Lean"
+    }
+  ]
+}

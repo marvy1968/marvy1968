@@ -1,0 +1,98 @@
+{
+    "Large Caps": {
+        "AAPL": {
+            "price": 330.77,
+            "buy_zone": 211.27,
+            "sell_zone": 310.3,
+            "target": 224.57
+        },
+        "MSFT": {
+            "price": 508.59,
+            "buy_zone": 395.42,
+            "sell_zone": 510.16,
+            "target": 418.89
+        },
+        "NVDA": {
+            "price": 230.23,
+            "buy_zone": 166.19,
+            "sell_zone": 212.8,
+            "target": 176.71
+        },
+        "AMZN": {
+            "price": 246.3,
+            "buy_zone": 210.13,
+            "sell_zone": 255.76,
+            "target": 220.37
+        },
+        "GOOGL": {
+            "price": 338.8,
+            "buy_zone": 182.53,
+            "sell_zone": 353.94,
+            "target": 199.51
+        }
+    },
+    "Mid Caps": {
+        "CROX": {
+            "price": 121.86,
+            "buy_zone": 82.03,
+            "sell_zone": 122.64,
+            "target": 90.68
+        },
+        "CELH": {
+            "price": 27.73,
+            "buy_zone": 29.55,
+            "sell_zone": 55.77,
+            "target": 31.88
+        },
+        "WING": {
+            "price": 105.39,
+            "buy_zone": 134.87,
+            "sell_zone": 325.9,
+            "target": 146.84
+        },
+        "ONON": {
+            "price": 29.89,
+            "buy_zone": 34.98,
+            "sell_zone": 50.48,
+            "target": 37.39
+        },
+        "SMCI": {
+            "price": 41.56,
+            "buy_zone": 29.1,
+            "sell_zone": 47.29,
+            "target": 33.81
+        }
+    },
+    "Small Caps": {
+        "IONQ": {
+            "price": 44.2,
+            "buy_zone": 34.5,
+            "sell_zone": 57.01,
+            "target": 39.87
+        },
+        "LAES": {
+            "price": 2.3,
+            "buy_zone": 2.51,
+            "sell_zone": 4.31,
+            "target": 2.73
+        },
+        "SOUN": {
+            "price": 5.92,
+            "buy_zone": 6.7,
+            "sell_zone": 13.49,
+            "target": 7.16
+        },
+        "RGTI": {
+            "price": 15.91,
+            "buy_zone": 13.8,
+            "sell_zone": 25.71,
+            "target": 15.63
+        },
+        "BBAI": {
+            "price": 2.67,
+            "buy_zone": 3.21,
+            "sell_zone": 6.72,
+            "target": 3.45
+        }
+    }
+}

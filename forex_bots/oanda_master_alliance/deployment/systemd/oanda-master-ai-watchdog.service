@@ -1,0 +1,34 @@
+[Unit]
+Description=OANDA Master AI Operations Watchdog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moonrider1968
+Group=moonrider1968
+WorkingDirectory=/home/moonrider1968/oanda_master_alliance
+EnvironmentFile=/home/moonrider1968/oanda_master_alliance/deployment/environment/oanda-master-ai.env
+EnvironmentFile=-/home/moonrider1968/oanda_master_alliance/.env
+ExecStart=/home/moonrider1968/oanda_master_alliance/deployment/scripts/run_watchdog.sh
+ExecStop=/home/moonrider1968/oanda_master_alliance/.venv/bin/python /home/moonrider1968/oanda_master_alliance/admin/segment4_operations.py watchdog-stop
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=120
+TimeoutStopSec=90
+KillSignal=SIGTERM
+KillMode=mixed
+SuccessExitStatus=0 143
+UMask=0077
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/home/moonrider1968/oanda_master_alliance /home/moonrider1968/oanda_master_alliance_backups
+
+StandardOutput=append:/home/moonrider1968/oanda_master_alliance/logs/segment4_watchdog_systemd.log
+StandardError=append:/home/moonrider1968/oanda_master_alliance/logs/segment4_watchdog_systemd_error.log
+
+[Install]
+WantedBy=multi-user.target

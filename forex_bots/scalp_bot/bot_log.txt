@@ -1,0 +1,17 @@
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found
+/bin/sh: 1: /home/moonrider1968/scalp_bot/venv/bin/python3: not found

@@ -1,0 +1,62 @@
+{
+  "auburn": {
+    "def_2p_pct_allowed": 0.47,
+    "def_3p_pct_allowed": 0.3,
+    "def_3pa_rate_allowed": 0.34,
+    "def_drb_rate": 0.71,
+    "def_ft_rate_allowed": 0.19,
+    "def_tov_forced_rate": 0.18,
+    "off_2p_pct": 0.53,
+    "off_3p_pct": 0.34,
+    "off_3pa_rate": 0.36,
+    "off_ft_pct": 0.72,
+    "off_ft_rate": 0.22,
+    "off_orb_rate": 0.33,
+    "off_tov_rate": 0.17
+  },
+  "connecticut": {
+    "def_2p_pct_allowed": 0.46,
+    "def_3p_pct_allowed": 0.31,
+    "def_3pa_rate_allowed": 0.35,
+    "def_drb_rate": 0.73,
+    "def_ft_rate_allowed": 0.18,
+    "def_tov_forced_rate": 0.17,
+    "off_2p_pct": 0.56,
+    "off_3p_pct": 0.36,
+    "off_3pa_rate": 0.41,
+    "off_ft_pct": 0.76,
+    "off_ft_rate": 0.19,
+    "off_orb_rate": 0.35,
+    "off_tov_rate": 0.15
+  },
+  "duke": {
+    "def_2p_pct_allowed": 0.47,
+    "def_3p_pct_allowed": 0.3,
+    "def_3pa_rate_allowed": 0.34,
+    "def_drb_rate": 0.72,
+    "def_ft_rate_allowed": 0.18,
+    "def_tov_forced_rate": 0.18,
+    "off_2p_pct": 0.55,
+    "off_3p_pct": 0.38,
+    "off_3pa_rate": 0.42,
+    "off_ft_pct": 0.75,
+    "off_ft_rate": 0.18,
+    "off_orb_rate": 0.31,
+    "off_tov_rate": 0.16
+  },
+  "north carolina": {
+    "def_2p_pct_allowed": 0.49,
+    "def_3p_pct_allowed": 0.32,
+    "def_3pa_rate_allowed": 0.36,
+    "def_drb_rate": 0.69,
+    "def_ft_rate_allowed": 0.21,
+    "def_tov_forced_rate": 0.16,
+    "off_2p_pct": 0.54,
+    "off_3p_pct": 0.35,
+    "off_3pa_rate": 0.38,
+    "off_ft_pct": 0.74,
+    "off_ft_rate": 0.24,
+    "off_orb_rate": 0.34,
+    "off_tov_rate": 0.15
+  }
+}

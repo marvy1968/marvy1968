@@ -1,0 +1,18 @@
+{
+  "team": "Sacramento Kings",
+  "fetched_at_utc": "2026-04-01T03:17:43.969832+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Sacramento Kings",
+      "player": "Apr 3",
+      "position": "Out",
+      "status": "Mar 31: Westbrook (toe) is out for Wednesday's game against Toronto.",
+      "est_return_date": "Keegan Murray",
+      "comment": "F Apr 3 Out Mar 31: Murray (ankle) is out for Wednesday's game against Toronto. Isaiah Stevens G Apr 1 Out Mar 29: The Kings list Stevens out for Sunday's game against the Nets due to right ankle soreness. Drew Eubanks F Oct 1",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

@@ -1,0 +1,97 @@
+segment4b:
+  enabled: true
+
+  environment: practice
+  practice_only: true
+  live_environment_allowed: false
+
+  automatic_execution: false
+  practice_order_submission_enabled: false
+  manual_activation_required: true
+
+  activation:
+    activation_file: state/execution4b/PRACTICE_EXECUTION_ENABLED
+    approval_file: state/execution4b/MANUAL_APPROVAL.json
+    kill_switch_file: state/SEGMENT3_KILL_SWITCH
+    segment3_pause_file: state/execution/segment3_pause.json
+    unresolved_recovery_file: state/recovery/UNRESOLVED_RECOVERY
+    require_exact_phrase: true
+    required_phrase: ENABLE OANDA PRACTICE EXECUTION
+    maximum_approval_age_minutes: 30
+
+  candidate_requirements:
+    minimum_alliance_score: 80.0
+    minimum_confirming_experts: 3
+    minimum_reward_risk: 1.75
+    maximum_candidate_age_minutes: 10
+    require_risk_approval: true
+    require_segment3_authorization: true
+    require_stop_loss: true
+    require_take_profit: true
+
+  broker_reconciliation:
+    enabled: true
+    block_on_failure: true
+    maximum_open_positions: 5
+    maximum_pending_orders: 10
+    maximum_same_instrument_positions: 1
+    maximum_same_currency_positions: 2
+    reject_unknown_broker_positions: true
+    reject_unknown_pending_orders: true
+
+  duplicate_protection:
+    enabled: true
+    signal_ttl_minutes: 120
+    authorization_ttl_minutes: 120
+    order_intent_ttl_minutes: 120
+    broker_order_ttl_minutes: 1440
+
+  order_policy:
+    order_type: MARKET
+    time_in_force: FOK
+    position_fill: DEFAULT
+    attach_stop_loss: true
+    attach_take_profit: true
+    allow_market_if_touched: false
+    allow_limit_orders: false
+    allow_stop_orders: false
+    maximum_price_deviation_pips: 3.0
+    maximum_spread_pips: 3.0
+    minimum_units: 1
+    maximum_units: 100000
+
+  fill_verification:
+    enabled: true
+    maximum_wait_seconds: 20
+    polling_interval_seconds: 2
+    require_trade_opened: true
+    require_stop_attached: true
+    require_target_attached: true
+    reject_partial_fill: true
+
+  safety:
+    maximum_orders_per_cycle: 2
+    maximum_orders_per_hour: 4
+    maximum_orders_per_day: 8
+    maximum_total_open_risk_r: 2.5
+    block_during_weekend: true
+    block_on_stale_foundation: true
+    block_on_stale_segment2: true
+    block_on_stale_segment3: true
+
+  storage:
+    execution_status: state/execution4b/execution_status.json
+    latest_reconciliation: state/execution4b/reconciliation/latest.json
+    reconciliation_history: logs/segment4b_reconciliation.jsonl
+    intent_history: logs/segment4b_order_intents.jsonl
+    authorization_history: logs/segment4b_execution_authorizations.jsonl
+    receipt_history: logs/segment4b_order_receipts.jsonl
+    fill_history: logs/segment4b_fill_verification.jsonl
+    rejection_history: logs/segment4b_rejections.jsonl
+    duplicate_registry: state/execution4b/duplicate_registry.json
+    hourly_counter: state/execution4b/hourly_counter.json
+    daily_counter: state/execution4b/daily_counter.json
+
+  logging:
+    event_log: logs/segment4b_events.jsonl
+    error_log: logs/segment4b_errors.jsonl

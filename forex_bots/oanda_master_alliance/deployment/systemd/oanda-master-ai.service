@@ -1,0 +1,36 @@
+[Unit]
+Description=OANDA Master AI Research Daemon
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=3600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=moonrider1968
+Group=moonrider1968
+WorkingDirectory=/home/moonrider1968/oanda_master_alliance
+EnvironmentFile=/home/moonrider1968/oanda_master_alliance/deployment/environment/oanda-master-ai.env
+EnvironmentFile=-/home/moonrider1968/oanda_master_alliance/.env
+ExecStart=/home/moonrider1968/oanda_master_alliance/deployment/scripts/run_master_ai.sh
+ExecStop=/home/moonrider1968/oanda_master_alliance/.venv/bin/python /home/moonrider1968/oanda_master_alliance/admin/segment4_control.py stop
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=120
+TimeoutStopSec=90
+KillSignal=SIGTERM
+KillMode=mixed
+SuccessExitStatus=0 143
+UMask=0077
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/home/moonrider1968/oanda_master_alliance /home/moonrider1968/oanda_master_alliance_backups
+
+StandardOutput=append:/home/moonrider1968/oanda_master_alliance/logs/segment4_systemd.log
+StandardError=append:/home/moonrider1968/oanda_master_alliance/logs/segment4_systemd_error.log
+
+[Install]
+WantedBy=multi-user.target

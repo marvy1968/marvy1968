@@ -1,0 +1,8 @@
+{
+    "MACD_FAST": 8,
+    "MACD_SLOW": 17,
+    "MACD_SIGNAL": 9,
+    "ADX_THRESHOLD": 25,
+    "RSI_THRESHOLD": 50,
+    "HEAT_MIN": 0.85
+}

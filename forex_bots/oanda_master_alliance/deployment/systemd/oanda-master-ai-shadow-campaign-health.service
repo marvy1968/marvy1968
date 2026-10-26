@@ -1,0 +1,16 @@
+[Unit]
+Description=OANDA Master AI Shadow Campaign Health Check
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=moonrider1968
+WorkingDirectory=/home/moonrider1968/oanda_master_alliance
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/moonrider1968/oanda_master_alliance/.venv/bin/python \
+/home/moonrider1968/oanda_master_alliance/run_segment4b4_health.py
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false

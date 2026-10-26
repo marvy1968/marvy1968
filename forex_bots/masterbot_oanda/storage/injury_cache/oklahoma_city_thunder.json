@@ -1,0 +1,18 @@
+{
+  "team": "Oklahoma City Thunder",
+  "fetched_at_utc": "2026-04-01T03:17:43.969810+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Oklahoma City Thunder",
+      "player": "Oct 1",
+      "position": "Out",
+      "status": "Sep 5: The Thunder announced Friday that Sorber has sustained a torn ACL in his right knee during an offseason workout, NBA reporter Marc Stein reports.",
+      "est_return_date": "",
+      "comment": "",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

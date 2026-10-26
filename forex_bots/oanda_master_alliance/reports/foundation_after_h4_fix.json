@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-07-16T01:06:56.224060+00:00",
+  "environment": "practice",
+  "session": "sydney_tokyo_overlap",
+  "active_sessions": [
+    "sydney",
+    "tokyo"
+  ],
+  "pairs": 7,
+  "quotes": 7,
+  "data_quality_passed": true,
+  "errors": [],
+  "regimes": {
+    "EUR_USD": {
+      "regime": "strong_trending",
+      "direction": "up",
+      "confidence": 0.75,
+      "confirmations": 3,
+      "data_quality": true
+    },
+    "GBP_USD": {
+      "regime": "trending",
+      "direction": "up",
+      "confidence": 0.5,
+      "confirmations": 2,
+      "data_quality": true
+    },
+    "USD_JPY": {
+      "regime": "compression",
+      "direction": "mixed",
+      "confidence": 0.5,
+      "confirmations": 2,
+      "data_quality": true
+    },
+    "USD_CHF": {
+      "regime": "strong_trending",
+      "direction": "down",
+      "confidence": 0.75,
+      "confirmations": 3,
+      "data_quality": true
+    },
+    "AUD_USD": {
+      "regime": "trending",
+      "direction": "up",
+      "confidence": 0.5,
+      "confirmations": 2,
+      "data_quality": true
+    },
+    "NZD_USD": {
+      "regime": "trending",
+      "direction": "up",
+      "confidence": 0.5,
+      "confirmations": 2,
+      "data_quality": true
+    },
+    "USD_CAD": {
+      "regime": "trending",
+      "direction": "down",
+      "confidence": 0.5,
+      "confirmations": 2,
+      "data_quality": true
+    }
+  },
+  "currency_strength": {
+    "EUR": 0.5515,
+    "USD": -1.6669,
+    "GBP": 1.786,
+    "JPY": -0.5791,
+    "CHF": 0.9363,
+    "AUD": -0.6053,
+    "NZD": -0.0383,
+    "CAD": -0.3841
+  }
+}

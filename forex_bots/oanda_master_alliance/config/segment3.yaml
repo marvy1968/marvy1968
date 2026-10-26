@@ -1,0 +1,109 @@
+segment3:
+  enabled: true
+
+  environment: practice
+  practice_only: true
+
+  # Both switches must be true before any order request is allowed.
+  automatic_execution: false
+  practice_order_submission_enabled: false
+
+  require_segment2_candidate: true
+  require_fresh_shortlist: true
+  maximum_shortlist_age_minutes: 20
+
+  minimum_alliance_score: 72.0
+  minimum_confirming_experts: 2
+  minimum_reward_risk: 1.50
+
+  risk:
+    standard_risk_pct: 0.35
+    strong_setup_risk_pct: 0.50
+    maximum_risk_pct: 0.60
+
+    strong_setup_score: 84.0
+    minimum_units: 1
+    maximum_units: 100000
+
+    daily_loss_limit_r: 1.50
+    weekly_loss_limit_r: 4.00
+    maximum_open_risk_r: 2.50
+
+    maximum_positions: 5
+    maximum_same_currency_positions: 2
+    maximum_directional_currency_exposure: 2
+
+    pause_after_losses: 3
+    pause_minutes: 60
+
+  execution:
+    maximum_spread_pips:
+      EUR_USD: 2.0
+      GBP_USD: 2.5
+      USD_JPY: 2.0
+      USD_CHF: 2.5
+      AUD_USD: 2.5
+      NZD_USD: 3.0
+      USD_CAD: 2.5
+
+    maximum_price_deviation_pips: 2.0
+    minimum_stop_pips: 3.0
+    maximum_stop_pips: 80.0
+
+    time_in_force: FOK
+    position_fill: DEFAULT
+
+    broker_stop_loss_required: true
+    broker_take_profit_required: true
+    reject_duplicate_instrument: true
+
+  management:
+    break_even_trigger_r: 0.80
+    break_even_lock_r: 0.05
+
+    first_profit_trigger_r: 1.00
+    first_profit_close_fraction: 0.50
+
+    trailing_start_r: 1.25
+    trailing_distance_r: 0.60
+
+    second_trailing_start_r: 1.75
+    second_trailing_distance_r: 0.40
+
+    maximum_trade_age_hours: 24
+    close_before_weekend: true
+    friday_close_hour_et: 15
+    friday_close_minute_et: 30
+
+  correlation:
+    groups:
+      usd_long:
+        - EUR_USD:sell
+        - GBP_USD:sell
+        - AUD_USD:sell
+        - NZD_USD:sell
+        - USD_JPY:buy
+        - USD_CHF:buy
+        - USD_CAD:buy
+
+      usd_short:
+        - EUR_USD:buy
+        - GBP_USD:buy
+        - AUD_USD:buy
+        - NZD_USD:buy
+        - USD_JPY:sell
+        - USD_CHF:sell
+        - USD_CAD:sell
+
+  files:
+    segment2_shortlist: state/decisions/latest_shortlist.json
+    runtime_status: state/execution/segment3_status.json
+    authorization_log: logs/segment3_authorizations.jsonl
+    order_log: logs/segment3_orders.jsonl
+    trade_log: logs/segment3_trades.jsonl
+    management_log: logs/segment3_management.jsonl
+    error_log: logs/segment3_errors.jsonl
+    open_positions: state/positions/segment3_open_positions.json
+    processed_signals: state/execution/processed_signals.json
+    kill_switch: state/SEGMENT3_KILL_SWITCH
+    pause_file: state/execution/segment3_pause.json

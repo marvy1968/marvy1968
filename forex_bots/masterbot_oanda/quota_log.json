@@ -1,0 +1,128 @@
+{
+  "calls": [
+    1774055508.7434647,
+    {
+      "time": "2026-03-20 21:11:48",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774097861.9347618,
+    {
+      "time": "2026-03-21 08:57:42",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774098273.9426708,
+    {
+      "time": "2026-03-21 09:04:34",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774099165.8311849,
+    {
+      "time": "2026-03-21 09:19:26",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774100438.6453297,
+    {
+      "time": "2026-03-21 09:40:38",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774100738.6455479,
+    {
+      "time": "2026-03-21 09:45:38",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774102156.1171522,
+    {
+      "time": "2026-03-21 10:09:16",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774111164.35108,
+    {
+      "time": "2026-03-21 12:39:24",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774112321.6528623,
+    {
+      "time": "2026-03-21 12:58:41",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774114500.6449707,
+    {
+      "time": "2026-03-21 13:35:00",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774115271.8201287,
+    {
+      "time": "2026-03-21 13:47:52",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774115571.820354,
+    {
+      "time": "2026-03-21 13:52:51",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    1774116881.4193206,
+    {
+      "time": "2026-03-21 14:14:41",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 14:14:41",
+      "endpoint": "odds_api_fetch:basketball_ncaaw"
+    },
+    1774118088.6607938,
+    {
+      "time": "2026-03-21 14:34:48",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 14:34:48",
+      "endpoint": "odds_api_fetch:basketball_ncaaw"
+    },
+    1774119062.5627491,
+    {
+      "time": "2026-03-21 14:51:02",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 14:51:02",
+      "endpoint": "odds_api_fetch:basketball_wncaab"
+    },
+    1774123544.8991082,
+    {
+      "time": "2026-03-21 16:05:45",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 16:05:45",
+      "endpoint": "odds_api_fetch:basketball_wncaab"
+    },
+    1774125351.6357381,
+    {
+      "time": "2026-03-21 16:35:51",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 16:35:51",
+      "endpoint": "odds_api_fetch:basketball_wncaab"
+    },
+    1774146564.0277126,
+    {
+      "time": "2026-03-21 22:29:24",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 22:29:24",
+      "endpoint": "odds_api_fetch:basketball_wncaab"
+    },
+    1774148096.5595763,
+    {
+      "time": "2026-03-21 22:54:56",
+      "endpoint": "odds_api_fetch:basketball_ncaab"
+    },
+    {
+      "time": "2026-03-21 22:54:56",
+      "endpoint": "odds_api_fetch:basketball_wncaab"
+    }
+  ],
+  "last_call": 1774148096.5595763
+}

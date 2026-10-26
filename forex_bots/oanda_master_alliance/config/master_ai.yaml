@@ -1,0 +1,101 @@
+system:
+  name: OANDA Master Alliance
+  version: 1.0.0-segment1
+  practice_only: true
+  automatic_execution: false
+  timezone: America/New_York
+oanda:
+  environment: practice
+  request_timeout_seconds: 30
+  maximum_retries: 3
+  retry_delay_seconds: 2
+  price_component: M
+  daily_alignment: 17
+  alignment_timezone: America/New_York
+pairs:
+- EUR_USD
+- GBP_USD
+- USD_JPY
+- USD_CHF
+- AUD_USD
+- NZD_USD
+- USD_CAD
+timeframes:
+  context: H4
+  structure: H1
+  confirmation: M15
+  execution: M5
+candle_counts:
+  H4: 400
+  H1: 500
+  M15: 750
+  M5: 1000
+data_quality:
+  minimum_bars:
+    H4: 120
+    H1: 180
+    M15: 240
+    M5: 300
+  maximum_age_seconds:
+    H4: 32400
+    H1: 7200
+    M15: 1800
+    M5: 900
+  maximum_spread_pips:
+    EUR_USD: 2.0
+    GBP_USD: 2.5
+    USD_JPY: 2.0
+    USD_CHF: 2.5
+    AUD_USD: 2.5
+    NZD_USD: 3.0
+    USD_CAD: 2.5
+regime:
+  adx_trending: 23.0
+  adx_strong_trending: 30.0
+  adx_ranging: 18.0
+  minimum_trend_votes: 4
+  minimum_range_votes: 4
+  strong_trend_votes: 6
+  required_timeframe_confirmations: 2
+  strong_required_confirmations: 3
+  ema_fast: 20
+  ema_slow: 50
+  ema_context: 200
+  atr_period: 14
+  adx_period: 14
+  rsi_period: 14
+  bollinger_period: 20
+  bollinger_std: 2.0
+  compression_percentile_window: 100
+  compression_percentile: 0.2
+  expansion_percentile: 0.8
+sessions:
+  sydney:
+    start_utc: '21:00'
+    end_utc: 06:00
+  tokyo:
+    start_utc: '23:00'
+    end_utc: 08:00
+  london:
+    start_utc: 07:00
+    end_utc: '16:00'
+  new_york:
+    start_utc: '12:00'
+    end_utc: '21:00'
+risk:
+  risk_per_trade_pct: 0.35
+  strong_setup_risk_pct: 0.5
+  maximum_risk_per_trade_pct: 0.6
+  daily_loss_limit_r: 1.5
+  weekly_loss_limit_r: 4.0
+  maximum_open_risk_r: 2.5
+  maximum_positions: 5
+  maximum_same_currency_positions: 2
+  pause_after_losses: 3
+  pause_minutes: 60
+logging:
+  event_log: logs/master_ai_events.jsonl
+  error_log: logs/master_ai_errors.jsonl
+  market_snapshot: state/market_snapshot.json
+  regime_snapshot: state/regime_snapshot.json
+  currency_strength_snapshot: state/currency_strength.json

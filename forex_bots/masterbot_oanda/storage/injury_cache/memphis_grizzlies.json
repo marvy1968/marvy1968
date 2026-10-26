@@ -1,0 +1,28 @@
+{
+  "team": "Memphis Grizzlies",
+  "fetched_at_utc": "2026-04-01T03:17:43.969781+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Memphis Grizzlies",
+      "player": "Apr 3",
+      "position": "Out",
+      "status": "Mar 31: Jerome (ankle) has been ruled out for Wednesday's game against the Knicks.",
+      "est_return_date": "Jaylen Wells",
+      "comment": "F Oct 1 Out Mar 31: Wells (toe) underwent a successful procedure Tuesday to stabilize his right great toe. Zach Edey C Oct 1 Out Mar 25: The Grizzlies announced that Edey (ankle) underwent a procedure Tuesday to address lingering discomfort in his left elbow.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    },
+    {
+      "team": "Memphis Grizzlies",
+      "player": "Oct 1",
+      "position": "Out",
+      "status": "Mar 24: Clarke needs additional time to recover from a right calf strain and has been ruled out for the rest of the 2025-26 season.",
+      "est_return_date": "Santi Aldama",
+      "comment": "F Oct 1 Out Mar 15: Aldama will undergo a season-ending arthroscopic procedure and receive an orthobiologic injection to address discomfort in his right knee, Brett Siegel of ClutchPoints.com reports. Scotty Pippen Jr. G Oct 1",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.08
+}

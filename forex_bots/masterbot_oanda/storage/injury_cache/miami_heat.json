@@ -1,0 +1,18 @@
+{
+  "team": "Miami Heat",
+  "fetched_at_utc": "2026-04-01T03:17:43.969785+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Miami Heat",
+      "player": "Apr 4",
+      "position": "Out",
+      "status": "Mar 31: Powell (illness) is out for Wednesday's game against the 76ers.",
+      "est_return_date": "Terry Rozier",
+      "comment": "G Apr 15 Out Mar 19: The Heat are planning to release Rozier in the near future, Anthony Chiang of the Miami Herald reports.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

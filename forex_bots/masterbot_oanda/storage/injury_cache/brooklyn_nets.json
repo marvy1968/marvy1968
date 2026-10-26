@@ -1,0 +1,18 @@
+{
+  "team": "Brooklyn Nets",
+  "fetched_at_utc": "2026-04-01T03:17:43.969710+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Brooklyn Nets",
+      "player": "Apr 3",
+      "position": "Out",
+      "status": "Mar 30: Mann (Achilles) has been ruled out for Tuesday's game against the Hornets.",
+      "est_return_date": "Michael Porter Jr.",
+      "comment": "F Apr 9 Out Mar 19: An MRI confirmed a left hamstring strain for Porter and he will be re-evaluated in 2-3 weeks. Egor Demin G Oct 1 Out Mar 18: Demin underwent a non-surgical procedure to address plantar fasciitis in his left foot, and there's hope he will make a full recovery in time for NBA Summer League, Brian Lewis of the New York Post reports",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

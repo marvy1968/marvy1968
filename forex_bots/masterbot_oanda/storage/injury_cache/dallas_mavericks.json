@@ -1,0 +1,18 @@
+{
+  "team": "Dallas Mavericks",
+  "fetched_at_utc": "2026-04-01T03:17:43.969735+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Dallas Mavericks",
+      "player": "Apr 3",
+      "position": "Out",
+      "status": "Mar 31: Bagley (shoulder) is out for Tuesday's game against the Bucks.",
+      "est_return_date": "Caleb Martin",
+      "comment": "F Apr 3 Out Mar 31: Martin (heel) is out for Tuesday's game against the Bucks. Naji Marshall F Apr 3 Out Mar 31: Marshall (illness) is out for Tuesday's game against the Bucks. P.J. Washington F Apr 3 Out Mar 31: Washington (illness) is out for Tuesday's game against the Bucks.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

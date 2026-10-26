@@ -1,0 +1,6 @@
+CORRELATION_BLOCS = {
+    "USD_BLOC": ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CAD", "USD_CHF"],
+    "EUR_BLOC": ["EUR_USD", "EUR_GBP", "EUR_JPY", "EUR_AUD", "EUR_CAD"],
+    "JPY_BLOC": ["USD_JPY", "EUR_JPY", "GBP_JPY", "AUD_JPY"],
+    "GBP_BLOC": ["GBP_USD", "EUR_GBP", "GBP_JPY"]
+}

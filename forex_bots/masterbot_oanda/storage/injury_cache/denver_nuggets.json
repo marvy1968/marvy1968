@@ -1,0 +1,18 @@
+{
+  "team": "Denver Nuggets",
+  "fetched_at_utc": "2026-04-01T03:17:43.969748+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Denver Nuggets",
+      "player": "Apr 4",
+      "position": "Out",
+      "status": "Mar 31: Jones (hamstring) is out for Wednesday's game against the Jazz.",
+      "est_return_date": "Zeke Nnaji",
+      "comment": "F Apr 4 Out Mar 31: Nnaji is out for Wednesday's game against the Jazz due to a left hip sprain.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

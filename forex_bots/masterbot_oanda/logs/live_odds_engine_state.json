@@ -1,0 +1,46 @@
+{
+  "last_run": 1775015079.4390008,
+  "cycles": 1308,
+  "status": "running",
+  "last_alerts": [],
+  "sports": [],
+  "seen_games": {},
+  "last_alert_count": {
+    "Illinois Fighting Illini @ Vanderbilt Commodores": 0,
+    "USC Trojans @ South Carolina Gamecocks": 0,
+    "Oklahoma St Cowgirls @ UCLA Bruins": 0,
+    "Chicago Bulls @ Philadelphia 76ers": 0,
+    "Los Angeles Lakers @ Indiana Pacers": 0,
+    "Atlanta Hawks @ Detroit Pistons": 0,
+    "Oklahoma City Thunder @ Boston Celtics": 0,
+    "Miami Heat @ Cleveland Cavaliers": 0,
+    "San Antonio Spurs @ Memphis Grizzlies": 0,
+    "Washington Wizards @ Utah Jazz": 0,
+    "Houston Rockets @ Minnesota Timberwolves": 0,
+    "Brooklyn Nets @ Golden State Warriors": 0,
+    "Dallas Mavericks @ Denver Nuggets": 0,
+    "Milwaukee Bucks @ Portland Trail Blazers": 0,
+    "Texas Longhorns @ Purdue Boilermakers": 0,
+    "New York Knicks @ Charlotte Hornets": 0,
+    "Sacramento Kings @ Orlando Magic": 0,
+    "New Orleans Pelicans @ Detroit Pistons": 0,
+    "Iowa Hawkeyes @ Nebraska Cornhuskers": 0,
+    "Illinois Fighting Illini @ Houston Cougars": 1,
+    "Arkansas Razorbacks @ Arizona Wildcats": 2
+  },
+  "last_live_state": {
+    "Oklahoma St Cowgirls @ UCLA Bruins": {
+      "home_score": 64,
+      "away_score": 50,
+      "minutes_left": 8,
+      "seconds_left": 13,
+      "period": 4,
+      "status_detail": "8:13 - 4th Quarter"
+    }
+  },
+  "bankroll": {
+    "daily_pl": 0.0,
+    "active_risk": 0,
+    "total_units": 0
+  }
+}
