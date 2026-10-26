@@ -808,7 +808,7 @@ def _trade_stats(rets: pd.Series) -> str:
     return f"{len(rets)}t win {(rets > 0).mean():.0%} avg {rets.mean() * 100:+.2f}% PF {w / l if l > 0 else float('inf'):.2f}"
 
 
-def _curve_stats(ret: pd.Series) -> str:
+def _ret_curve_stats(ret: pd.Series) -> str:
     if len(ret) < 20:
         return "too short"
     eq = (1 + ret).cumprod()
@@ -868,7 +868,7 @@ def daily_anomalies_study(daily: dict, etfs: list, split: date, stocks_cost: flo
     bh = sp.pct_change().reindex(port.index)
     out.append("### B sector-ETF dual momentum (top 3 of the sector ETFs by 120-day return if > 0 and SPY 120-day > 0, rebalanced every 20 days) vs SPY buy-and-hold")
     for nm, i in (("train", 0), ("validate", 1)):
-        out.append(f"- {nm}: rotation {_curve_stats(half(port)[i])} | SPY buy-and-hold {_curve_stats(half(bh)[i])}")
+        out.append(f"- {nm}: rotation {_ret_curve_stats(half(port)[i])} | SPY buy-and-hold {_ret_curve_stats(half(bh)[i])}")
 
     # ---- C 52-week-high breakout (with and without the volume filter)
     def breakouts(volume_filter: bool) -> pd.Series:
