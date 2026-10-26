@@ -1,3 +1,7 @@
 $ gemini
-started 2026-10-26 15:00:43 EDT
-RUNNING...
+started 2026-10-26 15:00:43 EDT, took 0s, exit 1
+
+Gemini error 404: {
+  "error": {
+    "code": 404,
+    "message": "This model models/gemini-2.5-pro is no longer available to new users. Please update your code to use models/gemini-3.1-pro-preview for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/
