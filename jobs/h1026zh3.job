@@ -1,0 +1,2 @@
+# timeout 3000
+alpaca run-all --phase validate --families session_pullback_fx
