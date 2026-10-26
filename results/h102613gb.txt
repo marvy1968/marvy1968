@@ -1,0 +1,3 @@
+$ gemini
+started 2026-10-26 09:43:30 EDT
+RUNNING...
