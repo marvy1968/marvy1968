@@ -1,3 +1,24 @@
 $ alpaca run-all --phase validate --families eod_squeeze --month1
-started 2026-10-26 15:14:12 EDT
-RUNNING...
+started 2026-10-26 15:14:12 EDT, took 30s, exit 0
+
+daily data ready
+## eod_squeeze: no setting was profitable on the validate half: the end-of-day squeeze is not an edge here
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | top 10% of range & >2% over VWAP: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 10% of range & >2% over VWAP | 3x slippage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 20% & >1% over VWAP: 5t win 20% PF 0.36 avgR -0.73 daily -0.053% CAGR -6.6% maxDD -0.2%
+- train | top 20% & >1% over VWAP | 3x slippage: 5t win 20% PF 0.22 avgR -0.95 daily -0.063% CAGR -9.4% maxDD -0.3%
+- train | top 10% & >2%, 2 ATR stop: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 10% & >2%, 2 ATR stop | 3x slippage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% of range & >2% over VWAP: 1t win 100% PF inf avgR +1.40 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% of range & >2% over VWAP | 3x slippage: 1t win 100% PF inf avgR +1.19 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 20% & >1% over VWAP: 3t win 67% PF 5.85 avgR +0.77 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 20% & >1% over VWAP | 3x slippage: 3t win 67% PF 4.06 avgR +0.50 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% & >2%, 2 ATR stop: 1t win 100% PF inf avgR +0.70 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% & >2%, 2 ATR stop | 3x slippage: 1t win 100% PF inf avgR +0.59 daily +0.000% CAGR +0.0% maxDD 0.0%
+ALL DONE
