@@ -1,3 +1,5 @@
 $ show fx_paper/journal-20261026.jsonl
-started 2026-10-26 07:27:31 EDT
-RUNNING...
+started 2026-10-26 07:27:31 EDT, took 0s, exit 0
+
+{"t": "2026-10-26T03:32:39+00:00", "kind": "error", "where": "scan", "strategy": "conf_d1", "instrument": "GBP_USD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-26T03:33:14+00:00", "kind": "error", "where": "scan", "strategy": "conf_d1", "instrument": "USD_CAD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
