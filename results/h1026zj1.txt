@@ -1,3 +1,4 @@
 $ export-bot oanda_active /home/moonrider1968/bots/oanda_active
-started 2026-10-26 07:47:26 EDT
-RUNNING...
+started 2026-10-26 07:47:26 EDT, took 14s, exit 0
+
+exported 140 files, 1024 KB
