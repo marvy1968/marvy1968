@@ -1,0 +1,2 @@
+$ export-bot scalp_bot /home/moonrider1968/scalp_bot
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
