@@ -800,6 +800,145 @@ def sector_momentum_study(days: dict, sector_of: dict, train, validate, costs: C
     return out
 
 
+def _trade_stats(rets: pd.Series) -> str:
+    """n, win rate, mean %, PF of per-trade returns (a Series indexed by entry date)."""
+    if len(rets) == 0:
+        return "0 trades"
+    w, l = rets[rets > 0].sum(), -rets[rets < 0].sum()
+    return f"{len(rets)}t win {(rets > 0).mean():.0%} avg {rets.mean() * 100:+.2f}% PF {w / l if l > 0 else float('inf'):.2f}"
+
+
+def _curve_stats(ret: pd.Series) -> str:
+    if len(ret) < 20:
+        return "too short"
+    eq = (1 + ret).cumprod()
+    yrs = max(len(ret) / 252, 1e-9)
+    sd = ret.std()
+    return (f"CAGR {eq.iloc[-1] ** (1 / yrs) - 1:+.1%} Sharpe {ret.mean() / sd * np.sqrt(252) if sd > 0 else 0:.2f} "
+            f"maxDD {(eq / eq.cummax() - 1).min():.1%}")
+
+
+def daily_anomalies_study(daily: dict, etfs: list, split: date, stocks_cost: float = 0.0005, etf_cost: float = 0.0002) -> list[str]:
+    """Gemini round 2 (2026-10-26): five multi-day ideas on daily bars, each with ONE pre-declared setting and its own control, judged on the
+    halves before / after `split`. Costs are per side (stocks 5 bps, ETFs 2 bps). Entries after a close signal fill at the NEXT open.
+    A turn-of-month on SPY; B sector-ETF dual momentum (top 3 of 11 by 120-day return, 20-day hold) vs SPY buy-and-hold; C 52-week-high
+    breakout with volume > 2x its 50-day average (exit: close under the prior 10-day low) vs the same without the volume filter; D 12-1 momentum
+    (top third monthly) vs the equal-weight universe; E NR7 breakout, 3-day hold, vs every day."""
+    out = []
+    stocks = {s: d for s, d in daily.items() if s not in etfs and s != "SPY"}
+    half = lambda s: (s[s.index.date <= split], s[s.index.date > split])        # noqa: E731
+
+    # ---- A turn of the month on SPY
+    spy = daily["SPY"]
+    c = spy["close"]
+    key = pd.Series(list(zip(c.index.year, c.index.month)), index=c.index)
+    pos_in = c.groupby(key).cumcount()
+    n_in = c.groupby(key).transform("size")
+    ent = np.flatnonzero((n_in - pos_in == 4).to_numpy())
+    rets = {}
+    for i in ent:
+        nxt = np.flatnonzero(((pos_in == 2) & (c.index > c.index[i])).to_numpy())
+        if len(nxt):
+            rets[c.index[i]] = c.iloc[nxt[0]] / c.iloc[i] - 1 - 2 * etf_cost
+    tom = pd.Series(rets)
+    hold = int(np.median([int(np.flatnonzero(((pos_in == 2) & (c.index > c.index[i])).to_numpy())[0] - i) for i in ent[:40] if len(np.flatnonzero(((pos_in == 2) & (c.index > c.index[i])).to_numpy()))]) or 7)
+    win7 = (c.shift(-hold) / c - 1 - 2 * etf_cost).dropna()
+    out.append(f"### A turn-of-the-month SPY (buy 4th-to-last day's close, sell the 3rd trading day of the next month; ~{hold} days)")
+    for nm, (a, b) in (("train", half(tom)), ("validate", half(tom))):
+        wa, wb = half(win7)
+        ctl = (wa if nm == "train" else wb)
+        out.append(f"- {nm}: {_trade_stats(a if nm == 'train' else b)} | CONTROL every {hold}-day window: avg {ctl.mean() * 100:+.2f}%, win {(ctl > 0).mean():.0%}")
+
+    # ---- B sector ETF dual momentum
+    e = pd.DataFrame({s: daily[s]["close"] for s in etfs if s in daily}).dropna(how="any")
+    sp = daily["SPY"]["close"].reindex(e.index)
+    mom, spm = e.pct_change(120), sp.pct_change(120)
+    daily_ret = e.pct_change()
+    port, w_prev = pd.Series(0.0, index=e.index), pd.Series(0.0, index=e.columns)
+    for t in range(121, len(e) - 1, 20):
+        w = pd.Series(0.0, index=e.columns)
+        if spm.iloc[t] > 0:
+            top = mom.iloc[t].nlargest(3)
+            w[top[top > 0].index] = 1.0 / 3
+        seg = slice(t + 1, min(t + 21, len(e)))
+        port.iloc[seg] = (daily_ret.iloc[seg] * w).sum(axis=1).to_numpy()
+        port.iloc[t + 1] -= 2 * etf_cost * float((w - w_prev).abs().sum()) / 2
+        w_prev = w
+    port = port.iloc[121:]
+    bh = sp.pct_change().reindex(port.index)
+    out.append("### B sector-ETF dual momentum (top 3 of the sector ETFs by 120-day return if > 0 and SPY 120-day > 0, rebalanced every 20 days) vs SPY buy-and-hold")
+    for nm, i in (("train", 0), ("validate", 1)):
+        out.append(f"- {nm}: rotation {_curve_stats(half(port)[i])} | SPY buy-and-hold {_curve_stats(half(bh)[i])}")
+
+    # ---- C 52-week-high breakout (with and without the volume filter)
+    def breakouts(volume_filter: bool) -> pd.Series:
+        res = {}
+        for s, d in stocks.items():
+            if len(d) < 300:
+                continue
+            cl, op, lo = d["close"], d["open"], d["low"]
+            sig = cl >= cl.shift(1).rolling(252).max()
+            if volume_filter:
+                sig &= d["volume"] > 2 * d["volume"].rolling(50).mean()
+            exit_ = cl < lo.shift(1).rolling(10).min()
+            i, n = 0, len(d)
+            sg, ex = sig.fillna(False).to_numpy(), exit_.fillna(False).to_numpy()
+            while i < n - 2:
+                if sg[i]:
+                    e0 = i + 1
+                    j = e0 + 1
+                    while j < min(n - 1, e0 + 60) and not ex[j]:
+                        j += 1
+                    res[(d.index[e0], s)] = float(op.iloc[min(j + 1, n - 1)] / op.iloc[e0] - 1 - 2 * stocks_cost)
+                    i = j + 1
+                else:
+                    i += 1
+        return pd.Series({k: v for k, v in res.items()}).sort_index(level=0) if res else pd.Series(dtype=float)
+    out.append("### C 52-week-high breakout (next open; exit next open after a close under the prior 10-day low; max 60 days)")
+    for label, vf in (("with volume > 2x 50-day avg", True), ("CONTROL no volume filter", False)):
+        br = breakouts(vf)
+        idx = pd.Series(br.values, index=pd.to_datetime([k[0] for k in br.index])) if len(br) else br
+        for nm, i in (("train", 0), ("validate", 1)):
+            out.append(f"- {nm} | {label}: {_trade_stats(half(idx)[i] if len(idx) else idx)}")
+
+    # ---- D 12-1 momentum, top third monthly vs the equal-weight universe
+    px = pd.DataFrame({s: d["close"] for s, d in stocks.items()}).dropna(how="any")
+    fwd = px.shift(-21) / px - 1 - 2 * stocks_cost
+    sc = px.shift(21) / px.shift(252) - 1
+    rows = []
+    for t in range(252, len(px) - 21, 21):
+        r_ = sc.iloc[t].dropna()
+        top = r_.nlargest(max(len(r_) // 3, 1)).index
+        rows.append((px.index[t], fwd.iloc[t][top].mean(), fwd.iloc[t].mean()))
+    mo = pd.DataFrame(rows, columns=["d", "top", "all"]).set_index("d")
+    out.append("### D 12-1 momentum (top third of the universe by return from t-252 to t-21, held 21 days) vs the equal-weight universe")
+    for nm, i in (("train", 0), ("validate", 1)):
+        m_ = half(mo["top"])[i]
+        a_ = half(mo["all"])[i]
+        out.append(f"- {nm}: {len(m_)} months, top third avg {m_.mean() * 100:+.2f}%/month, universe avg {a_.mean() * 100:+.2f}%/month, "
+                   f"top beat the universe in {(m_ > a_).mean():.0%} of months")
+
+    # ---- E NR7 breakout, 3-day hold, vs every day
+    ne, base = {}, {}
+    for s, d in stocks.items():
+        rng_ = d["high"] - d["low"]
+        nr7 = rng_.shift(1) <= rng_.shift(1).rolling(7).min()
+        sig = (nr7 & (d["close"] > d["high"].shift(1))).fillna(False).to_numpy()
+        fr = (d["close"].shift(-3) / d["open"].shift(-1) - 1 - 2 * stocks_cost)
+        for i in np.flatnonzero(sig):
+            if i < len(d) - 4:
+                ne[(d.index[i], s)] = fr.iloc[i]
+        for t_, v in fr.dropna().items():
+            base[(t_, s)] = v
+    en = pd.Series(list(ne.values()), index=pd.to_datetime([k[0] for k in ne])) if ne else pd.Series(dtype=float)
+    bs = pd.Series(list(base.values()), index=pd.to_datetime([k[0] for k in base]))
+    out.append("### E NR7 breakout (yesterday the narrowest range of 7, today closes above yesterday's high; next open to the close 3 days later) vs every day")
+    for nm, i in (("train", 0), ("validate", 1)):
+        bb = half(bs)[i]
+        out.append(f"- {nm}: {_trade_stats(half(en)[i] if len(en) else en)} | CONTROL every stock-day: avg {bb.mean() * 100:+.2f}%, win {(bb > 0).mean():.0%}")
+    return out
+
+
 def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None,
                         ladder: dict | None = None) -> dict:
     """Owner's idea (2026-10-14, "trading the open"): the opening-range-breakout expert as an 11th expert on the live configuration

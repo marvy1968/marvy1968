@@ -2797,3 +2797,22 @@ class SectorMomentumStudyTests(unittest.TestCase):
         self.assertLess(tr["top 3, sector ETF > +0.5%"]["trades"], tr["top 3, sector ETF > +0.25%"]["trades"])
         self.assertLessEqual(tr["top 1, sector ETF > +0.5%"]["trades"], tr["top 3, sector ETF > +0.5%"]["trades"])
         self.assertIn("verdict", res)
+
+
+class DailyAnomaliesStudyTests(unittest.TestCase):
+    def test_all_five_sections_are_produced(self):
+        import datetime as dt
+        from alpacabot.research import daily_anomalies_study
+        rng = np.random.default_rng(1)
+        idx = pd.bdate_range("2014-01-01", "2026-10-01")
+
+        def mk(drift):
+            c = 100 * np.cumprod(1 + rng.normal(drift, 0.01, len(idx)))
+            return pd.DataFrame({"open": c, "high": c * 1.01, "low": c * 0.99, "close": c, "volume": rng.integers(1_000_000, 3_000_000, len(idx))}, index=idx)
+
+        etfs = ["XLK", "XLF", "XLE", "XLV"]
+        d = {s: mk(0.0003) for s in etfs + ["SPY", "AAA", "BBB", "CCC", "DDD"]}
+        text = "\n".join(daily_anomalies_study(d, etfs, dt.date(2020, 12, 31)))
+        for head in ("### A turn-of-the-month", "### B sector-ETF", "### C 52-week-high", "### D 12-1 momentum", "### E NR7"):
+            self.assertIn(head, text)
+        self.assertIn("CONTROL", text)

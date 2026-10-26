@@ -196,6 +196,17 @@ def run_all(a) -> int:
                     lines += [f"## gap_fade_fx: London-open fade of the Asian move, {label} ({a_} to {today}, H1, bid/ask)"] + gap_fade_check(h1, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "daily_anomalies":           # Gemini round 2 (2026-10-26): five multi-day ideas on daily bars (research.daily_anomalies_study)
+                import datetime as _dt
+                from .research import daily_anomalies_study
+                from .universe import SECTOR_ETFS, STOCKS
+                syms = sorted(set(STOCKS) | set(SECTOR_ETFS) | {"SPY"})
+                dd = {s: load(s, "1Day", _dt.date(2014, 1, 1), _dt.date.today(), cache) for s in syms}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                lines += ["## daily_anomalies: Gemini round-2 ideas on daily bars (train to 2020-12-31, validate 2021 on; costs 5 bps/side stocks, 2 bps ETFs)"]
+                lines += daily_anomalies_study(dd, [s for s in SECTOR_ETFS if s in dd], _dt.date(2020, 12, 31))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "exit_time_fx":              # owner 2026-10-25: time exits (his manual-close pattern) vs the 0.5R cut / 1.25R take-profit
                 import datetime as _dt
                 from fxbot.data import MAJORS
