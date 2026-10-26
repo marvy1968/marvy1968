@@ -1,3 +1,23 @@
 $ alpaca run-all --phase validate --families daily_anomalies
-started 2026-10-26 16:14:20 EDT
-RUNNING...
+started 2026-10-26 16:14:20 EDT, took 385s, exit 0
+
+daily data ready
+## daily_anomalies: Gemini round-2 ideas on daily bars (train to 2020-12-31, validate 2021 on; costs 5 bps/side stocks, 2 bps ETFs)
+### A turn-of-the-month SPY (buy 4th-to-last day's close, sell the 3rd trading day of the next month; ~6 days)
+- train: 60t win 65% avg +0.48% PF 1.91 | CONTROL every 6-day window: avg +0.35%, win 64%
+- validate: 69t win 58% avg +0.41% PF 1.62 | CONTROL every 6-day window: avg +0.31%, win 59%
+### B sector-ETF dual momentum (top 3 of the sector ETFs by 120-day return if > 0 and SPY 120-day > 0, rebalanced every 20 days) vs SPY buy-and-hold
+- train: rotation CAGR -5.2% Sharpe -0.15 maxDD -32.6% | SPY buy-and-hold CAGR +21.0% Sharpe 0.90 maxDD -33.8%
+- validate: rotation CAGR +8.1% Sharpe 0.61 maxDD -20.0% | SPY buy-and-hold CAGR +14.7% Sharpe 0.91 maxDD -24.5%
+### C 52-week-high breakout (next open; exit next open after a close under the prior 10-day low; max 60 days)
+- train | with volume > 2x 50-day avg: 185t win 48% avg +1.77% PF 2.05
+- validate | with volume > 2x 50-day avg: 190t win 45% avg +2.32% PF 1.89
+- train | CONTROL no volume filter: 548t win 47% avg +1.25% PF 1.63
+- validate | CONTROL no volume filter: 744t win 44% avg +1.42% PF 1.57
+### D 12-1 momentum (top third of the universe by return from t-252 to t-21, held 21 days) vs the equal-weight universe
+- train: 0 months, top third avg +nan%/month, universe avg +nan%/month, top beat the universe in nan% of months
+- validate: 18 months, top third avg +2.16%/month, universe avg +1.68%/month, top beat the universe in 50% of months
+### E NR7 breakout (yesterday the narrowest range of 7, today closes above yesterday's high; next open to the close 3 days later) vs every day
+- train: 3579t win 51% avg +0.02% PF 1.02 | CONTROL every stock-day: avg +0.09%, win 52%
+- validate: 4228t win 51% avg +0.00% PF 1.00 | CONTROL every stock-day: avg +0.09%, win 52%
+ALL DONE
