@@ -1,3 +1,28 @@
 $ alpaca run-all --phase validate --families eod_squeeze --months3
-started 2026-10-26 15:16:43 EDT
-RUNNING...
+started 2026-10-26 15:16:43 EDT, took 157s, exit 0
+
+daily data ready
+## eod_squeeze: no setting was profitable on the validate half: the end-of-day squeeze is not an edge here
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | top 10% of range & >2% over VWAP: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 10% of range & >2% over VWAP | 3x slippage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 20% & >1% over VWAP: 12t win 33% PF 0.26 avgR -0.52 daily -0.048% CAGR -12.5% maxDD -0.4%
+- train | top 20% & >1% over VWAP | 3x slippage: 12t win 25% PF 0.13 avgR -0.71 daily -0.064% CAGR -16.4% maxDD -0.5%
+- train | top 10% & >2%, 2 ATR stop: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | top 10% & >2%, 2 ATR stop | 3x slippage: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- train | CONTROL: every stock long at 15:10, no filter: 219t win 31% PF 0.59 avgR -0.35 daily -0.068% CAGR -16.1% maxDD -2.1%
+- train | CONTROL: every stock long at 15:10, no filter | 3x slippage: 287t win 16% PF 0.27 avgR -1.05 daily -0.267% CAGR -48.8% maxDD -8.0%
+- validate | top 10% of range & >2% over VWAP: 2t win 100% PF inf avgR +0.94 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% of range & >2% over VWAP | 3x slippage: 2t win 100% PF inf avgR +0.73 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 20% & >1% over VWAP: 13t win 46% PF 1.41 avgR -0.04 daily +0.014% CAGR +3.2% maxDD -0.2%
+- validate | top 20% & >1% over VWAP | 3x slippage: 13t win 38% PF 0.66 avgR -0.46 daily -0.011% CAGR -4.1% maxDD -0.3%
+- validate | top 10% & >2%, 2 ATR stop: 2t win 100% PF inf avgR +0.47 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | top 10% & >2%, 2 ATR stop | 3x slippage: 2t win 100% PF inf avgR +0.36 daily +0.000% CAGR +0.0% maxDD 0.0%
+- validate | CONTROL: every stock long at 15:10, no filter: 229t win 28% PF 0.44 avgR -0.50 daily -0.097% CAGR -21.6% maxDD -3.0%
+- validate | CONTROL: every stock long at 15:10, no filter | 3x slippage: 287t win 15% PF 0.15 avgR -1.17 daily -0.298% CAGR -53.0% maxDD -8.8%
+ALL DONE
