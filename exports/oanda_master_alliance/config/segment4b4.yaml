@@ -1,0 +1,52 @@
+segment4b4:
+  enabled: true
+  research_only: true
+  practice_only: true
+  live_environment_allowed: false
+  automatic_execution: false
+  practice_order_submission_enabled: false
+  broker_order_submission_enabled: false
+  campaign:
+    name: primary_shadow_campaign
+    target_closed_trades: 250
+    observation_checkpoint: 30
+    provisional_checkpoint: 50
+    advanced_checkpoint: 100
+    production_review_checkpoint: 250
+    cycle_interval_seconds: 60
+    idle_interval_seconds: 180
+    error_retry_seconds: 30
+    maximum_cycles_per_run: 0
+    maximum_consecutive_errors: 5
+    pause_after_consecutive_errors_minutes: 15
+  candidate_capture:
+    refresh_segment2: true
+    refresh_segment3: true
+    maximum_candidate_age_minutes: 20
+    require_risk_approval: true
+    require_authorization: true
+    require_positive_units: true
+    require_stop_price: true
+    require_target_price: true
+    require_minimum_reward_risk: true
+    minimum_reward_risk: 1.5
+  shadow_limits:
+    maximum_open_shadow_trades: 5
+    maximum_same_instrument_trades: 1
+    maximum_same_currency_exposure: 2
+    maximum_new_trades_per_cycle: 2
+    maximum_trade_age_hours: 72
+  files:
+    campaign_status: state/shadow_campaign/campaign_status.json
+    campaign_control: state/shadow_campaign/campaign_control.json
+    campaign_history: logs/shadow_campaign_cycles.jsonl
+    campaign_errors: logs/shadow_campaign_errors.jsonl
+    campaign_lock: state/shadow_campaign/campaign.lock
+    campaign_pid: state/shadow_campaign/campaign.pid
+    pause_file: state/shadow_campaign/PAUSED
+    shutdown_file: state/shadow_campaign/SHUTDOWN_REQUEST
+    report: reports/shadow_campaign/segment4b4_report.md
+    campaign_health: state/shadow_campaign/campaign_health.json
+  operations:
+    campaign_stall_seconds: 900
+    maximum_consecutive_errors: 5

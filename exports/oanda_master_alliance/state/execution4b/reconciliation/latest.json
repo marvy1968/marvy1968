@@ -1,0 +1,17 @@
+{
+  "account_id": "REDACTED_OANDA_ACCOUNT",
+  "automatic_execution": false,
+  "broker_orders": [],
+  "broker_positions": [],
+  "broker_trades": [],
+  "environment": "practice",
+  "issues": [],
+  "known_orders": 0,
+  "known_positions": 0,
+  "open_positions": 0,
+  "open_trades": 0,
+  "order_submission": false,
+  "passed": true,
+  "pending_orders": 0,
+  "timestamp": "2026-07-16T07:55:54.680355+00:00"
+}

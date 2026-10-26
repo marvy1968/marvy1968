@@ -1,0 +1,82 @@
+{
+  "authorizations": {
+    "53f58e4e8a4e4662fb777c68": {
+      "metadata": {
+        "authorization_id": "auth-04650584ea8e43be",
+        "instrument": "EUR_USD",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:56:11.083437+00:00"
+    },
+    "ab9458e1c38dde7a33849219": {
+      "metadata": {
+        "authorization_id": "auth-0a9bc7c060454a44",
+        "instrument": "EUR_USD",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:55:54.095872+00:00"
+    },
+    "cc9cf7882e9a76899dfd9886": {
+      "metadata": {
+        "authorization_id": "auth-d632ae4524bd4c9d",
+        "instrument": "EUR_USD",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:55:15.909355+00:00"
+    }
+  },
+  "broker_orders": {},
+  "order_intents": {
+    "7884817740adb8f8e28fbc55": {
+      "metadata": {
+        "instrument": "EUR_USD",
+        "intent_id": "verify-d632ae4524bd4c9d",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:55:15.906273+00:00"
+    },
+    "9dc88f53a890b82907781621": {
+      "metadata": {
+        "instrument": "EUR_USD",
+        "intent_id": "verify-0a9bc7c060454a44",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:55:54.090760+00:00"
+    },
+    "b68139fe0a5ced1c5985bd9c": {
+      "metadata": {
+        "instrument": "EUR_USD",
+        "intent_id": "verify-04650584ea8e43be",
+        "mode": "simulation_only",
+        "side": "buy"
+      },
+      "timestamp": "2026-07-16T07:56:11.080663+00:00"
+    }
+  },
+  "signals": {
+    "77ce4bd90782843acb413012": {
+      "metadata": {
+        "verification": true
+      },
+      "timestamp": "2026-07-16T06:38:04.955080+00:00"
+    },
+    "abaa812fd1266efd1d834cb4": {
+      "metadata": {
+        "verification": true
+      },
+      "timestamp": "2026-07-16T06:36:24.977167+00:00"
+    },
+    "e806c70b034758e3921b073e": {
+      "metadata": {
+        "verification": true
+      },
+      "timestamp": "2026-07-16T06:38:06.524008+00:00"
+    }
+  },
+  "updated_at": "2026-07-16T07:56:11.083454+00:00"
+}

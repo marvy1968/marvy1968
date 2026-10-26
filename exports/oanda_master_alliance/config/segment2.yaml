@@ -1,0 +1,77 @@
+segment2:
+  enabled: true
+  research_only: true
+  automatic_execution: false
+  minimum_expert_score: 55.0
+  minimum_alliance_score: 68.0
+  minimum_confirming_experts: 2
+  maximum_signals_per_cycle: 7
+  maximum_candidates_per_currency: 2
+  block_mixed_regime: true
+  block_stale_foundation: true
+  maximum_snapshot_age_minutes: 20
+  allow_countertrend: false
+
+timeframes:
+  context:
+    - H4
+    - H1
+  setup:
+    - M15
+  trigger:
+    - M5
+
+weights:
+  expert_consensus: 0.30
+  regime_alignment: 0.20
+  currency_strength: 0.15
+  multi_timeframe: 0.15
+  entry_quality: 0.10
+  reward_risk: 0.05
+  session_quality: 0.05
+
+risk:
+  research_risk_pct: 0.25
+  minimum_reward_risk: 1.50
+  preferred_reward_risk: 2.00
+  maximum_stop_atr: 2.50
+  minimum_stop_atr: 0.70
+  maximum_currency_exposure: 2
+  maximum_correlated_positions: 2
+
+overextension:
+  bullish_rsi_block: 82.0
+  bearish_rsi_block: 18.0
+  bullish_rsi_penalty: 72.0
+  bearish_rsi_penalty: 28.0
+  maximum_atr_percentile_for_chase: 0.95
+  wait_for_pullback_when_extended: true
+
+sessions:
+  asian:
+    quality: 0.70
+    preferred_pairs:
+      - USD_JPY
+      - AUD_USD
+      - NZD_USD
+  london:
+    quality: 1.00
+    preferred_pairs:
+      - EUR_USD
+      - GBP_USD
+      - USD_CHF
+  new_york:
+    quality: 0.95
+    preferred_pairs:
+      - EUR_USD
+      - GBP_USD
+      - USD_CAD
+      - USD_CHF
+      - USD_JPY
+  overlap:
+    quality: 1.00
+    preferred_pairs:
+      - EUR_USD
+      - GBP_USD
+      - USD_CAD
+      - USD_CHF

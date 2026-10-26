@@ -1,0 +1,17 @@
+{
+  "automatic_execution": false,
+  "eligible": false,
+  "enabled": true,
+  "failed_windows": 0,
+  "minimum_total_trades": 50,
+  "order_submission": false,
+  "passed": false,
+  "positive_expectancy_window_ratio": 0.0,
+  "profitable_window_ratio": 0.0,
+  "reasons": [
+    "insufficient_trades_for_walk_forward"
+  ],
+  "source_trades": 0,
+  "timestamp": "2026-07-16T15:25:29.822539+00:00",
+  "windows": []
+}

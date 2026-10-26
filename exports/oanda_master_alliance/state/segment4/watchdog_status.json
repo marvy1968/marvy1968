@@ -1,0 +1,20 @@
+{
+  "action": "none",
+  "action_reason": "",
+  "automatic_execution": false,
+  "automatic_restart_enabled": false,
+  "health": {},
+  "heartbeat_age_seconds": 450.993667,
+  "heartbeat_failures": 0,
+  "heartbeat_fresh": false,
+  "main_pid": null,
+  "main_process_running": false,
+  "order_submission": false,
+  "process_failures": 0,
+  "restarted_pid": null,
+  "signal_received": "",
+  "state": "stopped",
+  "timestamp": "2026-07-16T00:26:34.350537-04:00",
+  "watchdog_pid": 1157323,
+  "watchdog_running": false
+}

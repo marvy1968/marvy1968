@@ -1,0 +1,48 @@
+{
+  "automatic_execution": false,
+  "counter_snapshot": {
+    "automatic_execution": false,
+    "daily_count": 0,
+    "hourly_count": 0,
+    "maximum_orders_per_day": 8,
+    "maximum_orders_per_hour": 4,
+    "order_submission": false,
+    "timestamp": "2026-07-16T07:55:54.698998+00:00"
+  },
+  "environment": "practice",
+  "evaluated_candidates": 0,
+  "evaluations": [],
+  "execution_gate_allowed": false,
+  "execution_gate_reasons": [
+    "automatic_execution_disabled",
+    "practice_order_submission_disabled",
+    "activation_file_missing",
+    "manual_approval_missing"
+  ],
+  "mode": "simulation_only",
+  "orders_submitted": 0,
+  "practice_order_submission_enabled": false,
+  "reconciliation": {
+    "account_id": "REDACTED_OANDA_ACCOUNT",
+    "automatic_execution": false,
+    "broker_orders": [],
+    "broker_positions": [],
+    "broker_trades": [],
+    "environment": "practice",
+    "issues": [],
+    "known_orders": 0,
+    "known_positions": 0,
+    "open_positions": 0,
+    "open_trades": 0,
+    "order_submission": false,
+    "passed": true,
+    "pending_orders": 0,
+    "timestamp": "2026-07-16T07:55:54.680355+00:00"
+  },
+  "rejected_candidates": 0,
+  "segment": "4B-1-part3",
+  "segment3_candidates": 0,
+  "simulated_acceptances": 0,
+  "timestamp": "2026-07-16T07:55:54.689898+00:00",
+  "verified_simulated_fills": 0
+}

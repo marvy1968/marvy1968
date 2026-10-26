@@ -1,0 +1,30 @@
+{
+  "automatic_execution": false,
+  "current_metrics": {
+    "average_mae_r": 0.0,
+    "average_mfe_r": 0.0,
+    "expectancy_r": 0.0,
+    "gross_loss_r": 0,
+    "gross_profit_r": 0,
+    "longest_loss_streak": 0,
+    "longest_win_streak": 0,
+    "losses": 0,
+    "maximum_drawdown_r": 0.0,
+    "net_r": 0,
+    "profit_factor": 0.0,
+    "pushes": 0,
+    "trades": 0,
+    "win_rate": 0.0,
+    "wins": 0
+  },
+  "eligible_for_next_review": false,
+  "message": "This report does not enable practice or live trading.",
+  "minimum_required_trades": 30,
+  "order_submission": false,
+  "reasons": [
+    "insufficient_shadow_trades",
+    "profit_factor_below_minimum",
+    "expectancy_below_minimum"
+  ],
+  "timestamp": "2026-07-16T15:25:29.689249+00:00"
+}

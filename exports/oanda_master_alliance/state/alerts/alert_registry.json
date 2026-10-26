@@ -1,0 +1,60 @@
+{
+  "alerts": {
+    "4c72e609a156a7602ec7": {
+      "alert_id": "4c72e609a156a7602ec7",
+      "attempt_count": 77,
+      "delivery_count": 77,
+      "event_type": "maintenance_failure",
+      "last_attempted_at": "2026-10-02T04:16:28.350249-04:00",
+      "last_delivered_at": "2026-10-02T04:16:28.350249-04:00",
+      "severity": "error",
+      "suppressed_count": 0,
+      "title": "OANDA Master AI maintenance failed"
+    },
+    "a28c529c8d0739a68394": {
+      "alert_id": "a28c529c8d0739a68394",
+      "attempt_count": 76,
+      "delivery_count": 76,
+      "event_type": "health_failure",
+      "last_attempted_at": "2026-10-02T04:16:28.342766-04:00",
+      "last_delivered_at": "2026-10-02T04:16:28.342766-04:00",
+      "severity": "critical",
+      "suppressed_count": 0,
+      "title": "Segment 4 health failure"
+    },
+    "c4b502ef1f7499e36a37": {
+      "alert_id": "c4b502ef1f7499e36a37",
+      "attempt_count": 1,
+      "delivery_count": 1,
+      "event_type": "manual_test",
+      "last_attempted_at": "2026-07-16T01:50:33.943873-04:00",
+      "last_delivered_at": "2026-07-16T01:50:33.943873-04:00",
+      "severity": "warning",
+      "suppressed_count": 0,
+      "title": "OANDA Master AI alert test"
+    },
+    "db23363fdbc106e0903e": {
+      "alert_id": "db23363fdbc106e0903e",
+      "attempt_count": 79,
+      "delivery_count": 79,
+      "event_type": "backup_failure",
+      "last_attempted_at": "2026-10-02T04:16:28.348663-04:00",
+      "last_delivered_at": "2026-10-02T04:16:28.348663-04:00",
+      "severity": "error",
+      "suppressed_count": 0,
+      "title": "OANDA Master AI backup failed"
+    },
+    "e5953d70b96e54c62ffc": {
+      "alert_id": "e5953d70b96e54c62ffc",
+      "attempt_count": 2,
+      "delivery_count": 2,
+      "event_type": "health_failure",
+      "last_attempted_at": "2026-08-29T04:15:41.733032-04:00",
+      "last_delivered_at": "2026-08-29T04:15:41.733032-04:00",
+      "severity": "critical",
+      "suppressed_count": 0,
+      "title": "Segment 4 health failure"
+    }
+  },
+  "updated_at": "2026-10-02T04:16:28.350249-04:00"
+}

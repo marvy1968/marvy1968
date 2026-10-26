@@ -1,0 +1,14 @@
+[Unit]
+Description=OANDA Master AI Shadow Campaign Alert Check
+
+[Service]
+Type=oneshot
+User=moonrider1968
+WorkingDirectory=/home/moonrider1968/oanda_master_alliance
+ExecStart=/home/moonrider1968/oanda_master_alliance/.venv/bin/python \
+/home/moonrider1968/oanda_master_alliance/run_segment4b4_checkpoint_alerts.py
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false

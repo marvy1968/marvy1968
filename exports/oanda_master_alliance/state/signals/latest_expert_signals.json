@@ -1,0 +1,1144 @@
+{
+  "timestamp": "2026-07-16T18:58:38.441643+00:00",
+  "research_only": true,
+  "automatic_execution": false,
+  "signals": [
+    {
+      "expert": "velez",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 60.0,
+      "status": "candidate",
+      "setup": "price_action_context",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.6,
+      "reasons": [
+        "price_action_context_evaluated",
+        "signal_bar_direction_confirmed"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.08695652173923538
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 67.0,
+      "status": "candidate",
+      "setup": "bollinger_structure",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.67,
+      "reasons": [
+        "compression_or_transition",
+        "band_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 0.69944,
+        "upper_band": 0.7011131752193833,
+        "lower_band": 0.6986318247806165,
+        "width_percentile": 0.73
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 37.0,
+      "status": "watch",
+      "setup": "range_contraction_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.37,
+      "reasons": [
+        "regime_supports_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": false,
+        "inside_bar": false,
+        "latest_range": 0.00022999999999995246,
+        "atr_percentile": 0.02
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "AUD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.69947,
+      "stop_price": 0.69947,
+      "target_price": 0.69947,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "velez",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 60.0,
+      "status": "candidate",
+      "setup": "price_action_context",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.6,
+      "reasons": [
+        "price_action_context_evaluated",
+        "signal_bar_direction_confirmed"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.5500000000003331
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 25.0,
+      "status": "watch",
+      "setup": "bollinger_structure",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.25,
+      "reasons": [],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 1.14377,
+        "upper_band": 1.1451401568899535,
+        "lower_band": 1.1429808431100463,
+        "width_percentile": 0.62
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 50.0,
+      "status": "watch",
+      "setup": "range_contraction_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.5,
+      "reasons": [
+        "nr7_contraction"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": true,
+        "inside_bar": false,
+        "latest_range": 0.00019999999999997797,
+        "atr_percentile": 0.01
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "EUR_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.14376,
+      "stop_price": 1.14376,
+      "target_price": 1.14376,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "velez",
+      "instrument": "GBP_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.34688,
+      "stop_price": 1.34688,
+      "target_price": 1.34688,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "insufficient_mtf_alignment"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "score": 82.0,
+      "status": "candidate",
+      "setup": "momentum_expansion",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "momentum_reentry",
+      "entry_price": 1.34688,
+      "stop_price": 1.347612931605515,
+      "target_price": 1.3454141367889703,
+      "reward_risk": 2.0,
+      "confidence": 0.82,
+      "reasons": [
+        "momentum_timeframes_aligned",
+        "healthy_volatility_expansion",
+        "adx_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "aligned_timeframes": 2,
+        "atr_percentile": 0.55,
+        "adx": 36.72767462022774,
+        "volume_ratio": 0.47013590163310365
+      }
+    },
+    {
+      "expert": "brooks",
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "score": 37.0,
+      "status": "watch",
+      "setup": "price_action_context",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 1.34688,
+      "stop_price": 1.347679561751471,
+      "target_price": 1.345480766934926,
+      "reward_risk": 1.75,
+      "confidence": 0.37,
+      "reasons": [
+        "price_action_context_evaluated",
+        "no_decisive_signal_bar",
+        "context_supports_follow_through"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.26086956521722343
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "GBP_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.34688,
+      "stop_price": 1.34688,
+      "target_price": 1.34688,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "score": 49.0,
+      "status": "watch",
+      "setup": "bollinger_structure",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 1.34688,
+      "stop_price": 1.3476462466784929,
+      "target_price": 1.345480766934926,
+      "reward_risk": 1.8260869565220919,
+      "confidence": 0.49,
+      "reasons": [
+        "below_band_midzone",
+        "band_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 1.34686,
+        "upper_band": 1.3510273525626297,
+        "lower_band": 1.3449486474373706,
+        "width_percentile": 0.81
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "score": 62.0,
+      "status": "candidate",
+      "setup": "range_contraction_breakout",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 1.34688,
+      "stop_price": 1.347546301459559,
+      "target_price": 1.3454141367889703,
+      "reward_risk": 2.2000000000002666,
+      "confidence": 0.62,
+      "reasons": [
+        "nr7_contraction",
+        "regime_supports_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": true,
+        "inside_bar": false,
+        "latest_range": 0.00022999999999995246,
+        "atr_percentile": 0.01
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "score": 88.0,
+      "status": "candidate",
+      "setup": "volatility_breakout",
+      "regime": "trending",
+      "session": "new_york",
+      "entry_style": "volatility_relative_trigger",
+      "entry_price": 1.34688,
+      "stop_price": 1.3476462466784929,
+      "target_price": 1.3453475066430143,
+      "reward_risk": 2.00000000000029,
+      "confidence": 0.88,
+      "reasons": [
+        "pair_momentum_aligned",
+        "h1_volatility_supportive",
+        "price_slope_aligned"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "pair_momentum": -0.004405286343612258,
+        "h1_atr_percentile": 0.62,
+        "m15_price_slope": -0.0032340904213198234
+      }
+    },
+    {
+      "expert": "velez",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 60.0,
+      "status": "candidate",
+      "setup": "price_action_context",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.6,
+      "reasons": [
+        "price_action_context_evaluated",
+        "signal_bar_direction_confirmed"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.4285714285709754
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 37.0,
+      "status": "watch",
+      "setup": "bollinger_structure",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.37,
+      "reasons": [
+        "band_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 0.58415,
+        "upper_band": 0.5853894324813254,
+        "lower_band": 0.5831345675186745,
+        "width_percentile": 0.73
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 25.0,
+      "status": "watch",
+      "setup": "range_contraction_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.25,
+      "reasons": [],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": false,
+        "inside_bar": false,
+        "latest_range": 0.000280000000000058,
+        "atr_percentile": 0.01
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "NZD_USD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.58415,
+      "stop_price": 0.58415,
+      "target_price": 0.58415,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "velez",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 75.0,
+      "status": "candidate",
+      "setup": "price_action_context",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.75,
+      "reasons": [
+        "price_action_context_evaluated",
+        "signal_bar_direction_confirmed",
+        "decisive_signal_body"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.7352941176472894
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 67.0,
+      "status": "candidate",
+      "setup": "bollinger_structure",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.67,
+      "reasons": [
+        "compression_or_transition",
+        "band_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 1.40506,
+        "upper_band": 1.406399553110467,
+        "lower_band": 1.401899446889533,
+        "width_percentile": 0.94
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 37.0,
+      "status": "watch",
+      "setup": "range_contraction_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.37,
+      "reasons": [
+        "regime_supports_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": false,
+        "inside_bar": false,
+        "latest_range": 0.00034000000000000696,
+        "atr_percentile": 0.14
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "USD_CAD",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 1.40499,
+      "stop_price": 1.40499,
+      "target_price": 1.40499,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "velez",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "price_action_context",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "signal_bar_opposes_context"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "connors",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 55.0,
+      "status": "candidate",
+      "setup": "bollinger_structure",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.55,
+      "reasons": [
+        "compression_or_transition"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 0.80901,
+        "upper_band": 0.8097244232939417,
+        "lower_band": 0.8077135767060583,
+        "width_percentile": 0.5
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 62.0,
+      "status": "candidate",
+      "setup": "range_contraction_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.62,
+      "reasons": [
+        "nr7_contraction",
+        "regime_supports_expansion"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": true,
+        "inside_bar": false,
+        "latest_range": 0.000160000000000049,
+        "atr_percentile": 0.01
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "USD_CHF",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "compression",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 0.80898,
+      "stop_price": 0.80898,
+      "target_price": 0.80898,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "velez",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "trend_pullback",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "regime_not_trending"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "raschke",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "momentum_expansion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "brooks",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 60.0,
+      "status": "candidate",
+      "setup": "price_action_context",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "signal_bar_follow_through",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.6,
+      "reasons": [
+        "price_action_context_evaluated",
+        "signal_bar_direction_confirmed"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "signal_side": "flat",
+        "body_ratio": 0.1428571428578679
+      }
+    },
+    {
+      "expert": "connors",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "short_term_mean_reversion",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_mean_reversion_extreme"
+      ],
+      "metadata": {}
+    },
+    {
+      "expert": "bollinger",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 25.0,
+      "status": "watch",
+      "setup": "bollinger_structure",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "band_expansion_confirmation",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.25,
+      "reasons": [],
+      "rejection_reasons": [],
+      "metadata": {
+        "close": 162.394,
+        "upper_band": 162.5314248680734,
+        "lower_band": 162.3371751319266,
+        "width_percentile": 0.53
+      }
+    },
+    {
+      "expert": "crabel",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 45.0,
+      "status": "watch",
+      "setup": "range_contraction_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "contraction_breakout",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.45,
+      "reasons": [
+        "inside_bar_contraction"
+      ],
+      "rejection_reasons": [],
+      "metadata": {
+        "nr7": false,
+        "inside_bar": true,
+        "latest_range": 0.027999999999991587,
+        "atr_percentile": 0.01
+      }
+    },
+    {
+      "expert": "williams",
+      "instrument": "USD_JPY",
+      "side": "flat",
+      "score": 0.0,
+      "status": "rejected",
+      "setup": "volatility_breakout",
+      "regime": "mixed",
+      "session": "new_york",
+      "entry_style": "none",
+      "entry_price": 162.4,
+      "stop_price": 162.4,
+      "target_price": 162.4,
+      "reward_risk": 0.0,
+      "confidence": 0.0,
+      "reasons": [],
+      "rejection_reasons": [
+        "no_direction"
+      ],
+      "metadata": {}
+    }
+  ]
+}

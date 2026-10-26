@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-07-16T18:58:39.066287+00:00",
+  "environment": "practice",
+  "practice_only": true,
+  "automatic_execution": false,
+  "practice_order_submission_enabled": false,
+  "submit_requested": false,
+  "shortlist_age_minutes": 0.0074432,
+  "evaluated_candidates": 1,
+  "risk_approved_candidates": 1,
+  "submitted_orders": 0,
+  "realized_daily_r": 0.0,
+  "realized_weekly_r": 0.0,
+  "consecutive_losses": 0,
+  "results": [
+    {
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "alliance_score": 76.42,
+      "risk": {
+        "approved": true,
+        "instrument": "GBP_USD",
+        "side": "sell",
+        "reasons": [],
+        "warnings": [],
+        "risk_pct": 0.35,
+        "open_risk_r": 0,
+        "position_size": {
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "equity": 75879.2928,
+          "risk_pct": 0.35,
+          "risk_amount": 265.57752479999994,
+          "entry_price": 1.34688,
+          "stop_price": 1.347626257634706,
+          "stop_distance": 0.0007462576347059269,
+          "stop_pips": 7.462576347059269,
+          "pip_size": 0.0001,
+          "estimated_pip_value_per_unit": 0.0001,
+          "units": 100000,
+          "signed_units": -100000
+        }
+      },
+      "authorization": {
+        "timestamp": "2026-07-16T18:58:39.066259+00:00",
+        "authorized": true,
+        "authorization_id": "45e47de6cdb7fda72b1d",
+        "instrument": "GBP_USD",
+        "side": "sell",
+        "mode": "research_preview",
+        "reasons": []
+      },
+      "order": {
+        "status": "research_preview",
+        "message": "Risk approved. No order submitted."
+      }
+    }
+  ]
+}

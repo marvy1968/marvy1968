@@ -1,0 +1,181 @@
+{
+  "timestamp": "2026-07-16T18:58:38.441643+00:00",
+  "research_only": true,
+  "automatic_execution": false,
+  "decisions": [
+    {
+      "instrument": "GBP_USD",
+      "side": "sell",
+      "decision": "candidate",
+      "alliance_score": 76.42,
+      "confidence": 0.7642,
+      "confirming_experts": 3,
+      "opposing_experts": 0,
+      "regime": "trending",
+      "session": "new_york",
+      "entry_price": 1.34688,
+      "stop_price": 1.347626257634706,
+      "target_price": 1.3454274628181613,
+      "reward_risk": 1.9552173913045299,
+      "expert_signals": [
+        {
+          "expert": "raschke",
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "score": 82.0,
+          "status": "candidate",
+          "setup": "momentum_expansion",
+          "regime": "trending",
+          "session": "new_york",
+          "entry_style": "momentum_reentry",
+          "entry_price": 1.34688,
+          "stop_price": 1.347612931605515,
+          "target_price": 1.3454141367889703,
+          "reward_risk": 2.0,
+          "confidence": 0.82,
+          "reasons": [
+            "momentum_timeframes_aligned",
+            "healthy_volatility_expansion",
+            "adx_expansion"
+          ],
+          "rejection_reasons": [],
+          "metadata": {
+            "aligned_timeframes": 2,
+            "atr_percentile": 0.55,
+            "adx": 36.72767462022774,
+            "volume_ratio": 0.47013590163310365
+          }
+        },
+        {
+          "expert": "brooks",
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "score": 37.0,
+          "status": "watch",
+          "setup": "price_action_context",
+          "regime": "trending",
+          "session": "new_york",
+          "entry_style": "signal_bar_follow_through",
+          "entry_price": 1.34688,
+          "stop_price": 1.347679561751471,
+          "target_price": 1.345480766934926,
+          "reward_risk": 1.75,
+          "confidence": 0.37,
+          "reasons": [
+            "price_action_context_evaluated",
+            "no_decisive_signal_bar",
+            "context_supports_follow_through"
+          ],
+          "rejection_reasons": [],
+          "metadata": {
+            "signal_side": "flat",
+            "body_ratio": 0.26086956521722343
+          }
+        },
+        {
+          "expert": "bollinger",
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "score": 49.0,
+          "status": "watch",
+          "setup": "bollinger_structure",
+          "regime": "trending",
+          "session": "new_york",
+          "entry_style": "band_expansion_confirmation",
+          "entry_price": 1.34688,
+          "stop_price": 1.3476462466784929,
+          "target_price": 1.345480766934926,
+          "reward_risk": 1.8260869565220919,
+          "confidence": 0.49,
+          "reasons": [
+            "below_band_midzone",
+            "band_expansion"
+          ],
+          "rejection_reasons": [],
+          "metadata": {
+            "close": 1.34686,
+            "upper_band": 1.3510273525626297,
+            "lower_band": 1.3449486474373706,
+            "width_percentile": 0.81
+          }
+        },
+        {
+          "expert": "crabel",
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "score": 62.0,
+          "status": "candidate",
+          "setup": "range_contraction_breakout",
+          "regime": "trending",
+          "session": "new_york",
+          "entry_style": "contraction_breakout",
+          "entry_price": 1.34688,
+          "stop_price": 1.347546301459559,
+          "target_price": 1.3454141367889703,
+          "reward_risk": 2.2000000000002666,
+          "confidence": 0.62,
+          "reasons": [
+            "nr7_contraction",
+            "regime_supports_expansion"
+          ],
+          "rejection_reasons": [],
+          "metadata": {
+            "nr7": true,
+            "inside_bar": false,
+            "latest_range": 0.00022999999999995246,
+            "atr_percentile": 0.01
+          }
+        },
+        {
+          "expert": "williams",
+          "instrument": "GBP_USD",
+          "side": "sell",
+          "score": 88.0,
+          "status": "candidate",
+          "setup": "volatility_breakout",
+          "regime": "trending",
+          "session": "new_york",
+          "entry_style": "volatility_relative_trigger",
+          "entry_price": 1.34688,
+          "stop_price": 1.3476462466784929,
+          "target_price": 1.3453475066430143,
+          "reward_risk": 2.00000000000029,
+          "confidence": 0.88,
+          "reasons": [
+            "pair_momentum_aligned",
+            "h1_volatility_supportive",
+            "price_slope_aligned"
+          ],
+          "rejection_reasons": [],
+          "metadata": {
+            "pair_momentum": -0.004405286343612258,
+            "h1_atr_percentile": 0.62,
+            "m15_price_slope": -0.0032340904213198234
+          }
+        }
+      ],
+      "reasons": [
+        "expert_score=63.6",
+        "regime_score=85.0",
+        "strength_score=100.0",
+        "timeframe_score=50.0",
+        "entry_score=82.0",
+        "session_score=95.0"
+      ],
+      "rejection_reasons": [],
+      "risk_notes": [
+        "research_only",
+        "no_order_placement",
+        "practice_environment",
+        "entry_quality_acceptable"
+      ],
+      "metadata": {
+        "strength_difference": -3.438966061116904,
+        "context_direction": "down",
+        "context_confidence": 0.5,
+        "context_confirmations": 2,
+        "overextension_penalty": 0.0
+      }
+    }
+  ]
+}

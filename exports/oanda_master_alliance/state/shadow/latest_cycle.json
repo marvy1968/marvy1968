@@ -1,0 +1,14 @@
+{
+  "automatic_execution": false,
+  "candidates_approved": 0,
+  "candidates_loaded": 0,
+  "closed_trade_count": 0,
+  "errors": [],
+  "open_trade_count": 0,
+  "open_trades_checked": 0,
+  "order_submission": false,
+  "successful": true,
+  "timestamp": "2026-07-16T15:25:29.691858+00:00",
+  "trades_closed": 0,
+  "trades_opened": 0
+}

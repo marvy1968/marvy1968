@@ -1,0 +1,116 @@
+{
+  "alert_id": "4c72e609a156a7602ec7",
+  "automatic_execution": false,
+  "delivered": true,
+  "delivery_channels": [
+    "console",
+    "file"
+  ],
+  "errors": [],
+  "event_type": "maintenance_failure",
+  "message": "One or more maintenance or integrity checks failed.",
+  "metadata": {
+    "actions": [
+      {
+        "affected_files": [],
+        "message": "Removed 0 old files.",
+        "name": "old_jsonl_cleanup",
+        "successful": true
+      },
+      {
+        "affected_files": [],
+        "message": "Removed 0 old files.",
+        "name": "old_console_log_cleanup",
+        "successful": true
+      },
+      {
+        "affected_files": [],
+        "message": "Removed 0 old files.",
+        "name": "old_report_cleanup",
+        "successful": true
+      },
+      {
+        "affected_files": [],
+        "message": "Removed 0 old files.",
+        "name": "old_backup_cleanup",
+        "successful": true
+      },
+      {
+        "affected_files": [],
+        "message": "PermissionError: [Errno 13] Permission denied: '/home/moonrider1968/oanda_master_alliance/logs/segment4_systemd.log'",
+        "name": "compress_old_logs",
+        "successful": false
+      },
+      {
+        "affected_files": [],
+        "message": "Rotated 0 oversized logs.",
+        "name": "oversized_log_rotation",
+        "successful": true
+      }
+    ],
+    "automatic_execution": false,
+    "free_disk_mb": 33248.03,
+    "integrity": {
+      "automatic_execution": false,
+      "checks": [
+        {
+          "message": "All required files are present.",
+          "metadata": {
+            "missing": [],
+            "required_count": 16
+          },
+          "name": "required_files",
+          "passed": true
+        },
+        {
+          "message": "YAML configuration is valid.",
+          "metadata": {
+            "errors": {}
+          },
+          "name": "yaml_configuration",
+          "passed": true
+        },
+        {
+          "message": "Python compilation passed.",
+          "metadata": {},
+          "name": "python_compilation",
+          "passed": true
+        },
+        {
+          "message": "Safety configuration passed.",
+          "metadata": {
+            "checks": {
+              "automatic_execution_disabled": true,
+              "live_environment_blocked": true,
+              "order_submission_disabled": true,
+              "practice_only": true
+            },
+            "passed": true
+          },
+          "name": "safety_configuration",
+          "passed": true
+        },
+        {
+          "message": "Integrity manifest generated.",
+          "metadata": {
+            "file_count": 16,
+            "path": "/home/moonrider1968/oanda_master_alliance/state/segment4a3/integrity_manifest.json"
+          },
+          "name": "integrity_manifest",
+          "passed": true
+        }
+      ],
+      "order_submission": false,
+      "passed": true,
+      "timestamp": "2026-10-02T03:21:45.539193-04:00"
+    },
+    "order_submission": false,
+    "successful": false,
+    "timestamp": "2026-10-02T03:21:42.964166-04:00"
+  },
+  "order_submission": false,
+  "severity": "error",
+  "suppressed": false,
+  "timestamp": "2026-10-02T04:16:28.350249-04:00",
+  "title": "OANDA Master AI maintenance failed"
+}

@@ -1,0 +1,11 @@
+{
+  "campaign_enabled": true,
+  "manual_pause": false,
+  "stop_at_observation_checkpoint": false,
+  "stop_at_provisional_checkpoint": false,
+  "stop_at_advanced_checkpoint": false,
+  "stop_at_production_review_checkpoint": true,
+  "automatic_promotion": false,
+  "automatic_execution": false,
+  "order_submission": false
+}

@@ -1,0 +1,18 @@
+{
+  "automatic_execution": false,
+  "expected_units": 10000,
+  "filled_units": 10000,
+  "instrument": "EUR_USD",
+  "intent_id": "verify-04650584ea8e43be",
+  "mode": "simulation_only",
+  "order_submission": false,
+  "partial_fill": false,
+  "passed": true,
+  "reasons": [],
+  "side": "buy",
+  "stop_attached": true,
+  "target_attached": true,
+  "timestamp": "2026-07-16T07:56:11.089715+00:00",
+  "trade_opened": true,
+  "warnings": []
+}

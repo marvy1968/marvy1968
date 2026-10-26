@@ -1,0 +1,16 @@
+{
+  "component": "segment4_recovery",
+  "duplicate_registry": {
+    "authorizations": 0,
+    "enabled": true,
+    "orders": 0,
+    "signals": 0,
+    "timestamp": "2026-07-16T01:58:28.107399-04:00"
+  },
+  "hostname": "instance-stockbot",
+  "open_positions": 0,
+  "pending_orders": 0,
+  "pid": 1164418,
+  "recovery_passed": true,
+  "timestamp": "2026-07-16T01:58:28.122524-04:00"
+}

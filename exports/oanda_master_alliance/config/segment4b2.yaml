@@ -1,0 +1,90 @@
+segment4b2:
+  enabled: true
+  research_only: true
+  practice_only: true
+  live_environment_allowed: false
+
+  automatic_execution: false
+  practice_order_submission_enabled: false
+  actual_order_submission_enabled: false
+
+  capture:
+    source_status_file: "state/execution/segment3_status.json"
+    allow_segment4b1_status_fallback: true
+    segment4b1_status_file: "state/execution4b/execution_status.json"
+    minimum_alliance_score: 72.0
+    minimum_confirming_experts: 2
+    minimum_reward_risk: 1.50
+    maximum_candidate_age_minutes: 30
+    require_risk_approval: true
+    require_authorization: true
+    require_valid_stop: true
+    require_valid_target: true
+    maximum_new_shadow_trades_per_cycle: 3
+    duplicate_window_hours: 12
+
+  shadow_execution:
+    entry_mode: "candidate_entry"
+    use_current_price_when_available: false
+    simulated_slippage_pips: 0.20
+    simulated_spread_pips:
+      EUR_USD: 1.0
+      GBP_USD: 1.3
+      USD_JPY: 1.1
+      USD_CHF: 1.2
+      AUD_USD: 1.1
+      NZD_USD: 1.4
+      USD_CAD: 1.3
+
+  monitoring:
+    enabled: true
+    pricing_source: "oanda_read_only"
+    maximum_trade_age_hours: 72
+    stale_trade_warning_hours: 48
+    close_on_stop: true
+    close_on_target: true
+    stop_has_priority_when_both_touched: true
+    maximum_price_age_seconds: 120
+    mark_to_market_open_positions: true
+
+  settlement:
+    use_candle_history_for_missed_cycles: true
+    candle_granularity: "M5"
+    candle_count: 500
+    same_candle_stop_target_policy: "stop_first"
+    record_excursion_metrics: true
+
+  performance:
+    initial_shadow_equity: 10000.0
+    risk_unit_value: 100.0
+    rolling_windows:
+      - 20
+      - 50
+      - 100
+    minimum_trades_for_expert_score: 10
+    minimum_trades_for_pair_score: 10
+    minimum_trades_for_setup_score: 10
+    minimum_profit_factor: 1.20
+    minimum_expectancy_r: 0.10
+    maximum_drawdown_r: 10.0
+    maximum_loss_streak: 5
+
+  storage:
+    queue: "state/shadow/candidate_queue.json"
+    open_trades: "state/shadow/open_trades.json"
+    closed_trades: "state/shadow/closed_trades.json"
+    latest_cycle: "state/shadow/latest_cycle.json"
+    duplicate_registry: "state/shadow/duplicate_registry.json"
+    equity_curve: "state/shadow/equity_curve.json"
+    performance_summary: "state/shadow/performance_summary.json"
+    expert_performance: "state/shadow/expert_performance.json"
+    pair_performance: "state/shadow/pair_performance.json"
+    setup_performance: "state/shadow/setup_performance.json"
+    promotion_report: "state/shadow/promotion_report.json"
+
+  logs:
+    candidate_history: "logs/shadow_candidates.jsonl"
+    open_history: "logs/shadow_opened.jsonl"
+    settlement_history: "logs/shadow_settled.jsonl"
+    cycle_history: "logs/shadow_cycles.jsonl"
+    error_history: "logs/shadow_errors.jsonl"

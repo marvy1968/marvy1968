@@ -1,0 +1,28 @@
+{
+  "consecutive_errors": 5,
+  "cycle_number": 661,
+  "daemon_running": false,
+  "details": {
+    "force_session": false,
+    "last_cycle": {
+      "cycle_id": "a34d0cf4c0564d19a9eb",
+      "duration_seconds": 4.6866,
+      "error": "stage_failed:segment2_alliance:command_returned_nonzero",
+      "finished_at": "2026-07-16T15:02:05.110874-04:00",
+      "orders_submitted": 0,
+      "risk_approved_candidates": 1,
+      "session_reason": "session_allowed",
+      "shortlist_count": 1,
+      "started_at": "2026-07-16T15:02:00.424213-04:00",
+      "successful": false
+    },
+    "once": false,
+    "signal_received": ""
+  },
+  "last_cycle_successful": false,
+  "paused": true,
+  "session_allowed": true,
+  "shutdown_requested": false,
+  "state": "stopped",
+  "timestamp": "2026-07-16T15:02:07.133927-04:00"
+}

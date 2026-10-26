@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-15T16:18:28.746090+00:00",
+  "research_only": true,
+  "automatic_trading_enabled": false,
+  "reviews": 2,
+  "completed_reviews": 0,
+  "findings": 2,
+  "contradictions": 0,
+  "open_contradictions": 0,
+  "recorded_promotion_decisions": 0,
+  "current_promotion_evaluation": {
+    "promote": 0,
+    "hold": 2,
+    "reject": 0
+  },
+  "experts_with_reviews": [
+    "raschke",
+    "velez"
+  ]
+}

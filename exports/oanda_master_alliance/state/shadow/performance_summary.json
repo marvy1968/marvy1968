@@ -1,0 +1,27 @@
+{
+  "automatic_execution": false,
+  "closed_trades": 0,
+  "ending_shadow_equity": 10000.0,
+  "open_trades": 0,
+  "order_submission": false,
+  "overall": {
+    "average_mae_r": 0.0,
+    "average_mfe_r": 0.0,
+    "expectancy_r": 0.0,
+    "gross_loss_r": 0,
+    "gross_profit_r": 0,
+    "longest_loss_streak": 0,
+    "longest_win_streak": 0,
+    "losses": 0,
+    "maximum_drawdown_r": 0.0,
+    "net_r": 0,
+    "profit_factor": 0.0,
+    "pushes": 0,
+    "trades": 0,
+    "win_rate": 0.0,
+    "wins": 0
+  },
+  "risk_unit_value": 100.0,
+  "starting_shadow_equity": 10000.0,
+  "timestamp": "2026-07-16T15:25:29.689263+00:00"
+}

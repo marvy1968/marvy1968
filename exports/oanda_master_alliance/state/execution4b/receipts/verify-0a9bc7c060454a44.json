@@ -1,0 +1,57 @@
+{
+  "accepted": true,
+  "automatic_execution": false,
+  "broker_order_id": "sim-order-d29e161d0e177ffb",
+  "broker_trade_id": "sim-trade-915b20c697d9826d",
+  "instrument": "EUR_USD",
+  "intent_id": "verify-0a9bc7c060454a44",
+  "message": "Order lifecycle simulated. No OANDA request was submitted.",
+  "order_submission": false,
+  "raw_response": {
+    "orderCreateTransaction": {
+      "id": "sim-tx-61d2d1d913a1adb6",
+      "instrument": "EUR_USD",
+      "type": "MARKET_ORDER",
+      "units": "10000"
+    },
+    "orderFillTransaction": {
+      "id": "sim-tx-61d2d1d913a1adb6",
+      "orderID": "sim-order-d29e161d0e177ffb",
+      "tradeOpened": {
+        "price": "1.1",
+        "tradeID": "sim-trade-915b20c697d9826d",
+        "units": "10000"
+      }
+    },
+    "payload": {
+      "order": {
+        "clientExtensions": {
+          "comment": "controlled_practice_execution",
+          "id": "ma4b-0a9bc7c060454a44",
+          "tag": "oanda_master_ai_4b"
+        },
+        "instrument": "EUR_USD",
+        "positionFill": "DEFAULT",
+        "stopLossOnFill": {
+          "price": "1.09950",
+          "timeInForce": "GTC"
+        },
+        "takeProfitOnFill": {
+          "price": "1.10100",
+          "timeInForce": "GTC"
+        },
+        "timeInForce": "FOK",
+        "type": "MARKET",
+        "units": "10000"
+      }
+    },
+    "simulation": true,
+    "submitted": false
+  },
+  "side": "buy",
+  "signed_units": 10000,
+  "status": "simulated_acceptance",
+  "submitted": false,
+  "timestamp": "2026-07-16T07:55:54.100043+00:00",
+  "transaction_id": "sim-tx-61d2d1d913a1adb6"
+}

@@ -1,0 +1,107 @@
+{
+  "automatic_execution": false,
+  "critical_reasons": [],
+  "order_submission": false,
+  "overall": {
+    "average_loss_r": 0.0,
+    "average_win_r": 0.0,
+    "expectancy_r": 0.0,
+    "gross_loss_r": 0,
+    "gross_profit_r": 0,
+    "longest_loss_streak": 0,
+    "longest_win_streak": 0,
+    "losses": 0,
+    "maximum_drawdown_r": 0.0,
+    "net_r": 0,
+    "profit_factor": 0.0,
+    "pushes": 0,
+    "recovery_factor": 0.0,
+    "trades": 0,
+    "win_rate": 0.0,
+    "wins": 0
+  },
+  "passed": true,
+  "status": "insufficient_data",
+  "timestamp": "2026-07-16T15:25:29.822585+00:00",
+  "warnings": [],
+  "windows": [
+    {
+      "eligible": false,
+      "metrics": {
+        "average_loss_r": 0.0,
+        "average_win_r": 0.0,
+        "expectancy_r": 0.0,
+        "gross_loss_r": 0,
+        "gross_profit_r": 0,
+        "longest_loss_streak": 0,
+        "longest_win_streak": 0,
+        "losses": 0,
+        "maximum_drawdown_r": 0.0,
+        "net_r": 0,
+        "profit_factor": 0.0,
+        "pushes": 0,
+        "recovery_factor": 0.0,
+        "trades": 0,
+        "win_rate": 0.0,
+        "wins": 0
+      },
+      "trades": 0,
+      "warnings": [
+        "insufficient_window_trades"
+      ],
+      "window": 20
+    },
+    {
+      "eligible": false,
+      "metrics": {
+        "average_loss_r": 0.0,
+        "average_win_r": 0.0,
+        "expectancy_r": 0.0,
+        "gross_loss_r": 0,
+        "gross_profit_r": 0,
+        "longest_loss_streak": 0,
+        "longest_win_streak": 0,
+        "losses": 0,
+        "maximum_drawdown_r": 0.0,
+        "net_r": 0,
+        "profit_factor": 0.0,
+        "pushes": 0,
+        "recovery_factor": 0.0,
+        "trades": 0,
+        "win_rate": 0.0,
+        "wins": 0
+      },
+      "trades": 0,
+      "warnings": [
+        "insufficient_window_trades"
+      ],
+      "window": 30
+    },
+    {
+      "eligible": false,
+      "metrics": {
+        "average_loss_r": 0.0,
+        "average_win_r": 0.0,
+        "expectancy_r": 0.0,
+        "gross_loss_r": 0,
+        "gross_profit_r": 0,
+        "longest_loss_streak": 0,
+        "longest_win_streak": 0,
+        "losses": 0,
+        "maximum_drawdown_r": 0.0,
+        "net_r": 0,
+        "profit_factor": 0.0,
+        "pushes": 0,
+        "recovery_factor": 0.0,
+        "trades": 0,
+        "win_rate": 0.0,
+        "wins": 0
+      },
+      "trades": 0,
+      "warnings": [
+        "insufficient_window_trades"
+      ],
+      "window": 50
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "automatic_execution": false,
+  "installed": true,
+  "logrotate_installed": false,
+  "order_submission": false,
+  "safety": {
+    "checks": {
+      "automatic_execution_disabled": true,
+      "live_environment_blocked": true,
+      "order_submission_disabled": true,
+      "practice_only": true
+    },
+    "passed": true
+  },
+  "services_enabled": true,
+  "services_started": true,
+  "systemd_units_installed": true,
+  "timestamp": "2026-07-16T02:11:15.181589-04:00"
+}

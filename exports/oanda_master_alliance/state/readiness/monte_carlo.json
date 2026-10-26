@@ -1,0 +1,18 @@
+{
+  "automatic_execution": false,
+  "drawdown_percentiles": {},
+  "enabled": true,
+  "net_r_percentiles": {},
+  "order_submission": false,
+  "passed": false,
+  "probability_drawdown_over_limit": 0.0,
+  "probability_of_ruin": 0.0,
+  "probability_positive_expectancy": 0.0,
+  "probability_profitable": 0.0,
+  "reasons": [
+    "no_closed_shadow_trades"
+  ],
+  "simulations": 10000,
+  "source_trades": 0,
+  "timestamp": "2026-07-16T15:25:29.822494+00:00"
+}

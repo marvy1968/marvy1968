@@ -1,0 +1,62 @@
+{
+  "automatic_execution": false,
+  "checks": [
+    {
+      "blocking": false,
+      "message": "Prior runtime ended cleanly.",
+      "metadata": {
+        "prior_running": false,
+        "prior_state": "stopped"
+      },
+      "name": "prior_shutdown_state",
+      "passed": true
+    },
+    {
+      "blocking": true,
+      "message": "Segment 3 safety settings passed.",
+      "metadata": {
+        "automatic_execution": false,
+        "kill_switch": false,
+        "paused": false,
+        "practice_only": true,
+        "submission_enabled": false
+      },
+      "name": "segment3_safety",
+      "passed": true
+    },
+    {
+      "blocking": true,
+      "message": "Open-position state is structurally valid.",
+      "metadata": {
+        "malformed_count": 0,
+        "position_count": 0
+      },
+      "name": "open_position_reconciliation",
+      "passed": true
+    },
+    {
+      "blocking": true,
+      "message": "Pending-order state is structurally valid.",
+      "metadata": {
+        "malformed_count": 0,
+        "order_count": 0
+      },
+      "name": "pending_order_reconciliation",
+      "passed": true
+    }
+  ],
+  "duplicate_registry": {
+    "authorizations": 0,
+    "enabled": true,
+    "orders": 0,
+    "signals": 0,
+    "timestamp": "2026-07-16T01:58:28.107399-04:00"
+  },
+  "open_positions": 0,
+  "order_submission": false,
+  "pending_orders": 0,
+  "recovery_passed": true,
+  "recovery_required": false,
+  "timestamp": "2026-07-16T01:58:28.107479-04:00",
+  "unresolved_blockers": 0
+}

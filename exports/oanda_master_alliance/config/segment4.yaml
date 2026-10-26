@@ -1,0 +1,121 @@
+segment4:
+  enabled: true
+
+  mode: "research_daemon"
+
+  practice_only: true
+  live_environment_allowed: false
+
+  automatic_execution: false
+  practice_order_submission_enabled: false
+
+  cycle_interval_seconds: 60
+  idle_cycle_interval_seconds: 120
+  error_retry_seconds: 30
+
+  run_foundation_every_cycle: true
+  run_segment2_every_cycle: true
+  run_segment3_every_cycle: true
+
+  refresh_foundation_with_segment2: true
+
+  allow_outside_active_session: false
+  allow_weekend_runtime: false
+
+  maximum_consecutive_cycle_errors: 5
+  pause_after_cycle_errors_minutes: 15
+
+  heartbeat_interval_seconds: 30
+  heartbeat_stale_seconds: 180
+
+  lock_stale_seconds: 600
+
+  maximum_cycle_runtime_seconds: 180
+
+  startup_grace_seconds: 2
+  shutdown_grace_seconds: 5
+
+  files:
+    lock: "state/segment4/segment4_daemon.lock"
+    pid: "state/segment4/segment4_daemon.pid"
+    heartbeat: "state/segment4/heartbeat.json"
+    status: "state/segment4/status.json"
+    shutdown_request: "state/segment4/SHUTDOWN_REQUEST"
+    pause: "state/segment4/pause.json"
+
+    cycle_log: "logs/segment4_cycles.jsonl"
+    event_log: "logs/segment4_events.jsonl"
+    error_log: "logs/segment4_errors.jsonl"
+
+    report: "reports/segment4/segment4a1_report.md"
+
+  safety:
+    require_segment3_practice_only: true
+    require_segment3_execution_disabled: true
+    require_segment3_submission_disabled: true
+
+    block_when_segment3_kill_switch_enabled: true
+    block_when_segment3_paused: true
+
+    block_duplicate_daemon: true
+    stop_on_live_environment: true
+
+operations:
+  watchdog_enabled: true
+  watchdog_interval_seconds: 30
+  watchdog_startup_grace_seconds: 90
+  heartbeat_failure_threshold: 3
+  process_failure_threshold: 2
+
+  automatic_restart_enabled: false
+  maximum_restart_attempts: 3
+  restart_window_minutes: 60
+  restart_backoff_seconds:
+    - 30
+    - 60
+    - 180
+
+  health_monitor_enabled: true
+  health_check_interval_seconds: 30
+
+  minimum_free_disk_mb: 1024
+  maximum_log_file_mb: 100
+  maximum_cycle_log_age_days: 30
+
+  maximum_heartbeat_age_seconds: 180
+  maximum_status_age_seconds: 300
+  maximum_segment2_age_minutes: 30
+  maximum_segment3_age_minutes: 30
+
+  require_foundation_snapshot: true
+  require_segment2_shortlist: false
+  require_segment3_status: true
+
+  recovery_enabled: true
+  restore_runtime_state_on_startup: true
+  reconcile_open_positions: true
+  reconcile_pending_orders: true
+  block_on_unresolved_recovery: true
+
+  duplicate_protection:
+    enabled: true
+    signal_ttl_minutes: 120
+    authorization_ttl_minutes: 120
+    order_ttl_minutes: 1440
+
+  files:
+    watchdog_status: "state/segment4/watchdog_status.json"
+    watchdog_pid: "state/segment4/watchdog.pid"
+    watchdog_lock: "state/segment4/watchdog.lock"
+    watchdog_shutdown: "state/segment4/WATCHDOG_SHUTDOWN_REQUEST"
+
+    health_status: "state/segment4/health_status.json"
+    health_history: "logs/segment4_health.jsonl"
+
+    recovery_status: "state/recovery/recovery_status.json"
+    recovery_history: "logs/segment4_recovery.jsonl"
+    runtime_checkpoint: "state/recovery/runtime_checkpoint.json"
+    unresolved_recovery: "state/recovery/UNRESOLVED_RECOVERY"
+
+    duplicate_registry: "state/recovery/duplicate_registry.json"
+    restart_history: "state/recovery/restart_history.json"

@@ -1,0 +1,96 @@
+{
+  "automatic_execution": false,
+  "automatic_restart_enabled": false,
+  "checks": [
+    {
+      "message": "Segment 4 daemon is not running.",
+      "metadata": {
+        "expected_for_once_mode": true
+      },
+      "name": "segment4_process",
+      "passed": true,
+      "severity": "info",
+      "threshold": null,
+      "value": null
+    },
+    {
+      "message": "Daemon is stopped; stale heartbeat is not treated as a failure.",
+      "metadata": {},
+      "name": "heartbeat_freshness",
+      "passed": true,
+      "severity": "info",
+      "threshold": 180.0,
+      "value": 6687393.257513
+    },
+    {
+      "message": "Daemon is stopped; status age is informational.",
+      "metadata": {},
+      "name": "status_freshness",
+      "passed": true,
+      "severity": "info",
+      "threshold": 300.0,
+      "value": 6687393.262068
+    },
+    {
+      "message": "Foundation snapshot is missing or data quality failed.",
+      "metadata": {},
+      "name": "foundation_snapshot",
+      "passed": false,
+      "severity": "critical",
+      "threshold": null,
+      "value": {
+        "data_quality_passed": false,
+        "exists": true
+      }
+    },
+    {
+      "message": "Segment 2 shortlist is missing or stale.",
+      "metadata": {
+        "exists": true,
+        "required": false
+      },
+      "name": "segment2_shortlist",
+      "passed": true,
+      "severity": "info",
+      "threshold": 1800.0,
+      "value": 6687601.738696
+    },
+    {
+      "message": "Segment 3 status is missing, stale or unsafe.",
+      "metadata": {},
+      "name": "segment3_status",
+      "passed": false,
+      "severity": "warning",
+      "threshold": 1800.0,
+      "value": {
+        "age_seconds": 6687601.334718,
+        "automatic_execution": false,
+        "practice_only": true,
+        "submission_enabled": false
+      }
+    },
+    {
+      "message": "Free disk space is sufficient.",
+      "metadata": {},
+      "name": "free_disk_space",
+      "passed": true,
+      "severity": "info",
+      "threshold": 1024.0,
+      "value": 33160.75
+    },
+    {
+      "message": "Log files are within limits.",
+      "metadata": {},
+      "name": "log_file_sizes",
+      "passed": true,
+      "severity": "info",
+      "threshold": 100.0,
+      "value": []
+    }
+  ],
+  "critical_failures": 1,
+  "healthy": false,
+  "order_submission": false,
+  "timestamp": "2026-10-02T00:38:40.396928-04:00",
+  "warnings": 1
+}

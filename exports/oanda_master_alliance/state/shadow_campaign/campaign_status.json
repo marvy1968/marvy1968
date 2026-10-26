@@ -1,0 +1,113 @@
+{
+  "automatic_execution": false,
+  "campaign_complete": false,
+  "checkpoint": "data_collection",
+  "checkpoint_reason": "continue_campaign",
+  "checkpoint_stop_requested": false,
+  "closed_shadow_trades": 0,
+  "consecutive_errors": 0,
+  "cycle_number": 1,
+  "last_cycle": {
+    "automatic_execution": false,
+    "campaign_complete": false,
+    "candidates_approved": 0,
+    "candidates_loaded": 0,
+    "checkpoint": "data_collection",
+    "cycle_number": 1,
+    "errors": [],
+    "open_trades_checked": 0,
+    "order_submission": false,
+    "shadow_trades_closed": 0,
+    "shadow_trades_opened": 0,
+    "successful": true,
+    "target_closed_trades": 250,
+    "timestamp": "2026-07-16T15:25:29.844188+00:00",
+    "total_closed_trades": 0,
+    "total_open_trades": 0
+  },
+  "last_cycle_successful": true,
+  "open_shadow_trades": 0,
+  "order_submission": false,
+  "paused": false,
+  "pid": null,
+  "running": false,
+  "shutdown_requested": false,
+  "stages": [
+    {
+      "attempted": true,
+      "automatic_execution": false,
+      "command": [
+        "/home/moonrider1968/oanda_master_alliance/.venv/bin/python",
+        "run_segment2.py",
+        "--refresh-foundation"
+      ],
+      "duration_seconds": 6.2641,
+      "error": "",
+      "finished_at": "2026-07-16T15:25:23.135959+00:00",
+      "name": "segment2_refresh",
+      "order_submission": false,
+      "return_code": 0,
+      "started_at": "2026-07-16T15:25:16.871854+00:00",
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"timestamp\": \"2026-07-16T15:25:22.741056+00:00\",\n  \"environment\": \"practice\",\n  \"session\": \"london_new_york_overlap\",\n  \"active_sessions\": [\n    \"london\",\n    \"new_york\"\n  ],\n  \"pairs\": 7,\n  \"quotes\": 7,\n  \"data_quality_passed\": true,\n  \"errors\": [],\n  \"regimes\": {\n    \"EUR_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"GBP_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"USD_JPY\": {\n      \"regime\": \"strong_trending\",\n      \"direction\": \"up\",\n      \"confidence\": 0.75,\n      \"confirmations\": 3,\n      \"data_quality\": true\n    },\n    \"USD_CHF\": {\n      \"regime\": \"mixed\",\n      \"direction\": \"mixed\",\n      \"confidence\": 0.45,\n      \"confirmations\": 3,\n      \"data_quality\": true\n    },\n    \"AUD_USD\": {\n      \"regime\": \"compression\",\n      \"direction\": \"mixed\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"NZD_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"up\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"USD_CAD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    }\n  },\n  \"currency_strength\": {\n    \"EUR\": -0.6897,\n    \"USD\": 0.7977,\n    \"GBP\": -1.2214,\n    \"JPY\": -0.6463,\n    \"CHF\": -1.3348,\n    \"AUD\": 1.0742,\n    \"NZD\": 0.9762,\n    \"CAD\": 1.044\n  }\n}\n{\n  \"timestamp\": \"2026-07-16T15:25:22.770192+00:00\",\n  \"pairs_evaluated\": 7,\n  \"experts\": 7,\n  \"expert_signals\": 49,\n  \"alliance_decisions\": 5,\n  \"candidates\": 0,\n  \"shortlist\": 0,\n  \"automatic_execution\": false\n}\n\nMASTER AI SHORTLIST\n========================================================================================\nNo trade candidates passed all Segment 2 gates.\n\nResearch only. No order was submitted.\n",
+      "successful": true
+    },
+    {
+      "attempted": true,
+      "automatic_execution": false,
+      "command": [
+        "/home/moonrider1968/oanda_master_alliance/.venv/bin/python",
+        "run_segment3.py"
+      ],
+      "duration_seconds": 6.3513,
+      "error": "",
+      "finished_at": "2026-07-16T15:25:29.487272+00:00",
+      "name": "segment3_research_preview",
+      "order_submission": false,
+      "return_code": 0,
+      "started_at": "2026-07-16T15:25:23.136021+00:00",
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"timestamp\": \"2026-07-16T15:25:28.817765+00:00\",\n  \"environment\": \"practice\",\n  \"session\": \"london_new_york_overlap\",\n  \"active_sessions\": [\n    \"london\",\n    \"new_york\"\n  ],\n  \"pairs\": 7,\n  \"quotes\": 7,\n  \"data_quality_passed\": true,\n  \"errors\": [],\n  \"regimes\": {\n    \"EUR_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"GBP_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"USD_JPY\": {\n      \"regime\": \"strong_trending\",\n      \"direction\": \"up\",\n      \"confidence\": 0.75,\n      \"confirmations\": 3,\n      \"data_quality\": true\n    },\n    \"USD_CHF\": {\n      \"regime\": \"mixed\",\n      \"direction\": \"mixed\",\n      \"confidence\": 0.45,\n      \"confirmations\": 3,\n      \"data_quality\": true\n    },\n    \"AUD_USD\": {\n      \"regime\": \"compression\",\n      \"direction\": \"mixed\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"NZD_USD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"up\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    },\n    \"USD_CAD\": {\n      \"regime\": \"trending\",\n      \"direction\": \"down\",\n      \"confidence\": 0.5,\n      \"confirmations\": 2,\n      \"data_quality\": true\n    }\n  },\n  \"currency_strength\": {\n    \"EUR\": -0.6897,\n    \"USD\": 0.7977,\n    \"GBP\": -1.2214,\n    \"JPY\": -0.6463,\n    \"CHF\": -1.3348,\n    \"AUD\": 1.0742,\n    \"NZD\": 0.9762,\n    \"CAD\": 1.044\n  }\n}\n{\n  \"timestamp\": \"2026-07-16T15:25:28.844984+00:00\",\n  \"pairs_evaluated\": 7,\n  \"experts\": 7,\n  \"expert_signals\": 49,\n  \"alliance_decisions\": 5,\n  \"candidates\": 0,\n  \"shortlist\": 0,\n  \"automatic_execution\": false\n}\n\nMASTER AI SHORTLIST\n========================================================================================\nNo trade candidates passed all Segment 2 gates.\n\nResearch only. No order was submitted.\nRefreshing Segment 1 and Segment 2 before risk authorization...\n{\n  \"timestamp\": \"2026-07-16T15:25:29.342414+00:00\",\n  \"environment\": \"practice\",\n  \"practice_only\": true,\n  \"automatic_execution\": false,\n  \"practice_order_submission_enabled\": false,\n  \"submit_requested\": false,\n  \"shortlist_age_minutes\": 0.006253166666666667,\n  \"evaluated_candidates\": 0,\n  \"risk_approved_candidates\": 0,\n  \"submitted_orders\": 0,\n  \"realized_daily_r\": 0.0,\n  \"realized_weekly_r\": 0.0,\n  \"consecutive_losses\": 0,\n  \"results\": []\n}\n",
+      "successful": true
+    },
+    {
+      "attempted": true,
+      "automatic_execution": false,
+      "command": [
+        "/home/moonrider1968/oanda_master_alliance/.venv/bin/python",
+        "run_segment4b2.py"
+      ],
+      "duration_seconds": 0.2454,
+      "error": "",
+      "finished_at": "2026-07-16T15:25:29.732683+00:00",
+      "name": "segment4b2_shadow_cycle",
+      "order_submission": false,
+      "return_code": 0,
+      "started_at": "2026-07-16T15:25:29.487346+00:00",
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"timestamp\": \"2026-07-16T15:25:29.691858+00:00\",\n  \"successful\": true,\n  \"candidates_loaded\": 0,\n  \"candidates_approved\": 0,\n  \"trades_opened\": 0,\n  \"open_trades_checked\": 0,\n  \"trades_closed\": 0,\n  \"open_trade_count\": 0,\n  \"closed_trade_count\": 0,\n  \"errors\": [],\n  \"automatic_execution\": false,\n  \"order_submission\": false\n}\n\nShadow cycle completed.\nAutomatic execution: false\nOrders submitted: 0\n",
+      "successful": true
+    },
+    {
+      "attempted": true,
+      "automatic_execution": false,
+      "command": [
+        "/home/moonrider1968/oanda_master_alliance/.venv/bin/python",
+        "run_segment4b3.py"
+      ],
+      "duration_seconds": 0.1111,
+      "error": "",
+      "finished_at": "2026-07-16T15:25:29.843789+00:00",
+      "name": "segment4b3_readiness",
+      "order_submission": false,
+      "return_code": 0,
+      "started_at": "2026-07-16T15:25:29.732736+00:00",
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"timestamp\": \"2026-07-16T15:25:29.827875+00:00\",\n  \"successful\": true,\n  \"closed_shadow_trades\": 0,\n  \"open_shadow_trades\": 0,\n  \"metrics\": {\n    \"trades\": 0,\n    \"wins\": 0,\n    \"losses\": 0,\n    \"pushes\": 0,\n    \"win_rate\": 0.0,\n    \"profit_factor\": 0.0,\n    \"expectancy_r\": 0.0,\n    \"net_r\": 0,\n    \"gross_profit_r\": 0,\n    \"gross_loss_r\": 0,\n    \"maximum_drawdown_r\": 0.0,\n    \"recovery_factor\": 0.0,\n    \"longest_win_streak\": 0,\n    \"longest_loss_streak\": 0,\n    \"average_win_r\": 0.0,\n    \"average_loss_r\": 0.0\n  },\n  \"monte_carlo_passed\": false,\n  \"walk_forward_eligible\": false,\n  \"walk_forward_passed\": false,\n  \"stability_status\": \"insufficient_data\",\n  \"promotion_checkpoint\": \"data_collection\",\n  \"readiness\": \"collecting_shadow_data\",\n  \"eligible_for_manual_review\": false,\n  \"automatic_weight_changes\": false,\n  \"automatic_promotion\": false,\n  \"automatic_retirement\": false,\n  \"automatic_execution\": false,\n  \"order_submission\": false\n}\n\nSegment 4B-3 readiness analysis completed.\nAutomatic promotion: false\nAutomatic expert-weight changes: false\nAutomatic execution: false\nOrders submitted: 0\n",
+      "successful": true
+    }
+  ],
+  "state": "cycle_complete",
+  "target_closed_trades": 250,
+  "timestamp": "2026-07-16T15:25:29.844962+00:00"
+}

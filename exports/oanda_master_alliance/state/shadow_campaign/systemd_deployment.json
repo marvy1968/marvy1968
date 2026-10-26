@@ -1,0 +1,85 @@
+{
+  "all_sources_present": true,
+  "all_units_installed": true,
+  "automatic_execution": false,
+  "automatic_promotion": false,
+  "campaign_service_active": false,
+  "campaign_service_enabled": false,
+  "monitoring_timers_enabled": true,
+  "order_submission": false,
+  "systemctl_available": true,
+  "systemd_running": true,
+  "timestamp": "2026-07-17T13:01:10.377121+00:00",
+  "units": [
+    {
+      "active": "inactive",
+      "enabled": "disabled",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign.service",
+      "unit_file_state": "disabled"
+    },
+    {
+      "active": "inactive",
+      "enabled": "static",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-health.service",
+      "unit_file_state": "static"
+    },
+    {
+      "active": "active",
+      "enabled": "enabled",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-health.timer",
+      "unit_file_state": "enabled"
+    },
+    {
+      "active": "inactive",
+      "enabled": "static",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-snapshot.service",
+      "unit_file_state": "static"
+    },
+    {
+      "active": "active",
+      "enabled": "enabled",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-snapshot.timer",
+      "unit_file_state": "enabled"
+    },
+    {
+      "active": "inactive",
+      "enabled": "static",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-alert.service",
+      "unit_file_state": "static"
+    },
+    {
+      "active": "active",
+      "enabled": "enabled",
+      "error": "",
+      "installed": true,
+      "load_state": "loaded",
+      "source_exists": true,
+      "unit": "oanda-master-ai-shadow-campaign-alert.timer",
+      "unit_file_state": "enabled"
+    }
+  ]
+}

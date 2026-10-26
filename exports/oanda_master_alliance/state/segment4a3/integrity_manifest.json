@@ -1,0 +1,21 @@
+{
+  "files": {
+    "config/master_ai.yaml": "7d79022c75000a1444b6c427a9a5ddc48d4da044077b59caef89aa55f28ba717",
+    "config/segment2.yaml": "8582f04d25642af37482a95cfb0a5c99f79497fa4e35a89d0e95bb2ae098d63d",
+    "config/segment3.yaml": "4333f77ff33e78d0cb64ae9dc2c948018b7a21d5f602975cedbf6174f8ec461b",
+    "config/segment4.yaml": "6b44bc4dcf6fcbc6c3fc14d0dcaac3822b380a2c3eb9f7768829f62843c61bb0",
+    "config/segment4a3.yaml": "9f8c667cbb12fd41ff083db2355d23df2bc20b4fdca6825b61dbf5461d659309",
+    "run_segment4.py": "cdd1e6247b22b4807e1fa018b081b7f9adfda4597536fbbfaa4a012195cf238a",
+    "run_segment4_backup.py": "689cfe1758fba1f5c1fd801c38498f5f14592347198d2a2b7bcd9a50f8a340f3",
+    "run_segment4_health.py": "2b0db0baf4815837b70b13c8f063551cd2180cca1dd0d36caa751842a693a8b4",
+    "run_segment4_recovery.py": "55d23d25870c77d182296d5fe44208ce9d9de2523ede298b6fb9a102578b98ea",
+    "run_segment4_watchdog.py": "d605593f7b7179dbdcd8c8acaae9545c1cf5fbe520f9bec1ad8ce57d694114d8",
+    "segment4/backup_manager.py": "83fc1cc89200ce7673090182e9644cd85ba73946886ef9b928aede7c10448a58",
+    "segment4/daemon.py": "c24d18ace019ff609d9816edc9409ac253e340cda2dc2854c8bc78117d5eb049",
+    "segment4/health_monitor.py": "fe530f92583c713a2829ad75e9cd29f5a8cbc2a5ed6b29eacc839f1d08b6c1ad",
+    "segment4/integrity_checker.py": "e38f4df06605e1ede103631598a33248641083811788f50be58239ebbe919333",
+    "segment4/recovery.py": "5eb510d8f6a281d6d5f67319d61fb56578f6ae2811f0b9f961c090851a6ed786",
+    "segment4/watchdog.py": "4f814bb86b4b19dfdaacb57ac0938ca502b1e768433a291eca62ba4171ae23f7"
+  },
+  "timestamp": "2026-10-02T03:21:45.538268-04:00"
+}

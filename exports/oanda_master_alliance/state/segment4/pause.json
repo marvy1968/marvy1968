@@ -1,0 +1,7 @@
+{
+  "consecutive_errors": 5,
+  "pause_minutes": 15,
+  "reason": "maximum_consecutive_cycle_errors",
+  "source": "segment4a1_daemon",
+  "timestamp": "2026-07-16T15:02:05.114764-04:00"
+}

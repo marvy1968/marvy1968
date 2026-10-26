@@ -1,0 +1,119 @@
+segment4b3:
+  enabled: true
+  research_only: true
+  practice_only: true
+  live_environment_allowed: false
+
+  automatic_execution: false
+  practice_order_submission_enabled: false
+  actual_order_submission_enabled: false
+  automatically_change_expert_weights: false
+  automatically_promote_strategy: false
+  automatically_retire_strategy: false
+
+  source:
+    closed_shadow_trades: "state/shadow/closed_trades.json"
+    open_shadow_trades: "state/shadow/open_trades.json"
+    shadow_performance: "state/shadow/performance_summary.json"
+    expert_performance: "state/shadow/expert_performance.json"
+    pair_performance: "state/shadow/pair_performance.json"
+    setup_performance: "state/shadow/setup_performance.json"
+
+  checkpoints:
+    observation:
+      minimum_trades: 30
+    provisional:
+      minimum_trades: 50
+    advanced:
+      minimum_trades: 100
+    production_review:
+      minimum_trades: 250
+
+  minimum_requirements:
+    minimum_win_rate: 0.48
+    minimum_profit_factor: 1.20
+    minimum_expectancy_r: 0.10
+    minimum_net_r: 5.0
+    maximum_drawdown_r: 10.0
+    maximum_loss_streak: 5
+    maximum_recovery_factor_requirement: 0.0
+
+  monte_carlo:
+    enabled: true
+    simulations: 10000
+    random_seed: 1968
+    sample_with_replacement: true
+    confidence_percentiles:
+      - 5
+      - 25
+      - 50
+      - 75
+      - 95
+    minimum_probability_profitable: 0.70
+    minimum_probability_positive_expectancy: 0.65
+    maximum_95_percent_drawdown_r: 15.0
+    maximum_probability_drawdown_over_limit: 0.20
+    ruin_threshold_r: -20.0
+    maximum_probability_of_ruin: 0.05
+
+  walk_forward:
+    enabled: true
+    minimum_total_trades: 50
+    training_fraction: 0.60
+    validation_fraction: 0.20
+    test_fraction: 0.20
+    rolling_windows: 5
+    minimum_window_trades: 10
+    minimum_profitable_windows: 0.60
+    minimum_positive_expectancy_windows: 0.60
+    maximum_failed_windows: 2
+
+  stability:
+    enabled: true
+    rolling_windows:
+      - 20
+      - 30
+      - 50
+    minimum_recent_profit_factor: 1.05
+    minimum_recent_expectancy_r: 0.02
+    maximum_recent_drawdown_r: 7.0
+    maximum_recent_loss_streak: 4
+    degradation_warning_drop_pct: 20.0
+    degradation_critical_drop_pct: 35.0
+
+  attribution:
+    minimum_expert_trades: 15
+    minimum_pair_trades: 15
+    minimum_setup_trades: 15
+    minimum_session_trades: 15
+    minimum_regime_trades: 15
+
+  scoring:
+    profit_factor_weight: 0.20
+    expectancy_weight: 0.20
+    drawdown_weight: 0.15
+    win_rate_weight: 0.10
+    monte_carlo_weight: 0.15
+    walk_forward_weight: 0.10
+    stability_weight: 0.10
+
+  storage:
+    latest_analysis: "state/readiness/latest_analysis.json"
+    monte_carlo: "state/readiness/monte_carlo.json"
+    walk_forward: "state/readiness/walk_forward.json"
+    stability: "state/readiness/stability.json"
+    expert_scorecard: "state/readiness/expert_scorecard.json"
+    pair_scorecard: "state/readiness/pair_scorecard.json"
+    setup_scorecard: "state/readiness/setup_scorecard.json"
+    session_scorecard: "state/readiness/session_scorecard.json"
+    regime_scorecard: "state/readiness/regime_scorecard.json"
+    promotion_decision: "state/readiness/promotion_decision.json"
+    degradation_status: "state/readiness/degradation_status.json"
+    hall_of_fame: "state/readiness/hall_of_fame.json"
+    retirement_watchlist: "state/readiness/retirement_watchlist.json"
+
+  logs:
+    analysis_history: "logs/readiness_analysis.jsonl"
+    promotion_history: "logs/readiness_promotions.jsonl"
+    degradation_history: "logs/readiness_degradation.jsonl"
+    error_history: "logs/readiness_errors.jsonl"
