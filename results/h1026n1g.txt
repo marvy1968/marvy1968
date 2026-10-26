@@ -1,3 +1,129 @@
 $ gemini round2
-started 2026-10-26 15:49:09 EDT
-RUNNING...
+started 2026-10-26 15:49:09 EDT, took 46s, exit 0
+
+Here is the direct, no-nonsense breakdown for Round 2. 
+
+First, let’s address the math of your goal. **+1% per day is statistically impossible for a retail edge.** Compounding 1% daily over 252 trading days yields a 1,127% annual return. Even without compounding, it’s 252% a year. The best quantitative funds in the world (like Renaissance’s Medallion) cap out around 40-60% annualized after fees, using immense leverage, ultra-low latency, and massive data advantages. 
+*A realistic, highly successful target for a retail swing trading account running 1% risk per trade is 15% to 30% annualized.* This means an average daily expectancy of about +0.06% to +0.10%, with high variance.
+
+Second, your testing process is working beautifully. The fact that you systematically killed those first ideas when they failed out-of-sample and after costs means your safety rails are intact. Intraday edges for retail traders are almost entirely eaten by bid/ask spread and slippage. Moving to multi-day holds (where the average winner is >2% rather than 0.15%) is exactly the right pivot.
+
+Here are your new ideas, heavily weighted toward momentum, macro flows, and structural market mechanics, avoiding indicator-based mean reversion.
+
+---
+
+### 1. Five Multi-Day Swing Ideas (Stocks & ETFs, Daily Bars)
+
+**Idea 1: Post-Earnings Announcement Drift (PEAD) with a Gap Filter**
+*   **Rule:** Buy at the close of the earnings day IF the stock gapped up > 3% from the previous close AND closed higher than its open; hold for 10 days.
+*   **Inefficiency:** Analysts and institutional models anchor to old data and take days/weeks to fully revise their price targets, causing a slow drift in the direction of the surprise.
+*   **Data Needed:** Daily bars, earnings dates for the last 10 years.
+*   **Kill Test:** The strategy generates a Profit Factor (PF) < 1.1 on a 5-year out-of-sample set after applying 3 bps slippage per side.
+
+**Idea 2: 52-Week High Breakout on High Relative Volume**
+*   **Rule:** Buy on a daily close that sets a new 252-day high IF daily volume is > 2x the 50-day average volume; exit on a trailing 10-day low.
+*   **Inefficiency:** The "Disposition Effect." Retail investors sell winners too early to lock in gains, artificially capping the price. Once that supply is absorbed (indicated by high volume), the stock runs free.
+*   **Data Needed:** Daily price and volume.
+*   **Kill Test:** A control strategy of buying *every* 52-week high (regardless of volume) outperforms the volume-filtered variant. 
+
+**Idea 3: Sector ETF Relative Momentum (Dual Momentum)**
+*   **Rule:** Every 20 days, rank 11 sector ETFs by their 120-day return. Buy the top 3 IF their 120-day return is > 0 AND SPY's 120-day return is > 0; hold for 20 days.
+*   **Inefficiency:** Macro capital rotation. Large funds cannot move billions into a sector in one day; their buying persists over weeks/months.
+*   **Data Needed:** Daily closes for SPY and the 11 Select Sector SPDRs (XLF, XLK, etc.).
+*   **Kill Test:** Buying and holding equal-weight SPY outperforms the rotation strategy on a risk-adjusted basis (Sharpe/Max Drawdown) over a 10-year test.
+
+**Idea 4: Turn-of-the-Month (ToM) Cash Flow**
+*   **Rule:** Buy SPY or QQQ at the close on the 4th-to-last trading day of the month; sell at the close on the 3rd trading day of the new month.
+*   **Inefficiency:** Structural cash flows. 401(k) contributions, automated payroll deductions, and portfolio rebalancing cluster around the end/beginning of the month, creating systematic buying pressure.
+*   **Data Needed:** Daily ETF bars and trading calendar (to calculate end-of-month offset).
+*   **Kill Test:** The remaining 14-16 trading days of the month generate a higher average return than the 7-day ToM window.
+
+**Idea 5: Liquidity Vacuum (Inside Bar / NR7 Breakout)**
+*   **Rule:** Buy if today's close > yesterday's high AND yesterday's high-to-low range was the narrowest of the last 7 days (NR7); hold 3 days.
+*   **Inefficiency:** Volatility clustering. Markets alternate between range contraction (balance) and expansion (imbalance). 
+*   **Data Needed:** Daily OHLC.
+*   **Kill Test:** Entering on a random day yields the same or better average 3-day return as entering after an NR7 day.
+
+---
+
+### 2. Three Multi-Day Swing Ideas (Forex, H4/Daily Bars)
+
+**Idea 6: Carry-Trend Alignment (Daily)**
+*   **Rule:** Buy a currency pair IF the 100-day Simple Moving Average is sloping up AND the interest rate differential (base minus quote) is positive; exit if the 100 SMA slopes down.
+*   **Inefficiency:** Yield-seeking institutional capital. Funds buy high-yielding currencies and sell low-yielding ones. Over time, this massive capital flow creates trends that overpower daily noise.
+*   **Data Needed:** Daily FX prices, historical central bank interest rates.
+*   **Kill Test:** Testing the exact inverse (buying negative yield pairs in downtrends) performs similarly, meaning the rate differential adds no alpha to a standard trend filter.
+
+**Idea 7: The "Tuesday Reversal" Weekly Expansion (H4)**
+*   **Rule:** If Monday and Tuesday create a confined range (High - Low < 1 weekly ATR), buy at Wednesday's open if price is > Tuesday's high; exit at Friday's close.
+*   **Inefficiency:** Institutional week-start positioning. Big players often use Monday/Tuesday to establish macro positions for the week. The true directional move usually breaks out Wednesday and persists into the Friday close.
+*   **Data Needed:** H4 OHLC, ATR.
+*   **Kill Test:** Buying Monday open and holding to Friday close (baseline weekly drift) yields the same PF.
+
+**Idea 8: Consecutive Closes Momentum (Daily)**
+*   **Rule:** Buy after 3 consecutive higher daily closes where the 3rd close is in the top 20% of its daily range; hold for 5 days.
+*   **Inefficiency:** Institutional scaling. Real buying pressure leaves footprints of relentless daily closes near the highs, punishing early short-sellers and forcing short-covering rallies.
+*   **Data Needed:** Daily OHLC.
+*   **Kill Test:** The 5-day forward return following 3 consecutive *lower* closes is mathematically equal (just inverted), proving it's random walk noise.
+
+---
+
+### 3. Published Anomalies & Expected OOS Decay
+
+If you are moving to Daily bars, test these academically replicated anomalies first. 
+1. **Time-Series Momentum (12-month minus 1-month):** Buy assets up over the last 12 months, skip the most recent 1 month (to avoid short-term reversal). 
+   * *Decay:* Extremely slow. Relies on human behavioral herding. Performs well long-term but suffers brutal crashes at macro turning points (e.g., 2009).
+2. **Post-Earnings Announcement Drift (PEAD):** (See Idea 1).
+   * *Decay:* High in large-cap tech (algos price it instantly now). Medium/Low in small-to-mid caps. You must test this on your 24 mid/small cap universe.
+3. **Turn-of-the-Month:** (See Idea 4).
+   * *Decay:* Very low decay because the underlying inefficiency (when people get paid) hasn't changed. However, absolute returns are low without leverage.
+4. **Short-Term Reversal (Volume spikes):** Buying a stock after a massive 1-2 day drop on high volume.
+   * *Decay:* Massive. In academic papers, this looks like a money machine. Once you add bid/ask spread, slippage, and the reality that limit orders don't get filled unless the price plows through them, the edge usually vaporizes. 
+
+---
+
+### 4. Backtest Speed-Ups (Python/Pandas)
+
+Your backtests are slow because a per-bar simulation (`simulate_day` looping through every minute/hour) is computationally brutal in Python. Here are your concrete speedups ranked by effort vs. gain:
+
+**1. Vectorizing Indicators Outside the Grid (Low Effort, Massive Gain)**
+If your grid searches combinations of `RSI_length` and `VWAP_dev`, do not calculate them inside the iteration. 
+*   **Code Sketch:** Pre-calculate all combinations into the DataFrame once.
+```python
+# Do this BEFORE the grid search loop
+for r in [10, 14, 20]:
+    df[f'rsi_{r}'] = calculate_rsi(df['close'], r)
+# Inside grid search, just do column lookups
+mask = (df[f'rsi_{rsi_param}'] < 30)
+```
+
+**2. Vectorizing Entry/Exit Logic (High Effort, Massive Gain)**
+Stop iterating row-by-row (`iterrows` or custom bar-by-bar). Use `pd.Series.shift()` and `np.where()` to find entry/exit signals instantly across 10 years of data.
+*   **Code Sketch:**
+```python
+# 1. Find all signals instantly
+df['signal'] = np.where((df['close'] > df['high'].shift(1)) & (df['volume'] > df['vol_sma']), 1, 0)
+# 2. Forward fill the position for 'N' days holding period
+df['position'] = df['signal'].replace(0, np.nan).ffill(limit=hold_days).fillna(0)
+# 3. Calculate vectorized returns
+df['strategy_returns'] = df['position'].shift(1) * df['close'].pct_change()
+```
+*   **Verification:** Run your slow `simulate_day` on 1 symbol for 1 month. Run the vectorized script. Assert `round(slow_pnl, 4) == round(fast_pnl, 4)`.
+
+**3. Successive Halving for Grid Search (Medium Effort, High Gain)**
+Instead of running a 12-month test on 500 parameter combinations, run a 3-month test on 500 combinations. Drop the bottom 70%. Run a 6-month test on the survivors. Drop the bottom 70%. Run the full 3-year test only on the final few.
+
+**4. Multiprocessing Across Grid Points (Medium Effort, Medium Gain)**
+Utilize all cores on your GCP VM.
+```python
+from concurrent.futures import ProcessPoolExecutor
+
+def test_params(params):
+    # run backtest logic here
+    return result
+
+with ProcessPoolExecutor(max_workers=4) as executor:
+    results = list(executor.map(test_params, grid_param_list))
+```
+
+**What to drop:** Disable the intraday Velez setups, the 1-minute VWAP/Bollinger mean-reversions, and the 1-hour FX range-boxes entirely. The structure of those markets (HFTs fighting for pennies) dictates that retail traders cannot overcome the transaction costs in short timeframes. Reallocate all compute power to daily-bar swing tests.
