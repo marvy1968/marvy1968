@@ -1,3 +1,32 @@
 $ alpaca run-all --phase validate --families sector_mom --months3
-started 2026-10-26 15:38:14 EDT
-RUNNING...
+started 2026-10-26 15:38:14 EDT, took 103s, exit 0
+
+daily data ready
+## sector_mom: no setting was profitable on the validate half AND better than both controls: not an edge here
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- train | top 1, sector ETF > +0.5%: 28t win 39% PF 0.44 avgR -0.18 daily -0.099% CAGR -22.5% maxDD -2.9%
+- train | top 1, sector ETF > +0.5% | 2x slippage: 28t win 39% PF 0.40 avgR -0.20 daily -0.112% CAGR -24.9% maxDD -3.1%
+- train | top 3, sector ETF > +0.5%: 84t win 54% PF 1.09 avgR +0.00 daily +0.053% CAGR +8.1% maxDD -1.4%
+- train | top 3, sector ETF > +0.5% | 2x slippage: 84t win 52% PF 1.00 avgR -0.02 daily +0.021% CAGR -0.4% maxDD -1.7%
+- train | top 3, sector ETF > +0.25%: 93t win 51% PF 0.86 avgR -0.04 daily -0.033% CAGR -12.3% maxDD -3.1%
+- train | top 3, sector ETF > +0.25% | 2x slippage: 93t win 51% PF 0.79 avgR -0.06 daily -0.064% CAGR -18.9% maxDD -3.6%
+- train | CONTROL: top 3, no sector filter: 96t win 54% PF 1.05 avgR +0.00 daily +0.021% CAGR +4.7% maxDD -3.2%
+- train | CONTROL: top 3, no sector filter | 2x slippage: 96t win 54% PF 0.96 avgR -0.02 daily -0.011% CAGR -3.5% maxDD -3.7%
+- train | CONTROL: 3 random stocks: 96t win 45% PF 0.93 avgR -0.04 daily -0.013% CAGR -4.7% maxDD -3.3%
+- train | CONTROL: 3 random stocks | 2x slippage: 96t win 43% PF 0.85 avgR -0.07 daily -0.040% CAGR -10.9% maxDD -3.7%
+- validate | top 1, sector ETF > +0.5%: 28t win 46% PF 0.77 avgR -0.10 daily -0.024% CAGR -7.1% maxDD -1.3%
+- validate | top 1, sector ETF > +0.5% | 2x slippage: 28t win 43% PF 0.71 avgR -0.12 daily -0.033% CAGR -9.2% maxDD -1.5%
+- validate | top 3, sector ETF > +0.5%: 84t win 48% PF 0.95 avgR -0.03 daily +0.001% CAGR -3.4% maxDD -1.7%
+- validate | top 3, sector ETF > +0.5% | 2x slippage: 84t win 46% PF 0.86 avgR -0.05 daily -0.028% CAGR -10.1% maxDD -2.0%
+- validate | top 3, sector ETF > +0.25%: 93t win 46% PF 0.72 avgR -0.08 daily -0.094% CAGR -23.1% maxDD -2.8%
+- validate | top 3, sector ETF > +0.25% | 2x slippage: 93t win 45% PF 0.66 avgR -0.11 daily -0.122% CAGR -28.4% maxDD -3.6%
+- validate | CONTROL: top 3, no sector filter: 96t win 49% PF 0.83 avgR -0.04 daily -0.056% CAGR -15.6% maxDD -2.1%
+- validate | CONTROL: top 3, no sector filter | 2x slippage: 96t win 48% PF 0.77 avgR -0.06 daily -0.085% CAGR -21.5% maxDD -2.6%
+- validate | CONTROL: 3 random stocks: 96t win 46% PF 0.82 avgR -0.02 daily -0.047% CAGR -12.1% maxDD -2.3%
+- validate | CONTROL: 3 random stocks | 2x slippage: 96t win 44% PF 0.73 avgR -0.05 daily -0.074% CAGR -18.0% maxDD -2.6%
+ALL DONE
