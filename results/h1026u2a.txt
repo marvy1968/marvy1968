@@ -1,3 +1,4 @@
 $ alpaca paper-pause on --reason owner-2026-10-26-intraday-off-evidence-PF0.77
-started 2026-10-26 18:04:41 EDT
-RUNNING...
+started 2026-10-26 18:04:41 EDT, took 1s, exit 0
+
+intraday entries PAUSED (the running service picks this up within 15 s)
