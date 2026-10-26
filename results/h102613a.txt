@@ -1,3 +1,15 @@
 $ alpaca positions
-started 2026-10-26 09:40:51 EDT
-RUNNING...
+started 2026-10-26 09:40:51 EDT, took 2s, exit 0
+
+equity $51,819.09  cash $27,079.34  long mv $24,739.75  short mv $0.00
+5 open positions:
+  EQIX       long  qty           11  value $ 10,527.99  unrealized $    87.78
+  PM         long  qty           36  value $  7,261.56  unrealized $    90.38
+  XOM        long  qty           14  value $  2,559.73  unrealized $    38.05
+  EOG        long  qty           14  value $  2,281.23  unrealized $    49.53
+  COP        long  qty           14  value $  2,109.24  unrealized $    73.84
+4 open orders:
+  PM         sell 36 limit new  id sw-o-PM-20261022
+  COP        sell 14 limit new  id sw-o-COP-20261021
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
