@@ -946,6 +946,54 @@ def daily_anomalies_study(daily: dict, etfs: list, split: date, stocks_cost: flo
     return out
 
 
+def trend_benchmark_lines(daily: dict, split: date, cost: float = 0.0002) -> list[str]:
+    """Gemini round 3 (2026-10-26): the benchmark every swing idea must beat - hold the index while its close is above its 200-day average, cash otherwise
+    (signal on the close, position from the next day, 2 bps per side when it switches) vs buy-and-hold, per half and in full."""
+    out = ["### Benchmark: hold the index above its 200-day average, cash below"]
+    for sym in ("SPY", "QQQ"):
+        if sym not in daily:
+            continue
+        c = daily[sym]["close"]
+        ret = c.pct_change()
+        on = (c > c.rolling(200).mean()).shift(1).fillna(False).astype(float)
+        strat = ret * on - cost * on.diff().abs().fillna(0.0)
+        for label, sel in (("train", lambda s: s[s.index.date <= split]), ("validate", lambda s: s[s.index.date > split]), ("all", lambda s: s)):
+            s_, b_ = sel(strat.iloc[200:]), sel(ret.iloc[200:])
+            out.append(f"- {sym} {label}: 200-SMA rule {_ret_curve_stats(s_)}, in the market {sel(on.iloc[200:]).mean():.0%} | buy-and-hold {_ret_curve_stats(b_)}")
+    return out
+
+
+def power_gap_lines(daily: dict, split: date, label: str, cost: float = 0.0005, hold: int = 10) -> list[str]:
+    """Gemini round 3 'power earnings gap' (a price/volume proxy for a big earnings surprise): the open gaps up > 4% on volume > 3x the 50-day average and
+    the close is in the top 25% of the day's range. Buy the NEXT open, sell the close `hold` days later, or exit at the next open if a close falls under
+    the gap day's low. CONTROL: every stock-day with the same entry and 10-day exit. Gemini's kill rule: the edge must beat the control by >= 0.20%."""
+    rows, base = [], []
+    for s, d in daily.items():
+        if s in ("SPY", "QQQ") or len(d) < 300:
+            continue
+        o, h, l, c, v = (d[k] for k in ("open", "high", "low", "close", "volume"))
+        sig = ((o / c.shift(1) - 1) > 0.04) & (v > 3 * v.rolling(50).mean()) & (c >= l + 0.75 * (h - l))
+        sg, n = sig.fillna(False).to_numpy(), len(d)
+        for i in range(n - hold - 2):
+            e = i + 1
+            ctl = c.iloc[e + hold - 1] / o.iloc[e] - 1 - 2 * cost
+            base.append((d.index[e], ctl))
+            if sg[i]:
+                gap_low, j = float(l.iloc[i]), e
+                while j < e + hold - 1 and c.iloc[j] >= gap_low:
+                    j += 1
+                px_out = c.iloc[j] if j == e + hold - 1 and c.iloc[j] >= gap_low else o.iloc[min(j + 1, n - 1)]
+                rows.append((d.index[e], px_out / o.iloc[e] - 1 - 2 * cost))
+    tr = pd.Series({k: v for k, v in rows}) if rows else pd.Series(dtype=float)
+    bs = pd.Series([v for _, v in base], index=pd.to_datetime([k for k, _ in base]))
+    out = [f"### Power earnings gap proxy on {label} (buy next open after a >4% gap up on >3x volume closing in the top 25% of its range; {hold}-day hold; stop = close under the gap-day low)"]
+    for nm, sel in (("train", lambda s: s[s.index.date <= split]), ("validate", lambda s: s[s.index.date > split])):
+        t_, b_ = (sel(tr) if len(tr) else tr), sel(bs)
+        diff = (t_.mean() - b_.mean()) * 100 if len(t_) else float("nan")
+        out.append(f"- {nm}: {_trade_stats(t_)} | CONTROL every stock-day {hold}-day hold: avg {b_.mean() * 100:+.2f}%, win {(b_ > 0).mean():.0%} | edge vs control {diff:+.2f}% (kill if < +0.20%)")
+    return out
+
+
 def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None,
                         ladder: dict | None = None) -> dict:
     """Owner's idea (2026-10-14, "trading the open"): the opening-range-breakout expert as an 11th expert on the live configuration

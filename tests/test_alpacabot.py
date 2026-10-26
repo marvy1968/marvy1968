@@ -2816,3 +2816,23 @@ class DailyAnomaliesStudyTests(unittest.TestCase):
         for head in ("### A turn-of-the-month", "### B sector-ETF", "### C 52-week-high", "### D 12-1 momentum", "### E NR7"):
             self.assertIn(head, text)
         self.assertIn("CONTROL", text)
+
+
+class PowerGapTests(unittest.TestCase):
+    def test_a_crafted_power_gap_makes_one_trade_and_the_benchmark_runs(self):
+        import datetime as dt
+        from alpacabot.research import power_gap_lines, trend_benchmark_lines
+        idx = pd.bdate_range("2018-01-01", periods=420)
+        px = np.full(len(idx), 100.0)
+        px[401:] = 106.0
+        df = pd.DataFrame({"open": px.copy(), "high": px + 0.1, "low": px - 0.1, "close": px.copy(), "volume": np.full(len(idx), 1_000_000.0)}, index=idx)
+        df.iloc[400, df.columns.get_loc("open")] = 105.0       # gap up 5% from 100
+        df.iloc[400, df.columns.get_loc("high")] = 106.0
+        df.iloc[400, df.columns.get_loc("low")] = 104.9
+        df.iloc[400, df.columns.get_loc("close")] = 105.9      # top of the range
+        df.iloc[400, df.columns.get_loc("volume")] = 5_000_000.0
+        lines = power_gap_lines({"AAA": df}, dt.date(2018, 12, 31), "test")
+        text = "\n".join(lines)
+        self.assertIn("validate: 1t", text)
+        self.assertTrue(any("kill if" in l for l in lines))
+        self.assertTrue(any("200-day" in l for l in trend_benchmark_lines({"SPY": df, "QQQ": df}, dt.date(2018, 12, 31))))

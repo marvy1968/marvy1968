@@ -213,6 +213,19 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "gap_drift":                 # Gemini round 3 (2026-10-26): the 200-SMA benchmark + the power-earnings-gap proxy (research.power_gap_lines)
+                import datetime as _dt
+                from .research import power_gap_lines, trend_benchmark_lines
+                from .universe import SECTOR_ETFS, STOCKS
+                _split = _dt.date(2020, 12, 31)
+                allsyms = sorted(set(STOCKS) | set(SECTOR_TD_CONTROL) | {"SPY", "QQQ"})
+                dd = {s: load(s, "1Day", _dt.date(2014, 1, 1), _dt.date.today(), cache) for s in allsyms}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                lines += ["## gap_drift: benchmark and power-earnings-gap proxy (train to 2020-12-31, validate 2021 on)"] + trend_benchmark_lines(dd, _split)
+                lines += power_gap_lines({s: d for s, d in dd.items() if s in SECTOR_TD_CONTROL or s in ("SPY", "QQQ")}, _split, "the HINDSIGHT-FREE list (2016's 21 largest companies)")
+                lines += power_gap_lines({s: d for s, d in dd.items() if s in STOCKS or s in ("SPY", "QQQ")}, _split, "today's top holdings of each sector ETF (survivorship-biased)")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "exit_time_fx":              # owner 2026-10-25: time exits (his manual-close pattern) vs the 0.5R cut / 1.25R take-profit
                 import datetime as _dt
                 from fxbot.data import MAJORS
