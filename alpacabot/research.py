@@ -704,6 +704,29 @@ def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Por
     return out
 
 
+def eod_squeeze_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6)) -> dict:
+    """Gemini idea 2 (2026-10-26): end-of-day short squeeze (strategies.EodSqueeze), three pre-declared settings, each also at 3x the slippage
+    (the wide last-half-hour spread). PASS only if the validate half is profitable (PF > 1, avg R > 0, 30+ trades) at the normal costs."""
+    from .strategies import EodSqueeze
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    heavy = replace(costs, slip_bps=costs.slip_bps * 3)
+    variants = {"top 10% of range & >2% over VWAP": EodSqueeze(0.9, 0.02), "top 20% & >1% over VWAP": EodSqueeze(0.8, 0.01),
+                "top 10% & >2%, 2 ATR stop": EodSqueeze(0.9, 0.02, stop_atr=2.0)}
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        rows = {}
+        for name, strat in variants.items():
+            for label, c in (("", costs), (" | 3x slippage", heavy)):
+                r = run_intraday(strat, days, c, pf, a, b)
+                rows[name + label] = {k: r["metrics"].get(k) for k in keys}
+        out["periods"][per] = rows
+    ok = [n for n in variants if (out["periods"]["validate"][n].get("profit_factor") or 0) > 1 and (out["periods"]["validate"][n].get("avg_r") or 0) > 0
+          and (out["periods"]["validate"][n].get("trades") or 0) >= 30]
+    out.update({"family": "eod_squeeze", "passes": bool(ok),
+                "verdict": f"PASS: {', '.join(ok)}" if ok else "no setting was profitable on the validate half: the end-of-day squeeze is not an edge here"})
+    return out
+
+
 def orb_candidate_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None,
                         ladder: dict | None = None) -> dict:
     """Owner's idea (2026-10-14, "trading the open"): the opening-range-breakout expert as an 11th expert on the live configuration

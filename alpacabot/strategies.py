@@ -76,6 +76,36 @@ class VwapReversion:
 
 
 @dataclass
+class EodSqueeze:
+    """Gemini idea 2 (consult 2026-10-26): end-of-day short squeeze. At the 15:10 5-minute bar (decision at 15:15) go long if the stock closes in the top
+    `top` of the day's range so far AND is at least `above_vwap` above the session VWAP; hold `max_bars` bars (7 = ~35 minutes, out by ~15:50); stop
+    `stop_atr` x ATR14. One trade per stock per day. Kill test (Gemini): average trade negative after the wide late-day spread (run at 2x costs too)."""
+    top: float = 0.9
+    above_vwap: float = 0.02
+    stop_atr: float = 1.0
+    max_bars: int = 7
+    at: str = "15:10"
+    name: str = "eod_squeeze"
+
+    def signals(self, df: pd.DataFrame) -> list[Signal]:
+        t = df.index.strftime("%H:%M")
+        hit = np.flatnonzero((t == self.at))
+        if len(hit) == 0:
+            return []
+        i = int(hit[0])
+        lo, hi = float(df["low"].iloc[: i + 1].min()), float(df["high"].iloc[: i + 1].max())
+        c = float(df["close"].iloc[i])
+        vw = float(session_vwap(df).iloc[i])
+        a = float(atr(df, 14).iloc[i])
+        if hi <= lo or not np.isfinite(a) or a <= 0 or (c - lo) / (hi - lo) < self.top or c < vw * (1.0 + self.above_vwap):
+            return []
+        return [Signal(i, 1, self.stop_atr * a, 0.0, self.max_bars, "eod_squeeze")]
+
+    def placebo(self, df: pd.DataFrame, n: int, rng: np.random.Generator) -> list[Signal]:
+        return []
+
+
+@dataclass
 class OpeningRangeBreak:
     range_minutes: int = 15
     stop: str = "range_low"    # "range_low" or an ATR multiple

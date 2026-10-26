@@ -739,6 +739,10 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = ladder_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ladder.json", quick=bool(qtag))
+                elif fam == "eod_squeeze":      # Gemini idea 2 (2026-10-26): end-of-day short squeeze, 15:10 long, ~35-minute hold
+                    from .research import eod_squeeze_study
+                    days = split_days(minute, minutes=5, feature_fn=features_both)
+                    res = eod_squeeze_study(days, train, test, costs)
                 elif fam == "orb_candidate":    # owner's "trading the open": opening-range breakout as an 11th expert
                     from .research import orb_candidate_study
                     from .zonemap import attach

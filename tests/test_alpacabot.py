@@ -2759,3 +2759,18 @@ class ZoneLearnTests(unittest.TestCase):
         text = "\n".join(zone_report({"X": d}, "t", {"X": 5.0}))
         self.assertIn("NEXT ZONES", text)
         self.assertIn("never saw", text)
+
+
+class EodSqueezeTests(unittest.TestCase):
+    def test_long_at_1510_only_in_the_top_of_the_range_above_vwap(self):
+        from alpacabot.strategies import EodSqueeze
+        idx = pd.date_range("2026-10-20 09:30", periods=78, freq="5min", tz="America/New_York")
+        c = np.linspace(100, 103, 78)
+        up = pd.DataFrame({"open": c, "high": c + 0.05, "low": c - 0.05, "close": c, "volume": 1000}, index=idx)
+        s = EodSqueeze(0.9, 0.0).signals(up)
+        self.assertEqual(len(s), 1)
+        self.assertEqual(idx[s[0].i].strftime("%H:%M"), "15:10")
+        self.assertEqual((s[0].side, s[0].max_bars, s[0].target_r), (1, 7, 0.0))
+        self.assertEqual(EodSqueeze(0.9, 0.5).signals(up), [])                    # not 50% above VWAP
+        down = up.assign(close=c[::-1], open=c[::-1], high=c[::-1] + 0.05, low=c[::-1] - 0.05)
+        self.assertEqual(EodSqueeze(0.9, 0.0).signals(down), [])                  # closes at the bottom of the range
