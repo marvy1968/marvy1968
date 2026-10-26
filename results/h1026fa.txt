@@ -1,3 +1,5 @@
 $ find-odds-bot
-started 2026-10-26 07:08:43 EDT
-RUNNING...
+started 2026-10-26 07:08:43 EDT, took 120s, exit timeout
+
+b'== Python projects that talk to Telegram (excluding Marv and virtualenvs)\n'
+TIMED OUT after 120s
