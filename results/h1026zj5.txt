@@ -1,3 +1,4 @@
 $ export-bot forex_bot /home/moonrider1968/forex_bot
-started 2026-10-26 07:48:04 EDT
-RUNNING...
+started 2026-10-26 07:48:04 EDT, took 0s, exit 0
+
+exported 3 files, 40 KB
