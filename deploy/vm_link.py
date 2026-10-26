@@ -15,6 +15,7 @@ Accepted job lines:
   telegram cards/<name>.txt [mirror]  send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   read-bot-reports /abs/folder  tails of that bot's logs + heads of reports/csv (secrets scrubbed)
+  export-bot <name> /abs/folder redacted copy of that bot's code into exports/<name>/ (committed to the vm-link branch)
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
@@ -93,6 +94,19 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if not args or args[0] not in ("download", "backtest", "run-all", "check", "paper-report", "coverage", "history", "symbol-check", "positions", "close-others", "swing", "paper-eod", "paper-pause", "paper-flatten", "paper-trades", "paper-telegram"):
             return None, "alpaca needs download, backtest, run-all, check or paper-report"
         return as_bot + [py, "-m", "alpacabot", *args], ""
+    if cmd == "export-bot":  # redacted copy of a bot folder into exports/<name>/ on the vm-link branch (no 200 KB output limit)
+        if len(args) != 2 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]) or not args[1].startswith("/") or ".." in args[1]:
+            return None, "export-bot needs <name> /abs/folder"
+        dest = f"{LINK}/exports/{args[0]}"
+        script = (f"set -e; export HOME=/root; bash {BOT}/deploy/find_odds_bot.sh {args[1]} >/dev/null; d=$(mktemp -d); "
+                  f"tar -xzf /root/odds-bot-redacted.tar.gz -C $d; rm -rf {dest}; mkdir -p {dest}; cd $d/odds-bot; "
+                  "find . -type f \\( -name '*.py' -o -name '*.json' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.service' "
+                  f"-o -name '*.toml' -o -name '*.yaml' -o -name '*.yml' -o -name '*.cfg' \\) -size -300k -not -path '*/archive/*' "
+                  f"-not -name '*.log' | while read f; do mkdir -p \"{dest}/$(dirname \"$f\")\"; cp \"$f\" \"{dest}/$f\"; done; rm -rf $d; "
+                  f"if grep -rIlE '[0-9a-f]{{32}}-[0-9a-f]{{32}}|[0-9]{{3}}-[0-9]{{3}}-[0-9]{{6,9}}-[0-9]{{3}}|[0-9]{{8,10}}:[A-Za-z0-9_-]{{30,}}' {dest}; "
+                  f"then echo 'SECRET-LIKE TEXT LEFT: export removed'; rm -rf {dest}; exit 1; fi; "
+                  f"echo exported $(find {dest} -type f | wc -l) files, $(du -sk {dest} | cut -f1) KB")
+        return ["bash", "-c", script], ""
     if cmd == "gemini":  # consult Gemini with consult/gemini_brief.md (+ optional words); needs GEMINI_API_KEY in .env
         return as_bot + [py, str(BOT / "tools/gemini_consult.py"), *args], ""
     if cmd == "alpaca-paper-status":  # the paper-trading service and its last log lines
