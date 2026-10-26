@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.1-pro-preview")
 
 
 def main() -> int:
