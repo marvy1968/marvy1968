@@ -1,3 +1,7 @@
 $ alpaca paper-pause
-started 2026-10-26 18:03:21 EDT
-RUNNING...
+started 2026-10-26 18:03:21 EDT, took 1s, exit 2
+
+
+--- stderr ---
+usage: alpacabot paper-pause [-h] [--state STATE] [--reason REASON] {on,off}
+alpacabot paper-pause: error: the following arguments are required: mode
