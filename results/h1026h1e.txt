@@ -1,3 +1,168 @@
 $ show alpaca_paper/journal-20261026.jsonl
-started 2026-10-26 13:11:49 EDT
-RUNNING...
+started 2026-10-26 13:11:49 EDT, took 0s, exit 0
+
+{"t": "2026-10-26T09:30:26-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T09:30:26-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T09:30:26-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T09:43:31-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T09:43:31-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T09:43:31-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T09:50:19-04:00", "kind": "signal", "symbol": "CVX", "side": "long", "tag": "trend_stairs", "ref": 232.87, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T09:55:06-04:00", "kind": "signal", "symbol": "ECL", "side": "short", "tag": "S:connors_rsi2", "ref": 289.52, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "brooks_pullback", "ref": 125.16, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "signal", "symbol": "ECL", "side": "short", "tag": "S:connors_rsi2", "ref": 289.52, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "signal", "symbol": "PATH", "side": "long", "tag": "trend_stairs", "ref": 14.15, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "signal_score", "symbol": "BBAI", "tag": "S:connors_rsi2", "score": 0.0, "risk_pct": 0.005}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "signal", "symbol": "BBAI", "side": "short", "tag": "S:connors_rsi2", "ref": 2.14, "result": "ordered"}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "fill", "symbol": "BBAI", "side": -1, "qty": 250, "quote": 2.135, "fill": 2.13, "slip_bps": 23.42}
+{"t": "2026-10-26T10:00:06-04:00", "kind": "ladder_open", "symbol": "BBAI", "tier": 0, "risk_pct": 0.01, "qty": 250}
+{"t": "2026-10-26T10:02:35-04:00", "kind": "exit", "symbol": "BBAI", "reason": "zone100", "px": 2.13, "side": -1}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "TMUS", "side": "short", "tag": "S:brooks_pullback", "ref": 145.985, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "DIS", "side": "short", "tag": "S:brooks_pullback", "ref": 112.03, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "PG", "side": "short", "tag": "S:connors_rsi2", "ref": 161.19, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "KO", "side": "short", "tag": "S:raschke_grail", "ref": 92.275, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "PM", "side": "short", "tag": "S:fib_box", "ref": 202.805, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "opening_range_breakout", "ref": 93.31, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "DUK", "side": "long", "tag": "opening_range_breakout", "ref": 125.35, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "LIN", "side": "long", "tag": "opening_range_breakout", "ref": 509.985, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:05:05-04:00", "kind": "signal", "symbol": "ECL", "side": "short", "tag": "S:connors_rsi2", "ref": 289.62, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:10:11-04:00", "kind": "signal", "symbol": "BRK.B", "side": "short", "tag": "S:range_box", "ref": 545.26, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:10:11-04:00", "kind": "signal", "symbol": "V", "side": "short", "tag": "S:brooks_pullback", "ref": 406.29, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:10:11-04:00", "kind": "signal", "symbol": "LLY", "side": "short", "tag": "S:hybrid_box", "ref": 1283.73, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:10:11-04:00", "kind": "signal", "symbol": "GE", "side": "short", "tag": "S:connors_rsi2", "ref": 287.68, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:10:11-04:00", "kind": "signal", "symbol": "CEG", "side": "long", "tag": "range_box", "ref": 250.5, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:15:15-04:00", "kind": "signal", "symbol": "DKNG", "side": "long", "tag": "brooks_pullback", "ref": 21.145, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "MA", "side": "short", "tag": "S:dual_regime", "ref": 618.13, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "CAT", "side": "short", "tag": "S:connors_rsi2", "ref": 689.18, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "COST", "side": "short", "tag": "S:range_box", "ref": 1012.3, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "KO", "side": "short", "tag": "S:dual_regime", "ref": 92.145, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "XOM", "side": "long", "tag": "connors_rsi2", "ref": 182.89, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:20:07-04:00", "kind": "signal", "symbol": "SO", "side": "long", "tag": "connors_rsi2", "ref": 92.86, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:25:10-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "hybrid_box", "ref": 71.16, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:25:10-04:00", "kind": "signal", "symbol": "RIVN", "side": "short", "tag": "S:raschke_grail", "ref": 11.68, "result": "chase: 11.64 is past the entry zone (11.68 + 0.25 ATR)"}
+{"t": "2026-10-26T10:25:10-04:00", "kind": "signal", "symbol": "RIOT", "side": "short", "tag": "S:raschke_grail", "ref": 12.235, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-26T10:25:10-04:00", "kind": "signal", "symbol": "IONQ", "side": "short", "tag": "S:raschke_grail", "ref": 30.49, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "GOOGL", "side": "short", "tag": "S:raschke_grail", "ref": 319.86, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:raschke_grail", "ref": 66.65, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "KO", "side": "short", "tag": "S:dual_regime", "ref": 92.155, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "NEM", "side": "short", "tag": "S:brooks_pullback", "ref": 108.43, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "U", "side": "short", "tag": "S:raschke_grail", "ref": 40.05, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "RIOT", "side": "short", "tag": "S:raschke_grail", "ref": 12.23, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "SOUN", "side": "short", "tag": "S:brooks_pullback", "ref": 4.32, "result": "chase: 4.31 is past the entry zone (4.32 + 0.25 ATR)"}
+{"t": "2026-10-26T10:30:11-04:00", "kind": "signal", "symbol": "RUN", "side": "short", "tag": "S:brooks_pullback", "ref": 7.435, "result": "1-hour trend not confirmed"}
+{"t": "2026-10-26T10:35:16-04:00", "kind": "signal", "symbol": "NEE", "side": "long", "tag": "brooks_pullback", "ref": 82.43, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:35:16-04:00", "kind": "signal", "symbol": "MARA", "side": "short", "tag": "S:raschke_grail", "ref": 6.83, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-26T10:35:16-04:00", "kind": "signal", "symbol": "RIOT", "side": "short", "tag": "S:raschke_grail", "ref": 12.16, "result": "stage 1 (needs 4)"}
+{"t": "2026-10-26T10:40:18-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:connors_rsi2", "ref": 640.84, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:40:18-04:00", "kind": "signal", "symbol": "PLD", "side": "long", "tag": "brooks_pullback", "ref": 126.75, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:45:19-04:00", "kind": "signal", "symbol": "META", "side": "short", "tag": "S:connors_rsi2", "ref": 643.4, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:45:19-04:00", "kind": "signal", "symbol": "COST", "side": "long", "tag": "brooks_pullback", "ref": 1009.54, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:45:19-04:00", "kind": "signal", "symbol": "DKNG", "side": "long", "tag": "trend_stairs", "ref": 21.11, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T10:45:19-04:00", "kind": "signal", "symbol": "CHWY", "side": "long", "tag": "connors_rsi2", "ref": 21.985, "result": "stage 4 (needs 2)"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "connors_rsi2", "ref": 50.98, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "LLY", "side": "short", "tag": "S:fib_box", "ref": 1275.75, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "connors_rsi2", "ref": 287.58, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:connors_rsi2", "ref": 253.235, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "CELH", "side": "short", "tag": "S:dual_regime", "ref": 27.7, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal_score", "symbol": "OPEN", "tag": "S:brooks_pullback", "score": 0.6, "risk_pct": 0.01}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "signal", "symbol": "OPEN", "side": "short", "tag": "S:brooks_pullback", "ref": 1.9, "result": "ordered"}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "fill", "symbol": "OPEN", "side": -1, "qty": 282, "quote": 1.9, "fill": 1.89, "slip_bps": 52.63}
+{"t": "2026-10-26T10:50:08-04:00", "kind": "ladder_open", "symbol": "OPEN", "tier": 0, "risk_pct": 0.01, "qty": 282}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "connors_rsi2", "ref": 50.98, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "signal", "symbol": "LLY", "side": "short", "tag": "S:fib_box", "ref": 1275.75, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "connors_rsi2", "ref": 287.58, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "signal", "symbol": "CEG", "side": "short", "tag": "S:connors_rsi2", "ref": 253.235, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:53:29-04:00", "kind": "signal", "symbol": "CELH", "side": "short", "tag": "S:dual_regime", "ref": 27.7, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T10:54:49-04:00", "kind": "exit", "symbol": "OPEN", "reason": "stop", "px": 1.905, "side": -1}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:dual_regime", "ref": 346.79, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "williams_r", "ref": 51.1, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "connors_rsi2", "ref": 286.79, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "PLD", "side": "long", "tag": "vwap_dev", "ref": 126.59, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "EQIX", "side": "long", "tag": "opening_range_breakout", "ref": 966.825, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "trend_stairs", "ref": 339.485, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "SOFI", "side": "short", "tag": "S:connors_rsi2", "ref": 14.615, "result": "1-hour market is trending (ADX 28), not a range"}
+{"t": "2026-10-26T10:55:19-04:00", "kind": "signal", "symbol": "AFRM", "side": "short", "tag": "S:connors_rsi2", "ref": 70.115, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:dual_regime", "ref": 346.79, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "williams_r", "ref": 51.1, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "connors_rsi2", "ref": 286.79, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "PLD", "side": "long", "tag": "vwap_dev", "ref": 126.59, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "EQIX", "side": "long", "tag": "opening_range_breakout", "ref": 966.825, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "SHW", "side": "long", "tag": "trend_stairs", "ref": 339.485, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "SOFI", "side": "short", "tag": "S:connors_rsi2", "ref": 14.615, "result": "1-hour market is trending (ADX 28), not a range"}
+{"t": "2026-10-26T10:57:16-04:00", "kind": "signal", "symbol": "AFRM", "side": "short", "tag": "S:connors_rsi2", "ref": 70.115, "result": "stage 2 (needs 4)"}
+{"t": "2026-10-26T11:00:13-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:vwap_dev", "ref": 346.58, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:00:13-04:00", "kind": "signal", "symbol": "V", "side": "short", "tag": "S:dual_regime", "ref": 404.42, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:00:13-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "connors_rsi2", "ref": 286.47, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:00:13-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:raschke_grail", "ref": 66.47, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:00:13-04:00", "kind": "signal", "symbol": "RIVN", "side": "short", "tag": "S:brooks_pullback", "ref": 11.67, "result": "trend not confirmed (1/5; failed: body, volume, volatility, follow-through)"}
+{"t": "2026-10-26T11:05:14-04:00", "kind": "signal", "symbol": "ABBV", "side": "long", "tag": "vwap_dev", "ref": 286.59, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:05:14-04:00", "kind": "signal", "symbol": "UNH", "side": "short", "tag": "S:dual_regime", "ref": 414.52, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:05:14-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:dual_regime", "ref": 66.42, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:05:14-04:00", "kind": "signal", "symbol": "OPEN", "side": "short", "tag": "S:connors_rsi2", "ref": 1.92, "result": "1-hour market is trending (ADX 28), not a range"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:vwap_dev", "ref": 346.69, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "BKNG", "side": "short", "tag": "S:dual_regime", "ref": 153.13, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "MRK", "side": "short", "tag": "S:dual_regime", "ref": 141.77, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "JOBY", "side": "short", "tag": "S:connors_rsi2", "ref": 4.67, "result": "1-hour market is trending (ADX 34), not a range"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "OPEN", "side": "short", "tag": "S:connors_rsi2", "ref": 1.94, "result": "1-hour market is trending (ADX 28), not a range"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal_score", "symbol": "RUN", "tag": "S:connors_rsi2", "score": 0.2, "risk_pct": 0.005}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "signal", "symbol": "RUN", "side": "short", "tag": "S:connors_rsi2", "ref": 7.5, "result": "ordered"}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "fill", "symbol": "RUN", "side": -1, "qty": 71, "quote": 7.51, "fill": 7.5, "slip_bps": 13.32}
+{"t": "2026-10-26T11:10:07-04:00", "kind": "ladder_open", "symbol": "RUN", "tier": 0, "risk_pct": 0.01, "qty": 71}
+{"t": "2026-10-26T11:15:14-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "williams_r", "ref": 212.78, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:15:14-04:00", "kind": "signal", "symbol": "RIVN", "side": "short", "tag": "S:connors_rsi2", "ref": 11.715, "result": "1-hour market is trending (ADX 37), not a range"}
+{"t": "2026-10-26T11:15:14-04:00", "kind": "signal", "symbol": "SOUN", "side": "short", "tag": "S:vwap_dev", "ref": 4.395, "result": "1-hour market is trending (ADX 44), not a range"}
+{"t": "2026-10-26T11:15:14-04:00", "kind": "signal", "symbol": "OPEN", "side": "short", "tag": "S:connors_rsi2", "ref": 1.94, "result": "1-hour market is trending (ADX 28), not a range"}
+{"t": "2026-10-26T11:20:19-04:00", "kind": "signal", "symbol": "BAC", "side": "long", "tag": "vwap_dev", "ref": 51.085, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:20:19-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "trend_stairs", "ref": 212.97, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:25:57-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T11:25:57-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T11:25:57-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T11:27:33-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "APD"], "short": []}
+{"t": "2026-10-26T11:27:33-04:00", "kind": "zonemap", "up": 23, "down": 25, "range": 34, "stocks": 82, "stage2": 31, "stage4": 30, "stage1": 12, "stage3": 9}
+{"t": "2026-10-26T11:27:33-04:00", "kind": "heat_map", "IWM": -1, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": -1, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-10-26T11:30:10-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "vz_scalp", "ref": 163.48, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:35:06-04:00", "kind": "signal", "symbol": "NFLX", "side": "short", "tag": "S:vz_day", "ref": 63.805, "result": "sector news not negative (XLC): no short"}
+{"t": "2026-10-26T11:35:06-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "vz_scalp", "ref": 202.65, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:40:11-04:00", "kind": "signal", "symbol": "UBER", "side": "short", "tag": "S:raschke_grail", "ref": 66.485, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:40:11-04:00", "kind": "signal", "symbol": "EQIX", "side": "long", "tag": "brooks_pullback", "ref": 965.17, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:40:11-04:00", "kind": "signal", "symbol": "CELH", "side": "short", "tag": "S:raschke_grail", "ref": 27.76, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T11:50:07-04:00", "kind": "signal", "symbol": "BKNG", "side": "short", "tag": "S:dual_regime", "ref": 152.615, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:50:07-04:00", "kind": "signal", "symbol": "ROKU", "side": "short", "tag": "S:vz_day", "ref": 157.85, "result": "sector news not negative (XLC): no short"}
+{"t": "2026-10-26T11:50:07-04:00", "kind": "signal", "symbol": "CELH", "side": "short", "tag": "S:raschke_grail", "ref": 27.73, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T11:51:10-04:00", "kind": "exit", "symbol": "RUN", "reason": "zone100", "px": 7.44, "side": -1}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "MSFT", "side": "long", "tag": "vz_day", "ref": 531.065, "result": "heat map: sector / market not up for longs"}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "BKNG", "side": "short", "tag": "S:vz_day", "ref": 152.37, "result": "sector news not negative (XLY): no short"}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "PM", "side": "long", "tag": "trend_stairs", "ref": 202.69, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "SHW", "side": "short", "tag": "S:vz_day", "ref": 336.99, "result": "sector news not negative (XLB): no short"}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "CHWY", "side": "short", "tag": "S:dual_regime", "ref": 21.795, "result": "against direction (bias +0)"}
+{"t": "2026-10-26T11:55:11-04:00", "kind": "signal", "symbol": "TOST", "side": "short", "tag": "S:vz_day", "ref": 31.975, "result": "sector news not negative (XLK): no short"}
+{"t": "2026-10-26T12:05:11-04:00", "kind": "signal", "symbol": "UNH", "side": "short", "tag": "S:vz_day", "ref": 410.59, "result": "sector news not negative (XLV): no short"}
+{"t": "2026-10-26T12:10:15-04:00", "kind": "signal", "symbol": "IWM", "side": "long", "tag": "trend_stairs", "ref": 277.915, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:10:15-04:00", "kind": "signal", "symbol": "APD", "side": "long", "tag": "williams_r", "ref": 307.985, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:15:19-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:vz_day", "ref": 344.2, "result": "sector news not negative (XLK): no short"}
+{"t": "2026-10-26T12:20:10-04:00", "kind": "signal", "symbol": "LLY", "side": "short", "tag": "S:connors_rsi2", "ref": 1282.0, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:25:10-04:00", "kind": "signal", "symbol": "RTX", "side": "long", "tag": "vz_day", "ref": 196.21, "result": "heat map: sector / market not up for longs"}
+{"t": "2026-10-26T12:25:10-04:00", "kind": "signal", "symbol": "SHW", "side": "short", "tag": "S:dual_regime", "ref": 338.0, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:30:13-04:00", "kind": "signal", "symbol": "CHWY", "side": "short", "tag": "S:vz_day", "ref": 21.725, "result": "sector news not negative (XLY): no short"}
+{"t": "2026-10-26T12:40:13-04:00", "kind": "signal", "symbol": "EQIX", "side": "long", "tag": "connors_rsi2", "ref": 963.76, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:50:09-04:00", "kind": "signal", "symbol": "AAPL", "side": "short", "tag": "S:dual_regime", "ref": 343.36, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:50:09-04:00", "kind": "signal", "symbol": "WMB", "side": "long", "tag": "williams_r", "ref": 71.72, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:50:09-04:00", "kind": "signal", "symbol": "HIMS", "side": "short", "tag": "S:vz_day", "ref": 27.41, "result": "sector news not negative (XLV): no short"}
+{"t": "2026-10-26T12:55:15-04:00", "kind": "signal", "symbol": "XOM", "side": "long", "tag": "vz_day", "ref": 184.12, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:55:15-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "williams_r", "ref": 163.14, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:55:15-04:00", "kind": "signal", "symbol": "PLD", "side": "short", "tag": "S:connors_rsi2", "ref": 126.33, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:55:15-04:00", "kind": "signal", "symbol": "SPG", "side": "long", "tag": "trend_stairs", "ref": 212.765, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T12:55:15-04:00", "kind": "signal", "symbol": "SOFI", "side": "short", "tag": "S:vz_day", "ref": 14.45, "result": "sector news not negative (XLF): no short"}
+{"t": "2026-10-26T13:00:15-04:00", "kind": "signal", "symbol": "TSLA", "side": "long", "tag": "trend_stairs", "ref": 395.5, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T13:00:15-04:00", "kind": "signal", "symbol": "EOG", "side": "long", "tag": "vwap_dev", "ref": 163.04, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T13:00:15-04:00", "kind": "signal", "symbol": "RKLB", "side": "long", "tag": "trend_stairs", "ref": 54.535, "result": "against direction (bias -1)"}
+{"t": "2026-10-26T13:05:12-04:00", "kind": "signal", "symbol": "MRK", "side": "short", "tag": "S:vz_day", "ref": 140.41, "result": "sector news not negative (XLV): no short"}
+{"t": "2026-10-26T13:10:19-04:00", "kind": "signal", "symbol": "AMZN", "side": "short", "tag": "S:connors_rsi2", "ref": 249.735, "result": "shadow: not in entry_symbols"}
+{"t": "2026-10-26T13:10:19-04:00", "kind": "signal", "symbol": "HD", "side": "short", "tag": "S:vz_day", "ref": 317.29, "result": "sector news not negative (XLY): no short"}
+{"t": "2026-10-26T13:10:19-04:00", "kind": "signal", "symbol": "GEV", "side": "long", "tag": "vz_day", "ref": 858.67, "result": "heat map: sector / market not up for longs"}
