@@ -1,0 +1,2 @@
+$ export-bot velez_bot /home/moonrider1968/velez-bot
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
