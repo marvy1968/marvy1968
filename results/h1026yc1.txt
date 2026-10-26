@@ -1,0 +1,2 @@
+$ export-bot oanda_active /home/moonrider1968/bots/oanda_active
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
