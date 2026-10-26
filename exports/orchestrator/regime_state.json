@@ -1,0 +1,32 @@
+{
+  "regime": "RANGING",
+  "h1_macro_trend": "BEARISH",
+  "close": 163.456,
+  "high_15": 163.571,
+  "low_15": 163.392,
+  "sma20": 163.4702,
+  "sma50": 163.58216000000002,
+  "std20": 0.06953045527352215,
+  "atr": 0.03914285714286133,
+  "spread": 0.01999999999998181,
+  "open_trades_count": 0,
+  "kelly_config": {
+    "BOT-1": {
+      "max_equity_risk": 0.0438,
+      "payoff_target": 2.0
+    },
+    "BOT-2": {
+      "max_equity_risk": 0.05,
+      "payoff_target": 1.6
+    },
+    "BOT-3": {
+      "max_equity_risk": 0.05,
+      "payoff_target": 1.2
+    },
+    "BOT-4": {
+      "max_equity_risk": 0.05,
+      "payoff_target": 1.8
+    }
+  },
+  "timestamp": 1785358732.8543077
+}
