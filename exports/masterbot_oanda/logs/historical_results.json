@@ -1,0 +1,60 @@
+[
+  {
+    "game": "Illinois St Redbirds @ Wake Forest Demon Deacons",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Wake Forest Demon Deacons",
+    "away_team": "Illinois St Redbirds",
+    "home_score": 75,
+    "away_score": 78,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "St. John's Red Storm @ Kansas Jayhawks",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Kansas Jayhawks",
+    "away_team": "St. John's Red Storm",
+    "home_score": 65,
+    "away_score": 67,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "Tennessee Volunteers @ Virginia Cavaliers",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Virginia Cavaliers",
+    "away_team": "Tennessee Volunteers",
+    "home_score": 72,
+    "away_score": 79,
+    "completed": true,
+    "status_detail": "Final"
+  },
+  {
+    "game": "Seattle Redhawks @ Auburn Tigers",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Auburn Tigers",
+    "away_team": "Seattle Redhawks",
+    "home_score": null,
+    "away_score": null,
+    "completed": false,
+    "status_detail": "NEEDS_RESULT"
+  },
+  {
+    "game": "UNLV Rebels @ Tulsa Golden Hurricane",
+    "sport_key": "basketball_ncaab",
+    "home_team": "Tulsa Golden Hurricane",
+    "away_team": "UNLV Rebels",
+    "home_score": null,
+    "away_score": null,
+    "completed": false,
+    "status_detail": "NEEDS_RESULT"
+  },
+  {
+    "home_team": "Virginia Cavaliers",
+    "away_team": "Tennessee Volunteers",
+    "home_score": 72,
+    "away_score": 79,
+    "completed": true,
+    "status": "Final"
+  }
+]

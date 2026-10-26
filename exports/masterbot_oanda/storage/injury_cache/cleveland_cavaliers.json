@@ -1,0 +1,18 @@
+{
+  "team": "Cleveland Cavaliers",
+  "fetched_at_utc": "2026-04-01T03:17:43.969727+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Cleveland Cavaliers",
+      "player": "Apr 2",
+      "position": "Out",
+      "status": "Mar 31: Merrill (hamstring) is out for Tuesday's game against the Lakers.",
+      "est_return_date": "Jaylon Tyson",
+      "comment": "G Apr 5 Out Mar 29: Tyson (toe) won't play in the Cavaliers' upcoming three-game road trip, according to Law Murray of The Athletic. Dean Wade F Apr 5 Out Mar 29: Wade (ankle) won't be available to play in the Cavaliers' three-game road trip, according to Law Murray of The Athletic.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

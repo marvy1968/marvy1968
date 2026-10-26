@@ -1,3 +1,4 @@
 $ export-bot masterbot_oanda /home/moonrider1968/MasterBot_Center/Trading_Oanda
-started 2026-10-26 07:47:42 EDT
-RUNNING...
+started 2026-10-26 07:47:42 EDT, took 5s, exit 0
+
+exported 280 files, 1920 KB

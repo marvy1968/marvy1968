@@ -1,0 +1,18 @@
+{
+  "team": "Los Angeles Lakers",
+  "fetched_at_utc": "2026-04-01T03:17:43.969777+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Los Angeles Lakers",
+      "player": "Apr 2",
+      "position": "Out",
+      "status": "Mar 31: Smart (ankle) has been ruled out for Tuesday's game against the Cavaliers.",
+      "est_return_date": "",
+      "comment": "",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

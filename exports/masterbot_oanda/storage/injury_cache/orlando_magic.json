@@ -1,0 +1,18 @@
+{
+  "team": "Orlando Magic",
+  "fetched_at_utc": "2026-04-01T03:17:43.969814+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Orlando Magic",
+      "player": "Apr 1",
+      "position": "Out",
+      "status": "Mar 31: Wagner (ankle), who has been ruled out for Tuesday's game against the Suns, is \"progressing well,\" per Jason Beede of the Orlando Sentinel.",
+      "est_return_date": "Anthony Black",
+      "comment": "G Apr 1 Out Mar 31: Black (abdomen) was spotted going through individual work after Tuesday's shootaround, Jason Beede of the Orlando Sentinel reports. Jonathan Isaac F Apr 1 Out Mar 30: Isaac is out for Tuesday's game against the Suns due to a sprained left knee.",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

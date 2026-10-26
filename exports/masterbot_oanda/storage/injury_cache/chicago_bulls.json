@@ -1,0 +1,18 @@
+{
+  "team": "Chicago Bulls",
+  "fetched_at_utc": "2026-04-01T03:17:43.969722+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Chicago Bulls",
+      "player": "Apr 1",
+      "position": "Out",
+      "status": "Mar 31: Richards (elbow) is questionable for Wednesday's game against the Pacers.",
+      "est_return_date": "Anfernee Simons",
+      "comment": "G Apr 3 Out Mar 31: Simons (wrist) is out for Wednesday's game against the Pacers. Jalen Smith F Oct 1 Out Mar 26: Smith (calf) will miss the remainder of the season, Joel Lorenzi of The Athletic reports. Zach Collins F Oct 1",
+      "impact_base": 0.04,
+      "impact_score": 0.02
+    }
+  ],
+  "team_impact_score": 0.02
+}

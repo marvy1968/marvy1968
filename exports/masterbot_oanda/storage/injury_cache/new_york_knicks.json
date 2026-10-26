@@ -1,0 +1,18 @@
+{
+  "team": "New York Knicks",
+  "fetched_at_utc": "2026-04-01T03:17:43.969806+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "New York Knicks",
+      "player": "Apr 1",
+      "position": "Out",
+      "status": "Mar 30: Shamet (knee) has been ruled out for Tuesday's game against the Rockets.",
+      "est_return_date": "",
+      "comment": "",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}

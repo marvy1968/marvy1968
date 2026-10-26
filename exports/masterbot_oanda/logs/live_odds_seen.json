@@ -1,0 +1,567 @@
+{
+  "Wichita St Shockers @ Tulsa Golden Hurricane": {
+    "last_seen": 1774400856,
+    "has_scoreboard_match": false,
+    "scoreboard_status": ""
+  },
+  "Saint Joseph's Hawks @ New Mexico Lobos": {
+    "ts": 1774404352.5231802,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Illinois St Redbirds @ Dayton Flyers": {
+    "ts": 1774487437.9609156,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Nevada Wolf Pack @ Auburn Tigers": {
+    "ts": 1774495091.5999255,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Texas Longhorns @ Purdue Boilermakers": {
+    "ts": 1774575825.2355936,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Iowa Hawkeyes @ Nebraska Cornhuskers": {
+    "ts": 1774575524.826147,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Arkansas Razorbacks @ Arizona Wildcats": {
+    "ts": 1774586292.8924372,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Illinois Fighting Illini @ Houston Cougars": {
+    "ts": 1774585689.709474,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "St. John's Red Storm @ Duke Blue Devils": {
+    "ts": 1774661861.6388218,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Alabama Crimson Tide @ Michigan Wolverines": {
+    "ts": 1774663988.6074817,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Michigan St Spartans @ UConn Huskies": {
+    "ts": 1774671877.9270196,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Tennessee Volunteers @ Iowa State Cyclones": {
+    "ts": 1774673987.8736181,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Oklahoma Sooners @ Colorado Buffaloes": {
+    "ts": 1774955643.0417557,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Baylor Bears @ Minnesota Golden Gophers": {
+    "ts": 1774955643.0363657,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Stanford Cardinal @ West Virginia Mountaineers": {
+    "ts": 1774955643.0457687,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Rutgers Scarlet Knights @ Creighton Bluejays": {
+    "ts": 1774955643.0430183,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Kentucky Wildcats @ West Virginia Mountaineers": {
+    "last_seen": 1774306150,
+    "has_scoreboard_match": true,
+    "scoreboard_status": "3:43 - 4th Quarter"
+  },
+  "Illinois Fighting Illini @ Vanderbilt Commodores": {
+    "last_seen": 1774313532,
+    "has_scoreboard_match": true,
+    "scoreboard_status": "2:41 - 4th Quarter"
+  },
+  "USC Trojans @ South Carolina Gamecocks": {
+    "last_seen": 1774316429,
+    "has_scoreboard_match": true,
+    "scoreboard_status": "9:24 - 4th Quarter"
+  },
+  "Oklahoma St Cowgirls @ UCLA Bruins": {
+    "last_seen": 1774325201,
+    "has_scoreboard_match": true,
+    "scoreboard_status": "Final"
+  },
+  "Duke Blue Devils @ LSU Tigers": {
+    "ts": 1774672485.4098198,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "North Carolina Tar Heels @ UConn Huskies": {
+    "ts": 1774653539.1346164,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Notre Dame Fighting Irish @ Vanderbilt Commodores": {
+    "ts": 1774644815.436124,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Minnesota Golden Gophers @ UCLA Bruins": {
+    "ts": 1774662770.7662237,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "New Orleans Pelicans @ New York Knicks": {
+    "ts": 1774404352.4911778,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Orlando Magic @ Cleveland Cavaliers": {
+    "ts": 1774404349.9924319,
+    "scoreboard_found": true,
+    "status": "10:09 - 4th Quarter"
+  },
+  "Sacramento Kings @ Charlotte Hornets": {
+    "last_seen": 1774400855,
+    "has_scoreboard_match": true,
+    "scoreboard_status": "2:35 - 4th Quarter"
+  },
+  "Denver Nuggets @ Phoenix Suns": {
+    "ts": 1774417835.9701526,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Atlanta Hawks @ Detroit Pistons": {
+    "ts": 1774490505.7437148,
+    "scoreboard_found": true,
+    "status": "Final/OT"
+  },
+  "Chicago Bulls @ Philadelphia 76ers": {
+    "ts": 1774488973.0175533,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Dallas Mavericks @ Denver Nuggets": {
+    "ts": 1774500264.327243,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Houston Rockets @ Minnesota Timberwolves": {
+    "ts": 1774500264.3241892,
+    "scoreboard_found": true,
+    "status": "Final/OT"
+  },
+  "Los Angeles Lakers @ Indiana Pacers": {
+    "ts": 1774489279.1812415,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Miami Heat @ Cleveland Cavaliers": {
+    "ts": 1774664290.5226007,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Oklahoma City Thunder @ Boston Celtics": {
+    "ts": 1774491114.5287876,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "San Antonio Spurs @ Memphis Grizzlies": {
+    "ts": 1774492037.002717,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Toronto Raptors @ Los Angeles Clippers": {
+    "ts": 1774501465.9599967,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Kentucky Wildcats @ Texas Longhorns": {
+    "ts": 1774732654.2202413,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Louisville Cardinals @ Michigan Wolverines": {
+    "ts": 1774723701.8206074,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Oklahoma Sooners @ South Carolina Gamecocks": {
+    "ts": 1774739352.8188562,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Virginia Cavaliers @ TCU Horned Frogs": {
+    "ts": 1774748353.5181186,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Milwaukee Bucks @ Portland Trail Blazers": {
+    "ts": 1774499963.969912,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Washington Wizards @ Utah Jazz": {
+    "ts": 1774496002.8615434,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Brooklyn Nets @ Golden State Warriors": {
+    "ts": 1774500865.1677818,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Tulsa Golden Hurricane @ New Mexico Lobos": {
+    "ts": 1774955643.048622,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "UConn Huskies @ Duke Blue Devils": {
+    "ts": 1774827380.0446627,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Purdue Boilermakers @ Arizona Wildcats": {
+    "ts": 1774754178.1868691,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Texas Longhorns @ Arizona Wildcats": {
+    "ts": 1774566971.0210698,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Iowa Hawkeyes @ Houston Cougars": {
+    "ts": 1774566971.0221472,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Nebraska Cornhuskers @ Houston Cougars": {
+    "ts": 1774566971.0231986,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Arkansas Razorbacks @ Purdue Boilermakers": {
+    "ts": 1774566971.02425,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Nebraska Cornhuskers @ Illinois Fighting Illini": {
+    "ts": 1774566971.0257835,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Iowa Hawkeyes @ Illinois Fighting Illini": {
+    "ts": 1774744821.759555,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Texas Longhorns @ Arkansas Razorbacks": {
+    "ts": 1774566971.0286262,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Alabama Crimson Tide @ Iowa State Cyclones": {
+    "ts": 1774654472.2136865,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Iowa State Cyclones @ Michigan Wolverines": {
+    "ts": 1774654472.2202199,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Tennessee Volunteers @ Michigan Wolverines": {
+    "ts": 1774817322.0407412,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Tennessee Volunteers @ Alabama Crimson Tide": {
+    "ts": 1774654472.2340384,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "St. John's Red Storm @ UConn Huskies": {
+    "ts": 1774653232.3212233,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "St. John's Red Storm @ Michigan St Spartans": {
+    "ts": 1774653232.3200276,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Michigan St Spartans @ Duke Blue Devils": {
+    "ts": 1774653232.3118389,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "New York Knicks @ Charlotte Hornets": {
+    "ts": 1774575524.8584747,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Sacramento Kings @ Orlando Magic": {
+    "ts": 1774575524.859522,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "New Orleans Pelicans @ Detroit Pistons": {
+    "ts": 1774575224.464839,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Illinois St Redbirds @ Auburn Tigers": {
+    "ts": 1774955643.0404272,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Atlanta Hawks @ Boston Celtics": {
+    "ts": 1774663686.7610059,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Chicago Bulls @ Oklahoma City Thunder": {
+    "ts": 1774665204.5222034,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Utah Jazz @ Denver Nuggets": {
+    "ts": 1774668864.7386832,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Dallas Mavericks @ Portland Trail Blazers": {
+    "ts": 1774672785.9692605,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Los Angeles Clippers @ Indiana Pacers": {
+    "ts": 1774577940.3632693,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Houston Rockets @ Memphis Grizzlies": {
+    "ts": 1774664902.7309153,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Washington Wizards @ Golden State Warriors": {
+    "ts": 1774672785.9723144,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Brooklyn Nets @ Los Angeles Lakers": {
+    "ts": 1774674588.7774546,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "New Orleans Pelicans @ Toronto Raptors": {
+    "ts": 1774667316.3032565,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Notre Dame Fighting Irish @ UConn Huskies": {
+    "ts": 1774812131.2810025,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Duke Blue Devils @ UCLA Bruins": {
+    "ts": 1774819622.6005776,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Chicago Bulls @ Memphis Grizzlies": {
+    "ts": 1774752791.736445,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Detroit Pistons @ Minnesota Timberwolves": {
+    "ts": 1774742695.8281822,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Philadelphia 76ers @ Charlotte Hornets": {
+    "ts": 1774745123.5662417,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Sacramento Kings @ Atlanta Hawks": {
+    "ts": 1774749652.573659,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "San Antonio Spurs @ Milwaukee Bucks": {
+    "ts": 1774733275.6913598,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Utah Jazz @ Phoenix Suns": {
+    "ts": 1774758086.1164782,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Michigan Wolverines @ Texas Longhorns": {
+    "ts": 1774919868.642819,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "TCU Horned Frogs @ South Carolina Gamecocks": {
+    "ts": 1774927090.3390665,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Boston Celtics @ Charlotte Hornets": {
+    "ts": 1774830216.4021008,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Golden State Warriors @ Denver Nuggets": {
+    "ts": 1774846168.2689016,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Houston Rockets @ New Orleans Pelicans": {
+    "ts": 1774834733.1759665,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Miami Heat @ Indiana Pacers": {
+    "ts": 1774827198.9901392,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "New York Knicks @ Oklahoma City Thunder": {
+    "ts": 1774837441.3821888,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Orlando Magic @ Toronto Raptors": {
+    "ts": 1774830818.6274526,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Sacramento Kings @ Brooklyn Nets": {
+    "ts": 1774830818.628835,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Washington Wizards @ Portland Trail Blazers": {
+    "ts": 1774831119.8633904,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Illinois Fighting Illini @ Duke Blue Devils": {
+    "ts": 1774826291.250605,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Illinois Fighting Illini @ UConn Huskies": {
+    "ts": 1774955642.9361663,
+    "scoreboard_found": true,
+    "status": "Sat, April 4th at 6:09 PM EDT"
+  },
+  "Michigan Wolverines @ Arizona Wildcats": {
+    "ts": 1774955642.9872086,
+    "scoreboard_found": true,
+    "status": "Sat, April 4th at 8:49 PM EDT"
+  },
+  "Tennessee Volunteers @ Arizona Wildcats": {
+    "ts": 1774808914.861592,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Boston Celtics @ Atlanta Hawks": {
+    "ts": 1774922577.8904018,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Chicago Bulls @ San Antonio Spurs": {
+    "ts": 1774924683.9880085,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Cleveland Cavaliers @ Utah Jazz": {
+    "ts": 1774927692.8088448,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Detroit Pistons @ Oklahoma City Thunder": {
+    "ts": 1774932503.014453,
+    "scoreboard_found": true,
+    "status": "Final/OT"
+  },
+  "Minnesota Timberwolves @ Dallas Mavericks": {
+    "ts": 1774926488.9255476,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Philadelphia 76ers @ Miami Heat": {
+    "ts": 1774921975.949115,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Phoenix Suns @ Memphis Grizzlies": {
+    "ts": 1774924082.2657602,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Washington Wizards @ Los Angeles Lakers": {
+    "ts": 1774931601.5325966,
+    "scoreboard_found": true,
+    "status": "Final"
+  },
+  "Columbia Lions @ Wisconsin Badgers": {
+    "ts": 1774903309.8302917,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Kansas Jayhawks @ BYU Cougars": {
+    "ts": 1774912040.3327506,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Illinois Fighting Illini @ Arizona Wildcats": {
+    "ts": 1774955643.037805,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Illinois Fighting Illini @ Michigan Wolverines": {
+    "ts": 1774955643.0391207,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "UConn Huskies @ Arizona Wildcats": {
+    "ts": 1774955643.0502255,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "UConn Huskies @ Michigan Wolverines": {
+    "ts": 1774955643.0517757,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Texas Longhorns @ UCLA Bruins": {
+    "ts": 1774955643.0470092,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "South Carolina Gamecocks @ UConn Huskies": {
+    "ts": 1774955643.044443,
+    "scoreboard_found": false,
+    "status": ""
+  },
+  "Cleveland Cavaliers @ Los Angeles Lakers": {
+    "ts": 1775015079.3638737,
+    "scoreboard_found": true,
+    "status": "Halftime"
+  }
+}

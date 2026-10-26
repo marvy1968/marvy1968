@@ -1,0 +1,28 @@
+{
+  "team": "Washington Wizards",
+  "fetched_at_utc": "2026-04-01T03:17:43.969851+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Washington Wizards",
+      "player": "Apr 9",
+      "position": "Out",
+      "status": "Mar 31: Davis (finger) is healing on schedule and has been cleared for light contact work, though he remains without a timetable for a return, Josh Robbins of The Athletic reports.",
+      "est_return_date": "Kyshawn George",
+      "comment": "F Apr 4 Out Mar 31: George (elbow) is out for Wednesday's game against the 76ers. Trae Young G Apr 4 Out Mar 31: Young (quadriceps) has been ruled out for Wednesday's game against the 76ers. Tre Johnson G Apr 1 Day-To-Day",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    },
+    {
+      "team": "Washington Wizards",
+      "player": "Apr 15",
+      "position": "Out",
+      "status": "Mar 3: Russell (not injury related) has been ruled out for Tuesday's game against the Magic.",
+      "est_return_date": "Cam Whitmore",
+      "comment": "F Oct 1 Out Jan 15: Whitmore has begun the recovery process for a diagnosed venous condition and he will miss the remainder of the 2025-26 season. Data Provided by Rotowire NBA News Charlotte Hornets vs. Brooklyn Nets: Game Highlights",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.08
+}

@@ -1,0 +1,18 @@
+{
+  "team": "Milwaukee Bucks",
+  "fetched_at_utc": "2026-04-01T03:17:43.969793+00:00",
+  "source_url": "https://www.espn.com/nba/injuries",
+  "players": [
+    {
+      "team": "Milwaukee Bucks",
+      "player": "Apr 1",
+      "position": "Out",
+      "status": "Mar 31: Harris (personal) has been ruled out for Tuesday's game against the Mavericks.",
+      "est_return_date": "Thanasis Antetokounmpo",
+      "comment": "F Apr 1 Out Mar 30: Antetokounmpo (calf) is out for Tuesday's game against Dallas. Bobby Portis F Apr 1 Out Mar 30: Portis (wrist) has been ruled out for Tuesday's game against the Mavericks. Giannis Antetokounmpo F Apr 1",
+      "impact_base": 0.04,
+      "impact_score": 0.04
+    }
+  ],
+  "team_impact_score": 0.04
+}
