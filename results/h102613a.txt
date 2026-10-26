@@ -1,0 +1,3 @@
+$ alpaca positions
+started 2026-10-26 09:40:51 EDT
+RUNNING...
