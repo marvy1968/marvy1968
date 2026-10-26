@@ -1,3 +1,19 @@
 $ alpaca run-all --phase validate --families gap_drift
-started 2026-10-26 17:47:42 EDT
-RUNNING...
+started 2026-10-26 17:47:42 EDT, took 77s, exit 0
+
+daily data ready
+## gap_drift: benchmark and power-earnings-gap proxy (train to 2020-12-31, validate 2021 on)
+### Benchmark: hold the index above its 200-day average, cash below
+- SPY train: 200-SMA rule CAGR +12.0% Sharpe 0.98 maxDD -17.4%, in the market 88% | buy-and-hold CAGR +16.5% Sharpe 0.90 maxDD -33.8%
+- SPY validate: 200-SMA rule CAGR +11.7% Sharpe 1.02 maxDD -20.2%, in the market 81% | buy-and-hold CAGR +14.7% Sharpe 0.91 maxDD -24.5%
+- SPY all: 200-SMA rule CAGR +11.8% Sharpe 1.00 maxDD -20.2%, in the market 84% | buy-and-hold CAGR +15.4% Sharpe 0.90 maxDD -33.8%
+- QQQ train: 200-SMA rule CAGR +19.4% Sharpe 1.08 maxDD -22.5%, in the market 91% | buy-and-hold CAGR +27.6% Sharpe 1.18 maxDD -28.6%
+- QQQ validate: 200-SMA rule CAGR +15.6% Sharpe 0.97 maxDD -20.8%, in the market 79% | buy-and-hold CAGR +15.9% Sharpe 0.77 maxDD -35.0%
+- QQQ all: 200-SMA rule CAGR +17.1% Sharpe 1.02 maxDD -22.5%, in the market 84% | buy-and-hold CAGR +20.7% Sharpe 0.95 maxDD -35.0%
+### Power earnings gap proxy on the HINDSIGHT-FREE list (2016's 21 largest companies) (buy next open after a >4% gap up on >3x volume closing in the top 25% of its range; 10-day hold; stop = close under the gap-day low)
+- train: 8t win 75% avg +2.05% PF 4.03 | CONTROL every stock-day 10-day hold: avg +0.34%, win 55% | edge vs control +1.72% (kill if < +0.20%)
+- validate: 11t win 55% avg -0.53% PF 0.81 | CONTROL every stock-day 10-day hold: avg +0.53%, win 54% | edge vs control -1.05% (kill if < +0.20%)
+### Power earnings gap proxy on today's top holdings of each sector ETF (survivorship-biased) (buy next open after a >4% gap up on >3x volume closing in the top 25% of its range; 10-day hold; stop = close under the gap-day low)
+- train: 23t win 48% avg +0.36% PF 1.18 | CONTROL every stock-day 10-day hold: avg +0.68%, win 58% | edge vs control -0.32% (kill if < +0.20%)
+- validate: 25t win 48% avg +0.97% PF 1.43 | CONTROL every stock-day 10-day hold: avg +0.66%, win 55% | edge vs control +0.32% (kill if < +0.20%)
+ALL DONE
