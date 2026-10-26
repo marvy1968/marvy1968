@@ -1,0 +1,2 @@
+# timeout 900
+export-bot oanda_active /home/moonrider1968/bots/oanda_active
