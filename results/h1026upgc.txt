@@ -1,0 +1,2 @@
+$ gemini
+REFUSED: unknown job 'gemini' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
