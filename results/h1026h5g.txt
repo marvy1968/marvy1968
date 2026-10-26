@@ -1,3 +1,14 @@
 $ gemini
-started 2026-10-26 14:36:21 EDT
-RUNNING...
+started 2026-10-26 14:36:21 EDT, took 0s, exit 1
+
+Gemini error 400: {
+  "error": {
+    "code": 400,
+    "message": "API key not valid. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "
