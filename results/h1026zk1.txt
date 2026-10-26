@@ -1,3 +1,4 @@
 $ gemini
-started 2026-10-26 07:54:08 EDT
-RUNNING...
+started 2026-10-26 07:54:08 EDT, took 0s, exit 2
+
+GEMINI_API_KEY is not set (add it to /opt/marv-bot/.env)
