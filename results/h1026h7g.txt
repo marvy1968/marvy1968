@@ -1,3 +1,142 @@
 $ gemini
-started 2026-10-26 15:02:57 EDT
-RUNNING...
+started 2026-10-26 15:02:57 EDT, took 44s, exit 0
+
+Here is a direct, data-driven breakdown of your trading strategy, new ideas to test, and a technical roadmap to drastically speed up your backtesting pipeline.
+
+### 1. New Trading Ideas (Ranked by Expected Evidence)
+Since pure mean-reversion, indicators (RSI/Bollinger), and chart patterns (Velez/Pristine) have failed out-of-sample, we need to target structural market inefficiencies (liquidity imbalances, institutional constraints, session dynamics). 
+
+**1. Cross-Sectional Sector Momentum (Stocks)**
+*   **The Rule:** At 10:15 AM, buy the stock in your universe with the highest % change from the open, *only if* its corresponding Sector ETF (e.g., XLF, XLK) is also up > 0.5% on the day. Exit at 3:45 PM. 
+*   **Inefficiency:** Institutional capital flows. Large funds cannot build positions in 15 minutes; their VWAP-execution algos buy steadily throughout the day, creating intraday drift.
+*   **Data:** 1m symbol prices + 1m Sector ETF prices.
+*   **Kill Test:** The strategy fails to beat a simple buy-and-hold of the SPY/QQQ over the exact same intraday periods.
+
+**2. End-of-Day Short Squeeze (Stocks)**
+*   **The Rule:** Buy at 3:15 PM if a small/mid-cap stock is in the top 10% of its daily range AND is trading > 2% above VWAP. Sell at 3:50 PM.
+*   **Inefficiency:** Intraday short-sellers are forced to cover before the closing bell to avoid overnight gap risk, creating artificial, price-agnostic buying pressure late in the day.
+*   **Data:** 1m price, daily High/Low tracking, intraday VWAP.
+*   **Kill Test:** Average trade profit is negative after applying the wider bid/ask spread costs typical of the last 30 minutes of trading.
+
+**3. Overnight Gap Fade / Session Reversion (Forex - EUR/USD, GBP/USD)**
+*   **The Rule:** If a pair gaps/moves > 1 ATR (14-period daily) between the Asian session close and the London open, fade the move targeting the Asian close.
+*   **Inefficiency:** Dealer book balancing. Market makers push prices at low-liquidity session boundaries to trigger resting liquidity before reverting to fair value.
+*   **Data:** 1h FX data with session time tags.
+*   **Kill Test:** The pair continues in the direction of the London breakout > 55% of the time (indicating trend dominates reversion).
+
+**4. Volatility Risk Premium / Liquidity Vacuum (Stocks)**
+*   **The Rule:** Short a stock if the 1-minute close spikes > 3 ATRs above the 2-hour rolling mean, *provided* the volume on that 1-minute bar is LESS than 20% of the morning's peak 1-minute volume.
+*   **Inefficiency:** Price moves without volume are liquidity vacuums (no buyers/sellers at a level), causing exaggerated spikes that violently revert when market makers step back in.
+*   **Data:** 1m price, volume, 1m ATR.
+*   **Kill Test:** The win rate is high, but the rare losses are catastrophic (fat tails), resulting in a PF < 1.0.
+
+**5. Statistical Arbitrage / Highly Correlated Pairs (Stocks/Forex)**
+*   **The Rule:** Calculate the rolling 5-day z-score of the spread between AUD/USD and NZD/USD (or two highly correlated stocks in your universe). If z-score > 2.0, short the outperformer and buy the underperformer. Exit when z-score = 0.
+*   **Inefficiency:** Macro-linked assets temporarily diverge due to localized, random order flow rather than fundamental shifts.
+*   **Data:** 1m/1h close prices of highly correlated pairs.
+*   **Kill Test:** The spread fundamentally breaks (co-integration fails out-of-sample) and doesn't revert within your daily time limit.
+
+---
+
+### 2. Which Experts to Drop & Why
+Based on your live paper record—*“trades held under 30 min lose, day holds PF 2.83”*—you are getting chopped up by short-term noise and transaction costs. 
+
+*   **Drop all 1-minute intraday scalpers (Velez scalper, connors_rsi2, williams_r, bollinger_bounce).** 
+    *   *Why:* 1-minute mean-reversion on mid/small caps is dominated by market-makers and High-Frequency Trading (HFT). By the time your Python engine detects a Bollinger bounce and sends a market order, the inefficiency is gone, and you pay the spread.
+*   **Drop the `10-minute under-water exit` for Forex H1/H4/D1 strategies.**
+    *   *Why:* Structural mismatch. You are running 1-hour and 4-hour strategies (`hybrid_h1`, `cog_h4`), but forcing exits after 10 minutes (a fraction of a single bar). This guarantees you capture all the entry spread/slippage but zero of the actual timeframe's structural move.
+*   **Drop `conf_d1` (RSI/Stochastic/Bollinger confluence).**
+    *   *Why:* FX trends hard on the daily timeframe due to central bank macroeconomics. Retail technical confluence on D1 usually fights dominant macro trends, leading to slow death by negative swap and stop-outs.
+
+---
+
+### 3. Critique of Methodology & The +1%/Day Target
+**The Honest Truth on Returns:**
+A consistent **+1% per day** is mathematically impossible over the long term. 1% daily compounds to ~1,100% annually. The greatest quantitative fund in history (RenTech Medallion) achieves ~60% annually before fees. 
+*   **Realistic Target:** A highly optimized, fully automated retail strategy doing **15% to 30% annually** (+0.05% to +0.1% per day average) is phenomenal. Set your daily target to +0.1% and scale your capital, not your percentage expectations.
+
+**Methodology Flaws Flattering Your Tests:**
+1.  **Filter Overfitting:** Your filter list (*heat map, direction, Weinstein stage, multi-timeframe, reversal confirm, oversold gate, regime block, trend confirm*) is a massive red flag. This is the definition of "curve fitting." Every filter adds degrees of freedom. You haven't found a robust edge; you've carved out a perfect path through historical noise. Cut this down to *two* filters max (e.g., regime and trend).
+2.  **Slippage Underestimation:** Mid/small caps have thin order books. If your backtest assumes you get filled at the bid/ask without modeling depth-of-book impact, your 1-minute test returns are heavily inflated. 
+
+---
+
+### 4. Roadmap to Faster Backtests
+Your single-threaded, per-bar Python iteration (`simulate_day`) is the bottleneck. Here are concrete speed-ups ranked by effort-to-gain.
+
+**To Verify All Fast Paths:**
+Always run `pd.testing.assert_frame_equal(slow_trades_df, fast_trades_df)` to ensure the fast code outputs identical entry/exit timestamps, prices, and PnL.
+
+#### Rank 1: Multiprocessing (Low Effort, Huge Gain)
+Since you are testing parameter grids, each test is independent. Do not test one point at a time. Use Python's built-in `concurrent.futures` to utilize all CPU cores on your GCP VM.
+*   **Gain:** 4x to 8x speedup (depending on your VM's vCPUs).
+*   **Sketch:**
+```python
+from concurrent.futures import ProcessPoolExecutor
+import itertools
+
+def run_grid_point(params):
+    # Your existing slow run() logic here
+    return result_df
+
+grid = [{'stop': 0.5, 'tp': 1.2}, {'stop': 1.0, 'tp': 2.0}] # etc.
+
+# Uses all available CPU cores
+with ProcessPoolExecutor() as executor:
+    results = list(executor.map(run_grid_point, grid))
+```
+
+#### Rank 2: Caching Indicator Frames (Medium Effort, High Gain)
+If your grid search is only altering exit parameters (e.g., TP/SL), do not recalculate the VWAP/RSI/Bollinger Bands every iteration. Calculate the base indicators *once* for the whole universe, save to a dictionary, and pass it to the simulation.
+*   **Gain:** Removes 30-50% of the overhead per grid point.
+
+#### Rank 3: Successive Halving / Early Stopping (Low Effort, High Gain)
+Don't let a 12-month backtest finish if it's clearly failing.
+*   **Sketch:** Break your 12-month test into quarters. After Q1 (3 months), evaluate the Profit Factor. If PF < 0.8, `return "Failed Early"`. This frees up the VM queue exponentially faster by killing dead-end parameters.
+
+#### Rank 4: Vectorization (High Effort, Massive Gain)
+If you iterate row-by-row using `for index, row in df.iterrows()` or a `simulate_day` while loop, pandas is incredibly slow. You must use boolean masking. 
+*   **Gain:** 100x to 1000x speedup. Minutes become milliseconds.
+*   **Sketch:**
+```python
+# SLOW (Iterative)
+for i in range(len(df)):
+    if df['RSI'].iloc[i] < 30 and not in_position:
+        buy()
+
+# FAST (Vectorized)
+# 1. Generate all signals instantly
+df['signal'] = (df['RSI'] < 30).astype(int)
+
+# 2. Shift to simulate buying on the *next* bar open
+df['position'] = df['signal'].shift(1)
+
+# 3. Calculate returns instantly
+df['strategy_returns'] = df['position'] * df['pct_change']
+```
+*(Note: Complex path-dependent exits like trailing stops are hard to vectorize. For those, use Numba).*
+
+#### Rank 5: Numba (Medium Effort, Medium Gain)
+If you *must* use a loop for path-dependent logic (like your structure stops or the 10-minute underwater rule), wrap the loop in Numba.
+*   **Rule:** Pass underlying numpy arrays to Numba, not Pandas DataFrames.
+*   **Sketch:**
+```python
+from numba import njit
+import numpy as np
+
+@njit
+def fast_simulate(prices, signals, stop_loss):
+    in_pos = False
+    pnl = 0.0
+    for i in range(len(prices)):
+        if not in_pos and signals[i] == 1:
+            entry = prices[i]
+            in_pos = True
+        elif in_pos and prices[i] < entry * (1 - stop_loss):
+            pnl += prices[i] - entry
+            in_pos = False
+    return pnl
+
+# Call passing numpy arrays
+fast_simulate(df['close'].values, df['signal'].values, 0.01)
+```
