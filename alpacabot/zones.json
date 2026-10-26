@@ -610,7 +610,8 @@
    "vote": 0.6,
    "vol_mult": 1.2
   },
-  "shadow_tags": [],
+  "_note_shadow_tags": "2026-10-26 (owner: 'its losing money, my ultimate goal is positive 1% daily'): the LONG velez_rbi and velez_halt tags go to shadow (signals logged, no orders). Live paper record since 2026-10-12: velez_rbi 12 trades, 2W/10L, PF 0.01, -$164; velez_halt 13 trades, 4W/9L, PF 0.36, -$59; their 3-month backtests never cleared PF 1 on the validate half (rbi 0.97, halt 0.28). The short tags (S:velez_rbi +$11, S:velez_halt +$8) keep trading. UNDO: set shadow_tags back to [] and redeploy.",
+  "shadow_tags": ["velez_rbi", "velez_halt"],
   "_shadow_note": "owner 2026-10-22 (rescue plan): Velez setups with a losing live record stop placing orders but keep logging every signal that passes all gates (journal result 'shadow ...'). Remove a tag to trade it again.",
   "risk_by_expert": {
    "_note": "2026-10-16 expert breakdown (last 3 months, each expert alone through the live setup, two halves): these lost in BOTH halves and make ~90% of the trades - halved to 0.5% risk under the owner's live-paper rule (live results decide; restore 0.01 or switch off later). velez_180 PF 0.42/0.38 (212 trades), williams_r 0.46/0.60 (409), dual_regime 0.43/0.38 (241), connors_rsi2 0.30/0.81 (187), vwap_dev 0.77/0.54 (266), opening_range_breakout 0.10/0.11 (20), donchian_turtle 0.55/0.11 (21).",

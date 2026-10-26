@@ -643,9 +643,24 @@ LADDER_VARIANTS["each expert's own exits"] = {"cut_fracs": [], "cut_depth_r": []
                                               "lock": ["breakeven", "tp"], "trail_atr": 1.0, "by_expert": EXPERT_LADDERS}
 
 
+# owner 2026-10-26 ("make sure as Alpaca goes up it does not give back profit"): live paper trades 2026-10-12..26 - 21 of 82 trades that
+# reached +0.5R ended as losers (-10.2R of the book's -15R). Profit locks on top of each expert's own exits: once the trade is `start` R up the stop
+# trails `trail` R behind its best price (engine.simulate_day trail_from_entry_r / trail_start_r; the same keys paper.py already runs for trend_stairs).
+def _profit_lock(start: float, trail: float) -> dict:
+    base = LADDER_VARIANTS["each expert's own exits"]
+    by = {k: ({**v, "trail_start_r": start, "trail_from_entry_r": trail} if not v.get("trail_from_entry_r") else v)
+          for k, v in base["by_expert"].items()}
+    return {**base, "trail_start_r": start, "trail_from_entry_r": trail, "by_expert": by}
+
+
+for _s, _t in ((0.5, 0.5), (0.75, 0.75), (1.0, 1.0), (1.0, 0.5)):
+    LADDER_VARIANTS[f"own exits + profit lock (+{_s}R, trail {_t}R)"] = _profit_lock(_s, _t)
+
 QUICK_VARIANTS = ["owner (cut 25/50, TP 25/50, trail 1 ATR)", "no cut steps (one stop)", "TP 25% then +50% (75% banked)",
                   "each expert's own exits", "tighter cuts (0.35R / 0.6R)", "looser take-profit (0.5 / 1.0 ATR beyond the zone)",
-                  "tighter cuts + looser take-profit (owner's idea)"]
+                  "tighter cuts + looser take-profit (owner's idea)",
+                  "own exits + profit lock (+0.5R, trail 0.5R)", "own exits + profit lock (+0.75R, trail 0.75R)",
+                  "own exits + profit lock (+1.0R, trail 1.0R)", "own exits + profit lock (+1.0R, trail 0.5R)"]
 
 
 def ladder_intraday_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6),
