@@ -1,0 +1,3 @@
+$ alpaca paper-report
+started 2026-10-26 12:15:26 EDT
+RUNNING...
