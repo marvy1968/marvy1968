@@ -34,3 +34,12 @@ the broker, flatten by 3:50 pm ET. No lookahead; walk-forward / held-out tests o
 2. Which of our current experts you would drop and why, from the structure of what they do.
 3. Anything wrong in our method: ways our tests could be flattering the results, or why +1% a day is or isn't reachable here.
 Do not promise returns. If the honest answer is that a retail edge at +1%/day is unrealistic, say what a realistic, positive target is.
+
+## Also: help us make our backtests faster
+Our walk-forward backtests are slow and they block the one-job-at-a-time VM queue. Examples: the `filters` family (every brain filter combination,
+one-month test) took 71 minutes; `expert_breakdown` took 9 minutes; the forex session-pullback family took 32 seconds. The VM is a single
+Google Compute Engine instance. The engine is Python + pandas: per-bar simulation (`alpacabot/engine.py simulate_day`, `fxbot/research.py run`),
+bid/ask fills, 1-minute stock bars and 1-hour forex bars, parameter grids evaluated one point at a time.
+Please suggest concrete speed-ups ranked by effort versus gain: vectorising the signal and exit logic, caching indicator frames across grid
+points, multiprocessing across symbols or grid points, successive halving / early stopping of clearly losing grid points, using numba, and
+smarter grid design. Show short code sketches where useful. Remember we need identical results to the slow path, so say how we should verify that.
