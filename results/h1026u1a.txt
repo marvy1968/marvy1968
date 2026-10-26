@@ -1,0 +1,3 @@
+$ alpaca paper-pause
+started 2026-10-26 18:03:21 EDT
+RUNNING...
