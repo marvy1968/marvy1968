@@ -712,10 +712,11 @@ def eod_squeeze_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
     heavy = replace(costs, slip_bps=costs.slip_bps * 3)
     variants = {"top 10% of range & >2% over VWAP": EodSqueeze(0.9, 0.02), "top 20% & >1% over VWAP": EodSqueeze(0.8, 0.01),
                 "top 10% & >2%, 2 ATR stop": EodSqueeze(0.9, 0.02, stop_atr=2.0)}
+    control = {"CONTROL: every stock long at 15:10, no filter": EodSqueeze(0.0, -1.0)}        # does the filter beat a naive time-of-day long?
     out = {"periods": {}}
     for per, (a, b) in (("train", train), ("validate", validate)):
         rows = {}
-        for name, strat in variants.items():
+        for name, strat in {**variants, **control}.items():
             for label, c in (("", costs), (" | 3x slippage", heavy)):
                 r = run_intraday(strat, days, c, pf, a, b)
                 rows[name + label] = {k: r["metrics"].get(k) for k in keys}
