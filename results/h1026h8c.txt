@@ -1,3 +1,32 @@
 $ alpaca run-all --phase validate --families gap_fade_fx
-started 2026-10-26 15:06:26 EDT
-RUNNING...
+started 2026-10-26 15:06:26 EDT, took 27s, exit 0
+
+daily data ready
+## gap_fade_fx: London-open fade of the Asian move, last 3 months (2026-07-26 to 2026-10-26, H1, bid/ask)
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x1: 79 trades, win 56%, PF 0.66, total -4.96%, maxDD -5.4%
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x2: 78 trades, win 51%, PF 0.53, total -7.69%, maxDD -8.1%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x1: 77 trades, win 43%, PF 0.60, total -7.21%, maxDD -8.6%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x2: 77 trades, win 42%, PF 0.51, total -9.45%, maxDD -10.4%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x1: 25 trades, win 68%, PF 1.12, total +0.34%, maxDD -0.8%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x2: 25 trades, win 60%, PF 0.69, total -1.08%, maxDD -1.8%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x1: 25 trades, win 60%, PF 0.93, total -0.23%, maxDD -1.7%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x2: 25 trades, win 56%, PF 0.66, total -1.20%, maxDD -2.0%
+## gap_fade_fx: London-open fade of the Asian move, last 12 months (2025-10-26 to 2026-10-26, H1, bid/ask)
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x1: 248 trades, win 55%, PF 0.66, total -14.96%, maxDD -15.4%
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x2: 247 trades, win 52%, PF 0.57, total -19.85%, maxDD -20.2%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x1: 243 trades, win 46%, PF 0.73, total -14.51%, maxDD -16.1%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x2: 243 trades, win 43%, PF 0.61, total -21.38%, maxDD -21.8%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x1: 73 trades, win 59%, PF 0.95, total -0.47%, maxDD -2.8%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x2: 73 trades, win 55%, PF 0.74, total -2.53%, maxDD -3.4%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x1: 73 trades, win 52%, PF 0.92, total -0.78%, maxDD -2.7%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x2: 73 trades, win 48%, PF 0.69, total -3.13%, maxDD -3.7%
+## gap_fade_fx: London-open fade of the Asian move, last 3 years (2023-10-27 to 2026-10-26, H1, bid/ask)
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x1: 747 trades, win 58%, PF 0.79, total -25.03%, maxDD -26.9%
+- move >= 0.4 daily ATR, target 0.5 x the move | spread x2: 747 trades, win 55%, PF 0.68, total -37.27%, maxDD -38.5%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x1: 721 trades, win 45%, PF 0.79, total -29.17%, maxDD -32.3%
+- move >= 0.4 daily ATR, target 1.0 x the move | spread x2: 722 trades, win 43%, PF 0.70, total -41.30%, maxDD -42.7%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x1: 203 trades, win 55%, PF 0.78, total -6.18%, maxDD -7.3%
+- move >= 0.7 daily ATR, target 0.5 x the move | spread x2: 203 trades, win 51%, PF 0.65, total -10.58%, maxDD -10.5%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x1: 202 trades, win 49%, PF 0.90, total -2.96%, maxDD -6.1%
+- move >= 0.7 daily ATR, target 1.0 x the move | spread x2: 202 trades, win 46%, PF 0.78, total -7.00%, maxDD -8.1%
+ALL DONE
