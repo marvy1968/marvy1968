@@ -366,6 +366,27 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class ForeignGuardTests(unittest.TestCase):
+    def test_other_bots_trades_get_a_stop_and_a_loss_cut(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            api.trades["9"] = {"id": "9", "instrument": "EUR_USD", "currentUnits": "-100000", "price": "1.1000", "unrealizedPL": "-20",
+                               "clientExtensions": {"tag": "fxexp"}}
+            api.trades["8"] = {"id": "8", "instrument": "EUR_USD", "currentUnits": "50000", "price": "1.1000", "unrealizedPL": "-200",
+                               "clientExtensions": {"tag": "fxexp"}, "stopLossOrder": {"price": "1.0"}}
+            api.trades["7"] = {"id": "7", "instrument": "EUR_USD", "currentUnits": "50000", "price": "1.1000", "unrealizedPL": "-30",
+                               "clientExtensions": {"tag": "fxexp"}, "stopLossOrder": {"price": "1.0"}}
+            r = runner(tmp, api)
+            r.guard_foreign(api.open_trades())
+            self.assertEqual(api.stops, [("9", "1.10232")])       # short: stop above entry, 0.4% of $58,000 = $232 / 100k units
+            self.assertNotIn("8", api.trades)                      # -$200 <= -0.25% of NAV: closed
+            self.assertIn("7", api.trades)                         # small loss with a stop: left alone
+            r.cfg["foreign_guard"] = None
+            api.stops.clear()
+            r.guard_foreign(api.open_trades())
+            self.assertEqual(api.stops, [])
+
+
 class PlaybookLiveTests(unittest.TestCase):
     """Owner 2026-10-25 Break & Retest Playbook live (retest_h1): a virtual buy-stop fills only at its trigger, the order carries the
     structure stop and the swing target at OANDA, the trade is exempt from the 0.5R cut / 1.25R take-profit / 10-minute exit, and a

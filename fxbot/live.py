@@ -100,7 +100,11 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-19: both bots 0.5R stop / 1.25R target. It replaces the scale-out steps and the rider. 0.10 against / 0.30 for = a 3 to 1 reward-to-risk. None = off (the old ladder).
           "take_profit_r": 1.25,
           # owner 2026-10-22: "if a trade is negative for more than 10 minutes, exit the trade" (mid vs entry mid, continuously). None = off.
-          "neg_exit_min": 10}                                # the hybrid trades at half the normal 1% (owner)
+          "neg_exit_min": 10,                                # the hybrid trades at half the normal 1% (owner)
+          # owner 2026-10-26 ("Do this": the fx-experts bot lost ~$700 overnight with no rails): every OPEN TRADE OF ANOTHER BOT on the shared
+          # account gets a broker stop-loss if it has none (loss at the stop = stop_pct of NAV) and is closed at market once its unrealized loss
+          # reaches cut_pct of NAV. Undo: "foreign_guard": None (or delete the keys) and redeploy.
+          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025}}
 
 
 def decimals(instrument: str) -> int:
@@ -234,6 +238,7 @@ class FxPaper:
         if not market_open(now):
             self.status(trades)
             return
+        self.guard_foreign(trades)
         eq = self.equity(trades)
         why = self.entries_allowed(eq)
         for gid in list(self.groups):
@@ -248,6 +253,33 @@ class FxPaper:
                     self.journal("error", where="scan", strategy=name, instrument=inst, error=str(exc)[:300])
         self.save()
         self.status(self.api.open_trades())
+
+    def guard_foreign(self, trades: list):
+        """Rails for trades that are not ours (the owner's fx-experts bot): a stop at the broker if there is none, a market close at -cut_pct of NAV."""
+        cfg = self.cfg.get("foreign_guard")
+        others = [t for t in trades if not self.is_ours(t)]
+        if not cfg or not others:
+            return
+        try:
+            nav = float(self.api.summary()["NAV"])
+        except (OandaError, KeyError, ValueError) as exc:
+            self.journal("error", where="foreign_guard", error=str(exc)[:300])
+            return
+        for t in others:
+            try:
+                units, upl = float(t.get("currentUnits", 0) or 0), float(t.get("unrealizedPL", 0) or 0)
+                if not units:
+                    continue
+                if upl <= -cfg["cut_pct"] * nav:
+                    got = self.api.close(t["id"])
+                    self.journal("foreign_cut", trade=t["id"], instrument=t["instrument"], units=units, upl=round(upl, 2), pl=got["pl"])
+                elif not t.get("stopLossOrder"):
+                    px = float(t["price"])
+                    sl = px - (1 if units > 0 else -1) * cfg["stop_pct"] * nav / abs(units)
+                    self.api.set_stop(t["id"], fmt(t["instrument"], sl))
+                    self.journal("foreign_stop", trade=t["id"], instrument=t["instrument"], units=units, stop=fmt(t["instrument"], sl))
+            except (OandaError, KeyError, ValueError) as exc:
+                self.journal("error", where="foreign_guard", trade=t.get("id"), error=str(exc)[:300])
 
     def sync(self, trades: list):
         """Trades OANDA closed (stop-loss / take-profit / margin / netting) leave their group; their realized P&L goes to the ledger."""
