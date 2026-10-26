@@ -14,12 +14,22 @@ MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
 def main() -> int:
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     env = ROOT / ".env"
-    if not key and env.exists():                       # the VM keeps the key in /opt/marv-bot/.env
-        for line in env.read_text().splitlines():
-            if line.startswith("GEMINI_API_KEY="):
-                key = line.split("=", 1)[1].strip().strip("'\"")
+    names = []
+    if not key:                                         # the VM keeps the key in /opt/marv-bot/.env
+        try:
+            for line in env.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("export "):
+                    line = line[7:].strip()
+                if "=" in line and not line.startswith("#"):
+                    k, v = line.split("=", 1)
+                    names.append(k.strip())
+                    if k.strip() == "GEMINI_API_KEY":
+                        key = v.strip().strip("'\"")
+        except OSError as exc:
+            print(f"cannot read {env}: {exc.__class__.__name__}")
     if not key:
-        print("GEMINI_API_KEY is not set (add it to /opt/marv-bot/.env)")
+        print("GEMINI_API_KEY not found. Variable names seen in .env: " + (", ".join(n for n in names if n.isupper() and "GEMINI" in n or "GOOGLE" in n) or "none with GEMINI/GOOGLE"))
         return 2
     text = (ROOT / "consult/gemini_brief.md").read_text()
     if len(sys.argv) > 1:
