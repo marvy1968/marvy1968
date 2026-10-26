@@ -64,3 +64,21 @@ available, costs: ~2 bps slippage per side), and 3 for forex on H4 / daily bars.
 that would kill it. Prefer ideas that are NOT mean-reversion on indicators or chart patterns. Also tell us which published, replicated anomalies you would
 test first (for example post-earnings drift, 12-1 month momentum with a trend filter, sector rotation, turn-of-the-month, short-term reversal after
 volume spikes) and what out-of-sample decay is typical for each.
+
+## ROUND 3 (2026-10-26 evening): results of your round-2 swing ideas (held-out halves: train to 2020-12-31, validate 2021 on; 5 bps/side stocks, 2 bps ETFs)
+- **A turn-of-the-month SPY:** train 60t PF 1.91 avg +0.48% vs control 6-day window +0.35%; validate 69t PF 1.62 avg +0.41% vs +0.31%. About +0.1% per trade over a random
+  window, ~12 trades a year: roughly market drift, not a standalone edge.
+- **B sector-ETF dual momentum:** lost to SPY buy-and-hold in both halves (train CAGR -5.2% vs SPY +21.0%; validate +8.1% vs +14.7%). REJECTED.
+- **C 52-week-high breakout (+volume > 2x 50-day avg):** on today's top holdings of each sector ETF (survivorship-biased) train PF 2.05 / validate 1.89 vs no-volume control
+  1.63 / 1.57. On the HINDSIGHT-FREE list (2016's 21 largest companies): train 60t PF 1.11 avg +0.19% vs control 164t PF 1.15 avg +0.31% (volume filter WORSE);
+  validate 85t PF 1.73 vs control 1.59. Not robust: the first half is flat and the second half is the 2021-26 bull market. NOT ADOPTED.
+- **D 12-1 momentum (top third monthly vs equal-weight universe):** current-holdings list: +0.27% / +0.27% per month better than the universe in both halves; hindsight-free list:
+  train top third +0.26%/month vs universe +0.63%, validate +1.43% vs +1.28%. Inconsistent. NOT ADOPTED.
+- **E NR7 breakout, 3-day hold:** PF 1.02 / 1.00 (current list), 0.90 / 1.04 (hindsight-free), below the every-day control. REJECTED.
+Live paper update: our swing book has CLOSED 12 trades, 3 wins / 9 losses, -$1,167 (funnel 0/2 -$507, oversold dip buys 0/3 -$427); the 5 open positions are +$505. So
+swing has not earned yet either. Intraday experts overall: 254 trades, PF 0.77; the long side PF 0.58, shorts PF 1.01.
+
+**Round 3 question:** with no daily idea clearing a fair control, what is the most defensible way for a small account ($50k, 5-10 positions) to get a positive expected
+return from US stocks in 2-20 day holds - and is a plain trend filter (e.g. hold SPY/QQQ only above the 200-day average, cash otherwise) plus modest sizing a better
+benchmark for us to beat than anything we have built? Please also say how to size and what drawdown to expect, and which ONE test you would run next on daily bars with
+a hindsight-free universe (give the exact rule and the kill criterion).
