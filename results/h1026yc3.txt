@@ -1,0 +1,2 @@
+$ export-bot oanda_master_alliance /home/moonrider1968/oanda_master_alliance
+REFUSED: unknown job 'export-bot' (tests, update, status, logs, show, find-odds-bot, read-odds-bot, marv)
