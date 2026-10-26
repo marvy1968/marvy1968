@@ -449,8 +449,9 @@ class PaperRunner:
         """Owner 2026-10-22: when the WHOLE account (every bot on it, transfers excluded) is down account_breaker_pct today, the stock bot
         opens nothing new for the rest of the day; exits, stops and position management carry on, and the bot's own 2% breaker stays.
         Locked until the next trading day (state file, so a restart keeps it). Checked at most once a minute."""
-        lim = self.zone_config().get("account_breaker_pct")
-        if not lim or not hasattr(self.raw, "account_day_pnl"):
+        zc = self.zone_config()
+        lim, pl = zc.get("account_breaker_pct"), zc.get("account_profit_lock")
+        if not (lim or pl) or not hasattr(self.raw, "account_day_pnl"):
             return None
         today = now_et.date().isoformat()
         f = self.dir / "account_breaker.json"
@@ -459,6 +460,9 @@ class PaperRunner:
         except (OSError, ValueError):
             lock = {}
         if lock.get("day") == today:
+            if lock.get("kind") == "profit":
+                return (f"profit lock: account peaked {lock['peak']:+.2%} and is {lock['pct']:+.2%} today, no new entries until tomorrow "
+                        f"(the open positions keep their stops and trails)")
             return f"account breaker: account {lock['pct']:+.2%} today (limit -{float(lim):.2%}), no new entries until tomorrow"
         last = getattr(self, "_acct_chk", None)
         if last and last[0] == today and (now_et - last[1]).total_seconds() < 60:
@@ -469,7 +473,27 @@ class PaperRunner:
             log.warning("account breaker: could not read the account", exc_info=True)
             return None
         self._acct_chk = (today, now_et)
-        if pct <= -float(lim):
+        if pl:                                                       # owner 2026-10-26: "as Alpaca goes up it must not give back profit"
+            pk = getattr(self, "_acct_peak", None)
+            if not pk or pk["day"] != today:
+                try:
+                    pk = json.loads((self.dir / "account_peak.json").read_text())
+                except (OSError, ValueError):
+                    pk = {}
+                if pk.get("day") != today:
+                    pk = {"day": today, "peak": 0.0}
+            if pct > pk["peak"]:
+                pk["peak"] = pct
+                (self.dir / "account_peak.json").write_text(json.dumps(pk))
+            self._acct_peak = pk
+            if pk["peak"] >= float(pl["start_pct"]) and pct <= pk["peak"] * (1.0 - float(pl["giveback_frac"])):
+                f.write_text(json.dumps({"day": today, "kind": "profit", "pct": round(pct, 5), "peak": round(pk["peak"], 5), "pnl": round(pnl, 2),
+                                         "at": now_et.isoformat()}))
+                self.journal("profit_lock", pct=round(pct, 5), peak=round(pk["peak"], 5), pnl=round(pnl, 2))
+                log.warning("PROFIT LOCK: account peaked %+.2f%% and is %+.2f%% today: no new entries until tomorrow", 100 * pk["peak"], 100 * pct)
+                return (f"profit lock: account peaked {pk['peak']:+.2%} and is {pct:+.2%} today, no new entries until tomorrow "
+                        f"(the open positions keep their stops and trails)")
+        if lim and pct <= -float(lim):
             f.write_text(json.dumps({"day": today, "pct": round(pct, 5), "pnl": round(pnl, 2), "at": now_et.isoformat()}))
             self.journal("account_breaker", pct=round(pct, 5), pnl=round(pnl, 2), limit=float(lim))
             log.warning("ACCOUNT BREAKER: whole account %+.2f%% ($%+.0f) today, limit -%.2f%%: no new entries until tomorrow",

@@ -817,6 +817,37 @@ class HeatMapAndShortTests(unittest.TestCase):
             self.assertIn("no new entries", r2.account_breaker(t(14, 0)))
             self.assertIsNone(r2.account_breaker(datetime(2026, 10, 23, 9, 35, tzinfo=paper.ET)))   # next session: reset
 
+    def test_account_profit_lock_after_a_giveback(self):
+        """Owner 2026-10-26: the account was up 0.5% today and gives back 35% of that peak -> no new entries for the rest of the day."""
+        import tempfile
+        from alpacabot import paper
+
+        class B:
+            pct = 0.0
+            def positions(self): return {}
+            def equity(self): return 50000.0
+            def quote(self, s): return (100.0, 100.02)
+            def clock_open(self): return True
+            def account_day_pnl(self): return self.pct, self.pct * 50000
+
+        t = lambda h, m: datetime(2026, 10, 26, h, m, tzinfo=paper.ET)
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "zones_override.json").write_text(json.dumps({"account_breaker_pct": 0.01, "account_profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35}}))
+            b = B()
+            r = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            b.pct = 0.003
+            self.assertIsNone(r.account_breaker(t(10, 0)))                    # below the start: nothing
+            b.pct = 0.005
+            self.assertIsNone(r.account_breaker(t(10, 2)))                    # new peak
+            b.pct = 0.004                                                       # gave back 20% of the peak: still fine
+            self.assertIsNone(r.account_breaker(t(10, 4)))
+            b.pct = 0.003                                                       # 40% given back: locked
+            self.assertIn("profit lock", r.account_breaker(t(10, 6)))
+            b.pct = 0.01
+            r2 = paper.PaperRunner(b, state_dir=d, sleep=lambda *_: None)
+            self.assertIn("profit lock", r2.account_breaker(t(14, 0)))        # persisted, also after a restart
+            self.assertIsNone(r2.account_breaker(datetime(2026, 10, 27, 9, 35, tzinfo=paper.ET)))
+
     def test_backtest_neg_exit_two_bars(self):
         """Owner 2026-10-22: in the backtest a trade under water for two 5-minute closes in a row is closed (the live 10-minute rule)."""
         from alpacabot.engine import Costs, simulate_day
