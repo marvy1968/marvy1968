@@ -2774,3 +2774,26 @@ class EodSqueezeTests(unittest.TestCase):
         self.assertEqual(EodSqueeze(0.9, 0.5).signals(up), [])                    # not 50% above VWAP
         down = up.assign(close=c[::-1], open=c[::-1], high=c[::-1] + 0.05, low=c[::-1] - 0.05)
         self.assertEqual(EodSqueeze(0.9, 0.0).signals(down), [])                  # closes at the bottom of the range
+
+
+class SectorMomentumStudyTests(unittest.TestCase):
+    def test_study_runs_and_the_controls_see_more_trades_than_the_filtered_settings(self):
+        from datetime import date
+        from alpacabot.research import sector_momentum_study
+        rng = np.random.default_rng(0)
+
+        def frames(n):
+            out = []
+            for k in range(n):
+                idx = pd.date_range(f"2026-09-{1 + k:02d} 09:30", periods=78, freq="5min", tz="America/New_York")
+                c = 100 * np.cumprod(1 + rng.normal(0.0002, 0.0015, 78))
+                out.append(pd.DataFrame({"open": c, "high": c * 1.001, "low": c * 0.999, "close": c, "volume": 1000}, index=idx))
+            return out
+
+        days = {s: frames(20) for s in ("AAA", "BBB", "CCC", "XLK")}
+        res = sector_momentum_study(days, {"AAA": "XLK", "BBB": "XLK", "CCC": "XLK"}, (date(2026, 9, 1), date(2026, 9, 10)), (date(2026, 9, 11), date(2026, 9, 20)))
+        tr = res["periods"]["train"]
+        self.assertEqual(tr["CONTROL: top 3, no sector filter"]["trades"], 30)
+        self.assertLess(tr["top 3, sector ETF > +0.5%"]["trades"], tr["top 3, sector ETF > +0.25%"]["trades"])
+        self.assertLessEqual(tr["top 1, sector ETF > +0.5%"]["trades"], tr["top 3, sector ETF > +0.5%"]["trades"])
+        self.assertIn("verdict", res)

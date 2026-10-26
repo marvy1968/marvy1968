@@ -739,6 +739,13 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = ladder_intraday_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_ladder.json", quick=bool(qtag))
+                elif fam == "sector_mom":       # Gemini idea 1 (2026-10-26): cross-sectional sector-confirmed momentum, 10:15 entry, ~15:45 exit
+                    from .research import sector_momentum_study
+                    from .universe import SECTOR_OF, SECTOR_ETFS, STOCKS
+                    msyms = sorted(set(STOCKS) | set(SECTOR_ETFS))
+                    sm = {s: load(s, "1Min", mstart, end, cache) for s in msyms}
+                    days = split_days(sm, minutes=5)
+                    res = sector_momentum_study(days, SECTOR_OF, train, test, costs)
                 elif fam == "eod_squeeze":      # Gemini idea 2 (2026-10-26): end-of-day short squeeze, 15:10 long, ~35-minute hold
                     from .research import eod_squeeze_study
                     days = split_days(minute, minutes=5, feature_fn=features_both)
@@ -982,7 +989,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "eod_squeeze", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign"):
+        if fam in ("ladder_intraday", "eod_squeeze", "sector_mom", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "

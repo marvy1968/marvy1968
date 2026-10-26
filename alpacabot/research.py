@@ -15,10 +15,10 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
-from .engine import Costs, Portfolio, metrics, raw_intraday, simulate_swing, size_intraday, size_swing, split_days
+from .engine import Costs, Portfolio, metrics, raw_intraday, simulate_day, simulate_swing, size_intraday, size_swing, split_days
 from .brain import Brain
 from .experts import ALL_EXPERTS, TEN_EXPERTS
-from .strategies import Breakout, DualRegime, OpeningRangeBreak, RsiPullback, VwapReversion
+from .strategies import Breakout, DualRegime, OpeningRangeBreak, RsiPullback, Signal, VwapReversion
 
 GRIDS = {
     "scalp": (VwapReversion, {"z_entry": [1.5, 2.0, 2.5], "target": ["vwap", "r"], "max_bars": [15, 30]}),
@@ -725,6 +725,78 @@ def eod_squeeze_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
           and (out["periods"]["validate"][n].get("trades") or 0) >= 30]
     out.update({"family": "eod_squeeze", "passes": bool(ok),
                 "verdict": f"PASS: {', '.join(ok)}" if ok else "no setting was profitable on the validate half: the end-of-day squeeze is not an edge here"})
+    return out
+
+
+def sector_momentum_study(days: dict, sector_of: dict, train, validate, costs: Costs = Costs(),
+                          pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), at: str = "10:10", seed: int = 7) -> dict:
+    """Gemini idea 1 (2026-10-26): cross-sectional sector momentum. At 10:15 (the 10:10 5-minute bar's close) rank the stocks by % change since the
+    open and buy the leaders whose SECTOR ETF is also up by at least a threshold; hold to ~15:45 (66 five-minute bars) with a wide 3 ATR stop.
+    Three pre-declared settings (top 1 / top 3 with the ETF > +0.5%, top 3 with the ETF > +0.25%) against two controls: the same ranking with NO
+    sector filter, and 3 random stocks at 10:15. PASS needs the validate half: PF > 1, avg R > 0, 30+ trades, AND beating both controls on avg R.
+    days: symbol -> list of 5-minute session frames (stocks and their sector ETFs); sector_of: stock -> ETF."""
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean", "cagr")
+    by_day, frames = {}, {}
+    for sym, fl in days.items():
+        for d in fl:
+            dd = d.index[0].date()
+            frames[(sym, dd)] = d
+            t = d.index.strftime("%H:%M")
+            hit = np.flatnonzero(t == at)
+            if len(hit):
+                by_day.setdefault(dd, {})[sym] = float(d["close"].iloc[int(hit[0])] / d["open"].iloc[0] - 1.0)
+    rng = np.random.default_rng(seed)
+
+    def picks(rule):
+        out = []
+        for dd, pc in by_day.items():
+            cands = [(pc[s], s) for s in pc if s in sector_of and sector_of[s] in pc]
+            if not cands:
+                continue
+            if rule["kind"] == "random":
+                sel = [cands[i][1] for i in rng.choice(len(cands), size=min(rule["n"], len(cands)), replace=False)]
+            else:
+                ranked = sorted(cands, reverse=True)
+                if rule["thr"] is not None:
+                    ranked = [c for c in ranked if pc[sector_of[c[1]]] >= rule["thr"]]
+                sel = [s for _, s in ranked[: rule["n"]]]
+            out += [(s, dd) for s in sel]
+        return out
+
+    rules = {"top 1, sector ETF > +0.5%": {"kind": "rank", "n": 1, "thr": 0.005}, "top 3, sector ETF > +0.5%": {"kind": "rank", "n": 3, "thr": 0.005},
+             "top 3, sector ETF > +0.25%": {"kind": "rank", "n": 3, "thr": 0.0025},
+             "CONTROL: top 3, no sector filter": {"kind": "rank", "n": 3, "thr": None}, "CONTROL: 3 random stocks": {"kind": "random", "n": 3}}
+    chosen = {name: picks(rule) for name, rule in rules.items()}
+    heavy = replace(costs, slip_bps=costs.slip_bps * 2)
+
+    def run_rule(sel, c, a, b):
+        trades = []
+        for sym, dd in sel:
+            if not (a <= dd <= b):
+                continue
+            d = frames[(sym, dd)]
+            t = d.index.strftime("%H:%M")
+            i = int(np.flatnonzero(t == at)[0])
+            av = float((d["high"] - d["low"]).iloc[: i + 1].mean())          # mean bar range so far today (a 14-bar ATR does not exist at 10:15)
+            if not np.isfinite(av) or av <= 0:
+                continue
+            trades += simulate_day(sym, d, [Signal(i, 1, 3.0 * av, 0.0, 66, "sector_mom")], c, max_trades=1)
+        fills = size_intraday(sorted(trades, key=lambda x: x.entry_time), c, pf) if trades else pd.DataFrame()
+        return {k: metrics(fills, start_equity=pf.equity).get(k) for k in keys}
+
+    out = {"periods": {}}
+    for per, (a, b) in (("train", train), ("validate", validate)):
+        rows = {}
+        for name, sel in chosen.items():
+            rows[name] = run_rule(sel, costs, a, b)
+            rows[name + " | 2x slippage"] = run_rule(sel, heavy, a, b)
+        out["periods"][per] = rows
+    v = out["periods"]["validate"]
+    ctl = max((v[n].get("avg_r") or -9) for n in rules if n.startswith("CONTROL"))
+    ok = [n for n in rules if not n.startswith("CONTROL") and (v[n].get("profit_factor") or 0) > 1 and (v[n].get("avg_r") or 0) > 0
+          and (v[n].get("trades") or 0) >= 30 and (v[n].get("avg_r") or 0) > ctl]
+    out.update({"family": "sector_mom", "passes": bool(ok),
+                "verdict": f"PASS: {', '.join(ok)}" if ok else "no setting was profitable on the validate half AND better than both controls: not an edge here"})
     return out
 
 
