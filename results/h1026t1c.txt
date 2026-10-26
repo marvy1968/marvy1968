@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families gap_drift
+started 2026-10-26 17:47:42 EDT
+RUNNING...
