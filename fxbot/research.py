@@ -555,6 +555,20 @@ def session_pullback_check(data_h1: dict, a, b) -> list[str]:
     return out
 
 
+def gap_fade_check(data_h1: dict, a, b) -> list[str]:
+    """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
+    plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""
+    from .strategies import SessionGapFade
+    out = []
+    for k in (0.4, 0.7):
+        for tf in (0.5, 1.0):
+            for sm in (1.0, 2.0):
+                m = run(SessionGapFade(k=k, target_frac=tf), data_h1, a, b, spread_mult=sm)
+                out.append(f"- move >= {k} daily ATR, target {tf} x the move | spread x{sm:g}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, "
+                           f"PF {m.get('profit_factor') or 0:.2f}, total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 HYBRID_GRID_FILTERS = {"none": {}, "look left": {"look_left": True}, "narrow state": {"narrow": True}, "wide state": {"wide": True},
                        "3-5 bar rule": {"bars35": True}, "tail bar": {"tail": True}, "counter-trend": {"counter": True},
                        "narrow + look left": {"narrow": True, "look_left": True}, "wide + tail": {"wide": True, "tail": True},

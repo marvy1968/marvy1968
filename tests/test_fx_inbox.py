@@ -157,3 +157,18 @@ class SessionPullbackTests(unittest.TestCase):
         self.assertTrue(len(hrs) and all(8 <= h < 12 for h in hrs))
         free = SessionPullback(session=False).frame(m)
         self.assertGreater(int(free["long"].sum()), int(SessionPullback().frame(m)["long"].sum()))
+
+
+class SessionGapFadeTests(unittest.TestCase):
+    def test_signals_only_on_the_london_open_bar_and_fade_the_move(self):
+        from fxbot.strategies import SessionGapFade
+        idx = pd.date_range("2026-01-05", periods=24 * 40, freq="1h", tz="UTC")
+        c = 1.1 + np.cumsum(np.random.default_rng(2).normal(0, 0.0012, len(idx)))
+        m = pd.DataFrame({"open": c, "high": c + 0.0006, "low": c - 0.0006, "close": c, "volume": 100}, index=idx)
+        f = SessionGapFade(k=0.2).frame(m)
+        sig = f[f["long"] | f["short"]]
+        self.assertTrue(len(sig) and set(sig.index.hour) == {6})
+        self.assertFalse((f["long"] & f["short"]).any())
+        up = m["close"] - m["open"].where(m.index.hour == 0).groupby(m.index.normalize()).transform("max")
+        self.assertTrue((up[f["long"]] < 0).all() and (up[f["short"]] > 0).all())      # long after a down move, short after an up move
+        self.assertTrue((sig["target"] == 0.5 * sig["stop"]).all())

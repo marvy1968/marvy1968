@@ -184,6 +184,18 @@ def run_all(a) -> int:
                     lines += [f"## session_pullback_fx: EMA20/50 session pullback, {label} ({a_} to {today}, H1, bid/ask)"] + session_pullback_check(h1, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "gap_fade_fx":               # Gemini idea 3 (2026-10-26): fade a big Asian-session move at the London open
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import gap_fade_check
+                today = _dt.date.today()
+                for label, days_ in (("last 3 months", 92), ("last 12 months", 365), ("last 3 years", 1095)):
+                    a_ = today - _dt.timedelta(days=days_)
+                    h1 = {i: fx_load(i, "H1", a_ - _dt.timedelta(days=60), today, Path("state/fx/cache")) for i in MAJORS}
+                    lines += [f"## gap_fade_fx: London-open fade of the Asian move, {label} ({a_} to {today}, H1, bid/ask)"] + gap_fade_check(h1, a_, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "exit_time_fx":              # owner 2026-10-25: time exits (his manual-close pattern) vs the 0.5R cut / 1.25R take-profit
                 import datetime as _dt
                 from fxbot.data import MAJORS

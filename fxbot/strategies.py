@@ -843,6 +843,34 @@ class SessionPullback:
         return f
 
 
+class SessionGapFade:
+    """Gemini idea 3 (consult 2026-10-26): fade a big Asian-session move at the London open. The Asian session is 00:00-06:59 UTC; the signal bar is
+    the 06:00 H1 bar (its close is the London-open price). If the Asian move (that close minus the 00:00 bar's open) is at least `k` x the daily ATR14,
+    trade against it: stop `stop_frac` x the move beyond the entry, target `target_frac` x the move back toward the Asian open. Time stop max_bars.
+    Pre-declared kill test (Gemini): London continues in the move's direction more than 55% of the time -> no fade edge."""
+
+    def __init__(self, k: float = 0.5, target_frac: float = 0.5, stop_frac: float = 1.0, max_bars: int = 12):
+        self.k, self.target_frac, self.stop_frac, self.max_bars = k, target_frac, stop_frac, max_bars
+        self.name = f"session_gap_fade k{k} t{target_frac} s{stop_frac}"
+
+    def frame(self, m):
+        idx = m.index.tz_convert("UTC")
+        day = pd.Series(idx.normalize(), index=m.index)
+        dh, dl, dc = (m[c].groupby(day).agg(f) for c, f in (("high", "max"), ("low", "min"), ("close", "last")))
+        tr = pd.concat([dh - dl, (dh - dc.shift(1)).abs(), (dl - dc.shift(1)).abs()], axis=1).max(axis=1)
+        datr = tr.rolling(14).mean().shift(1).reindex(day).to_numpy()                 # yesterday's daily ATR14
+        open0 = m["open"].where(idx.hour == 0).groupby(day).transform("max")           # the 00:00 bar's open, spread over the day
+        move = (m["close"] - open0).to_numpy()
+        sig = (idx.hour == 6) & (np.abs(move) >= self.k * datr)
+        sig_s = pd.Series(sig, index=m.index)
+        long_, short = sig_s & (pd.Series(move, index=m.index) < 0), sig_s & (pd.Series(move, index=m.index) > 0)
+        none = pd.Series(False, index=m.index)
+        dist = pd.Series(np.abs(move), index=m.index)
+        f = _frame(m.index, long_, short, none, none, self.stop_frac * dist)
+        f["target"] = self.target_frac * dist
+        return f
+
+
 class NR7Breakout:
     """Crabel NR7 (daily): yesterday's range was the narrowest of 7; today closes beyond it -> enter that way. Stop = distance to the NR7
     bar's far side; exit on a close back inside the NR7 bar or after 5 bars."""
