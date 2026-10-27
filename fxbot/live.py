@@ -109,7 +109,10 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-26 ("Do this": the fx-experts bot lost ~$700 overnight with no rails): every OPEN TRADE OF ANOTHER BOT on the shared
           # account gets a broker stop-loss if it has none (loss at the stop = stop_pct of NAV) and is closed at market once its unrealized loss
           # reaches cut_pct of NAV. Undo: "foreign_guard": None (or delete the keys) and redeploy.
-          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025},
+          # owner 2026-10-27 ("OANDA going up nicely if [we] don't give back profit"): lock_start_pct / lock_keep - once one of the fx-experts bot's
+          # trades has been up lock_start_pct of NAV, its broker stop is moved to keep lock_keep of its best gain so far (only ever tightened, its own
+          # target untouched; the broker holds the stop, so it protects even if this runner is down). A guard, not backtested. Undo: drop the two keys.
+          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025, "lock_start_pct": 0.002, "lock_keep": 0.5},
           # owner 2026-10-27 ("implement the account profit lock on the OANDA side"): the Alpaca rule on this runner's book - once the book is up
           # start_pct on the trading day (17:00 New York to 17:00), giving back giveback_frac of that day's best gain stops NEW entries until the next
           # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
@@ -154,6 +157,7 @@ class FxPaper:
         self.sleep = sleep
         st = self._load("groups.json", {})
         self.groups, self.last_bar, self.day = st.get("groups", {}), st.get("last_bar", {}), st.get("day", {})
+        self.foreign_best = st.get("foreign_best", {})     # fx-experts trade id -> best unrealized P&L seen (foreign_guard profit lock)
         self.pending = st.get("pending", {})              # owner 2026-10-25 playbook: virtual buy-stop / sell-stop orders waiting for their trigger
         self.daily_cache, self.next_check = {}, {}
 
@@ -168,7 +172,7 @@ class FxPaper:
 
     def save(self):
         tmp = self.dir / "groups.json.tmp"
-        tmp.write_text(json.dumps({"groups": self.groups, "last_bar": self.last_bar, "day": self.day, "pending": self.pending}, indent=1, default=str))
+        tmp.write_text(json.dumps({"groups": self.groups, "last_bar": self.last_bar, "day": self.day, "pending": self.pending, "foreign_best": self.foreign_best}, indent=1, default=str))
         tmp.replace(self.dir / "groups.json")
 
     def journal(self, kind: str, **kw):
@@ -296,8 +300,32 @@ class FxPaper:
                     sl = px - (1 if units > 0 else -1) * cfg["stop_pct"] * nav / abs(units)
                     self.api.set_stop(t["id"], fmt(t["instrument"], sl))
                     self.journal("foreign_stop", trade=t["id"], instrument=t["instrument"], units=units, stop=fmt(t["instrument"], sl))
+                elif cfg.get("lock_start_pct") and upl > 0:
+                    self._lock_foreign(t, units, upl, nav, cfg)
             except (OandaError, KeyError, ValueError) as exc:
                 self.journal("error", where="foreign_guard", trade=t.get("id"), error=str(exc)[:300])
+        open_ids = {t["id"] for t in others}
+        self.foreign_best = {k: v for k, v in self.foreign_best.items() if k in open_ids}
+
+    def _lock_foreign(self, t: dict, units: float, upl: float, nav: float, cfg: dict):
+        """Move an fx-experts trade's broker stop to keep lock_keep of its best unrealized gain (see CONFIG foreign_guard)."""
+        tid, side = t["id"], (1 if units > 0 else -1)
+        best = max(float(self.foreign_best.get(tid, 0.0)), upl)
+        self.foreign_best[tid] = round(best, 2)
+        if best < cfg["lock_start_pct"] * nav:
+            return
+        bid, ask = self.api.price(t["instrument"])
+        cur, entry = (bid if side == 1 else ask), float(t["price"])
+        if side * (cur - entry) <= 0:
+            return
+        usd_per_px = upl / (cur - entry)                         # USD per 1.0 of price for this position, from its own current P&L
+        lock = float(fmt(t["instrument"], entry + cfg["lock_keep"] * best / usd_per_px))     # compare at the broker's precision
+        old = float((t.get("stopLossOrder") or {}).get("price") or 0.0) or None
+        if side * (cur - lock) <= 0 or (old is not None and side * (lock - old) <= 0):
+            return                                                # never at or through the market, never loosened
+        self.api.set_stop(tid, fmt(t["instrument"], lock))
+        self.journal("foreign_lock", trade=tid, instrument=t["instrument"], best_upl=round(best, 2), stop=fmt(t["instrument"], lock),
+                     old_stop=old, keeps=round(cfg["lock_keep"] * best, 2))
 
     def sync(self, trades: list):
         """Trades OANDA closed (stop-loss / take-profit / margin / netting) leave their group; their realized P&L goes to the ledger."""

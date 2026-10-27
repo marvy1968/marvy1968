@@ -414,6 +414,37 @@ class ForeignGuardTests(unittest.TestCase):
             self.assertEqual(api.stops, [])
 
 
+class ForeignProfitLockTests(unittest.TestCase):
+    def test_winning_fx_experts_trade_stop_moves_to_keep_half_its_best_gain_and_never_loosens(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            api.px["EUR_USD"] = (1.1030, 1.1031)
+            api.other = [{"id": "5", "instrument": "EUR_USD", "currentUnits": "100000", "price": "1.1000", "unrealizedPL": "300",
+                          "clientExtensions": {"tag": "fxexp"}, "stopLossOrder": {"price": "1.0900"}}]
+            r = runner(tmp, api)
+            r.guard_foreign(api.open_trades())
+            self.assertEqual(api.stops, [("5", "1.10150")])          # +$300 >= 0.2% of $58,000: keep $150 = 15 pips above entry
+            api.other[0]["stopLossOrder"] = {"price": "1.10150"}
+            api.px["EUR_USD"] = (1.1020, 1.1021)
+            api.other[0]["unrealizedPL"] = "200"                     # pulled back: best stays $300, stop not loosened or re-sent
+            r.guard_foreign(api.open_trades())
+            self.assertEqual(len(api.stops), 1)
+            r.save()
+            self.assertEqual(runner(tmp, api).foreign_best, {"5": 300.0})
+
+    def test_small_or_losing_trades_and_short_side(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            api.px["EUR_USD"] = (1.0969, 1.0970)
+            api.other = [{"id": "6", "instrument": "EUR_USD", "currentUnits": "-100000", "price": "1.1000", "unrealizedPL": "300",
+                          "clientExtensions": {"tag": "fxexp"}, "stopLossOrder": {"price": "1.1100"}},
+                         {"id": "7", "instrument": "EUR_USD", "currentUnits": "10000", "price": "1.1000", "unrealizedPL": "50",
+                          "clientExtensions": {"tag": "fxexp"}, "stopLossOrder": {"price": "1.0900"}}]
+            r = runner(tmp, api)
+            r.guard_foreign(api.open_trades())
+            self.assertEqual(api.stops, [("6", "1.09850")])          # short: keep $150 = 15 pips below entry; trade 7 (+$50) untouched
+
+
 class PlaybookLiveTests(unittest.TestCase):
     """Owner 2026-10-25 Break & Retest Playbook live (retest_h1): a virtual buy-stop fills only at its trigger, the order carries the
     structure stop and the swing target at OANDA, the trade is exempt from the 0.5R cut / 1.25R take-profit / 10-minute exit, and a

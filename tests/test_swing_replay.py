@@ -19,6 +19,7 @@ from alpacabot.engine import Costs, Portfolio
 from alpacabot.research import run_swing
 from alpacabot.strategies import SectorTopDown
 from alpacabot.swing_paper import SwingRunner
+import alpacabot.swing_paper as sp
 
 ET = ZoneInfo("America/New_York")
 DAYS = pd.bdate_range("2025-01-02", periods=230, tz="America/New_York")
@@ -102,7 +103,7 @@ class SwingReplayTest(unittest.TestCase):
         cls.ledger = [json.loads(x) for x in p.read_text().splitlines()] if p.exists() else []
         # the backtest over the same days, same rules, no costs (the simulated fills have none)
         res = run_swing(SectorTopDown(cls.spy["close"]), cls.data, Costs(0, 0, 0),
-                        Portfolio(equity=1_000_000.0, risk_pct=0.0035, max_positions=3, max_pos_frac=0.333), DAYS[cls.first + 1].date(), DAYS[-1].date())
+                        Portfolio(equity=1_000_000.0, risk_pct=sp.RISK_PCT, max_positions=sp.MAX_POS, max_pos_frac=sp.MAX_POS_FRAC), DAYS[cls.first + 1].date(), DAYS[-1].date())
         cls.bt = res["fills"]
 
     @classmethod

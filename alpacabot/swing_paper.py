@@ -29,7 +29,10 @@ from .universe import STOCKS
 
 ET = ZoneInfo(NY)
 UNIVERSE = list(STOCKS)          # the 5 largest S&P 500 stocks in each of the 11 sectors (universe.py)
-RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.0035, 3, 0.333, 5.0
+# owner 2026-10-27 ("increase risk per trade on the profitable set ups"): topdown_sizing (research.SIZING_SPEC, pre-declared; select 2016-22, confirm
+# 2023-now, both lists, 10 bps a side): 0.35% x 3 -> 0.50% x 5 slots. Confirm years: today's list CAGR +2.5% -> +6.0%, Sharpe 0.70 -> 0.85, maxDD -4.9% -> -10.2%;
+# hindsight-free list +0.4% -> +4.2%, Sharpe 0.13 -> 0.65, maxDD -5.2% -> -8.5%. 1% / 1.5% risk broke the -15% drawdown limit on the select years. UNDO: 0.0035, 3.
+RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.005, 5, 0.333, 5.0
 FUNNEL_RISK, FUNNEL_MAX = 0.005, 3     # owner's Stock Funnel (alpacabot.funnel): 0.5% risk, its own 3 slots, longs and shorts
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
