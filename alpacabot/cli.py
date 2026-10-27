@@ -197,6 +197,30 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_exits":                  # owner 2026-10-27: every exit type on every OANDA strategy, short test then long test (fxbot.exitlab)
+                import datetime as _dt
+                from fxbot import exitlab as _fxl
+                from fxbot import live as _fxlive
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                strats = {k: (v["make"], v["gran"]) for k, v in _fxlive.STRATS.items() if v.get("make")}
+                warm = {"H1": 60, "H4": 150, "D": 400}
+                grans = sorted({g for _, g in strats.values()})
+                dg = {g: {i: fx_load(i, g, today - _dt.timedelta(days=92 + warm[g]), today, Path("state/fx/cache")) for i in MAJORS} for g in grans}
+                sh = _fxl.short_test(strats, dg, today)
+                lines += ["## fx_exits SHORT test: last 3 months, halves at 2x spread, bid/ask, 7 majors (live = 0.5R cut / 1.25R target)"] + _fxl.short_lines(sh)
+                picks = _fxl.best_passers(sh)
+                lines.append(f"- passers taken to the long test: {picks}")
+                if any(picks.values()):
+                    need = sorted({strats[k][1] for k, v in picks.items() if v})
+                    dl = {g: {i: fx_load(i, g, today - _dt.timedelta(days=93 + 365 * 5 + warm[g]), today, Path("state/fx/cache")) for i in MAJORS} for g in need}
+                    lines += ["## fx_exits LONG test: 5 years up to the short window, last 12 months sequestered, 2x spread"]
+                    lines += _fxl.long_lines(_fxl.long_test(strats, dl, today, picks))
+                else:
+                    lines.append("- nothing passed the short test: no long test")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "strict_fx":                 # owner + Gemini r5 promotion bar for methods_fx candidates (3y train / 1y select / 1y OOS)
                 import datetime as _dt
                 from fxbot.data import MAJORS
