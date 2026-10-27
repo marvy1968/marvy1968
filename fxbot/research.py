@@ -555,6 +555,29 @@ def session_pullback_check(data_h1: dict, a, b) -> list[str]:
     return out
 
 
+def experts_review(data: dict, a, b) -> list[str]:
+    """Owner 2026-10-27 ("analyze all OANDA experts and refine and optimize"): every strategy the live runner trades (fxbot.live CONFIG["trade"], except the
+    playbook, which has its own family) on the live bars, with the LIVE exits (0.5R cut / 1.25R take-profit) and with the strategy's OWN exits, at the normal
+    spread and at 2x. data: granularity -> {instrument: bars}. Bid/ask, pessimistic."""
+    from . import live
+    out = []
+    for name in live.CONFIG["trade"]:
+        spec = live.STRATS[name]
+        if spec.get("playbook"):
+            continue
+        d = data.get(spec["gran"])
+        if not d:
+            continue
+        out.append(f"### {name} ({spec['gran']})")
+        for label, wrap in (("LIVE exits (cut 0.5R / out 1.25R)", lambda s: TightStop(s, live.CONFIG["loss_cut_r"], live.CONFIG["take_profit_r"])),
+                            ("own exits (its stop and rules)", lambda s: s)):
+            for sm in (1.0, 2.0):
+                m = run(wrap(spec["make"]()), d, a, b, spread_mult=sm)
+                out.append(f"- {label} | spread x{sm:g}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
+                           f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
+    return out
+
+
 def gap_fade_check(data_h1: dict, a, b) -> list[str]:
     """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
     plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""
