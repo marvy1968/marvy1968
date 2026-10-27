@@ -1,3 +1,22 @@
 $ alpaca run-all --phase validate --families fx_carry
-started 2026-10-26 23:46:53 EDT
-RUNNING...
+started 2026-10-26 23:46:53 EDT, took 816s, exit 0
+
+daily data ready
+## fx_carry: rates from FRED, daily bars 2004-01-01 to 2026-10-26; train to 2015-12-31, validate 2016 on
+(rollover drag 0.0% a year)
+### Carry + 200-day trend, 7 majors, top 3, ATR parity (0.5% per daily ATR), drag 0.0%/yr, 1 bp/side
+- carry+trend train: CAGR +4.8% Sharpe 0.47 maxDD -21.2%
+- carry+trend validate: CAGR -2.3% Sharpe -0.12 maxDD -41.9%
+- trend only train: CAGR +2.7% Sharpe 0.28 maxDD -21.2%
+- trend only validate: CAGR -4.7% Sharpe -0.22 maxDD -51.6%
+- carry only train: CAGR +5.9% Sharpe 0.54 maxDD -20.1%
+- carry only validate: CAGR -0.4% Sharpe 0.06 maxDD -36.3%
+(rollover drag 1.5% a year)
+### Carry + 200-day trend, 7 majors, top 3, ATR parity (0.5% per daily ATR), drag 1.5%/yr, 1 bp/side
+- carry+trend train: CAGR +3.9% Sharpe 0.39 maxDD -21.6%
+- carry+trend validate: CAGR -4.0% Sharpe -0.25 maxDD -45.7%
+- trend only train: CAGR +1.8% Sharpe 0.21 maxDD -22.0%
+- trend only validate: CAGR -6.7% Sharpe -0.36 maxDD -60.8%
+- carry only train: CAGR +4.9% Sharpe 0.46 maxDD -20.2%
+- carry only validate: CAGR -2.5% Sharpe -0.08 maxDD -41.3%
+ALL DONE
