@@ -124,3 +124,20 @@ documented, replicated FX edge after realistic retail spreads, with exact rules 
 **Round 6 question (stocks only, daily bars):** with the 200-day index rule as the core, what is ONE satellite we should test next that is most likely to ADD to it after costs on a
 hindsight-free universe we can actually build from free daily data (no fundamentals, no earnings dates): e.g. a 12-month-momentum rotation among sector ETFs inside the 200-day regime, or
 volatility targeting of the core itself? Give the exact rule, the control, and a kill rule that compares against the 200-day rule alone (Sharpe and max drawdown).
+
+## ROUND 7 (2026-10-27 11:45 ET): your vol-target satellite + the exit inventory, tested
+- **Vol-targeted 200-day rule (your round 6 pick): REJECT** by your own kill rule - Sharpe +0.01 (QQQ) / -0.05 (SPY) vs the plain 200-day rule, no drawdown gain.
+- **Exit lab, stocks (your exit inventory):** 14 pre-declared exits (own, fixed 1/2/3R, 10/20-day time, 2x/3x ATR chandelier, close < SMA20/SMA50, 5-bar swing-low trail, BE at +1R
+  then 2 ATR, parabolic SAR, own + 3 ATR) x 4 live swing strategies, entries and initial stops fixed, 10 bps a side. Short test (last 3 months, two halves): only 2 passers, both on the
+  funnel (10-day time exit, BE+1R then 2 ATR). Long test (2016 to 3 months ago, last 12 months sequestered, today's list AND the hindsight-free 2016 list, random-entry control): both
+  REJECTED (OOS PF 0.87 / 0.83 vs own 1.13). No exit beat the strategies' own exits.
+- **Own exits by year (same harness, verified trade-for-trade against the backtest the strategies were adopted on):** Sector Top-Down PF 1.54 (9/11 years > 1; OOS 1.21; hindsight-free
+  1.33 / OOS 1.28; random entries -0.03R) -> keep. Funnel PF 0.85 (4/11; hindsight-free 0.98; positive since 2023) -> watch. Oversold PF 0.56 over 2,877 trades, 9/11 years losing
+  (hindsight-free 0.48) -> switched to exits-only today. 200-day sleeve PF 2.85 (8/11) -> keep.
+- **OANDA:** account profit lock added (owner approved: after +0.4% on the day, giving back 35% of the day's best gain stops new entries). The same 14-exit lab on every OANDA strategy
+  (bid/ask, short test then a 5-year held-out test) is queued.
+**Round 7 question (stocks, daily bars):** exits did not rescue any entry, so the next work is ENTRIES. Sector Top-Down is our only stock strategy with a long-run edge, and it loses in
+broad drawdowns (2018, 2022: PF 0.95 / 0.87). Give ONE pre-declared regime filter on its ENTRIES (not exits) most likely to cut those years without killing 2017/2019/2023/2024 -
+e.g. breadth, SPY vs its 200-day, VIX-proxy from SPY realized vol, credit-spread proxy from free ETF data - with the exact rule, the control (unfiltered Top-Down) and a kill rule on the
+hindsight-free list. Note: we already gate new longs while SPY is below its 200-day average (live since 2026-10-26, not separately backtested on Top-Down), so if that is your pick, say what
+threshold or confirmation to test instead of the plain cross.
