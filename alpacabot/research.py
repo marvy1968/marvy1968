@@ -963,6 +963,40 @@ def trend_benchmark_lines(daily: dict, split: date, cost: float = 0.0002) -> lis
     return out
 
 
+def vol_target_lines(daily: dict, split: date, target: float = 0.15, cost: float = 0.0002) -> list[str]:
+    """Gemini round 6 (2026-10-27, Moreira & Muir 2017): the 200-day rule with each index scaled to a 15% volatility target. Every Friday close the weight
+    becomes min(1, 15% / 20-day realized vol) while the close is above the 200-day average (0 below; the 200-day exit still acts daily); 2 bps per side on
+    every weight change. CONTROL = the plain 200-day rule (100% / 0%). Gemini's kill rule: keep only if Sharpe improves by >= +0.10 AND the max drawdown
+    improves by >= 15% relative."""
+    out = [f"### Vol-targeted 200-day rule (target {target:.0%}, weekly) vs the plain 200-day rule"]
+    for sym in ("SPY", "QQQ"):
+        if sym not in daily:
+            continue
+        c = daily[sym]["close"]
+        ret = c.pct_change()
+        above = c > c.rolling(200).mean()
+        vol = np.log(c).diff().rolling(20).std() * np.sqrt(252)
+        raw = (target / vol).clip(upper=1.0)
+        fri = pd.Series(c.index.weekday == 4, index=c.index)
+        w_vt = raw.where(fri).ffill().where(above, 0.0).fillna(0.0)
+        w_pl = above.astype(float)
+        res = {}
+        for label, w in (("vol-target", w_vt), ("plain 200-day", w_pl)):
+            wp = w.shift(1).fillna(0.0)
+            s = (ret * wp - cost * w.diff().abs().shift(1).fillna(0.0)).iloc[220:]
+            res[label] = s
+        for nm, sel in (("train", lambda s: s[s.index.date <= split]), ("validate", lambda s: s[s.index.date > split]), ("all", lambda s: s)):
+            out.append(f"- {sym} {nm}: vol-target {_ret_curve_stats(sel(res['vol-target']))} | plain {_ret_curve_stats(sel(res['plain 200-day']))}")
+        def sh_dd(s):
+            eq = (1 + s).cumprod()
+            return s.mean() / s.std() * np.sqrt(252), (eq / eq.cummax() - 1).min()
+        a_sh, a_dd = sh_dd(res["vol-target"])
+        b_sh, b_dd = sh_dd(res["plain 200-day"])
+        keep = (a_sh - b_sh) >= 0.10 and a_dd >= b_dd * 0.85
+        out.append(f"- {sym} verdict (all years): Sharpe {a_sh:.2f} vs {b_sh:.2f}, maxDD {a_dd:.1%} vs {b_dd:.1%} -> {'KEEP' if keep else 'REJECT'} (needs +0.10 Sharpe and 15% smaller drawdown)")
+    return out
+
+
 def power_gap_lines(daily: dict, split: date, label: str, cost: float = 0.0005, hold: int = 10) -> list[str]:
     """Gemini round 3 'power earnings gap' (a price/volume proxy for a big earnings surprise): the open gaps up > 4% on volume > 3x the 50-day average and
     the close is in the top 25% of the day's range. Buy the NEXT open, sell the close `hold` days later, or exit at the next open if a close falls under

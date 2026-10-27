@@ -282,6 +282,13 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "vol_target":                # Gemini round 6 (2026-10-27): volatility-targeted 200-day rule vs the plain rule
+                import datetime as _dt
+                from .research import vol_target_lines
+                dd = {s: load(s, "1Day", _dt.date(2004, 1, 1), _dt.date.today(), cache) for s in ("SPY", "QQQ")}
+                lines += ["## vol_target: SPY / QQQ, train to 2015-12-31, validate 2016 on"] + vol_target_lines(dd, _dt.date(2015, 12, 31))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "gap_drift":                 # Gemini round 3 (2026-10-26): the 200-SMA benchmark + the power-earnings-gap proxy (research.power_gap_lines)
                 import datetime as _dt
                 from .research import power_gap_lines, trend_benchmark_lines

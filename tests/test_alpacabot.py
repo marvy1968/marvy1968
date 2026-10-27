@@ -2836,3 +2836,15 @@ class PowerGapTests(unittest.TestCase):
         self.assertIn("validate: 1t", text)
         self.assertTrue(any("kill if" in l for l in lines))
         self.assertTrue(any("200-day" in l for l in trend_benchmark_lines({"SPY": df, "QQQ": df}, dt.date(2018, 12, 31))))
+
+
+class VolTargetTests(unittest.TestCase):
+    def test_vol_target_lines_report_both_rules_and_a_verdict(self):
+        import datetime as dt
+        from alpacabot.research import vol_target_lines
+        rng = np.random.default_rng(1)
+        idx = pd.bdate_range("2014-01-01", "2020-12-31")
+        d = {"SPY": pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0.0004, 0.012, len(idx)))}, index=idx)}
+        text = "\n".join(vol_target_lines(d, dt.date(2017, 12, 31)))
+        self.assertIn("vol-target", text)
+        self.assertIn("verdict", text)
