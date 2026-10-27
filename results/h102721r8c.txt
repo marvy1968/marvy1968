@@ -1,3 +1,23 @@
 $ gemini round8
-started 2026-10-27 17:44:02 EDT
-RUNNING...
+started 2026-10-27 17:44:02 EDT, took 49s, exit 0
+
+**The Diagnosis:** Your rigorous testing has uncovered the exact source of Top-Down's fragility. The massive gap between today's list (+2.0% CAGR) and the 2016 list (+0.3% CAGR) proves the edge relies heavily on being in the *current* market leaders. Over an 8-year backtest, a static 2016 list decays as former leaders turn into laggards (e.g., Intel, Walgreens) and it completely misses the new mega-caps (e.g., Nvidia, Tesla) that actually drive sector momentum. No entry math can force a stale list of stocks to outperform. 
+
+Here is the single most defensible change to fix this, targeting the universe directly, plus a purely mathematical ranking alternative if historical data is a blocker.
+
+### ONE Pre-Declared Change: Annual Universe Reconstitution
+*   **The Rule:** Update your tradable universe dynamically on the first trading day of January every year. The universe becomes the 11 Select Sector SPDR ETFs *plus* the top 5 constituent stocks by market cap within each sector **as of that exact date**.
+*   **The Inefficiency:** Market-cap-weighted capital flows. When institutional money rotates into a leading sector, it flows disproportionately into the heaviest weights of that ETF at that specific time. A static 10-year-old list forces you to trade stocks that no longer capture the bulk of this momentum.
+*   **The Data:** Point-in-time top 5 holdings for the 11 sector ETFs on Jan 1st, 2016–2026. *(Free sources: SEC EDGAR N-PORT / N-Q filings for SPDR ETFs, or proxy it by taking historical S&P 500 constituents from Wikipedia and sorting by market cap within each GICS sector).*
+*   **The Control:** The current Top-Down strategy (with your newly adopted 5-slot, 0.5% sizing) run on the static 2016 hindsight-free list.
+*   **The Kill Rule:** If the reconstituted universe does not improve the 2016–now CAGR by at least **+2.5% absolute** and the Sharpe ratio by at least **+0.15** over the control (while keeping max drawdown within 3% of the control), reject it.
+
+### Alternative (If historical constituent data is a blocker): 90-Day Vol-Adjusted Sector RS
+If building point-in-time yearly universes is too tedious for a quick test, the most robust mathematical fix for a static list is to change your candidate ranking from 20-day raw relative strength to a medium-term, volatility-adjusted metric.
+*   **The Rule:** Rank candidate signals by their 90-day Volatility-Adjusted Sector Relative Strength.
+    *Formula:* `(Stock_Return_90d - Sector_ETF_Return_90d) / Standard_Deviation(Stock_Daily_Returns_90d)`
+*   **The Inefficiency:** 20-day raw RS is heavily polluted by the well-documented 1-month reversal anomaly (stocks that spike violently over 3-4 weeks frequently mean-revert). 90-day (approx. 4 months) captures true institutional accumulation. Dividing by volatility penalizes erratic "dead cat bounces" in stale 2016 stocks, forcing the system into smooth, persistent trends.
+*   **The Control:** Current Top-Down using 20-day raw RS on the 2016 hindsight-free list.
+*   **The Kill Rule:** If the 90-day vol-adjusted ranking does not improve the Sharpe ratio by at least **+0.10** on the 2016 hindsight-free list compared to the control, reject it. 
+
+*Note on your progress:* Killing 14 different exits because they couldn't beat the native structure is excellent science. It proves your strategy's edge is intrinsically tied to its specific market structure/invalidation points, not just generic trailing math. Trimming OANDA down to just the two strategies that survive 2x spreads and enforcing a hard daily lock is also exactly how retail accounts survive.
