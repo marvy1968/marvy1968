@@ -241,4 +241,6 @@ def long_lines(long: dict, label: str) -> list[str]:
         for ex, r in rows.items():
             out.append(f"- {ex}: in-sample {_fmt(r['in_sample'])} | OOS {_fmt(r['oos'])} | years PF>1 {r['years_pf_gt_1']}/{r['years']} | "
                        f"random-entry OOS avg R {r['random_entry_oos_avg_r']}{' -> KEEP' if r['keep'] else (' -> reject' if ex != 'own' else ' (control)')}")
+            if ex == "own":
+                out.append("  by year: " + ", ".join(f"{y} PF {v['pf']} {v['total_r']:+}R ({v['trades']})" for y, v in r["by_year"].items()))
     return out

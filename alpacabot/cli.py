@@ -282,6 +282,23 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "swing_exits_base":          # owner 2026-10-27 follow-up: each swing strategy's OWN exits over 2016-now, by year (no exit changes)
+                import datetime as _dt
+                from . import exitlab as _xl
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in sorted(set(STOCKS) | {"SPY", "QQQ"})}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                spy_c = dd["SPY"]["close"]
+                own = {st: ["own"] for st in _xl.STRATEGIES}
+                lines += ["## swing_exits_base: own exits, 2016 to 3 months ago (last 12 months = OOS), 10 bps a side"]
+                lines += _xl.long_lines(_xl.long_test(dd, spy_c, today_, own), "today's list")
+                cd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in SECTOR_TD_CONTROL}
+                cd = {s: d for s, d in cd.items() if len(d) > 300}
+                lines += _xl.long_lines(_xl.long_test({**cd, "SPY": dd["SPY"]}, spy_c, today_, {k: v for k, v in own.items() if k != "index200"}),
+                                        "the hindsight-free 2016 list")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "swing_exits":               # owner 2026-10-27: every exit type on every swing strategy, short test then long test (exitlab)
                 import datetime as _dt
                 from . import exitlab as _xl
