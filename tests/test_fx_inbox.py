@@ -172,3 +172,18 @@ class SessionGapFadeTests(unittest.TestCase):
         up = m["close"] - m["open"].where(m.index.hour == 0).groupby(m.index.normalize()).transform("max")
         self.assertTrue((up[f["long"]] < 0).all() and (up[f["short"]] > 0).all())      # long after a down move, short after an up move
         self.assertTrue((sig["target"] == 0.5 * sig["stop"]).all())
+
+
+class CarryTrendTests(unittest.TestCase):
+    def test_runs_on_synthetic_rates_and_reports_the_three_variants(self):
+        import datetime as dt
+        from fxbot.research import carry_trend_study
+        rng = np.random.default_rng(5)
+        idx = pd.bdate_range("2012-01-01", "2016-12-31")
+        pairs = ["EUR_USD", "GBP_USD", "AUD_USD", "USD_JPY"]
+        cl = {p: pd.Series(np.cumprod(1 + rng.normal(0, 0.005, len(idx))), index=idx) for p in pairs}
+        mi = pd.date_range("2011-01-01", "2016-12-01", freq="MS")
+        rates = pd.DataFrame({c: np.clip(1 + rng.normal(0, 0.3, len(mi)).cumsum() * 0.05, 0, 6) for c in ["USD", "EUR", "GBP", "JPY", "AUD"]}, index=mi)
+        text = "\n".join(carry_trend_study(cl, rates, dt.date(2014, 12, 31), sma=50))
+        for kind in ("carry+trend train", "carry+trend validate", "trend only train", "carry only validate"):
+            self.assertIn(kind, text)

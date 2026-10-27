@@ -197,6 +197,25 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_carry":                  # Gemini round 4 (2026-10-27): 200-day trend-filtered carry on the 7 majors (fxbot.research.carry_trend_study)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.data import mid as fx_mid
+                from fxbot.research import carry_trend_study, fred_rates
+                today = _dt.date.today()
+                try:
+                    rates = fred_rates()
+                except Exception as exc:
+                    lines += [f"## fx_carry: could not fetch the FRED rate series ({str(exc)[:120]}); nothing run"]
+                    print("\n".join(lines[first:]), flush=True)
+                    continue
+                cl = {i: fx_mid(fx_load(i, "D", _dt.date(2004, 1, 1), today, Path("state/fx/cache")))["close"] for i in MAJORS}
+                lines += [f"## fx_carry: rates from FRED, daily bars {min(d.index[0] for d in cl.values()).date()} to {today}; train to 2015-12-31, validate 2016 on"]
+                for drag in (0.0, 0.015):
+                    lines += [f"(rollover drag {drag:.1%} a year)"] + carry_trend_study(cl, rates, _dt.date(2015, 12, 31), drag=drag)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "gap_fade_fx":               # Gemini idea 3 (2026-10-26): fade a big Asian-session move at the London open
                 import datetime as _dt
                 from fxbot.data import MAJORS

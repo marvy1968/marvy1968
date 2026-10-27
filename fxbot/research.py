@@ -578,6 +578,86 @@ def experts_review(data: dict, a, b) -> list[str]:
     return out
 
 
+FRED_3M = {"USD": "IR3TIB01USM156N", "EUR": "IR3TIB01EZM156N", "GBP": "IR3TIB01GBM156N", "JPY": "IR3TIB01JPM156N",
+           "AUD": "IR3TIB01AUM156N", "NZD": "IR3TIB01NZM156N", "CAD": "IR3TIB01CAM156N", "CHF": "IR3TIB01CHM156N"}
+
+
+def fred_rates(series: dict = None) -> "pd.DataFrame":
+    """Monthly 3-month interbank rates (percent) per currency from FRED's public CSV (no key). Published with a lag: callers must shift them."""
+    import io
+
+    import pandas as pd
+    import requests
+    out = {}
+    for ccy, sid in (series or FRED_3M).items():
+        txt = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": sid}, timeout=60).text
+        s = pd.read_csv(io.StringIO(txt))
+        s.columns = ["date", "v"]
+        s["date"] = pd.to_datetime(s["date"])
+        out[ccy] = pd.to_numeric(s["v"], errors="coerce").set_axis(s["date"])
+    return pd.DataFrame(out).sort_index()
+
+
+def carry_trend_study(closes: dict, rates: "pd.DataFrame", split: date, drag: float = 0.015, cost_bps: float = 1.0, top_n: int = 3,
+                      atr_risk: float = 0.005, lag_days: int = 35, sma: int = 200) -> list[str]:
+    """Gemini round 4 (2026-10-27): 200-day trend-filtered carry on the 7 majors, daily bars. Signal on the close: long when the yield differential
+    (base minus quote, 3-month interbank, published with a `lag_days` delay) is > 0 AND the close is above its 200-day SMA; short when < 0 and below;
+    flat otherwise. At most `top_n` positions, ranked by |differential|; sized so 1 daily ATR(14) = `atr_risk` of equity (notional capped at 3x equity in
+    total). P&L = price return + the daily rate differential accrual - `drag` a year on the notional (the retail rollover mark-up, Gemini: 1.5%) -
+    `cost_bps` per side on the traded notional. Controls: the same trend rule WITHOUT carry (long above / short below the SMA, top_n by distance from
+    the SMA) and carry WITHOUT trend (sign of the differential). closes: pair -> daily closes (mid). Returns stat lines per half."""
+    import pandas as pd
+    from alpacabot.research import _ret_curve_stats
+    pairs = sorted(closes)
+    px = pd.DataFrame({p: closes[p] for p in pairs}).dropna(how="all").sort_index()
+    idx = px.index
+    rd = rates.copy()
+    rd.index = rd.index + pd.Timedelta(days=lag_days)
+    rd = rd.reindex(rd.index.union(idx)).ffill().reindex(idx)
+    diff = pd.DataFrame({p: rd[p.split("_")[0]] - rd[p.split("_")[1]] for p in pairs}, index=idx) / 100.0      # annual, as a fraction
+    ret = px.pct_change()
+    sma_ = px.rolling(sma).mean()
+    atr = (px.pct_change().abs().rolling(14).mean())                                                         # close-to-close proxy for the daily ATR (fraction of price)
+    out = [f"### Carry + {sma}-day trend, {len(pairs)} majors, top {top_n}, ATR parity ({atr_risk:.1%} per daily ATR), drag {drag:.1%}/yr, {cost_bps:g} bp/side"]
+
+    def run(kind: str) -> pd.Series:
+        w_prev = pd.Series(0.0, index=pairs)
+        pnl = pd.Series(0.0, index=idx)
+        for t in range(sma + 1, len(idx) - 1):
+            d, p_, s_ = diff.iloc[t], px.iloc[t], sma_.iloc[t]
+            sig = pd.Series(0.0, index=pairs)
+            for p in pairs:
+                if not (np.isfinite(p_[p]) and np.isfinite(s_[p])):
+                    continue
+                up, dn = p_[p] > s_[p], p_[p] < s_[p]
+                dv = d[p] if np.isfinite(d[p]) else 0.0
+                if kind == "carry+trend":
+                    sig[p] = 1.0 if (dv > 0 and up) else -1.0 if (dv < 0 and dn) else 0.0
+                elif kind == "trend only":
+                    sig[p] = 1.0 if up else -1.0 if dn else 0.0
+                else:                                                      # carry only
+                    sig[p] = 1.0 if dv > 0 else -1.0 if dv < 0 else 0.0
+            rank = (diff.iloc[t].abs() if kind != "trend only" else ((px.iloc[t] / sma_.iloc[t]) - 1).abs()).reindex(pairs).fillna(0.0)
+            keep = [p for p in rank.sort_values(ascending=False).index if sig[p] != 0][:top_n]
+            w = pd.Series(0.0, index=pairs)
+            for p in keep:
+                a = float(atr.iloc[t][p]) if np.isfinite(atr.iloc[t][p]) and atr.iloc[t][p] > 0 else 0.01
+                w[p] = sig[p] * atr_risk / a
+            if w.abs().sum() > 3.0:
+                w *= 3.0 / w.abs().sum()
+            nxt = ret.iloc[t + 1].fillna(0.0)
+            carry = sum(w[p] * diff.iloc[t][p] / 365.0 for p in pairs if np.isfinite(diff.iloc[t][p]))
+            pnl.iloc[t + 1] = float((w * nxt).sum() + carry - drag / 365.0 * w.abs().sum() - cost_bps / 1e4 * (w - w_prev).abs().sum())
+            w_prev = w
+        return pnl.iloc[sma + 2:]
+
+    for kind in ("carry+trend", "trend only", "carry only"):
+        s = run(kind)
+        for nm, sel in (("train", lambda z: z[z.index.date <= split]), ("validate", lambda z: z[z.index.date > split])):
+            out.append(f"- {kind} {nm}: {_ret_curve_stats(sel(s))}")
+    return out
+
+
 def gap_fade_check(data_h1: dict, a, b) -> list[str]:
     """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
     plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""
