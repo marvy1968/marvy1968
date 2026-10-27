@@ -57,3 +57,15 @@ class ExitLabTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CreditGateTests(unittest.TestCase):
+    def test_gate_off_when_junk_bonds_lag_treasuries(self):
+        from alpacabot.research import credit_gate
+        idx = pd.bdate_range("2024-01-02", periods=120, tz="America/New_York")
+        hyg = pd.DataFrame({"close": np.r_[np.linspace(100, 110, 80), np.linspace(110, 95, 40)]}, index=idx)
+        ief = pd.DataFrame({"close": np.full(120, 100.0)}, index=idx)
+        g = credit_gate(hyg, ief)
+        self.assertTrue(bool(g.iloc[10]))                  # no 50-day history yet: open
+        self.assertTrue(bool(g.iloc[79]))                  # HYG/IEF rising: open
+        self.assertFalse(bool(g.iloc[-1]))                 # falling: 20-day under the 50-day, closed

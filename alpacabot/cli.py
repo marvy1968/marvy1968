@@ -306,6 +306,17 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "credit_gate":               # Gemini round 7 (2026-10-27): HYG/IEF credit-stress entry gate on Sector Top-Down (research.CREDIT_SPEC)
+                import datetime as _dt
+                from .research import credit_gate_lines
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                ld = lambda syms: {s: d for s, d in ((s, load(s, "1Day", _dt.date(2015, 1, 2), today_, cache)) for s in syms) if len(d) > 300}   # noqa: E731
+                ex = ld(["SPY", "HYG", "IEF"])
+                unis = {"today's list": ld(STOCKS), "hindsight-free 2016 list": ld(SECTOR_TD_CONTROL)}
+                lines += ["## credit_gate: Gemini round 7, pre-declared (research.CREDIT_SPEC)"] + credit_gate_lines(unis, ex["SPY"], ex["HYG"], ex["IEF"], today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "swing_exits_base":          # owner 2026-10-27 follow-up: each swing strategy's OWN exits over 2016-now, by year (no exit changes)
                 import datetime as _dt
                 from . import exitlab as _xl

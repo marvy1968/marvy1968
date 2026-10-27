@@ -2023,3 +2023,67 @@ def zones_params_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
             "verdict": ("ADOPT the zone settings " + ", ".join(f"{k[0]}.{k[1]}={v}" for k, v in changed.items()) + ": better in train and validation" if ok else
                         ("no setting beat the live zones on the train years" if not changed else
                          "the best settings (" + ", ".join(f"{k[0]}.{k[1]}={v}" for k, v in changed.items()) + ") did not beat the live zones in both periods: the live zones stay"))}
+
+
+# ------------------------------------------------------------------ credit-stress entry gate (Gemini round 7, 2026-10-27)
+# PRE-DECLARED before any run: credit = close(HYG) / close(IEF); gate ON while its 20-day SMA >= its 50-day SMA. CONTROL = Sector Top-Down with the
+# live SPY-above-its-200-day entry gate; TEST = control AND the credit gate (exits and stops unchanged). Live portfolio rules (0.35% risk, 3 slots,
+# a third of equity per position), 10 bps a side (2x), 2016-03-01..today, today's list and the hindsight-free 2016 list. KEEP only if, on BOTH lists:
+# Sharpe +0.10 or more over the control, the 2018 and 2022 max drawdowns each at least 25% smaller, net profit on trades closed in 2017/2019/2021/2023
+# no more than 15% lower (Gemini's kill rules) AND the test Sharpe beats the control with the credit gate block-shuffled (20-day blocks) in >= 90%
+# of 20 seeds (is it the credit signal, or just being out of the market some of the time?).
+CREDIT_SPEC = {"fast": 20, "slow": 50, "start": "2016-03-01", "slip_bps": 10.0, "risk_pct": 0.0035, "max_positions": 3, "max_pos_frac": 0.333,
+               "placebo_runs": 20, "block_days": 20}
+
+
+def credit_gate(hyg: pd.DataFrame, ief: pd.DataFrame, fast: int = 20, slow: int = 50) -> pd.Series:
+    r = (hyg["close"] / ief["close"]).dropna()
+    return (r.rolling(fast).mean() >= r.rolling(slow).mean()).where(r.rolling(slow).mean().notna(), True).astype(bool)
+
+
+def _year_dd(curve: pd.Series, y: int) -> float:
+    c = curve[curve.index.year == y] if hasattr(curve.index, "year") else curve[[pd.Timestamp(d).year == y for d in curve.index]]
+    return float((c / c.cummax() - 1).min()) if len(c) else 0.0
+
+
+def credit_gate_lines(universes: dict, spy: pd.DataFrame, hyg: pd.DataFrame, ief: pd.DataFrame, end: date) -> list[str]:
+    from .strategies import GatedSectorTopDown, SectorTopDown
+    sp = CREDIT_SPEC
+    start = date.fromisoformat(sp["start"])
+    costs, pf = Costs(slip_bps=sp["slip_bps"]), Portfolio(risk_pct=sp["risk_pct"], max_positions=sp["max_positions"], max_pos_frac=sp["max_pos_frac"])
+    c = spy["close"]
+    spy_gate = (c > c.rolling(200).mean()).where(c.rolling(200).mean().notna(), True)
+    cg = credit_gate(hyg, ief, sp["fast"], sp["slow"]).reindex(c.index, method="ffill").fillna(True).astype(bool)
+    base = SectorTopDown(c)
+    out = [f"### Credit gate (HYG/IEF 20 > 50-day) on Sector Top-Down with the SPY 200-day gate, {start}..{end}, 10 bps a side, live sizing; "
+           f"gate ON {cg[cg.index.date >= start].mean():.0%} of days"]
+    verdicts = []
+    for label, data in universes.items():
+        res = {}
+        for nm, g in (("control (SPY gate)", spy_gate), ("test (SPY + credit)", spy_gate & cg)):
+            r = run_swing(GatedSectorTopDown(base, g), data, costs, pf, start, end)
+            res[nm] = r
+        ctl, tst = res["control (SPY gate)"], res["test (SPY + credit)"]
+        plc = []
+        for s in range(sp["placebo_runs"]):
+            sh = _block_shuffle(cg, s, sp["block_days"])
+            plc.append(run_swing(GatedSectorTopDown(base, spy_gate & sh), data, costs, pf, start, end)["metrics"].get("sharpe") or 0.0)
+        bull = lambda r: float(r["fills"][pd.to_datetime(r["fills"]["exit"]).dt.year.isin([2017, 2019, 2021, 2023])]["pnl"].sum()) if len(r["fills"]) else 0.0  # noqa: E731
+        m0, m1 = ctl["metrics"], tst["metrics"]
+        dd = {y: (_year_dd(ctl["curve"], y), _year_dd(tst["curve"], y)) for y in (2018, 2022)}
+        ok_sh = (m1.get("sharpe") or 0) - (m0.get("sharpe") or 0) >= 0.10
+        ok_dd = all(t >= 0.75 * c_ for c_, t in dd.values())
+        b0, b1 = bull(ctl), bull(tst)
+        ok_bull = b1 >= 0.85 * b0
+        beat = float(np.mean([(m1.get("sharpe") or 0) > p for p in plc]))
+        ok = ok_sh and ok_dd and ok_bull and beat >= 0.9
+        verdicts.append(ok)
+        for nm, r in res.items():
+            m = r["metrics"]
+            out.append(f"- {label} | {nm}: {m.get('trades', 0)} trades, PF {m.get('profit_factor', 0):.2f}, CAGR {m.get('cagr', 0):+.1%}, Sharpe {m.get('sharpe', 0):.2f}, "
+                       f"maxDD {m.get('max_drawdown', 0):.1%}")
+        out.append(f"  {label}: Sharpe {m1.get('sharpe', 0) - m0.get('sharpe', 0):+.2f} ({'ok' if ok_sh else 'FAIL'}) | 2018 DD {dd[2018][0]:.1%} -> {dd[2018][1]:.1%}, "
+                   f"2022 DD {dd[2022][0]:.1%} -> {dd[2022][1]:.1%} ({'ok' if ok_dd else 'FAIL'}) | bull-year profit ${b0:,.0f} -> ${b1:,.0f} ({'ok' if ok_bull else 'FAIL'}) | "
+                   f"beats shuffled credit gate {beat:.0%} ({'ok' if beat >= 0.9 else 'FAIL'}) -> {'KEEP' if ok else 'REJECT'}")
+    out.append(f"- verdict: {'KEEP on both lists (paper candidate)' if verdicts and all(verdicts) else 'REJECT (must pass every rule on both lists)'}")
+    return out
