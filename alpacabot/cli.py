@@ -1277,7 +1277,10 @@ def main(argv=None) -> int:
                   f"open trades {sm.get('openTradeCount')}")
             for t in o.open_trades():
                 tag = (t.get("clientExtensions") or {}).get("tag", "-")
-                print(f"  {t.get('instrument')} {t.get('currentUnits')} @ {t.get('price')} unrealized {float(t.get('unrealizedPL', 0)):+,.2f} tag {tag}")
+                ce = t.get("clientExtensions") or {}
+                sl, tp = (t.get("stopLossOrder") or {}).get("price", "-"), (t.get("takeProfitOrder") or {}).get("price", "-")
+                print(f"  {t.get('instrument')} {t.get('currentUnits')} @ {t.get('price')} unrealized {float(t.get('unrealizedPL', 0)):+,.2f} tag {tag}"
+                      f" | opened {str(t.get('openTime', '-'))[:16]} sl {sl} tp {tp} id {str(ce.get('id', '-'))[:40]} note {str(ce.get('comment', '-'))[:40]}")
         except Exception as exc:
             print(f"OANDA account read failed: {type(exc).__name__}: {str(exc)[:150]}")
         return rc
