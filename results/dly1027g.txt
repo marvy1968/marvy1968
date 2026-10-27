@@ -1,3 +1,91 @@
 $ show alpaca_swing/journal.jsonl
-started 2026-10-27 16:50:24 EDT
-RUNNING...
+started 2026-10-27 16:50:24 EDT, took 0s, exit 0
+
+{"t": "2026-10-12T16:20:06-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "META", "qty": 3, "stop": 689.1026888985886, "rs": 0.0919, "signal_close": 742.96}, {"symbol": "MSFT", "qty": 5, "stop": 504.4092831845755, "rs": 0.0456, "signal_close": 541.15}, {"symbol": "XLK", "qty": 46, "stop": 192.42043958167847, "rs": 0.0416, "signal_close": 196.36}], "equity": 53194.06}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "orders", "sent": {"META": "entry", "MSFT": "entry", "XLK": "entry"}}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "META", "status": "expired"}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "XLK", "status": "expired"}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "MSFT", "status": "expired"}
+{"t": "2026-10-13T16:20:06-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "AMD", "qty": 5, "stop": 573.2530958243219, "rs": 0.1712, "signal_close": 605.53}, {"symbol": "META", "qty": 2, "stop": 692.9451098479672, "rs": 0.1088, "signal_close": 762.5}, {"symbol": "MSFT", "qty": 5, "stop": 507.1384082969777, "rs": 0.0634, "signal_close": 543.45}], "equity": 53194.06}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "orders", "sent": {"AMD": "entry", "META": "entry", "MSFT": "entry"}}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "META", "qty": 2, "fill": 755.19, "stop": 692.9451098479672}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "AMD", "qty": 5, "fill": 588.24, "stop": 573.2530958243219}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "MSFT", "qty": 5, "fill": 543.398, "stop": 507.1384082969777}
+{"t": "2026-10-14T16:20:05-04:00", "kind": "exit", "symbol": "AMD", "px": 573.16, "reason": "stop", "pnl": -75.4}
+{"t": "2026-10-14T16:20:05-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COST", "qty": 2, "stop": 920.2496507460207, "rs": 0.0756, "signal_close": 982.0, "zone_tp": 1105.5, "atr": 15.4764}], "equity": 53034.82}
+{"t": "2026-10-15T09:20:03-04:00", "kind": "chase_skip", "symbol": "COST", "ask": 997.89, "signal_close": 982.0, "atr": 15.4764}
+{"t": "2026-10-15T09:20:03-04:00", "kind": "orders", "sent": {}}
+{"t": "2026-10-15T16:20:05-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "WMT", "qty": 17, "stop": 107.58301642404133, "rs": 0.0892, "signal_close": 117.87, "zone_tp": 138.44, "atr": 2.5165}], "equity": 53061.93}
+{"t": "2026-10-16T09:20:04-04:00", "kind": "orders", "sent": {"WMT": "entry"}}
+{"t": "2026-10-16T09:20:04-04:00", "kind": "entry", "symbol": "WMT", "qty": 17, "fill": 118.728235, "stop": 107.58301642404133, "zone_tp": 138.44}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "META", "px": 710.095, "reason": "owner_close", "pnl": -90.19}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "MSFT", "px": 525.362, "reason": "owner_close", "pnl": -90.18}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "WMT", "px": 118.84, "reason": "owner_close", "pnl": 1.9}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "owner_close", "result": {"META": "closed @ 710.10", "MSFT": "closed @ 525.36", "WMT": "closed @ 118.84"}}
+{"t": "2026-10-16T16:20:07-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "WMT", "qty": 17, "stop": 108.47733706625412, "rs": 0.1111, "signal_close": 118.81, "zone_tp": 139.48, "atr": 2.4517}, {"symbol": "COP", "qty": 12, "stop": 131.58624664066835, "rs": 0.1093, "signal_close": 146.51, "zone_tp": 176.36, "atr": 3.2355}, {"symbol": "COST", "qty": 3, "stop": 927.9605712609301, "rs": 0.1027, "signal_close": 989.11, "zone_tp": 1111.41, "atr": 16.4932}], "equity": 52940.19}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "orders", "sent": {"WMT": "entry", "COP": "entry", "COST": "entry"}}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "WMT", "qty": 17, "fill": 118.261765, "stop": 108.47733706625412, "zone_tp": 139.48, "side": 1, "strategy": null}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "COST", "qty": 3, "fill": 987.836667, "stop": 927.9605712609301, "zone_tp": 1111.41, "side": 1, "strategy": null}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "COP", "qty": 12, "fill": 145.7325, "stop": 131.58624664066835, "zone_tp": 176.36, "side": 1, "strategy": null}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "WMT", "px": 118.7, "reason": "owner_close", "pnl": 7.45}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "COST", "px": 994.12, "reason": "owner_close", "pnl": 18.85}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "COP", "px": 145.28, "reason": "owner_close", "pnl": -5.43}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "owner_close", "result": {"WMT": "closed @ 118.70", "COST": "closed @ 994.12", "COP": "closed @ 145.28"}}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": ["AMZN"]}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "oversold_plan", "exits": [], "entries": []}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COP", "qty": 14, "stop": 132.63635453766233, "rs": 0.1479, "signal_close": 145.24, "zone_tp": 170.45, "atr": 3.1776}, {"symbol": "XOM", "qty": 14, "stop": 165.8975017541014, "rs": 0.1353, "signal_close": 178.28, "zone_tp": 203.04, "atr": 3.5237}, {"symbol": "EOG", "qty": 14, "stop": 144.5732799002627, "rs": 0.1316, "signal_close": 157.65, "zone_tp": 183.8, "atr": 3.5182}, {"symbol": "AMZN", "qty": 27, "stop": 252.85, "side": 1, "strategy": "funnel", "signal_close": 262.45, "zone_tp": 286.46, "atr": 6.5042}], "equity": 52961.06}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "chase_skip", "symbol": "COP", "ask": 147.05, "signal_close": 145.24, "atr": 3.1776}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "orders", "sent": {"XOM": "entry", "EOG": "entry", "AMZN": "entry"}}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "XOM", "qty": 14, "fill": 180.12, "stop": 165.8975017541014, "zone_tp": 203.04, "side": 1, "strategy": null}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "AMZN", "qty": 27, "fill": 264.144444, "stop": 252.85, "zone_tp": 286.46, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "EOG", "qty": 14, "fill": 159.407143, "stop": 144.5732799002627, "zone_tp": 183.8, "side": 1, "strategy": null}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "funnel_plan", "exits": [], "entries": ["MRK"]}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "oversold_plan", "exits": [], "entries": ["GEV"]}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COP", "qty": 14, "stop": 133.5179495797702, "rs": 0.1707, "signal_close": 145.95, "zone_tp": 170.81, "atr": 3.2613}, {"symbol": "MRK", "qty": 61, "stop": 144.05, "side": 1, "strategy": "funnel", "signal_close": 148.3, "zone_tp": 158.92, "atr": 3.9942}, {"symbol": "GEV", "qty": 6, "stop": 848.6, "side": 1, "strategy": "oversold", "signal_close": 890.33, "zone_tp": 942.49, "atr": 41.7282}], "equity": 52867.57}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "chase_skip", "symbol": "GEV", "ask": 919.62, "signal_close": 890.33, "atr": 41.7282}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "orders", "sent": {"COP": "entry", "MRK": "entry"}}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "entry", "symbol": "MRK", "qty": 61, "fill": 147.68, "stop": 144.05, "zone_tp": 158.92, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "entry", "symbol": "COP", "qty": 14, "fill": 145.385714, "stop": 133.5179495797702, "zone_tp": 170.81, "side": 1, "strategy": null}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": ["PM"]}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "oversold_plan", "exits": [], "entries": ["GE", "GOOGL"]}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "PM", "qty": 36, "stop": 190.29, "side": 1, "strategy": "funnel", "signal_close": 197.46, "zone_tp": 215.39, "atr": 5.6439}, {"symbol": "GE", "qty": 30, "stop": 287.36, "side": 1, "strategy": "oversold", "signal_close": 295.88, "zone_tp": 306.54, "atr": 8.5247}, {"symbol": "GOOGL", "qty": 30, "stop": 326.13, "side": 1, "strategy": "oversold", "signal_close": 334.76, "zone_tp": 345.55, "atr": 8.6309}], "equity": 53001.53}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "orders", "sent": {"PM": "entry", "GE": "entry", "GOOGL": "entry"}}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "GE", "qty": 30, "fill": 293.13, "stop": 287.36, "zone_tp": 306.54, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "PM", "qty": 36, "fill": 199.199444, "stop": 190.29, "zone_tp": 215.39, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "GOOGL", "qty": 30, "fill": 330.454333, "stop": 326.13, "zone_tp": 345.55, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "AMZN", "px": 252.8, "reason": "stop", "pnl": -306.3}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "GE", "px": 287.3, "reason": "stop", "pnl": -174.9}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "GOOGL", "px": 326.14, "reason": "stop", "pnl": -129.43}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "oversold_plan", "exits": [], "entries": ["CAT", "EQIX"]}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "CAT", "qty": 12, "stop": 683.26, "side": 1, "strategy": "oversold", "signal_close": 704.05, "zone_tp": 738.71, "atr": 27.7263}, {"symbol": "EQIX", "qty": 11, "stop": 929.92, "side": 1, "strategy": "oversold", "signal_close": 952.62, "zone_tp": 990.45, "atr": 30.2678}], "equity": 52371.75}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "orders", "sent": {"CAT": "entry", "EQIX": "entry"}}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "entry", "symbol": "EQIX", "qty": 11, "fill": 949.11, "stop": 929.92, "zone_tp": 990.45, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "entry", "symbol": "CAT", "qty": 12, "fill": 693.21, "stop": 683.26, "zone_tp": 738.71, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "exit", "symbol": "MRK", "px": 144.390328, "reason": "stop", "pnl": -200.67}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "exit", "symbol": "CAT", "px": 683.0, "reason": "stop", "pnl": -122.52}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["CAT", "GE"]}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "CAT", "qty": 12, "stop": 666.47, "side": 1, "strategy": "oversold", "signal_close": 687.0, "zone_tp": 721.22, "atr": 27.3758}, {"symbol": "GE", "qty": 37, "stop": 278.8, "side": 1, "strategy": "oversold", "signal_close": 285.64, "zone_tp": 297.04, "atr": 9.1218}], "equity": 52271.88}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}], "equity": 52532.8}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "index_trend_plan", "entries": ["SPY", "QQQ"], "exits": []}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}, {"symbol": "SPY", "qty": 20, "stop": 736.36, "side": 1, "strategy": "trend200", "signal_close": 765.37, "atr": 7.2514}, {"symbol": "QQQ", "qty": 17, "stop": 662.77, "side": 1, "strategy": "trend200", "signal_close": 712.2, "atr": 12.3569}], "equity": 52532.8}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "index_trend_plan", "entries": ["SPY"], "exits": []}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}, {"symbol": "SPY", "qty": 12, "stop": 736.36, "side": 1, "strategy": "trend200", "signal_close": 765.37, "atr": 7.2514}], "equity": 52532.8}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry_deferred", "symbol": "META", "strategy": "oversold", "until": "10:00"}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry_deferred", "symbol": "NFLX", "strategy": "oversold", "until": "10:00"}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "orders", "sent": {"EQIX": "exit", "SPY": "entry"}}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry", "symbol": "SPY", "qty": 12, "fill": 767.51, "stop": 736.36}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "exit", "symbol": "EQIX", "px": 979.635454, "reason": "signal", "pnl": 335.78}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "orders_late", "sent": {"META": "entry", "NFLX": "entry"}}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "entry", "symbol": "META", "qty": 13, "fill": 624.1, "stop": 611.33, "zone_tp": 662.61, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "entry", "symbol": "NFLX", "qty": 157, "fill": 63.04, "stop": 62.26, "zone_tp": 66.63, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": ["MSFT"]}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "index_trend_plan", "entries": [], "exits": []}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "plan", "exits": ["META", "NFLX"], "entries": [{"symbol": "TSLA", "qty": 5, "stop": 362.42602074285355, "rs": 0.1477, "signal_close": 407.46, "zone_tp": 497.53, "atr": 13.7083}, {"symbol": "WMT", "qty": 39, "stop": 112.79891293407236, "rs": 0.1101, "signal_close": 119.32, "zone_tp": 132.36, "atr": 2.3974}, {"symbol": "MSFT", "qty": 8, "stop": 521.64, "side": 1, "strategy": "funnel", "signal_close": 531.33, "zone_tp": 555.55, "atr": 10.945}], "equity": 52436.29}
