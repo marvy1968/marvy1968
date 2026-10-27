@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families experts_review_fx
+started 2026-10-26 20:17:14 EDT
+RUNNING...
