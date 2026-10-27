@@ -1,3 +1,20 @@
 $ gemini round6
-started 2026-10-27 05:43:21 EDT
-RUNNING...
+started 2026-10-27 05:43:21 EDT, took 26s, exit 0
+
+Congratulations on ruthlessly killing the forex and intraday runners. Cutting strategies that fail out-of-sample tests after realistic costs is the exact discipline that separates surviving retail quants from blown-up accounts. You are now focusing compute and capital on the only edge retail traders consistently hold: taking equity risk premiums with cheap beta, and surviving the drawdowns.
+
+Here is the single most defensible satellite to test next on daily bars, building directly on your new 200-day core.
+
+### The Satellite Test: Inverse Volatility Scaling of the Core
+
+*   **The Rule:** Calculate the 20-day realized annualized volatility for SPY and QQQ (standard deviation of the last 20 daily log returns × √252). Set a Target Volatility of 15%. Every Friday near the close, update the position weight for each sleeve to: `Target Weight = Min(1.0, 15% / 20-Day Volatility)`. 
+    *   *Condition:* Only apply this weight if the asset is above its 200-day SMA. If below, weight is 0% (Cash).
+    *   *Example:* If QQQ is above its 200-day SMA but its recent volatility spikes to 30%, its allocation halves to 50% of its sleeve limit. If its volatility is 10%, the calculation yields 1.5, but the `Min(1.0)` cap keeps you at 100% (no leverage).
+*   **The Inefficiency:** Volatility clustering (documented by Moreira & Muir, 2017, "Volatility-Managed Portfolios"). High current volatility strongly predicts high future volatility, but it does *not* predict proportionally higher returns. Scaling down during vol spikes cuts left-tail risk (drawdowns) without sacrificing the mean return.
+*   **The Data:** Free daily closes of SPY and QQQ. No lookahead, no fundamentals. 
+*   **The Control:** Your exact Round 4 baseline. SPY/QQQ 100% invested in their sleeves when > 200-day SMA, 0% when below. 
+*   **The Kill Criterion:** REJECT the satellite if it fails to increase the Sharpe ratio by at least **+0.10** over the control, OR if it fails to improve the Max Drawdown by at least **15% relative** (e.g., SPY's -20.2% must improve to at least -17.1%). 
+    *   *Crucial test note:* You must include 2 bps slippage per side for the weekly rebalancing. If you rebalance daily, the transaction costs will likely eat the volatility edge.
+
+### Why this specific test?
+Sector rotation strategies usually suffer from high turnover drag and hindsight bias regarding which sectors "mattered" over a decade. Volatility scaling uses only the price series of the exact instrument you are trading. It directly attacks the weakest point of a 200-day moving average system: the whipsaw periods where the index violently chops around the 200-day line during high-volatility regime changes. Scaling down mechanically limits the damage from those false breakouts.
