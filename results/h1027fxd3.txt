@@ -1,3 +1,14 @@
 $ alpaca run-all --phase validate --families credit_gate
-started 2026-10-27 12:01:11 EDT
-RUNNING...
+started 2026-10-27 12:01:11 EDT, took 754s, exit 0
+
+daily data ready
+## credit_gate: Gemini round 7, pre-declared (research.CREDIT_SPEC)
+### Credit gate (HYG/IEF 20 > 50-day) on Sector Top-Down with the SPY 200-day gate, 2016-03-01..2026-10-27, 10 bps a side, live sizing; gate ON 68% of days
+- today's list | control (SPY gate): 408 trades, PF 1.48, CAGR +2.0%, Sharpe 0.63, maxDD -5.4%
+- today's list | test (SPY + credit): 359 trades, PF 1.55, CAGR +1.9%, Sharpe 0.66, maxDD -4.6%
+  today's list: Sharpe +0.03 (FAIL) | 2018 DD -2.5% -> -2.1%, 2022 DD -1.7% -> -2.3% (FAIL) | bull-year profit $13,357 -> $12,858 (ok) | beats shuffled credit gate 35% (FAIL) -> REJECT
+- hindsight-free 2016 list | control (SPY gate): 436 trades, PF 1.05, CAGR +0.3%, Sharpe 0.10, maxDD -8.1%
+- hindsight-free 2016 list | test (SPY + credit): 372 trades, PF 1.03, CAGR +0.1%, Sharpe 0.06, maxDD -9.5%
+  hindsight-free 2016 list: Sharpe -0.04 (FAIL) | 2018 DD -5.2% -> -4.9%, 2022 DD -1.3% -> -1.4% (FAIL) | bull-year profit $-1,683 -> $-2,213 (FAIL) | beats shuffled credit gate 20% (FAIL) -> REJECT
+- verdict: REJECT (must pass every rule on both lists)
+ALL DONE
