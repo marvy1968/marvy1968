@@ -1,3 +1,45 @@
 $ alpaca run-all --phase validate --families expert_tune_fx
-started 2026-10-27 03:07:29 EDT
-RUNNING...
+started 2026-10-27 03:07:29 EDT, took 1660s, exit 0
+
+daily data ready
+## expert_tune_fx: chosen on 2025-07-27..2026-07-26, confirmed on 2026-07-27..2026-10-27 (bid/ask, 7 majors)
+### lien_h1
+- H1: CHOSEN on train 'live exits (cut 0.5R / out 1.25R)' (train 19t PF 1.76 +4.16%) -> TEST 3 months 0t win 0% PF 0.00 +0.00% | 2x spread PF 0.00 +0.00% | fail | 0/13 variants positive on the test window
+- H4: CHOSEN on train 'stop 1R / target 1R' (train 13t PF 1.13 +0.40%) -> TEST 3 months 0t win 0% PF 0.00 +0.00% | 2x spread PF 0.00 +0.00% | fail | 0/13 variants positive on the test window
+### hybrid_h1
+- H1: CHOSEN on train 'against the 20 SMA slope (fade), own exits' (train 78t PF 0.95 -1.28%) -> TEST 3 months 20t win 25% PF 0.59 -2.18% | 2x spread PF 0.51 -2.96% | fail | 0/13 variants positive on the test window
+- H4: CHOSEN on train 'stop 1R / target 3R' (train 18t PF 1.83 +5.24%) -> TEST 3 months 5t win 40% PF 1.71 +1.20% | 2x spread PF 1.71 +1.20% | fail | 7/13 variants positive on the test window
+- D: fewer than 10 train trades in every variant
+### confirm_h1
+- H1: fewer than 10 train trades in every variant
+- H4: fewer than 10 train trades in every variant
+- D: fewer than 10 train trades in every variant
+### boxmr_h1
+- H1: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 70t PF 1.16 +1.50%) -> TEST 3 months 13t win 23% PF 0.73 -0.87% | 2x spread PF 0.70 -1.03% | fail | 11/13 variants positive on the test window
+- H4: CHOSEN on train 'REVERSED signals, stop 1R / target 1R' (train 17t PF 0.89 -0.30%) -> TEST 3 months 5t win 20% PF 0.24 -1.57% | 2x spread PF 0.23 -1.58% | fail | 7/13 variants positive on the test window
+- D: fewer than 10 train trades in every variant
+### conf_d1
+- H1: CHOSEN on train 'trend filter + look-left, live exits' (train 326t PF 0.59 -29.78%) -> TEST 3 months 87t win 30% PF 0.99 -0.14% | 2x spread PF 0.47 -11.14% | fail | 1/13 variants positive on the test window
+- H4: CHOSEN on train 'REVERSED signals, stop 1R / target 1R' (train 673t PF 0.94 -10.36%) -> TEST 3 months 177t win 40% PF 0.65 -15.51% | 2x spread PF 0.41 -31.22% | fail | 1/13 variants positive on the test window
+- D: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 61t PF 0.86 -2.87%) -> TEST 3 months 28t win 43% PF 1.13 +0.81% | 2x spread PF 0.75 -1.87% | fail | 1/13 variants positive on the test window
+### cog_h4
+- H1: CHOSEN on train 'trend filter, stop 1R / target 2R' (train 282t PF 0.84 -14.20%) -> TEST 3 months 74t win 34% PF 0.88 -2.55% | 2x spread PF 0.68 -7.49% | fail | 1/13 variants positive on the test window
+- H4: CHOSEN on train 'trend filter + look-left, live exits' (train 37t PF 0.80 -2.73%) -> TEST 3 months 11t win 27% PF 0.96 -0.12% | 2x spread PF 0.25 -3.24% | fail | 7/13 variants positive on the test window
+- D: CHOSEN on train 'stop 1R / target 1R' (train 46t PF 0.92 -0.99%) -> TEST 3 months 13t win 62% PF 1.60 +1.42% | 2x spread PF 1.60 +1.41% | PASS | 9/13 variants positive on the test window
+### box_h1
+- H1: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 153t PF 1.02 +0.83%) -> TEST 3 months 36t win 39% PF 0.99 -0.08% | 2x spread PF 0.58 -5.99% | fail | 0/13 variants positive on the test window
+- H4: CHOSEN on train 'stop 1R / target 3R' (train 45t PF 1.05 +0.77%) -> TEST 3 months 12t win 33% PF 1.05 +0.20% | 2x spread PF 1.03 +0.11% | PASS | 3/13 variants positive on the test window
+- D: CHOSEN on train 'live exits (cut 0.5R / out 1.25R)' (train 24t PF 1.34 +2.62%) -> TEST 3 months 21t win 24% PF 0.59 -3.36% | 2x spread PF 0.47 -5.49% | fail | 7/13 variants positive on the test window
+### boxcons_h1
+- H1: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 135t PF 0.94 -1.85%) -> TEST 3 months 30t win 37% PF 1.34 +2.20% | 2x spread PF 0.92 -0.67% | fail | 3/13 variants positive on the test window
+- H4: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 26t PF 1.07 +0.39%) -> TEST 3 months 9t win 11% PF 0.36 -1.66% | 2x spread PF 0.36 -1.67% | fail | 7/13 variants positive on the test window
+- D: CHOSEN on train 'own exits' (train 10t PF 0.33 -1.51%) -> TEST 3 months 4t win 25% PF 0.19 -0.75% | 2x spread PF 0.15 -0.84% | fail | 3/13 variants positive on the test window
+### f0_h4
+- H1: CHOSEN on train 'REVERSED signals, stop 1R / target 1R' (train 341t PF 0.90 -8.23%) -> TEST 3 months 92t win 46% PF 0.80 -4.93% | 2x spread PF 0.55 -12.33% | fail | 0/13 variants positive on the test window
+- H4: CHOSEN on train 'no-chase filter, stop 1R / target 2R' (train 40t PF 1.29 +3.02%) -> TEST 3 months 13t win 31% PF 0.40 -2.54% | 2x spread PF 0.37 -2.70% | fail | 2/13 variants positive on the test window
+- D: CHOSEN on train 'stop 0.75R / target 1.5R' (train 11t PF 1.00 +0.00%) -> TEST 3 months 4t win 25% PF 0.77 -0.27% | 2x spread PF 0.77 -0.29% | fail | 0/13 variants positive on the test window
+### conf_h4
+- H1: CHOSEN on train 'trend filter + look-left, live exits' (train 326t PF 0.59 -29.78%) -> TEST 3 months 87t win 30% PF 0.99 -0.14% | 2x spread PF 0.47 -11.14% | fail | 1/13 variants positive on the test window
+- H4: CHOSEN on train 'REVERSED signals, stop 1R / target 1R' (train 673t PF 0.94 -10.36%) -> TEST 3 months 177t win 40% PF 0.65 -15.51% | 2x spread PF 0.41 -31.22% | fail | 1/13 variants positive on the test window
+- D: CHOSEN on train 'REVERSED signals, stop 1R / target 2R' (train 61t PF 0.86 -2.87%) -> TEST 3 months 28t win 43% PF 1.13 +0.81% | 2x spread PF 0.75 -1.87% | fail | 1/13 variants positive on the test window
+ALL DONE
