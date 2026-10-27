@@ -1,3 +1,15 @@
 $ alpaca run-all --phase validate --families vol_target
-started 2026-10-27 05:46:50 EDT
-RUNNING...
+started 2026-10-27 05:46:50 EDT, took 47s, exit 0
+
+daily data ready
+## vol_target: SPY / QQQ, train to 2015-12-31, validate 2016 on
+### Vol-targeted 200-day rule (target 15%, weekly) vs the plain 200-day rule
+- SPY train: vol-target too short | plain too short
+- SPY validate: vol-target CAGR +10.2% Sharpe 0.94 maxDD -18.4% | plain CAGR +11.7% Sharpe 0.99 maxDD -20.2%
+- SPY all: vol-target CAGR +10.2% Sharpe 0.94 maxDD -18.4% | plain CAGR +11.7% Sharpe 0.99 maxDD -20.2%
+- SPY verdict (all years): Sharpe 0.94 vs 0.99, maxDD -18.4% vs -20.2% -> REJECT (needs +0.10 Sharpe and 15% smaller drawdown)
+- QQQ train: vol-target too short | plain too short
+- QQQ validate: vol-target CAGR +14.1% Sharpe 1.05 maxDD -16.0% | plain CAGR +17.5% Sharpe 1.04 maxDD -22.5%
+- QQQ all: vol-target CAGR +14.1% Sharpe 1.05 maxDD -16.0% | plain CAGR +17.5% Sharpe 1.04 maxDD -22.5%
+- QQQ verdict (all years): Sharpe 1.05 vs 1.04, maxDD -16.0% vs -22.5% -> REJECT (needs +0.10 Sharpe and 15% smaller drawdown)
+ALL DONE
