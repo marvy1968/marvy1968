@@ -114,3 +114,13 @@ at these costs, say so and say what we should do with the OANDA side instead.
 window, a multiple-testing correction across 39 expert x timeframe pairs)? Give a concrete rule. (2) Which of the 12 book methods have we probably translated WRONG for FX (sessions, stop
 placement, entry timing on close-confirmed bars instead of stop orders), and what is the correct FX translation in one line each? (3) Name up to 5 more day-trade or scalp methods with a
 documented, replicated FX edge after realistic retail spreads, with exact rules - or say plainly that none exist for M5-M15 retail FX. Keep it short and concrete.
+
+## ROUND 6 (2026-10-27 05:40 ET): your stricter bar applied - forex closed out
+- expert_tune_fx (10 experts x H1/H4/D x 13 variants): 2 thin 12m/3m passes (box H4 12 test trades PF 1.05; cog D 13 trades, train PF 0.92) - not deployed under your bar.
+- methods_fx (12 book methods, 24 method x timeframe): every M5/M15 method lost heavily and about as badly as random entries (8/21 EMA scalp M15 test -81%, M5 -99%;
+  ORB London -9%, New York -24%; Holy Grail M15 -44%). One 12m/3m pass: inside-bar breakout H4 (PF 1.03).
+- strict_fx (your 3y / 1y / 1y bar): inside-bar H4 PF 0.84 / 0.96 / 1.04 (0.94 at 2x) REJECT; TTM squeeze H4 0.71 / 0.73 / 1.24 (0.91 at 2x) REJECT; Holy Grail H4 0.77 / 0.48 / 0.79 REJECT.
+- Conclusion on our side: no forex edge at OANDA retail costs; recommending the owner switch the forex runner off. Stocks: the SPY/QQQ 200-day rule goes on paper at today's open.
+**Round 6 question (stocks only, daily bars):** with the 200-day index rule as the core, what is ONE satellite we should test next that is most likely to ADD to it after costs on a
+hindsight-free universe we can actually build from free daily data (no fundamentals, no earnings dates): e.g. a 12-month-momentum rotation among sector ETFs inside the 200-day regime, or
+volatility targeting of the core itself? Give the exact rule, the control, and a kill rule that compares against the 200-day rule alone (Sharpe and max drawdown).
