@@ -1,3 +1,9 @@
 $ alpaca run-all --phase validate --families strict_fx
-started 2026-10-27 04:14:26 EDT
-RUNNING...
+started 2026-10-27 04:14:26 EDT, took 29s, exit 0
+
+daily data ready
+## strict_fx: 3y train / 1y select / 1y OOS, bid/ask, 7 majors
+### inside_bar_breakout H4: train 3y 899t PF 0.84 -37.12% maxDD -41.2% | select 1y 308t PF 0.96 -3.85% maxDD -10.3% | OOS last 1y 283t PF 1.04 +3.23% maxDD -16.4% | OOS 2x spread 289t PF 0.94 -5.30% maxDD -20.8% | random -38.86% | reject
+### carter_ttm_squeeze H4: train 3y 372t PF 0.71 -28.14% maxDD -30.0% | select 1y 133t PF 0.73 -9.96% maxDD -14.6% | OOS last 1y 139t PF 1.24 +9.01% maxDD -3.7% | OOS 2x spread 140t PF 0.91 -3.67% maxDD -7.0% | random -7.87% | reject
+### raschke_holy_grail H4: train 3y 443t PF 0.77 -20.91% maxDD -29.5% | select 1y 132t PF 0.48 -17.20% maxDD -17.3% | OOS last 1y 177t PF 0.79 -7.47% maxDD -13.6% | OOS 2x spread 188t PF 0.65 -13.85% maxDD -16.2% | random -13.47% | reject
+ALL DONE
