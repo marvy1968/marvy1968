@@ -1,3 +1,76 @@
 $ alpaca run-all --phase validate --families swing_exits
-started 2026-10-27 10:09:23 EDT
-RUNNING...
+started 2026-10-27 10:09:23 EDT, took 500s, exit 0
+
+daily data ready
+## swing_exits SHORT test: last 3 months, two halves, 10 bps a side
+### topdown (short test, 2x slippage)
+- own: 116 tr, PF 0.42, win 0.267, -26.38R (-13.19% at 0.5% risk) | half1 PF 0.34 (66) | half2 PF 0.58 (50)
+- fixed_1r: 94 tr, PF 0.63, win 0.415, -17.19R (-8.59% at 0.5% risk) | half1 PF 0.6 (57) | half2 PF 0.7 (37)
+- fixed_2r: 77 tr, PF 0.72, win 0.364, -11.67R (-5.84% at 0.5% risk) | half1 PF 0.58 (50) | half2 PF 1.43 (27)
+- fixed_3r: 69 tr, PF 0.81, win 0.348, -7.41R (-3.71% at 0.5% risk) | half1 PF 0.71 (46) | half2 PF 1.38 (23)
+- time_10: 125 tr, PF 0.69, win 0.448, -15.43R (-7.72% at 0.5% risk) | half1 PF 0.45 (71) | half2 PF 1.08 (54)
+- time_20: 97 tr, PF 0.6, win 0.361, -17.53R (-8.76% at 0.5% risk) | half1 PF 0.5 (58) | half2 PF 0.91 (39)
+- atr_trail_2: 126 tr, PF 0.85, win 0.357, -7.27R (-3.63% at 0.5% risk) | half1 PF 0.7 (72) | half2 PF 1.09 (54)
+- atr_trail_3: 86 tr, PF 0.79, win 0.314, -8.45R (-4.22% at 0.5% risk) | half1 PF 0.42 (50) | half2 PF 1.72 (36)
+- sma20_close: 116 tr, PF 0.48, win 0.302, -22.58R (-11.29% at 0.5% risk) | half1 PF 0.4 (64) | half2 PF 0.62 (52)
+- sma50_close: 81 tr, PF 0.42, win 0.247, -22.74R (-11.37% at 0.5% risk) | half1 PF 0.38 (46) | half2 PF 0.53 (35)
+- swing_low_5: 184 tr, PF 0.72, win 0.212, -14.01R (-7.0% at 0.5% risk) | half1 PF 0.57 (114) | half2 PF 1.0 (70)
+- be1r_atr2: 80 tr, PF 0.58, win 0.362, -17.47R (-8.74% at 0.5% risk) | half1 PF 0.5 (50) | half2 PF 0.86 (30)
+- psar: 105 tr, PF 0.66, win 0.343, -14.63R (-7.32% at 0.5% risk) | half1 PF 0.39 (58) | half2 PF 1.19 (47)
+- own_atr3: 120 tr, PF 0.44, win 0.267, -25.37R (-12.69% at 0.5% risk) | half1 PF 0.36 (68) | half2 PF 0.58 (52)
+### funnel (short test, 2x slippage)
+- own: 32 tr, PF 1.65, win 0.438, +10.76R (+5.38% at 0.5% risk) | half1 PF 1.37 (24) | half2 PF 2.48 (8)
+- fixed_1r: 33 tr, PF 1.09, win 0.545, +1.34R (+0.67% at 0.5% risk) | half1 PF 1.03 (24) | half2 PF 1.27 (9)
+- fixed_2r: 30 tr, PF 1.21, win 0.4, +4.17R (+2.08% at 0.5% risk) | half1 PF 1.25 (23) | half2 PF 1.08 (7)
+- fixed_3r: 29 tr, PF 1.12, win 0.31, +2.63R (+1.32% at 0.5% risk) | half1 PF 1.02 (22) | half2 PF 1.55 (7)
+- time_10: 34 tr, PF 1.58, win 0.412, +11.92R (+5.96% at 0.5% risk) | half1 PF 1.17 (24) | half2 PF 2.4 (10) -> PASS
+- time_20: 28 tr, PF 1.45, win 0.357, +8.29R (+4.15% at 0.5% risk) | half1 PF 0.83 (21) | half2 PF 3.53 (7)
+- atr_trail_2: 32 tr, PF 1.29, win 0.344, +5.2R (+2.6% at 0.5% risk) | half1 PF 0.76 (23) | half2 PF 2.23 (9)
+- atr_trail_3: 27 tr, PF 1.14, win 0.222, +2.8R (+1.4% at 0.5% risk) | half1 PF 0.53 (21) | half2 PF 3.4 (6)
+- sma20_close: 30 tr, PF 1.61, win 0.3, +9.61R (+4.8% at 0.5% risk) | half1 PF 0.83 (23) | half2 PF 4.6 (7)
+- sma50_close: 24 tr, PF 1.28, win 0.292, +3.9R (+1.95% at 0.5% risk) | half1 PF 1.11 (20) | half2 PF 2.34 (4)
+- swing_low_5: 36 tr, PF 1.19, win 0.167, +2.93R (+1.46% at 0.5% risk) | half1 PF 0.78 (25) | half2 PF 1.68 (11)
+- be1r_atr2: 30 tr, PF 1.81, win 0.4, +12.42R (+6.21% at 0.5% risk) | half1 PF 1.19 (23) | half2 PF 3.55 (7) -> PASS
+- psar: 32 tr, PF 1.33, win 0.312, +6.13R (+3.06% at 0.5% risk) | half1 PF 0.79 (23) | half2 PF 2.38 (9)
+- own_atr3: 32 tr, PF 1.59, win 0.438, +10.11R (+5.06% at 0.5% risk) | half1 PF 1.3 (24) | half2 PF 2.48 (8)
+### oversold (short test, 2x slippage)
+- own: 77 tr, PF 0.97, win 0.506, -0.79R (-0.4% at 0.5% risk) | half1 PF 1.21 (27) | half2 PF 0.85 (50)
+- fixed_1r: 76 tr, PF 0.84, win 0.447, -6.76R (-3.38% at 0.5% risk) | half1 PF 0.86 (26) | half2 PF 0.83 (50)
+- fixed_2r: 73 tr, PF 0.73, win 0.288, -14.61R (-7.3% at 0.5% risk) | half1 PF 1.07 (25) | half2 PF 0.57 (48)
+- fixed_3r: 71 tr, PF 0.73, win 0.225, -15.8R (-7.9% at 0.5% risk) | half1 PF 0.69 (25) | half2 PF 0.75 (46)
+- time_10: 74 tr, PF 0.62, win 0.243, -21.0R (-10.5% at 0.5% risk) | half1 PF 0.61 (26) | half2 PF 0.62 (48)
+- time_20: 73 tr, PF 0.71, win 0.26, -16.43R (-8.21% at 0.5% risk) | half1 PF 0.57 (26) | half2 PF 0.78 (47)
+- atr_trail_2: 72 tr, PF 0.45, win 0.208, -30.37R (-15.19% at 0.5% risk) | half1 PF 0.52 (26) | half2 PF 0.41 (46)
+- atr_trail_3: 71 tr, PF 0.67, win 0.183, -19.21R (-9.61% at 0.5% risk) | half1 PF 0.84 (25) | half2 PF 0.57 (46)
+- sma20_close: 77 tr, PF 1.1, win 0.506, +2.22R (+1.11% at 0.5% risk) | half1 PF 1.55 (27) | half2 PF 0.88 (50)
+- sma50_close: 77 tr, PF 0.97, win 0.481, -0.76R (-0.38% at 0.5% risk) | half1 PF 1.55 (27) | half2 PF 0.71 (50)
+- swing_low_5: 75 tr, PF 0.59, win 0.213, -14.4R (-7.2% at 0.5% risk) | half1 PF 0.94 (27) | half2 PF 0.41 (48)
+- be1r_atr2: 75 tr, PF 0.68, win 0.2, -13.75R (-6.87% at 0.5% risk) | half1 PF 0.59 (26) | half2 PF 0.73 (49)
+- psar: 73 tr, PF 0.53, win 0.219, -24.84R (-12.42% at 0.5% risk) | half1 PF 0.51 (26) | half2 PF 0.54 (47)
+- own_atr3: 77 tr, PF 0.97, win 0.506, -0.79R (-0.4% at 0.5% risk) | half1 PF 1.21 (27) | half2 PF 0.85 (50)
+### index200 (short test, 2x slippage)
+- own: 2 tr, PF 99.0, win 1.0, +1.46R (+0.73% at 0.5% risk) | half1 PF 99.0 (2) | half2 PF None (0)
+- fixed_1r: 6 tr, PF 2.22, win 0.5, +1.63R (+0.81% at 0.5% risk) | half1 PF 28.78 (4) | half2 PF 0.0 (2)
+- fixed_2r: 2 tr, PF 99.0, win 1.0, +1.46R (+0.73% at 0.5% risk) | half1 PF 99.0 (2) | half2 PF None (0)
+- fixed_3r: 2 tr, PF 99.0, win 1.0, +1.46R (+0.73% at 0.5% risk) | half1 PF 99.0 (2) | half2 PF None (0)
+- time_10: 12 tr, PF 1.21, win 0.333, +0.5R (+0.25% at 0.5% risk) | half1 PF 2.52 (6) | half2 PF 0.63 (6)
+- time_20: 6 tr, PF 2.03, win 0.5, +0.88R (+0.44% at 0.5% risk) | half1 PF 15.16 (4) | half2 PF 0.0 (2)
+- atr_trail_2: 14 tr, PF 0.73, win 0.357, -0.74R (-0.37% at 0.5% risk) | half1 PF 1.15 (6) | half2 PF 0.47 (8)
+- atr_trail_3: 5 tr, PF 4.85, win 0.4, +0.91R (+0.45% at 0.5% risk) | half1 PF 99.0 (2) | half2 PF 0.0 (3)
+- sma20_close: 21 tr, PF 0.39, win 0.286, -1.65R (-0.82% at 0.5% risk) | half1 PF 0.59 (10) | half2 PF 0.2 (11)
+- sma50_close: 16 tr, PF 0.62, win 0.375, -0.61R (-0.31% at 0.5% risk) | half1 PF 0.94 (8) | half2 PF 0.34 (8)
+- swing_low_5: 20 tr, PF 0.9, win 0.2, -0.23R (-0.12% at 0.5% risk) | half1 PF 2.05 (8) | half2 PF 0.38 (12)
+- be1r_atr2: 5 tr, PF 9.46, win 0.8, +1.73R (+0.86% at 0.5% risk) | half1 PF 99.0 (4) | half2 PF 0.0 (1)
+- psar: 8 tr, PF 1.69, win 0.5, +0.8R (+0.4% at 0.5% risk) | half1 PF 2.6 (4) | half2 PF 0.99 (4)
+- own_atr3: 5 tr, PF 4.85, win 0.4, +0.91R (+0.45% at 0.5% risk) | half1 PF 99.0 (2) | half2 PF 0.0 (3)
+- passers taken to the long test: {'topdown': [], 'funnel': ['be1r_atr2', 'time_10'], 'oversold': [], 'index200': []}
+## swing_exits LONG test: 2016 to 3 months ago, last 12 months sequestered (OOS)
+### funnel long test on today's list (2x slippage)
+- own: in-sample 1093 tr, PF 0.85, win 0.311, -113.24R (-56.62% at 0.5% risk) | OOS 109 tr, PF 1.13, win 0.321, +8.82R (+4.41% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.026 (control)
+- be1r_atr2: in-sample 1055 tr, PF 0.92, win 0.299, -55.44R (-27.72% at 0.5% risk) | OOS 110 tr, PF 0.87, win 0.327, -7.7R (-3.85% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.011 -> reject
+- time_10: in-sample 1112 tr, PF 0.92, win 0.349, -60.59R (-30.3% at 0.5% risk) | OOS 111 tr, PF 0.83, win 0.324, -12.19R (-6.09% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.012 -> reject
+### funnel long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 368 tr, PF 0.98, win 0.342, -5.05R (-2.53% at 0.5% risk) | OOS 44 tr, PF 1.48, win 0.432, +11.95R (+5.98% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.105 (control)
+- be1r_atr2: in-sample 362 tr, PF 1.24, win 0.315, +56.75R (+28.37% at 0.5% risk) | OOS 42 tr, PF 1.34, win 0.357, +7.03R (+3.52% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.366 -> reject
+- time_10: in-sample 380 tr, PF 1.13, win 0.384, +32.35R (+16.18% at 0.5% risk) | OOS 44 tr, PF 1.16, win 0.318, +4.58R (+2.29% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.296 -> reject
+ALL DONE
