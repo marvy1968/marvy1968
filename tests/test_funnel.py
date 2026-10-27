@@ -185,6 +185,41 @@ class FunnelLiveTests(unittest.TestCase):
             self.assertEqual(r.funnel_plan(*args)[1][0]["side"], -1)
 
 
+    def test_new_entries_off_keeps_exits_and_buys_nothing(self):
+        """2026-10-27: zones.json swing.oversold.new_entries false - a held oversold trade still gets its exit, no new oversold entry."""
+        import tempfile
+        from datetime import datetime
+        from alpacabot.funnel import frame
+        from alpacabot.swing_paper import SwingRunner
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        full = _daily(drift=0.15, seed=1)
+        f = frame(full)
+        cut = int(next(i for i in np.flatnonzero(f["long_entry"].to_numpy()) if i >= 199))
+        bars = full.iloc[:cut + 1]
+        held = {"ZZZ": {"qty": 5, "entry": 100.0, "stop": 90.0, "side": 1, "strategy": "funnel"}}
+        exit_bars = full.iloc[:cut + 1].copy()
+        with tempfile.TemporaryDirectory() as d:
+            r = SwingRunner(self.B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            r.zone_config = lambda: {"live": True, "funnel": {"live": True}}
+            args = lambda: ({"AAA": bars}, {"AAA": float(bars["close"].iloc[-1])}, {}, [], [], 50000.0, 50000.0, False,   # noqa: E731
+                            datetime(2025, 10, 14, 16, 20, tzinfo=et))
+            self.assertEqual([e["symbol"] for e in r.funnel_plan(*args())[1]], ["AAA"])
+            r.zone_config = lambda: {"live": True, "funnel": {"live": True, "new_entries": False}}
+            self.assertEqual(r.funnel_plan(*args())[1], [])
+            ff = frame(exit_bars)
+            ex_i = int(np.flatnonzero(ff["long_exit"].to_numpy())[-1])
+            xb = full.iloc[:ex_i + 1]
+            args2 = ({"ZZZ": xb}, {"ZZZ": float(xb["close"].iloc[-1])}, held, [], [], 50000.0, 50000.0, False, datetime(2025, 10, 14, 16, 20, tzinfo=et))
+            self.assertEqual(r.funnel_plan(*args2)[0], ["ZZZ"])                   # the held trade still exits on its own signal
+
+    def test_live_oversold_is_exits_only(self):
+        import json
+        from pathlib import Path
+        cfg = json.loads((Path(__file__).resolve().parents[1] / "alpacabot" / "zones.json").read_text())["swing"]["oversold"]
+        self.assertTrue(cfg["live"])
+        self.assertFalse(cfg["new_entries"])
+
+
 class TrendStrengthDownTests(unittest.TestCase):
     def test_strong_downtrend_scores_three_and_weakest_ranked(self):
         from alpacabot.funnel import trend_strength_down, weakest_per_sector

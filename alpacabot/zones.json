@@ -838,6 +838,8 @@
   "oversold": {
    "_note": "owner 2026-10-19 (adopt): majority-oversold confluence longs on daily bars - 3 of 4 (RSI14<30, stochastic<20, close at/under the lower Bollinger band, 1.5 SD under the 20-day average) plus volume 1.1x, any stage, 0.5% risk, stop 1.0 band distance, take-profit 1.25R, out when back over the 20-day average. 3-month backtest +7.8R PF 1.55, 12-month +7.7R PF 1.09 (live funnel 12-month +24R): adopted by the owner, own tag, 2 slots, paper decides. The 0.5 stop variant lost (PF 0.5-0.6) so the stop stays 1.0. Owner 2026-10-22: stop 0.75 (2 weeks: 7 trades 86% PF 11.3 vs 1.0 stop PF 1.66; 12 months +12.5R vs +4.8R).",
    "live": true,
+   "new_entries": false,
+   "_note_new_entries": "2026-10-27 (exit lab, swing_exits_base): the live oversold rules lost on every long test - 2016 to mid-2025 at 10 bps a side, today's list PF 0.56 over 2,877 trades (9 of 11 years losing), the hindsight-free 2016 list PF 0.48 (10 of 11 losing); no exit type fixed it. No new oversold entries; held oversold trades keep their own exits and broker stops. UNDO: new_entries true.",
    "risk_pct": 0.005,
    "max": 2,
    "shorts": false,

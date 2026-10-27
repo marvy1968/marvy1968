@@ -258,7 +258,7 @@ class SwingRunner:
         f_exits = [s for s, p in fn_held.items() if s in ff and bool(ff[s]["long_exit" if p.get("side", 1) == 1 else "short_exit"].iloc[-1])]
         exits = exits + [s for s in f_exits if s not in exits]
         free = int(cfg.get("max", FUNNEL_MAX)) - (len(fn_held) - len(f_exits))
-        if locked or free <= 0:
+        if locked or free <= 0 or not cfg.get("new_entries", True):     # new_entries false: held trades keep their exits, nothing new is bought
             return exits, entries
         taken = set(held) | {e["symbol"] for e in entries}
         cands = []
