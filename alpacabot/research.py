@@ -2129,3 +2129,86 @@ def topdown_sizing_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[
                f"{min(res[('select', lb, *best)].get('cagr') or 0 for lb in universes):+.1%}) -> confirm years: {'PASS' if conf else 'FAIL'}")
     out.append(f"- verdict: {'ADOPT risk %.2f%% x %d slots' % (100 * best[0], best[1]) if conf and best != sp['live'] else 'keep the live sizing'}")
     return out
+
+
+# ------------------------------------------------------------------ Top-Down candidate ranking (Gemini round 8, 2026-10-27)
+# PRE-DECLARED before any run. Only the ORDER in which competing signals take the 5 slots changes; entries, stops, exits, the SPY 200-day gate, live
+# sizing (0.5% risk x 5 slots), costs (10 bps a side) are the control's. Control: 20-day raw RS vs SPY (the live rank). Test: 90-day volatility-adjusted
+# sector RS = (stock 90d return - its sector ETF's 90d return) / stdev of the stock's daily returns over 90 days. Also reported: a RANDOM rank (20 seeds)
+# - does the order matter at all? 2016-03-01..today on today's list and the hindsight-free 2016 list. KEEP only if the hindsight-free Sharpe rises
+# by >= 0.10 over the control AND today's list does not fall, AND the test beats the random-rank Sharpe in >= 90% of seeds.
+RANK_SPEC = {"start": "2016-03-01", "window": 90, "slip_bps": 10.0, "risk_pct": 0.005, "max_positions": 5, "max_pos_frac": 0.333, "seeds": 20, "min_gain": 0.10}
+
+
+def _swing_run_ranked(per_symbol_strat: dict, daily: dict, costs, pf, start, end) -> dict:
+    trades = [t for sym, d in daily.items() for t in simulate_swing(sym, d, per_symbol_strat[sym], costs, all_signals=True)]
+    trades = [t for t in trades if start <= t.entry_time.date() <= end]
+    closes = {sym: d["close"] for sym, d in daily.items()}
+    fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), closes, costs, pf, start, end)
+    return {"fills": fills, "curve": curve, "metrics": metrics(fills, curve, pf.equity)}
+
+
+class _RankedTopDown:
+    """GatedSectorTopDown whose rank() reads a precomputed per-bar series (same entries, stops and exits)."""
+
+    def __init__(self, gated, rank_series: pd.Series):
+        self.g, self.rk = gated, rank_series
+        self.max_days, self.name = gated.max_days, gated.name + "+rank"
+
+    def frame(self, d):
+        f = self.g.frame(d)
+        f["rank_alt"] = self.rk.reindex(d.index).to_numpy(float)
+        return f
+
+    def stop_dist(self, f, i):
+        return self.g.stop_dist(f, i)
+
+    def stop_price(self, f, i):
+        return self.g.stop_price(f, i)
+
+    def rank(self, f, i):
+        v = float(f["rank_alt"].iloc[i])
+        return v if np.isfinite(v) else -1e9
+
+
+def topdown_rank_lines(universes: dict, sector_of_by_uni: dict, etfs: dict, spy: pd.DataFrame, end: date) -> list[str]:
+    from .strategies import GatedSectorTopDown, SectorTopDown
+    sp = RANK_SPEC
+    start = date.fromisoformat(sp["start"])
+    costs, pf = Costs(slip_bps=sp["slip_bps"]), Portfolio(risk_pct=sp["risk_pct"], max_positions=sp["max_positions"], max_pos_frac=sp["max_pos_frac"])
+    c = spy["close"]
+    gate = (c > c.rolling(200).mean()).where(c.rolling(200).mean().notna(), True)
+    gated = GatedSectorTopDown(SectorTopDown(c), gate)
+    w = sp["window"]
+    out = [f"### Top-Down ranking: 20-day raw RS (control) vs {w}-day volatility-adjusted sector RS, SPY gate, 0.5% x 5 slots, 10 bps a side, {start}..{end}"]
+    verdict = {}
+    for label, data in universes.items():
+        smap = sector_of_by_uni[label]
+        syms = {s: d for s, d in data.items() if smap.get(s) in etfs}
+        ctl = {s: gated for s in syms}
+        tst = {}
+        rng_series = {}
+        for s, d in syms.items():
+            px, ex = d["close"], etfs[smap[s]]["close"].reindex(d.index, method="ffill")
+            vol = px.pct_change().rolling(w).std()
+            tst[s] = _RankedTopDown(gated, ((px.pct_change(w) - ex.pct_change(w)) / vol).replace([np.inf, -np.inf], np.nan))
+            rng_series[s] = px
+        m_c = _swing_run_ranked({s: _RankedTopDown(gated, gated.base.frame(d)["rs"]) for s, d in syms.items()}, syms, costs, pf, start, end)["metrics"]
+        m_t = _swing_run_ranked(tst, syms, costs, pf, start, end)["metrics"]
+        plc = []
+        for k in range(sp["seeds"]):
+            rg = np.random.default_rng(k)
+            rs_ = {s: _RankedTopDown(gated, pd.Series(rg.random(len(d)), index=d.index)) for s, d in syms.items()}
+            plc.append(_swing_run_ranked(rs_, syms, costs, pf, start, end)["metrics"].get("sharpe") or 0.0)
+        beat = float(np.mean([(m_t.get("sharpe") or 0) > p for p in plc]))
+        for nm, m in (("control (20d raw RS)", m_c), (f"test ({w}d vol-adj sector RS)", m_t)):
+            out.append(f"- {label} | {nm}: {m.get('trades', 0)} trades, PF {m.get('profit_factor', 0):.2f}, CAGR {m.get('cagr', 0):+.1%}, "
+                       f"Sharpe {m.get('sharpe', 0):.2f}, maxDD {m.get('max_drawdown', 0):.1%}")
+        out.append(f"  {label}: random rank Sharpe mean {np.mean(plc):.2f} (min {min(plc):.2f}, max {max(plc):.2f}); test beats random in {beat:.0%}; "
+                   f"Sharpe change vs control {(m_t.get('sharpe') or 0) - (m_c.get('sharpe') or 0):+.2f}")
+        verdict[label] = ((m_t.get("sharpe") or 0) - (m_c.get("sharpe") or 0), beat)
+    hf = verdict.get("hindsight-free 2016 list", (-9, 0))
+    td = verdict.get("today's list", (-9, 0))
+    keep = hf[0] >= sp["min_gain"] and td[0] >= 0 and hf[1] >= 0.9
+    out.append(f"- verdict: {'KEEP (paper candidate)' if keep else 'REJECT'} (needs hindsight-free Sharpe +{sp['min_gain']:.2f}, today's list not lower, beats random rank in 90%)")
+    return out

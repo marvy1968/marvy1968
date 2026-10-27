@@ -69,3 +69,17 @@ class CreditGateTests(unittest.TestCase):
         self.assertTrue(bool(g.iloc[10]))                  # no 50-day history yet: open
         self.assertTrue(bool(g.iloc[79]))                  # HYG/IEF rising: open
         self.assertFalse(bool(g.iloc[-1]))                 # falling: 20-day under the 50-day, closed
+
+
+class RankedTopDownTests(unittest.TestCase):
+    def test_rank_reads_the_supplied_series_and_keeps_entries(self):
+        from alpacabot.research import _RankedTopDown
+        from alpacabot.strategies import GatedSectorTopDown, SectorTopDown
+        d = _bars(np.r_[np.linspace(100, 100, 60), np.linspace(100, 160, 80)])
+        gated = GatedSectorTopDown(SectorTopDown(d["close"]), None)
+        rk = pd.Series(np.arange(len(d), dtype=float), index=d.index)
+        r = _RankedTopDown(gated, rk)
+        f = r.frame(d)
+        self.assertTrue((f["entry"] == gated.frame(d)["entry"]).all())
+        self.assertEqual(r.rank(f, 10), 10.0)
+        self.assertLess(r.rank(f.assign(rank_alt=np.nan), 10), -1e8)
