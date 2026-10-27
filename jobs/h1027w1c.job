@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --phase validate --families expert_breakdown --months3 --symbols AFRM SOFI RKLB HIMS DKNG SOUN BBAI PLUG JOBY RUN
