@@ -1,3 +1,43 @@
 $ logs marv-swing-open 40
-started 2026-10-27 09:50:58 EDT
-RUNNING...
+started 2026-10-27 09:50:58 EDT, took 0s, exit 0
+
+Oct 23 09:32:54 instance-stockbot python[905941]:    "hwm": null,
+Oct 23 09:32:54 instance-stockbot python[905941]:    "subtag": null,
+Oct 23 09:32:54 instance-stockbot python[905941]:    "source": null,
+Oct 23 09:32:54 instance-stockbot python[905941]:    "expires_at": "2026-10-23T20:00:00Z"
+Oct 23 09:32:54 instance-stockbot python[905941]:   }
+Oct 23 09:32:54 instance-stockbot python[905941]:  ]
+Oct 23 09:32:54 instance-stockbot python[905941]: }
+Oct 23 09:32:54 instance-stockbot python[905941]: SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+Oct 23 09:32:54 instance-stockbot python[905941]:   closed trades 10, 3W/7L, P&L $-844
+Oct 23 09:32:54 instance-stockbot python[905941]:   funnel: 1 trades, 0W, P&L $-306
+Oct 23 09:32:54 instance-stockbot python[905941]:   oversold: 2 trades, 0W, P&L $-304
+Oct 23 09:32:54 instance-stockbot python[905941]:   holding: XOM 14 @ 180.12 (stop 165.90), EOG 14 @ 159.41 (stop 144.57), MRK 61 @ 147.68 (stop 144.05, funnel), COP 14 @ 145.39 (stop 133.52), PM 36 @ 199.20 (stop 190.29, funnel), EQIX 11 @ 949.11 (stop 929.92, oversold), CAT 12 @ 693.21 (stop 683.26, oversold)
+Oct 23 09:32:54 instance-stockbot systemd[1]: marv-swing-open.service: Deactivated successfully.
+Oct 23 09:32:54 instance-stockbot systemd[1]: Finished marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily).
+Oct 23 09:32:54 instance-stockbot systemd[1]: marv-swing-open.service: Consumed 1.967s CPU time.
+Oct 26 09:20:11 instance-stockbot systemd[1]: Starting marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily; deferred oversold entries at 10:00)...
+Oct 26 09:30:05 instance-stockbot python[1261322]: Traceback (most recent call last):
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "<frozen runpy>", line 198, in _run_module_as_main
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "<frozen runpy>", line 88, in _run_code
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "/opt/marv-bot/alpacabot/__main__.py", line 3, in <module>
+Oct 26 09:30:05 instance-stockbot python[1261322]:     raise SystemExit(main())
+Oct 26 09:30:05 instance-stockbot python[1261322]:                      ^^^^^^
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "/opt/marv-bot/alpacabot/cli.py", line 1152, in main
+Oct 26 09:30:05 instance-stockbot python[1261322]:     out = r.scan(now) if a.action == "scan" else r.close_all(now) if a.action == "close" else r.open(now)
+Oct 26 09:30:05 instance-stockbot python[1261322]:                                                                                               ^^^^^^^^^^^
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "/opt/marv-bot/alpacabot/swing_paper.py", line 263, in open
+Oct 26 09:30:05 instance-stockbot python[1261322]:     sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day",
+Oct 26 09:30:05 instance-stockbot python[1261322]:                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "/opt/marv-bot/alpacabot/paper.py", line 92, in submit_order
+Oct 26 09:30:05 instance-stockbot python[1261322]:     r = self._req("POST", f"{TRADE_URL}/orders", json=body)
+Oct 26 09:30:05 instance-stockbot python[1261322]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 26 09:30:05 instance-stockbot python[1261322]:   File "/opt/marv-bot/alpacabot/paper.py", line 44, in _req
+Oct 26 09:30:05 instance-stockbot python[1261322]:     raise requests.HTTPError(f"{r.status_code} {r.text[:200]} for {method} {url}", response=r)      # (with Alpaca's reason)
+Oct 26 09:30:05 instance-stockbot python[1261322]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 26 09:30:05 instance-stockbot python[1261322]: requests.exceptions.HTTPError: 403 {"available":"0","code":40310000,"existing_qty":"11","held_for_orders":"11","message":"insufficient qty available for order (requested: 11, available: 0)","related_orders":["c8688248-27e8-457d-9bb0-30 for POST https://paper-api.alpaca.markets/v2/orders
+Oct 26 09:30:05 instance-stockbot systemd[1]: marv-swing-open.service: Main process exited, code=exited, status=1/FAILURE
+Oct 26 09:30:05 instance-stockbot systemd[1]: marv-swing-open.service: Failed with result 'exit-code'.
+Oct 26 09:30:05 instance-stockbot systemd[1]: Failed to start marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily; deferred oversold entries at 10:00).
+Oct 26 09:30:05 instance-stockbot systemd[1]: marv-swing-open.service: Consumed 1.488s CPU time.
+Oct 27 09:20:01 instance-stockbot systemd[1]: Starting marv-swing-open.service - Alpaca PAPER swing runner: open (Sector Top-Down, daily; deferred oversold entries at 10:00)...
