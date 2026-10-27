@@ -323,8 +323,33 @@ class SwingRunner:
                     self.b.cancel_order(pos["stop_order_id"])
                 except Exception:
                     log.exception("cancel stop %s", sym)
-            sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day",
-                                                     f"sw-x-{sym}-{tag}"))
+                # 2026-10-27 fix: Alpaca keeps the shares "held_for_orders" until the cancel is processed; selling at once failed with
+                # 403 "insufficient qty available" on 2026-10-26 and crashed the whole open. Wait for the cancel (or a fill) first.
+                st = {}
+                for _ in range(20):
+                    try:
+                        st = self.b.order(pos["stop_order_id"]) or {}
+                    except Exception:
+                        st = {}
+                    if st.get("status") in ("canceled", "filled", "expired", "rejected"):
+                        break
+                    self.sleep(0.5)
+                if st.get("status") == "filled":              # the stop / take-profit filled before the cancel: the broker already closed it
+                    self.settle_stops(now)
+                    continue
+            try:
+                sent[sym] = ("exit", self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day",
+                                                         f"sw-x-{sym}-{tag}"))
+            except Exception as exc:                          # one failed order never stops the rest of the open
+                log.exception("exit order %s", sym)
+                self.journal("exit_error", now, symbol=sym, error=str(exc)[:200])
+                try:                                          # never leave the position without a broker stop
+                    so = self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "stop", "gtc",
+                                             f"sw-r-{sym}-{tag}", stop_price=round(pos["stop"], 2))
+                    pos["stop_order_id"], pos["oco"] = (so.get("id") if isinstance(so, dict) else None), False
+                except Exception:
+                    log.exception("re-place stop %s", sym)
+                _alert(f"SWING (paper): {sym} exit order failed ({str(exc)[:120]}); a stop at {pos['stop']} was re-placed - check it")
         zcfg = self.zone_config()
         for e in ((plan.get("deferred") or []) if late else plan["entries"]):
             side = e.get("side", 1)
@@ -362,8 +387,12 @@ class SwingRunner:
                         continue
                 except Exception:
                     log.exception("chase check %s (entering anyway)", e["symbol"])
-            sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy" if side == 1 else "sell", "market", "day",
-                                                              f"sw-e-{e['symbol']}-{tag}"))
+            try:
+                sent[e["symbol"]] = ("entry", self.b.submit_order(e["symbol"], e["qty"], "buy" if side == 1 else "sell", "market", "day",
+                                                                  f"sw-e-{e['symbol']}-{tag}"))
+            except Exception as exc:                          # one rejected entry never stops the rest of the open
+                log.exception("entry order %s", e["symbol"])
+                self.journal("entry_error", now, symbol=e["symbol"], error=str(exc)[:200])
         if late:
             plan["late_done"] = True
         else:

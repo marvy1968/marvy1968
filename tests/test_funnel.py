@@ -280,3 +280,38 @@ class IndexTrendTests(unittest.TestCase):
             ex, en = r.index_trend_plan(down, {"SPY": down, "QQQ": down}, held, [], [dict(stock_long), dict(stock_short)], 50000.0, 50000.0, False, now)
             self.assertEqual(ex, ["SPY"])                                                  # the sleeve sells below the 200-day average
             self.assertEqual([e["symbol"] for e in en], ["ABC"])                           # risk off: the long is blocked, the short stays, no index entry
+
+
+class SwingExitRaceTests(unittest.TestCase):
+    def test_exit_waits_for_the_cancel_and_one_failure_does_not_stop_the_open(self):
+        import tempfile
+        from datetime import datetime
+        from alpacabot.swing_paper import SwingRunner
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        t = datetime(2026, 10, 27, 9, 20, tzinfo=et)
+
+        class B:
+            def __init__(self):
+                self.sent, self.cancelled, self.polls = [], [], 0
+            def equity(self): return 50000.0
+            def cancel_order(self, oid): self.cancelled.append(oid)
+            def order(self, oid):
+                if oid == "oco1":
+                    self.polls += 1
+                    return {"status": "pending_cancel" if self.polls < 3 else "canceled"}
+                return {"status": "filled", "filled_avg_price": "100", "filled_qty": "5"}
+            def submit_order(self, sym, qty, side, type_, tif, cid, stop_price=None):
+                if sym == "BAD":
+                    raise RuntimeError("403 insufficient qty")
+                self.sent.append((sym, side, type_))
+                return {"id": f"o-{sym}-{type_}"}
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = SwingRunner(b, state_dir=d, fetch=lambda *a: __import__("pandas").DataFrame(), sleep=lambda *_: None)
+            r.state["positions"] = {"EQIX": {"qty": 11, "entry": 900.0, "stop": 880.0, "stop_order_id": "oco1", "oco": True, "entry_date": "2026-10-20"},
+                                    "BAD": {"qty": 5, "entry": 50.0, "stop": 45.0, "entry_date": "2026-10-20"}}
+            r.state["plan"] = {"made": "2026-10-26", "exits": ["BAD", "EQIX"], "entries": [{"symbol": "NEW", "qty": 5, "stop": 90.0, "signal_close": 100.0}]}
+            r.open(t, wait_until=t)
+            self.assertEqual(b.polls, 3)                                              # waited for the cancel before selling
+            self.assertIn(("EQIX", "sell", "market"), b.sent)
+            self.assertIn(("NEW", "buy", "market"), b.sent)                           # the failed BAD exit did not stop the rest
