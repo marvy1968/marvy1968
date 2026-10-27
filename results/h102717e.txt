@@ -1,3 +1,7 @@
 $ show fx_paper/journal-20261027.jsonl
-started 2026-10-27 12:53:18 EDT
-RUNNING...
+started 2026-10-27 12:53:18 EDT, took 0s, exit 0
+
+{"t": "2026-10-27T01:02:12+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-26T21:00:00+00:00", "close": 0.5692550000000001, "stop_dist": 0.0018389270864016375, "result": "paused (signal logged)"}
+{"t": "2026-10-27T13:00:59+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "AUD_USD", "side": "short", "bar": "2026-10-27T09:00:00+00:00", "close": 0.70331, "stop_dist": 0.0015488256663666695, "result": "paused (signal logged)"}
+{"t": "2026-10-27T13:01:00+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "short", "bar": "2026-10-27T09:00:00+00:00", "close": 0.57047, "stop_dist": 0.0014876213878439195, "result": "paused (signal logged)"}
+{"t": "2026-10-27T16:51:32+00:00", "kind": "foreign_lock", "trade": "493693", "instrument": "GBP_USD", "best_upl": 173.22, "stop": "1.33272", "old_stop": 1.33651, "keeps": 86.61}
