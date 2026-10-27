@@ -1,3 +1,14 @@
 $ alpaca run-all --phase validate --families topdown_rank
-started 2026-10-27 17:58:26 EDT
-RUNNING...
+started 2026-10-27 17:58:26 EDT, took 725s, exit 0
+
+daily data ready
+## topdown_rank: pre-declared (research.RANK_SPEC)
+### Top-Down ranking: 20-day raw RS (control) vs 90-day volatility-adjusted sector RS, SPY gate, 0.5% x 5 slots, 10 bps a side, 2016-03-01..2026-10-27
+- today's list | control (20d raw RS): 710 trades, PF 1.48, CAGR +5.0%, Sharpe 0.76, maxDD -10.7%
+- today's list | test (90d vol-adj sector RS): 789 trades, PF 1.22, CAGR +3.2%, Sharpe 0.46, maxDD -15.0%
+  today's list: random rank Sharpe mean 0.63 (min 0.41, max 0.82); test beats random in 5%; Sharpe change vs control -0.30
+- hindsight-free 2016 list | control (20d raw RS): 667 trades, PF 1.24, CAGR +2.8%, Sharpe 0.47, maxDD -11.1%
+- hindsight-free 2016 list | test (90d vol-adj sector RS): 686 trades, PF 1.18, CAGR +2.2%, Sharpe 0.37, maxDD -13.0%
+  hindsight-free 2016 list: random rank Sharpe mean 0.39 (min 0.25, max 0.50); test beats random in 30%; Sharpe change vs control -0.10
+- verdict: REJECT (needs hindsight-free Sharpe +0.10, today's list not lower, beats random rank in 90%)
+ALL DONE
