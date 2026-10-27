@@ -1,3 +1,29 @@
 $ gemini round7
-started 2026-10-27 11:49:11 EDT
-RUNNING...
+started 2026-10-27 11:49:11 EDT, took 24s, exit 0
+
+Here is your ONE regime filter test for Sector Top-Down entries. 
+
+You have correctly identified that exits rarely create edge on their own; they only manage the edge found at the entry. Since you are already gating with the SPY 200-day SMA, your remaining drawdowns in 2018 (Q4 liquidity vacuum) and 2022 (rate shock) stem from the fact that price-trend filters lag fast structural shifts. 
+
+To fix this, we need a filter on a *different axis* than equity price. 
+
+### The Candidate: Credit Stress Proxy (HYG / IEF Momentum)
+**The Inefficiency/Logic:** Credit markets lead equities. High-yield (junk) bonds price systemic risk much faster and more accurately than large-cap stocks. When junk bonds (HYG) begin underperforming 7-10 Year Treasuries (IEF), credit spreads are widening, institutional liquidity is drying up, and broad equity correlations go to 1 (meaning sector rotation fails because everything drops).
+**Data Needed:** Free daily adjusted closes for HYG (iShares Broad USD High Yield Corporate Bond ETF) and IEF (iShares 7-10 Year Treasury Bond ETF).
+**Exact Rule:** 
+1. Calculate the daily ratio: `Credit_Ratio = Close(HYG) / Close(IEF)`
+2. Calculate the 20-day simple moving average (SMA) and the 50-day SMA of `Credit_Ratio`.
+3. **The Gate:** Block all new Sector Top-Down longs if the 20-day SMA is strictly LESS than the 50-day SMA. (Keep your existing SPY > 200-day gate active; this runs alongside it).
+
+**The Control:** Sector Top-Down with your existing SPY 200-day gate, but *without* the HYG/IEF filter. Evaluated on your hindsight-free 2016 list, full 11-year backtest.
+
+**The Kill Criterion:** 
+Reject this filter if it fails **ANY** of the following:
+1. It fails to improve the strategy's 11-year overall Sharpe ratio by at least +0.10 over the control.
+2. It fails to reduce the maximum drawdowns in the specific years of 2018 and 2022 by at least 25% (e.g., if control DD was -20%, filter DD must be -15% or better).
+3. It sacrifices more than 15% of the total cumulative net profit captured in the pure bull years (2017, 2019, 2021, 2023).
+
+*Note on coding:* This is highly vectorizable in pandas. 
+`ratio = df_hyg['close'] / df_ief['close']`
+`gate = ratio.rolling(20).mean() > ratio.rolling(50).mean()`
+Align this boolean series by date to your stock universe before generating trade signals. Verification is simple: print the gate value for Q4 2018 and early 2022; it should cleanly flip to `False` ahead of the worst equity carnage.
