@@ -86,7 +86,12 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-14: Lien Fader and the owner's range box place practice trades (the owner wants to watch the box on paper money
           # although its 2016-20 backtest lost -75%); F0 (-13..-18%) only logs its signals as "paused (signal logged)"
           # box_h1 (the plain fade, 0 for 6 live, PF 0.68 in 2016-22) now only LOGS its signals; confirm_h1 replaces it (owner, 2026-10-16)
-          "trade": ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4", "retest_h1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          # owner 2026-10-27 ("analyze all OANDA experts and refine and optimize"): experts_review_fx (live exits, bid/ask, 12 months / 3 years, PF at the
+          # normal spread): hybrid_h1 0.69 / 0.69, confirm_h1 0.79 / 0.80, boxmr_h1 0.68 / 0.64 (own exits 0.67 / 0.98), conf_d1 0.58 / 0.70, cog_h4 0.70 / 0.71
+          # (-30% / -66%), every one worse at 2x the spread; the earlier 3-month passes were one good window. Live ledger: 18 closes, -$2,672. These five now
+          # only LOG their signals (paused). lien_h1 stays (12 months PF 2.75, 3 years 0.94 - flat; the owner's 10-year fx-experts backtest PF 1.18) and
+          # retest_h1 (the playbook, no live fills yet). UNDO: put the names back in this list (their signals are still logged and graded).
+          "trade": ["lien_h1", "retest_h1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
           "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
