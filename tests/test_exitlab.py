@@ -45,7 +45,7 @@ class ExitLabTests(unittest.TestCase):
         d = _bars([100.0] * 30 + [99, 97, 94, 90])
         t = xl.simulate(d, _sig(d, 29, 95.0), "fixed_3r", self.a, self.b, slip_bps=0)
         self.assertEqual(t[0]["reason"], "stop")
-        self.assertAlmostEqual(t[0]["r"], -1.0, places=6)
+        self.assertAlmostEqual(t[0]["r"], -1.25, places=6)   # 94 open gaps through the 95 stop: filled at the open, not the stop
 
     def test_short_test_shape(self):
         bars = {"SPY": self.d, "QQQ": self.d, "AAA": self.d}
