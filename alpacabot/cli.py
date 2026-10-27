@@ -74,7 +74,7 @@ def run_all(a) -> int:
         load(sym, "1Day", start, end, cache)
     spy = load("SPY", "1Day", start, end, cache)
     print("daily data ready", flush=True)
-    intraday_syms = INTRADAY
+    intraday_syms = list(getattr(a, "symbols", None) or INTRADAY)   # --symbols: test the intraday families on another universe (owner 2026-10-27)
     minute = {}
     default = ["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"]
     suffix = "" if list(a.families) == default else "_" + "_".join(a.families)     # a partial run never overwrites the full summary
@@ -1202,6 +1202,7 @@ def main(argv=None) -> int:
     ra.add_argument("--quick", action="store_true", help="validate phase: 2019-2022 only and fewer exit variants (provisional, ~1/3 of the time)")
     ra.add_argument("--families", nargs="*", default=["swing_rsi", "swing_breakout", "day", "regime", "brain", "brain_ls", "scalp"])
     ra.add_argument("--slip-bps", type=float, default=2.0)
+    ra.add_argument("--symbols", nargs="*", help="intraday families: these symbols instead of the default liquid list (e.g. mid / small caps)")
     pp = sub.add_parser("paper", help="run the PAPER trading loop (Alpaca paper account only)")
     pp.add_argument("--state", default="state/alpaca_paper")
     cv = sub.add_parser("coverage", help="bars per year per symbol (is the history really there?)")
