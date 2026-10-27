@@ -98,3 +98,19 @@ a hindsight-free universe (give the exact rule and the kill criterion).
 (rate differential) combined with a 100-200-day trend filter on the 7 majors, monthly rebalance? Give: the exact rule, the data source and series IDs, how to size across 7 pairs, how to avoid
 the 2008/2015/2022 carry crashes, the held-out split you would use, a control (e.g. random-sign carry or the same trend filter without carry), and the kill criterion. If you think FX has no retail edge
 at these costs, say so and say what we should do with the OANDA side instead.
+
+## ROUND 5 (2026-10-27 early morning): forex carry result + the owner's forex optimization request
+- **Your carry + 200-day trend test FAILED the kill rule:** 7 majors, FRED 3-month rates (35-day publication lag), top 3 by |differential|, 1 ATR = 0.5% equity. Train (2004-2015)
+  CAGR +4.8% Sharpe 0.47; validate (2016-2026) -2.3% (no drag) / -4.0% (1.5%/yr drag), maxDD -42% / -46%. Controls: trend only -6.7%, carry only -2.5% (validate, with drag).
+- **Owner's new request:** "test every expert day-trade and scalp method, adapt it to OANDA forex, keep only the proven; optimize every expert on every timeframe, change each
+  expert at least 10 times until positive ROI". Two runs are queued:
+  1. **expert_tune_fx:** our 10 existing experts x H1 / H4 / D x 13 pre-declared variants (own exits; R-based exits 0.5/1.25, 1/2, 1/1, 0.75/1.5, 1/3; 20>200 SMA trend filter; trend +
+     look-left; no-chase; fade the 20-SMA slope; signals REVERSED with 1R/1R and 1R/2R). Chosen on the 12 months before the last 3, CONFIRMED on the last 3 months (unseen) at 1x and 2x spread.
+  2. **methods_fx:** 12 book methods, one book setting each, nothing tuned: London and New York opening-range breakouts (M15), Raschke Holy Grail (M15/H1/H4), Raschke-Connors
+     Turtle Soup (M15..D), Connors RSI(2) (H1/H4/D), Carter TTM Squeeze (M15/H1/H4), MACD + 200 EMA (M15/H1/H4), 8/21 EMA scalp with a 50 EMA filter (M5/M15), Williams volatility
+     breakout (D, close-confirmed), floor-pivot S1/R1 bounce (M15/H1), Lien Double Bollinger (H1/H4/D), inside-bar breakout (H1/H4/D). PROVEN = profitable on the 12-month train AND the
+     3-month test, still profitable on the test at 2x spread, >= 20 test trades, and better than random entries with the same exits (3 placebo seeds).
+**Round 5 questions:** (1) Critique the protocol: is choosing the best of 13 variants on 12 months and confirming on 3 months enough, or should we demand more (e.g. a second unseen
+window, a multiple-testing correction across 39 expert x timeframe pairs)? Give a concrete rule. (2) Which of the 12 book methods have we probably translated WRONG for FX (sessions, stop
+placement, entry timing on close-confirmed bars instead of stop orders), and what is the correct FX translation in one line each? (3) Name up to 5 more day-trade or scalp methods with a
+documented, replicated FX edge after realistic retail spreads, with exact rules - or say plainly that none exist for M5-M15 retail FX. Keep it short and concrete.
