@@ -197,6 +197,42 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fxexp_check":               # owner 2026-10-27: "test the four fx-experts strategies" (fxbot.fxexp_check, bot code in forex_bots/fx-experts)
+                import datetime as _dt
+                import numpy as np
+                from fxbot import fxexp_check as _fc
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                _, _, instr, _ = _fc._bot()
+                cache_ = Path("state/fx/cache")
+                h1 = {p_: _fc._mid_frame(fx_load(p_, "H1", today - _dt.timedelta(days=5 * 365 + 150), today, cache_)) for p_ in instr.ALL_PAIRS}
+                wd = _fc.windows(today, True)
+                lines += ["## fxexp_check: the fx-experts bot's four strategies, 3y / 1y / 1y windows, bot's own engine and costs (H1 mid), pre-declared bar (fxbot.fxexp_check)"]
+                evs, refs = {}, {}
+                for sid in ("tharp-random", "williams-vbo", "faith-turtle"):
+                    plc = []
+                    for seed in range(5):
+                        hs = {p_: _fc.shuffled_mid(h1[p_], seed) for p_ in h1}
+                        tr_ = [t for t in _fc.daily_trades(sid, hs) if wd["OOS last 1y"][0] <= t["date"] <= wd["OOS last 1y"][1]]
+                        if tr_:
+                            plc.append(float(np.mean([t["r"] for t in tr_])))
+                    refs[sid] = float(np.max(plc)) if plc else None
+                    evs[sid] = _fc.evaluate(_fc.daily_trades(sid, h1), _fc.daily_trades(sid, h1, 2.0), wd, refs[sid])
+                    lines += _fc.lines(sid, evs[sid], refs[sid])
+                wz = _fc.windows(today, False)
+                z1, z2, zp = [], [], {k: [] for k in range(3)}
+                for p_ in instr.PAIRS:
+                    m5 = fx_load(p_, "M5", today - _dt.timedelta(days=3 * 365 + 10), today, cache_)
+                    z1 += _fc.zeros_trades(m5, p_)
+                    z2 += _fc.zeros_trades(m5, p_, 2.0)
+                    for k in zp:
+                        zp[k] += _fc.zeros_trades(_fc.shuffled_bidask(m5, k), p_)
+                a_, b_ = wz["OOS last 1y"]
+                pl = [float(np.mean([t["r"] for t in v if a_ <= t["date"] <= b_])) for v in zp.values() if any(a_ <= t["date"] <= b_ for t in v)]
+                refz = float(np.max(pl)) if pl else None
+                lines += _fc.lines("lien-zeros", _fc.evaluate(z1, z2, wz, refz), refz)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_exits":                  # owner 2026-10-27: every exit type on every OANDA strategy, short test then long test (fxbot.exitlab)
                 import datetime as _dt
                 from fxbot import exitlab as _fxl
