@@ -1,3 +1,27 @@
 $ alpaca run-all --phase validate --families swing_exits_base
-started 2026-10-27 10:20:21 EDT
-RUNNING...
+started 2026-10-27 10:20:21 EDT, took 214s, exit 0
+
+daily data ready
+## swing_exits_base: own exits, 2016 to 3 months ago (last 12 months = OOS), 10 bps a side
+### topdown long test on today's list (2x slippage)
+- own: in-sample 2648 tr, PF 1.54, win 0.406, +491.01R (+245.51% at 0.5% risk) | OOS 327 tr, PF 1.21, win 0.309, +25.6R (+12.8% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.033 (control)
+  by year: 2016 PF 1.59 +44.35R (230), 2017 PF 2.68 +89.33R (223), 2018 PF 0.95 -4.89R (277), 2019 PF 1.97 +81.31R (275), 2020 PF 1.05 +5.05R (292), 2021 PF 1.52 +51.68R (298), 2022 PF 0.87 -16.85R (342), 2023 PF 1.97 +96.55R (276), 2024 PF 2.85 +151.52R (268), 2025 PF 1.06 +7.3R (296), 2026 PF 1.14 +11.27R (198)
+### funnel long test on today's list (2x slippage)
+- own: in-sample 1093 tr, PF 0.85, win 0.311, -113.24R (-56.62% at 0.5% risk) | OOS 109 tr, PF 1.13, win 0.321, +8.82R (+4.41% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.026 (control)
+  by year: 2016 PF 0.59 -13.73R (41), 2017 PF 0.68 -34.16R (147), 2018 PF 0.55 -40.69R (115), 2019 PF 1.03 +2.43R (129), 2020 PF 0.86 -12.8R (129), 2021 PF 0.74 -26.13R (149), 2022 PF 0.73 -13.9R (73), 2023 PF 1.29 +16.21R (89), 2024 PF 0.94 -6.12R (158), 2025 PF 1.22 +16.14R (120), 2026 PF 1.26 +8.32R (52)
+### oversold long test on today's list (2x slippage)
+- own: in-sample 2877 tr, PF 0.56, win 0.442, -762.02R (-381.01% at 0.5% risk) | OOS 312 tr, PF 0.96, win 0.465, -4.31R (-2.16% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.053 (control)
+  by year: 2016 PF 0.82 -21.64R (246), 2017 PF 0.23 -219.8R (187), 2018 PF 0.59 -77.91R (352), 2019 PF 0.58 -43.55R (242), 2020 PF 0.69 -51.77R (358), 2021 PF 1.2 +20.39R (309), 2022 PF 0.52 -111.01R (429), 2023 PF 1.0 -0.11R (293), 2024 PF 0.62 -46.72R (267), 2025 PF 0.31 -223.66R (318), 2026 PF 1.14 +9.63R (189)
+### index200 long test on today's list (2x slippage)
+- own: in-sample 69 tr, PF 2.85, win 0.406, +38.22R (+19.11% at 0.5% risk) | OOS 5 tr, PF 2.84, win 0.4, +3.29R (+1.64% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.189 (control)
+  by year: 2016 PF 99.0 +4.68R (2), 2017 PF 99.0 +12.03R (4), 2018 PF 0.87 -0.68R (12), 2019 PF 0.99 -0.03R (10), 2020 PF 8.79 +6.77R (6), 2021 PF 1.71 +1.76R (5), 2022 PF 0.0 -1.89R (10), 2023 PF 2.7 +7.18R (12), 2024 PF 4.38 +4.44R (4), 2025 PF 1.94 +2.16R (7), 2026 PF 99.0 +5.08R (2)
+### topdown long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 950 tr, PF 1.33, win 0.383, +111.93R (+55.97% at 0.5% risk) | OOS 132 tr, PF 1.28, win 0.379, +12.52R (+6.26% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.004 (control)
+  by year: 2016 PF 2.12 +24.76R (78), 2017 PF 2.38 +23.84R (69), 2018 PF 0.94 -2.52R (103), 2019 PF 1.17 +6.2R (95), 2020 PF 1.28 +6.76R (81), 2021 PF 1.47 +17.16R (108), 2022 PF 1.05 +2.33R (129), 2023 PF 0.9 -4.23R (100), 2024 PF 2.35 +45.56R (113), 2025 PF 0.77 -13.06R (134), 2026 PF 1.74 +17.64R (72)
+### funnel long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 368 tr, PF 0.98, win 0.342, -5.05R (-2.53% at 0.5% risk) | OOS 44 tr, PF 1.48, win 0.432, +11.95R (+5.98% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.105 (control)
+  by year: 2016 PF 0.24 -7.52R (12), 2017 PF 1.13 +4.04R (54), 2018 PF 0.64 -11.13R (36), 2019 PF 0.61 -15.39R (51), 2020 PF 1.21 +4.7R (32), 2021 PF 0.58 -14.11R (46), 2022 PF 0.85 -2.34R (24), 2023 PF 1.74 +14.21R (29), 2024 PF 1.56 +16.91R (56), 2025 PF 1.39 +13.52R (56), 2026 PF 1.44 +4.01R (16)
+### oversold long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 1276 tr, PF 0.48, win 0.412, -427.13R (-213.56% at 0.5% risk) | OOS 101 tr, PF 0.54, win 0.406, -18.51R (-9.25% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R -0.002 (control)
+  by year: 2016 PF 1.06 +3.0R (113), 2017 PF 0.57 -24.12R (116), 2018 PF 0.34 -53.54R (165), 2019 PF 0.4 -29.96R (98), 2020 PF 0.67 -29.04R (179), 2021 PF 0.97 -1.52R (134), 2022 PF 0.46 -58.74R (155), 2023 PF 0.72 -17.2R (137), 2024 PF 0.42 -31.44R (103), 2025 PF 0.15 -188.82R (117), 2026 PF 0.49 -14.26R (60)
+ALL DONE
