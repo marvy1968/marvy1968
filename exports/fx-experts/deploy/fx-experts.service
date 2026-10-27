@@ -1,0 +1,17 @@
+[Unit]
+Description=[PAPER] fx-experts OANDA practice runner (5 book systems; one-shot, run by timer)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=moonrider1968
+WorkingDirectory=/opt/fx-experts
+# secrets live only in the mode-600 env file, never in this unit
+ExecStart=/opt/fx-experts/venv/bin/python -m fxexp.live --config /opt/fx-experts/config/config.json --env /opt/fx-experts/.env --state /opt/fx-experts/state/live_state.json
+StandardOutput=append:/opt/fx-experts/logs/runner.log
+StandardError=append:/opt/fx-experts/logs/runner.log
+TimeoutStartSec=240
+NoNewPrivileges=true
+PrivateTmp=true
+MemoryMax=600M

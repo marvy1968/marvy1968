@@ -1,0 +1,2354 @@
+{
+ "lien-fader": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.3364200000000002,
+      "from_open": null,
+      "arm": 1.32882,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 23.5
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-GBP_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.32882,
+      "from_open": null,
+      "arm": 1.3364200000000002,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 23.5
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-GBP_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 158.126,
+      "from_open": null,
+      "arm": 157.274,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 12.8
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 157.274,
+      "from_open": null,
+      "arm": 158.126,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 12.8
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.70556,
+      "from_open": null,
+      "arm": 0.6994600000000001,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 28.1
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-AUD_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.6994600000000001,
+      "from_open": null,
+      "arm": 0.70556,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 28.1
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-AUD_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.40696,
+      "from_open": null,
+      "arm": 1.3994199999999999,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 31.1
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_CAD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.3994199999999999,
+      "from_open": null,
+      "arm": 1.40696,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 31.1
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_CAD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.8309599999999999,
+      "from_open": null,
+      "arm": 0.8253600000000001,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 16.5
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_CHF-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.8253600000000001,
+      "from_open": null,
+      "arm": 0.8309599999999999,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.003,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.006,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 16.5
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-USD_CHF-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 176.393,
+      "from_open": null,
+      "arm": 175.446,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 28.0
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-EUR_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 175.446,
+      "from_open": null,
+      "arm": 176.393,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 28.0
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-EUR_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 210.618,
+      "from_open": null,
+      "arm": 209.68699999999998,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 19.4
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-GBP_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 209.68699999999998,
+      "from_open": null,
+      "arm": 210.618,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": 0.6,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "adx": 19.4
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "lien-f-GBP_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "raschke-soup": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.1117899999999998,
+      "from_open": null,
+      "arm": 1.11119,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 1.1117899999999998
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-EUR_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.13754,
+      "from_open": null,
+      "arm": 1.13814,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 1.13754
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-EUR_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.3142,
+      "from_open": null,
+      "arm": 1.3136,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 1.3142
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-GBP_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.34142,
+      "from_open": null,
+      "arm": 1.34202,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 1.34142
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-GBP_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 158.90099999999998,
+      "from_open": null,
+      "arm": 158.96099999999998,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 158.90099999999998
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-USD_JPY-20261028-0",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.68992,
+      "from_open": null,
+      "arm": 0.68932,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 0.68992
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-AUD_USD-20261028-0",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.42948,
+      "from_open": null,
+      "arm": 1.43008,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 1.42948
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-USD_CAD-20261028-0",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.8196599999999999,
+      "from_open": null,
+      "arm": 0.81906,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 0.8196599999999999
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-USD_CHF-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.8390200000000001,
+      "from_open": null,
+      "arm": 0.83962,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 0.8390200000000001
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-USD_CHF-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.55704,
+      "from_open": null,
+      "arm": 0.55644,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 0.55704
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-NZD_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.5705300000000001,
+      "from_open": null,
+      "arm": 0.57113,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 0.5705300000000001
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-NZD_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 179.266,
+      "from_open": null,
+      "arm": 179.326,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 179.266
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-EUR_JPY-20261028-0",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 206.935,
+      "from_open": null,
+      "arm": 206.875,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 206.935
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-GBP_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 211.945,
+      "from_open": null,
+      "arm": 212.005,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": null,
+      "sl_daylow": true,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "level": 211.945
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "raschk-GBP_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "faith-turtle": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.17126,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.011733521608090455,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.0058667608040452275,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--EUR_USD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 1.1595264783919095
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.11119,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.011733521608090455,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.0058667608040452275,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--EUR_USD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 1.1229235216080904
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "True",
+     "i": 399,
+     "trade": {
+      "side": -1,
+      "entry": 1.1564,
+      "stop": 1.1657696166563043
+     }
+    }
+   }
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.36768,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.013465364462416843,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.006732682231208422,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--GBP_USD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 1.3542146355375833
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.3136,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.013465364462416843,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.006732682231208422,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--GBP_USD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 1.3270653644624169
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "True",
+     "i": 399,
+     "trade": {
+      "side": 1,
+      "entry": 1.33873,
+      "stop": 1.3246993800319167
+     }
+    }
+   }
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493514": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "N": 1.0300822040087458,
+      "last_winner": false,
+      "lookback": 20
+     }
+    }
+   },
+   "sstate": {
+    "_first": "2025-04-10 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": false,
+     "i": 399,
+     "trade": null
+    }
+   }
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493659": {
+     "side": 1,
+     "entry_day": "2026-10-26",
+     "close_eod": false,
+     "meta": {
+      "N": 0.0045231357611837985,
+      "last_winner": false,
+      "lookback": 20
+     }
+    }
+   },
+   "sstate": {
+    "_first": "2025-04-11 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": false,
+     "i": 399,
+     "trade": null
+    }
+   }
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 1.43008,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.011936765006311405,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.005968382503155702,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--USD_CAD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 1.4181432349936887
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 1.3731200000000001,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.011936765006311405,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.005968382503155702,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--USD_CAD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 1.3850567650063115
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "True",
+     "i": 399,
+     "trade": {
+      "side": -1,
+      "entry": 1.40324,
+      "stop": 1.415634440658143
+     }
+    }
+   }
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.83962,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.00999477952936232,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.00499738976468116,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--USD_CHF-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 0.8296252204706377
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.79488,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.00999477952936232,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.00499738976468116,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--USD_CHF-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 0.8048747795293624
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "True",
+     "i": 399,
+     "trade": {
+      "side": -1,
+      "entry": 0.8218,
+      "stop": 0.8319019143860005
+     }
+    }
+   }
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 0.5989,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.008206895826483214,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.004103447913241607,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--NZD_USD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 0.5906931041735167
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 0.55644,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.008206895826483214,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 0.004103447913241607,
+       "last_winner": "True",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--NZD_USD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 0.5646468958264833
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "True",
+     "i": 399,
+     "trade": {
+      "side": 1,
+      "entry": 0.57047,
+      "stop": 0.5619327466621856
+     }
+    }
+   }
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493509": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "N": 1.1884070093798464,
+      "last_winner": false,
+      "lookback": 55
+     }
+    }
+   },
+   "sstate": {
+    "_first": "2025-04-10 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": false,
+     "i": 399,
+     "trade": {
+      "side": -1,
+      "entry": 180.525,
+      "stop": 182.67895054957205
+     }
+    }
+   }
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": 217.488,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 2.6329241744177296,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 1.3164620872088648,
+       "last_winner": "False",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--GBP_JPY-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 214.85507582558228
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": 206.875,
+      "from_open": null,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 2.6329241744177296,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "N": 1.3164620872088648,
+       "last_winner": "False",
+       "lookback": 55
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "faith--GBP_JPY-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 209.50792417441772
+    }
+   ],
+   "trades": {},
+   "sstate": {
+    "_first": "2025-04-15 00:00:00",
+    "_len": 399,
+    "hypo": {
+     "last_winner": "False",
+     "i": 399,
+     "trade": {
+      "side": 1,
+      "entry": 210.972,
+      "stop": 208.15641709170237
+     }
+    }
+   }
+  }
+ },
+ "bollinger-squeeze": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "crabel-idnr4": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.0009929999999999772,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": -0.0009929999999999772,
+      "sl_dist": null,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": true,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "stretch": 0.0009929999999999772
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "crabel-USD_CAD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 1.403967
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.0009929999999999772,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": 0.0009929999999999772,
+      "sl_dist": null,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": true,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "stretch": 0.0009929999999999772
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "crabel-USD_CAD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 1.405953
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "lien-zeros": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-22 23:45:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-25 22:30:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-26",
+    "n": 0
+   }
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-22 23:30:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 23:15:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  }
+ },
+ "williams-vbo": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.003366000000000069,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0028050000000000574,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.005610000000000115
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-EUR_USD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 1.1133410000000001
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.003366000000000069,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0028050000000000574,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.005610000000000115
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-EUR_USD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 1.112219
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.3311999999999955,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.27599999999999625,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.5519999999999925
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-USD_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.3311999999999955,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.27599999999999625,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.5519999999999925
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-USD_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.001859999999999995,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0015499999999999958,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.0030999999999999917
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-AUD_USD-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.001859999999999995,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0015499999999999958,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.0030999999999999917
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-AUD_USD-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.0018299999999999983,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0015249999999999986,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.003049999999999997
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-NZD_USD-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 0.568405
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.0018299999999999983,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.0015249999999999986,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.003049999999999997
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-NZD_USD-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 0.567795
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.3881999999999948,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3234999999999957,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.6469999999999914
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-EUR_JPY-20261028-0",
+     "exp": "2026-10-28"
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.3881999999999948,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3234999999999957,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.6469999999999914
+      },
+      "armed": false
+     },
+     "status": "planned",
+     "cid": "willia-EUR_JPY-20261028-1",
+     "exp": "2026-10-28"
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [
+    {
+     "o": {
+      "side": 1,
+      "kind": "stop",
+      "price": null,
+      "from_open": 0.3786000000000001,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3155000000000001,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.6310000000000002
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-GBP_JPY-20261028-0",
+     "exp": "2026-10-28",
+     "sl": 210.2341
+    },
+    {
+     "o": {
+      "side": -1,
+      "kind": "stop",
+      "price": null,
+      "from_open": -0.3786000000000001,
+      "arm": null,
+      "sl": null,
+      "sl_from_open": null,
+      "sl_dist": 0.3155000000000001,
+      "sl_daylow": false,
+      "tp": null,
+      "tp_dist": null,
+      "close_eod": false,
+      "expires_days": 0,
+      "gtd_minutes": null,
+      "meta": {
+       "prev_range": 0.6310000000000002
+      },
+      "armed": false
+     },
+     "status": "placed",
+     "cid": "willia-GBP_JPY-20261028-1",
+     "exp": "2026-10-28",
+     "sl": 210.10789999999997
+    }
+   ],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "ponsi-trend": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {}
+  }
+ },
+ "brooks-range-fade": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-22 23:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-25 21:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-26",
+    "n": 0
+   }
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-22 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {
+    "last_bar": "2026-10-27 22:00:00+00:00"
+   },
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  }
+ },
+ "tharp-random": {
+  "EUR_GBP": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493463": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.003105584841489439
+     }
+    }
+   },
+   "sstate": {}
+  },
+  "EUR_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493466": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.004807751794814031
+     }
+    }
+   },
+   "sstate": {}
+  },
+  "AUD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493469": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.9459545750544716
+     }
+    }
+   },
+   "sstate": {}
+  },
+  "CAD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493490": {
+     "side": 1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.6828427612098937
+     }
+    }
+   },
+   "sstate": {}
+  },
+  "AUD_NZD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493472": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.005995459930560569
+     }
+    }
+   },
+   "sstate": {}
+  },
+  "EUR_AUD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {
+    "493493": {
+     "side": -1,
+     "entry_day": "2026-10-23",
+     "close_eod": false,
+     "meta": {
+      "vol": 0.009883263419333582
+     }
+    }
+   },
+   "sstate": {}
+  }
+ },
+ "dalton-value": {
+  "EUR_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "GBP_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "AUD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-26",
+    "n": 0
+   }
+  },
+  "USD_CAD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "USD_CHF": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "NZD_USD": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  },
+  "EUR_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-23",
+    "n": 0
+   }
+  },
+  "GBP_JPY": {
+   "day": "2026-10-28",
+   "orders": [],
+   "trades": {},
+   "sstate": {},
+   "sig": {
+    "day": "2026-10-28",
+    "n": 0
+   }
+  }
+ }
+}

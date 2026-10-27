@@ -1,0 +1,13 @@
+[Unit]
+Description=[PAPER] fx-experts daily Telegram scorecard (send-only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=moonrider1968
+WorkingDirectory=/opt/fx-experts
+ExecStart=/opt/fx-experts/venv/bin/python -m fxexp.scorecard --env /opt/fx-experts/.env --config /opt/fx-experts/config/config.json
+StandardOutput=append:/opt/scorecards/logs/fx-experts.log
+StandardError=append:/opt/scorecards/logs/fx-experts.log
+TimeoutStartSec=120

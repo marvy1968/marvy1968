@@ -1,0 +1,53 @@
+{
+  "systems": [
+    "lien-fader",
+    "raschke-soup",
+    "faith-turtle",
+    "bollinger-squeeze",
+    "crabel-idnr4",
+    "lien-zeros",
+    "williams-vbo",
+    "ponsi-trend",
+    "brooks-range-fade",
+    "tharp-random",
+    "dalton-value"
+  ],
+  "pairs": [
+    "EUR_USD",
+    "GBP_USD",
+    "USD_JPY",
+    "AUD_USD",
+    "USD_CAD",
+    "USD_CHF",
+    "NZD_USD",
+    "EUR_JPY",
+    "GBP_JPY"
+  ],
+  "risk_pct": 0.25,
+  "dry_run": false,
+  "no_new_entries": false,
+  "installed": [
+    "lien-fader",
+    "raschke-soup",
+    "faith-turtle",
+    "bollinger-squeeze",
+    "crabel-idnr4",
+    "lien-zeros",
+    "williams-vbo",
+    "ponsi-trend",
+    "brooks-range-fade",
+    "tharp-random",
+    "dalton-value"
+  ],
+  "system_pairs": {
+    "tharp-random": [
+      "EUR_GBP",
+      "EUR_CHF",
+      "AUD_JPY",
+      "CAD_JPY",
+      "AUD_NZD",
+      "EUR_AUD"
+    ]
+  },
+  "max_margin_used": 0.5
+}
