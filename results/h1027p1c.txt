@@ -1,3 +1,48 @@
 $ alpaca run-all --phase validate --families methods_fx
-started 2026-10-27 03:38:05 EDT
-RUNNING...
+started 2026-10-27 03:38:05 EDT, took 429s, exit 0
+
+daily data ready
+## methods_fx: book methods, train 2025-07-27..2026-07-26, TEST 2026-07-27..2026-10-27 (bid/ask, 7 majors)
+PROVEN: inside_bar_breakout H4
+### session_orb_london
+- M15: train 940t win 45% PF 0.69 -50.95% | TEST 245t win 50% PF 0.83 -8.59% | test 2x spread 245t win 40% PF 0.58 -23.61% | random entries -25.59% | fail
+### session_orb_newyork
+- M15: train 1028t win 49% PF 0.81 -31.33% | TEST 255t win 40% PF 0.53 -23.93% | test 2x spread 255t win 33% PF 0.35 -35.26% | random entries -26.69% | fail
+### raschke_holy_grail
+- M15: train 2360t win 43% PF 0.51 -90.71% | TEST 658t win 40% PF 0.55 -43.77% | test 2x spread 737t win 28% PF 0.32 -68.39% | random entries -65.56% | fail
+- H1: train 720t win 48% PF 0.64 -46.87% | TEST 164t win 54% PF 0.97 -1.10% | test 2x spread 176t win 45% PF 0.70 -12.87% | random entries -16.17% | fail
+- H4: train 154t win 46% PF 0.54 -15.90% | TEST 54t win 65% PF 1.51 +4.51% | test 2x spread 61t win 56% PF 1.01 +0.15% | random entries -2.31% | fail
+### raschke_turtle_soup
+- M15: train 5739t win 21% PF 0.44 -99.61% | TEST 1444t win 18% PF 0.38 -70.90% | test 2x spread 1461t win 7% PF 0.14 -87.13% | random entries -73.23% | fail
+- H1: train 1492t win 29% PF 0.62 -78.52% | TEST 353t win 23% PF 0.41 -40.38% | test 2x spread 362t win 15% PF 0.27 -52.26% | random entries -41.58% | fail
+- H4: train 355t win 34% PF 0.66 -32.13% | TEST 94t win 35% PF 0.80 -5.78% | test 2x spread 94t win 27% PF 0.51 -15.29% | random entries -8.91% | fail
+- D: train 47t win 30% PF 0.60 -6.52% | TEST 17t win 47% PF 1.17 +0.78% | test 2x spread 17t win 47% PF 1.17 +0.77% | random entries -0.78% | fail
+### connors_rsi2
+- H1: train 1319t win 56% PF 0.72 -27.47% | TEST 356t win 53% PF 0.56 -16.08% | test 2x spread 366t win 43% PF 0.38 -25.79% | random entries -21.97% | fail
+- H4: train 338t win 58% PF 0.71 -8.33% | TEST 81t win 59% PF 0.77 -1.45% | test 2x spread 82t win 57% PF 0.62 -2.63% | random entries -6.27% | fail
+- D: train 55t win 42% PF 0.30 -4.24% | TEST 13t win 15% PF 0.07 -2.91% | test 2x spread 13t win 15% PF 0.05 -3.16% | random entries -0.63% | fail
+### carter_ttm_squeeze
+- M15: train 2319t win 29% PF 0.54 -92.81% | TEST 618t win 30% PF 0.59 -44.58% | test 2x spread 652t win 22% PF 0.35 -67.70% | random entries -52.20% | fail
+- H1: train 597t win 34% PF 0.64 -49.32% | TEST 153t win 27% PF 0.42 -24.87% | test 2x spread 157t win 20% PF 0.24 -36.60% | random entries -8.87% | fail
+- H4: train 130t win 45% PF 1.21 +7.27% | TEST 35t win 49% PF 1.27 +2.43% | test 2x spread 35t win 37% PF 0.73 -2.78% | random entries -5.06% | fail
+### macd_200ema
+- M15: train 2113t win 30% PF 0.56 -91.72% | TEST 538t win 29% PF 0.56 -47.74% | test 2x spread 570t win 18% PF 0.29 -73.69% | random entries -51.40% | fail
+- H1: train 491t win 29% PF 0.52 -56.76% | TEST 122t win 41% PF 0.98 -0.59% | test 2x spread 125t win 32% PF 0.60 -16.22% | random entries -13.53% | fail
+- H4: train 124t win 41% PF 0.96 -1.69% | TEST 28t win 36% PF 0.77 -1.98% | test 2x spread 28t win 36% PF 0.76 -2.03% | random entries -2.63% | fail
+### ema_8_21_scalp
+- M5: train 16070t win 21% PF 0.35 -100.00% | TEST 5174t win 17% PF 0.25 -98.63% | test 2x spread 5363t win 4% PF 0.06 -99.84% | random entries -98.35% | fail
+- M15: train 6240t win 32% PF 0.47 -99.83% | TEST 1631t win 29% PF 0.42 -81.10% | test 2x spread 1694t win 14% PF 0.18 -94.66% | random entries -79.93% | fail
+### williams_vol_breakout
+- D: train 369t win 41% PF 0.58 -23.22% | TEST 92t win 33% PF 0.35 -11.43% | test 2x spread 96t win 21% PF 0.17 -18.69% | random entries -11.40% | fail
+### floor_pivot_bounce
+- M15: train 1672t win 22% PF 0.61 -76.69% | TEST 414t win 24% PF 0.69 -19.65% | test 2x spread 417t win 12% PF 0.30 -43.56% | random entries -13.07% | fail
+- H1: train 1432t win 35% PF 0.68 -71.78% | TEST 360t win 39% PF 0.71 -21.77% | test 2x spread 376t win 30% PF 0.46 -43.45% | random entries -22.88% | fail
+### lien_double_bollinger
+- H1: train 1926t win 19% PF 0.68 -82.84% | TEST 506t win 17% PF 0.50 -49.69% | test 2x spread 516t win 16% PF 0.47 -58.85% | random entries -27.21% | fail
+- H4: train 439t win 23% PF 0.83 -15.63% | TEST 130t win 15% PF 0.68 -10.13% | test 2x spread 144t win 15% PF 0.60 -14.85% | random entries -8.16% | fail
+- D: train 81t win 22% PF 0.71 -5.37% | TEST 15t win 40% PF 1.08 +0.19% | test 2x spread 15t win 33% PF 0.77 -0.74% | random entries +0.68% | fail
+### inside_bar_breakout
+- H1: train 1188t win 29% PF 0.58 -79.88% | TEST 314t win 29% PF 0.60 -33.37% | test 2x spread 330t win 24% PF 0.44 -48.45% | random entries -37.91% | fail
+- H4: train 288t win 38% PF 1.03 +2.43% | TEST 69t win 41% PF 1.03 +0.62% | test 2x spread 74t win 42% PF 1.08 +1.65% | random entries -9.63% | PROVEN
+- D: train 55t win 36% PF 0.80 -3.64% | TEST 14t win 50% PF 1.64 +2.04% | test 2x spread 15t win 40% PF 1.16 +0.69% | random entries -1.73% | fail
+ALL DONE
