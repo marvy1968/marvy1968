@@ -1,3 +1,41 @@
 $ gemini round5
-started 2026-10-27 03:36:58 EDT
-RUNNING...
+started 2026-10-27 03:36:58 EDT, took 35s, exit 0
+
+### 1. Critique of the Protocol: You Are Building a Curve-Fitting Machine
+
+Your owner’s directive—"change each expert at least 10 times until positive ROI"—is the textbook definition of data snooping. You are testing ~390 variations per pair. With a 12-month train and 3-month test, **pure random noise will generate strategies that pass both windows by sheer luck.** Furthermore, 3 months of H4 or Daily data will yield fewer than 10 trades, making statistical validation impossible.
+
+**Concrete Rule to fix the protocol:**
+*   **The Triple-Split Deflation Rule:** You must use a 3-year Train, a 1-year Validation (to pick the best variant), and a **completely sequestered 1-year OOS Test** that is only run *once* at the very end.
+*   **The Haircut (Multiple Testing Penalty):** If you test 390 variants, the top performer's Sharpe ratio on the Validation set must be discounted. Require a Validation Sharpe of > 2.0 just to account for selection bias.
+*   **The Minimum-Trade Kill Rule:** If the top variant generates fewer than 40 trades in the 1-year OOS Test, or its OOS Profit Factor at 2x spread is < 1.15, **reject it.** 
+
+### 2. Book Methods: Wrong Translations for FX
+
+FX is a 24/5 OTC market with no central volume, no daily "gap," and broker-specific ticks. Here is how your standard adaptations are likely failing, and the correct translation in one line:
+
+1.  **Opening Range Breakout (M15).** 
+    *   *The mistake:* Treating a time of day (like 8:00 AM NY) as an "open" and looking for gaps/volume rushes. FX doesn't open; it transitions.
+    *   *Correct translation:* **Asian Range Breakout:** Define the range as highest-high/lowest-low between 00:00 and 07:00 London time; place stop-buy/stop-sell orders at the boundaries at 07:00, cancel at 11:00.
+2.  **Floor-Pivot S1/R1 Bounce (M15/H1).**
+    *   *The mistake:* Using midnight local time or GMT to define the Daily High/Low/Close. Bank rollover (and institutional pivot calculation) happens at the New York close.
+    *   *Correct translation:* Calculate all daily pivots strictly using the **17:00 ET (New York) close**, and limit bounces to overlapping sessions (e.g., London/NY overlap 8:00-11:00 ET).
+3.  **Raschke-Connors Turtle Soup (False Breakout).** 
+    *   *The mistake:* Waiting for a candle close-confirmation. If a 20-period low is broken on an H1/H4 chart and you wait for the bar to close back inside the range, the retail spread and the length of the candle will eat your entire R-multiple.
+    *   *Correct translation:* **Blind Limit Entry:** Place a limit order 5 pips *inside* the 20-period extreme, triggered immediately when price sweeps the extreme and reverts, with a hard stop 5 pips below the sweep low.
+4.  **Carter TTM Squeeze.**
+    *   *The mistake:* Using broker tick-volume as a proxy for the momentum trigger. Tick volume in FX is just quote frequency and varies wildly by broker.
+    *   *Correct translation:* Remove volume entirely; trigger purely on ATR expansion (current ATR > 1.5x 20-period ATR) aligning with the slope of a 50 EMA.
+
+### 3. Five More Day-Trade / Scalp Methods for M5-M15?
+
+**State this plainly to the owner:** There are NO documented, replicated FX day-trading or scalping methods on the M5 or M15 timeframes that yield a positive expected return for retail traders after OANDA bid/ask spreads. 
+
+**The Mathematical Kill Criterion for M5/M15:**
+The inefficiency relied upon by scalping is latency and order-book flow, which retail traders cannot access. Look at the data:
+*   The 5-minute ATR of EUR/USD is roughly 2.5 to 3.5 pips.
+*   Your OANDA spread + slippage + commission equivalent is roughly 1.0 to 1.5 pips per side (in/out total cost ~1.5 to 2.0 pips).
+*   **You are paying > 50% of the bar's entire historical range in transaction costs on every trade.** No technical indicator or pattern can overcome a 50% structural drag. HFTs and market makers win here; retail bleeds out.
+
+**What you should do instead with OANDA:**
+Abort the M5/M15 tests immediately; they are a waste of your VM's compute time. If you want a realistic FX edge, it exists strictly in **Daily/H4 macro structures** (like the Kathy Lien fade you are currently running, which targets session structural limits) or longer-term trend/carry. If you must run `expert_tune_fx` and `methods_fx`, restrict the parameter grids strictly to H4 and Daily bars.
