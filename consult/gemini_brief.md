@@ -82,3 +82,19 @@ swing has not earned yet either. Intraday experts overall: 254 trades, PF 0.77; 
 return from US stocks in 2-20 day holds - and is a plain trend filter (e.g. hold SPY/QQQ only above the 200-day average, cash otherwise) plus modest sizing a better
 benchmark for us to beat than anything we have built? Please also say how to size and what drawdown to expect, and which ONE test you would run next on daily bars with
 a hindsight-free universe (give the exact rule and the kill criterion).
+
+## ROUND 4 (2026-10-27 night): what we tested and changed since round 3
+- **Your benchmark (index above its 200-day average, cash below) is now ON PAPER** in the swing runner: gate on new stock longs while SPY < 200-day, plus an ATR-sized SPY/QQQ
+  sleeve (1 ATR = 0.5% of equity, max 30% each, broker stop 4 ATR). Backtest 2014-26: SPY Sharpe 1.00 / maxDD -20.2% vs buy-and-hold 0.90 / -33.8%; QQQ 1.02 / -22.5% vs 0.95 / -35.0%.
+  The intraday stock bot is PAUSED (254 trades, PF 0.77).
+- **Power earnings gap proxy (your round-3 test), hindsight-free 2016 large caps:** train 8 trades PF 4.03 (+2.05% avg), validate 11 trades PF 0.81 (-0.53%) vs control +0.34% / +0.53%;
+  survivorship-biased list 23 / 25 trades, edge vs control -0.32% / +0.32%. Fails the +0.20% kill rule; far below 30 trades. NOT ADOPTED.
+- **OANDA review (all 7 FX majors, bid/ask, our live exits cut 0.5R / out 1.25R; PF 12 months / 3 years at normal spread):** hybrid_h1 (range box + Fibonacci) 0.69 / 0.69; confirm_h1 0.79 / 0.80;
+  boxmr_h1 0.68 / 0.64; conf_d1 (daily RSI/stoch/Bollinger confluence) 0.58 / 0.70; cog_h4 (3 red bars then a green bar, 4-hour) 0.70 / 0.71 (-30% / -66%); every one worse at 2x spread. Their earlier
+  "passes" were single 3-month windows. We now trade only lien_h1 (Kathy Lien fader: 12 months PF 2.75 on 15 trades, 3 years 0.94) and the break-and-retest playbook retest_h1 (12-month PF 1.42, no live fill yet).
+  The owner's separate fx-experts bot (williams-vbo, faith-turtle, tharp-random entries) has 11 open trades, all with broker stops, no targets, net long USD ~1.7x NAV; its paper P&L is negative.
+
+**Round 4 question (forex, daily / 4-hour bars only):** what is the single most defensible FX test we can run with FREE data (OANDA candles + a public policy-rate series such as FRED) - carry
+(rate differential) combined with a 100-200-day trend filter on the 7 majors, monthly rebalance? Give: the exact rule, the data source and series IDs, how to size across 7 pairs, how to avoid
+the 2008/2015/2022 carry crashes, the held-out split you would use, a control (e.g. random-sign carry or the same trend filter without carry), and the kill criterion. If you think FX has no retail edge
+at these costs, say so and say what we should do with the OANDA side instead.
