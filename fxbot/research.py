@@ -658,6 +658,67 @@ def carry_trend_study(closes: dict, rates: "pd.DataFrame", split: date, drag: fl
     return out
 
 
+TUNE_EXPERTS = ["lien_h1", "hybrid_h1", "confirm_h1", "boxmr_h1", "conf_d1", "cog_h4", "box_h1", "boxcons_h1", "f0_h4", "conf_h4"]
+
+
+def tune_variants() -> dict:
+    """The 13 pre-declared variants each expert is tried with (owner 2026-10-27: 'change each expert 10 times min'). Fixed BEFORE any run."""
+    from .strategies import Reversed, VelezFx
+    return {"own exits": lambda b: b,
+            "live exits (cut 0.5R / out 1.25R)": lambda b: TightStop(b, 0.50, 1.25),
+            "stop 1R / target 2R": lambda b: TightStop(b, 1.0, 2.0),
+            "stop 1R / target 1R": lambda b: TightStop(b, 1.0, 1.0),
+            "stop 0.75R / target 1.5R": lambda b: TightStop(b, 0.75, 1.5),
+            "stop 1R / target 3R": lambda b: TightStop(b, 1.0, 3.0),
+            "trend filter (20>200 SMA), own exits": lambda b: VelezFx(b, env=True),
+            "trend filter, stop 1R / target 2R": lambda b: TightStop(VelezFx(b, env=True), 1.0, 2.0),
+            "trend filter + look-left, live exits": lambda b: TightStop(VelezFx(b, env=True, look_left=True), 0.50, 1.25),
+            "no-chase filter, stop 1R / target 2R": lambda b: TightStop(VelezFx(b, env=False, no_chase=True), 1.0, 2.0),
+            "against the 20 SMA slope (fade), own exits": lambda b: VelezFx(b, env=False, counter=True),
+            "REVERSED signals, stop 1R / target 1R": lambda b: TightStop(Reversed(b), 1.0, 1.0),
+            "REVERSED signals, stop 1R / target 2R": lambda b: TightStop(Reversed(b), 1.0, 2.0)}
+
+
+def expert_tune(data: dict, train, test, min_trades: int = 10) -> list[str]:
+    """Owner 2026-10-27 ("optimize the OANDA experts on every time frame and test to confirm 3 months; change each expert 10 times min until positive
+    ROI"): every expert x every timeframe (H1, H4, D) x 13 pre-declared variants. The variant is CHOSEN on `train` (the 12 months before the last 3) by
+    total return with >= min_trades trades, then CONFIRMED on `test` (the last 3 months, never used to choose) at the normal spread and at 2x.
+    PASS = the chosen variant is profitable on the test window at both spreads with >= 10 trades. With 13 variants x 3 timeframes the best TRAIN line is
+    expected to look good by luck: only the unseen 3 months count. Also reports how many of the 39 variant/timeframe pairs were positive on the test."""
+    from . import live
+    variants = tune_variants()
+    out = []
+    for name in TUNE_EXPERTS:
+        spec = live.STRATS[name]
+        out.append(f"### {name}")
+        for gran in ("H1", "H4", "D"):
+            d = data.get(gran)
+            if not d or (name.startswith("lien") and gran == "D"):         # the Lien fader reads the previous NY day from intraday bars
+                continue
+            tr = {}
+            for vn, wrap in variants.items():
+                m = run(wrap(spec["make"]()), d, train[0], train[1])
+                tr[vn] = m
+            ok = {k: v for k, v in tr.items() if (v.get("trades") or 0) >= min_trades}
+            if not ok:
+                out.append(f"- {gran}: fewer than {min_trades} train trades in every variant")
+                continue
+            best = max(ok, key=lambda k: ok[k].get("total_return") or -9)
+            t1 = run(variants[best](spec["make"]()), d, test[0], test[1])
+            t2 = run(variants[best](spec["make"]()), d, test[0], test[1], spread_mult=2.0)
+            pos_test = 0
+            for vn, wrap in variants.items():
+                if (run(wrap(spec["make"]()), d, test[0], test[1]).get("total_return") or 0) > 0:
+                    pos_test += 1
+            ok_pass = (t1.get("total_return") or 0) > 0 and (t2.get("total_return") or 0) > 0 and (t1.get("trades") or 0) >= 10
+            b = tr[best]
+            out.append(f"- {gran}: CHOSEN on train '{best}' (train {b.get('trades')}t PF {b.get('profit_factor') or 0:.2f} {b.get('total_return') or 0:+.2%}) "
+                       f"-> TEST 3 months {t1.get('trades') or 0}t win {t1.get('win_rate') or 0:.0%} PF {t1.get('profit_factor') or 0:.2f} {t1.get('total_return') or 0:+.2%}"
+                       f" | 2x spread PF {t2.get('profit_factor') or 0:.2f} {t2.get('total_return') or 0:+.2%} | {'PASS' if ok_pass else 'fail'}"
+                       f" | {pos_test}/{len(variants)} variants positive on the test window")
+    return out
+
+
 def gap_fade_check(data_h1: dict, a, b) -> list[str]:
     """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
     plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""

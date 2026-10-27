@@ -187,3 +187,21 @@ class CarryTrendTests(unittest.TestCase):
         text = "\n".join(carry_trend_study(cl, rates, dt.date(2014, 12, 31), sma=50))
         for kind in ("carry+trend train", "carry+trend validate", "trend only train", "carry only validate"):
             self.assertIn(kind, text)
+
+
+class ReversedTests(unittest.TestCase):
+    def test_reversed_swaps_sides_and_exits_and_keeps_the_stop(self):
+        from fxbot.strategies import F0Reversion, Reversed
+        idx = pd.date_range("2026-01-05", periods=600, freq="4h", tz="UTC")
+        c = 1.1 + np.cumsum(np.random.default_rng(3).normal(0, 0.002, 600))
+        m = pd.DataFrame({"open": c, "high": c + 0.001, "low": c - 0.001, "close": c, "volume": 100}, index=idx)
+        f, r = F0Reversion(n=50).frame(m), Reversed(F0Reversion(n=50)).frame(m)
+        self.assertTrue((r["long"] == f["short"]).all() and (r["short"] == f["long"]).all())
+        self.assertTrue((r["exit_long"] == f["exit_short"]).all())
+        self.assertTrue((r["stop"].fillna(0) == f["stop"].fillna(0)).all())
+
+    def test_thirteen_predeclared_variants(self):
+        from fxbot.research import TUNE_EXPERTS, tune_variants
+        from fxbot import live
+        self.assertGreaterEqual(len(tune_variants()), 10)
+        self.assertTrue(all(n in live.STRATS for n in TUNE_EXPERTS))

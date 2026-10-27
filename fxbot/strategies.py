@@ -590,6 +590,24 @@ class InBox:
         return f
 
 
+class Reversed:
+    """Research (owner 2026-10-27, "change each expert 10 times until positive"): the base strategy's signals traded the OTHER way (longs <-> shorts, exit
+    flags swapped), same stop distance and target. A strategy that reliably loses before costs may win reversed; costs still apply both ways."""
+
+    def __init__(self, base):
+        self.base, self.max_bars = base, base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + " REVERSED"
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        f["long"], f["short"] = f["short"].copy(), f["long"].copy()
+        f["exit_long"], f["exit_short"] = f["exit_short"].copy(), f["exit_long"].copy()
+        for c in ("zone_px", "zone2_px"):
+            if c in f:
+                f[c] = np.nan                     # the base's take-profit LEVELS point the wrong way now: the R target (TightStop) is used instead
+        return f
+
+
 class TightStop:
     """Research only (owner 2026-10-19, "if a trade turns negative close it, don't wait for a reversal past 10%"): the strategy with its stop
     distance scaled to `frac` of the original, so a trade is stopped when it is `frac` x the risk against it. Live: fxbot.live CONFIG loss_cut_r."""

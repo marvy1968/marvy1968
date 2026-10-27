@@ -197,6 +197,19 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "expert_tune_fx":            # owner 2026-10-27: every OANDA expert x H1/H4/D x 13 variants, chosen on 12 months, confirmed on the last 3
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import expert_tune
+                today = _dt.date.today()
+                test_ = (today - _dt.timedelta(days=92), today)
+                train_ = (today - _dt.timedelta(days=92 + 365), today - _dt.timedelta(days=93))
+                dg = {g: {i: fx_load(i, g, train_[0] - _dt.timedelta(days=(400 if g == "D" else 150)), today, Path("state/fx/cache")) for i in MAJORS}
+                      for g in ("H1", "H4", "D")}
+                lines += [f"## expert_tune_fx: chosen on {train_[0]}..{train_[1]}, confirmed on {test_[0]}..{test_[1]} (bid/ask, 7 majors)"] + expert_tune(dg, train_, test_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_carry":                  # Gemini round 4 (2026-10-27): 200-day trend-filtered carry on the 7 majors (fxbot.research.carry_trend_study)
                 import datetime as _dt
                 from fxbot.data import MAJORS
