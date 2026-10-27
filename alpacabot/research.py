@@ -2087,3 +2087,45 @@ def credit_gate_lines(universes: dict, spy: pd.DataFrame, hyg: pd.DataFrame, ief
                    f"beats shuffled credit gate {beat:.0%} ({'ok' if beat >= 0.9 else 'FAIL'}) -> {'KEEP' if ok else 'REJECT'}")
     out.append(f"- verdict: {'KEEP on both lists (paper candidate)' if verdicts and all(verdicts) else 'REJECT (must pass every rule on both lists)'}")
     return out
+
+
+# ------------------------------------------------------------------ Top-Down position sizing (owner 2026-10-27: "increase risk per trade on the profitable set ups")
+# PRE-DECLARED: Sector Top-Down + the live SPY 200-day entry gate, 10 bps a side, risk per trade {0.35 (live), 0.5, 0.75, 1.0, 1.5}% x slots {3, 5},
+# a third of equity max per position, cash-limited. SELECT on 2016-03-01..2022-12-31: the highest CAGR whose max drawdown is no deeper than -15% and whose
+# Sharpe is within 0.05 of the live setting, on BOTH lists. CONFIRM on 2023-01-01..today (unseen by the choice): the same two limits on both lists.
+SIZING_SPEC = {"risks": (0.0035, 0.005, 0.0075, 0.01, 0.015), "slots": (3, 5), "live": (0.0035, 3), "max_dd": -0.15, "sharpe_slack": 0.05,
+               "select": ("2016-03-01", "2022-12-31"), "confirm_from": "2023-01-01", "slip_bps": 10.0}
+
+
+def topdown_sizing_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[str]:
+    from .strategies import GatedSectorTopDown, SectorTopDown
+    sp = SIZING_SPEC
+    c = spy["close"]
+    gate = (c > c.rolling(200).mean()).where(c.rolling(200).mean().notna(), True)
+    strat = GatedSectorTopDown(SectorTopDown(c), gate)
+    costs = Costs(slip_bps=sp["slip_bps"])
+    periods = {"select": tuple(date.fromisoformat(x) for x in sp["select"]), "confirm": (date.fromisoformat(sp["confirm_from"]), end)}
+    res = {}
+    for per, (a, b) in periods.items():
+        for label, data in universes.items():
+            for r_ in sp["risks"]:
+                for n in sp["slots"]:
+                    m = run_swing(strat, data, costs, Portfolio(risk_pct=r_, max_positions=n, max_pos_frac=0.333), a, b)["metrics"]
+                    res[(per, label, r_, n)] = m
+    out = [f"### Sector Top-Down sizing (SPY 200-day gate, 10 bps a side): select {periods['select'][0]}..{periods['select'][1]}, confirm {periods['confirm'][0]}..{end}"]
+    for (per, label, r_, n), m in res.items():
+        out.append(f"- {per} | {label} | risk {r_:.2%} x {n} slots: {m.get('trades', 0)} trades, CAGR {m.get('cagr', 0):+.1%}, Sharpe {m.get('sharpe', 0):.2f}, "
+                   f"maxDD {m.get('max_drawdown', 0):.1%}{'  (LIVE)' if (r_, n) == sp['live'] else ''}")
+
+    def ok(per, r_, n):
+        return all((res[(per, lb, r_, n)].get("max_drawdown") or -1) >= sp["max_dd"]
+                   and (res[(per, lb, r_, n)].get("sharpe") or -9) >= (res[(per, lb, *sp["live"])].get("sharpe") or 0) - sp["sharpe_slack"] for lb in universes)
+    cands = [(r_, n) for r_ in sp["risks"] for n in sp["slots"] if ok("select", r_, n)]
+    if not cands:
+        return out + ["- verdict: no setting passes the select limits: keep the live sizing"]
+    best = max(cands, key=lambda k: min(res[("select", lb, *k)].get("cagr") or -1 for lb in universes))
+    conf = ok("confirm", *best)
+    out.append(f"- chosen on the select years: risk {best[0]:.2%} x {best[1]} slots (worst-list CAGR "
+               f"{min(res[('select', lb, *best)].get('cagr') or 0 for lb in universes):+.1%}) -> confirm years: {'PASS' if conf else 'FAIL'}")
+    out.append(f"- verdict: {'ADOPT risk %.2f%% x %d slots' % (100 * best[0], best[1]) if conf and best != sp['live'] else 'keep the live sizing'}")
+    return out

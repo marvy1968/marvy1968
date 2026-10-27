@@ -306,6 +306,16 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "topdown_sizing":            # owner 2026-10-27: "increase risk per trade on the profitable set ups" (research.SIZING_SPEC)
+                import datetime as _dt
+                from .research import topdown_sizing_lines
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                ld = lambda syms: {s: d for s, d in ((s, load(s, "1Day", _dt.date(2015, 1, 2), today_, cache)) for s in syms) if len(d) > 300}   # noqa: E731
+                unis = {"today's list": ld(STOCKS), "hindsight-free 2016 list": ld(SECTOR_TD_CONTROL)}
+                lines += ["## topdown_sizing: pre-declared (research.SIZING_SPEC)"] + topdown_sizing_lines(unis, ld(["SPY"])["SPY"], today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "credit_gate":               # Gemini round 7 (2026-10-27): HYG/IEF credit-stress entry gate on Sector Top-Down (research.CREDIT_SPEC)
                 import datetime as _dt
                 from .research import credit_gate_lines
