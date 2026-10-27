@@ -272,6 +272,10 @@ class IndexTrendTests(unittest.TestCase):
             self.assertEqual(spy["strategy"], "trend200")
             self.assertLessEqual(spy["qty"] * spy["signal_close"], 50000 * 0.30 + 1)     # capped at 30% of equity
             self.assertLess(spy["stop"], spy["signal_close"])
+            ex2, en2 = r.index_trend_plan(up, {"SPY": up, "QQQ": up}, {}, [], [{"symbol": "XYZ", "qty": 100, "stop": 90.0, "side": 1, "strategy": "oversold",
+                                                                                   "signal_close": 400.0}], 50000.0, 50000.0, False, now)
+            spy2 = next(e for e in en2 if e["symbol"] == "SPY")
+            self.assertLessEqual(spy2["qty"] * spy2["signal_close"], 10000 + 1)            # $40k planned in XYZ leaves only $10k of cash for the sleeve
             held = {"SPY": {"qty": 10, "entry": 100.0, "stop": 90.0, "strategy": "trend200", "side": 1}}
             ex, en = r.index_trend_plan(down, {"SPY": down, "QQQ": down}, held, [], [dict(stock_long), dict(stock_short)], 50000.0, 50000.0, False, now)
             self.assertEqual(ex, ["SPY"])                                                  # the sleeve sells below the 200-day average
