@@ -234,3 +234,45 @@ class OversoldModeTests(unittest.TestCase):
         d2 = d.copy()
         d2.loc[d2.index[-1], "volume"] = 1e5                   # no volume -> no entry
         self.assertFalse(bool(frame(d2, {"oversold": True})["long_entry"].iloc[-1]))
+
+
+class IndexTrendTests(unittest.TestCase):
+    def _bars(self, up: bool):
+        import numpy as np
+        import pandas as pd
+        n = 260
+        idx = pd.bdate_range("2025-01-01", periods=n)
+        c = np.linspace(100, 140, n) if up else np.linspace(140, 100, n)
+        return pd.DataFrame({"open": c, "high": c * 1.005, "low": c * 0.995, "close": c, "volume": 1e6}, index=idx)
+
+    def _runner(self, tmp):
+        from alpacabot.swing_paper import SwingRunner
+
+        class B:
+            def equity(self): return 50000.0
+        r = SwingRunner(B(), state_dir=tmp, fetch=lambda *a: __import__("pandas").DataFrame(), sleep=lambda *_: None)
+        (__import__("pathlib").Path(tmp) / "zones_override.json").write_text(__import__("json").dumps(
+            {"index_trend": {"live": True, "gate_longs": True, "symbols": ["SPY", "QQQ"], "atr_risk_pct": 0.005, "max_frac": 0.30, "stop_atr": 4.0}}))
+        return r
+
+    def test_sleeve_buys_above_the_200_day_and_sells_below_and_the_gate_blocks_longs(self):
+        import tempfile
+        from datetime import datetime
+        et = __import__("zoneinfo").ZoneInfo("America/New_York")
+        now = datetime(2026, 10, 27, 16, 20, tzinfo=et)
+        with tempfile.TemporaryDirectory() as d:
+            r = self._runner(d)
+            up, down = self._bars(True), self._bars(False)
+            stock_long = {"symbol": "XYZ", "qty": 5, "stop": 90.0, "side": 1, "strategy": "oversold"}
+            stock_short = {"symbol": "ABC", "qty": 5, "stop": 110.0, "side": -1, "strategy": "funnel"}
+            ex, en = r.index_trend_plan(up, {"SPY": up, "QQQ": up}, {}, [], [dict(stock_long), dict(stock_short)], 50000.0, 50000.0, False, now)
+            syms = [e["symbol"] for e in en]
+            self.assertEqual(syms, ["XYZ", "ABC", "SPY", "QQQ"])                      # risk on: nothing blocked, both index entries
+            spy = next(e for e in en if e["symbol"] == "SPY")
+            self.assertEqual(spy["strategy"], "trend200")
+            self.assertLessEqual(spy["qty"] * spy["signal_close"], 50000 * 0.30 + 1)     # capped at 30% of equity
+            self.assertLess(spy["stop"], spy["signal_close"])
+            held = {"SPY": {"qty": 10, "entry": 100.0, "stop": 90.0, "strategy": "trend200", "side": 1}}
+            ex, en = r.index_trend_plan(down, {"SPY": down, "QQQ": down}, held, [], [dict(stock_long), dict(stock_short)], 50000.0, 50000.0, False, now)
+            self.assertEqual(ex, ["SPY"])                                                  # the sleeve sells below the 200-day average
+            self.assertEqual([e["symbol"] for e in en], ["ABC"])                           # risk off: the long is blocked, the short stays, no index entry

@@ -137,6 +137,9 @@ class SwingRunner:
             if len(d) and d.index[-1].date() == today:
                 frames[sym], closes[sym] = strat.frame(d), float(d["close"].iloc[-1])
                 bars_[sym] = d
+        idx_bars = self.index_bars(now)                                  # owner 2026-10-26: SPY / QQQ for the 200-day trend rule (not funnel candidates)
+        for s_, d_ in idx_bars.items():
+            closes[s_] = float(d_["close"].iloc[-1])
         held = self.state["positions"]
         td_held = {s: p for s, p in held.items() if p.get("strategy", "topdown") == "topdown"}
         exits = [s for s in td_held if s in frames and bool(frames[s]["exit"].iloc[-1])]
@@ -172,10 +175,69 @@ class SwingRunner:
                             **swing_zone(bars_[s], px, stop, self.zone_config())})
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
+        exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
+
+    def index_bars(self, now: datetime) -> dict:
+        """Completed daily bars of the 200-day-rule index symbols (zones.json swing.index_trend.symbols), when the rule is live."""
+        cfg = self.zone_config().get("index_trend") or {}
+        if not cfg.get("live"):
+            return {}
+        today, out = now.astimezone(ET).date(), {}
+        for sym in cfg.get("symbols", ["SPY", "QQQ"]):
+            try:
+                d = daily_bars(sym, now, self.fetch)
+            except Exception:
+                log.exception("index bars %s", sym)
+                continue
+            if len(d) >= 200 and d.index[-1].date() == today:
+                out[sym] = d
+        return out
+
+    def index_trend_plan(self, spy: pd.DataFrame, idx_bars: dict, held: dict, exits: list, entries: list, equity: float, cash: float,
+                         locked: bool, now) -> tuple:
+        """Owner 2026-10-26 (Gemini round 3 benchmark): the 200-day index rule on paper. (1) GATE: while SPY closes below its 200-day average the
+        swing book plans no new LONG entries (shorts are untouched). (2) SLEEVE: hold each index symbol (SPY, QQQ) while its close is above its own
+        200-day average, flat otherwise (signal on the close, orders at the next open, like the backtest); sized so a 1-ATR(14) move is
+        `atr_risk_pct` of equity, capped at `max_frac` of equity and by cash; a broker GTC stop `stop_atr` ATR below the entry as a safety net
+        (the rule itself exits on the close under the average). Backtest 2014-2026: SPY Sharpe 1.00, maxDD -20.2% vs buy-and-hold 0.90 / -33.8%;
+        QQQ 1.02 / -22.5% vs 0.95 / -35.0%. Off with zones.json swing.index_trend.live = false."""
+        cfg = self.zone_config().get("index_trend") or {}
+        if not cfg.get("live"):
+            return exits, entries
+        if cfg.get("gate_longs", True) and len(spy) >= 200 and float(spy["close"].iloc[-1]) <= float(spy["close"].rolling(200).mean().iloc[-1]):
+            blocked = [e["symbol"] for e in entries if e.get("side", 1) == 1]
+            entries = [e for e in entries if e.get("side", 1) != 1]
+            self.journal("index_gate", now, spy=round(float(spy["close"].iloc[-1]), 2), sma200=round(float(spy["close"].rolling(200).mean().iloc[-1]), 2),
+                         blocked=blocked)
+        sleeve = {s for s, p in held.items() if p.get("strategy") == "trend200"}
+        planned = []
+        for sym, d in idx_bars.items():
+            c = d["close"]
+            above = float(c.iloc[-1]) > float(c.rolling(200).mean().iloc[-1])
+            if sym in sleeve:
+                if not above and sym not in exits:
+                    exits.append(sym)
+                continue
+            if sym in held or locked or not above or any(e["symbol"] == sym for e in entries):
+                continue
+            pc = c.shift(1)
+            atr = float(pd.concat([d["high"] - d["low"], (d["high"] - pc).abs(), (d["low"] - pc).abs()], axis=1).max(axis=1).rolling(14).mean().iloc[-1])
+            px = float(c.iloc[-1])
+            if not atr > 0:
+                continue
+            qty = int(min(equity * float(cfg.get("atr_risk_pct", 0.005)) / atr, equity * float(cfg.get("max_frac", 0.30)) / px, max(cash, 0) / px))
+            if qty < 1:
+                continue
+            cash -= qty * px
+            entries.append({"symbol": sym, "qty": qty, "stop": round(px - float(cfg.get("stop_atr", 4.0)) * atr, 2), "side": 1, "strategy": "trend200",
+                            "signal_close": px, "atr": round(atr, 4)})
+            planned.append(sym)
+        self.journal("index_trend_plan", now, entries=planned, exits=[e for e in exits if e in sleeve])
+        return exits, entries
 
     def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now,
                     name: str = "funnel") -> tuple:
