@@ -1,3 +1,8 @@
 $ update
-started 2026-10-27 11:49:01 EDT
-RUNNING...
+started 2026-10-27 11:49:01 EDT, took 5s, exit 100
+
+Reading package lists...
+
+--- stderr ---
+E: Could not get lock /var/lib/apt/lists/lock. It is held by process 1430780 (apt-get)
+E: Unable to lock directory /var/lib/apt/lists/
