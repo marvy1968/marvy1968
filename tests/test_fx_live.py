@@ -366,6 +366,33 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class ProfitLockTests(unittest.TestCase):
+    def test_giving_back_35pct_of_the_days_gain_stops_new_entries_until_the_next_day(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            self.assertEqual(r.entries_allowed(50000.0), "")                       # day starts at 50,000
+            self.assertEqual(r.entries_allowed(50150.0), "")                       # +0.30%: below the 0.4% start, no lock
+            self.assertEqual(r.entries_allowed(50300.0), "")                       # +0.60% peak
+            self.assertEqual(r.entries_allowed(50200.0), "")                       # +0.40%: gave back 33%, still open
+            self.assertTrue(r.entries_allowed(50190.0).startswith("profit lock"))  # +0.38%: gave back 37%
+            self.assertTrue(r.entries_allowed(50400.0).startswith("profit lock"))  # stays locked for the rest of the trading day
+            r.save()
+            r2 = runner(tmp, FakeOanda())                                           # a restart keeps the lock
+            self.assertTrue(r2.entries_allowed(50400.0).startswith("profit lock"))
+            nxt = runner(tmp, FakeOanda(), now=datetime(2026, 10, 15, 14, 0, 30, tzinfo=timezone.utc))
+            self.assertEqual(nxt.entries_allowed(50400.0), "")                     # next trading day: open again
+
+    def test_off_when_not_configured(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            r.cfg = {**r.cfg, "profit_lock": None}
+            for eq in (50000.0, 50300.0, 50000.0):
+                self.assertEqual(r.entries_allowed(eq), "")
+
+    def test_live_config(self):
+        self.assertEqual(live.CONFIG["profit_lock"], {"start_pct": 0.004, "giveback_frac": 0.35})
+
+
 class ForeignGuardTests(unittest.TestCase):
     def test_other_bots_trades_get_a_stop_and_a_loss_cut(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -109,7 +109,11 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-26 ("Do this": the fx-experts bot lost ~$700 overnight with no rails): every OPEN TRADE OF ANOTHER BOT on the shared
           # account gets a broker stop-loss if it has none (loss at the stop = stop_pct of NAV) and is closed at market once its unrealized loss
           # reaches cut_pct of NAV. Undo: "foreign_guard": None (or delete the keys) and redeploy.
-          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025}}
+          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025},
+          # owner 2026-10-27 ("implement the account profit lock on the OANDA side"): the Alpaca rule on this runner's book - once the book is up
+          # start_pct on the trading day (17:00 New York to 17:00), giving back giveback_frac of that day's best gain stops NEW entries until the next
+          # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
+          "profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35}}
 
 
 def decimals(instrument: str) -> int:
@@ -212,6 +216,15 @@ class FxPaper:
             self.day = {"date": d, "start": eq}
         if eq <= self.day["start"] * (1 - self.cfg["breaker"]):
             return f"daily breaker ({eq / self.day['start'] - 1:+.2%})"
+        pl = self.cfg.get("profit_lock")
+        if pl:                                         # keep the day's gains: see CONFIG["profit_lock"]
+            gain = eq / self.day["start"] - 1
+            self.day["peak"] = max(float(self.day.get("peak", 0.0)), gain)
+            if not self.day.get("locked") and self.day["peak"] >= pl["start_pct"] and gain <= self.day["peak"] * (1 - pl["giveback_frac"]):
+                self.day["locked"] = True
+                self.journal("profit_lock", peak=round(self.day["peak"], 5), gain=round(gain, 5))
+            if self.day.get("locked"):
+                return f"profit lock (book peaked {self.day['peak']:+.2%} today, now {gain:+.2%}; open trades keep their exits)"
         return ""
 
     # ---------------- market data
