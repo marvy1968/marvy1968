@@ -197,6 +197,19 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "methods_fx":                # owner 2026-10-27: book day-trade / scalp / swing methods (fxbot.methods) on M5..D, train 12 months, test the last 3
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import methods_check
+                today = _dt.date.today()
+                test_ = (today - _dt.timedelta(days=92), today)
+                train_ = (today - _dt.timedelta(days=92 + 365), today - _dt.timedelta(days=93))
+                warm = {"M5": 10, "M15": 20, "H1": 60, "H4": 150, "D": 400}
+                dg = {g: {i: fx_load(i, g, train_[0] - _dt.timedelta(days=warm[g]), today, Path("state/fx/cache")) for i in MAJORS} for g in warm}
+                lines += [f"## methods_fx: book methods, train {train_[0]}..{train_[1]}, TEST {test_[0]}..{test_[1]} (bid/ask, 7 majors)"] + methods_check(dg, train_, test_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "expert_tune_fx":            # owner 2026-10-27: every OANDA expert x H1/H4/D x 13 variants, chosen on 12 months, confirmed on the last 3
                 import datetime as _dt
                 from fxbot.data import MAJORS

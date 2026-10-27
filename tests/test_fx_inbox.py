@@ -205,3 +205,20 @@ class ReversedTests(unittest.TestCase):
         from fxbot import live
         self.assertGreaterEqual(len(tune_variants()), 10)
         self.assertTrue(all(n in live.STRATS for n in TUNE_EXPERTS))
+
+
+class BookMethodsTests(unittest.TestCase):
+    def test_every_book_method_builds_a_valid_frame(self):
+        from fxbot.methods import METHODS
+        rng = np.random.default_rng(0)
+        idx = pd.date_range("2026-01-01", periods=1500, freq="15min", tz="UTC")
+        c = 1.1 + np.cumsum(rng.normal(0, 0.0008, len(idx)))
+        o = np.r_[c[0], c[:-1]]
+        m = pd.DataFrame({"open": o, "high": np.maximum(o, c) + 0.0004, "low": np.minimum(o, c) - 0.0004, "close": c, "volume": 100}, index=idx)
+        for name, (make, grans) in METHODS.items():
+            f = make().frame(m)
+            for col in ("long", "short", "exit_long", "exit_short", "stop"):
+                self.assertIn(col, f, name)
+            self.assertFalse((f["long"] & f["short"]).any(), name)
+            self.assertTrue(len(grans) >= 1)
+        self.assertGreaterEqual(len(METHODS), 10)

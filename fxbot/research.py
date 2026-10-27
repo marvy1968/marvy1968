@@ -719,6 +719,36 @@ def expert_tune(data: dict, train, test, min_trades: int = 10) -> list[str]:
     return out
 
 
+def methods_check(data: dict, train, test, placebo_seeds=(1, 2, 3)) -> list[str]:
+    """Owner 2026-10-27 ("test every expert day-trade and scalp method, adapt it to OANDA, keep only the proven"): every book method in fxbot.methods on
+    each of its timeframes, ONE book setting each (nothing tuned). PROVEN = profitable on the 12 months before the last 3 (train) AND on the last 3
+    months (test) at the normal spread, still profitable on the test at 2x the spread, >= 20 test trades, and better on the test than the same number
+    of RANDOM entries with the same exits (placebo, mean of 3 seeds). data: granularity -> {instrument: bars}."""
+    from .methods import METHODS
+    out, proven = [], []
+    for name, (make, grans) in METHODS.items():
+        out.append(f"### {name}")
+        for g in grans:
+            d = data.get(g)
+            if not d:
+                out.append(f"- {g}: no data")
+                continue
+            tr = run(make(), d, train[0], train[1])
+            t1 = run(make(), d, test[0], test[1])
+            t2 = run(make(), d, test[0], test[1], spread_mult=2.0)
+            pl = [run(make(), d, test[0], test[1], placebo_seed=s).get("total_return") or 0.0 for s in placebo_seeds]
+            plm = float(np.mean(pl))
+            ok = ((tr.get("profit_factor") or 0) > 1 and (tr.get("total_return") or 0) > 0 and (t1.get("profit_factor") or 0) > 1
+                  and (t1.get("total_return") or 0) > 0 and (t2.get("total_return") or 0) > 0 and (t1.get("trades") or 0) >= 20
+                  and (t1.get("total_return") or 0) > plm)
+            if ok:
+                proven.append(f"{name} {g}")
+            fm = lambda x: f"{x.get('trades') or 0}t win {x.get('win_rate') or 0:.0%} PF {x.get('profit_factor') or 0:.2f} {x.get('total_return') or 0:+.2%}"   # noqa: E731
+            out.append(f"- {g}: train {fm(tr)} | TEST {fm(t1)} | test 2x spread {fm(t2)} | random entries {plm:+.2%} | {'PROVEN' if ok else 'fail'}")
+    out.insert(0, "PROVEN: " + (", ".join(proven) if proven else "none"))
+    return out
+
+
 def gap_fade_check(data_h1: dict, a, b) -> list[str]:
     """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
     plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""
