@@ -1,3 +1,49 @@
 $ alpaca run-all --phase validate --families topdown_sizing
-started 2026-10-27 12:18:48 EDT
-RUNNING...
+started 2026-10-27 12:18:48 EDT, took 1041s, exit 0
+
+daily data ready
+## topdown_sizing: pre-declared (research.SIZING_SPEC)
+### Sector Top-Down sizing (SPY 200-day gate, 10 bps a side): select 2016-03-01..2022-12-31, confirm 2023-01-01..2026-10-27
+- select | today's list | risk 0.35% x 3 slots: 255 trades, CAGR +1.7%, Sharpe 0.60, maxDD -5.4%  (LIVE)
+- select | today's list | risk 0.35% x 5 slots: 449 trades, CAGR +3.3%, Sharpe 0.73, maxDD -7.6%
+- select | today's list | risk 0.50% x 3 slots: 255 trades, CAGR +2.4%, Sharpe 0.60, maxDD -7.7%
+- select | today's list | risk 0.50% x 5 slots: 449 trades, CAGR +4.6%, Sharpe 0.73, maxDD -10.7%
+- select | today's list | risk 0.75% x 3 slots: 255 trades, CAGR +3.6%, Sharpe 0.60, maxDD -11.4%
+- select | today's list | risk 0.75% x 5 slots: 449 trades, CAGR +6.5%, Sharpe 0.71, maxDD -15.9%
+- select | today's list | risk 1.00% x 3 slots: 255 trades, CAGR +4.6%, Sharpe 0.59, maxDD -14.9%
+- select | today's list | risk 1.00% x 5 slots: 450 trades, CAGR +6.5%, Sharpe 0.59, maxDD -21.3%
+- select | today's list | risk 1.50% x 3 slots: 255 trades, CAGR +6.4%, Sharpe 0.59, maxDD -20.6%
+- select | today's list | risk 1.50% x 5 slots: 450 trades, CAGR +6.0%, Sharpe 0.47, maxDD -27.6%
+- select | hindsight-free 2016 list | risk 0.35% x 3 slots: 263 trades, CAGR +0.2%, Sharpe 0.08, maxDD -7.8%  (LIVE)
+- select | hindsight-free 2016 list | risk 0.35% x 5 slots: 391 trades, CAGR +1.5%, Sharpe 0.36, maxDD -7.7%
+- select | hindsight-free 2016 list | risk 0.50% x 3 slots: 263 trades, CAGR +0.3%, Sharpe 0.09, maxDD -10.9%
+- select | hindsight-free 2016 list | risk 0.50% x 5 slots: 391 trades, CAGR +1.9%, Sharpe 0.35, maxDD -11.1%
+- select | hindsight-free 2016 list | risk 0.75% x 3 slots: 263 trades, CAGR +0.4%, Sharpe 0.10, maxDD -15.9%
+- select | hindsight-free 2016 list | risk 0.75% x 5 slots: 391 trades, CAGR +1.7%, Sharpe 0.24, maxDD -18.8%
+- select | hindsight-free 2016 list | risk 1.00% x 3 slots: 263 trades, CAGR +0.3%, Sharpe 0.08, maxDD -21.0%
+- select | hindsight-free 2016 list | risk 1.00% x 5 slots: 384 trades, CAGR +1.9%, Sharpe 0.23, maxDD -24.2%
+- select | hindsight-free 2016 list | risk 1.50% x 3 slots: 263 trades, CAGR +0.1%, Sharpe 0.06, maxDD -28.4%
+- select | hindsight-free 2016 list | risk 1.50% x 5 slots: 373 trades, CAGR +1.8%, Sharpe 0.21, maxDD -29.9%
+- confirm | today's list | risk 0.35% x 3 slots: 153 trades, CAGR +2.5%, Sharpe 0.70, maxDD -4.9%  (LIVE)
+- confirm | today's list | risk 0.35% x 5 slots: 258 trades, CAGR +4.1%, Sharpe 0.83, maxDD -7.3%
+- confirm | today's list | risk 0.50% x 3 slots: 153 trades, CAGR +3.6%, Sharpe 0.71, maxDD -6.9%
+- confirm | today's list | risk 0.50% x 5 slots: 258 trades, CAGR +6.0%, Sharpe 0.85, maxDD -10.2%
+- confirm | today's list | risk 0.75% x 3 slots: 153 trades, CAGR +5.4%, Sharpe 0.73, maxDD -10.1%
+- confirm | today's list | risk 0.75% x 5 slots: 258 trades, CAGR +9.0%, Sharpe 0.87, maxDD -15.0%
+- confirm | today's list | risk 1.00% x 3 slots: 153 trades, CAGR +7.3%, Sharpe 0.74, maxDD -13.1%
+- confirm | today's list | risk 1.00% x 5 slots: 258 trades, CAGR +12.2%, Sharpe 0.90, maxDD -19.5%
+- confirm | today's list | risk 1.50% x 3 slots: 153 trades, CAGR +11.2%, Sharpe 0.86, maxDD -14.3%
+- confirm | today's list | risk 1.50% x 5 slots: 256 trades, CAGR +17.4%, Sharpe 1.00, maxDD -23.4%
+- confirm | hindsight-free 2016 list | risk 0.35% x 3 slots: 171 trades, CAGR +0.4%, Sharpe 0.13, maxDD -5.2%  (LIVE)
+- confirm | hindsight-free 2016 list | risk 0.35% x 5 slots: 274 trades, CAGR +3.0%, Sharpe 0.66, maxDD -6.1%
+- confirm | hindsight-free 2016 list | risk 0.50% x 3 slots: 171 trades, CAGR +0.5%, Sharpe 0.14, maxDD -7.1%
+- confirm | hindsight-free 2016 list | risk 0.50% x 5 slots: 274 trades, CAGR +4.2%, Sharpe 0.65, maxDD -8.5%
+- confirm | hindsight-free 2016 list | risk 0.75% x 3 slots: 171 trades, CAGR +0.6%, Sharpe 0.12, maxDD -10.2%
+- confirm | hindsight-free 2016 list | risk 0.75% x 5 slots: 272 trades, CAGR +6.1%, Sharpe 0.67, maxDD -10.0%
+- confirm | hindsight-free 2016 list | risk 1.00% x 3 slots: 171 trades, CAGR +0.8%, Sharpe 0.13, maxDD -12.9%
+- confirm | hindsight-free 2016 list | risk 1.00% x 5 slots: 273 trades, CAGR +6.8%, Sharpe 0.62, maxDD -12.4%
+- confirm | hindsight-free 2016 list | risk 1.50% x 3 slots: 171 trades, CAGR +1.1%, Sharpe 0.15, maxDD -15.8%
+- confirm | hindsight-free 2016 list | risk 1.50% x 5 slots: 267 trades, CAGR +10.7%, Sharpe 0.78, maxDD -14.5%
+- chosen on the select years: risk 0.50% x 5 slots (worst-list CAGR +1.9%) -> confirm years: PASS
+- verdict: ADOPT risk 0.50% x 5 slots
+ALL DONE
