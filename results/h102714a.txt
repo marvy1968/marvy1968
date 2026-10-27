@@ -1,3 +1,20 @@
 $ alpaca positions
-started 2026-10-27 10:27:22 EDT
-RUNNING...
+started 2026-10-27 10:27:22 EDT, took 1s, exit 0
+
+equity $52,024.40  cash $10,629.99  long mv $41,394.41  short mv $0.00
+7 open positions:
+  NFLX       long  qty          157  value $  9,880.80  unrealized $   -16.48
+  SPY        long  qty           12  value $  9,193.56  unrealized $   -16.56
+  META       long  qty           13  value $  8,109.79  unrealized $    -3.51
+  PM         long  qty           36  value $  7,296.48  unrealized $   125.30
+  XOM        long  qty           14  value $  2,551.92  unrealized $    30.24
+  EOG        long  qty           14  value $  2,269.68  unrealized $    37.98
+  COP        long  qty           14  value $  2,091.81  unrealized $    56.41
+7 open orders:
+  NFLX       sell 157 limit new  id sw-o-NFLX-20261027
+  META       sell 13 limit new  id sw-o-META-20261027
+  SPY        sell 12 stop new  id sw-s-SPY-20261027
+  PM         sell 36 limit new  id sw-o-PM-20261022
+  COP        sell 14 limit new  id sw-o-COP-20261021
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
