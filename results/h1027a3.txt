@@ -1,3 +1,56 @@
 $ alpaca swing scan
-started 2026-10-26 20:11:16 EDT
-RUNNING...
+started 2026-10-26 20:11:16 EDT, took 14s, exit 0
+
+{
+ "made": "2026-10-26",
+ "exits": [
+  "EQIX"
+ ],
+ "entries": [
+  {
+   "symbol": "META",
+   "qty": 13,
+   "stop": 611.33,
+   "side": 1,
+   "strategy": "oversold",
+   "signal_close": 630.56,
+   "zone_tp": 662.61,
+   "atr": 25.6375
+  },
+  {
+   "symbol": "NFLX",
+   "qty": 157,
+   "stop": 62.26,
+   "side": 1,
+   "strategy": "oversold",
+   "signal_close": 63.9,
+   "zone_tp": 66.63,
+   "atr": 2.1813
+  },
+  {
+   "symbol": "SPY",
+   "qty": 20,
+   "stop": 736.36,
+   "side": 1,
+   "strategy": "trend200",
+   "signal_close": 765.37,
+   "atr": 7.2514
+  },
+  {
+   "symbol": "QQQ",
+   "qty": 17,
+   "stop": 662.77,
+   "side": 1,
+   "strategy": "trend200",
+   "signal_close": 712.2,
+   "atr": 12.3569
+  }
+ ]
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 12, 3W/9L, P&L $-1,167
+  funnel: 2 trades, 0W, P&L $-507
+  oversold: 3 trades, 0W, P&L $-427
+  holding: XOM 14 @ 180.12 (stop 165.90), EOG 14 @ 159.41 (stop 144.57), COP 14 @ 145.39 (stop 133.52), PM 36 @ 199.20 (stop 190.29, funnel), EQIX 11 @ 949.11 (stop 929.92, oversold)
+  next open: buy ['META', 'NFLX', 'SPY', 'QQQ'], sell ['EQIX']
