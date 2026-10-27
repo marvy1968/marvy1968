@@ -282,6 +282,31 @@ def run_all(a) -> int:
                 lines += daily_anomalies_study({**keep, **cd}, [s for s in SECTOR_ETFS if s in keep], _dt.date(2020, 12, 31))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "swing_exits":               # owner 2026-10-27: every exit type on every swing strategy, short test then long test (exitlab)
+                import datetime as _dt
+                from . import exitlab as _xl
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in sorted(set(STOCKS) | {"SPY", "QQQ"})}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                spy_c = dd["SPY"]["close"]
+                sh = _xl.short_test(dd, spy_c, today_)
+                lines += ["## swing_exits SHORT test: last 3 months, two halves, 10 bps a side"] + _xl.short_lines(sh)
+                picks = _xl.best_passers(sh)
+                lines.append(f"- passers taken to the long test: {picks}")
+                if any(picks.values()):
+                    lg = _xl.long_test(dd, spy_c, today_, picks)
+                    lines += ["## swing_exits LONG test: 2016 to 3 months ago, last 12 months sequestered (OOS)"] + _xl.long_lines(lg, "today's list")
+                    cd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in SECTOR_TD_CONTROL}
+                    cd = {s: d for s, d in cd.items() if len(d) > 300}
+                    stock_picks = {k: v for k, v in picks.items() if k != "index200"}
+                    if any(stock_picks.values()):
+                        lg2 = _xl.long_test({**cd, "SPY": dd["SPY"]}, spy_c, today_, stock_picks)
+                        lines += _xl.long_lines(lg2, "the hindsight-free 2016 list")
+                else:
+                    lines.append("- nothing passed the short test: no long test")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "vol_target":                # Gemini round 6 (2026-10-27): volatility-targeted 200-day rule vs the plain rule
                 import datetime as _dt
                 from .research import vol_target_lines
