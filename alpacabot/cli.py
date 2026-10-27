@@ -197,6 +197,17 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "strict_fx":                 # owner + Gemini r5 promotion bar for methods_fx candidates (3y train / 1y select / 1y OOS)
+                import datetime as _dt
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                from fxbot.research import strict_check
+                today = _dt.date.today()
+                dg = {g: {i: fx_load(i, g, today - _dt.timedelta(days=365 * 5 + 150), today, Path("state/fx/cache")) for i in MAJORS} for g in ("H4",)}
+                lines += ["## strict_fx: 3y train / 1y select / 1y OOS, bid/ask, 7 majors"] + strict_check(
+                    dg, [("inside_bar_breakout", "H4"), ("carter_ttm_squeeze", "H4"), ("raschke_holy_grail", "H4")], today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "methods_fx":                # owner 2026-10-27: book day-trade / scalp / swing methods (fxbot.methods) on M5..D, train 12 months, test the last 3
                 import datetime as _dt
                 from fxbot.data import MAJORS

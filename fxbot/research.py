@@ -749,6 +749,28 @@ def methods_check(data: dict, train, test, placebo_seeds=(1, 2, 3)) -> list[str]
     return out
 
 
+def strict_check(data: dict, names_grans, today) -> list[str]:
+    """Owner 2026-10-27 + Gemini round 5 promotion bar: a candidate from methods_fx is run on three back-to-back windows ending today - a 3-year
+    train, a 1-year select window and the last 1 year (out-of-sample, run once). PROMOTE only if every window is profitable at the normal spread, the
+    last year has >= 40 trades and PF >= 1.15 at 2x the spread, and the last year beats random entries with the same exits."""
+    from datetime import timedelta
+    from .methods import METHODS
+    w = {"train 3y": (today - timedelta(days=365 * 5), today - timedelta(days=365 * 2 + 1)),
+         "select 1y": (today - timedelta(days=365 * 2), today - timedelta(days=366)), "OOS last 1y": (today - timedelta(days=365), today)}
+    out = []
+    for name, g in names_grans:
+        make = METHODS[name][0]
+        d = data[g]
+        res = {k: run(make(), d, a, b) for k, (a, b) in w.items()}
+        oos2 = run(make(), d, *w["OOS last 1y"], spread_mult=2.0)
+        pl = float(np.mean([run(make(), d, *w["OOS last 1y"], placebo_seed=s).get("total_return") or 0.0 for s in (1, 2, 3)]))
+        ok = all((m.get("total_return") or 0) > 0 for m in res.values()) and (res["OOS last 1y"].get("trades") or 0) >= 40 \
+            and (oos2.get("profit_factor") or 0) >= 1.15 and (res["OOS last 1y"].get("total_return") or 0) > pl
+        fm = lambda x: f"{x.get('trades') or 0}t PF {x.get('profit_factor') or 0:.2f} {x.get('total_return') or 0:+.2%} maxDD {x.get('max_drawdown') or 0:.1%}"   # noqa: E731
+        out.append(f"### {name} {g}: " + " | ".join(f"{k} {fm(v)}" for k, v in res.items()) + f" | OOS 2x spread {fm(oos2)} | random {pl:+.2%} | {'PROMOTE' if ok else 'reject'}")
+    return out
+
+
 def gap_fade_check(data_h1: dict, a, b) -> list[str]:
     """Gemini idea 3 (2026-10-26): London-open fade of a large Asian-session move (strategies.SessionGapFade), a small pre-declared grid, bid/ask,
     plus the same at 2x the spread. Kill test: the continuation rate - how often price keeps going the Asian way for the next 6 hours."""
