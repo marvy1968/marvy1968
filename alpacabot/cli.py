@@ -2147,7 +2147,11 @@ def main(argv=None) -> int:
         print(f"{len(rows)} rows, P&L ${sum(t['pnl'] for t in rows):+,.2f}")
         return 0
     if a.cmd == "paper-telegram":                       # resend today's saved report card to the owner's chat (delivery check)
-        from .paper import send_telegram
+        import logging as _lg
+        from .paper import _trade_tg_settings, send_telegram
+        _lg.basicConfig(level=_lg.WARNING, format="%(levelname)s %(message)s")
+        tok, chat = _trade_tg_settings()
+        print(f"TRADE_TG_TOKEN set: {'yes' if tok else 'NO'} | TRADE_TG_CHAT_ID set: {'yes' if chat else 'NO'}")   # never the values
         card = Path(a.state) / "report_card.txt"
         print("sent" if send_telegram(card.read_text() if card.exists() else "Alpaca paper bot: Telegram test") else "NOT sent (see the log line above)")
         return 0
