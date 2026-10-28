@@ -763,3 +763,54 @@ def ride_rev(df: pd.DataFrame, td: np.ndarray, atr_bar: np.ndarray, rv: np.ndarr
         out.append({"date": key[i], "side": side, "r": side * (px - fill) / sd})
         i = k
     return out
+
+
+# ---- quick OANDA tuning (owner 2026-10-28: "optimize for OANDA"; "shorten the tests") ------------------------------------------------------
+# PRE-DECLARED: the live OANDA set-up (fxbot.live CONFIG["trade"] behind both filters) over the last 30 days at 2x spread, split in two
+# halves. Knobs: the hard-move size (0.5 / 0.75 / 1.0 daily ATR) x the reversal exit (on / off) x which experts trade (all live / only the
+# ones with net R > 0 on the first half). The best on the FIRST half is adopted only if it is not worse than the live setting on the SECOND
+# (unseen) half. Plain experts (no filters) shown for reference. Paper money then judges it.
+def fx_tune_report(by_gran: dict, today: date) -> list[str]:
+    global TODAY_MOVE_ATR
+    from .live import CONFIG, STRATS
+    a, mid_, b = today - timedelta(days=30), today - timedelta(days=15), today
+    names = [n for n in CONFIG["trade"] if n in STRATS]
+    keep = TODAY_MOVE_ATR
+    out = [f"## fx_tune: live OANDA set-up, last 30 days ({a}..{b}) at 2x spread, first half {a}..{mid_ - timedelta(days=1)} picks, second half "
+           f"{mid_}..{b} checks; live = move {keep:g} ATR + reversal exit, all {len(names)} experts"]
+    res = {}
+    try:
+        for mv in (0.5, 0.75, 1.0):
+            TODAY_MOVE_ATR = mv
+            for rev in (True, False):
+                per = {}
+                for n in names:
+                    bars = by_gran[STRATS[n]["gran"]]
+                    per[n] = (summary(fx_rev_trades(n, bars, a, mid_ - timedelta(days=1), 2.0, "both", rev)),
+                              summary(fx_rev_trades(n, bars, mid_, b, 2.0, "both", rev)))
+                res[(mv, rev)] = per
+    finally:
+        TODAY_MOVE_ATR = keep
+    rows = []
+    for (mv, rev), per in res.items():
+        for sel in ("all", "winners"):
+            use = list(per) if sel == "all" else [n for n, (h1, _) in per.items() if h1["net"] > 0]
+            h1 = sum(per[n][0]["net"] for n in use)
+            h2 = sum(per[n][1]["net"] for n in use)
+            t1 = sum(per[n][0]["trades"] for n in use)
+            t2 = sum(per[n][1]["trades"] for n in use)
+            rows.append({"mv": mv, "rev": rev, "sel": sel, "use": use, "h1": h1, "h2": h2, "t1": t1, "t2": t2})
+    live = next(r for r in rows if r["mv"] == keep and r["rev"] and r["sel"] == "all")
+    best = max(rows, key=lambda r: (r["h1"], -abs(r["mv"] - keep)))
+    for r in sorted(rows, key=lambda r: -r["h1"]):
+        tag = " <- LIVE" if r is live else " <- best first half" if r is best else ""
+        out.append(f"- move {r['mv']:g} ATR, reversal {'on' if r['rev'] else 'off'}, {r['sel']}: first half {r['h1']:+.1f}R ({r['t1']} t) | "
+                   f"second half {r['h2']:+.1f}R ({r['t2']} t){tag}" + (f" | experts {', '.join(r['use'])}" if r["sel"] == "winners" else ""))
+    out.append("- per expert at the live setting (first half | second half): " + " ; ".join(
+        f"{n} {fmt(h1)} | {fmt(h2)}" for n, (h1, h2) in res[(keep, True)].items()))
+    if best["sel"] == "winners" and not best["use"]:
+        out.append("- no expert made money on the first half at any setting: the 'best' is standing aside")
+    adopt = best is not live and best["h2"] >= live["h2"] and best["h1"] > live["h1"] and bool(best["use"])
+    out.append(f"- VERDICT: {'ADOPT move ' + format(best['mv'], 'g') + ' ATR, reversal ' + ('on' if best['rev'] else 'off') + ', ' + best['sel'] if adopt else 'keep the live setting'}"
+               f" (best first half {best['h1']:+.1f}R -> second half {best['h2']:+.1f}R vs live {live['h1']:+.1f}R -> {live['h2']:+.1f}R)")
+    return out

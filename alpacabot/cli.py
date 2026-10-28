@@ -234,6 +234,16 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_tune":                   # owner 2026-10-28 "optimize for OANDA": quick 30-day tuning of the live set-up (fxbot.strongtrend)
+                import datetime as _dt
+                from fxbot import strongtrend as _stg
+                from fxbot.data import MAJORS, load as fx_load
+                today_ = _dt.date.today()
+                fc = Path("state/fx/cache")
+                by = {g: {i: fx_load(i, g, today_ - _dt.timedelta(days=500 if g == "D" else 340), today_, fc) for i in MAJORS} for g in ("H1", "H4", "D")}
+                lines += _stg.fx_tune_report(by, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "reversal_exit":             # owner 2026-10-28: flatten once the short-term trend turns against the trade (fxbot.strongtrend), 2 weeks
                 import datetime as _dt
                 from fxbot import strongtrend as _stg
