@@ -220,6 +220,39 @@ def run_all(a) -> int:
                 lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fxexp_rest":                # owner 2026-10-28 ("I refuse to believe that's all experts failed"): the bot's other DAILY systems, staged then long
+                import datetime as _dt
+                import numpy as np
+                from fxbot import fxexp_check as _fc
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                _, _, instr, _ = _fc._bot()
+                cache_ = Path("state/fx/cache")
+                sids = ("lien-fader", "raschke-soup", "bollinger-squeeze", "crabel-idnr4", "ponsi-trend")
+                short = {p_: _fc._mid_frame(fx_load(p_, "H1", today - _dt.timedelta(days=92 + 160), today, cache_)) for p_ in instr.ALL_PAIRS}
+                lines += ["## fxexp_rest: the other daily fx-experts systems, staged short tests first (2x spread, shuffled-data placebo), long test only for a system that clears all three stages"]
+                go = []
+                for sid in sids:
+                    t2 = _fc.daily_trades(sid, short, 2.0)
+                    plc = [_fc.daily_trades(sid, {p_: _fc.shuffled_mid(short[p_], k) for p_ in short}, 2.0) for k in range(3)]
+                    rows = _fc.stage_table(t2, plc, today)
+                    lines += _fc.stage_lines(sid, rows)
+                    if all(r["pass"] for r in rows):
+                        go.append(sid)
+                lines.append(f"- systems cleared for the long test: {go or 'none'}")
+                if go:
+                    h1 = {p_: _fc._mid_frame(fx_load(p_, "H1", today - _dt.timedelta(days=5 * 365 + 150), today, cache_)) for p_ in instr.ALL_PAIRS}
+                    wd = _fc.windows(today, True)
+                    for sid in go:
+                        best = []
+                        for seed in range(5):
+                            tr_ = [t for t in _fc.daily_trades(sid, {p_: _fc.shuffled_mid(h1[p_], seed) for p_ in h1}) if wd["OOS last 1y"][0] <= t["date"] <= wd["OOS last 1y"][1]]
+                            if tr_:
+                                best.append(float(np.mean([t["r"] for t in tr_])))
+                        ref = float(np.max(best)) if best else None
+                        lines += _fc.lines(sid, _fc.evaluate(_fc.daily_trades(sid, h1), _fc.daily_trades(sid, h1, 2.0), wd, ref), ref)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fxexp_check":               # owner 2026-10-27: "test the four fx-experts strategies" (fxbot.fxexp_check, bot code in forex_bots/fx-experts)
                 import datetime as _dt
                 import numpy as np
