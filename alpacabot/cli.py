@@ -1909,6 +1909,7 @@ def main(argv=None) -> int:
     sw = sub.add_parser("swing", help="daily Sector Top-Down swing runner (PAPER): scan after the close, open before the open, status")
     sw.add_argument("action", choices=["scan", "open", "status", "close"])
     sw.add_argument("--state", default="state/alpaca_swing")
+    sw.add_argument("--symbols", default="", help="close: only these symbols (comma-separated); default the whole book")
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
@@ -1970,7 +1971,8 @@ def main(argv=None) -> int:
         setup(Path(a.state) / "swing.log")
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
-        out = r.scan(now) if a.action == "scan" else r.close_all(now) if a.action == "close" else r.open(now)
+        only = [x.strip().upper() for x in a.symbols.split(",") if x.strip()] or None
+        out = r.scan(now) if a.action == "scan" else r.close_all(now, only=only) if a.action == "close" else r.open(now)
         if a.action == "open":                           # owner 2026-10-23: deferred (oversold) entries at swing.late_entry.at (10:00)
             late = r.open(_dt.now(_ET), late=True)
             if late:

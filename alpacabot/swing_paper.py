@@ -464,12 +464,15 @@ class SwingRunner:
         self._save()
         return sent
 
-    def close_all(self, now: datetime, wait_s: float = 60.0) -> dict:
-        """Owner's manual close: cancel each swing position's stop / OCO at Alpaca, sell it at market and book it as "owner_close"."""
+    def close_all(self, now: datetime, wait_s: float = 60.0, only: list | None = None) -> dict:
+        """Owner's manual close: cancel each swing position's stop / OCO at Alpaca, sell it at market and book it as "owner_close".
+        only = these symbols (e.g. a position that lost its broker stop); None = the whole book."""
         self.settle_stops(now)                            # a stop that already filled is booked at its own price first
         tag = now.astimezone(ET).strftime("%Y%m%d%H%M")
         sent = {}
         for sym, pos in list(self.state["positions"].items()):
+            if only is not None and sym not in only:
+                continue
             if pos.get("stop_order_id"):
                 try:
                     self.b.cancel_order(pos["stop_order_id"])

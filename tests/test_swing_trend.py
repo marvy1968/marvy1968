@@ -42,5 +42,32 @@ class SwingTrendFilterTests(unittest.TestCase):
         self.assertEqual(self.r.trend_filters(held, [], [{"symbol": "DN"}], self.now), ([], [{"symbol": "DN"}]))
 
 
+class CloseOnlyTests(unittest.TestCase):
+    def test_close_only_the_named_symbol(self):
+        class B:
+            def __init__(self):
+                self.sent, self.cancelled = [], []
+
+            def cancel_order(self, oid):
+                self.cancelled.append(oid)
+
+            def submit_order(self, sym, qty, side, typ, tif, cid):
+                self.sent.append(sym)
+                return {"id": sym}
+
+            def order(self, oid):
+                return {"status": "filled", "filled_avg_price": "61.80"}
+        with tempfile.TemporaryDirectory() as tmp:
+            b = B()
+            r = sp.SwingRunner(b, state_dir=tmp, base_equity=50000.0, sleep=lambda *_: None)
+            r.settle_stops = lambda now: None
+            r.state["positions"] = {"NFLX": {"qty": 157, "entry": 63.04, "stop": 62.26, "stop_order_id": "s1", "entry_date": "2026-10-27"},
+                                    "XOM": {"qty": 14, "entry": 180.12, "stop": 165.9, "stop_order_id": "s2"}}
+            out = r.close_all(datetime(2026, 10, 28, 10, 30, tzinfo=ZoneInfo("America/New_York")), only=["NFLX"])
+            self.assertEqual(list(out), ["NFLX"])
+            self.assertEqual((b.sent, b.cancelled), (["NFLX"], ["s1"]))
+            self.assertEqual(list(r.state["positions"]), ["XOM"])
+
+
 if __name__ == "__main__":
     unittest.main()
