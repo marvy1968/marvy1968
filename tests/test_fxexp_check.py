@@ -46,3 +46,14 @@ class EvaluateTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StageTests(unittest.TestCase):
+    def test_a_stage_needs_the_earlier_ones_trades_profit_and_the_placebo(self):
+        today = dt.date(2026, 10, 27)
+        win = [{"date": today - dt.timedelta(days=i % 80), "r": 1.0 if i % 3 else -1.0} for i in range(120)]
+        rows = fc.stage_table(win, [[{"date": today - dt.timedelta(days=3), "r": 0.0}]], today)
+        self.assertEqual([r["pass"] for r in rows], [True, True, True])
+        rows = fc.stage_table(win, [[{"date": today - dt.timedelta(days=3), "r": 5.0}]], today)       # placebo best beats it: stop at stage 1
+        self.assertEqual([r["pass"] for r in rows], [False, False, False])
+        self.assertIn("stop here", fc.stage_lines("x", rows)[0])

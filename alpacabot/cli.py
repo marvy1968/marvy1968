@@ -197,6 +197,29 @@ def run_all(a) -> int:
                     lines += [f"## experts_review_fx: every live OANDA expert, {label} ({a_} to {today}, bid/ask)"] + experts_review(dg, a_, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fxexp_stages":              # owner 2026-10-27: the fx-experts four, staged 2 weeks -> 1 month -> 3 months (fxbot.fxexp_check.STAGES)
+                import datetime as _dt
+                import numpy as np
+                from fxbot import fxexp_check as _fc
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                _, _, instr, _ = _fc._bot()
+                cache_ = Path("state/fx/cache")
+                h1 = {p_: _fc._mid_frame(fx_load(p_, "H1", today - _dt.timedelta(days=92 + 160), today, cache_)) for p_ in instr.ALL_PAIRS}
+                lines += ["## fxexp_stages: staged short tests of the fx-experts bot's four strategies (bot's own engine and costs at 2x spread; shuffled-data placebo)"]
+                for sid in ("tharp-random", "williams-vbo", "faith-turtle"):
+                    t2 = _fc.daily_trades(sid, h1, 2.0)
+                    plc = [_fc.daily_trades(sid, {p_: _fc.shuffled_mid(h1[p_], k) for p_ in h1}, 2.0) for k in range(3)]
+                    lines += _fc.stage_lines(sid, _fc.stage_table(t2, plc, today))
+                z2, zp = [], {k: [] for k in range(3)}
+                for p_ in instr.PAIRS:
+                    m5 = fx_load(p_, "M5", today - _dt.timedelta(days=92 + 10), today, cache_)
+                    z2 += _fc.zeros_trades(m5, p_, 2.0)
+                    for k in zp:
+                        zp[k] += _fc.zeros_trades(_fc.shuffled_bidask(m5, k), p_, 2.0)
+                lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fxexp_check":               # owner 2026-10-27: "test the four fx-experts strategies" (fxbot.fxexp_check, bot code in forex_bots/fx-experts)
                 import datetime as _dt
                 import numpy as np

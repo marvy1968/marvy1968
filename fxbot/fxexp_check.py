@@ -221,3 +221,33 @@ def lines(sid: str, ev: dict, ref_avg_r: float | None) -> list[str]:
     if sid == "tharp-random":
         verdict = "RANDOM-ENTRY SYSTEM BY DESIGN (no edge claim)" + (": a PASS would point at the harness" if ev["pass"] else "")
     return [f"### {sid}: {body} | OOS at 2x spread: {_fmt(ev['oos_2x'])}{ref} | {verdict}"]
+
+
+# ------------------------------------------------------------------ staged version (owner 2026-10-27: "do a shorter test first, and if it passes go longer: 2 weeks, 3 months, etc.")
+# PRE-DECLARED: stage 1 = last 14 days, stage 2 = last 31 days, stage 3 = last 92 days; a stage PASSES only if the earlier stages passed, the system made
+# money at 2x the spread, took at least {5, 10, 20} trades, and beat the best seed of its shuffled-data placebo on the same window. Only a system that
+# clears all three goes on to the long test (fxexp_check). The placebo is run once on the 92-day data and cut to each window.
+STAGES = (("2 weeks", 14, 5), ("1 month", 31, 10), ("3 months", 92, 20))
+
+
+def stage_table(trades_2x: list[dict], placebo_by_seed: list[list[dict]], today: date) -> list[dict]:
+    rows, alive = [], True
+    for label, days, min_n in STAGES:
+        a = today - timedelta(days=days)
+        rs = [t["r"] for t in trades_2x if a <= t["date"] <= today]
+        plc = [float(np.mean(x)) for x in ([t["r"] for t in seed if a <= t["date"] <= today] for seed in placebo_by_seed) if x]
+        best = max(plc) if plc else None
+        s = stats(rs)
+        ok = bool(alive and s["trades"] >= min_n and s["net_r"] > 0 and (best is None or s["avg_r"] > best))
+        rows.append({"stage": label, "stats": s, "placebo_best_avg_r": best, "pass": ok})
+        alive = ok
+    return rows
+
+
+def stage_lines(sid: str, rows: list[dict]) -> list[str]:
+    parts = []
+    for r in rows:
+        b = r["placebo_best_avg_r"]
+        parts.append(f"{r['stage']}: {_fmt(r['stats'])}, placebo best {('n/a' if b is None else f'{b:+.3f}R')} -> {'pass' if r['pass'] else 'FAIL'}")
+    go = all(r["pass"] for r in rows)
+    return [f"### {sid} (2x spread): " + " | ".join(parts) + f" | {'GO to the long test' if go else 'stop here'}"]
