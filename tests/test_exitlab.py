@@ -83,3 +83,18 @@ class RankedTopDownTests(unittest.TestCase):
         self.assertTrue((f["entry"] == gated.frame(d)["entry"]).all())
         self.assertEqual(r.rank(f, 10), 10.0)
         self.assertLess(r.rank(f.assign(rank_alt=np.nan), 10), -1e8)
+
+
+class DirectionTests(unittest.TestCase):
+    def test_a_signal_that_points_the_right_way_scores_above_half_and_an_inverted_one_below(self):
+        from alpacabot.research import direction_pooled
+        n = 600
+        idx = pd.bdate_range("2020-01-01", periods=n, tz="America/New_York")
+        c = 100 + np.cumsum(np.where(np.arange(n) % 2 == 0, 1.0, 1.2))          # steadily rising
+        d = pd.DataFrame({"open": c, "high": c + 0.5, "low": c - 0.5, "close": c}, index=idx)
+        sig = np.zeros(n, bool)
+        sig[50:500:7] = True
+        right = direction_pooled("long", [(d, sig, np.zeros(n, bool))], (5,))[0]
+        wrong = direction_pooled("short", [(d, np.zeros(n, bool), sig)], (5,))[0]
+        self.assertIn("hit 100.0%", right)
+        self.assertIn("hit 0.0%", wrong)

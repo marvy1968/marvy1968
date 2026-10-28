@@ -9,6 +9,7 @@ Nothing here is advice and nothing trades: it returns numbers, including bad one
 """
 
 import itertools
+import math
 from dataclasses import replace
 from datetime import date
 
@@ -2212,3 +2213,34 @@ def topdown_rank_lines(universes: dict, sector_of_by_uni: dict, etfs: dict, spy:
     keep = hf[0] >= sp["min_gain"] and td[0] >= 0 and hf[1] >= 0.9
     out.append(f"- verdict: {'KEEP (paper candidate)' if keep else 'REJECT'} (needs hindsight-free Sharpe +{sp['min_gain']:.2f}, today's list not lower, beats random rank in 90%)")
     return out
+
+
+# ------------------------------------------------------------------ direction check (owner 2026-10-28: "it's got to be a buy and sell issue")
+# Is any strategy's buy / sell DIRECTION inverted or broken? For every entry signal: the signed forward return (+ = price moved the way the signal said)
+# after 1 / several / many bars, as a hit rate and as the mean in ATR units, with a z-score against 50%. A strategy whose signals point the WRONG way
+# shows a hit rate clearly under 50% (z <= -2) - that is a sign error; one at about 50% has no direction skill (no sign error, just no edge); one clearly over
+# 50% (z >= 2) predicts direction. Entries only, before any stop, target, cost or sizing, so it isolates the buy / sell decision itself.
+def direction_pooled(label: str, parts: list, horizons: tuple, atr_n: int = 14) -> list[str]:
+    """parts: [(bars, long_signal_array, short_signal_array)] (one per symbol); signals pooled across symbols."""
+    out = {}
+    for bars, long_sig, short_sig in parts:
+        c = bars["close"].to_numpy(float)
+        pc = bars["close"].shift(1)
+        atr = pd.concat([bars["high"] - bars["low"], (bars["high"] - pc).abs(), (bars["low"] - pc).abs()], axis=1).max(axis=1).rolling(atr_n).mean().to_numpy(float)
+        for side, sig in ((1, long_sig), (-1, short_sig)):
+            idx = np.flatnonzero(np.asarray(sig, bool))
+            for h in horizons:
+                ii = idx[(idx + h < len(c))]
+                ii = ii[np.isfinite(atr[ii])] if len(ii) else ii
+                if len(ii):
+                    out.setdefault(h, []).append(side * (c[ii + h] - c[ii]) / atr[ii])
+    rows = []
+    for h in horizons:
+        if h not in out:
+            continue
+        x = np.concatenate(out[h])
+        n = len(x)
+        hit = float((x > 0).mean())
+        z = (hit - 0.5) / math.sqrt(0.25 / n)
+        rows.append(f"{h} bars: {n} signals, hit {hit:.1%}, mean {x.mean():+.3f} ATR, z {z:+.1f}")
+    return [f"- {label}: " + " | ".join(rows)] if rows else [f"- {label}: no signals"]

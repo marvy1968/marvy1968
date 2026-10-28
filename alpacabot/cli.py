@@ -220,6 +220,43 @@ def run_all(a) -> int:
                 lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "direction_check":           # owner 2026-10-28: "it's got to be a buy and sell issue" (research.direction_pooled)
+                import datetime as _dt
+                import numpy as _np
+                from fxbot import live as _fxlive
+                from fxbot.data import MAJORS, load as fx_load, mid as fx_mid
+                from .funnel import frame as funnel_frame
+                from .research import direction_pooled
+                from .strategies import SectorTopDown
+                from .universe import SECTOR_OF
+                today = _dt.date.today()
+                lines += ["## direction_check: do the entry signals point the right way? signed forward return (+ = the signal's way), hit rate, mean in ATR, z vs 50% (research.direction_pooled)"]
+                lines += ["### OANDA strategies, last 3 years, 7 majors (all signals pooled)"]
+                horizons = {"H1": (1, 6, 24), "H4": (1, 6, 18), "D": (1, 5, 10)}
+                for name, spec in _fxlive.STRATS.items():
+                    if not spec.get("make"):
+                        continue
+                    parts = []
+                    for inst in MAJORS:
+                        m = fx_mid(fx_load(inst, spec["gran"], today - _dt.timedelta(days=3 * 365 + 120), today, Path("state/fx/cache")))
+                        f = spec["make"]().frame(m)
+                        parts.append((m, f["long"].fillna(False).to_numpy(bool), f["short"].fillna(False).to_numpy(bool)))
+                    lines += direction_pooled(name, parts, horizons[spec["gran"]])
+                lines += ["### Stock swing strategies, 2016 to now (today's list, longs)"]
+                spy = load("SPY", "1Day", date(2015, 1, 2), today, cache)
+                rules = {"funnel": {"stop_frac": 0.5, "tp_r": 1.25, "v_tail": True}, "oversold": {"oversold": True, "os_stage": None, "tp_r": 1.25, "stop_frac": 0.75}}
+                stock_parts = {"Sector Top-Down": [], "funnel": [], "oversold": []}
+                for sym in SECTOR_OF:
+                    d = load(sym, "1Day", date(2015, 1, 2), today, cache)
+                    if len(d) < 300:
+                        continue
+                    stock_parts["Sector Top-Down"].append((d, SectorTopDown(spy["close"]).frame(d)["entry"].fillna(False).to_numpy(bool), _np.zeros(len(d), bool)))
+                    for k in ("funnel", "oversold"):
+                        stock_parts[k].append((d, funnel_frame(d, rules[k])["long_entry"].fillna(False).to_numpy(bool), _np.zeros(len(d), bool)))
+                for k, parts in stock_parts.items():
+                    lines += direction_pooled(k, parts, (1, 5, 20))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fxexp_rest":                # owner 2026-10-28 ("I refuse to believe that's all experts failed"): the bot's other DAILY systems, staged then long
                 import datetime as _dt
                 import numpy as np
