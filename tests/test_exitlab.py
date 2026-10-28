@@ -120,3 +120,18 @@ class TrendSleeveTests(unittest.TestCase):
         lines = trend_sleeve_lines(dd)
         self.assertTrue(any("control 4" in l for l in lines))
         self.assertTrue(any("verdict" in l for l in lines))
+
+
+class StockTrendZoneTests(unittest.TestCase):
+    def test_zd_has_no_look_ahead_and_trade_needs_all_zones(self):
+        from alpacabot import trendzones as tz
+        idx = pd.bdate_range("2026-01-02", periods=80, tz="America/New_York")
+        c = np.linspace(100, 140, 80)
+        d = pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=idx)
+        m = tz.to_bidask(d)
+        from fxbot.data import mid
+        z, at = tz.zd_daily(mid(m))
+        z2, _ = tz.zd_daily(mid(m.iloc[:50]))
+        self.assertAlmostEqual(z[49], z2[49])                       # day 49 does not change when later days are added
+        empty = {"buy": (None, 0), "sell": ((-1, 0), 1), "tp_long": ((1, 2), 1), "tp_short": ((-2, -1), 1)}
+        self.assertEqual(tz.trade(m, empty, idx[0].date(), idx[-1].date()), [])

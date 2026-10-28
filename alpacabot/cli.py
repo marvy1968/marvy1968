@@ -220,6 +220,20 @@ def run_all(a) -> int:
                 lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trend_zones_stocks":        # owner 2026-10-28: trend experts' buy / sell / TP zones on 5 large, 5 mid, 5 small caps (alpacabot.trendzones)
+                import datetime as _dt
+                from .trendzones import GROUPS, report
+                today_ = _dt.date.today()
+                dd = {}
+                for syms in GROUPS.values():
+                    for s_ in syms:
+                        try:
+                            dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=365 + 92 + 400), today_, cache)
+                        except Exception as exc:
+                            print(f"skip {s_}: {exc}", flush=True)
+                lines += report(dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trend_tp_zones":            # owner 2026-10-28: trend experts' buy / sell / take-profit zones, 3-week test (fxbot.consensus)
                 import datetime as _dt
                 import numpy as np
