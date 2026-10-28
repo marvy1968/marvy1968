@@ -82,6 +82,7 @@ def runner(tmp, api, now=datetime(2026, 10, 14, 14, 0, 30, tzinfo=timezone.utc))
     r.cfg = {**r.cfg, "trend_filters": {"long": True, "short": True, "reversal": True, "day_close": "16:00"}} if r.cfg.get("trend_filters") is None and TREND_ON else r.cfg
     r.daily_bias = lambda inst: (0, [])           # range day, no map levels unless a test says otherwise
     r.news_fetch = lambda url: []                 # no network: the news calendar falls back to the Fed + jobs-report dates
+    r.cfg = {**r.cfg, "foreign_guard": live.FOREIGN_GUARD}   # the guard's own tests (it is OFF live: test_foreign_guard_off_live)
     return r
 
 
@@ -670,3 +671,20 @@ class RangeExpertTests(unittest.TestCase):
     def test_lists(self):
         self.assertEqual(live.RANGE_EXPERTS, ["lien_h1", "retest_h1", "boxmr_h1"])
         self.assertIn("boxmr_h1", live.CONFIG["trade"])
+
+
+class ForeignGuardOffTests(unittest.TestCase):
+    def test_foreign_guard_off_live(self):
+        self.assertIsNone(live.CONFIG["foreign_guard"])                     # owner 2026-10-28: "turn off the guard on fx-experts"
+        self.assertEqual(live.FOREIGN_GUARD["cut_pct"], 0.0025)
+
+    def test_off_touches_no_foreign_trade(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            api.trades["9"] = {"id": "9", "instrument": "EUR_USD", "currentUnits": "-100000", "price": "1.1000", "unrealizedPL": "-500",
+                               "clientExtensions": {"tag": "fxexp"}}
+            r = runner(tmp, api)
+            r.cfg = {**r.cfg, "foreign_guard": live.CONFIG["foreign_guard"]}
+            r.guard_foreign(api.open_trades())
+            self.assertIn("9", api.trades)
+            self.assertEqual(api.stops, [])

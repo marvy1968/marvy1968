@@ -86,7 +86,8 @@ TREND_EXPERTS = ["confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1",
 # owner 2026-10-28 ("yes, set it up that way"): RANGE experts trade only when the pair has NO trend (no long trend on the daily filter and no
 # hard move today either way) - the mirror of the trend experts - and are not cut by the trend-reversal exit. boxmr_h1 (the one range expert
 # positive over the last 3 months: 19 trades PF 1.43, +4.1R at 2x spread) joins lien_h1 and retest_h1. Undo: drop the names / the list.
-RANGE_EXPERTS = ["lien_h1", "retest_h1", "boxmr_h1"]     # owner's range box (ranging pairs); levels = the
+RANGE_EXPERTS = ["lien_h1", "retest_h1", "boxmr_h1"]
+FOREIGN_GUARD = {"stop_pct": 0.004, "cut_pct": 0.0025, "lock_start_pct": 0.002, "lock_keep": 0.5}   # the rails for the other bots' trades (off)     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -127,7 +128,9 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-27 ("OANDA going up nicely if [we] don't give back profit"): lock_start_pct / lock_keep - once one of the fx-experts bot's
           # trades has been up lock_start_pct of NAV, its broker stop is moved to keep lock_keep of its best gain so far (only ever tightened, its own
           # target untouched; the broker holds the stop, so it protects even if this runner is down). A guard, not backtested. Undo: drop the two keys.
-          "foreign_guard": {"stop_pct": 0.004, "cut_pct": 0.0025, "lock_start_pct": 0.002, "lock_keep": 0.5},
+          # owner 2026-10-28 ("turn off the guard on fx-experts"; it cut 3 of their trades at about -$143 each that day): OFF. Undo:
+          # "foreign_guard": FOREIGN_GUARD and redeploy.
+          "foreign_guard": None,
           # owner 2026-10-27 ("implement the account profit lock on the OANDA side"): the Alpaca rule on this runner's book - once the book is up
           # start_pct on the trading day (17:00 New York to 17:00), giving back giveback_frac of that day's best gain stops NEW entries until the next
           # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
