@@ -148,3 +148,97 @@ def fmt(s: dict) -> str:
 def windows(today: date) -> dict:
     test_a = today - timedelta(days=14)
     return {"calibrate": (test_a - timedelta(days=365), test_a - timedelta(days=1)), "test": (test_a, today)}
+
+
+# ------------------------------------------------------------------ separate trend / reversion zones on the DAILY range (owner 2026-10-28)
+# PRE-DECLARED before any run. Yardstick: zd = (1-hour close - 20-day average of completed daily closes) / ATR14 of completed daily bars (daily bars built
+# from the 1-hour bars at the 17:00 New York roll). REVERSION group (every non-trend expert with 20+ signals): BUY ZONE = their average median long zd
+# +- 0.25, SELL ZONE = their average median short zd +- 0.25; long in the buy zone, out when zd reaches the sell zone, short the mirror. TREND group
+# (TRENDING with 20+ signals): BUY ZONE = their average median long zd +- 0.25 (strength), SELL ZONE = their average median short zd +- 0.25 (weakness);
+# long in the buy zone, out when zd falls back to the sell zone, short the mirror. Stop 1.5 daily ATR, 20 days at most, one trade per pair, signals on
+# 1-hour closes, fills at the next 1-hour open (bid/ask). Calibration: the 12 months before the last 92 days. Tests: last 14 days, and last 92 days for
+# context (both unseen). Normal and 2x spread; the same rules on 1-hour bars shuffled into random order (3 seeds) as the control.
+DAILY_STOP_ATR, DAILY_MAX_BARS = 1.5, 480
+
+
+def daily_from_h1(m1: pd.DataFrame) -> pd.DataFrame:
+    day = (m1.index.tz_convert("America/New_York") + pd.Timedelta(hours=7)).date
+    g = m1.groupby(day)
+    d = pd.DataFrame({"open": g["open"].first(), "high": g["high"].max(), "low": g["low"].min(), "close": g["close"].last(), "n": g.size()})
+    return d[d["n"] >= 2]
+
+
+def zscore_daily(m1: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    """(zd, daily ATR) on the 1-hour index, from completed daily bars only."""
+    d = daily_from_h1(m1)
+    pc = d["close"].shift(1)
+    atr = pd.concat([d["high"] - d["low"], (d["high"] - pc).abs(), (d["low"] - pc).abs()], axis=1).max(axis=1).rolling(14).mean()
+    sma = d["close"].rolling(20).mean()
+    day = (m1.index.tz_convert("America/New_York") + pd.Timedelta(hours=7)).date
+    prev = pd.Series(range(len(d)), index=d.index)
+    pos = np.array([prev.get(x, -1) for x in day]) - 1                    # yesterday's completed bar
+    idx_ok = pos >= 0
+    s_sma, s_atr = np.full(len(m1), np.nan), np.full(len(m1), np.nan)
+    s_sma[idx_ok], s_atr[idx_ok] = sma.to_numpy()[pos[idx_ok]], atr.to_numpy()[pos[idx_ok]]
+    datr = pd.Series(s_atr, index=m1.index)
+    return (m1["close"] - s_sma) / datr, datr
+
+
+def group_zones(per_expert: dict) -> dict:
+    out = {}
+    for grp, members in (("trend", lambda n: n in TRENDING), ("reversion", lambda n: n not in TRENDING)):
+        longs = [float(np.median(lz)) for n, (lz, sz) in per_expert.items() if members(n) and len(lz) >= MIN_SIGNALS]
+        shorts = [float(np.median(sz)) for n, (lz, sz) in per_expert.items() if members(n) and len(sz) >= MIN_SIGNALS]
+        out[grp] = {"buy": (np.mean(longs) - HALF_WIDTH, np.mean(longs) + HALF_WIDTH) if longs else None,
+                    "sell": (np.mean(shorts) - HALF_WIDTH, np.mean(shorts) + HALF_WIDTH) if shorts else None, "n_buy": len(longs), "n_sell": len(shorts)}
+    return out
+
+
+def trade_group(df: pd.DataFrame, mode: str, bz: tuple, sz: tuple, a: date, b: date) -> list[dict]:
+    """mode 'reversion' (buy zone below the sell zone) or 'trend' (buy zone above it). See the block comment."""
+    m = mid(df)
+    zd, datr = zscore_daily(m)
+    z, at = zd.to_numpy(float), datr.to_numpy(float)
+    c = m["close"].to_numpy(float)
+    bo, bh, bl, ao, ah, al = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "ao", "ah", "al"))
+    dates = np.asarray(df.index.date)
+    if (mode == "reversion" and not bz[1] < sz[0]) or (mode == "trend" and not sz[1] < bz[0]):
+        return []
+    out, i, n = [], 0, len(df)
+    while i < n - 1:
+        if not (a <= dates[i] <= b) or not np.isfinite(z[i]) or not np.isfinite(at[i]):
+            i += 1
+            continue
+        side = 1 if bz[0] <= z[i] <= bz[1] else -1 if sz[0] <= z[i] <= sz[1] else 0
+        if not side:
+            i += 1
+            continue
+        j = i + 1
+        fill = ao[j] if side == 1 else bo[j]
+        sd = DAILY_STOP_ATR * at[i]
+        stop = fill - side * sd
+        k, px = j, None
+        while k < n:
+            lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
+            if mode == "reversion":
+                done = (side == 1 and z[k] >= sz[0]) or (side == -1 and z[k] <= bz[1])
+            else:
+                done = (side == 1 and z[k] <= sz[1]) or (side == -1 and z[k] >= bz[0])
+            if k > j and side * (op - stop) <= 0:
+                px = op
+            elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
+                px = stop
+            elif (np.isfinite(z[k]) and done) or k - j + 1 >= DAILY_MAX_BARS:
+                if k + 1 < n:
+                    k += 1
+                    px = bo[k] if side == 1 else ao[k]
+                else:
+                    px = c[k]
+            elif k == n - 1:
+                px = c[k]
+            if px is not None:
+                break
+            k += 1
+        out.append({"date": dates[j], "side": side, "r": side * (px - fill) / sd})
+        i = max(k, i + 1)
+    return out

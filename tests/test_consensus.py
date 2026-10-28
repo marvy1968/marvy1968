@@ -36,3 +36,24 @@ class ConsensusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DailyGroupTests(unittest.TestCase):
+    def test_groups_split_trend_and_reversion(self):
+        per = {"connors_rsi2": ([-1.0] * 30, [1.0] * 30), "box_h1": ([-2.0] * 30, [2.0] * 30), "macd_200ema": ([1.0] * 30, [-1.0] * 30)}
+        g = cz.group_zones(per)
+        self.assertAlmostEqual(np.mean(g["reversion"]["buy"]), -1.5)
+        self.assertAlmostEqual(np.mean(g["reversion"]["sell"]), 1.5)
+        self.assertAlmostEqual(np.mean(g["trend"]["buy"]), 1.0)
+        self.assertAlmostEqual(np.mean(g["trend"]["sell"]), -1.0)
+
+    def test_zones_in_the_wrong_order_give_no_trades(self):
+        idx = pd.date_range(end="2026-10-27 20:00", periods=800, freq="h", tz="UTC")
+        c = 1.1 + 0.001 * np.sin(np.arange(800) / 30.0)
+        d = {}
+        for s, off in (("b", -0.00002), ("a", 0.00002)):
+            d[s + "o"], d[s + "c"], d[s + "h"], d[s + "l"] = c + off, c + off, c + 0.0003 + off, c - 0.0003 + off
+        df = pd.DataFrame(d, index=idx)
+        a, b = dt.date(2026, 10, 1), dt.date(2026, 10, 27)
+        self.assertEqual(cz.trade_group(df, "reversion", (1.0, 1.5), (-1.5, -1.0), a, b), [])
+        self.assertEqual(cz.trade_group(df, "trend", (-1.5, -1.0), (1.0, 1.5), a, b), [])
