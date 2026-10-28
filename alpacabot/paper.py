@@ -1563,10 +1563,29 @@ def report_card(state_dir, day=None) -> str:
     return "\n".join(lines)
 
 
-def _telegram_settings() -> tuple[str, str]:
-    """Token and chat id read the way Marv's working sender reads them (marv/config.py: the first value in .env wins, inline " #" comments
-    and quotes stripped); systemd's EnvironmentFile parses .env differently (last duplicate wins, comments kept) and Telegram refused the
-    report card with HTTP 403 every day while Marv's own messages went through (2026-10-22). Falls back to the process environment."""
+def send_telegram(text: str) -> bool:
+    """Owner 2026-10-28: trading alerts go to the "Marv master trade" Telegram chat and NEVER to the Marv edge / March_edge chat (the betting
+    bot's mirror). Settings in /opt/marv-bot/.env: TRADE_TG_TOKEN (that chat's bot token) and TRADE_TG_CHAT_ID. Without both, nothing is
+    sent (logged) - there is no fallback to the betting chats. True when Telegram accepted the message."""
+    import os
+    tok, chat = _trade_tg_settings()
+    if not tok or not chat:
+        log.warning("trading alert NOT sent: TRADE_TG_TOKEN / TRADE_TG_CHAT_ID not set (alerts go only to the Marv master trade chat)")
+        return False
+    try:
+        r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage",
+                          json={"chat_id": chat, "text": ("ALPACA PAPER\n" + text)[:4000], "disable_web_page_preview": True}, timeout=15)
+        if r.status_code != 200:
+            log.warning("telegram send failed: HTTP %s %s", r.status_code, r.text[:200].replace(tok, "<token>"))
+            return False
+        return True
+    except Exception as exc:                                      # never fails the end-of-day snapshot
+        log.warning("telegram send failed: %s", str(exc)[:200].replace(tok, "<token>"))
+        return False
+
+
+def _trade_tg_settings() -> tuple[str, str]:
+    """TRADE_TG_TOKEN / TRADE_TG_CHAT_ID from .env (first value wins, quotes and inline comments stripped), else the process environment."""
     import os
     vals = {}
     env = Path(os.environ.get("MARV_ENV", Path(__file__).resolve().parent.parent / ".env"))
@@ -1578,31 +1597,8 @@ def _telegram_settings() -> tuple[str, str]:
                 vals.setdefault(k.strip(), v.split(" #")[0].strip().strip('"').strip("'"))
     except OSError:
         pass
-    return (vals.get("TELEGRAM_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", ""),
-            vals.get("TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID", ""))
-
-
-def send_telegram(text: str) -> bool:
-    """Through Marv's sender (marv/telegram.send_message): the Marv bot is blocked in the owner's chat ("403 Forbidden: bot was blocked by
-    the user", 2026-10-22), so the card goes to the mirror chat (MIRROR_BOT_TOKEN / MIRROR_CHAT_ID, the owner's March_edge chat) the way
-    every Marv message does. True when a delivery path exists and nothing raised."""
-    import os
-    try:
-        from marv.config import ROOT, load_dotenv
-        from marv.telegram import _post, esc, mirror_token
-        load_dotenv(Path(os.environ.get("MARV_ENV", ROOT / ".env")))
-        tok, chat = _telegram_settings()
-        m_tok = mirror_token()
-        m_chat = os.environ.get("MIRROR_CHAT_ID", "") or chat
-        if m_tok and m_chat:
-            tok, chat = m_tok, m_chat
-        if not tok or not chat:
-            return False
-        _post(tok, chat, esc("ALPACA PAPER\n" + text[:3800]))   # raises on any Telegram refusal
-        return True
-    except Exception as exc:                                      # never fails the end-of-day snapshot
-        log.warning("telegram send failed: %s", str(exc)[:200])
-        return False
+    return (vals.get("TRADE_TG_TOKEN") or os.environ.get("TRADE_TG_TOKEN", ""),
+            vals.get("TRADE_TG_CHAT_ID") or os.environ.get("TRADE_TG_CHAT_ID", ""))
 
 
 def report(state_dir="state/alpaca_paper") -> str:
