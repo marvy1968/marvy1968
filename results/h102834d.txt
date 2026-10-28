@@ -1,3 +1,26 @@
 $ show fx_paper/journal-20261028.jsonl
-started 2026-10-28 13:10:39 EDT
-RUNNING...
+started 2026-10-28 13:10:39 EDT, took 0s, exit 0
+
+{"t": "2026-10-28T05:00:43+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-28T01:00:00+00:00", "close": 0.56073, "stop_dist": 0.0020349899640307633, "result": "paused (signal logged)"}
+{"t": "2026-10-28T06:42:59+00:00", "kind": "error", "where": "scan", "strategy": "cog_h4", "instrument": "NZD_USD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-28T09:01:16+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-28T05:00:00+00:00", "close": 0.5604899999999999, "stop_dist": 0.0020046335380286785, "result": "paused (signal logged)"}
+{"t": "2026-10-28T09:01:54+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "EUR_USD", "side": "long", "bar": "2026-10-28T05:00:00+00:00", "close": 1.112455, "stop_dist": 0.00321128343832644, "result": "paused (signal logged)"}
+{"t": "2026-10-28T10:00:39+00:00", "kind": "error", "where": "step", "error": "TypeError: fxbot.live.FxPaper.journal() got multiple values for keyword argument 'side'"}
+{"t": "2026-10-28T14:45:04+00:00", "kind": "news_pause", "pairs": ["USD_CAD"], "why": ["news pause: CAD BOC Press Conference at 10:30 New York"], "source": "forexfactory"}
+{"t": "2026-10-28T14:45:37+00:00", "kind": "news_pause", "pairs": ["USD_CAD"], "why": ["news pause: CAD BOC Press Conference at 10:30 New York"], "source": "forexfactory"}
+{"t": "2026-10-28T14:49:44+00:00", "kind": "error", "where": "scan", "strategy": "f0_h4", "instrument": "USD_CAD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-28T15:08:38+00:00", "kind": "news_pause", "pairs": ["USD_CAD"], "why": ["news pause: CAD BOC Press Conference at 10:30 New York"], "source": "forexfactory"}
+{"t": "2026-10-28T15:09:03+00:00", "kind": "news_pause", "pairs": ["USD_CAD"], "why": ["news pause: CAD BOC Press Conference at 10:30 New York"], "source": "forexfactory"}
+{"t": "2026-10-28T16:19:23+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-10-28T15:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T16:19:24+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-28T15:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T16:19:26+00:00", "kind": "signal", "strategy": "ttm_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-10-28T15:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T16:19:29+00:00", "kind": "open", "group": "wvb_d1-EUR_USD-2026-10-26T2100", "side": -1, "units": -47173, "fill": 1.11446, "stop": "1.12043", "zone_tp": "1.10550", "tp": "1.10699", "tier": 0, "risk_pct": 0.005, "bias": -1}
+{"t": "2026-10-28T16:19:29+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "EUR_USD", "side": "short", "bar": "2026-10-26T21:00:00+00:00", "result": "opened", "trend": "swing"}
+{"t": "2026-10-28T16:19:30+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "USD_CAD", "side": "long", "bar": "2026-10-26T21:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T17:00:03+00:00", "kind": "news_pause", "pairs": ["AUD_USD", "EUR_USD", "GBP_USD", "NZD_USD", "USD_CAD", "USD_CHF", "USD_JPY"], "why": ["news pause: USD Federal Funds Rate at 14:00 New York"], "source": "forexfactory"}
+{"t": "2026-10-28T17:00:03+00:00", "kind": "group_closed", "group": "wvb_d1-EUR_USD-2026-10-26T2100", "reason": "news pause: USD Federal Funds Rate at 14:00 New York"}
+{"t": "2026-10-28T17:01:53+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "GBP_USD", "side": "long", "bar": "2026-10-28T13:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T17:01:56+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-10-28T16:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T17:01:56+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-10-28T16:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T17:01:57+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-28T16:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-28T17:02:01+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CHF", "side": "short", "bar": "2026-10-28T16:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
