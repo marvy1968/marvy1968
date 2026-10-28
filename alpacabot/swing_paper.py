@@ -40,6 +40,11 @@ FUNNEL_RISK, FUNNEL_MAX = 0.005, 3     # owner's Stock Funnel (alpacabot.funnel)
 # 1 trade). Owner 2026-10-28 ("turn on your suggestion for stocks"): long filter on Top-Down entries only ("long": the strategies it gates),
 # reversal exit on every swing position. Undo: TREND_FILTERS = None.
 TREND_FILTERS = {"long": ("topdown",), "reversal": True}
+# owner 2026-10-28 ("on my trending stock give me a virtual staircase trail stop"): SwingRunner.stair_trail. A swing long whose stock is in a
+# long uptrend (fxbot.strongtrend long filter) gets a staircase stop: R = entry - first stop; once a daily close is k R above the entry (k >= 1)
+# the stop steps up to entry + (k - 1) R (k = 1: break-even), only ever up. The runner keeps the staircase and moves the stop at Alpaca too
+# (the OCO is replaced with the same take-profit), so it holds if the VM is down. Not backtested; on paper. Undo: STAIR = None.
+STAIR = {"step_r": 1.0}
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
@@ -186,6 +191,7 @@ class SwingRunner:
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.trend_filters(held, exits, entries, now)
+        self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
@@ -225,6 +231,42 @@ class SwingRunner:
         if blocked or rev:
             self.journal("trend_filters", now, blocked=[e["symbol"] for e in blocked], reversal_exits=rev)
         return exits + rev, kept
+
+    def stair_trail(self, held: dict, exits: list, now: datetime):
+        """Staircase stop on trending swing longs (STAIR); see the note at STAIR."""
+        if not STAIR:
+            return
+        from fxbot.strongtrend import votes
+        step = float(STAIR.get("step_r", 1.0))
+        for sym, pos in held.items():
+            if sym in exits or pos.get("side", 1) != 1:
+                continue
+            d = daily_bars(sym, now, self.fetch, days=420)
+            if len(d) < 270 or int(votes(d)["long_state"].iloc[-1]) != 1 and not pos.get("stair"):
+                continue                                   # not a trending stock (a staircase once started keeps going)
+            stop0 = float(pos.get("stop0", pos["stop"]))
+            r = pos["entry"] - stop0
+            if r <= 0:
+                continue
+            k = int((float(d["close"].iloc[-1]) - pos["entry"]) // (step * r))
+            new = round(pos["entry"] + (k - 1) * step * r, 2)
+            if k < 1 or new <= pos["stop"] + 0.005:
+                continue
+            tag = f"{now.astimezone(ET):%Y%m%d}-s{k}"
+            try:
+                if pos.get("stop_order_id"):
+                    self.b.cancel_order(pos["stop_order_id"])
+                if pos.get("oco") and pos.get("zone_tp") and hasattr(self.b, "submit_oco"):
+                    so = self.b.submit_oco(sym, pos["qty"], float(pos["zone_tp"]), new, f"sw-o-{sym}-{tag}")
+                else:
+                    so = self.b.submit_order(sym, pos["qty"], "sell", "stop", "gtc", f"sw-s-{sym}-{tag}", stop_price=new)
+            except Exception as exc:
+                self.journal("stair_error", now, symbol=sym, error=str(exc)[:200])
+                _alert(f"SWING (paper): {sym} staircase stop move to {new:.2f} FAILED ({type(exc).__name__}) - check its broker stop")
+                continue
+            pos.update(stop0=stop0, stop=new, stair=k, stop_order_id=so.get("id") if isinstance(so, dict) else None)
+            self.journal("stair_step", now, symbol=sym, step=k, stop=new, close=float(d["close"].iloc[-1]))
+        self._save()
 
     def index_bars(self, now: datetime) -> dict:
         """Completed daily bars of the 200-day-rule index symbols (zones.json swing.index_trend.symbols), when the rule is live."""

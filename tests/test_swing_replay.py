@@ -79,6 +79,7 @@ class SwingReplayTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.trend_filters, sp.TREND_FILTERS = sp.TREND_FILTERS, None      # parity with the unfiltered backtest (the filters: tests/test_swing_trend.py)
+        cls.stair, sp.STAIR = sp.STAIR, None
         cls.spy = series(1, 0.0003, 0.009, 400.0)
         cls.data = getattr(cls, "data_override", None) or {"AAA": series(2, 0.0020), "BBB": series(3, 0.0012), "CCC": series(4, -0.0002)}
         cls.tmp = tempfile.TemporaryDirectory()
@@ -109,7 +110,7 @@ class SwingReplayTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        sp.TREND_FILTERS = cls.trend_filters
+        sp.TREND_FILTERS, sp.STAIR = cls.trend_filters, cls.stair
         cls.tmp.cleanup()
 
     def test_0_exercised(self):
