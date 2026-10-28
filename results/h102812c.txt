@@ -1,3 +1,20 @@
 $ alpaca run-all --phase validate --families trend_sleeve
-started 2026-10-28 01:30:37 EDT
-RUNNING...
+started 2026-10-28 01:30:37 EDT, took 502s, exit 0
+
+daily data ready
+skip EFA: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/EFA/bars?timeframe=1Day&start=2023-09-01T00%3A00%3A00Z&end=2023-10-01T00%3A00%3A00Z&limit=10000&adjustment=all&feed=sip (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7f5a4b4a8e10>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+skip EEM: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/EEM/bars?timeframe=1Day&start=2008-07-01T00%3A00%3A00Z&end=2008-08-01T00%3A00%3A00Z&limit=10000&adjustment=all&feed=sip (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7f5a4b48dfd0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+skip IEF: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/IEF/bars?timeframe=1Day&start=2013-08-01T00%3A00%3A00Z&end=2013-09-01T00%3A00%3A00Z&limit=10000&adjustment=all&feed=sip (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7f5a49a445d0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+skip GLD: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/GLD/bars?timeframe=1Day&start=2024-11-01T00%3A00%3A00Z&end=2024-12-01T00%3A00%3A00Z&limit=10000&adjustment=all&feed=sip (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7f5a4b4816d0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+skip UUP: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/UUP/bars?timeframe=1Day&start=2018-09-01T00%3A00%3A00Z&end=2018-10-01T00%3A00%3A00Z&limit=10000&adjustment=all&feed=sip (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7f5a4b433710>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+## trend_sleeve: cross-asset trend (12-month time-series momentum, inverse-vol, monthly), pre-declared
+### Cross-asset trend sleeve: SPY, TLT, DBC | data 2016-01-04..2026-10-27 | in-sample to 2018-12-31, OOS from 2019-01-01
+- missing assets: ['EEM', 'EFA', 'GLD', 'IEF', 'UUP']
+- TREND SLEEVE (12-month TSMOM): in-sample CAGR +1.9% Sharpe 0.34 maxDD -9.7% | OOS CAGR +5.5% Sharpe 0.90 maxDD -10.0% (7.8y)
+- variant: 200-day average: in-sample CAGR +2.8% Sharpe 0.49 maxDD -8.4% | OOS CAGR +5.0% Sharpe 0.87 maxDD -7.6% (7.8y)
+- control 1: same weights, always held: in-sample CAGR +3.7% Sharpe 0.58 maxDD -9.6% | OOS CAGR +6.5% Sharpe 0.84 maxDD -17.2% (7.8y)
+- TREND SLEEVE at 10 bps: in-sample CAGR +1.9% Sharpe 0.33 maxDD -9.7% | OOS CAGR +5.5% Sharpe 0.88 maxDD -10.0% (7.8y)
+- control 4: random monthly timing, each asset on as often as the sleeve holds it (63% on average), 20 seeds: full-period Sharpe 0.72 mean (min 0.40, max 1.05); the sleeve 0.79 beats 13/20
+- verdict: REJECT (OOS Sharpe >= 0.5 and above control 1, OOS maxDD shallower than control 1 and the 60/40, both windows profitable, OOS Sharpe >= 0.4 at 10 bps, beats 18/20 random timings)
+- today's signal (2026-10-27): SPY ON 35%, TLT off 0%, DBC ON 22% | cash 43%
+ALL DONE
