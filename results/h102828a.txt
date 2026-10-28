@@ -1,3 +1,141 @@
 $ show alpaca_swing/state.json
-started 2026-10-28 10:18:42 EDT
-RUNNING...
+started 2026-10-28 10:18:42 EDT, took 0s, exit 0
+
+{
+ "positions": {
+  "XOM": {
+   "qty": 14,
+   "entry": 180.12,
+   "stop": 165.8975017541014,
+   "entry_date": "2026-10-20",
+   "stop_order_id": "495943f0-4a3b-437f-9514-62857f3aad17",
+   "oco": true,
+   "zone_tp": 203.04
+  },
+  "EOG": {
+   "qty": 14,
+   "entry": 159.407143,
+   "stop": 144.5732799002627,
+   "entry_date": "2026-10-20",
+   "stop_order_id": "55578345-6103-4789-a374-ffa7ff56dddf",
+   "oco": true,
+   "zone_tp": 183.8
+  },
+  "COP": {
+   "qty": 14,
+   "entry": 145.385714,
+   "stop": 133.5179495797702,
+   "entry_date": "2026-10-21",
+   "stop_order_id": "a4bf5c24-25a4-4663-8665-f52bfaf001eb",
+   "oco": true,
+   "zone_tp": 170.81
+  },
+  "PM": {
+   "qty": 36,
+   "entry": 199.199444,
+   "stop": 190.29,
+   "entry_date": "2026-10-22",
+   "side": 1,
+   "strategy": "funnel",
+   "stop_order_id": "232f2afc-6336-4f4c-a6e8-00e7cc5f0bfb",
+   "oco": true,
+   "zone_tp": 215.39
+  },
+  "SPY": {
+   "qty": 12,
+   "entry": 767.51,
+   "stop": 736.36,
+   "entry_date": "2026-10-27",
+   "side": 1,
+   "strategy": "trend200",
+   "stop_order_id": "97933b31-c35f-4a97-858f-6f325c34a715"
+  },
+  "NFLX": {
+   "qty": 157,
+   "entry": 63.04,
+   "stop": 62.26,
+   "entry_date": "2026-10-27",
+   "side": 1,
+   "strategy": "oversold",
+   "stop_order_id": "9018de71-8650-4d69-bd8c-0fa9ea3cef73",
+   "oco": true,
+   "zone_tp": 66.63
+  },
+  "WMT": {
+   "qty": 39,
+   "entry": 118.38,
+   "stop": 112.79891293407236,
+   "entry_date": "2026-10-28",
+   "stop_order_id": "30fbd39f-8c4b-48f3-86d5-3e413188043d",
+   "oco": true,
+   "zone_tp": 132.36
+  },
+  "MSFT": {
+   "qty": 8,
+   "entry": 533.63875,
+   "stop": 521.64,
+   "entry_date": "2026-10-28",
+   "side": 1,
+   "strategy": "funnel",
+   "stop_order_id": "cb75782a-b77b-44a3-bc77-c90fffcff432",
+   "oco": true,
+   "zone_tp": 555.55
+  },
+  "TSLA": {
+   "qty": 5,
+   "entry": 408.304,
+   "stop": 362.42602074285355,
+   "entry_date": "2026-10-28",
+   "stop_order_id": "a7d5a195-bfa8-40e4-8ea1-4a73ef93b636",
+   "oco": true,
+   "zone_tp": 497.53
+  }
+ },
+ "plan": {
+  "made": "2026-10-27",
+  "exits": [
+   "META",
+   "NFLX"
+  ],
+  "entries": [
+   {
+    "symbol": "TSLA",
+    "qty": 5,
+    "stop": 362.42602074285355,
+    "rs": 0.1477,
+    "signal_close": 407.46,
+    "zone_tp": 497.53,
+    "atr": 13.7083
+   },
+   {
+    "symbol": "WMT",
+    "qty": 39,
+    "stop": 112.79891293407236,
+    "rs": 0.1101,
+    "signal_close": 119.32,
+    "zone_tp": 132.36,
+    "atr": 2.3974
+   },
+   {
+    "symbol": "MSFT",
+    "qty": 8,
+    "stop": 521.64,
+    "side": 1,
+    "strategy": "funnel",
+    "signal_close": 531.33,
+    "zone_tp": 555.55,
+    "atr": 10.945
+   }
+  ],
+  "done": true
+ },
+ "base_equity": 53194.06,
+ "equity_hist": [
+  52271.88,
+  52532.8,
+  52532.8,
+  52532.8,
+  52436.29
+ ],
+ "lock_alerted": false
+}
