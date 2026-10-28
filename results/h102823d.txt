@@ -1,3 +1,17 @@
 $ alpaca run-all --phase validate --families sector_heatmap
-started 2026-10-28 08:31:13 EDT
-RUNNING...
+started 2026-10-28 08:31:13 EDT, took 262s, exit 0
+
+daily data ready
+## sector_heatmap: weekly long / short sleeve, 3 hottest vs 3 coldest sectors (21-session heat), 2017-01-01..2026-10-28
+- heat map today (21 sessions): XLE +9.8%, XLU +9.2%, XLP +5.9%, XLY +5.9%, XLB +4.7%, XLV +4.6%, XLF +3.1%, XLRE +2.6%, XLI -0.5%, XLK -2.6%, XLC -6.8%
+- this week's picks: LONG COP LONG SO LONG WMT SHORT CAT SHORT NVDA SHORT META
+- full period, 5 bps: 512 weeks, -37.9%, Sharpe -0.22, maxDD -50.1% (long leg +224.2%, short leg -74.6%)
+- full period, 10 bps: 512 weeks, -54.3%, Sharpe -0.41, maxDD -60.2% (long leg +224.2%, short leg -74.6%) | random sector rankings: median -64.0%, beaten 14/20
+- by year (5 bps): 2017 +2.7%, 2018 +7.0%, 2019 -25.1%, 2020 -22.8%, 2021 +9.2%, 2022 +9.6%, 2023 +7.7%, 2024 -0.7%, 2025 -10.1%, 2026 -15.0%
+- last 2 weeks: 1 weeks, +2.6%, Sharpe 0.00, maxDD 0.0% (long leg +1.2%, short leg +1.5%)
+- last 3 months: 12 weeks, -2.4%, Sharpe -0.56, maxDD -4.6% (long leg +0.3%, short leg -1.9%)
+- control universe (2016's largest companies), 10 bps: 512 weeks, -44.9%, Sharpe -0.45, maxDD -47.3% (long leg +94.2%, short leg -56.5%)
+- plain heat-map sleeve: fail
+- last 24 months, 10 bps: plain 104 weeks, -24.1%, Sharpe -0.80, maxDD -30.0% (long leg +13.8%, short leg -24.4%) | + news 104 weeks, -11.5%, Sharpe -0.45, maxDD -19.3% (long leg +7.6%, short leg -11.5%) | news on random rankings beaten 8/20 | news variant: fail
+- + news, last 3 months: 12 weeks, -0.6%, Sharpe -0.29, maxDD -3.1% (long leg -0.9%, short leg +0.7%)
+ALL DONE
