@@ -1,3 +1,29 @@
 $ show alpaca_ride/state.json
-started 2026-10-28 11:45:08 EDT
-RUNNING...
+started 2026-10-28 11:45:08 EDT, took 0s, exit 0
+
+{
+ "date": "2026-10-28",
+ "done": [
+  "JNJ",
+  "LLY",
+  "KO"
+ ],
+ "open": {
+  "JNJ": {
+   "side": 1,
+   "qty": 3,
+   "entry": 272.32,
+   "stop": 268.71,
+   "stop_id": "3f431948-9a5f-440e-8390-9421c832bd75",
+   "opened": "2026-10-28T11:09:03.075959-04:00"
+  },
+  "KO": {
+   "side": 1,
+   "qty": 9,
+   "entry": 92.24,
+   "stop": 91.38,
+   "stop_id": "39aa1eb1-5fde-4f14-b71d-e22d26098586",
+   "opened": "2026-10-28T11:26:19.092882-04:00"
+  }
+ }
+}
