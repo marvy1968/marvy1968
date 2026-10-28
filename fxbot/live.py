@@ -82,7 +82,11 @@ STRATS.update({"holygrail_h1": {"make": HolyGrail, "gran": "H1", "count": 600, "
                "macd200_h1": {"make": MacdTrend, "gran": "H1", "count": 600, "minutes": 60},
                "insidebar_h1": {"make": InsideBarBreakout, "gran": "H1", "count": 600, "minutes": 60},
                "wvb_d1": {"make": VolatilityBreakout, "gran": "D", "count": 300, "minutes": 1440}})
-TREND_EXPERTS = ["confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"]     # owner's range box (ranging pairs); levels = the
+TREND_EXPERTS = ["confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"]
+# owner 2026-10-28 ("yes, set it up that way"): RANGE experts trade only when the pair has NO trend (no long trend on the daily filter and no
+# hard move today either way) - the mirror of the trend experts - and are not cut by the trend-reversal exit. boxmr_h1 (the one range expert
+# positive over the last 3 months: 19 trades PF 1.43, +4.1R at 2x spread) joins lien_h1 and retest_h1. Undo: drop the names / the list.
+RANGE_EXPERTS = ["lien_h1", "retest_h1", "boxmr_h1"]     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -102,7 +106,7 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # only LOG their signals (paused). lien_h1 stays (12 months PF 2.75, 3 years 0.94 - flat; the owner's 10-year fx-experts backtest PF 1.18) and
           # retest_h1 (the playbook, no live fills yet). UNDO: put the names back in this list (their signals are still logged and graded).
           # owner 2026-10-28: + the trend experts (TREND_EXPERTS, longs and shorts, behind the trend filters). Undo: ["lien_h1", "retest_h1"].
-          "trade": ["lien_h1", "retest_h1", "confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          "trade": ["lien_h1", "retest_h1", "boxmr_h1", "confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
           "risk_by_strategy": {"holygrail_h1": 0.005, "ttm_h1": 0.005, "macd200_h1": 0.005, "insidebar_h1": 0.005, "wvb_d1": 0.005, "hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
@@ -325,11 +329,14 @@ class FxPaper:
             self.daily_cache[key] = int(votes(d)["long_state"].iloc[-1]) if len(d) >= 210 else 0
         return self.daily_cache[key]
 
-    def trend_check(self, inst: str, side: int, m: pd.DataFrame) -> tuple[str, str]:
-        """(mode, block): mode 'swing' (with the long trend) or 'day' (hard move today: closed the same day); block = why not, '' = go."""
+    def trend_check(self, inst: str, side: int, m: pd.DataFrame, name: str = "") -> tuple[str, str]:
+        """(mode, block): mode 'swing' (with the long trend), 'day' (hard move today: closed the same day) or 'range' (a range expert on a
+        pair with no trend); block = why not, '' = go."""
         cfg = self.cfg.get("trend_filters")
         if not cfg:
             return "", ""
+        if name in RANGE_EXPERTS:
+            return self.range_check(inst, m)
         try:
             if cfg.get("long") and self.daily_trend(inst) == side:
                 return "swing", ""
@@ -346,6 +353,20 @@ class FxPaper:
             return "", "trend filter: no data"
         return "", "trend filter: no long trend or hard move today that way"
 
+    def range_check(self, inst: str, m: pd.DataFrame) -> tuple[str, str]:
+        """A range expert may fire only when the pair is NOT trending: no long trend either way and no hard move today either way."""
+        try:
+            if self.daily_trend(inst) != 0:
+                return "", "range expert: the pair is in a long trend"
+            from .strongtrend import daily_of, today_state
+            hourly = len(m) > 2 and (m.index[-1] - m.index[-2]) <= pd.Timedelta(hours=1)
+            if hourly and today_state(m, daily_of(m), True)[-1] != 0:
+                return "", "range expert: hard move today"
+        except Exception as exc:
+            self.journal("error", where="range_check", instrument=inst, error=str(exc)[:300])
+            return "", "range filter: no data"
+        return "range", ""
+
     def mark_mode(self, inst: str, mode: str):
         for g in self.groups.values():
             if g["instrument"] == inst:
@@ -355,7 +376,7 @@ class FxPaper:
     def reversal_exit(self, name: str, inst: str, m: pd.DataFrame):
         """Close our open trade of this strategy / pair once the 1-hour trend has turned against it (at this completed bar)."""
         cfg = self.cfg.get("trend_filters")
-        if not cfg or not cfg.get("reversal"):
+        if not cfg or not cfg.get("reversal") or name in RANGE_EXPERTS:      # range trades fade moves: a trend turn is not their exit
             return
         mine = [gid for gid, g in self.groups.items() if g["strategy"] == name and g["instrument"] == inst]
         if not mine:
@@ -514,7 +535,7 @@ class FxPaper:
             self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last,
                          close=float(m["close"].iloc[-1]), stop_dist=sd, result="paused (signal logged)")
             return
-        mode, block = self.trend_check(inst, side, m)
+        mode, block = self.trend_check(inst, side, m, name)
         if block:
             self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=block)
             return
@@ -633,7 +654,7 @@ class FxPaper:
         if st["side"] * (now_px - st["trig"]) >= 0:          # chase rule: price is already through the trigger
             self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="chase: already through the trigger", **st)
             return
-        mode, block = self.trend_check(inst, st["side"], m)
+        mode, block = self.trend_check(inst, st["side"], m, name)
         if block:
             self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result=block, **st)
             self.save()

@@ -161,7 +161,7 @@ class FxLiveTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
-            self.assertEqual(r.cfg["trade"], ["lien_h1", "retest_h1"] + live.TREND_EXPERTS)   # F0, the plain box and the other in-box experts only log
+            self.assertEqual(r.cfg["trade"], ["lien_h1", "retest_h1", "boxmr_h1"] + live.TREND_EXPERTS)   # F0, the plain box and the other in-box experts only log
             self.assertEqual(r.cfg["risk_by_strategy"]["confirm_h1"], 0.005)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
@@ -584,7 +584,7 @@ class TrendFilterTests(unittest.TestCase):
             self.assertEqual(r.trend_check("EUR_USD", 1, self._m(0.0)), ("", ""))
 
     def _group(self, r, api, side, trend=""):
-        r.groups["g1"] = {"id": "g1", "strategy": "lien_h1", "instrument": "EUR_USD", "side": side, "trades": ["1"], "units": {"1": 1000},
+        r.groups["g1"] = {"id": "g1", "strategy": "holygrail_h1", "instrument": "EUR_USD", "side": side, "trades": ["1"], "units": {"1": 1000},
                           "avg": 1.1, "opened": "2026-10-14T10:00", "tier": 0, "trend": trend}
         api.trades["1"] = {"id": "1", "instrument": "EUR_USD", "currentUnits": str(1000 * side), "unrealizedPL": "0",
                            "clientExtensions": {"id": "x", "tag": TAG}}
@@ -594,9 +594,9 @@ class TrendFilterTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self._group(r, api, 1)
-            r.reversal_exit("lien_h1", "EUR_USD", self._m(+0.0015))      # still trending up: keep the long
+            r.reversal_exit("holygrail_h1", "EUR_USD", self._m(+0.0015))      # still trending up: keep the long
             self.assertIn("g1", r.groups)
-            r.reversal_exit("lien_h1", "EUR_USD", self._m(-0.0015))      # turned down: out
+            r.reversal_exit("holygrail_h1", "EUR_USD", self._m(-0.0015))      # turned down: out
             self.assertNotIn("g1", r.groups)
             self.assertEqual(r.ledger()[-1]["reason"], "trend reversed")
 
@@ -623,3 +623,50 @@ class TrendFilterTests(unittest.TestCase):
         for n in live.TREND_EXPERTS:
             self.assertIn(n, live.CONFIG["trade"])
             self.assertIn(n, live.STRATS)
+
+
+class RangeExpertTests(unittest.TestCase):
+    def _m(self, drift=0.0):
+        from fxbot.data import mid, _to_frame
+        return mid(_to_frame(candles(400, drift=drift)))
+
+    def setUp(self):
+        global TREND_ON
+        TREND_ON = True
+
+    def tearDown(self):
+        global TREND_ON
+        TREND_ON = False
+
+    def test_range_expert_only_without_a_trend(self):
+        import fxbot.strongtrend as stg
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            orig = stg.today_state
+            try:
+                stg.today_state = lambda m, d, fx: np.zeros(len(m), int)
+                r.daily_trend = lambda inst: 0
+                self.assertEqual(r.trend_check("EUR_USD", 1, self._m(), "boxmr_h1"), ("range", ""))
+                self.assertEqual(r.trend_check("EUR_USD", -1, self._m(), "retest_h1"), ("range", ""))
+                r.daily_trend = lambda inst: 1
+                self.assertTrue(r.trend_check("EUR_USD", 1, self._m(), "lien_h1")[1].startswith("range expert: the pair is in a long trend"))
+                self.assertEqual(r.trend_check("EUR_USD", 1, self._m(), "holygrail_h1"), ("swing", ""))      # trend experts unchanged
+                r.daily_trend = lambda inst: 0
+                stg.today_state = lambda m, d, fx: np.r_[np.zeros(len(m) - 1, int), -1]
+                self.assertTrue(r.trend_check("EUR_USD", 1, self._m(), "boxmr_h1")[1].startswith("range expert: hard move"))
+            finally:
+                stg.today_state = orig
+
+    def test_no_reversal_exit_for_range_experts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            r.groups["g1"] = {"id": "g1", "strategy": "boxmr_h1", "instrument": "EUR_USD", "side": 1, "trades": ["1"], "units": {"1": 1000},
+                              "avg": 1.1, "opened": "2026-10-14T10:00", "tier": 0, "trend": "range"}
+            api.trades["1"] = {"id": "1", "instrument": "EUR_USD", "currentUnits": "1000", "unrealizedPL": "0", "clientExtensions": {"id": "x", "tag": TAG}}
+            r.reversal_exit("boxmr_h1", "EUR_USD", self._m(-0.0015))
+            self.assertIn("g1", r.groups)
+
+    def test_lists(self):
+        self.assertEqual(live.RANGE_EXPERTS, ["lien_h1", "retest_h1", "boxmr_h1"])
+        self.assertIn("boxmr_h1", live.CONFIG["trade"])
