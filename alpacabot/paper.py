@@ -110,6 +110,9 @@ class RestBroker:
     def cancel_order(self, order_id: str):
         return self._req("DELETE", f"{TRADE_URL}/orders/{order_id}")
 
+    def order_by_client_id(self, client_order_id: str) -> dict:
+        return self._req("GET", f"{TRADE_URL}/orders:by_client_order_id", params={"client_order_id": client_order_id}).json()
+
     def is_session(self, day) -> bool:
         cal = self._req("GET", f"{TRADE_URL}/calendar", params={"start": day.isoformat(), "end": day.isoformat()}).json()
         return any(c.get("date") == day.isoformat() for c in cal)

@@ -62,7 +62,7 @@ class Broker:
         return o
 
     def order(self, oid):
-        return self.orders[oid]
+        return self.orders.get(oid, {"id": oid, "status": "new"})
 
     def cancel_order(self, oid):
         self.cancelled.append(oid)
@@ -126,6 +126,28 @@ class DayRideTests(unittest.TestCase):
     def test_live_config(self):
         self.assertEqual((dr.RIDE["gross_cap"], dr.RIDE["max_open"], dr.RIDE["risk_pct"]), (0.05, 3, 0.0025))
         self.assertEqual(dr.RIDE["flat_at"], dtime(15, 55))
+
+
+class AdoptTests(unittest.TestCase):
+    def test_lost_ride_is_adopted_with_its_stop(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Broker()
+            b.held = {"ABBV": 2, "AMT": -4, "GONE": 0}
+            b.order_by_client_id = lambda cid: {"id": "stop-" + cid}
+            with open(f"{tmp}/journal.jsonl", "w") as f:
+                for sym, side, qty in (("ABBV", 1, 2), ("AMT", -1, 4), ("GONE", 1, 1), ("DONE", 1, 1)):
+                    f.write(json.dumps({"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": sym, "side": side, "qty": qty,
+                                        "fill": 100.0, "stop": 99.0}) + "\n")
+                f.write(json.dumps({"t": "2026-10-28T11:30:00-04:00", "kind": "close", "symbol": "DONE"}) + "\n")
+            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r.state = {"date": "2026-10-28", "done": [], "open": {}}
+            r.adopt(datetime(2026, 10, 28, 12, 0, tzinfo=ET))
+            self.assertEqual(sorted(r.state["open"]), ["ABBV", "AMT"])
+            self.assertEqual(r.state["open"]["ABBV"]["stop_id"], "stop-rd-s-ABBV-202610281108")
+            self.assertEqual(r.state["open"]["AMT"]["side"], -1)
+            r.step(datetime(2026, 10, 28, 13, 0, 30, tzinfo=ET))                 # Fed day: adopted rides are flattened too
+            self.assertEqual(r.state["open"], {})
 
 
 if __name__ == "__main__":

@@ -38,6 +38,47 @@ class DayRide:
         self.path = self.dir / "state.json"
         self.state = json.loads(self.path.read_text()) if self.path.exists() else {}
         self.last_slot = None
+        self.adopted = False
+
+    def adopt(self, now: datetime):
+        """Rides the journal opened today but the state lost (a restart between the fill and the save): put them back under management,
+        with their broker stop found by its client order id, when Alpaca still holds the position. Once per process."""
+        self.adopted = True
+        p = self.dir / "journal.jsonl"
+        if not p.exists():
+            return
+        day = now.date().isoformat()
+        opened, closed = {}, set()
+        for line in p.read_text().splitlines():
+            try:
+                j = json.loads(line)
+            except ValueError:
+                continue
+            if not str(j.get("t", "")).startswith(day):
+                continue
+            if j.get("kind") == "open":
+                opened[j["symbol"]] = j
+            elif j.get("kind") == "close":
+                closed.add(j["symbol"])
+        self.state.setdefault("open", {})
+        self.state.setdefault("done", [])
+        held = self.b.positions()
+        for sym, j in opened.items():
+            if sym in closed or sym in self.state["open"] or not held.get(sym) or (held[sym] > 0) != (j["side"] == 1):
+                continue
+            tag = datetime.fromisoformat(j["t"]).strftime("%Y%m%d%H%M")
+            stop_id = j.get("stop_id")
+            if not stop_id and hasattr(self.b, "order_by_client_id"):
+                try:
+                    stop_id = (self.b.order_by_client_id(f"rd-s-{sym}-{tag}") or {}).get("id")
+                except Exception as exc:
+                    self.journal("error", now, where="adopt", symbol=sym, error=str(exc)[:200])
+            self.state["open"][sym] = {"side": j["side"], "qty": min(j["qty"], abs(held[sym])), "entry": j["fill"], "stop": j["stop"],
+                                       "stop_id": stop_id, "opened": j["t"]}
+            if sym not in self.state["done"]:
+                self.state["done"].append(sym)
+            self.journal("adopted", now, symbol=sym, stop_id=stop_id)
+        self.save()
 
     def save(self):
         tmp = self.path.with_suffix(".tmp")
@@ -70,6 +111,8 @@ class DayRide:
         day = now.date().isoformat()
         if self.state.get("date") != day:
             self.state = {"date": day, "done": [], "open": self.state.get("open", {})}
+        if not self.adopted:
+            self.adopt(now)
         slot = (now.hour, now.minute // 5)
         if slot == self.last_slot or now.minute % 5 == 0 and now.second < 20:
             return
@@ -157,7 +200,8 @@ class DayRide:
         stop = round(fill - side * sd, 2)
         so = self.b.submit_order(sym, qty, "sell" if side == 1 else "buy", "stop", "day", f"rd-s-{sym}-{tag}", stop_price=stop)
         self.state["open"][sym] = {"side": side, "qty": qty, "entry": fill, "stop": stop, "stop_id": so.get("id"), "opened": now.isoformat()}
-        self.journal("open", now, symbol=sym, side=side, qty=qty, fill=fill, stop=stop)
+        self.journal("open", now, symbol=sym, side=side, qty=qty, fill=fill, stop=stop, stop_id=so.get("id"))
+        self.save()                                           # at once: a restart must not lose a filled ride
 
     def exit(self, sym: str, now: datetime, reason: str):
         pos = self.state["open"].get(sym)
