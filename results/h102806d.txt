@@ -1,3 +1,6 @@
 $ fx-experts-entries stop
-started 2026-10-27 22:33:43 EDT
-RUNNING...
+started 2026-10-27 22:33:43 EDT, took 0s, exit 0
+
+no_new_entries before: False
+no_new_entries after: True
+systems listed: 11, installed: 11
