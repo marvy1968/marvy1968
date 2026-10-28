@@ -11,6 +11,10 @@ trend, its short only in a strong down trend.
 Test: every OANDA expert (live exits: 0.5R cut / 1.25R take-profit; retest_h1 with its own exits) on the 7 majors and the stock swing
 strategies (long only) on their universe, gated vs not, last 14 days (the owner's 2-week test) at 1x and 2x costs; the last 92 days are
 shown as context. Control: the same gate with the daily trend states shuffled in 20-day blocks (same share of strong days), 20 seeds.
+OWNER REFINEMENT (same day, before any run): "if it's a short trend, make it strong. Longer trends can be moderate to mild." -> the AGE-SCALED
+gate: trend age = days in a row the EMA50 has been above (below) the EMA200. Under 60 days (short): the strict votes above. 60+ days (long):
+mild votes, in the long trend's direction only: ADX >= 20 with +DI/-DI agreeing, close > EMA50 > EMA200 (no EMA20, no slope), Aroon-up >= 50
+and above Aroon-down (down: mirror). Still 2 of 3. Both gates are reported; the age-scaled one is the owner's rule.
 A 2-week PASS: gated net R > 0 at 2x costs, better than ungated, beats 18 of 20 shuffled gates, 5+ trades. A pass goes to the 3-month test
 next; nothing goes live on two weeks alone."""
 
@@ -20,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 ADX_MIN, AROON_HI, AROON_LO, NEED = 30.0, 70.0, 30.0, 2
+LONG_AGE, MILD_ADX, MILD_AROON = 60, 20.0, 50.0
 
 
 def _wilder(x: pd.Series, n: int) -> pd.Series:
@@ -49,6 +54,19 @@ def votes(d: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame({"adx": v_adx, "ema": v_ema, "aroon": v_ar}, index=d.index).fillna(0).astype(int)
     ups, dns = (out == 1).sum(axis=1), (out == -1).sum(axis=1)
     out["state"] = np.where(ups >= NEED, 1, np.where(dns >= NEED, -1, 0))
+    # age-scaled (owner): a long-running trend only needs mild readings in its own direction
+    above = (e50 > e200) & e200.notna()
+    below = (e50 < e200) & e200.notna()
+    run_up = above.groupby((~above).cumsum()).cumsum()
+    run_dn = below.groupby((~below).cumsum()).cumsum()
+    out["age"] = np.where(above, run_up, np.where(below, -run_dn, 0)).astype(int)
+    m_adx = np.where(adx >= MILD_ADX, np.sign(pdi - mdi), 0)
+    m_ema = np.where((c > e50) & above, 1, np.where((c < e50) & below, -1, 0))
+    m_ar = np.where((au >= MILD_AROON) & (au > ad), 1, np.where((ad >= MILD_AROON) & (ad > au), -1, 0))
+    mild = pd.DataFrame({"a": m_adx, "e": m_ema, "r": m_ar}, index=d.index).fillna(0).astype(int)
+    lt = np.sign(out["age"]) * (out["age"].abs() >= LONG_AGE)
+    agree = ((mild.to_numpy() == lt.to_numpy()[:, None]) & (lt.to_numpy()[:, None] != 0)).sum(axis=1)
+    out["state_age"] = np.where(lt != 0, np.where(agree >= NEED, lt, 0), out["state"])
     return out
 
 
@@ -156,26 +174,31 @@ def fx_report(by_gran: dict, today: date, seeds: int = 20) -> list[str]:
     now = []
     for inst, df in h1.items():
         v = votes(daily_of(mid(df))).iloc[-2]
-        now.append(f"{inst} {'STRONG UP' if v['state'] == 1 else 'STRONG DOWN' if v['state'] == -1 else 'no'} (adx {v['adx']:+d} ema {v['ema']:+d} aroon {v['aroon']:+d})")
+        w = lambda x: "UP" if x == 1 else "DOWN" if x == -1 else "none"   # noqa: E731
+        now.append(f"{inst} strict {w(v['state'])} / age-scaled {w(v['state_age'])} (trend age {v['age']:+d} d; adx {v['adx']:+d} ema {v['ema']:+d} aroon {v['aroon']:+d})")
     out.append("- trend today (last completed day): " + " | ".join(now))
-    share = np.mean([(votes(daily_of(mid(df)))["state"].iloc[-260:] != 0).mean() for df in h1.values()])
-    out.append(f"- share of days in a strong trend (last 12 months, 7 majors): {share:.0%}")
+    for col in ("state", "state_age"):
+        share = np.mean([(votes(daily_of(mid(df)))[col].iloc[-260:] != 0).mean() for df in h1.values()])
+        out.append(f"- share of days the {col} gate is open (last 12 months, 7 majors): {share:.0%}")
+    lab = {"state": "STRICT", "state_age": "AGE-SCALED (owner)"}
     for name, cfg in STRATS.items():
         bars = by_gran[cfg["gran"]]
+        live = " (LIVE)" if name in ("lien_h1", "retest_h1") else ""
         try:
             p1, p2 = fx_trades(name, bars, a14, today), fx_trades(name, bars, a14, today, 2.0)
-            g1, g2 = fx_trades(name, bars, a14, today, 1.0, None), fx_trades(name, bars, a14, today, 2.0, None)
-            ctrl = [summary(fx_trades(name, bars, a14, today, 2.0, lambda d, s=s: shuffled(votes(d)["state"], s)))["net"] for s in range(seeds)]
-            q_p, q_g = fx_trades(name, bars, a92, today, 2.0), fx_trades(name, bars, a92, today, 2.0, None)
+            q_p = fx_trades(name, bars, a92, today, 2.0)
+            out.append(f"- {name}{live}: 2 weeks plain {fmt(summary(p1))} / 2x {fmt(summary(p2))} | 92 days 2x plain {fmt(summary(q_p))}")
+            for col in ("state", "state_age"):
+                fn = lambda d, c_=col: votes(d)[c_]   # noqa: E731
+                g1, g2 = fx_trades(name, bars, a14, today, 1.0, fn), fx_trades(name, bars, a14, today, 2.0, fn)
+                ctrl = [summary(fx_trades(name, bars, a14, today, 2.0, lambda d, s=s, c_=col: shuffled(votes(d)[c_], s)))["net"] for s in range(seeds)]
+                q_g = fx_trades(name, bars, a92, today, 2.0, fn)
+                sg2 = summary(g2)
+                beat = sum(sg2["net"] > x for x in ctrl)
+                out.append(f"    {lab[col]}: 2 weeks {fmt(summary(g1))} / 2x {fmt(sg2)} | shuffled gates median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
+                           f"92 days 2x {fmt(summary(q_g))} | {verdict(sg2, summary(p2), beat, seeds)}")
         except Exception as exc:
             out.append(f"- {name}: error {type(exc).__name__}: {str(exc)[:120]}")
-            continue
-        sg2 = summary(g2)
-        beat = sum(sg2["net"] > x for x in ctrl)
-        live = " (LIVE)" if name in ("lien_h1", "retest_h1") else ""
-        out.append(f"- {name}{live}: 2 weeks plain {fmt(summary(p1))} / 2x {fmt(summary(p2))} -> GATED {fmt(summary(g1))} / 2x {fmt(sg2)} | "
-                   f"shuffled gates median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | 92 days 2x: plain {fmt(summary(q_p))} -> gated {fmt(summary(q_g))} | "
-                   f"{verdict(sg2, summary(p2), beat, seeds)}")
     return out
 
 
@@ -186,10 +209,11 @@ def stock_report(bars: dict, spy_close, today: date, seeds: int = 20) -> list[st
     from alpacabot import exitlab as xl
     a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
     out = [f"## strong_trend (stocks): swing strategies, long entries only in a strong up trend (2 of 3), own exits; 2-week test {a14}..{today}"]
-    states = {s: votes(d)["state"] for s, d in bars.items() if len(d) > 220}
-    up = sorted(s for s, st in states.items() if st.iloc[-1] == 1)
-    dn = sorted(s for s, st in states.items() if st.iloc[-1] == -1)
-    out.append(f"- strong UP today ({len(up)}): {' '.join(up) or '-'} | strong DOWN ({len(dn)}): {' '.join(dn) or '-'}")
+    vt = {s: votes(d) for s, d in bars.items() if len(d) > 220}
+    for col, lab in (("state", "strict"), ("state_age", "age-scaled")):
+        up = sorted(s for s, v in vt.items() if v[col].iloc[-1] == 1)
+        dn = sorted(s for s, v in vt.items() if v[col].iloc[-1] == -1)
+        out.append(f"- {lab} UP today ({len(up)}): {' '.join(up) or '-'} | DOWN ({len(dn)}): {' '.join(dn) or '-'}")
 
     def trades(name, a, slip, gate):
         rs = []
@@ -204,12 +228,15 @@ def stock_report(bars: dict, spy_close, today: date, seeds: int = 20) -> list[st
         return rs
     for name in xl.STRATEGIES:
         p1, p2 = trades(name, a14, 5.0, None), trades(name, a14, 10.0, None)
-        g1, g2 = trades(name, a14, 5.0, states.get), trades(name, a14, 10.0, states.get)
-        ctrl = [summary(trades(name, a14, 10.0, lambda s_, k=k: shuffled(states[s_], k)))["net"] for k in range(seeds)]
-        sg2 = summary(g2)
-        beat = sum(sg2["net"] > x for x in ctrl)
-        q_p, q_g = trades(name, a92, 10.0, None), trades(name, a92, 10.0, states.get)
-        out.append(f"- {name}: 2 weeks plain {fmt(summary(p1))} / 10 bps {fmt(summary(p2))} -> GATED {fmt(summary(g1))} / 10 bps {fmt(sg2)} | "
-                   f"shuffled gates median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | 92 days 10 bps: plain {fmt(summary(q_p))} -> gated {fmt(summary(q_g))} | "
-                   f"{verdict(sg2, summary(p2), beat, seeds)}")
+        q_p = trades(name, a92, 10.0, None)
+        out.append(f"- {name}: 2 weeks plain {fmt(summary(p1))} / 10 bps {fmt(summary(p2))} | 92 days 10 bps plain {fmt(summary(q_p))}")
+        for col, lab in (("state", "STRICT"), ("state_age", "AGE-SCALED (owner)")):
+            g = lambda s_, c_=col: vt[s_][c_]   # noqa: E731
+            g1, g2 = trades(name, a14, 5.0, g), trades(name, a14, 10.0, g)
+            ctrl = [summary(trades(name, a14, 10.0, lambda s_, k=k, c_=col: shuffled(vt[s_][c_], k)))["net"] for k in range(seeds)]
+            sg2 = summary(g2)
+            beat = sum(sg2["net"] > x for x in ctrl)
+            q_g = trades(name, a92, 10.0, g)
+            out.append(f"    {lab}: 2 weeks {fmt(summary(g1))} / 10 bps {fmt(sg2)} | shuffled gates median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
+                       f"92 days 10 bps {fmt(summary(q_g))} | {verdict(sg2, summary(p2), beat, seeds)}")
     return out

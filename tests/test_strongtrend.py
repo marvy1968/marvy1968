@@ -66,5 +66,18 @@ class GateTests(unittest.TestCase):
         self.assertEqual(st.verdict({"trades": 6, "net": 2.0}, {"net": 3.0}, 19, 20), "fail")
 
 
+class AgeScaledTests(unittest.TestCase):
+    def test_long_trend_accepts_mild_readings(self):
+        v = st.votes(_daily(0.0015, n=500, noise=0.006, seed=5))
+        self.assertGreaterEqual(int(v["age"].iloc[-1]), st.LONG_AGE)
+        self.assertGreaterEqual((v["state_age"].iloc[-100:] == 1).mean(), (v["state"].iloc[-100:] == 1).mean())
+        self.assertFalse((v["state_age"].iloc[-100:] == -1).any())
+
+    def test_short_trend_uses_strict_rule(self):
+        v = st.votes(_daily(0.006))
+        young = v[(v["age"].abs() < st.LONG_AGE)]
+        self.assertTrue((young["state_age"] == young["state"]).all())
+
+
 if __name__ == "__main__":
     unittest.main()
