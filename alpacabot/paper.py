@@ -1265,6 +1265,14 @@ class PaperRunner:
                         self.journal("fed_flatten", result=res)
                 except Exception:
                     log.exception("fed flatten check failed (continuing)")
+                try:                                                # owner 2026-10-28: same-day ride (alpacabot.dayride), paper
+                    from .dayride import RIDE, DayRide
+                    if RIDE:
+                        if getattr(self, "ride", None) is None:
+                            self.ride = DayRide(RestBroker())
+                        self.ride.step(now)
+                except Exception:
+                    log.exception("day ride step failed (continuing)")
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot

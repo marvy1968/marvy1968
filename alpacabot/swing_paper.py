@@ -37,8 +37,9 @@ FUNNEL_RISK, FUNNEL_MAX = 0.005, 3     # owner's Stock Funnel (alpacabot.funnel)
 # owner 2026-10-28 ("a long trend filter for each stock so we can swing trade it"; "if our short-term trend reverses against us, flatten";
 # "prove it in paper money"): SwingRunner.trend_filters. Undo: TREND_FILTERS = None (or a key False).
 # 2026-10-28 2-week test: the long filter cut Top-Down's 92-day loss (-34.7R -> -21.5R) but blocked nearly all oversold entries (+3.3R ->
-# 1 trade); switched OFF until the owner picks. To switch on: {"long": True, "reversal": True}.
-TREND_FILTERS = None
+# 1 trade). Owner 2026-10-28 ("turn on your suggestion for stocks"): long filter on Top-Down entries only ("long": the strategies it gates),
+# reversal exit on every swing position. Undo: TREND_FILTERS = None.
+TREND_FILTERS = {"long": ("topdown",), "reversal": True}
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
@@ -204,10 +205,15 @@ class SwingRunner:
                 cache[sym] = daily_bars(sym, now, self.fetch, days=420)
             return cache[sym]
         kept, blocked = [], []
+        gated = TREND_FILTERS.get("long") or ()
+        gated = ("topdown", "funnel", "oversold", "trend200") if gated is True else gated
         for e in entries:
+            if e.get("strategy", "topdown") not in gated:
+                kept.append(e)
+                continue
             d = bars(e["symbol"])
             ok = len(d) >= 270 and int(votes(d)["long_state"].iloc[-1]) == 1
-            (kept if ok or not TREND_FILTERS.get("long") else blocked).append(e)
+            (kept if ok else blocked).append(e)
         rev = []
         if TREND_FILTERS.get("reversal"):
             for sym, p in held.items():

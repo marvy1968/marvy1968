@@ -36,6 +36,12 @@ class SwingTrendFilterTests(unittest.TestCase):
         self.assertEqual([e["symbol"] for e in entries], ["UP"])
         self.assertEqual(exits, ["DN"])
 
+    def test_live_setting_gates_topdown_only(self):
+        sp.TREND_FILTERS = {"long": ("topdown",), "reversal": True}
+        _, entries = self.r.trend_filters({}, [], [{"symbol": "DN"}, {"symbol": "DN", "strategy": "oversold"}], self.now)
+        self.assertEqual(entries, [{"symbol": "DN", "strategy": "oversold"}])
+        self.assertEqual(self._tf, {"long": ("topdown",), "reversal": True})
+
     def test_off_changes_nothing(self):
         sp.TREND_FILTERS = None
         held = {"DN": {"qty": 5, "entry": 90.0, "side": 1}}
