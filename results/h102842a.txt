@@ -1,3 +1,4 @@
 $ alpaca paper-telegram
-started 2026-10-28 19:06:33 EDT
-RUNNING...
+started 2026-10-28 19:06:33 EDT, took 2s, exit 0
+
+NOT sent (see the log line above)
