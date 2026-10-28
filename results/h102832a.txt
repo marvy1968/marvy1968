@@ -1,3 +1,30 @@
 $ alpaca positions
-started 2026-10-28 11:43:41 EDT
-RUNNING...
+started 2026-10-28 11:43:41 EDT, took 2s, exit 0
+
+equity $51,819.69  cash $15,943.48  long mv $36,587.49  short mv $-711.28
+12 open positions:
+  SPY        long  qty           12  value $  9,256.92  unrealized $    46.80
+  PM         long  qty           36  value $  7,319.70  unrealized $   148.52
+  WMT        long  qty           39  value $  4,628.32  unrealized $    11.51
+  MSFT       long  qty            8  value $  4,221.04  unrealized $   -48.07
+  XOM        long  qty           14  value $  2,562.14  unrealized $    40.46
+  EOG        long  qty           14  value $  2,267.16  unrealized $    35.46
+  COP        long  qty           14  value $  2,103.08  unrealized $    67.68
+  TSLA       long  qty            5  value $  2,009.00  unrealized $   -32.52
+  KO         long  qty            9  value $    829.39  unrealized $    -0.77
+  JNJ        long  qty            3  value $    815.34  unrealized $    -1.62
+  AMT        short qty           -4  value $   -711.28  unrealized $    -3.12
+  ABBV       long  qty            2  value $    575.15  unrealized $    -1.15
+12 open orders:
+  KO         sell 9 stop new  id rd-s-KO-202610281126
+  JNJ        sell 3 stop new  id rd-s-JNJ-202610281109
+  AMT        buy  4 stop new  id rd-s-AMT-202610281108
+  ABBV       sell 2 stop new  id rd-s-ABBV-202610281108
+  TSLA       sell 5 limit new  id sw-o-TSLA-20261028
+  MSFT       sell 8 limit new  id sw-o-MSFT-20261028
+  WMT        sell 39 limit new  id sw-o-WMT-20261028
+  SPY        sell 12 stop new  id sw-s-SPY-20261027
+  PM         sell 36 limit new  id sw-o-PM-20261022
+  COP        sell 14 limit new  id sw-o-COP-20261021
+  EOG        sell 14 limit new  id sw-o-EOG-20261020
+  XOM        sell 14 limit new  id sw-o-XOM-20261020
