@@ -234,6 +234,28 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "reversal_exit":             # owner 2026-10-28: flatten once the short-term trend turns against the trade (fxbot.strongtrend), 2 weeks
+                import datetime as _dt
+                from fxbot import strongtrend as _stg
+                from fxbot.data import MAJORS, load as fx_load
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                fc = Path("state/fx/cache")
+                by = {g: {i: fx_load(i, g, today_ - _dt.timedelta(days=500 if g == "D" else 340), today_, fc) for i in MAJORS} for g in ("H1", "H4", "D")}
+                lines += _stg.fx_reversal_report(by, today_)
+                print("\n".join(lines[first:]), flush=True)
+                first = len(lines)
+                dd, f5 = {}, {}
+                for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=700), today_, cache)
+                        f5[s_] = load(s_, "5Min", today_ - _dt.timedelta(days=40), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                lines += _stg.stock_reversal_report(dd, {s: d for s, d in f5.items() if s in dd}, dd["SPY"]["close"], today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "two_filters":               # owner 2026-10-28: LONG trend filter (swing) + SHORT filter (hard move today, ride it today only), 2 weeks
                 import datetime as _dt
                 from fxbot import strongtrend as _stg

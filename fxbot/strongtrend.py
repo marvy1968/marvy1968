@@ -547,3 +547,219 @@ def stock_filters_report(daily: dict, five: dict, spy_close, today: date, seeds:
     out.append(f"- SHORT filter ride ({len(pre)} stocks): 2 weeks 5 bps {fmt(summary(r1))} ({u} up, {dn_} down) / 10 bps {fmt(s2)} | shuffled days median "
                f"{np.median(rc):+.1f}R, beaten {br}/{seeds} | {'PASS' if ok else 'fail'} | hard-move on the last bar: {' '.join(hard) or '-'}")
     return out
+
+
+# ---- REVERSAL EXIT (owner 2026-10-28: "if our short-term trend reverses against us, we have to immediately flatten those trades") -------------
+# PRE-DECLARED: on the trade's own bars (1-hour / 4-hour forex, 5-minute stock rides, daily swing), the short-term trend has turned AGAINST a
+# long when 2 of 3 readings point down at a bar's close: ADX(14) >= 20 with -DI over +DI; close under EMA20 with EMA20 under EMA50; Aroon(25)
+# down >= 50 and over Aroon-up (shorts: the mirror). The trade is closed at the next bar's open. Tested on every expert as it is and behind
+# both filters, last 2 weeks at 2x costs, against the same exit fired on shuffled days (20 seeds); 92 days shown as context.
+REV_ADX, REV_AROON = 20.0, 50.0
+
+
+def reversal(m: pd.DataFrame) -> np.ndarray:
+    """+1 = short-term trend up, -1 = down, 0 = neither (2 of 3 mild readings), as of each bar's close."""
+    h, l, c = (m[k].astype(float) for k in ("high", "low", "close"))
+    pc = c.shift(1)
+    tr = pd.concat([h - l, (h - pc).abs(), (l - pc).abs()], axis=1).max(axis=1)
+    up, dn = h.diff(), -l.diff()
+    pdm = pd.Series(np.where((up > dn) & (up > 0), up, 0.0), index=m.index)
+    mdm = pd.Series(np.where((dn > up) & (dn > 0), dn, 0.0), index=m.index)
+    atr = _wilder(tr, 14)
+    pdi, mdi = 100 * _wilder(pdm, 14) / atr, 100 * _wilder(mdm, 14) / atr
+    adx = _wilder(100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan), 14)
+    a = np.where(adx >= REV_ADX, np.sign(pdi - mdi), 0)
+    e20, e50 = c.ewm(span=20, adjust=False, min_periods=20).mean(), c.ewm(span=50, adjust=False, min_periods=50).mean()
+    e = np.where((c > e20) & (e20 > e50), 1, np.where((c < e20) & (e20 < e50), -1, 0))
+    n = 25
+    au = 100 * (n - h.rolling(n + 1).apply(lambda x: n - int(np.argmax(x)), raw=True)) / n
+    ad = 100 * (n - l.rolling(n + 1).apply(lambda x: n - int(np.argmin(x)), raw=True)) / n
+    r = np.where((au >= REV_AROON) & (au > ad), 1, np.where((ad >= REV_AROON) & (ad > au), -1, 0))
+    v = np.nan_to_num(np.vstack([a, e, r]).astype(float)).astype(int)
+    return np.where((v == 1).sum(axis=0) >= 2, 1, np.where((v == -1).sum(axis=0) >= 2, -1, 0))
+
+
+class ReversalExit:
+    """Any expert with the reversal exit added to its own exits."""
+
+    def __init__(self, base, rev_fn=None):
+        self.base, self.rev_fn = base, rev_fn or reversal
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + " +revexit"
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        rv = self.rev_fn(m)
+        f["exit_long"] = f["exit_long"].fillna(False).astype(bool).to_numpy() | (rv == -1)
+        f["exit_short"] = f["exit_short"].fillna(False).astype(bool).to_numpy() | (rv == 1)
+        return f
+
+
+def _shuffled_rev(seed):
+    def fn(m):
+        rv = reversal(m)
+        return permute_days(rv, day_keys(m.index, True), seed)
+    return fn
+
+
+def fx_rev_trades(name: str, bars: dict, a: date, b: date, spread: float, filt: str, rev, seed=None) -> list[float]:
+    """filt: plain | both (the two filters); rev: False = own exits, True = + reversal exit; seed = reversal readings from shuffled days."""
+    from .data import mid
+    from .engine import simulate
+    from .exitlab import _spread
+    from .live import STRATS
+    from .strategies import TightStop
+    rf = reversal if seed is None else _shuffled_rev(seed)
+    rs = []
+    for inst, df in bars.items():
+        dfx = _spread(df, spread) if spread != 1.0 else df
+        if name == "retest_h1":
+            from .playbook import PlaybookRules, simulate_playbook
+            m = mid(df)
+            d = daily_of(m)
+            lng = state_on_bars(m, votes(d)["long_state"])
+            td = today_state(m, d, True)
+            ok, last = windows(m.index, True)
+            rv = rf(m)
+            pos = {t: i for i, t in enumerate(df.index)}
+            for t in simulate_playbook(inst, dfx, PlaybookRules(be_at_r=0.0), a, b):
+                side, k = (1 if t["side"] == "long" else -1), pos.get(t["entry"])
+                if k is None:
+                    continue
+                day_only = False
+                if filt == "both":
+                    if lng[k - 1] == side:
+                        pass
+                    elif td[k - 1] == side and ok[k - 1]:
+                        day_only = True
+                    else:
+                        continue
+                j = pos.get(t["exit"], k)
+                cut = [x for x in range(k, j) if (rev and rv[x] == -side) or (day_only and last[x])]
+                if cut and cut[0] + 1 < len(df):
+                    e = cut[0] + 1
+                    px = side * (dfx["bo"].iloc[e] if side == 1 else dfx["ao"].iloc[e])
+                    rs.append((px - t["fill"]) / t["risk"])
+                else:
+                    rs.append(t["r"])
+            continue
+        base = STRATS[name]["make"]
+        if filt == "plain":
+            strats = [base()]
+        elif STRATS[name]["gran"] == "D":
+            strats = [FilterFx(base(), "long")]
+        else:
+            strats = [FilterFx(base(), "long"), FilterFx(base(), "short")]
+        for s_ in strats:
+            st_ = TightStop(ReversalExit(s_, rf) if rev else s_, 0.50, 1.25)
+            rs += [_r_of(t) for t in simulate(inst, dfx, st_) if a <= t.entry_time.date() <= b]
+    return rs
+
+
+def fx_reversal_report(by_gran: dict, today: date, seeds: int = 20) -> list[str]:
+    from .live import STRATS
+    a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
+    out = [f"## reversal_exit (forex): close a trade at the next open once the short-term trend on its own bars turns against it (2 of 3: ADX>={REV_ADX:g} "
+           f"DI against, close/EMA20/EMA50 against, Aroon {REV_AROON:g}+ against); 2-week test {a14}..{today}, 2x spread"]
+    for name, cfg in STRATS.items():
+        bars = by_gran[cfg["gran"]]
+        live = " (LIVE)" if name in ("lien_h1", "retest_h1") else ""
+        try:
+            row, res = [], {}
+            for filt in ("plain", "both"):
+                for rev in (False, True):
+                    res[(filt, rev)] = summary(fx_rev_trades(name, bars, a14, today, 2.0, filt, rev))
+                    row.append(f"{filt}{' +REV' if rev else ''} {fmt(res[(filt, rev)])}")
+            ctrl = [summary(fx_rev_trades(name, bars, a14, today, 2.0, "plain", True, s))["net"] for s in range(seeds)]
+            r_ = res[("plain", True)]
+            beat = sum(r_["net"] > x for x in ctrl)
+            q0, q1 = (summary(fx_rev_trades(name, bars, a92, today, 2.0, "plain", rv)) for rv in (False, True))
+            out.append(f"- {name}{live}: " + " | ".join(row) + f" | REV vs shuffled-day REV: median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
+                       f"92 days: own exits {fmt(q0)} -> +REV {fmt(q1)} | {verdict(r_, res[('plain', False)], beat, seeds)}")
+        except Exception as exc:
+            out.append(f"- {name}: error {type(exc).__name__}: {str(exc)[:120]}")
+    return out
+
+
+def stock_reversal_report(daily: dict, five: dict, spy_close, today: date, seeds: int = 20) -> list[str]:
+    """Swing strategies (daily bars) and the same-day ride (5-minute) with and without the reversal exit."""
+    from alpacabot import exitlab as xl
+    from alpacabot.trendzones import to_bidask
+    a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
+    out = [f"## reversal_exit (stocks): swing strategies on daily bars and the same-day ride on 5-minute bars, + reversal exit; 2 weeks {a14}..{today}, 10 bps"]
+    rv_d = {s: reversal(d) for s, d in daily.items() if len(d) > 220}
+
+    def swing(name, a, rev, seed=None):
+        rs = []
+        for sym, d in daily.items():
+            if sym not in rv_d or (name == "index200") != (sym in ("SPY", "QQQ")):
+                continue
+            sig = xl.signals(name, d, spy_close).copy()
+            if rev:
+                rv = rv_d[sym] if seed is None else shuffled(pd.Series(rv_d[sym]), seed).to_numpy()
+                sig["exit"] = sig["exit"].to_numpy(bool) | (rv == -1)
+            rs += [t["r"] for t in xl.simulate(d, sig, "own", a, today, 10.0)]
+        return rs
+    for name in xl.STRATEGIES:
+        p, r_ = summary(swing(name, a14, False)), summary(swing(name, a14, True))
+        ctrl = [summary(swing(name, a14, True, k))["net"] for k in range(seeds)]
+        beat = sum(r_["net"] > x for x in ctrl)
+        out.append(f"- swing {name}: 2 weeks own exits {fmt(p)} -> +REV {fmt(r_)} | shuffled median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | 92 days "
+                   f"{fmt(summary(swing(name, a92, False)))} -> {fmt(summary(swing(name, a92, True)))} | {verdict(r_, p, beat, seeds)}")
+    pre = {}
+    for sym, m5 in five.items():
+        if sym in daily and len(m5) >= 300:
+            m5 = m5.astype(float)
+            pre[sym] = (m5, today_state(m5, daily[sym], False), daily_atr_on(m5.index, daily[sym], False), reversal(m5), day_keys(m5.index, False))
+
+    def rides(rev, seed=None):
+        rs = []
+        for sym, (m5, td, at, rv, key) in pre.items():
+            ba = to_bidask(m5, 10.0)
+            if rev:
+                r2 = rv if seed is None else permute_days(rv, key, seed)
+                rs += [t["r"] for t in ride_rev(ba, td, at, r2) if a14 <= pd.Timestamp(t["date"]).date() <= today]
+            else:
+                rs += [t["r"] for t in ride(ba, td, at, False) if a14 <= pd.Timestamp(t["date"]).date() <= today]
+        return rs
+    p, r_ = summary(rides(False)), summary(rides(True))
+    ctrl = [summary(rides(True, k))["net"] for k in range(seeds)]
+    beat = sum(r_["net"] > x for x in ctrl)
+    out.append(f"- same-day ride: own exits {fmt(p)} -> +REV {fmt(r_)} | shuffled median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | {verdict(r_, p, beat, seeds)}")
+    return out
+
+
+def ride_rev(df: pd.DataFrame, td: np.ndarray, atr_bar: np.ndarray, rv: np.ndarray) -> list[dict]:
+    """The stock same-day ride, also closed at the next open once the 5-minute trend turns against it."""
+    key = day_keys(df.index, False)
+    ok, last = windows(df.index, False)
+    bo, bh, bl, ao, ah, al = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "ao", "ah", "al"))
+    out, done, n, i = [], set(), len(df), 0
+    while i < n - 1:
+        side = int(td[i])
+        if not side or not ok[i] or key[i] in done or not np.isfinite(atr_bar[i]):
+            i += 1
+            continue
+        done.add(key[i])
+        j = i + 1
+        fill = ao[j] if side == 1 else bo[j]
+        sd = RIDE_STOP_ATR * atr_bar[i]
+        stop = fill - side * sd
+        k, px = j, None
+        while k < n:
+            lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
+            if key[k] != key[i]:
+                px = op
+            elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
+                px = op if side * (op - stop) <= 0 and k > j else stop
+            elif (last[k] or rv[k] == -side) and k + 1 < n:
+                k += 1
+                px = bo[k] if side == 1 else ao[k]
+            if px is not None:
+                break
+            k += 1
+        if px is None:
+            px = bo[n - 1] if side == 1 else ao[n - 1]
+        out.append({"date": key[i], "side": side, "r": side * (px - fill) / sd})
+        i = k
+    return out

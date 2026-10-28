@@ -138,5 +138,32 @@ class TwoFilterTests(unittest.TestCase):
         self.assertFalse(f["short"].any())
 
 
+class ReversalTests(unittest.TestCase):
+    def test_reversal_reads_direction(self):
+        self.assertEqual(st.reversal(_daily(0.006))[-1], 1)
+        self.assertEqual(st.reversal(_daily(-0.006))[-1], -1)
+
+    def test_exit_added_on_reversal(self):
+        class Always:
+            max_bars = 5
+
+            def frame(self, m):
+                return pd.DataFrame({"long": True, "short": True, "exit_long": False, "exit_short": False, "stop": 0.01, "rank": 0.0}, index=m.index)
+        m = _daily(-0.006)
+        f = st.ReversalExit(Always()).frame(m)
+        self.assertTrue(f["exit_long"].iloc[-1])
+        self.assertFalse(f["exit_short"].iloc[-1])
+
+    def test_ride_rev_exits_on_turn(self):
+        idx = pd.date_range("2026-10-27 13:30", periods=78, freq="5min", tz="UTC")
+        px = np.r_[np.linspace(100, 105, 40), np.linspace(105, 104, 38)]
+        df = pd.DataFrame({k: px for k in ("bo", "bh", "bl", "bc", "ao", "ah", "al", "ac")}, index=idx)
+        td, rv = np.zeros(78, int), np.zeros(78, int)
+        td[10], rv[45] = 1, -1
+        tr = st.ride_rev(df, td, np.full(78, 10.0), rv)
+        self.assertEqual(len(tr), 1)
+        self.assertAlmostEqual(tr[0]["r"], (px[46] - px[11]) / 5.0)
+
+
 if __name__ == "__main__":
     unittest.main()
