@@ -70,3 +70,19 @@ class WalkForwardTests(unittest.TestCase):
         t = pd.DatetimeIndex([idx[2] + pd.Timedelta(minutes=30), idx[0] - pd.Timedelta(hours=1)])
         out = cz.z_at(t, z)
         self.assertEqual(list(out.values), [2.0])
+
+
+class FinancingTests(unittest.TestCase):
+    def test_multi_day_holds_pay_financing(self):
+        from fxbot.engine import FIN_PER_NIGHT
+        n = 900
+        idx = pd.date_range(end="2026-10-27 20:00", periods=n, freq="h", tz="UTC")
+        c = 1.1 + 0.00002 * np.arange(n)                                   # slow steady rise: a trend long that is held for days
+        d = {}
+        for s, off in (("b", -0.00002), ("a", 0.00002)):
+            d[s + "o"], d[s + "c"], d[s + "h"], d[s + "l"] = c + off, c + off, c + 0.0002 + off, c - 0.0002 + off
+        df = pd.DataFrame(d, index=idx)
+        tr = cz.trade_group(df, "trend", (0.001, 99.0), (-99.0, -0.001), dt.date(2026, 10, 1), dt.date(2026, 10, 27), "EUR_USD")
+        self.assertTrue(tr)
+        self.assertGreater(tr[0]["nights"], 0)
+        self.assertGreater(FIN_PER_NIGHT, 0)

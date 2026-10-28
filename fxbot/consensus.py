@@ -194,8 +194,10 @@ def group_zones(per_expert: dict) -> dict:
     return out
 
 
-def trade_group(df: pd.DataFrame, mode: str, bz: tuple, sz: tuple, a: date, b: date) -> list[dict]:
-    """mode 'reversion' (buy zone below the sell zone) or 'trend' (buy zone above it). See the block comment."""
+def trade_group(df: pd.DataFrame, mode: str, bz: tuple, sz: tuple, a: date, b: date, pair: str = "") -> list[dict]:
+    """mode 'reversion' (buy zone below the sell zone) or 'trend' (buy zone above it). See the block comment. Financing is charged like the backtest
+    engine (FIN_PER_NIGHT of the notional per 17:00 New York rollover held, Wednesday x3) - multi-day holds pay it (added 2026-10-28, blind-spot review)."""
+    from .engine import FIN_PER_NIGHT, _nights
     m = mid(df)
     zd, datr = zscore_daily(m)
     z, at = zd.to_numpy(float), datr.to_numpy(float)
@@ -239,7 +241,9 @@ def trade_group(df: pd.DataFrame, mode: str, bz: tuple, sz: tuple, a: date, b: d
             if px is not None:
                 break
             k += 1
-        out.append({"date": dates[j], "side": side, "r": side * (px - fill) / sd})
+        kk = min(k, n - 1)
+        nts = _nights(df.index[j], df.index[kk])
+        out.append({"date": dates[j], "side": side, "r": (side * (px - fill) - nts * FIN_PER_NIGHT * fill) / sd, "pair": pair, "nights": nts})
         i = max(k, i + 1)
     return out
 
@@ -261,6 +265,10 @@ def z_at(times: pd.DatetimeIndex, z: pd.Series) -> pd.Series:
 # re-set from the 12 months BEFORE the quarter (each expert's median zd, group averages, +-0.25), then the quarter is traded with them (unseen), at the
 # normal and 2x spread; the same on 1-hour bars shuffled into random order (3 seeds). PASS for a group: over all quarters at 2x spread PF >= 1.15 and
 # 100+ trades, profitable in more than half the quarters, the last 4 quarters profitable together at 2x, and an average R above every placebo seed.
+# Added 2026-10-28 after a blind-spot review, before the run: financing on multi-day holds; and a second control - the PLAIN 20-day-average rule (long
+# while zd > 0, short while zd < 0, same stop and machinery). Shuffled bars have no trend at all, so any trend rule beats them; the trend zones must also
+# beat the plain moving-average rule's average R at 2x, or the experts add nothing. Per-pair and long/short totals are printed (concentration check).
+MA_RULE = ((0.001, 99.0), (-99.0, -0.001))
 def quarters(first: date, today: date) -> list[tuple[date, date]]:
     out, y, q = [], first.year, (first.month - 1) // 3
     while True:

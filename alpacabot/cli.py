@@ -251,6 +251,7 @@ def run_all(a) -> int:
                 shuf = {k: {i: shuffled_bidask(h1[i], k) for i in MAJORS} for k in range(3)}
                 lines += [f"## consensus_daily_wf: rolling walk-forward, zones re-set each quarter from the 12 months before it, {wf_first}..{today}, 7 majors, 1-hour bid/ask"]
                 tot = {g: {"1x": [], "2x": [], "plc": {k: [] for k in range(3)}, "q": []} for g in ("trend", "reversion")}
+                ma2 = []                                 # the plain 20-day-average trend rule, 2x spread (control for the trend zones)
                 for qa, qb in _cz.quarters(wf_first, today):
                     ca, cb = qa - _dt.timedelta(days=365), qa - _dt.timedelta(days=1)
                     sel = lambda s_: [float(v) for t, v in s_.items() if ca <= t.date() <= cb]   # noqa: E731
@@ -263,8 +264,8 @@ def run_all(a) -> int:
                         if not (bz and sz):
                             row.append(f"{grp}: no zones")
                             continue
-                        t1 = [t for i in MAJORS for t in _cz.trade_group(win(h1[i]), grp, bz, sz, qa, qb)]
-                        t2 = [t for i in MAJORS for t in _cz.trade_group(_spread(win(h1[i]), 2.0), grp, bz, sz, qa, qb)]
+                        t1 = [t for i in MAJORS for t in _cz.trade_group(win(h1[i]), grp, bz, sz, qa, qb, i)]
+                        t2 = [t for i in MAJORS for t in _cz.trade_group(_spread(win(h1[i]), 2.0), grp, bz, sz, qa, qb, i)]
                         tot[grp]["1x"] += t1
                         tot[grp]["2x"] += t2
                         tot[grp]["q"].append((qa, sum(t["r"] for t in t2)))
@@ -272,15 +273,24 @@ def run_all(a) -> int:
                             tot[grp]["plc"][k] += [t for i in MAJORS for t in _cz.trade_group(win(shuf[k][i]), grp, bz, sz, qa, qb)]
                         s2 = _cz.summary(t2)
                         row.append(f"{grp} buy {bz[0]:+.2f}..{bz[1]:+.2f} sell {sz[0]:+.2f}..{sz[1]:+.2f}: {s2['trades']}t net {s2['net_r']:+.1f}R at 2x")
+                    mq = [t for i in MAJORS for t in _cz.trade_group(_spread(win(h1[i]), 2.0), "trend", _cz.MA_RULE[0], _cz.MA_RULE[1], qa, qb, i)]
+                    ma2 += mq
+                    row.append(f"plain MA rule {len(mq)}t net {sum(t['r'] for t in mq):+.1f}R at 2x")
                     lines.append(f"- {qa:%Y} Q{(qa.month - 1) // 3 + 1}: " + " | ".join(row))
                 for grp, T in tot.items():
                     s1, s2 = _cz.summary(T["1x"]), _cz.summary(T["2x"])
                     plc = [_cz.summary(v)["avg_r"] for v in T["plc"].values()]
                     qpos = sum(1 for _, r in T["q"] if r > 0)
                     last4 = sum(r for _, r in T["q"][-4:])
-                    ok = (s2["trades"] >= 100 and (s2["pf"] or 0) >= 1.15 and qpos > len(T["q"]) / 2 and last4 > 0 and all(s2["avg_r"] > p for p in plc))
+                    sma2 = _cz.summary(ma2)
+                    ok = (s2["trades"] >= 100 and (s2["pf"] or 0) >= 1.15 and qpos > len(T["q"]) / 2 and last4 > 0 and all(s2["avg_r"] > p for p in plc)
+                          and (grp != "trend" or s2["avg_r"] > sma2["avg_r"]))
                     lines.append(f"### {grp.upper()}: normal spread {_cz.fmt(s1)} | 2x spread {_cz.fmt(s2)} | quarters profitable at 2x {qpos}/{len(T['q'])} | "
                                  f"last 4 quarters {last4:+.1f}R | placebo avg R {', '.join(f'{p:+.3f}' for p in plc)} | {'PASS' if ok else 'reject'}")
+                    lines.append(f"  {grp} at 2x: longs {_cz.fmt(_cz.summary([t for t in T['2x'] if t['side'] == 1]))} | shorts {_cz.fmt(_cz.summary([t for t in T['2x'] if t['side'] == -1]))} | "
+                                 f"avg nights held {np.mean([t['nights'] for t in T['2x']]) if T['2x'] else 0:.1f}")
+                    lines.append(f"  {grp} at 2x by pair: " + " | ".join(f"{i} {sum(t['r'] for t in T['2x'] if t['pair'] == i):+.1f}R ({sum(1 for t in T['2x'] if t['pair'] == i)})" for i in MAJORS))
+                lines.append(f"### CONTROL plain 20-day-average rule (long above / short below, same stop, 2x): {_cz.fmt(_cz.summary(ma2))}")
                 print("\n".join(lines[first:]), flush=True)
                 continue
             if fam == "consensus_daily":           # owner 2026-10-28: separate TREND and REVERSION zones on the daily range (fxbot.consensus block 2)
