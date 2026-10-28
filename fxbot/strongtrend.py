@@ -15,6 +15,17 @@ OWNER REFINEMENT (same day, before any run): "if it's a short trend, make it str
 gate: trend age = days in a row the EMA50 has been above (below) the EMA200. Under 60 days (short): the strict votes above. 60+ days (long):
 mild votes, in the long trend's direction only: ADX >= 20 with +DI/-DI agreeing, close > EMA50 > EMA200 (no EMA20, no slope), Aroon-up >= 50
 and above Aroon-down (down: mirror). Still 2 of 3. Both gates are reported; the age-scaled one is the owner's rule.
+OWNER, SAME DAY ("give me two trend filters ... a long trend filter for each stock so we can swing trade it ... if the dip is great enough
+the short trend filter will pick it up ... trending hard today ... ride it today only"):
+  LONG filter  (swing): the long-trend branch above alone (EMA50 on one side of EMA200 for 60+ days and 2 of 3 mild readings that way).
+  SHORT filter (today only): on the intraday bars (forex 1-hour / 4-hour, stocks 5-minute), 2 of the 3 STRICT indicators computed on those
+               bars agree AND price has moved 0.75+ of the daily ATR14 (completed days) from today's open the same way. A trade it lets
+               through is closed the same day (forex: at 16:00 New York, before the rollover; stocks: 15:55); entries until 15:00. It fires
+               only where the LONG filter does not already allow that side (so it adds the hard counter-trend / young-trend days).
+  BOTH: the two together. Plus a plain RIDE with no expert: enter the next bar after the SHORT filter first turns on that day, stop 0.5
+  daily ATR, out at the day's close (one ride per instrument per day). Control for these: the same filters with the trading days shuffled
+  (each day's readings moved to another day) and the long filter shuffled in 20-day blocks, 20 seeds. News is not in the rule (the news
+  test had too few trades to say anything); today's Fed decision will show up as a hard-move day if it moves the market.
 A 2-week PASS: gated net R > 0 at 2x costs, better than ungated, beats 18 of 20 shuffled gates, 5+ trades. A pass goes to the 3-month test
 next; nothing goes live on two weeks alone."""
 
@@ -67,6 +78,7 @@ def votes(d: pd.DataFrame) -> pd.DataFrame:
     lt = np.sign(out["age"]) * (out["age"].abs() >= LONG_AGE)
     agree = ((mild.to_numpy() == lt.to_numpy()[:, None]) & (lt.to_numpy()[:, None] != 0)).sum(axis=1)
     out["state_age"] = np.where(lt != 0, np.where(agree >= NEED, lt, 0), out["state"])
+    out["long_state"] = np.where(lt != 0, np.where(agree >= NEED, lt, 0), 0)          # the LONG-trend (swing) filter alone
     return out
 
 
@@ -239,4 +251,299 @@ def stock_report(bars: dict, spy_close, today: date, seeds: int = 20) -> list[st
             q_g = trades(name, a92, 10.0, g)
             out.append(f"    {lab}: 2 weeks {fmt(summary(g1))} / 10 bps {fmt(sg2)} | shuffled gates median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
                        f"92 days 10 bps {fmt(summary(q_g))} | {verdict(sg2, summary(p2), beat, seeds)}")
+    return out
+
+
+# ---- the two filters: LONG (swing) and SHORT (today only) ---------------------------------------------------------------------------------
+
+TODAY_MOVE_ATR, RIDE_STOP_ATR = 0.75, 0.5
+
+
+def day_keys(idx: pd.DatetimeIndex, forex: bool) -> np.ndarray:
+    ny = idx.tz_convert("America/New_York")
+    return np.asarray(pd.to_datetime((ny + pd.Timedelta(hours=7)).date if forex else ny.date))
+
+
+def today_state(m: pd.DataFrame, daily: pd.DataFrame, forex: bool) -> np.ndarray:
+    """SHORT filter on every intraday bar (as of its close): +1 hard up today, -1 hard down today, 0 otherwise."""
+    v = votes(m)["state"].to_numpy(int)
+    key = day_keys(m.index, forex)
+    h, l, c = (daily[k].astype(float) for k in ("high", "low", "close"))
+    pc = c.shift(1)
+    atr = pd.concat([h - l, (h - pc).abs(), (l - pc).abs()], axis=1).max(axis=1).rolling(14).mean().shift(1)   # completed days only
+    atr.index = pd.to_datetime([pd.Timestamp(x).tz_convert("America/New_York").date() if pd.Timestamp(x).tzinfo else pd.Timestamp(x).date()
+                                for x in atr.index])
+    a_bar = atr.reindex(key).to_numpy(float)
+    day_open = pd.Series(m["open"].to_numpy(float)).groupby(key).transform("first").to_numpy(float)
+    move = m["close"].to_numpy(float) - day_open
+    out = np.where((v == 1) & (move >= TODAY_MOVE_ATR * a_bar), 1, np.where((v == -1) & (-move >= TODAY_MOVE_ATR * a_bar), -1, 0))
+    return np.where(np.isfinite(a_bar), out, 0).astype(int)
+
+
+def permute_days(st_: np.ndarray, key: np.ndarray, seed: int) -> np.ndarray:
+    """Control: every day's readings moved onto another (random) day."""
+    days, inv = np.unique(key, return_inverse=True)
+    groups = [np.flatnonzero(inv == i) for i in range(len(days))]
+    perm = np.random.default_rng(seed).permutation(len(days))
+    out = np.zeros_like(st_)
+    for i, g in enumerate(groups):
+        src = st_[groups[perm[i]]]
+        k = min(len(g), len(src))
+        out[g[:k]] = src[:k]
+    return out
+
+
+def windows(idx: pd.DatetimeIndex, forex: bool) -> tuple[np.ndarray, np.ndarray]:
+    """(entry allowed on this bar's close, last bar of the day: exit at the next open)."""
+    ny = idx.tz_convert("America/New_York")
+    mins = ny.hour * 60 + ny.minute
+    if forex:
+        return (mins < 15 * 60) | (mins >= 17 * 60), (mins >= 15 * 60) & (mins < 16 * 60)
+    return (mins >= 10 * 60) & (mins < 15 * 60), mins == 15 * 60 + 50
+
+
+class FilterFx:
+    """An expert behind LONG (mode='long': swing, own exits) or SHORT (mode='short': hard move today, out the same day) - forex."""
+
+    def __init__(self, base, mode: str, long_fn=None, today_fn=None):
+        self.base, self.mode = base, mode
+        self.long_fn = long_fn or (lambda d: votes(d)["long_state"])
+        self.today_fn = today_fn or (lambda m, d: today_state(m, d, True))
+        self.max_bars = base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + f" +{mode}filter"
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        d = daily_of(m)
+        lng = state_on_bars(m, self.long_fn(d))
+        lg, sh = f["long"].fillna(False).astype(bool).to_numpy(), f["short"].fillna(False).astype(bool).to_numpy()
+        if self.mode == "long":
+            f["long"], f["short"] = lg & (lng == 1), sh & (lng == -1)
+            return f
+        td = self.today_fn(m, d)
+        ok, last = windows(m.index, True)
+        f["long"], f["short"] = lg & (td == 1) & (lng != 1) & ok, sh & (td == -1) & (lng != -1) & ok
+        f["exit_long"] = f["exit_long"].fillna(False).astype(bool).to_numpy() | last
+        f["exit_short"] = f["exit_short"].fillna(False).astype(bool).to_numpy() | last
+        return f
+
+
+def ride(df: pd.DataFrame, td: np.ndarray, atr_bar: np.ndarray, forex: bool) -> list[dict]:
+    """Plain ride: first SHORT-filter bar of a day -> next open, stop RIDE_STOP_ATR x daily ATR, out at the day's last bar."""
+    key = day_keys(df.index, forex)
+    ok, last = windows(df.index, forex)
+    bo, bh, bl, ao, ah, al = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "ao", "ah", "al"))
+    out, done, n, i = [], set(), len(df), 0
+    while i < n - 1:
+        side = int(td[i])
+        if not side or not ok[i] or key[i] in done or not np.isfinite(atr_bar[i]):
+            i += 1
+            continue
+        done.add(key[i])
+        j = i + 1
+        fill = ao[j] if side == 1 else bo[j]
+        sd = RIDE_STOP_ATR * atr_bar[i]
+        stop = fill - side * sd
+        k, px = j, None
+        while k < n:
+            lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
+            if key[k] != key[i]:
+                px = op
+            elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
+                px = op if side * (op - stop) <= 0 and k > j else stop
+            elif last[k] and k + 1 < n:
+                k += 1
+                px = bo[k] if side == 1 else ao[k]
+            if px is not None:
+                break
+            k += 1
+        if px is None:
+            px = bo[n - 1] if side == 1 else ao[n - 1]
+        out.append({"date": key[i], "side": side, "r": side * (px - fill) / sd})
+        i = k
+    return out
+
+
+def daily_atr_on(idx: pd.DatetimeIndex, daily: pd.DataFrame, forex: bool) -> np.ndarray:
+    h, l, c = (daily[k].astype(float) for k in ("high", "low", "close"))
+    pc = c.shift(1)
+    atr = pd.concat([h - l, (h - pc).abs(), (l - pc).abs()], axis=1).max(axis=1).rolling(14).mean().shift(1)
+    atr.index = pd.to_datetime([pd.Timestamp(x).tz_convert("America/New_York").date() if pd.Timestamp(x).tzinfo else pd.Timestamp(x).date()
+                                for x in atr.index])
+    return atr.reindex(day_keys(idx, forex)).to_numpy(float)
+
+
+def _r_of(t) -> float:
+    from .engine import FIN_PER_NIGHT
+    return t.side * (t.exit_px - t.entry_px) / t.stop_dist - t.nights * FIN_PER_NIGHT * t.entry_px / t.stop_dist
+
+
+def fx_filter_trades(name: str, bars: dict, a: date, b: date, spread: float, mode: str, seed=None) -> list[float]:
+    """mode: plain | long | short | both. seed = the shuffled control (long filter in 20-day blocks, today's readings on other days)."""
+    from .data import mid
+    from .engine import simulate
+    from .exitlab import _spread
+    from .live import STRATS
+    from .strategies import TightStop
+    rs = []
+    for inst, df in bars.items():
+        dfx = _spread(df, spread) if spread != 1.0 else df
+        m = mid(df)
+        lf = (lambda d: votes(d)["long_state"]) if seed is None else (lambda d: shuffled(votes(d)["long_state"], seed))
+        tf = (lambda m_, d_: today_state(m_, d_, True)) if seed is None else \
+            (lambda m_, d_: permute_days(today_state(m_, d_, True), day_keys(m_.index, True), seed))
+        if name == "retest_h1":
+            from .playbook import PlaybookRules, simulate_playbook
+            d = daily_of(m)
+            lng = state_on_bars(m, lf(d))
+            td = tf(m, d)
+            ok, last = windows(m.index, True)
+            pos = {t: i for i, t in enumerate(df.index)}
+            for t in simulate_playbook(inst, dfx, PlaybookRules(be_at_r=0.0), a, b):
+                side, k = (1 if t["side"] == "long" else -1), pos.get(t["entry"])
+                if k is None:
+                    continue
+                if mode == "plain" or (mode in ("long", "both") and lng[k - 1] == side):
+                    rs.append(t["r"])
+                elif mode in ("short", "both") and td[k - 1] == side and lng[k - 1] != side and ok[k - 1]:
+                    j = pos.get(t["exit"], k)
+                    ends = np.flatnonzero(last[k:j + 1])
+                    if len(ends) and k + ends[0] + 1 < len(df):                   # still open at the day's last bar: out at the next open
+                        e = k + ends[0] + 1
+                        px = side * (dfx["bo"].iloc[e] if side == 1 else dfx["ao"].iloc[e])
+                        rs.append((px - t["fill"]) / t["risk"])
+                    else:
+                        rs.append(t["r"])
+            continue
+        if STRATS[name]["gran"] == "D" and mode in ("short", "both"):
+            mode_ = "long" if mode == "both" else None
+            if mode_ is None:
+                continue
+        else:
+            mode_ = mode
+        base = STRATS[name]["make"]
+        runs = {"plain": [TightStop(base(), 0.50, 1.25)], "long": [TightStop(FilterFx(base(), "long", lf), 0.50, 1.25)],
+                "short": [TightStop(FilterFx(base(), "short", lf, tf), 0.50, 1.25)]}
+        runs["both"] = runs["long"] + runs["short"]
+        for strat in runs[mode_]:
+            rs += [_r_of(t) for t in simulate(inst, dfx, strat) if a <= t.entry_time.date() <= b]
+    return rs
+
+
+def fx_ride(h1: dict, a: date, b: date, spread: float, seed=None) -> list[float]:
+    from .data import mid
+    from .exitlab import _spread
+    rs = []
+    for inst, df in h1.items():
+        m = mid(df)
+        d = daily_of(m)
+        td = today_state(m, d, True)
+        if seed is not None:
+            td = permute_days(td, day_keys(m.index, True), seed)
+        dfx = _spread(df, spread) if spread != 1.0 else df
+        rs += [t["r"] for t in ride(dfx, td, daily_atr_on(m.index, d, True), True) if a <= pd.Timestamp(t["date"]).date() <= b]
+    return rs
+
+
+def fx_filters_report(by_gran: dict, today: date, seeds: int = 20) -> list[str]:
+    from .data import mid
+    from .live import STRATS
+    a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
+    out = [f"## two_filters (forex): LONG filter (swing, long trends only) + SHORT filter (hard move today: 2 of 3 strict on the bars and "
+           f"{TODAY_MOVE_ATR:g}+ daily ATR from the open; out by 16:00 New York); 2-week test {a14}..{today}, 2x spread for the verdict"]
+    now = []
+    for inst, df in by_gran["H1"].items():
+        m = mid(df)
+        d = daily_of(m)
+        ls = int(votes(d)["long_state"].iloc[-2])
+        td = today_state(m, d, True)
+        now.append(f"{inst} long {'UP' if ls == 1 else 'DOWN' if ls == -1 else '-'} / today {'HARD UP' if td[-1] == 1 else 'HARD DOWN' if td[-1] == -1 else '-'}")
+    out.append("- now: " + " | ".join(now))
+    r2 = fx_ride(by_gran["H1"], a14, today, 2.0)
+    rc = [summary(fx_ride(by_gran["H1"], a14, today, 2.0, s))["net"] for s in range(seeds)]
+    sr = summary(r2)
+    br = sum(sr["net"] > x for x in rc)
+    ok = sr["trades"] >= 5 and sr["net"] > 0 and br >= round(0.9 * seeds)
+    out.append(f"- plain RIDE (no expert, 7 majors): 2 weeks 1x {fmt(summary(fx_ride(by_gran['H1'], a14, today, 1.0)))} / 2x {fmt(sr)} | shuffled days "
+               f"median {np.median(rc):+.1f}R, beaten {br}/{seeds} | 92 days 2x {fmt(summary(fx_ride(by_gran['H1'], a92, today, 2.0)))} | {'PASS' if ok else 'fail'}")
+    for name, cfg in STRATS.items():
+        bars = by_gran[cfg["gran"]]
+        live = " (LIVE)" if name in ("lien_h1", "retest_h1") else ""
+        try:
+            p2 = summary(fx_filter_trades(name, bars, a14, today, 2.0, "plain"))
+            row = [f"plain {fmt(p2)}"]
+            for mode in ("long", "short", "both"):
+                row.append(f"{mode.upper()} {fmt(summary(fx_filter_trades(name, bars, a14, today, 2.0, mode)))}")
+            b2 = summary(fx_filter_trades(name, bars, a14, today, 2.0, "both"))
+            ctrl = [summary(fx_filter_trades(name, bars, a14, today, 2.0, "both", s))["net"] for s in range(seeds)]
+            beat = sum(b2["net"] > x for x in ctrl)
+            q = summary(fx_filter_trades(name, bars, a92, today, 2.0, "both"))
+            qp = summary(fx_filter_trades(name, bars, a92, today, 2.0, "plain"))
+            out.append(f"- {name}{live} 2 weeks, 2x: " + " | ".join(row) + f" | BOTH vs shuffled: median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
+                       f"92 days 2x plain {fmt(qp)} -> BOTH {fmt(q)} | {verdict(b2, p2, beat, seeds)}")
+        except Exception as exc:
+            out.append(f"- {name}: error {type(exc).__name__}: {str(exc)[:120]}")
+    return out
+
+
+# ---- stocks: LONG filter on the swing book, SHORT filter as a same-day ride on 5-minute bars ---------------------------------------------
+
+def stock_filters_report(daily: dict, five: dict, spy_close, today: date, seeds: int = 20) -> list[str]:
+    """daily = {symbol: daily bars (2+ years)}, five = {symbol: 5-minute bars (last ~2 months)}."""
+    from alpacabot import exitlab as xl
+    from alpacabot.trendzones import to_bidask
+    a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
+    out = [f"## two_filters (stocks): LONG filter on the swing strategies (long entries in long up trends) + SHORT filter ride on 5-minute bars "
+           f"(hard move today, out at 15:55); 2-week test {a14}..{today}, 10 bps a side for the verdict"]
+    vt = {s: votes(d) for s, d in daily.items() if len(d) > 220}
+    up = sorted(s for s, v in vt.items() if v["long_state"].iloc[-1] == 1)
+    dn = sorted(s for s, v in vt.items() if v["long_state"].iloc[-1] == -1)
+    out.append(f"- LONG filter now: up ({len(up)}) {' '.join(up) or '-'} | down ({len(dn)}) {' '.join(dn) or '-'}")
+
+    def swing(name, a, slip, gate):
+        rs = []
+        for sym, d in daily.items():
+            if len(d) < 220 or (name == "index200") != (sym in ("SPY", "QQQ")):
+                continue
+            sig = xl.signals(name, d, spy_close)
+            mask = sig["entry"].to_numpy(bool)
+            if gate is not None:
+                mask = mask & (gate(sym).to_numpy() == 1)
+            rs += [t["r"] for t in xl.simulate(d, sig, "own", a, today, slip, mask)]
+        return rs
+    for name in xl.STRATEGIES:
+        p2 = summary(swing(name, a14, 10.0, None))
+        g = lambda s_: vt[s_]["long_state"]   # noqa: E731
+        g2 = summary(swing(name, a14, 10.0, g))
+        ctrl = [summary(swing(name, a14, 10.0, lambda s_, k=k: shuffled(vt[s_]["long_state"], k)))["net"] for k in range(seeds)]
+        beat = sum(g2["net"] > x for x in ctrl)
+        out.append(f"- swing {name}: 2 weeks plain {fmt(p2)} -> LONG filter {fmt(g2)} | shuffled median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds} | "
+                   f"92 days plain {fmt(summary(swing(name, a92, 10.0, None)))} -> LONG filter {fmt(summary(swing(name, a92, 10.0, g)))} | "
+                   f"{verdict(g2, p2, beat, seeds)}")
+    pre = {}
+    for sym, m5 in five.items():
+        if sym not in daily or len(m5) < 300:
+            continue
+        m5 = m5.astype(float)
+        pre[sym] = (m5, today_state(m5, daily[sym], False), daily_atr_on(m5.index, daily[sym], False), day_keys(m5.index, False))
+
+    def rides(a, half_bps, seed=None):
+        rs, n_up, n_dn = [], 0, 0
+        for sym, (m5, td, at, key) in pre.items():
+            t_ = td if seed is None else permute_days(td, key, seed)
+            for t in ride(to_bidask(m5, half_bps), t_, at, False):
+                if a <= pd.Timestamp(t["date"]).date() <= today:
+                    rs.append(t["r"])
+                    n_up += t["side"] == 1
+                    n_dn += t["side"] == -1
+        return rs, n_up, n_dn
+    r1, u, dn_ = rides(a14, 5.0)
+    r2, _, _ = rides(a14, 10.0)
+    rc = [summary(rides(a14, 10.0, s)[0])["net"] for s in range(seeds)]
+    s2 = summary(r2)
+    br = sum(s2["net"] > x for x in rc)
+    ok = s2["trades"] >= 5 and s2["net"] > 0 and br >= round(0.9 * seeds)
+    hard = sorted(s for s, (m5, td, at, key) in pre.items() if td[-1] != 0)
+    out.append(f"- SHORT filter ride ({len(pre)} stocks): 2 weeks 5 bps {fmt(summary(r1))} ({u} up, {dn_} down) / 10 bps {fmt(s2)} | shuffled days median "
+               f"{np.median(rc):+.1f}R, beaten {br}/{seeds} | {'PASS' if ok else 'fail'} | hard-move on the last bar: {' '.join(hard) or '-'}")
     return out

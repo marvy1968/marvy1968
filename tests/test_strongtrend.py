@@ -79,5 +79,64 @@ class AgeScaledTests(unittest.TestCase):
         self.assertTrue((young["state_age"] == young["state"]).all())
 
 
+def _h1(drift=0.0003, days=420, seed=0):
+    idx = pd.date_range("2024-01-01", periods=24 * days, freq="h", tz="UTC")
+    r = np.random.default_rng(seed)
+    c = 1.1 * np.exp(np.cumsum(np.full(len(idx), drift) + r.normal(0, 0.0004, len(idx))))
+    o = np.r_[c[0], c[:-1]]
+    return pd.DataFrame({"open": o, "high": np.maximum(o, c) * 1.0003, "low": np.minimum(o, c) * 0.9997, "close": c}, index=idx)
+
+
+class TwoFilterTests(unittest.TestCase):
+    def test_today_state_needs_a_big_move(self):
+        m = _h1(0.0003)
+        td = st.today_state(m, st.daily_of(m), True)
+        self.assertTrue((td == 1).any())
+        self.assertFalse((td == -1).any())
+        flat = _h1(0.0, seed=2)
+        self.assertLess((st.today_state(flat, st.daily_of(flat), True) != 0).mean(), (td != 0).mean())
+
+    def test_permute_days_keeps_values(self):
+        m = _h1(0.0003, days=60)
+        td = st.today_state(m, st.daily_of(m), True)
+        key = st.day_keys(m.index, True)
+        p = st.permute_days(td, key, 4)
+        self.assertEqual(len(p), len(td))
+        self.assertLess(abs(int((p != 0).sum()) - int((td != 0).sum())), 0.1 * int((td != 0).sum()))   # partial first / last days truncate
+
+    def test_windows_stocks(self):
+        idx = pd.date_range("2026-10-27 13:30", periods=78, freq="5min", tz="UTC")       # 09:30-15:55 New York
+        ok, last = st.windows(idx, False)
+        ny = idx.tz_convert("America/New_York")
+        self.assertEqual(str(ny[ok][0].time()), "10:00:00")
+        self.assertEqual(str(ny[ok][-1].time()), "14:55:00")
+        self.assertEqual(str(ny[last][0].time()), "15:50:00")
+
+    def test_ride_exits_same_day(self):
+        idx = pd.date_range("2026-10-27 13:30", periods=78 * 2, freq="5min", tz="UTC")
+        idx = idx[(idx.tz_convert("America/New_York").hour < 16)]
+        px = np.linspace(100, 110, len(idx))
+        df = pd.DataFrame({k: px for k in ("bo", "bh", "bl", "bc", "ao", "ah", "al", "ac")}, index=idx)
+        td = np.zeros(len(idx), int)
+        ny = idx.tz_convert("America/New_York")
+        td[(ny.hour == 11) & (ny.minute == 0)] = 1
+        tr = st.ride(df, td, np.full(len(idx), 2.0), False)
+        self.assertEqual(len(tr), 1)
+        self.assertGreater(tr[0]["r"], 0)
+
+    def test_short_filter_exits_by_day_end(self):
+        class Always:
+            max_bars = 500
+
+            def frame(self, m):
+                return pd.DataFrame({"long": True, "short": True, "exit_long": False, "exit_short": False, "stop": 0.01, "rank": 0.0}, index=m.index)
+        m = _h1(0.0003, days=300)
+        f = st.FilterFx(Always(), "short", long_fn=lambda d: pd.Series(0, index=d.index)).frame(m)
+        ny = m.index.tz_convert("America/New_York")
+        self.assertTrue(f["exit_long"][ny.hour == 15].all())
+        self.assertFalse(f["long"][ny.hour == 15].any())
+        self.assertFalse(f["short"].any())
+
+
 if __name__ == "__main__":
     unittest.main()
