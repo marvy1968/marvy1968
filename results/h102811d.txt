@@ -1,3 +1,33 @@
 $ alpaca run-all --phase validate --families consensus_daily_wf
-started 2026-10-28 01:05:56 EDT
-RUNNING...
+started 2026-10-28 01:05:56 EDT, took 292s, exit 0
+
+daily data ready
+## consensus_daily_wf: rolling walk-forward, zones re-set each quarter from the 12 months before it, 2022-01-01..2026-10-28, 7 majors, 1-hour bid/ask
+- 2022 Q1: trend buy +0.13..+0.63 sell -0.66..-0.16: 117t net -25.5R at 2x | reversion buy -1.14..-0.64 sell +0.36..+0.86: 80t net +10.0R at 2x | plain MA rule 245t net -34.1R at 2x
+- 2022 Q2: trend buy +0.08..+0.58 sell -0.64..-0.14: 67t net +25.6R at 2x | reversion buy -1.16..-0.66 sell +0.33..+0.83: 59t net -18.7R at 2x | plain MA rule 123t net +22.3R at 2x
+- 2022 Q3: trend buy +0.07..+0.57 sell -0.76..-0.26: 56t net +3.8R at 2x | reversion buy -1.19..-0.69 sell +0.36..+0.86: 68t net -20.8R at 2x | plain MA rule 112t net +13.7R at 2x
+- 2022 Q4: trend buy +0.07..+0.57 sell -0.88..-0.38: 51t net +7.4R at 2x | reversion buy -1.18..-0.68 sell +0.43..+0.93: 61t net -9.8R at 2x | plain MA rule 172t net -4.1R at 2x
+- 2023 Q1: trend buy +0.22..+0.72 sell -0.71..-0.21: 72t net -7.5R at 2x | reversion buy -1.10..-0.60 sell +0.58..+1.08: 67t net -19.6R at 2x | plain MA rule 163t net -9.6R at 2x
+- 2023 Q2: trend buy +0.12..+0.62 sell -0.80..-0.30: 67t net -10.4R at 2x | reversion buy -1.20..-0.70 sell +0.35..+0.85: 71t net -14.4R at 2x | plain MA rule 179t net -17.8R at 2x
+- 2023 Q3: trend buy +0.24..+0.74 sell -0.62..-0.12: 66t net +8.0R at 2x | reversion buy -1.11..-0.61 sell +0.51..+1.01: 58t net -16.0R at 2x | plain MA rule 189t net -9.9R at 2x
+- 2023 Q4: trend buy +0.27..+0.77 sell -0.60..-0.10: 76t net -11.6R at 2x | reversion buy -0.89..-0.39 sell +0.49..+0.99: 65t net -4.9R at 2x | plain MA rule 182t net -17.8R at 2x
+- 2024 Q1: trend buy +0.21..+0.71 sell -0.64..-0.14: 97t net -21.9R at 2x | reversion buy -0.96..-0.46 sell +0.43..+0.93: 79t net -3.6R at 2x | plain MA rule 222t net -38.8R at 2x
+- 2024 Q2: trend buy +0.26..+0.76 sell -0.54..-0.04: 103t net -26.7R at 2x | reversion buy -0.86..-0.36 sell +0.45..+0.95: 85t net +8.1R at 2x | plain MA rule 198t net -25.3R at 2x
+- 2024 Q3: trend buy +0.20..+0.70 sell -0.53..-0.03: 86t net -4.1R at 2x | reversion buy -1.03..-0.53 sell +0.48..+0.98: 72t net -8.5R at 2x | plain MA rule 165t net -3.4R at 2x
+- 2024 Q4: trend buy +0.26..+0.76 sell -0.48..+0.02: 55t net +26.8R at 2x | reversion buy -1.07..-0.57 sell +0.51..+1.01: 56t net -25.5R at 2x | plain MA rule 112t net +17.0R at 2x
+- 2025 Q1: trend buy +0.25..+0.75 sell -0.68..-0.18: 86t net -26.1R at 2x | reversion buy -1.07..-0.57 sell +0.51..+1.01: 73t net +11.0R at 2x | plain MA rule 196t net -30.9R at 2x
+- 2025 Q2: trend buy +0.29..+0.79 sell -0.72..-0.22: 77t net -15.5R at 2x | reversion buy -1.05..-0.55 sell +0.48..+0.98: 83t net -8.1R at 2x | plain MA rule 192t net -7.1R at 2x
+- 2025 Q3: trend buy +0.29..+0.79 sell -0.73..-0.23: 90t net -34.2R at 2x | reversion buy -1.09..-0.59 sell +0.45..+0.95: 75t net +7.8R at 2x | plain MA rule 268t net -49.6R at 2x
+- 2025 Q4: trend buy +0.25..+0.75 sell -0.63..-0.13: 64t net -2.6R at 2x | reversion buy -1.03..-0.53 sell +0.40..+0.90: 70t net -8.6R at 2x | plain MA rule 176t net -16.9R at 2x
+- 2026 Q1: trend buy +0.26..+0.76 sell -0.49..+0.01: 102t net -2.7R at 2x | reversion buy -0.78..-0.28 sell +0.39..+0.89: 73t net -10.1R at 2x | plain MA rule 176t net -7.2R at 2x
+- 2026 Q2: trend buy +0.27..+0.77 sell -0.51..-0.01: 66t net -1.7R at 2x | reversion buy -1.06..-0.56 sell +0.46..+0.96: 57t net -7.7R at 2x | plain MA rule 141t net -7.3R at 2x
+- 2026 Q3: trend buy +0.28..+0.78 sell -0.55..-0.05: 74t net +5.4R at 2x | reversion buy -0.83..-0.33 sell +0.45..+0.95: 68t net -9.3R at 2x | plain MA rule 170t net -5.6R at 2x
+- 2026 Q4: trend buy +0.35..+0.85 sell -0.60..-0.10: 18t net -2.7R at 2x | reversion buy -1.05..-0.55 sell +0.53..+1.03: 22t net -5.0R at 2x | plain MA rule 46t net -6.2R at 2x
+### TREND: normal spread 1488 trades, win 19%, PF 0.83, net -88.2R, avg -0.059R | 2x spread 1490 trades, win 19%, PF 0.78, net -115.9R, avg -0.078R | quarters profitable at 2x 6/20 | last 4 quarters -1.7R | placebo avg R -0.102, -0.072, -0.128 | reject
+  trend at 2x: longs 743 trades, win 19%, PF 0.80, net -51.9R, avg -0.070R | shorts 747 trades, win 18%, PF 0.77, net -64.0R, avg -0.086R | avg nights held 7.7
+  trend at 2x by pair: EUR_USD -9.4R (212) | GBP_USD -12.6R (207) | AUD_USD -38.8R (254) | NZD_USD -7.8R (182) | USD_JPY +2.1R (200) | USD_CAD -34.8R (229) | USD_CHF -14.6R (206)
+### REVERSION: normal spread 1331 trades, win 53%, PF 0.80, net -129.6R, avg -0.097R | 2x spread 1342 trades, win 53%, PF 0.76, net -153.8R, avg -0.115R | quarters profitable at 2x 4/20 | last 4 quarters -32.0R | placebo avg R -0.035, -0.077, -0.027 | reject
+  reversion at 2x: longs 658 trades, win 54%, PF 0.80, net -61.7R, avg -0.094R | shorts 684 trades, win 52%, PF 0.73, net -92.1R, avg -0.135R | avg nights held 5.8
+  reversion at 2x by pair: EUR_USD -36.7R (196) | GBP_USD -34.1R (188) | AUD_USD -7.2R (202) | NZD_USD -38.0R (191) | USD_JPY -13.5R (180) | USD_CAD -6.1R (201) | USD_CHF -18.1R (184)
+### CONTROL plain 20-day-average rule (long above / short below, same stop, 2x): 3427 trades, win 12%, PF 0.67, net -238.7R, avg -0.070R
+ALL DONE
