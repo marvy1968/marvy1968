@@ -106,3 +106,20 @@ class TrendTpTests(unittest.TestCase):
         tr = cz.trade_trend_tp(df, (0.0, 99.0), (-99.0, -50.0), (150.0, 200.0), (-200.0, -150.0), dt.date(2026, 10, 1), dt.date(2026, 10, 27), "X")
         self.assertTrue(tr)
         self.assertTrue(all(t["side"] == 1 for t in tr))
+
+
+class TrendGroupTests(unittest.TestCase):
+    def test_three_of_four_agreement_levels(self):
+        sig, tps = {}, {}
+        for n, c in (("williams_vol_breakout", 1.0), ("inside_bar_breakout", 1.0), ("raschke_holy_grail", 0.6), ("cog_h4", 0.6),
+                     ("macd_200ema", 0.8), ("carter_ttm_squeeze", 2.5)):
+            sig[n] = (list(np.linspace(c - 0.4, c + 0.4, 40)), list(np.linspace(-c - 0.4, -c + 0.4, 40)))
+            tps[n] = (list(np.linspace(c + 0.6, c + 1.4, 40)), list(np.linspace(-c - 1.4, -c - 0.6, 40)))
+        G = cz.group_bands(sig, tps)
+        L = cz.agreement_levels(G)
+        self.assertIsNotNone(L)
+        self.assertEqual(cz.in_count(0.8, L["buy"]), 3)               # breakout, pullback, momentum agree; volatility (2.5) does not
+        self.assertEqual(cz.in_count(2.5, L["buy"]), 1)
+        band = cz.agree_band(L["buy"])
+        self.assertTrue(band[0] <= 0.8 <= band[1])
+        self.assertIsNone(cz.agreement_levels({g: {"buy": None, "sell": None, "tp_long": None, "tp_short": None} for g in G}))

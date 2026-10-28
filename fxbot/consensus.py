@@ -359,3 +359,104 @@ def trade_trend_tp(df: pd.DataFrame, bz, sz, tpl, tps, a: date, b: date, pair: s
         out.append({"date": dates[j], "side": side, "r": (side * (px - fill) - nts * FIN_PER_NIGHT * fill) / sd, "pair": pair, "why": why, "nights": nts})
         i = max(k, i + 1)
     return out
+
+
+# ------------------------------------------------------------------ 4 complementary trend groups, 3-of-4 agreement (owner 2026-10-28)
+# PRE-DECLARED before any run. The 7 trend experts in 4 complementary groups (different ways to read a trend):
+#   BREAKOUT   williams_vol_breakout, inside_bar_breakout, confirm_h1   (price escapes a range)
+#   PULLBACK   raschke_holy_grail, cog_h4                              (buy the dip inside a trend)
+#   MOMENTUM   macd_200ema                                             (trend direction + momentum turn)
+#   VOLATILITY carter_ttm_squeeze                                      (quiet -> expansion)
+# Each group's zone = [average of its members' 25th percentile, average of their 75th] of the daily zd at: long signals (BUY), short signals (SELL),
+# exits of winning longs (LONG TP), exits of winning shorts (SHORT TP); a member needs 20+ points. (Interquartile bands, not +-0.25: four narrow zones
+# would almost never overlap.) Trade: LONG when a 1-hour close sits inside at least 3 of the 4 groups' BUY zones; TAKE PROFIT once zd has reached
+# at least 3 groups' LONG TP zones (zd >= the 3rd-lowest TP lower edge); OUT EARLY once zd is down in at least 3 groups' SELL zones (zd <= the
+# 3rd-highest sell upper edge); stop 1.5 daily ATR; 20 days at most. Shorts mirror. Calibration 12 months before the test; tests: last 21 days and last
+# 92 days (unseen), 1-hour bid/ask, financing, normal and 2x spread, 3 shuffled-bar seeds.
+TREND_GROUPS = {"breakout": ("williams_vol_breakout", "inside_bar_breakout", "confirm_h1"), "pullback": ("raschke_holy_grail", "cog_h4"),
+                "momentum": ("macd_200ema",), "volatility": ("carter_ttm_squeeze",)}
+AGREE = 3
+
+
+def group_bands(sig: dict, tps: dict) -> dict:
+    """sig / tps: expert -> (long, short) zd lists. Returns group -> {buy, sell, tp_long, tp_short: (lo, hi) or None}."""
+    out = {}
+    for g, members in TREND_GROUPS.items():
+        r = {}
+        for key, src, k in (("buy", sig, 0), ("sell", sig, 1), ("tp_long", tps, 0), ("tp_short", tps, 1)):
+            qs = [(np.percentile(src[n][k], 25), np.percentile(src[n][k], 75)) for n in members if n in src and len(src[n][k]) >= MIN_SIGNALS]
+            r[key] = (float(np.mean([q[0] for q in qs])), float(np.mean([q[1] for q in qs]))) if qs else None
+        out[g] = r
+    return out
+
+
+def agreement_levels(G: dict) -> dict | None:
+    """Thresholds for the 3-of-4 rule; None when fewer than AGREE groups have every zone."""
+    ok = [r for r in G.values() if all(r.values())]
+    if len(ok) < AGREE:
+        return None
+    k = AGREE
+    return {"buy": [r["buy"] for r in ok], "sell": [r["sell"] for r in ok],
+            "tp_long_at": sorted(r["tp_long"][0] for r in ok)[k - 1], "tp_short_at": sorted((r["tp_short"][1] for r in ok), reverse=True)[k - 1],
+            "bail_long_at": sorted((r["sell"][1] for r in ok), reverse=True)[k - 1], "bail_short_at": sorted(r["buy"][0] for r in ok)[k - 1]}
+
+
+def in_count(z: float, bands: list) -> int:
+    return sum(1 for lo, hi in bands if lo <= z <= hi)
+
+
+def agree_band(bands: list, lo=-4.0, hi=4.0, step=0.01) -> tuple | None:
+    """The zd range where at least AGREE bands overlap (for reporting today's zone in price)."""
+    xs = [x for x in np.arange(lo, hi, step) if in_count(x, bands) >= AGREE]
+    return (min(xs), max(xs)) if xs else None
+
+
+def trade_agree(df: pd.DataFrame, L: dict, a: date, b: date, pair: str = "") -> list[dict]:
+    from .engine import FIN_PER_NIGHT, _nights
+    m = mid(df)
+    zd, datr = zscore_daily(m)
+    z, at = zd.to_numpy(float), datr.to_numpy(float)
+    c = m["close"].to_numpy(float)
+    bo, bh, bl, ao, ah, al = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "ao", "ah", "al"))
+    dates = np.asarray(df.index.date)
+    out, i, n = [], 0, len(df)
+    while i < n - 1:
+        if not (a <= dates[i] <= b) or not np.isfinite(z[i]) or not np.isfinite(at[i]):
+            i += 1
+            continue
+        nb, ns = in_count(z[i], L["buy"]), in_count(z[i], L["sell"])
+        side = 1 if nb >= AGREE and nb > ns else -1 if ns >= AGREE and ns > nb else 0
+        if not side:
+            i += 1
+            continue
+        j = i + 1
+        fill = ao[j] if side == 1 else bo[j]
+        sd = DAILY_STOP_ATR * at[i]
+        stop = fill - side * sd
+        k, px, why = j, None, ""
+        while k < n:
+            lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
+            zk = z[k]
+            tp_hit = np.isfinite(zk) and ((side == 1 and zk >= L["tp_long_at"]) or (side == -1 and zk <= L["tp_short_at"]))
+            bail = np.isfinite(zk) and ((side == 1 and zk <= L["bail_long_at"]) or (side == -1 and zk >= L["bail_short_at"]))
+            if k > j and side * (op - stop) <= 0:
+                px, why = op, "stop"
+            elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
+                px, why = stop, "stop"
+            elif tp_hit or bail or k - j + 1 >= DAILY_MAX_BARS:
+                why = "tp" if tp_hit else "sell zone" if bail else "time"
+                if k + 1 < n:
+                    k += 1
+                    px = bo[k] if side == 1 else ao[k]
+                else:
+                    px = c[k]
+            elif k == n - 1:
+                px, why = c[k], "end"
+            if px is not None:
+                break
+            k += 1
+        kk = min(k, n - 1)
+        nts = _nights(df.index[j], df.index[kk])
+        out.append({"date": dates[j], "side": side, "r": (side * (px - fill) - nts * FIN_PER_NIGHT * fill) / sd, "pair": pair, "why": why})
+        i = max(k, i + 1)
+    return out

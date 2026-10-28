@@ -234,6 +234,69 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trend_groups":              # owner 2026-10-28: 4 complementary trend groups, 3 of 4 must agree on buy / sell / TP (fxbot.consensus)
+                import datetime as _dt
+                import numpy as np
+                import pandas as pd
+                from fxbot import consensus as _cz
+                from fxbot.data import MAJORS, load as fx_load, mid as fx_mid
+                from fxbot.exitlab import _spread
+                from fxbot.fxexp_check import shuffled_bidask
+                today = _dt.date.today()
+                t3a = today - _dt.timedelta(days=92)
+                ca, cb = t3a - _dt.timedelta(days=365), t3a - _dt.timedelta(days=1)
+                cache_ = Path("state/fx/cache")
+                gmin = {"H1": 60, "H4": 240, "D": 1440}
+                h1 = {i: fx_load(i, "H1", ca - _dt.timedelta(days=60), today, cache_) for i in MAJORS}
+                bars = {g: {i: (h1[i] if g == "H1" else fx_load(i, g, ca - _dt.timedelta(days=300 if g == "D" else 60), today, cache_)) for i in MAJORS} for g in ("H1", "H4", "D")}
+                zd = {i: _cz.zscore_daily(fx_mid(d))[0] for i, d in h1.items()}
+                members = {n for ms in _cz.TREND_GROUPS.values() for n in ms}
+                sig, tps = {}, {}
+                for name, (make, g) in _cz.experts().items():
+                    if name not in members:
+                        continue
+                    lz, sz_, tl, ts = [], [], [], []
+                    for i in MAJORS:
+                        try:
+                            a_, b_ = _cz.signal_z(make, bars[g][i], zd[i], ca, cb, gmin[g])
+                            c_, d_ = _cz.tp_zd(make, bars[g][i], zd[i], ca, cb)
+                        except Exception as exc:
+                            print(f"skip {name} {i}: {exc}", flush=True)
+                            continue
+                        lz += a_; sz_ += b_; tl += c_; ts += d_
+                    sig[name], tps[name] = (lz, sz_), (tl, ts)
+                G = _cz.group_bands(sig, tps)
+                L = _cz.agreement_levels(G)
+                lines += [f"## trend_groups: 4 complementary trend groups, {_cz.AGREE} of 4 must agree, calibrated {ca}..{cb} (daily zd, interquartile bands)"]
+                fb = lambda r: "n/a" if r is None else f"{r[0]:+.2f}..{r[1]:+.2f}"   # noqa: E731
+                for g, r in G.items():
+                    lines.append(f"- {g.upper()} ({', '.join(_cz.TREND_GROUPS[g])}): buy {fb(r['buy'])} | sell {fb(r['sell'])} | long TP {fb(r['tp_long'])} | short TP {fb(r['tp_short'])}")
+                if L is None:
+                    lines.append("- fewer than 3 groups have every zone: no test")
+                else:
+                    bb, sb = _cz.agree_band(L["buy"]), _cz.agree_band(L["sell"])
+                    lines.append(f"- 3-of-4 BUY band {fb(bb)} | 3-of-4 SELL band {fb(sb)} | take profit long at zd >= {L['tp_long_at']:+.2f}, short at <= {L['tp_short_at']:+.2f} | "
+                                 f"out early long at <= {L['bail_long_at']:+.2f}, short at >= {L['bail_short_at']:+.2f}")
+                    lines.append("### Today's agreed zones in price (20-day average + zd x daily ATR14)")
+                    for i in MAJORS:
+                        d = _cz.daily_from_h1(fx_mid(h1[i]))
+                        pc = d["close"].shift(1)
+                        atr = float(pd.concat([d["high"] - d["low"], (d["high"] - pc).abs(), (d["low"] - pc).abs()], axis=1).max(axis=1).rolling(14).mean().iloc[-2])
+                        ma = float(d["close"].rolling(20).mean().iloc[-2])
+                        p_ = lambda v: f"{ma + v * atr:.5g}"   # noqa: E731
+                        lines.append(f"- {i}: last {float(fx_mid(h1[i])['close'].iloc[-1]):.5g} | BUY {p_(bb[0]) + '-' + p_(bb[1]) if bb else 'n/a'} TP {p_(L['tp_long_at'])} "
+                                     f"out {p_(L['bail_long_at'])} | SELL {p_(sb[0]) + '-' + p_(sb[1]) if sb else 'n/a'} TP {p_(L['tp_short_at'])} out {p_(L['bail_short_at'])}")
+                    for label, a in (("last 21 days", today - _dt.timedelta(days=21)), ("last 92 days", t3a)):
+                        lines.append(f"### {label} ({a}..{today}), 7 majors, 1-hour bid/ask, financing")
+                        for sm in (1.0, 2.0):
+                            tr = [t for i in MAJORS for t in _cz.trade_agree(_spread(h1[i], sm), L, a, today, i)]
+                            why = {w: sum(1 for t in tr if t["why"] == w) for w in ("tp", "sell zone", "stop", "time", "end")}
+                            lines.append(f"- spread x{sm:g}: all {_cz.fmt(_cz.summary(tr))} | longs {_cz.fmt(_cz.summary([t for t in tr if t['side'] == 1]))} | "
+                                         f"shorts {_cz.fmt(_cz.summary([t for t in tr if t['side'] == -1]))} | exits {why}")
+                        plc = [_cz.summary([t for i in MAJORS for t in _cz.trade_agree(shuffled_bidask(h1[i], k), L, a, today, i)]) for k in range(3)]
+                        lines.append("  placebo (shuffled bars, 3 seeds): " + " | ".join(f"{p['trades']}t avg {p['avg_r']:+.3f}R net {p['net_r']:+.1f}R" for p in plc))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trend_tp_zones":            # owner 2026-10-28: trend experts' buy / sell / take-profit zones, 3-week test (fxbot.consensus)
                 import datetime as _dt
                 import numpy as np
