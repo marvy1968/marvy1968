@@ -20,11 +20,22 @@ class TradeTelegramTests(unittest.TestCase):
             self.assertEqual(kw["json"]["chat_id"], "-100777")
             self.assertTrue(kw["json"]["text"].startswith("ALPACA PAPER\nhello"))
 
-    def test_no_trade_chat_means_nothing_sent_and_no_fallback(self):
+    def test_falls_back_to_telegram_settings_never_the_mirror(self):
         with tempfile.TemporaryDirectory() as d:
             env = Path(d) / ".env"
-            env.write_text("TELEGRAM_BOT_TOKEN=betting\nTELEGRAM_CHAT_ID=1\nMIRROR_BOT_TOKEN=m\nMIRROR_CHAT_ID=edge\n")
-            clean = {k: v for k, v in os.environ.items() if not k.startswith("TRADE_TG")}
+            env.write_text("TELEGRAM_BOT_TOKEN=master\nTELEGRAM_CHAT_ID=42\nMIRROR_BOT_TOKEN=m\nMIRROR_CHAT_ID=edge\n")
+            clean = {k: v for k, v in os.environ.items() if not k.startswith(("TRADE_TG", "TELEGRAM_"))}
+            with mock.patch.dict(os.environ, {**clean, "MARV_ENV": str(env)}, clear=True), mock.patch.object(paper.requests, "post") as post:
+                post.return_value.status_code = 200
+                self.assertTrue(paper.send_telegram("hello"))
+            self.assertEqual(post.call_args.args[0], "https://api.telegram.org/botmaster/sendMessage")
+            self.assertEqual(post.call_args.kwargs["json"]["chat_id"], "42")
+
+    def test_only_mirror_settings_means_nothing_sent(self):
+        with tempfile.TemporaryDirectory() as d:
+            env = Path(d) / ".env"
+            env.write_text("MIRROR_BOT_TOKEN=m\nMIRROR_CHAT_ID=edge\n")
+            clean = {k: v for k, v in os.environ.items() if not k.startswith(("TRADE_TG", "TELEGRAM_"))}
             with mock.patch.dict(os.environ, {**clean, "MARV_ENV": str(env)}, clear=True), mock.patch.object(paper.requests, "post") as post:
                 self.assertFalse(paper.send_telegram("hello"))
             post.assert_not_called()

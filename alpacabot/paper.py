@@ -1565,8 +1565,8 @@ def report_card(state_dir, day=None) -> str:
 
 def send_telegram(text: str) -> bool:
     """Owner 2026-10-28: trading alerts go to the "Marv master trade" Telegram chat and NEVER to the Marv edge / March_edge chat (the betting
-    bot's mirror). Settings in /opt/marv-bot/.env: TRADE_TG_TOKEN (that chat's bot token) and TRADE_TG_CHAT_ID. Without both, nothing is
-    sent (logged) - there is no fallback to the betting chats. True when Telegram accepted the message."""
+    bot's mirror). Settings in /opt/marv-bot/.env: TRADE_TG_TOKEN / TRADE_TG_CHAT_ID if set, else TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID (the
+    owner: "the tokens are in .env, use those"). Never the MIRROR_* (March_edge) settings. True when Telegram accepted the message."""
     import os
     tok, chat = _trade_tg_settings()
     if not tok or not chat:
@@ -1597,8 +1597,11 @@ def _trade_tg_settings() -> tuple[str, str]:
                 vals.setdefault(k.strip(), v.split(" #")[0].strip().strip('"').strip("'"))
     except OSError:
         pass
-    return (vals.get("TRADE_TG_TOKEN") or os.environ.get("TRADE_TG_TOKEN", ""),
-            vals.get("TRADE_TG_CHAT_ID") or os.environ.get("TRADE_TG_CHAT_ID", ""))
+    def get(k):
+        return vals.get(k) or os.environ.get(k, "")
+    if get("TRADE_TG_TOKEN") and get("TRADE_TG_CHAT_ID"):
+        return get("TRADE_TG_TOKEN"), get("TRADE_TG_CHAT_ID")
+    return get("TELEGRAM_BOT_TOKEN"), get("TELEGRAM_CHAT_ID")      # owner 2026-10-28: "the tokens are in .env, use those" (Master_trade_bot)
 
 
 def report(state_dir="state/alpaca_paper") -> str:

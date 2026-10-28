@@ -2151,7 +2151,7 @@ def main(argv=None) -> int:
         from .paper import _trade_tg_settings, send_telegram
         _lg.basicConfig(level=_lg.WARNING, format="%(levelname)s %(message)s")
         tok, chat = _trade_tg_settings()
-        print(f"TRADE_TG_TOKEN set: {'yes' if tok else 'NO'} | TRADE_TG_CHAT_ID set: {'yes' if chat else 'NO'}")   # never the values
+        print(f"bot token found: {'yes' if tok else 'NO'} | chat id found: {'yes' if chat else 'NO'}")   # never the values
         card = Path(a.state) / "report_card.txt"
         print("sent" if send_telegram(card.read_text() if card.exists() else "Alpaca paper bot: Telegram test") else "NOT sent (see the log line above)")
         return 0
