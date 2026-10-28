@@ -1,3 +1,7 @@
 $ show alpaca_ride/journal.jsonl
-started 2026-10-28 11:43:48 EDT
-RUNNING...
+started 2026-10-28 11:43:48 EDT, took 0s, exit 0
+
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "ABBV", "side": 1, "qty": 2, "fill": 288.15, "stop": 284.77}
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "AMT", "side": -1, "qty": 4, "fill": 177.04, "stop": 180.37}
+{"t": "2026-10-28T11:09:03-04:00", "kind": "open", "symbol": "JNJ", "side": 1, "qty": 3, "fill": 272.32, "stop": 268.71}
+{"t": "2026-10-28T11:26:19-04:00", "kind": "open", "symbol": "KO", "side": 1, "qty": 9, "fill": 92.24, "stop": 91.38}
