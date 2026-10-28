@@ -1,3 +1,43 @@
 $ alpaca run-all --phase validate --families consensus_zones
-started 2026-10-27 22:33:49 EDT
-RUNNING...
+started 2026-10-27 22:33:49 EDT, took 31s, exit 0
+
+daily data ready
+## consensus_zones: calibrated 2025-10-13..2026-10-12, retest 2026-10-13..2026-10-27 (1-hour z = (close - 20h avg) / ATR14; fxbot.consensus)
+### Each expert: where it buys / sells (z: 25th pct / median / 75th pct, signals)
+- lien_h1 [reversion/range]: buys too few (7)
+- f0_h4 [reversion/range]: buys -0.78 / +0.14 / +0.69 (83)
+- box_h1 [reversion/range]: buys -2.05 / -1.27 / -0.51 (409)
+- hybrid_h1 [reversion/range]: buys -0.91 / -0.26 / +0.66 (42)
+- confirm_h1 [TREND]: buys too few (6)
+- boxmr_h1 [reversion/range]: buys -2.18 / -1.34 / -0.64 (65)
+- boxcons_h1 [reversion/range]: buys -2.69 / -2.24 / -1.73 (174)
+- boxf0_h4 [reversion/range]: buys too few (1)
+- conf_d1 [reversion/range]: buys -1.48 / -0.80 / -0.05 (35)
+- conf_h4 [reversion/range]: buys -3.54 / -2.32 / -1.40 (256)
+- cog_h4 [TREND]: buys -0.10 / +0.45 / +0.97 (192) | sells -1.10 / -0.48 / +0.02 (208)
+- raschke_holy_grail [TREND]: buys +0.46 / +1.18 / +1.87 (668) | sells -1.94 / -1.02 / -0.28 (679)
+- raschke_turtle_soup [reversion/range]: buys -1.70 / -1.14 / -0.54 (749)
+- connors_rsi2 [reversion/range]: buys -1.77 / -0.96 / -0.19 (2095)
+- carter_ttm_squeeze [TREND]: buys +0.89 / +1.51 / +2.19 (391) | sells -2.11 / -1.42 / -0.90 (366)
+- macd_200ema [TREND]: buys -0.18 / +0.27 / +0.68 (362) | sells -0.72 / -0.20 / +0.25 (297)
+- williams_vol_breakout [TREND]: buys +1.00 / +1.58 / +2.26 (335) | sells -2.31 / -1.53 / -0.94 (289)
+- floor_pivot_bounce [reversion/range]: buys -1.89 / -1.10 / -0.27 (811)
+- lien_double_bollinger [reversion/range]: buys -0.02 / +0.39 / +0.84 (2590)
+- inside_bar_breakout [TREND]: buys -0.15 / +0.69 / +1.61 (953) | sells -1.65 / -0.65 / +0.24 (1002)
+- OPTIMAL BUY ZONE (avg of 17 experts): z -0.56 to -0.06
+- OPTIMAL SELL ZONE, trending experts (avg of 6): z -1.13 to -0.63
+- variant B sell zone, all experts (avg of 17): z +0.10 to +0.60
+### Today's zones in price (20-hour average + z x ATR14 on the last 1-hour bar)
+- EUR_USD: last 1.1127 | buy zone 1.114 - 1.1144 | sell zone (trend) 1.1135 - 1.1139 | sell zone (all) 1.1145 - 1.115
+- GBP_USD: last 1.3306 | buy zone 1.3312 - 1.3318 | sell zone (trend) 1.3306 - 1.3311 | sell zone (all) 1.3319 - 1.3325
+- AUD_USD: last 0.70301 | buy zone 0.7024 - 0.70273 | sell zone (trend) 0.70202 - 0.70235 | sell zone (all) 0.70284 - 0.70317
+- NZD_USD: last 0.56797 | buy zone 0.56868 - 0.56903 | sell zone (trend) 0.56829 - 0.56863 | sell zone (all) 0.56914 - 0.56948
+- USD_JPY: last 157.99 | buy zone 157.77 - 157.83 | sell zone (trend) 157.7 - 157.76 | sell zone (all) 157.85 - 157.91
+- USD_CAD: last 1.4051 | buy zone 1.403 - 1.4034 | sell zone (trend) 1.4025 - 1.4029 | sell zone (all) 1.4035 - 1.4039
+- USD_CHF: last 0.82896 | buy zone 0.82815 - 0.8285 | sell zone (trend) 0.82775 - 0.8281 | sell zone (all) 0.82861 - 0.82896
+### Retest, last 14 days (2026-10-13..2026-10-27), 7 majors, 1-hour bid/ask, stop 1.5 ATR, max 48 bars
+- A: buy zone -> trend sell zone: the sell zone (-1.13..-0.63) is not above the buy zone (-0.56..-0.06): nothing to sell into, no trades
+- B: buy zone -> all-expert sell zone | spread x1: all 182 trades, win 59%, PF 0.69, net -21.4R, avg -0.118R | longs 85 trades, win 56%, PF 0.56, net -14.6R, avg -0.172R | shorts 97 trades, win 62%, PF 0.80, net -6.8R, avg -0.070R
+- B: buy zone -> all-expert sell zone | spread x2: all 192 trades, win 46%, PF 0.34, net -59.3R, avg -0.309R | longs 92 trades, win 46%, PF 0.32, net -29.1R, avg -0.317R | shorts 100 trades, win 47%, PF 0.35, net -30.2R, avg -0.302R
+  placebo (bars shuffled, 3 seeds): avg R -0.165, -0.046, -0.127
+ALL DONE
