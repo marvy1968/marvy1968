@@ -220,6 +220,76 @@ def run_all(a) -> int:
                 lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "consensus_zones":           # owner 2026-10-28: average where all experts buy / trending experts sell, retest 2 weeks (fxbot.consensus)
+                import datetime as _dt
+                import numpy as _np
+                import pandas as pd
+                from fxbot import consensus as _cz
+                from fxbot.data import MAJORS, load as fx_load, mid as fx_mid
+                from fxbot.fxexp_check import shuffled_bidask
+                today = _dt.date.today()
+                w = _cz.windows(today)
+                (ca, cb), (ta, tb) = w["calibrate"], w["test"]
+                cache_ = Path("state/fx/cache")
+                warm = {"H1": 40, "H4": 120, "D": 400}
+                gmin = {"H1": 60, "H4": 240, "D": 1440}
+                h1 = {i: fx_load(i, "H1", ca - _dt.timedelta(days=40), today, cache_) for i in MAJORS}
+                z1 = {i: _cz.zscore(fx_mid(d)) for i, d in h1.items()}
+                bars = {g: {i: (h1[i] if g == "H1" else fx_load(i, g, ca - _dt.timedelta(days=warm[g]), today, cache_)) for i in MAJORS} for g in ("H1", "H4", "D")}
+                per = {}
+                for name, (make, g) in _cz.experts().items():
+                    lz, sz_ = [], []
+                    for i in MAJORS:
+                        try:
+                            a_, b_ = _cz.signal_z(make, bars[g][i], z1[i], ca, cb, gmin[g])
+                        except Exception as exc:
+                            print(f"skip {name} {i}: {exc}", flush=True)
+                            continue
+                        lz += a_
+                        sz_ += b_
+                    per[name] = (lz, sz_)
+                Z = _cz.zones(per)
+                lines += [f"## consensus_zones: calibrated {ca}..{cb}, retest {ta}..{tb} (1-hour z = (close - 20h avg) / ATR14; fxbot.consensus)"]
+                lines += ["### Each expert: where it buys / sells (z: 25th pct / median / 75th pct, signals)"]
+                for name, r in Z["experts"].items():
+                    b = r.get("buy")
+                    s_ = r.get("sell")
+                    tag = "TREND" if name in _cz.TRENDING else "reversion/range"
+                    lines.append(f"- {name} [{tag}]: buys " + (f"{b[0]:+.2f} / {b[1]:+.2f} / {b[2]:+.2f} ({b[3]})" if b else f"too few ({len(per[name][0])})")
+                                 + (f" | sells {s_[0]:+.2f} / {s_[1]:+.2f} / {s_[2]:+.2f} ({s_[3]})" if s_ else ""))
+                bz, sz, sza = Z["buy_zone"], Z["sell_zone"], Z["sell_zone_all"]
+                lines.append(f"- OPTIMAL BUY ZONE (avg of {Z['n_buy_experts']} experts): z {bz[0]:+.2f} to {bz[1]:+.2f}" if bz else "- no buy zone")
+                lines.append(f"- OPTIMAL SELL ZONE, trending experts (avg of {Z['n_sell_experts']}): z {sz[0]:+.2f} to {sz[1]:+.2f}" if sz else "- no trend sell zone")
+                lines.append(f"- variant B sell zone, all experts (avg of {Z['n_sell_all']}): z {sza[0]:+.2f} to {sza[1]:+.2f}" if sza else "- no all-expert sell zone")
+                lines.append("### Today's zones in price (20-hour average + z x ATR14 on the last 1-hour bar)")
+                for i in MAJORS:
+                    m = fx_mid(h1[i])
+                    c = m["close"]
+                    pc = c.shift(1)
+                    atr = float(pd.concat([m["high"] - m["low"], (m["high"] - pc).abs(), (m["low"] - pc).abs()], axis=1).max(axis=1).rolling(14).mean().iloc[-1])
+                    ma = float(c.rolling(20).mean().iloc[-1])
+                    pz = lambda zz: f"{ma + zz[0] * atr:.5g} - {ma + zz[1] * atr:.5g}" if zz else "n/a"   # noqa: E731
+                    lines.append(f"- {i}: last {float(c.iloc[-1]):.5g} | buy zone {pz(bz)} | sell zone (trend) {pz(sz)} | sell zone (all) {pz(sza)}")
+                lines.append(f"### Retest, last 14 days ({ta}..{tb}), 7 majors, 1-hour bid/ask, stop {_cz.STOP_ATR} ATR, max {_cz.MAX_BARS} bars")
+                for label, sell in (("A: buy zone -> trend sell zone", sz), ("B: buy zone -> all-expert sell zone", sza)):
+                    if not (bz and sell):
+                        continue
+                    if bz[1] >= sell[0]:
+                        lines.append(f"- {label}: the sell zone ({sell[0]:+.2f}..{sell[1]:+.2f}) is not above the buy zone ({bz[0]:+.2f}..{bz[1]:+.2f}): nothing to sell into, no trades")
+                        continue
+                    for sm in (1.0, 2.0):
+                        from fxbot.exitlab import _spread
+                        tr = [t for i in MAJORS for t in _cz.trade_zones(_spread(h1[i], sm), bz, sell, ta, tb)]
+                        lng = _cz.summary([t for t in tr if t["side"] == 1])
+                        sht = _cz.summary([t for t in tr if t["side"] == -1])
+                        lines.append(f"- {label} | spread x{sm:g}: all {_cz.fmt(_cz.summary(tr))} | longs {_cz.fmt(lng)} | shorts {_cz.fmt(sht)}")
+                    plc = []
+                    for k in range(3):
+                        tr = [t for i in MAJORS for t in _cz.trade_zones(shuffled_bidask(h1[i], k), bz, sell, ta, tb)]
+                        plc.append(_cz.summary(tr)["avg_r"])
+                    lines.append(f"  placebo (bars shuffled, 3 seeds): avg R {', '.join(f'{x:+.3f}' for x in plc)}")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "direction_check":           # owner 2026-10-28: "it's got to be a buy and sell issue" (research.direction_pooled)
                 import datetime as _dt
                 import numpy as _np
