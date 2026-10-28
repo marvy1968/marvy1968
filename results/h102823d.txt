@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families sector_heatmap
+started 2026-10-28 08:31:13 EDT
+RUNNING...
