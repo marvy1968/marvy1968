@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families fx_news
-started 2026-10-28 08:30:34 EDT
-RUNNING...
+started 2026-10-28 08:30:34 EDT, took 34s, exit 0
+
+daily data ready
+## fx_news: news filter on the live forex setups (2023-01-01..2026-10-28); releases: {'nfp': 46, 'cpi': 0, 'fomc': 31}; BLS nfp archive unreadable (HTTPError: 403 Client Error: Forbidden for url: https://www.bls.gov/bls/news-release/empsit); nfp: BLS timing rule (archive not read); BLS cpi archive unreadable (HTTPError: 403 Client Error: Forbidden for url: https://www.bls.gov/bls/news-release/cpi.ht); cpi: left out (archive not read)
+- B = no entries 2 h before to 1 h after a release; C = B + close open trades 1 h before it. Pass: 20+ trades changed, adds R at 1x and 2x, beats 18/20 fake calendars, not worse than A in the last 92 days
+- next releases: fomc Wed Oct 28 14:00 ET
+### lien_h1
+- trades near a release: 7 trades, win 14%, PF 0.33, net -4.0R | the rest: 57 trades, win 35%, PF 0.99, net -0.4R
+- B skip entries: full period A 64 trades, win 33%, PF 0.90, net -4.4R -> 60 trades, win 35%, PF 0.99, net -0.4R | 4 trades changed, gain +4.0R (2x spread +4.0R) | fake calendars: gain +0.0R median, beaten 20/20 | last 14 days: +0.0R -> +0.0R (0 t) | last 92 days: +0.0R -> +0.0R (0 t) | fail
+- C skip + stand aside: full period A 64 trades, win 33%, PF 0.90, net -4.4R -> 60 trades, win 33%, PF 0.96, net -1.5R | 6 trades changed, gain +2.9R (2x spread +2.8R) | fake calendars: gain +0.4R median, beaten 18/20 | last 14 days: +0.0R -> +0.0R (0 t) | last 92 days: +0.0R -> +0.0R (0 t) | fail
+### retest_h1
+- trades near a release: 3 trades, win 0%, PF 0.00, net -3.2R | the rest: 121 trades, win 27%, PF 1.36, net +30.0R
+- B skip entries: full period A 124 trades, win 27%, PF 1.31, net +26.8R -> 123 trades, win 27%, PF 1.32, net +27.8R | 1 trades changed, gain +1.0R (2x spread +1.0R) | fake calendars: gain +0.0R median, beaten 14/20 | last 14 days: -2.6R -> -2.6R (3 t) | last 92 days: +2.1R -> +2.1R (10 t) | fail
+- C skip + stand aside: full period A 124 trades, win 27%, PF 1.31, net +26.8R -> 123 trades, win 28%, PF 1.38, net +31.5R | 3 trades changed, gain +4.7R (2x spread +4.5R) | fake calendars: gain -6.2R median, beaten 18/20 | last 14 days: -2.6R -> -2.6R (3 t) | last 92 days: +2.1R -> +2.1R (10 t) | fail
+ALL DONE
