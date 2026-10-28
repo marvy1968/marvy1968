@@ -1,3 +1,12 @@
 $ alpaca swing close --symbols NFLX
-started 2026-10-28 10:45:35 EDT
-RUNNING...
+started 2026-10-28 10:45:35 EDT, took 6s, exit 0
+
+{
+ "NFLX": "closed @ 61.75"
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 15, 4W/11L, P&L $-1,085
+  funnel: 2 trades, 0W, P&L $-507
+  oversold: 6 trades, 1W, P&L $-345
+  holding: XOM 14 @ 180.12 (stop 165.90), EOG 14 @ 159.41 (stop 144.57), COP 14 @ 145.39 (stop 133.52), PM 36 @ 199.20 (stop 190.29, funnel), SPY 12 @ 767.51 (stop 736.36, trend200), WMT 39 @ 118.38 (stop 112.80), MSFT 8 @ 533.64 (stop 521.64, funnel), TSLA 5 @ 408.30 (stop 362.43)
