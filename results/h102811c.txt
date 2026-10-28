@@ -1,3 +1,51 @@
 $ alpaca run-all --phase validate --families consensus_daily
-started 2026-10-28 01:05:02 EDT
-RUNNING...
+started 2026-10-28 01:05:02 EDT, took 50s, exit 0
+
+daily data ready
+## consensus_daily: separate trend / reversion zones on the DAILY range, calibrated 2025-07-28..2026-07-27 (zd = (close - 20-day avg) / daily ATR14)
+### Each expert on the daily yardstick (median zd at its buys | sells, signals)
+- lien_h1 [reversion]: buys too few (8) | sells too few (11)
+- f0_h4 [reversion]: buys -1.96 (83) | sells +2.04 (78)
+- box_h1 [reversion]: buys -0.90 (536) | sells +1.06 (624)
+- hybrid_h1 [reversion]: buys -0.15 (63) | sells +0.31 (46)
+- confirm_h1 [TREND]: buys too few (5) | sells too few (4)
+- boxmr_h1 [reversion]: buys -0.36 (78) | sells +0.33 (71)
+- boxcons_h1 [reversion]: buys -0.74 (233) | sells +0.62 (277)
+- boxf0_h4 [reversion]: buys too few (6) | sells too few (11)
+- conf_d1 [reversion]: buys too few (8) | sells +1.99 (98)
+- conf_h4 [reversion]: buys -2.08 (230) | sells +1.14 (954)
+- cog_h4 [TREND]: buys +0.27 (191) | sells +0.32 (216)
+- raschke_holy_grail [TREND]: buys +0.44 (695) | sells -0.18 (691)
+- raschke_turtle_soup [reversion]: buys -0.12 (767) | sells +0.39 (834)
+- connors_rsi2 [reversion]: buys +0.91 (2029) | sells -0.81 (1778)
+- carter_ttm_squeeze [TREND]: buys +0.40 (382) | sells -0.15 (349)
+- macd_200ema [TREND]: buys +0.99 (364) | sells -0.93 (305)
+- williams_vol_breakout [TREND]: buys +0.91 (347) | sells -0.71 (289)
+- floor_pivot_bounce [reversion]: buys -0.22 (815) | sells +0.44 (813)
+- lien_double_bollinger [reversion]: buys +0.17 (2568) | sells +0.42 (2642)
+- inside_bar_breakout [TREND]: buys +0.44 (970) | sells -0.11 (1028)
+- TREND zones: buy zd +0.32..+0.82 (6 experts) | sell zd -0.54..-0.04 (6 experts)
+- REVERSION zones: buy zd -0.80..-0.30 (10 experts) | sell zd +0.47..+0.97 (11 experts)
+### Today's zones in price (20-day average + zd x daily ATR14, last completed day)
+- EUR_USD: last 1.1121 | reversion buy 1.1167-1.1197 sell 1.1243-1.1272 | trend buy 1.1234-1.1264 sell 1.1182-1.1212
+- GBP_USD: last 1.3295 | reversion buy 1.3227-1.3262 sell 1.3315-1.3349 | trend buy 1.3304-1.3339 sell 1.3245-1.3279
+- AUD_USD: last 0.70334 | reversion buy 0.69443-0.69663 sell 0.70001-0.70222 | trend buy 0.69936-0.70157 sell 0.69554-0.69775
+- NZD_USD: last 0.56073 | reversion buy 0.56071-0.56263 sell 0.56559-0.56752 | trend buy 0.56502-0.56695 sell 0.56168-0.56361
+- USD_JPY: last 157.85 | reversion buy 157.27-157.7 sell 158.34-158.76 | trend buy 158.22-158.64 sell 157.49-157.91
+- USD_CAD: last 1.4065 | reversion buy 1.4112-1.4144 sell 1.4194-1.4227 | trend buy 1.4184-1.4217 sell 1.4128-1.4161
+- USD_CHF: last 0.82991 | reversion buy 0.82525-0.82774 sell 0.83154-0.83402 | trend buy 0.83081-0.83329 sell 0.82651-0.82899
+### Retest, last 14 days (2026-10-14..2026-10-28), 7 majors, 1-hour bid/ask, stop 1.5 daily ATR, max 20 days
+- reversion | spread x1: all 19 trades, win 53%, PF 0.75, net -2.0R, avg -0.103R | longs 11 trades, win 45%, PF 0.59, net -2.2R, avg -0.196R | shorts 8 trades, win 62%, PF 1.08, net +0.2R, avg +0.026R
+- reversion | spread x2: all 19 trades, win 53%, PF 0.73, net -2.1R, avg -0.113R | longs 11 trades, win 45%, PF 0.58, net -2.2R, avg -0.204R | shorts 8 trades, win 62%, PF 1.04, net +0.1R, avg +0.012R
+  reversion placebo (shuffled bars, 3 seeds): 9t avg -0.855R net -7.7R | 16t avg -0.265R net -4.2R | 8t avg -0.620R net -5.0R
+- trend | spread x1: all 18 trades, win 17%, PF 0.41, net -3.4R, avg -0.192R | longs 8 trades, win 12%, PF 0.07, net -3.3R, avg -0.415R | shorts 10 trades, win 20%, PF 0.94, net -0.1R, avg -0.013R
+- trend | spread x2: all 18 trades, win 17%, PF 0.39, net -3.7R, avg -0.204R | longs 8 trades, win 12%, PF 0.07, net -3.4R, avg -0.426R | shorts 10 trades, win 20%, PF 0.89, net -0.3R, avg -0.026R
+  trend placebo (shuffled bars, 3 seeds): 10t avg +0.886R net +8.9R | 16t avg -0.001R net -0.0R | 12t avg +0.879R net +10.5R
+### Retest, last 92 days (context) (2026-07-28..2026-10-28), 7 majors, 1-hour bid/ask, stop 1.5 daily ATR, max 20 days
+- reversion | spread x1: all 68 trades, win 49%, PF 0.66, net -11.3R, avg -0.166R | longs 34 trades, win 47%, PF 0.59, net -7.0R, avg -0.207R | shorts 34 trades, win 50%, PF 0.74, net -4.3R, avg -0.126R
+- reversion | spread x2: all 69 trades, win 48%, PF 0.63, net -12.9R, avg -0.187R | longs 34 trades, win 47%, PF 0.57, net -7.4R, avg -0.216R | shorts 35 trades, win 49%, PF 0.68, net -5.6R, avg -0.159R
+  reversion placebo (shuffled bars, 3 seeds): 103t avg +0.170R net +17.5R | 64t avg -0.196R net -12.5R | 77t avg -0.110R net -8.4R
+- trend | spread x1: all 64 trades, win 28%, PF 1.71, net +14.7R, avg +0.229R | longs 32 trades, win 28%, PF 1.20, net +2.3R, avg +0.073R | shorts 32 trades, win 28%, PF 2.34, net +12.3R, avg +0.385R
+- trend | spread x2: all 64 trades, win 28%, PF 1.63, net +13.5R, avg +0.211R | longs 32 trades, win 28%, PF 1.15, net +1.7R, avg +0.055R | shorts 32 trades, win 28%, PF 2.22, net +11.7R, avg +0.367R
+  trend placebo (shuffled bars, 3 seeds): 133t avg -0.278R net -36.9R | 59t avg +0.184R net +10.8R | 87t avg -0.026R net -2.3R
+ALL DONE
