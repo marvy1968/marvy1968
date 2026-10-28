@@ -57,3 +57,16 @@ class DailyGroupTests(unittest.TestCase):
         a, b = dt.date(2026, 10, 1), dt.date(2026, 10, 27)
         self.assertEqual(cz.trade_group(df, "reversion", (1.0, 1.5), (-1.5, -1.0), a, b), [])
         self.assertEqual(cz.trade_group(df, "trend", (-1.5, -1.0), (1.0, 1.5), a, b), [])
+
+
+class WalkForwardTests(unittest.TestCase):
+    def test_quarters_cover_the_range(self):
+        q = cz.quarters(dt.date(2025, 1, 1), dt.date(2025, 8, 10))
+        self.assertEqual(q, [(dt.date(2025, 1, 1), dt.date(2025, 3, 31)), (dt.date(2025, 4, 1), dt.date(2025, 6, 30)), (dt.date(2025, 7, 1), dt.date(2025, 8, 10))])
+
+    def test_z_at_takes_the_bar_at_or_before_the_signal(self):
+        idx = pd.date_range("2026-01-05", periods=5, freq="h", tz="UTC")
+        z = pd.Series([0.0, 1.0, 2.0, 3.0, 4.0], index=idx)
+        t = pd.DatetimeIndex([idx[2] + pd.Timedelta(minutes=30), idx[0] - pd.Timedelta(hours=1)])
+        out = cz.z_at(t, z)
+        self.assertEqual(list(out.values), [2.0])

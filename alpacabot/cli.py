@@ -220,6 +220,69 @@ def run_all(a) -> int:
                 lines += _fc.stage_lines("lien-zeros", _fc.stage_table(z2, list(zp.values()), today))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "consensus_daily_wf":        # owner 2026-10-28: rolling walk-forward of the daily-range trend / reversion zones (fxbot.consensus)
+                import datetime as _dt
+                import numpy as np
+                import pandas as pd
+                from fxbot import consensus as _cz
+                from fxbot.data import MAJORS, load as fx_load, mid as fx_mid
+                from fxbot.exitlab import _spread
+                from fxbot.fxexp_check import shuffled_bidask
+                today = _dt.date.today()
+                wf_first = _dt.date(2022, 1, 1)
+                start = wf_first - _dt.timedelta(days=365 + 60)
+                cache_ = Path("state/fx/cache")
+                gmin = {"H1": 60, "H4": 240, "D": 1440}
+                h1 = {i: fx_load(i, "H1", start, today, cache_) for i in MAJORS}
+                bars = {g: {i: (h1[i] if g == "H1" else fx_load(i, g, start - _dt.timedelta(days=300 if g == "D" else 60), today, cache_)) for i in MAJORS} for g in ("H1", "H4", "D")}
+                zd = {i: _cz.zscore_daily(fx_mid(d))[0] for i, d in h1.items()}
+                sig = {}
+                for name, (make, g) in _cz.experts().items():
+                    ls, ss = [], []
+                    for i in MAJORS:
+                        try:
+                            lt, st = _cz.signal_times(make, bars[g][i], gmin[g])
+                        except Exception as exc:
+                            print(f"skip {name} {i}: {exc}", flush=True)
+                            continue
+                        ls.append(_cz.z_at(lt, zd[i]))
+                        ss.append(_cz.z_at(st, zd[i]))
+                    sig[name] = (pd.concat(ls) if ls else pd.Series(dtype=float), pd.concat(ss) if ss else pd.Series(dtype=float))
+                shuf = {k: {i: shuffled_bidask(h1[i], k) for i in MAJORS} for k in range(3)}
+                lines += [f"## consensus_daily_wf: rolling walk-forward, zones re-set each quarter from the 12 months before it, {wf_first}..{today}, 7 majors, 1-hour bid/ask"]
+                tot = {g: {"1x": [], "2x": [], "plc": {k: [] for k in range(3)}, "q": []} for g in ("trend", "reversion")}
+                for qa, qb in _cz.quarters(wf_first, today):
+                    ca, cb = qa - _dt.timedelta(days=365), qa - _dt.timedelta(days=1)
+                    sel = lambda s_: [float(v) for t, v in s_.items() if ca <= t.date() <= cb]   # noqa: E731
+                    per = {n: (sel(l_), sel(s_)) for n, (l_, s_) in sig.items()}
+                    G = _cz.group_zones(per)
+                    row = []
+                    win = lambda d_: d_[(d_.index >= pd.Timestamp(qa - _dt.timedelta(days=45), tz="UTC")) & (d_.index <= pd.Timestamp(qb + _dt.timedelta(days=30), tz="UTC"))]   # noqa: E731
+                    for grp in ("trend", "reversion"):
+                        bz, sz = G[grp]["buy"], G[grp]["sell"]
+                        if not (bz and sz):
+                            row.append(f"{grp}: no zones")
+                            continue
+                        t1 = [t for i in MAJORS for t in _cz.trade_group(win(h1[i]), grp, bz, sz, qa, qb)]
+                        t2 = [t for i in MAJORS for t in _cz.trade_group(_spread(win(h1[i]), 2.0), grp, bz, sz, qa, qb)]
+                        tot[grp]["1x"] += t1
+                        tot[grp]["2x"] += t2
+                        tot[grp]["q"].append((qa, sum(t["r"] for t in t2)))
+                        for k in range(3):
+                            tot[grp]["plc"][k] += [t for i in MAJORS for t in _cz.trade_group(win(shuf[k][i]), grp, bz, sz, qa, qb)]
+                        s2 = _cz.summary(t2)
+                        row.append(f"{grp} buy {bz[0]:+.2f}..{bz[1]:+.2f} sell {sz[0]:+.2f}..{sz[1]:+.2f}: {s2['trades']}t net {s2['net_r']:+.1f}R at 2x")
+                    lines.append(f"- {qa:%Y} Q{(qa.month - 1) // 3 + 1}: " + " | ".join(row))
+                for grp, T in tot.items():
+                    s1, s2 = _cz.summary(T["1x"]), _cz.summary(T["2x"])
+                    plc = [_cz.summary(v)["avg_r"] for v in T["plc"].values()]
+                    qpos = sum(1 for _, r in T["q"] if r > 0)
+                    last4 = sum(r for _, r in T["q"][-4:])
+                    ok = (s2["trades"] >= 100 and (s2["pf"] or 0) >= 1.15 and qpos > len(T["q"]) / 2 and last4 > 0 and all(s2["avg_r"] > p for p in plc))
+                    lines.append(f"### {grp.upper()}: normal spread {_cz.fmt(s1)} | 2x spread {_cz.fmt(s2)} | quarters profitable at 2x {qpos}/{len(T['q'])} | "
+                                 f"last 4 quarters {last4:+.1f}R | placebo avg R {', '.join(f'{p:+.3f}' for p in plc)} | {'PASS' if ok else 'reject'}")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "consensus_daily":           # owner 2026-10-28: separate TREND and REVERSION zones on the daily range (fxbot.consensus block 2)
                 import datetime as _dt
                 import numpy as np

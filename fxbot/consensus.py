@@ -242,3 +242,33 @@ def trade_group(df: pd.DataFrame, mode: str, bz: tuple, sz: tuple, a: date, b: d
         out.append({"date": dates[j], "side": side, "r": side * (px - fill) / sd})
         i = max(k, i + 1)
     return out
+
+
+def signal_times(make, bars: pd.DataFrame, gran_minutes: int) -> tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
+    """Close times of this expert's long and short signal bars (whole history)."""
+    f = make().frame(mid(bars))
+    return tuple(f.index[f[col].fillna(False).to_numpy(bool)] + pd.Timedelta(minutes=gran_minutes) for col in ("long", "short"))
+
+
+def z_at(times: pd.DatetimeIndex, z: pd.Series) -> pd.Series:
+    """zd at each signal time (the 1-hour bar at or just before it), indexed by the signal time."""
+    pos = z.index.searchsorted(times, side="right") - 1
+    ok = pos >= 0
+    return pd.Series(z.to_numpy()[pos[ok]], index=times[ok]).dropna()
+
+
+# Rolling walk-forward (owner 2026-10-28 "keep going", after the 92-day trend result): PRE-DECLARED. Every calendar quarter from 2022 Q1: the zones are
+# re-set from the 12 months BEFORE the quarter (each expert's median zd, group averages, +-0.25), then the quarter is traded with them (unseen), at the
+# normal and 2x spread; the same on 1-hour bars shuffled into random order (3 seeds). PASS for a group: over all quarters at 2x spread PF >= 1.15 and
+# 100+ trades, profitable in more than half the quarters, the last 4 quarters profitable together at 2x, and an average R above every placebo seed.
+def quarters(first: date, today: date) -> list[tuple[date, date]]:
+    out, y, q = [], first.year, (first.month - 1) // 3
+    while True:
+        a = date(y, 3 * q + 1, 1)
+        if a > today:
+            break
+        nq, ny = (q + 1) % 4, y + (q == 3)
+        b = min(date(ny, 3 * nq + 1, 1) - timedelta(days=1), today)
+        out.append((a, b))
+        y, q = ny, nq
+    return out
