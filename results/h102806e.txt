@@ -1,3 +1,5 @@
 $ fx-experts-entries status
-started 2026-10-27 22:33:46 EDT
-RUNNING...
+started 2026-10-27 22:33:46 EDT, took 0s, exit 0
+
+no_new_entries before: True
+systems listed: 11, installed: 11
