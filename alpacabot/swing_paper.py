@@ -34,6 +34,11 @@ UNIVERSE = list(STOCKS)          # the 5 largest S&P 500 stocks in each of the 1
 # hindsight-free list +0.4% -> +4.2%, Sharpe 0.13 -> 0.65, maxDD -5.2% -> -8.5%. 1% / 1.5% risk broke the -15% drawdown limit on the select years. UNDO: 0.0035, 3.
 RISK_PCT, MAX_POS, MAX_POS_FRAC, SLIP_BPS = 0.005, 5, 0.333, 5.0
 FUNNEL_RISK, FUNNEL_MAX = 0.005, 3     # owner's Stock Funnel (alpacabot.funnel): 0.5% risk, its own 3 slots, longs and shorts
+# owner 2026-10-28 ("a long trend filter for each stock so we can swing trade it"; "if our short-term trend reverses against us, flatten";
+# "prove it in paper money"): SwingRunner.trend_filters. Undo: TREND_FILTERS = None (or a key False).
+# 2026-10-28 2-week test: the long filter cut Top-Down's 92-day loss (-34.7R -> -21.5R) but blocked nearly all oversold entries (+3.3R ->
+# 1 trade); switched OFF until the owner picks. To switch on: {"long": True, "reversal": True}.
+TREND_FILTERS = None
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
@@ -179,10 +184,41 @@ class SwingRunner:
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
+        exits, entries = self.trend_filters(held, exits, entries, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
+
+    def trend_filters(self, held: dict, exits: list, entries: list, now: datetime) -> tuple[list, list]:
+        """Owner 2026-10-28 (TREND_FILTERS; fxbot.strongtrend, on PAPER without a finished backtest): a new swing entry needs the stock's LONG
+        trend up (EMA50 over EMA200 for 60+ days and 2 of 3 mild readings up); a held position is sold at the open once its daily short-term
+        trend has turned against it (2 of 3: ADX>=20 with -DI over +DI, close under EMA20 under EMA50, Aroon-down 50+ over Aroon-up)."""
+        if not TREND_FILTERS:
+            return exits, entries
+        from fxbot.strongtrend import reversal, votes
+        cache = {}
+
+        def bars(sym):
+            if sym not in cache:
+                cache[sym] = daily_bars(sym, now, self.fetch, days=420)
+            return cache[sym]
+        kept, blocked = [], []
+        for e in entries:
+            d = bars(e["symbol"])
+            ok = len(d) >= 270 and int(votes(d)["long_state"].iloc[-1]) == 1
+            (kept if ok or not TREND_FILTERS.get("long") else blocked).append(e)
+        rev = []
+        if TREND_FILTERS.get("reversal"):
+            for sym, p in held.items():
+                if sym in exits:
+                    continue
+                d = bars(sym)
+                if len(d) >= 60 and int(reversal(d)[-1]) == -p.get("side", 1):
+                    rev.append(sym)
+        if blocked or rev:
+            self.journal("trend_filters", now, blocked=[e["symbol"] for e in blocked], reversal_exits=rev)
+        return exits + rev, kept
 
     def index_bars(self, now: datetime) -> dict:
         """Completed daily bars of the 200-day-rule index symbols (zones.json swing.index_trend.symbols), when the rule is live."""

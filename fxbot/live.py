@@ -121,7 +121,19 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # before to after_min after a HIGH-impact release for either currency of a pair (ForexFactory weekly calendar, cached 6 h; Fed + jobs
           # report if it cannot be read), this runner closes its own trades on that pair, drops its waiting playbook orders there and takes no
           # entries there. A guard, not an edge (fxbot.newsfilter: too few trades to prove a gain). Undo: "news_pause": None and redeploy.
-          "news_pause": {"before_min": 60, "after_min": 60}}
+          "news_pause": {"before_min": 60, "after_min": 60},
+          # owner 2026-10-28 ("two trend filters ... a long trend filter so we can swing trade it ... if the dip is great enough the short trend
+          # filter will pick it up ... ride it today only" and "if our short-term trend reverses against us, we have to immediately flatten those
+          # trades"; "shorten the tests ... prove it in paper money"). fxbot.strongtrend, on PAPER without a finished backtest:
+          #   long        an entry may go WITH the pair's long trend (EMA50 on one side of EMA200 for 60+ days and 2 of 3 mild readings that way)
+          #   short       otherwise only on a hard move today (2 of 3 strict readings on the 1-hour bars and 0.75+ daily ATR from the day's open)
+          #               - such a trade is a day trade: closed at day_close New York time (before the 17:00 rollover); entries until 15:00
+          #   reversal    any open trade is closed once the 1-hour trend turns against it (2 of 3: ADX>=20 DI against, close/EMA20/EMA50
+          #               against, Aroon 50+ against), checked at every completed 1-hour bar
+          # Undo: "trend_filters": None (or set a key to False) and redeploy.
+          # 2026-10-28 2-week test: no major has a long trend now, and over 92 days the filters let almost no live-expert trade through
+          # (lien / retest 0 trades) - switched OFF until the owner picks; to switch on put the dict below back.
+          "trend_filters": None}   # {"long": True, "short": True, "reversal": True, "day_close": "16:00"}
 
 
 def decimals(instrument: str) -> int:
@@ -276,6 +288,7 @@ class FxPaper:
                     self.pending.pop(key, None)
                     self.journal("news_pause_drop", strategy=p["strategy"], instrument=p["instrument"], why=news[p["instrument"]])
             trades = self.api.open_trades()
+        self.day_close(now)
         eq = self.equity(trades)
         why = self.entries_allowed(eq)
         for gid in list(self.groups):
@@ -290,6 +303,70 @@ class FxPaper:
                     self.journal("error", where="scan", strategy=name, instrument=inst, error=str(exc)[:300])
         self.save()
         self.status(self.api.open_trades())
+
+    # ---------------- owner's trend filters (CONFIG["trend_filters"], fxbot.strongtrend)
+    def daily_trend(self, inst: str) -> int:
+        """The pair's LONG-trend filter (+1 / -1 / 0) from completed daily candles, once per trading day."""
+        key = ("trend", inst, trading_day(self.clock()))
+        if key not in self.daily_cache:
+            from .strongtrend import votes
+            d = mid(self.bars(inst, "D", 320))
+            self.daily_cache[key] = int(votes(d)["long_state"].iloc[-1]) if len(d) >= 210 else 0
+        return self.daily_cache[key]
+
+    def trend_check(self, inst: str, side: int, m: pd.DataFrame) -> tuple[str, str]:
+        """(mode, block): mode 'swing' (with the long trend) or 'day' (hard move today: closed the same day); block = why not, '' = go."""
+        cfg = self.cfg.get("trend_filters")
+        if not cfg:
+            return "", ""
+        try:
+            if cfg.get("long") and self.daily_trend(inst) == side:
+                return "swing", ""
+            if cfg.get("short"):
+                from .strongtrend import daily_of, today_state, windows
+                td = today_state(m, daily_of(m), True)
+                ok, _ = windows(m.index[-1:], True)
+                t = pd.Timestamp(self.clock()).tz_convert(NY)
+                if td[-1] == side and bool(ok[0]) and not (15 <= t.hour < 17):
+                    return "day", ""
+        except Exception as exc:                          # a data problem never opens a trade the filter could not check
+            self.journal("error", where="trend_check", instrument=inst, error=str(exc)[:300])
+            return "", "trend filter: no data"
+        return "", "trend filter: no long trend or hard move today that way"
+
+    def mark_mode(self, inst: str, mode: str):
+        for g in self.groups.values():
+            if g["instrument"] == inst:
+                g["trend"] = mode
+        self.save()
+
+    def reversal_exit(self, name: str, inst: str, m: pd.DataFrame):
+        """Close our open trade of this strategy / pair once the 1-hour trend has turned against it (at this completed bar)."""
+        cfg = self.cfg.get("trend_filters")
+        if not cfg or not cfg.get("reversal"):
+            return
+        mine = [gid for gid, g in self.groups.items() if g["strategy"] == name and g["instrument"] == inst]
+        if not mine:
+            return
+        from .strongtrend import reversal
+        rv = int(reversal(m)[-1])
+        for gid in mine:
+            if gid in self.groups and rv == -self.groups[gid]["side"]:
+                self.journal("trend_reversal", group=gid, side=self.groups[gid]["side"], bar=m.index[-1].isoformat())
+                self.close_group(gid, "trend reversed")
+
+    def day_close(self, now):
+        """Day trades (opened on today's hard move) are closed at day_close New York time, before the rollover."""
+        cfg = self.cfg.get("trend_filters")
+        if not cfg or not cfg.get("short"):
+            return
+        t = pd.Timestamp(now).tz_convert(NY)
+        hh, mm = (int(x) for x in cfg.get("day_close", "16:00").split(":"))
+        if not (hh * 60 + mm <= t.hour * 60 + t.minute < 17 * 60):
+            return
+        for gid, g in list(self.groups.items()):
+            if g.get("trend") == "day":
+                self.close_group(gid, "day trade: closed before the rollover")
 
     def news_pause(self, now) -> dict:
         """{pair: reason} for the pairs inside a news window now (CONFIG["news_pause"]); {} when off or none."""
@@ -415,6 +492,7 @@ class FxPaper:
                 ex = bool(f["exit_long"].iloc[-1] if g["side"] == 1 else f["exit_short"].iloc[-1])
                 if ex or held >= strat.max_bars:
                     self.close_group(gid, "signal" if ex else "time")
+        self.reversal_exit(name, inst, m)
         row = f.iloc[-1]
         side = 1 if row["long"] else -1 if row["short"] else 0
         if not side:
@@ -424,9 +502,15 @@ class FxPaper:
             self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last,
                          close=float(m["close"].iloc[-1]), stop_dist=sd, result="paused (signal logged)")
             return
+        mode, block = self.trend_check(inst, side, m)
+        if block:
+            self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=block)
+            return
         res = self.try_open(name, inst, side, sd, float(row.get("target", float("nan"))), m, eq, why, trades, last,
                             zone_px=float(row.get("zone_px", float("nan"))), zone2_px=float(row.get("zone2_px", float("nan"))))
-        self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=res)
+        if res == "opened":
+            self.mark_mode(inst, mode)
+        self.journal("signal", strategy=name, instrument=inst, side="long" if side == 1 else "short", bar=last, result=res, trend=mode)
 
     def try_open(self, name, inst, side, sd, own_tgt, m, eq, why, trades, bar, zone_px: float = float("nan"),
                  zone2_px: float = float("nan")) -> str:
@@ -503,6 +587,7 @@ class FxPaper:
 
     # ---------------- owner's Break & Retest Playbook (fxbot.playbook): virtual stop orders, its own exits
     def scan_playbook(self, name: str, spec: dict, inst: str, bars: pd.DataFrame, m: pd.DataFrame, last: str):
+        self.reversal_exit(name, inst, m)
         close = float(m["close"].iloc[-1])
         low, high = float(m["low"].iloc[-1]), float(m["high"].iloc[-1])
         for gid, g in list(self.groups.items()):            # an open trade: out at market on a completed close back into the zone
@@ -536,8 +621,13 @@ class FxPaper:
         if st["side"] * (now_px - st["trig"]) >= 0:          # chase rule: price is already through the trigger
             self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="chase: already through the trigger", **st)
             return
-        self.pending[key] = {**st, "strategy": name, "instrument": inst, "bar": last, "bars": 0}
-        self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="stop order waiting", **st)
+        mode, block = self.trend_check(inst, st["side"], m)
+        if block:
+            self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result=block, **st)
+            self.save()
+            return
+        self.pending[key] = {**st, "strategy": name, "instrument": inst, "bar": last, "bars": 0, "trend": mode}
+        self.journal("signal", strategy=name, instrument=inst, side=side_txt, bar=last, result="stop order waiting", trend=mode, **st)
         self.save()
 
     def check_pending(self, eq: float, why: str, trades: list):
@@ -555,6 +645,8 @@ class FxPaper:
                 continue                                     # not triggered yet
             self.pending.pop(key, None)
             res = self.open_playbook(p, px, bid, ask, eq, why, trades)
+            if res == "opened":
+                self.mark_mode(inst, p.get("trend", ""))
             self.journal("playbook_trigger", strategy=p["strategy"], instrument=inst, side="long" if sg == 1 else "short", px=px, result=res)
         self.save()
 

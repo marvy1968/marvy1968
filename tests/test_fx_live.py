@@ -13,6 +13,8 @@ import pandas as pd
 from fxbot import live
 from fxbot.oanda import TAG
 
+TREND_ON = False          # the trend-filter tests switch the filters on for their runner (TrendFilterTests)
+
 
 def candles(n=300, start=1.1000, gran_h=1, end=datetime(2026, 10, 14, 14, tzinfo=timezone.utc), drift=0.0, seed=1):
     rng = np.random.default_rng(seed)
@@ -77,6 +79,7 @@ class FakeOanda:
 
 def runner(tmp, api, now=datetime(2026, 10, 14, 14, 0, 30, tzinfo=timezone.utc)):
     r = live.FxPaper(api=api, state_dir=tmp, clock=lambda: now, sleep=lambda *_: None)
+    r.cfg = {**r.cfg, "trend_filters": {"long": True, "short": True, "reversal": True, "day_close": "16:00"}} if r.cfg.get("trend_filters") is None and TREND_ON else r.cfg
     r.daily_bias = lambda inst: (0, [])           # range day, no map levels unless a test says otherwise
     r.news_fetch = lambda url: []                 # no network: the news calendar falls back to the Fed + jobs-report dates
     return r
@@ -537,3 +540,83 @@ class NewsPauseTests(unittest.TestCase):
             r.cfg = {**r.cfg, "news_pause": None}
             self.assertEqual(r.news_pause(self.FOMC), {})
         self.assertEqual(live.CONFIG["news_pause"], {"before_min": 60, "after_min": 60})
+
+
+class TrendFilterTests(unittest.TestCase):
+    def setUp(self):
+        global TREND_ON
+        TREND_ON = True
+
+    def tearDown(self):
+        global TREND_ON
+        TREND_ON = False
+
+    def _m(self, drift):
+        from fxbot.data import mid, _to_frame
+        return mid(_to_frame(candles(400, drift=drift)))
+
+    def test_with_the_long_trend_is_a_swing_trade(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            r.daily_trend = lambda inst: 1
+            self.assertEqual(r.trend_check("EUR_USD", 1, self._m(0.0)), ("swing", ""))
+            mode, block = r.trend_check("EUR_USD", -1, self._m(0.0))
+            self.assertEqual(mode, "")
+            self.assertTrue(block.startswith("trend filter"))
+
+    def test_hard_move_today_is_a_day_trade(self):
+        import fxbot.strongtrend as stg
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            r.daily_trend = lambda inst: 0
+            orig = stg.today_state
+            try:
+                stg.today_state = lambda m, d, fx: np.r_[np.zeros(len(m) - 1, int), -1]
+                self.assertEqual(r.trend_check("EUR_USD", -1, self._m(0.0)), ("day", ""))
+                self.assertTrue(r.trend_check("EUR_USD", 1, self._m(0.0))[1])
+            finally:
+                stg.today_state = orig
+
+    def test_off(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda())
+            r.cfg = {**r.cfg, "trend_filters": None}
+            self.assertEqual(r.trend_check("EUR_USD", 1, self._m(0.0)), ("", ""))
+
+    def _group(self, r, api, side, trend=""):
+        r.groups["g1"] = {"id": "g1", "strategy": "lien_h1", "instrument": "EUR_USD", "side": side, "trades": ["1"], "units": {"1": 1000},
+                          "avg": 1.1, "opened": "2026-10-14T10:00", "tier": 0, "trend": trend}
+        api.trades["1"] = {"id": "1", "instrument": "EUR_USD", "currentUnits": str(1000 * side), "unrealizedPL": "0",
+                           "clientExtensions": {"id": "x", "tag": TAG}}
+
+    def test_reversal_closes_a_trade_against_the_trend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            self._group(r, api, 1)
+            r.reversal_exit("lien_h1", "EUR_USD", self._m(+0.0015))      # still trending up: keep the long
+            self.assertIn("g1", r.groups)
+            r.reversal_exit("lien_h1", "EUR_USD", self._m(-0.0015))      # turned down: out
+            self.assertNotIn("g1", r.groups)
+            self.assertEqual(r.ledger()[-1]["reason"], "trend reversed")
+
+    def test_day_trades_close_at_16_new_york(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            self._group(r, api, 1, "day")
+            r.day_close(datetime(2026, 10, 14, 19, 59, tzinfo=timezone.utc))   # 15:59 New York
+            self.assertIn("g1", r.groups)
+            r.day_close(datetime(2026, 10, 14, 20, 0, tzinfo=timezone.utc))    # 16:00 New York
+            self.assertNotIn("g1", r.groups)
+
+    def test_swing_trades_stay_overnight(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api)
+            self._group(r, api, 1, "swing")
+            r.day_close(datetime(2026, 10, 14, 20, 30, tzinfo=timezone.utc))
+            self.assertIn("g1", r.groups)
+
+    def test_live_config(self):
+        self.assertIsNone(live.CONFIG["trend_filters"])                      # off until the owner picks (2-week test, 2026-10-28)
