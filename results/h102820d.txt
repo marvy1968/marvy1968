@@ -1,3 +1,30 @@
 $ alpaca run-all --phase validate --families trend_zones_stocks
-started 2026-10-28 07:18:41 EDT
-RUNNING...
+started 2026-10-28 07:18:41 EDT, took 23s, exit 0
+
+daily data ready
+## trend_zones_stocks: trend experts' buy / sell / take-profit zones on daily stock bars, calibrated 2025-07-28..2026-07-27; tests: last 21 days (2026-10-07..2026-10-28) and last 92 days (2026-07-28..2026-10-28), 2.5 bps a side (and 5)
+### LARGE caps (NVDA, MSFT, AAPL, GOOGL, AMZN): BUY +0.61..+1.11 (3) | SELL -1.16..-0.66 (3) | LONG TP +2.11..+2.61 (2) | SHORT TP -1.07..-0.57 (1)
+- last 21 days | 2.5 bps a side: all 7 trades, win 57%, PF 1.42, net +0.9R, avg +0.127R | longs 4 trades, win 50%, PF 0.89, net -0.2R, avg -0.055R | shorts 3 trades, win 67%, PF 11.96, net +1.1R, avg +0.370R | exits {'tp': 3, 'sell zone': 0, 'stop': 2, 'time': 0, 'end': 2}
+- last 21 days | 5 bps a side: all 7 trades, win 57%, PF 1.40, net +0.8R, avg +0.119R | longs 4 trades, win 50%, PF 0.88, net -0.2R, avg -0.059R | shorts 3 trades, win 67%, PF 10.49, net +1.1R, avg +0.357R | exits {'tp': 3, 'sell zone': 0, 'stop': 2, 'time': 0, 'end': 2}
+  last 21 days placebo (shuffled bars, 3 seeds): 13 trades, win 31%, PF 0.08, net -6.3R, avg -0.482R | 8 trades, win 50%, PF 0.79, net -0.8R, avg -0.100R | 7 trades, win 57%, PF 1.85, net +1.8R, avg +0.258R
+- last 92 days | 2.5 bps a side: all 34 trades, win 53%, PF 1.13, net +1.6R, avg +0.046R | longs 16 trades, win 50%, PF 1.19, net +1.5R, avg +0.092R | shorts 18 trades, win 56%, PF 1.02, net +0.1R, avg +0.005R | exits {'tp': 21, 'sell zone': 2, 'stop': 8, 'time': 1, 'end': 2}
+- last 92 days | 5 bps a side: all 34 trades, win 53%, PF 1.10, net +1.2R, avg +0.035R | longs 16 trades, win 50%, PF 1.17, net +1.3R, avg +0.084R | shorts 18 trades, win 56%, PF 0.97, net -0.1R, avg -0.008R | exits {'tp': 21, 'sell zone': 2, 'stop': 8, 'time': 1, 'end': 2}
+  last 92 days placebo (shuffled bars, 3 seeds): 47 trades, win 43%, PF 0.30, net -12.7R, avg -0.270R | 24 trades, win 62%, PF 1.81, net +7.4R, avg +0.309R | 32 trades, win 66%, PF 2.33, net +8.9R, avg +0.277R
+  last 92 days by stock: NVDA -2.6R (10) | MSFT +2.1R (3) | AAPL +4.2R (5) | GOOGL -1.3R (6) | AMZN -0.8R (10)
+### MID caps (AFRM, SOFI, RKLB, HIMS, DKNG): BUY +0.70..+1.20 (4) | SELL -1.24..-0.74 (3) | LONG TP +1.04..+1.54 (1) | SHORT TP -1.40..-0.90 (1)
+- last 21 days | 2.5 bps a side: all 12 trades, win 50%, PF 0.25, net -3.8R, avg -0.318R | longs 5 trades, win 40%, PF 0.13, net -2.7R, avg -0.548R | shorts 7 trades, win 57%, PF 0.44, net -1.1R, avg -0.153R | exits {'tp': 8, 'sell zone': 2, 'stop': 1, 'time': 0, 'end': 1}
+- last 21 days | 5 bps a side: all 12 trades, win 50%, PF 0.24, net -3.9R, avg -0.324R | longs 5 trades, win 40%, PF 0.12, net -2.8R, avg -0.555R | shorts 7 trades, win 57%, PF 0.43, net -1.1R, avg -0.160R | exits {'tp': 8, 'sell zone': 2, 'stop': 1, 'time': 0, 'end': 1}
+  last 21 days placebo (shuffled bars, 3 seeds): 6 trades, win 17%, PF 0.01, net -2.4R, avg -0.401R | 10 trades, win 60%, PF 1.77, net +1.0R, avg +0.102R | 9 trades, win 78%, PF 1.40, net +0.6R, avg +0.067R
+- last 92 days | 2.5 bps a side: all 46 trades, win 59%, PF 0.83, net -2.0R, avg -0.044R | longs 21 trades, win 57%, PF 0.50, net -3.8R, avg -0.179R | shorts 25 trades, win 60%, PF 1.41, net +1.7R, avg +0.070R | exits {'tp': 36, 'sell zone': 5, 'stop': 4, 'time': 0, 'end': 1}
+- last 92 days | 5 bps a side: all 46 trades, win 59%, PF 0.81, net -2.3R, avg -0.050R | longs 21 trades, win 57%, PF 0.48, net -3.9R, avg -0.185R | shorts 25 trades, win 60%, PF 1.37, net +1.6R, avg +0.064R | exits {'tp': 36, 'sell zone': 5, 'stop': 4, 'time': 0, 'end': 1}
+  last 92 days placebo (shuffled bars, 3 seeds): 34 trades, win 50%, PF 1.02, net +0.3R, avg +0.008R | 40 trades, win 52%, PF 0.67, net -4.3R, avg -0.108R | 40 trades, win 60%, PF 0.69, net -4.2R, avg -0.106R
+  last 92 days by stock: AFRM -0.9R (6) | SOFI +0.1R (14) | RKLB -1.3R (5) | HIMS -1.9R (11) | DKNG +1.9R (10)
+### SMALL caps (MARA, RIOT, IONQ, SOUN, BBAI): BUY +0.42..+0.92 (4) | SELL -1.48..-0.98 (3) | LONG TP +0.83..+1.33 (1) | SHORT TP -2.59..-2.09 (2)
+- last 21 days | 2.5 bps a side: all 0 trades | longs 0 trades | shorts 0 trades | exits {'tp': 0, 'sell zone': 0, 'stop': 0, 'time': 0, 'end': 0}
+- last 21 days | 5 bps a side: all 0 trades | longs 0 trades | shorts 0 trades | exits {'tp': 0, 'sell zone': 0, 'stop': 0, 'time': 0, 'end': 0}
+  last 21 days placebo (shuffled bars, 3 seeds): 6 trades, win 67%, PF 4.27, net +1.6R, avg +0.266R | 6 trades, win 50%, PF 1.96, net +2.2R, avg +0.362R | 5 trades, win 60%, PF 2.03, net +2.1R, avg +0.430R
+- last 92 days | 2.5 bps a side: all 31 trades, win 52%, PF 1.06, net +0.7R, avg +0.024R | longs 18 trades, win 44%, PF 0.76, net -1.6R, avg -0.086R | shorts 13 trades, win 62%, PF 1.46, net +2.3R, avg +0.176R | exits {'tp': 19, 'sell zone': 4, 'stop': 7, 'time': 1, 'end': 0}
+- last 92 days | 5 bps a side: all 31 trades, win 52%, PF 1.05, net +0.6R, avg +0.020R | longs 18 trades, win 44%, PF 0.76, net -1.6R, avg -0.090R | shorts 13 trades, win 62%, PF 1.44, net +2.2R, avg +0.172R | exits {'tp': 19, 'sell zone': 4, 'stop': 7, 'time': 1, 'end': 0}
+  last 92 days placebo (shuffled bars, 3 seeds): 27 trades, win 63%, PF 1.15, net +1.2R, avg +0.044R | 29 trades, win 48%, PF 1.00, net +0.0R, avg +0.000R | 30 trades, win 47%, PF 0.87, net -1.6R, avg -0.054R
+  last 92 days by stock: MARA +3.0R (10) | RIOT -0.0R (6) | IONQ -3.9R (6) | SOUN +1.7R (4) | BBAI -0.1R (5)
+ALL DONE
