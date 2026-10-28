@@ -1,3 +1,21 @@
 $ alpaca run-all --phase validate --families fx_tune
-started 2026-10-28 12:19:25 EDT
-RUNNING...
+started 2026-10-28 12:19:25 EDT, took 482s, exit 0
+
+daily data ready
+## fx_tune: live OANDA set-up, last 30 days (2026-09-28..2026-10-28) at 2x spread, first half 2026-09-28..2026-10-12 picks, second half 2026-10-13..2026-10-28 checks; live = move 0.75 ATR + reversal exit, all 9 experts
+- move 0.5 ATR, reversal on, winners: first half +0.0R (0 t) | second half +0.0R (0 t) | experts 
+- move 0.5 ATR, reversal off, winners: first half +0.0R (0 t) | second half +0.0R (0 t) | experts 
+- move 0.75 ATR, reversal on, winners: first half +0.0R (0 t) | second half +0.0R (0 t) <- best first half | experts 
+- move 0.75 ATR, reversal off, winners: first half +0.0R (0 t) | second half +0.0R (0 t) | experts 
+- move 1 ATR, reversal on, winners: first half +0.0R (0 t) | second half +0.0R (0 t) | experts 
+- move 1 ATR, reversal off, winners: first half +0.0R (0 t) | second half +0.0R (0 t) | experts 
+- move 1 ATR, reversal on, all: first half -10.0R (14 t) | second half -3.6R (7 t)
+- move 1 ATR, reversal off, all: first half -10.0R (14 t) | second half -3.6R (7 t)
+- move 0.75 ATR, reversal on, all: first half -12.0R (16 t) | second half -3.2R (8 t) <- LIVE
+- move 0.75 ATR, reversal off, all: first half -12.0R (16 t) | second half -3.2R (8 t)
+- move 0.5 ATR, reversal on, all: first half -16.0R (20 t) | second half -6.9R (16 t)
+- move 0.5 ATR, reversal off, all: first half -16.0R (20 t) | second half -6.9R (16 t)
+- per expert at the live setting (first half | second half): lien_h1 0 t, win 0%, PF 0.00, +0.0R | 0 t, win 0%, PF 0.00, +0.0R ; retest_h1 0 t, win 0%, PF 0.00, +0.0R | 0 t, win 0%, PF 0.00, +0.0R ; confirm_h1 0 t, win 0%, PF 0.00, +0.0R | 1 t, win 0%, PF 0.00, -1.0R ; cog_h4 0 t, win 0%, PF 0.00, +0.0R | 0 t, win 0%, PF 0.00, +0.0R ; holygrail_h1 3 t, win 33%, PF 0.75, -0.5R | 2 t, win 0%, PF 0.00, -1.0R ; ttm_h1 1 t, win 0%, PF 0.00, -1.0R | 0 t, win 0%, PF 0.00, +0.0R ; macd200_h1 0 t, win 0%, PF 0.00, +0.0R | 0 t, win 0%, PF 0.00, +0.0R ; insidebar_h1 3 t, win 0%, PF 0.00, -3.0R | 2 t, win 50%, PF 0.35, -0.6R ; wvb_d1 9 t, win 11%, PF 0.02, -7.5R | 3 t, win 33%, PF 0.73, -0.5R
+- no expert made money on the first half at any setting: the 'best' is standing aside
+- VERDICT: keep the live setting (best first half +0.0R -> second half +0.0R vs live -12.0R -> -3.2R)
+ALL DONE
