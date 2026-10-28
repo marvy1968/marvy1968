@@ -174,7 +174,8 @@ def simulate_playbook(inst: str, df: pd.DataFrame, r: PlaybookRules, a_date, b_d
         if exit_px is None:
             exit_px, why = ((BC[j] if side == 1 else -AC[j]), "time")
         trades.append({"inst": inst, "side": "long" if side == 1 else "short", "entry": idx[fill_i], "exit": idx[j],
-                       "r": (exit_px - fill) / risk, "why": why, "rr_target": (tgt - fill) / risk})
+                       "r": (exit_px - fill) / risk, "why": why, "rr_target": (tgt - fill) / risk,
+                       "fill": fill, "risk": risk})                     # fill in the mirrored price space (a short's is negative)
     trades.sort(key=lambda t: t["entry"])                             # one position per pair at a time: an overlapping later setup is dropped
     kept, free = [], None
     for t in trades:

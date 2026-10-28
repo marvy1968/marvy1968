@@ -234,6 +234,45 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_news":                   # owner 2026-10-28: news filter on the live forex setups (fxbot.newsfilter, pre-declared)
+                import datetime as _dt
+                import requests as _rq
+                from fxbot import newsfilter as _nf
+                from fxbot.data import MAJORS, load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", _dt.date(2022, 10, 1), today, Path("state/fx/cache")) for i in MAJORS}
+                def _get(u):
+                    r_ = _rq.get(u, headers=_nf.UA, timeout=30)
+                    r_.raise_for_status()
+                    return r_.text
+                lines += _nf.report(h1, today, fetch=_get)
+                print("\n".join(lines[first:]), flush=True)
+                continue
+            if fam == "sector_heatmap":            # owner 2026-10-28: sector heat-map long / short sleeve, with and without news (alpacabot.heatmap)
+                import datetime as _dt
+                from . import universe as _u
+                from .heatmap import report as hm_report
+                from .news import fetch as news_fetch, sector_news_negative
+                today_ = _dt.date.today()
+                syms = sorted(set(_u.STOCKS) | set(_u.SECTOR_ETFS) | set(_u.CONTROL_SECTOR_OF))
+                dd = {}
+                for s_ in syms:
+                    try:
+                        dd[s_] = load(s_, "1Day", _dt.date(2016, 9, 1), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                main = {k: v for k, v in dd.items() if k in _u.SECTOR_OF or k in _u.SECTOR_ETFS}
+                ctrl = ({k: v for k, v in dd.items() if k in _u.CONTROL_SECTOR_OF or k in _u.SECTOR_ETFS}, _u.CONTROL_SECTOR_OF)
+                try:
+                    days_ = dd["XLK"].index
+                    neg = sector_news_negative(news_fetch(list(_u.STOCKS), today_ - _dt.timedelta(days=760), today_, cache / "news"), _u.SECTOR_OF,
+                                               [d for d in days_ if d.date() >= today_ - _dt.timedelta(days=760)])
+                except Exception as exc:
+                    print(f"news unavailable: {type(exc).__name__}: {str(exc)[:120]}", flush=True)
+                    neg = None
+                lines += hm_report(main, _u.SECTOR_OF, ctrl, today_, neg)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trend_groups":              # owner 2026-10-28: 4 complementary trend groups, 3 of 4 must agree on buy / sell / TP (fxbot.consensus)
                 import datetime as _dt
                 import numpy as np
