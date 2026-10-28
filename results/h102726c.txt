@@ -1,3 +1,10 @@
 $ alpaca run-all --phase validate --families fxexp_check
-started 2026-10-27 20:10:41 EDT
-RUNNING...
+started 2026-10-27 20:10:41 EDT, took 3127s, exit 0
+
+daily data ready
+## fxexp_check: the fx-experts bot's four strategies, 3y / 1y / 1y windows, bot's own engine and costs (H1 mid), pre-declared bar (fxbot.fxexp_check)
+### tharp-random: train 3y: 151t win 39% PF 0.83 net -9.4R avg -0.062R maxDD 14.0R | select 1y: 51t win 25% PF 0.40 net -13.5R avg -0.265R maxDD 15.2R | OOS last 1y: 44t win 27% PF 0.78 net -4.0R avg -0.091R maxDD 13.5R | OOS at 2x spread: 43t win 28% PF 0.77 net -4.0R avg -0.093R maxDD 13.6R | shuffled-data placebo OOS avg (best seed) -0.039R | RANDOM-ENTRY SYSTEM BY DESIGN (no edge claim)
+### williams-vbo: train 3y: 3951t win 48% PF 0.96 net -83.5R avg -0.021R maxDD 239.5R | select 1y: 1324t win 48% PF 0.94 net -37.8R avg -0.029R maxDD 69.5R | OOS last 1y: 1304t win 48% PF 1.07 net +46.8R avg +0.036R maxDD 50.3R | OOS at 2x spread: 1335t win 44% PF 0.94 net -45.5R avg -0.034R maxDD 86.6R | shuffled-data placebo OOS avg (best seed) +0.012R | reject
+### faith-turtle: train 3y: 261t win 37% PF 0.96 net -4.5R avg -0.017R maxDD 23.6R | select 1y: 94t win 32% PF 0.58 net -20.9R avg -0.222R maxDD 27.7R | OOS last 1y: 84t win 33% PF 0.65 net -14.7R avg -0.175R maxDD 20.2R | OOS at 2x spread: 87t win 32% PF 0.60 net -18.0R avg -0.207R maxDD 23.5R | shuffled-data placebo OOS avg (best seed) +0.232R | reject
+### lien-zeros: train 1y: 480t win 27% PF 0.72 net -98.7R avg -0.206R maxDD 113.9R | select 1y: 566t win 30% PF 0.86 net -55.6R avg -0.098R maxDD 68.3R | OOS last 1y: 373t win 30% PF 0.83 net -44.2R avg -0.119R maxDD 64.3R | OOS at 2x spread: 341t win 24% PF 0.62 net -100.4R avg -0.294R maxDD 113.4R | shuffled-data placebo OOS avg (best seed) -0.159R | reject
+ALL DONE
