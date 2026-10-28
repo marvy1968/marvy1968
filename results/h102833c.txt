@@ -1,0 +1,3 @@
+$ show alpaca_ride/state.json
+started 2026-10-28 12:19:13 EDT
+RUNNING...
