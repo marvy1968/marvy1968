@@ -280,3 +280,82 @@ def quarters(first: date, today: date) -> list[tuple[date, date]]:
         out.append((a, b))
         y, q = ny, nq
     return out
+
+
+# ------------------------------------------------------------------ trend experts: buy / sell / TAKE-PROFIT zones, 3-week test (owner 2026-10-28)
+# PRE-DECLARED before any run. Daily yardstick zd as above. From the 12 months before the test, for the TREND experts only (20+ signals or trades):
+# BUY ZONE = their average median zd at long signals; SELL ZONE = at short signals; LONG TP ZONE = their average median zd at the EXIT of their
+# WINNING long trades (each expert's own backtest, fxbot.engine.simulate); SHORT TP ZONE = the same for winning shorts; each +- 0.25.
+# Trade: long when a 1-hour close is in the buy zone -> take profit when zd reaches the long TP zone's lower edge, get out early if zd falls back into the
+# sell zone, hard stop 1.5 daily ATR, 20 days at most. Short mirrors it (TP at the short TP zone's upper edge, out early back in the buy zone).
+# Test: the last 21 days, 7 majors, 1-hour bid/ask, normal and 2x spread, financing charged, 3 shuffled-bar seeds as the control.
+def tp_zd(make, bars: pd.DataFrame, zd: pd.Series, a: date, b: date) -> tuple[list, list]:
+    """zd at the exit of this expert's WINNING long / short trades whose entry is in [a, b]."""
+    from .engine import simulate
+    longs, shorts = [], []
+    for t in simulate("x", bars, make()):
+        if not (a <= t.entry_time.date() <= b) or t.side * (t.exit_px - t.entry_px) <= 0:
+            continue
+        pos = zd.index.searchsorted(t.exit_time, side="right") - 1
+        if pos >= 0 and np.isfinite(zd.iloc[pos]):
+            (longs if t.side == 1 else shorts).append(float(zd.iloc[pos]))
+    return longs, shorts
+
+
+def trend_tp_zones(sig: dict, tps: dict) -> dict:
+    """sig: name -> (long zd list, short zd list); tps: name -> (winning-long exit zd, winning-short exit zd). Trend experts only."""
+    def avg(lists):
+        meds = [float(np.median(x)) for x in lists if len(x) >= MIN_SIGNALS]
+        return ((np.mean(meds) - HALF_WIDTH, np.mean(meds) + HALF_WIDTH), len(meds)) if meds else (None, 0)
+    names = [n for n in sig if n in TRENDING]
+    return {"buy": avg([sig[n][0] for n in names]), "sell": avg([sig[n][1] for n in names]),
+            "tp_long": avg([tps[n][0] for n in names if n in tps]), "tp_short": avg([tps[n][1] for n in names if n in tps])}
+
+
+def trade_trend_tp(df: pd.DataFrame, bz, sz, tpl, tps, a: date, b: date, pair: str = "") -> list[dict]:
+    from .engine import FIN_PER_NIGHT, _nights
+    m = mid(df)
+    zd, datr = zscore_daily(m)
+    z, at = zd.to_numpy(float), datr.to_numpy(float)
+    c = m["close"].to_numpy(float)
+    bo, bh, bl, ao, ah, al = (df[k].to_numpy(float) for k in ("bo", "bh", "bl", "ao", "ah", "al"))
+    dates = np.asarray(df.index.date)
+    out, i, n = [], 0, len(df)
+    while i < n - 1:
+        if not (a <= dates[i] <= b) or not np.isfinite(z[i]) or not np.isfinite(at[i]):
+            i += 1
+            continue
+        side = 1 if bz[0] <= z[i] <= bz[1] else -1 if sz[0] <= z[i] <= sz[1] else 0
+        if not side:
+            i += 1
+            continue
+        j = i + 1
+        fill = ao[j] if side == 1 else bo[j]
+        sd = DAILY_STOP_ATR * at[i]
+        stop = fill - side * sd
+        k, px, why = j, None, ""
+        while k < n:
+            lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
+            tp_hit = np.isfinite(z[k]) and ((side == 1 and z[k] >= tpl[0]) or (side == -1 and z[k] <= tps[1]))
+            bail = np.isfinite(z[k]) and ((side == 1 and z[k] <= sz[1]) or (side == -1 and z[k] >= bz[0]))
+            if k > j and side * (op - stop) <= 0:
+                px, why = op, "stop"
+            elif (side == 1 and lo <= stop) or (side == -1 and hi >= stop):
+                px, why = stop, "stop"
+            elif tp_hit or bail or k - j + 1 >= DAILY_MAX_BARS:
+                why = "tp" if tp_hit else "sell zone" if bail else "time"
+                if k + 1 < n:
+                    k += 1
+                    px = bo[k] if side == 1 else ao[k]
+                else:
+                    px = c[k]
+            elif k == n - 1:
+                px, why = c[k], "end"
+            if px is not None:
+                break
+            k += 1
+        kk = min(k, n - 1)
+        nts = _nights(df.index[j], df.index[kk])
+        out.append({"date": dates[j], "side": side, "r": (side * (px - fill) - nts * FIN_PER_NIGHT * fill) / sd, "pair": pair, "why": why, "nights": nts})
+        i = max(k, i + 1)
+    return out

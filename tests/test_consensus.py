@@ -86,3 +86,23 @@ class FinancingTests(unittest.TestCase):
         self.assertTrue(tr)
         self.assertGreater(tr[0]["nights"], 0)
         self.assertGreater(FIN_PER_NIGHT, 0)
+
+
+class TrendTpTests(unittest.TestCase):
+    def test_zones_use_trend_experts_only_and_tp_takes_profit(self):
+        sig = {"macd_200ema": ([1.0] * 30, [-1.0] * 30), "connors_rsi2": ([-2.0] * 30, [2.0] * 30)}
+        tps = {"macd_200ema": ([2.0] * 30, [-2.0] * 30)}
+        z = cz.trend_tp_zones(sig, tps)
+        self.assertAlmostEqual(np.mean(z["buy"][0]), 1.0)
+        self.assertEqual(z["buy"][1], 1)
+        self.assertAlmostEqual(np.mean(z["tp_long"][0]), 2.0)
+        n = 900
+        idx = pd.date_range(end="2026-10-27 20:00", periods=n, freq="h", tz="UTC")
+        c = 1.1 + 0.00003 * np.arange(n)
+        d = {}
+        for s, off in (("b", -0.00002), ("a", 0.00002)):
+            d[s + "o"], d[s + "c"], d[s + "h"], d[s + "l"] = c + off, c + off, c + 0.0002 + off, c - 0.0002 + off
+        df = pd.DataFrame(d, index=idx)
+        tr = cz.trade_trend_tp(df, (0.0, 99.0), (-99.0, -50.0), (150.0, 200.0), (-200.0, -150.0), dt.date(2026, 10, 1), dt.date(2026, 10, 27), "X")
+        self.assertTrue(tr)
+        self.assertTrue(all(t["side"] == 1 for t in tr))
