@@ -1258,6 +1258,13 @@ class PaperRunner:
                     continue
                 self.tick(now)
                 self.traded_days.add(now.date())
+                try:
+                    from .swing_paper import SwingRunner
+                    res = fed_flatten(now, FED_FLATTEN, lambda st: SwingRunner(RestBroker(), state_dir=st), send_telegram)
+                    if res is not None:
+                        self.journal("fed_flatten", result=res)
+                except Exception:
+                    log.exception("fed flatten check failed (continuing)")
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot
@@ -1265,6 +1272,36 @@ class PaperRunner:
             except Exception:
                 log.exception("paper loop error (continuing)")
             self.sleep(15)
+
+
+# Owner 2026-10-28 ("yes, flatten stock swing positions for Fed"): on a Fed decision day (fxbot.newsfilter.FOMC, 14:00 ET) the swing book is
+# closed at market from `at` (one hour before; SwingRunner.close_all cancels each broker stop first), once per day. The swing scan / open
+# runs re-enter the next morning only if their signals still hold. A guard, not an edge (not backtested). Undo: FED_FLATTEN = None.
+FED_FLATTEN = {"at": dtime(13, 0), "until": dtime(15, 55), "state": "state/alpaca_swing"}
+
+
+def fed_flatten(now_et: datetime, cfg: dict | None, make_runner, notify=None) -> dict | None:
+    """Close the swing book once on a Fed decision day after cfg['at']; returns close_all's result, or None when there is nothing to do."""
+    if not cfg:
+        return None
+    from fxbot.newsfilter import FOMC
+    day = now_et.date().isoformat()
+    if day not in FOMC or not (cfg["at"] <= now_et.time() < cfg["until"]):
+        return None
+    marker = Path(cfg["state"]) / f"fed_flatten_{day}.done"
+    if marker.exists():
+        return None
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(now_et.isoformat())                # written first: never sent twice, even after a crash mid-way
+    try:
+        out = make_runner(cfg["state"]).close_all(now_et)
+    except Exception as exc:
+        log.exception("fed flatten failed")
+        out = {"error": f"{type(exc).__name__}: {exc}"[:200]}
+    if notify:
+        notify("ALPACA PAPER (swing): Fed decision today at 14:00 ET - swing book flattened: "
+               + (", ".join(f"{k} {v}" for k, v in out.items()) or "no open positions"))
+    return out
 
 
 GATE = {"days": 30, "trades": 100, "profit_factor": 1.3, "max_dd": 0.10}
