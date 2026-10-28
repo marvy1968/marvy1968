@@ -1,3 +1,10 @@
 $ alpaca run-all --phase validate --families fxexp_stages
-started 2026-10-27 21:04:39 EDT
-RUNNING...
+started 2026-10-27 21:04:39 EDT, took 189s, exit 0
+
+daily data ready
+## fxexp_stages: staged short tests of the fx-experts bot's four strategies (bot's own engine and costs at 2x spread; shuffled-data placebo)
+### tharp-random (2x spread): 2 weeks: 0t win 0% PF n/a net +0.0R avg +0.000R maxDD 0.0R, placebo best n/a -> FAIL | 1 month: 1t win 0% PF 0.00 net -0.8R avg -0.755R maxDD 0.8R, placebo best -0.606R -> FAIL | 3 months: 9t win 22% PF 0.07 net -5.6R avg -0.627R maxDD 5.6R, placebo best -0.483R -> FAIL | stop here
+### williams-vbo (2x spread): 2 weeks: 58t win 48% PF 1.05 net +1.2R avg +0.020R maxDD 11.9R, placebo best +0.061R -> FAIL | 1 month: 116t win 42% PF 0.62 net -23.8R avg -0.205R maxDD 31.8R, placebo best +0.098R -> FAIL | 3 months: 352t win 45% PF 1.02 net +2.9R avg +0.008R maxDD 33.5R, placebo best +0.108R -> FAIL | stop here
+### faith-turtle (2x spread): 2 weeks: 1t win 0% PF 0.00 net -1.0R avg -1.010R maxDD 1.0R, placebo best -1.003R -> FAIL | 1 month: 3t win 33% PF 0.07 net -1.8R avg -0.590R maxDD 1.9R, placebo best -0.346R -> FAIL | 3 months: 17t win 41% PF 0.79 net -1.5R avg -0.088R maxDD 3.9R, placebo best -0.351R -> FAIL | stop here
+### lien-zeros (2x spread): 2 weeks: 18t win 17% PF 0.31 net -11.3R avg -0.629R maxDD 13.3R, placebo best +0.159R -> FAIL | 1 month: 44t win 20% PF 0.47 net -19.4R avg -0.440R maxDD 23.3R, placebo best +0.133R -> FAIL | 3 months: 106t win 22% PF 0.51 net -41.3R avg -0.389R maxDD 45.5R, placebo best +0.100R -> FAIL | stop here
+ALL DONE
