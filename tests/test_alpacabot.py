@@ -1991,7 +1991,8 @@ class WeeklyLockTests(unittest.TestCase):
         from alpacabot import swing_paper
         data = {"AAA": R.series(2, 0.0020), "BBB": R.series(3, 0.0012), "SPY": R.series(1, 0.0003, 0.009, 400.0)}
         et = ZoneInfo("America/New_York")
-        with tempfile.TemporaryDirectory() as d, mock.patch.object(swing_paper, "_alert") as alert:
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(swing_paper, "_alert") as alert, \
+                mock.patch.object(swing_paper, "TREND_FILTERS", None), mock.patch.object(swing_paper, "STAIR", None):   # the lock alone
             box = {}
             fetch = lambda sym, tf, a, b, feed: data[sym][data[sym].index.date <= box["day"]]      # noqa: E731
             r = swing_paper.SwingRunner(R.SimBroker(data), state_dir=d, universe=["AAA", "BBB"], fetch=fetch, base_equity=100000.0)
