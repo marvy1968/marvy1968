@@ -16,6 +16,7 @@ Accepted job lines:
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   read-bot-reports /abs/folder  tails of that bot's logs + heads of reports/csv (secrets scrubbed)
   export-bot <name> /abs/folder redacted copy of that bot's code into exports/<name>/ (committed to the vm-link branch)
+  fx-experts-entries status|stop|resume  show / set only no_new_entries in the fx-experts bot's config (deploy/fxexp_entries.py)
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
@@ -94,6 +95,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if not args or args[0] not in ("download", "backtest", "run-all", "check", "paper-report", "coverage", "history", "symbol-check", "positions", "close-others", "swing", "paper-eod", "paper-pause", "paper-flatten", "paper-trades", "paper-telegram"):
             return None, "alpaca needs download, backtest, run-all, check or paper-report"
         return as_bot + [py, "-m", "alpacabot", *args], ""
+    if cmd == "fx-experts-entries":  # owner 2026-10-28: show / set ONLY no_new_entries in /opt/fx-experts/config/config.json (deploy/fxexp_entries.py)
+        if len(args) != 1 or args[0] not in ("status", "stop", "resume"):
+            return None, "fx-experts-entries needs status, stop or resume"
+        return ["python3", str(BOT / "deploy/fxexp_entries.py"), args[0]], ""
     if cmd == "export-bot":  # redacted copy of a bot folder into exports/<name>/ on the vm-link branch (no 200 KB output limit)
         if len(args) != 2 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]) or not args[1].startswith("/") or ".." in args[1]:
             return None, "export-bot needs <name> /abs/folder"
