@@ -1,0 +1,3 @@
+$ fx-experts-entries status
+started 2026-10-28 19:51:07 EDT
+RUNNING...
