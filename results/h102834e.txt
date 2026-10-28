@@ -1,3 +1,15 @@
 $ show alpaca_ride/journal.jsonl
-started 2026-10-28 13:10:43 EDT
-RUNNING...
+started 2026-10-28 13:10:43 EDT, took 0s, exit 0
+
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "ABBV", "side": 1, "qty": 2, "fill": 288.15, "stop": 284.77}
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "AMT", "side": -1, "qty": 4, "fill": 177.04, "stop": 180.37}
+{"t": "2026-10-28T11:09:03-04:00", "kind": "open", "symbol": "JNJ", "side": 1, "qty": 3, "fill": 272.32, "stop": 268.71}
+{"t": "2026-10-28T11:26:19-04:00", "kind": "open", "symbol": "KO", "side": 1, "qty": 9, "fill": 92.24, "stop": 91.38}
+{"t": "2026-10-28T11:46:31-04:00", "kind": "open", "symbol": "MA", "side": 1, "qty": 1, "fill": 615.79, "stop": 610.39}
+{"t": "2026-10-28T12:19:05-04:00", "kind": "adopted", "symbol": "ABBV", "stop_id": "21a47479-5994-42ed-b00a-ac3ca75ae3df"}
+{"t": "2026-10-28T12:19:05-04:00", "kind": "adopted", "symbol": "AMT", "stop_id": "b058936b-0209-4a3c-81c4-c69e02b72aef"}
+{"t": "2026-10-28T12:27:47-04:00", "kind": "close", "symbol": "MA", "px": 612.77, "pl": -3.02, "reason": "trend reversed"}
+{"t": "2026-10-28T12:46:42-04:00", "kind": "close", "symbol": "KO", "px": 91.83, "pl": -3.69, "reason": "trend reversed"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "JNJ", "px": 270.886667, "pl": -4.3, "reason": "Fed decision: flat"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "ABBV", "px": 286.9, "pl": -2.5, "reason": "Fed decision: flat"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "AMT", "px": 177.68, "pl": -2.56, "reason": "Fed decision: flat"}
