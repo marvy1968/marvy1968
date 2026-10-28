@@ -1,3 +1,56 @@
 $ show alpaca_ride/state.json
-started 2026-10-28 12:19:13 EDT
-RUNNING...
+started 2026-10-28 12:19:13 EDT, took 0s, exit 0
+
+{
+ "date": "2026-10-28",
+ "done": [
+  "JNJ",
+  "LLY",
+  "KO",
+  "MA",
+  "ABBV",
+  "AMT"
+ ],
+ "open": {
+  "JNJ": {
+   "side": 1,
+   "qty": 3,
+   "entry": 272.32,
+   "stop": 268.71,
+   "stop_id": "3f431948-9a5f-440e-8390-9421c832bd75",
+   "opened": "2026-10-28T11:09:03.075959-04:00"
+  },
+  "KO": {
+   "side": 1,
+   "qty": 9,
+   "entry": 92.24,
+   "stop": 91.38,
+   "stop_id": "39aa1eb1-5fde-4f14-b71d-e22d26098586",
+   "opened": "2026-10-28T11:26:19.092882-04:00"
+  },
+  "MA": {
+   "side": 1,
+   "qty": 1,
+   "entry": 615.79,
+   "stop": 610.39,
+   "stop_id": "f6d03159-84f6-43c9-9e61-a2e6a78078f3",
+   "opened": "2026-10-28T11:46:31.207309-04:00"
+  },
+  "ABBV": {
+   "side": 1,
+   "qty": 2,
+   "entry": 288.15,
+   "stop": 284.77,
+   "stop_id": "21a47479-5994-42ed-b00a-ac3ca75ae3df",
+   "opened": "2026-10-28T11:08:38-04:00"
+  },
+  "AMT": {
+   "side": -1,
+   "qty": 4,
+   "entry": 177.04,
+   "stop": 180.37,
+   "stop_id": "b058936b-0209-4a3c-81c4-c69e02b72aef",
+   "opened": "2026-10-28T11:08:38-04:00"
+  }
+ }
+}
