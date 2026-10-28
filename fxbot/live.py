@@ -72,7 +72,17 @@ STRATS = {"lien_h1": {"make": lambda: LienFader(break_pips=20), "gran": "H1", "c
           # retest structure, target the next opposing 4-hour swing level (>= 2R or no trade), out on a close back into the zone. No break-even
           # move (it cut the winners: 3 years PF 1.27 -> 1.62 without it, 12 months 1.13 -> 1.42; 91 trades / 3 years, win 27%, +36.8R).
           # Owner approved: its OWN exits only - exempt from loss_cut_r, take_profit_r and the 10-minute neg exit. 0.5% risk.
-          "retest_h1": {"playbook": PlaybookRules(be_at_r=0.0), "gran": "H1", "count": 1500, "minutes": 60}}     # owner's range box (ranging pairs); levels = the
+          "retest_h1": {"playbook": PlaybookRules(be_at_r=0.0), "gran": "H1", "count": 1500, "minutes": 60}}
+# owner 2026-10-28 ("I want OANDA to trade the longs and shorts, so add the trend experts to OANDA"): the book's trend methods
+# (fxbot.methods) as live experts, behind the trend filters (CONFIG["trend_filters"]) and the usual live exits. Not backtested as a set
+# here (each alone lost in the 2026-10-27/28 tests); judged on paper. Undo: drop the names from CONFIG["trade"].
+from .methods import HolyGrail, InsideBarBreakout, MacdTrend, TTMSqueeze, VolatilityBreakout   # noqa: E402
+STRATS.update({"holygrail_h1": {"make": HolyGrail, "gran": "H1", "count": 600, "minutes": 60},
+               "ttm_h1": {"make": TTMSqueeze, "gran": "H1", "count": 600, "minutes": 60},
+               "macd200_h1": {"make": MacdTrend, "gran": "H1", "count": 600, "minutes": 60},
+               "insidebar_h1": {"make": InsideBarBreakout, "gran": "H1", "count": 600, "minutes": 60},
+               "wvb_d1": {"make": VolatilityBreakout, "gran": "D", "count": 300, "minutes": 1440}})
+TREND_EXPERTS = ["confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"]     # owner's range box (ranging pairs); levels = the
     # 100-bar high/low. The SMA200 +-2 sigma envelope was tested against it 2016-20 (cc6, 2026-10-15): PF 0.52 vs 0.60, so high/low stays
 CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],              # owner's drawing: one entry risking 1% of the book
                      "cut_fracs": [], "cut_depth_r": [],                              # one stop (owner 2026-10-14: the 25/50% cut steps lost
@@ -91,8 +101,9 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # (-30% / -66%), every one worse at 2x the spread; the earlier 3-month passes were one good window. Live ledger: 18 closes, -$2,672. These five now
           # only LOG their signals (paused). lien_h1 stays (12 months PF 2.75, 3 years 0.94 - flat; the owner's 10-year fx-experts backtest PF 1.18) and
           # retest_h1 (the playbook, no live fills yet). UNDO: put the names back in this list (their signals are still logged and graded).
-          "trade": ["lien_h1", "retest_h1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
-          "risk_by_strategy": {"hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
+          # owner 2026-10-28: + the trend experts (TREND_EXPERTS, longs and shorts, behind the trend filters). Undo: ["lien_h1", "retest_h1"].
+          "trade": ["lien_h1", "retest_h1", "confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          "risk_by_strategy": {"holygrail_h1": 0.005, "ttm_h1": 0.005, "macd200_h1": 0.005, "insidebar_h1": 0.005, "wvb_d1": 0.005, "hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.
           # The OANDA stop stays in place as the backstop; measured on the mid so the spread paid at entry does not trigger it.
@@ -132,8 +143,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           #               against, Aroon 50+ against), checked at every completed 1-hour bar
           # Undo: "trend_filters": None (or set a key to False) and redeploy.
           # 2026-10-28 2-week test: no major has a long trend now, and over 92 days the filters let almost no live-expert trade through
-          # (lien / retest 0 trades) - switched OFF until the owner picks; to switch on put the dict below back.
-          "trend_filters": None}   # {"long": True, "short": True, "reversal": True, "day_close": "16:00"}
+          # (lien / retest 0 trades). Owner 2026-10-28 ("add the long and short trend filters for OANDA"): ON. Undo: "trend_filters": None.
+          "trend_filters": {"long": True, "short": True, "reversal": True, "day_close": "16:00"}}
 
 
 def decimals(instrument: str) -> int:
@@ -322,7 +333,8 @@ class FxPaper:
         try:
             if cfg.get("long") and self.daily_trend(inst) == side:
                 return "swing", ""
-            if cfg.get("short"):
+            hourly = len(m) > 2 and (m.index[-1] - m.index[-2]) <= pd.Timedelta(hours=1)
+            if cfg.get("short") and hourly:                 # a "hard move today" is read on 1-hour bars only
                 from .strongtrend import daily_of, today_state, windows
                 td = today_state(m, daily_of(m), True)
                 ok, _ = windows(m.index[-1:], True)
