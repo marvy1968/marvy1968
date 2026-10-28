@@ -1,3 +1,5 @@
 $ alpaca paper-telegram
-started 2026-10-28 19:50:58 EDT
-RUNNING...
+started 2026-10-28 19:50:58 EDT, took 1s, exit 0
+
+bot token found: yes | chat id found: yes
+NOT sent (see the log line above)
