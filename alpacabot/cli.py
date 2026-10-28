@@ -720,6 +720,20 @@ def run_all(a) -> int:
                     lines.append("- nothing passed the short test: no long test")
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trend_sleeve":              # owner 2026-10-28: cross-asset trend sleeve on Alpaca ETFs (research.TREND_SLEEVE, pre-declared)
+                import datetime as _dt
+                from .research import TREND_SLEEVE, trend_sleeve_lines
+                dd = {}
+                for s_ in TREND_SLEEVE["assets"]:
+                    try:
+                        d_ = load(s_, "1Day", _dt.date(2005, 1, 1), _dt.date.today(), cache)
+                        if len(d_) > 400:
+                            dd[s_] = d_
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += ["## trend_sleeve: cross-asset trend (12-month time-series momentum, inverse-vol, monthly), pre-declared"] + trend_sleeve_lines(dd)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "vol_target":                # Gemini round 6 (2026-10-27): volatility-targeted 200-day rule vs the plain rule
                 import datetime as _dt
                 from .research import vol_target_lines

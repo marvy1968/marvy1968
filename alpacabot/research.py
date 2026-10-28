@@ -2244,3 +2244,114 @@ def direction_pooled(label: str, parts: list, horizons: tuple, atr_n: int = 14) 
         z = (hit - 0.5) / math.sqrt(0.25 / n)
         rows.append(f"{h} bars: {n} signals, hit {hit:.1%}, mean {x.mean():+.3f} ATR, z {z:+.1f}")
     return [f"- {label}: " + " | ".join(rows)] if rows else [f"- {label}: no signals"]
+
+
+# ------------------------------------------------------------------ cross-asset trend sleeve (owner 2026-10-28: "build the cross-asset trend sleeve")
+# PRE-DECLARED before any run. Universe (Alpaca ETFs, dividend-adjusted): SPY US stocks, EFA developed ex-US, EEM emerging, TLT long Treasuries, IEF 7-10y
+# Treasuries, GLD gold, DBC commodities, UUP US dollar. Each month-end close: an asset is HELD if its 12-month total return is > 0 (time-series momentum;
+# Moskowitz, Ooi & Pedersen 2012), else its slot is cash (0%). Size: inverse volatility - weight = (0.12 / its 60-day annualised vol) / 8, at most 35%
+# per asset, gross at most 100% (no leverage); rebalanced at the month-end close, traded at the next open; 5 bps a side on turnover (stress: 10 bps).
+# Variant reported alongside (not used for the verdict): the same with "close above its 200-day average" instead of the 12-month return.
+# Controls: (1) the same inverse-vol portfolio ALWAYS held (does the trend timing add anything?), (2) 60/40 SPY/IEF monthly, (3) SPY buy-and-hold.
+# Windows: in-sample to 2018-12-31, OUT-OF-SAMPLE 2019-01-01..today (nothing was fitted; the split only checks stability). PASS only if: OOS Sharpe >= 0.5
+# and above control (1), OOS max drawdown shallower than both control (1) and the 60/40, both windows profitable, and OOS Sharpe >= 0.4 at 10 bps.
+# Added before the first real run (a smoke test on synthetic random prices passed the rules above): control (4) RANDOM timing - each asset on / off at
+# random each month with the sleeve's own share of months on FOR THAT ASSET, 20 seeds; the sleeve's FULL-PERIOD Sharpe must beat at least 18 of the 20.
+TREND_SLEEVE = {"assets": ("SPY", "EFA", "EEM", "TLT", "IEF", "GLD", "DBC", "UUP"), "lookback_days": 252, "vol_days": 60, "target": 0.12,
+                "cap": 0.35, "cost_bps": 5.0, "split": "2019-01-01"}
+
+
+def trend_sleeve_returns(closes: pd.DataFrame, opens: pd.DataFrame, signal: str = "tsmom12", always: bool = False, cost_bps: float = 5.0,
+                         seed: int | None = None, on_share=0.5) -> pd.Series:
+    """Daily portfolio returns. closes / opens: date x asset. Weights set at each month-end close, effective from the next open."""
+    sp = TREND_SLEEVE
+    rets = closes.pct_change()
+    vol = rets.rolling(sp["vol_days"]).std() * np.sqrt(252)
+    if signal == "tsmom12":
+        on = closes / closes.shift(sp["lookback_days"]) - 1 > 0
+    elif signal == "random":                                                   # placebo: each asset on / off at random each month, same average exposure
+        rng = np.random.default_rng(seed)
+        months = closes.index.tz_localize(None).to_period("M")
+        share = np.asarray(on_share if np.ndim(on_share) else [on_share] * len(closes.columns), float)
+        draw = {m: rng.random(len(closes.columns)) < share for m in months.unique()}
+        on = pd.DataFrame([draw[m] for m in months], index=closes.index, columns=closes.columns)
+    else:
+        on = closes > closes.rolling(200).mean()
+    month_end = closes.index.to_series().groupby([closes.index.year, closes.index.month]).transform("max") == closes.index.to_series()
+    w_target = ((sp["target"] / vol) / len(closes.columns)).clip(upper=sp["cap"])
+    if not always:
+        w_target = w_target.where(on, 0.0)
+    w_target = w_target.where(vol.notna() & closes.shift(sp["lookback_days"]).notna(), np.nan)
+    gross = w_target.sum(axis=1)
+    w_target = w_target.div(gross.clip(lower=1.0), axis=0)                    # never more than 100% invested
+    w = w_target.where(month_end).ffill().fillna(0.0)                         # held from the month-end decision...
+    w_eff = w.shift(1).fillna(0.0)                                            # ...executed at the next open
+    # day d return of a position decided at d-1's close and bought at d's open: open->close on the first day, close->close after
+    first_day = (w_eff.diff().abs().sum(axis=1) > 0)
+    oc = closes / opens - 1
+    port = (w_eff * rets).sum(axis=1)
+    port[first_day] = (w_eff * oc).sum(axis=1)[first_day] + (w_eff.shift(1).fillna(0.0) * (opens / closes.shift(1) - 1)).sum(axis=1)[first_day]
+    turnover = w_eff.diff().abs().sum(axis=1).fillna(0.0)
+    return port - turnover * cost_bps / 1e4
+
+
+def _curve_stats_sleeve(r: pd.Series) -> dict:
+    r = r.dropna()
+    if len(r) < 30 or r.std() == 0:
+        return {"cagr": 0.0, "sharpe": 0.0, "max_dd": 0.0, "years": 0.0}
+    eq = (1 + r).cumprod()
+    years = len(r) / 252
+    return {"cagr": float(eq.iloc[-1] ** (1 / years) - 1), "sharpe": float(r.mean() / r.std() * np.sqrt(252)),
+            "max_dd": float((eq / eq.cummax() - 1).min()), "years": years}
+
+
+def trend_sleeve_lines(daily: dict) -> list[str]:
+    sp = TREND_SLEEVE
+    assets = [a for a in sp["assets"] if a in daily]
+    closes = pd.DataFrame({a: daily[a]["close"] for a in assets}).dropna()
+    opens = pd.DataFrame({a: daily[a]["open"] for a in assets}).reindex(closes.index)
+    split = pd.Timestamp(sp["split"], tz=closes.index.tz)
+    out = [f"### Cross-asset trend sleeve: {', '.join(assets)} | data {closes.index[0].date()}..{closes.index[-1].date()} | in-sample to {split.date() - pd.Timedelta(days=1)}, "
+           f"OOS from {split.date()}"]
+    if len(assets) < len(sp["assets"]):
+        out.append(f"- missing assets: {sorted(set(sp['assets']) - set(assets))}")
+    series = {"TREND SLEEVE (12-month TSMOM)": trend_sleeve_returns(closes, opens, "tsmom12"),
+              "variant: 200-day average": trend_sleeve_returns(closes, opens, "sma200"),
+              "control 1: same weights, always held": trend_sleeve_returns(closes, opens, "tsmom12", always=True),
+              "TREND SLEEVE at 10 bps": trend_sleeve_returns(closes, opens, "tsmom12", cost_bps=2 * sp["cost_bps"])}
+    sig_on = (closes / closes.shift(sp["lookback_days"]) - 1 > 0)[closes.shift(sp["lookback_days"]).notna()]
+    on_share = sig_on.mean().reindex(closes.columns).fillna(0.5).to_numpy()   # EACH asset keeps its own share of months on (timing, not asset choice)
+    placebo = [_curve_stats_sleeve(trend_sleeve_returns(closes, opens, "random", seed=k, on_share=on_share).iloc[sp["lookback_days"] + sp["vol_days"]:])["sharpe"]
+               for k in range(20)]
+    spy, ief = closes.get("SPY"), closes.get("IEF")
+    if spy is not None and ief is not None:
+        r6040 = 0.6 * spy.pct_change() + 0.4 * ief.pct_change()               # daily-rebalanced proxy of a monthly 60/40 (close enough for a control)
+        series["control 2: 60/40 SPY/IEF"] = r6040
+        series["control 3: SPY buy-and-hold"] = spy.pct_change()
+    start = closes.index[sp["lookback_days"] + sp["vol_days"]]
+    stats = {}
+    for name, r in series.items():
+        r = r[r.index >= start]
+        ins, oos = _curve_stats_sleeve(r[r.index < split]), _curve_stats_sleeve(r[r.index >= split])
+        stats[name] = (ins, oos)
+        out.append(f"- {name}: in-sample CAGR {ins['cagr']:+.1%} Sharpe {ins['sharpe']:.2f} maxDD {ins['max_dd']:.1%} | "
+                   f"OOS CAGR {oos['cagr']:+.1%} Sharpe {oos['sharpe']:.2f} maxDD {oos['max_dd']:.1%} ({oos['years']:.1f}y)")
+    t, c1 = stats["TREND SLEEVE (12-month TSMOM)"], stats["control 1: same weights, always held"]
+    c2 = stats.get("control 2: 60/40 SPY/IEF", (None, {"max_dd": -1.0}))
+    st = stats["TREND SLEEVE at 10 bps"]
+    full = _curve_stats_sleeve(series["TREND SLEEVE (12-month TSMOM)"][series["TREND SLEEVE (12-month TSMOM)"].index >= start])["sharpe"]
+    beat = sum(full > p for p in placebo)
+    out.append(f"- control 4: random monthly timing, each asset on as often as the sleeve holds it ({float(np.mean(on_share)):.0%} on average), 20 seeds: full-period Sharpe {np.mean(placebo):.2f} mean "
+               f"(min {min(placebo):.2f}, max {max(placebo):.2f}); the sleeve {full:.2f} beats {beat}/20")
+    ok = (t[1]["sharpe"] >= 0.5 and t[1]["sharpe"] > c1[1]["sharpe"] and t[1]["max_dd"] > c1[1]["max_dd"] and t[1]["max_dd"] > c2[1]["max_dd"]
+          and t[0]["cagr"] > 0 and t[1]["cagr"] > 0 and st[1]["sharpe"] >= 0.4 and beat >= 18)
+    out.append(f"- verdict: {'PASS (paper candidate)' if ok else 'REJECT'} (OOS Sharpe >= 0.5 and above control 1, OOS maxDD shallower than control 1 and the 60/40, "
+               f"both windows profitable, OOS Sharpe >= 0.4 at 10 bps, beats 18/20 random timings)")
+    last = closes.index[-1]
+    rets = closes.pct_change()
+    vol = rets.rolling(sp["vol_days"]).std().iloc[-1] * np.sqrt(252)
+    on = (closes.iloc[-1] / closes.iloc[-1 - sp["lookback_days"]] - 1) > 0
+    w = ((sp["target"] / vol) / len(assets)).clip(upper=sp["cap"]).where(on, 0.0)
+    w = w / max(1.0, float(w.sum()))
+    out.append(f"- today's signal ({last.date()}): " + ", ".join(f"{a} {'ON' if on[a] else 'off'} {w[a]:.0%}" for a in assets) + f" | cash {1 - float(w.sum()):.0%}")
+    return out

@@ -98,3 +98,25 @@ class DirectionTests(unittest.TestCase):
         wrong = direction_pooled("short", [(d, np.zeros(n, bool), sig)], (5,))[0]
         self.assertIn("hit 100.0%", right)
         self.assertIn("hit 0.0%", wrong)
+
+
+class TrendSleeveTests(unittest.TestCase):
+    def _data(self, seed, drift):
+        rng = np.random.default_rng(seed)
+        idx = pd.bdate_range("2012-01-03", "2020-12-31", tz="America/New_York")
+        out = {}
+        for k in ("SPY", "EFA", "EEM", "TLT", "IEF", "GLD", "DBC", "UUP"):
+            c = 100 * np.exp(np.cumsum(rng.normal(drift, 0.01, len(idx))))
+            out[k] = pd.DataFrame({"open": c, "high": c, "low": c, "close": c}, index=idx)
+        return out
+
+    def test_weights_never_exceed_full_investment_and_runs_end_to_end(self):
+        from alpacabot.research import trend_sleeve_lines, trend_sleeve_returns
+        dd = self._data(1, 0.0003)
+        closes = pd.DataFrame({k: v["close"] for k, v in dd.items()})
+        r = trend_sleeve_returns(closes, closes, "tsmom12")
+        self.assertTrue(np.isfinite(r).all())
+        self.assertLess(r.abs().max(), 0.05)                    # <= 100% invested in 1%-vol assets: no daily move near 5%
+        lines = trend_sleeve_lines(dd)
+        self.assertTrue(any("control 4" in l for l in lines))
+        self.assertTrue(any("verdict" in l for l in lines))
