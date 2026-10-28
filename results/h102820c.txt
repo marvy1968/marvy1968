@@ -1,3 +1,27 @@
 $ alpaca run-all --phase validate --families trend_tp_zones
-started 2026-10-28 06:51:05 EDT
-RUNNING...
+started 2026-10-28 06:51:05 EDT, took 21s, exit 0
+
+daily data ready
+## trend_tp_zones: TREND experts' buy / sell / take-profit zones (daily zd), calibrated 2025-10-07..2026-10-06, 3-week test 2026-10-07..2026-10-28
+- confirm_h1: buys too few (6) | sells too few (3) | winning longs exit too few (0) | winning shorts exit too few (0)
+- cog_h4: buys +0.04 (194) | sells +0.40 (214) | winning longs exit +0.97 (25) | winning shorts exit -1.14 (28)
+- raschke_holy_grail: buys +0.42 (675) | sells -0.25 (682) | winning longs exit +1.08 (196) | winning shorts exit -0.61 (201)
+- carter_ttm_squeeze: buys +0.56 (386) | sells -0.17 (364) | winning longs exit +1.03 (125) | winning shorts exit -0.65 (112)
+- macd_200ema: buys +1.16 (363) | sells -1.08 (291) | winning longs exit +1.53 (110) | winning shorts exit -1.38 (100)
+- williams_vol_breakout: buys +1.01 (335) | sells -0.80 (296) | winning longs exit +1.34 (123) | winning shorts exit -1.39 (101)
+- inside_bar_breakout: buys +0.44 (949) | sells -0.25 (997) | winning longs exit +0.98 (230) | winning shorts exit -0.75 (195)
+- BUY ZONE +0.36..+0.86 (6 experts) | SELL ZONE -0.61..-0.11 (6 experts) | LONG TP ZONE +0.91..+1.41 (6 experts) | SHORT TP ZONE -1.24..-0.74 (6 experts)
+### Today's zones in price (20-day average + zd x daily ATR14, last completed day)
+- EUR_USD: last 1.1127 | buy 1.1236-1.1266 -> TP 1.1268-1.1298 | sell 1.1178-1.1208 -> TP 1.1141-1.117
+- GBP_USD: last 1.3286 | buy 1.3307-1.3341 -> TP 1.3345-1.3379 | sell 1.324-1.3275 -> TP 1.3197-1.3231
+- AUD_USD: last 0.70293 | buy 0.69951-0.70172 -> TP 0.70193-0.70414 | sell 0.69526-0.69747 -> TP 0.69248-0.69468
+- NZD_USD: last 0.55997 | buy 0.56515-0.56708 -> TP 0.56727-0.56919 | sell 0.56144-0.56336 -> TP 0.559-0.56093
+- USD_JPY: last 157.84 | buy 158.25-158.67 -> TP 158.71-159.13 | sell 157.43-157.86 -> TP 156.9-157.32
+- USD_CAD: last 1.406 | buy 1.4187-1.4219 -> TP 1.4222-1.4255 | sell 1.4124-1.4157 -> TP 1.4083-1.4116
+- USD_CHF: last 0.83031 | buy 0.83098-0.83346 -> TP 0.8337-0.83618 | sell 0.82619-0.82868 -> TP 0.82306-0.82554
+### 3-week test 2026-10-07..2026-10-28, 7 majors, 1-hour bid/ask, financing, stop 1.5 daily ATR
+- spread x1: all 55 trades, win 76%, PF 1.08, net +0.5R, avg +0.010R | longs 32 trades, win 84%, PF 1.34, net +0.9R, avg +0.029R | shorts 23 trades, win 65%, PF 0.91, net -0.4R, avg -0.016R | exits {'tp': 42, 'sell zone': 10, 'stop': 0, 'time': 0, 'end': 3}
+  by pair: EUR_USD +1.2R (6) | GBP_USD +0.0R (10) | AUD_USD +0.4R (10) | NZD_USD -0.4R (4) | USD_JPY -1.1R (12) | USD_CAD -0.0R (3) | USD_CHF +0.4R (10)
+- spread x2: all 55 trades, win 75%, PF 0.92, net -0.5R, avg -0.010R | longs 32 trades, win 81%, PF 1.13, net +0.4R, avg +0.011R | shorts 23 trades, win 65%, PF 0.79, net -0.9R, avg -0.038R | exits {'tp': 42, 'sell zone': 10, 'stop': 0, 'time': 0, 'end': 3}
+  placebo (shuffled bars, 3 seeds): 35t avg -0.057R net -2.0R | 35t avg -0.108R net -3.8R | 79t avg -0.053R net -4.2R
+ALL DONE
