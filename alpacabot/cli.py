@@ -234,6 +234,26 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "strong_trend":              # owner 2026-10-28: 2 of 3 strong-trend indicators before any expert fires, 2-week test (fxbot.strongtrend)
+                import datetime as _dt
+                from fxbot import strongtrend as _stg
+                from fxbot.data import MAJORS, load as fx_load
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                fc = Path("state/fx/cache")
+                by = {g: {i: fx_load(i, g, today_ - _dt.timedelta(days=500 if g == "D" else 340), today_, fc) for i in MAJORS} for g in ("H1", "H4", "D")}
+                lines += _stg.fx_report(by, today_)
+                print("\n".join(lines[first:]), flush=True)
+                dd = {}
+                for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=700), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                first = len(lines)
+                lines += _stg.stock_report({s: d for s, d in dd.items() if len(d) > 300}, dd["SPY"]["close"], today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_news":                   # owner 2026-10-28: news filter on the live forex setups (fxbot.newsfilter, pre-declared)
                 import datetime as _dt
                 import requests as _rq
