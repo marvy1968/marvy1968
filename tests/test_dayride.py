@@ -79,6 +79,7 @@ class DayRideTests(unittest.TestCase):
         self.m5 = five(True)
         cfg = {**dr.RIDE, "symbols": ["UP"]}
         self.r = dr.DayRide(self.b, state_dir=self.tmp.name, cfg=cfg, fetch=fetch)
+        self.r.news_fetch = lambda url: []                     # no network: Fed + jobs-report fallback calendar
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -111,6 +112,7 @@ class DayRideTests(unittest.TestCase):
         self.assertEqual(self.r.state["open"], {})
         self.assertTrue(self.b.cancelled)
         r2 = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else self.m5)
+        r2.news_fetch = lambda url: []
         r2.state = {"date": "2026-10-28", "done": [], "open": {"UP": {"side": 1, "qty": 5, "entry": 100.0, "stop": 99.0, "stop_id": None,
                                                                        "opened": "x"}}}
         r2.step(datetime(2026, 10, 28, 13, 0, 30, tzinfo=ET))
@@ -141,6 +143,7 @@ class AdoptTests(unittest.TestCase):
                                         "fill": 100.0, "stop": 99.0}) + "\n")
                 f.write(json.dumps({"t": "2026-10-28T11:30:00-04:00", "kind": "close", "symbol": "DONE"}) + "\n")
             r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r.news_fetch = lambda url: []
             r.state = {"date": "2026-10-28", "done": [], "open": {}}
             r.adopt(datetime(2026, 10, 28, 12, 0, tzinfo=ET))
             self.assertEqual(sorted(r.state["open"]), ["ABBV", "AMT"])
@@ -148,6 +151,28 @@ class AdoptTests(unittest.TestCase):
             self.assertEqual(r.state["open"]["AMT"]["side"], -1)
             r.step(datetime(2026, 10, 28, 13, 0, 30, tzinfo=ET))                 # Fed day: adopted rides are flattened too
             self.assertEqual(r.state["open"], {})
+
+
+class RideNewsTests(unittest.TestCase):
+    def test_high_impact_usd_release_pauses_and_flattens(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Broker()
+            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else five(True))
+            r.news_fetch = lambda url: [{"title": "ISM Manufacturing PMI", "country": "USD", "date": "2026-10-27T10:00:00-04:00", "impact": "High"},
+                                        {"title": "ECB", "country": "EUR", "date": "2026-10-27T12:00:00-04:00", "impact": "High"}]
+            r.state = {"date": "2026-10-27", "done": [], "open": {"UP": {"side": 1, "qty": 5, "entry": 100.0, "stop": 99.0, "stop_id": None,
+                                                                         "opened": "x"}}}
+            r.adopted = True
+            r.step(datetime(2026, 10, 27, 10, 50, 30, tzinfo=ET))          # within an hour after the ISM release
+            self.assertEqual(r.state["open"], {})
+            self.assertTrue(r.state["news_logged"].startswith("news pause: USD ISM"))
+            r.last_slot = None
+            r.step(datetime(2026, 10, 27, 11, 5, 30, tzinfo=ET))           # window over; the EUR release does not pause stocks
+            self.assertIn("UP", r.state["open"])
+
+    def test_config(self):
+        self.assertEqual((dr.RIDE["news_before"], dr.RIDE["news_after"]), (60, 60))
 
 
 if __name__ == "__main__":

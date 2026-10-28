@@ -10,7 +10,8 @@ Rules:
   size         0.25% of account equity at risk to a stop 0.5 daily ATR away; all rides together at most 5% of equity (owner's cap), 3 open
   stop         a stop order at Alpaca on fill
   exits        the 5-minute trend turns against the ride (2 of 3: ADX>=20 DI against, close/EMA20/EMA50 against, Aroon 50+ against);
-               15:55 flat; Fed decision day: no entries and flat from 13:00
+               15:55 flat; Fed decision day: no entries and flat from 13:00; any high-impact USD release (ISM, Fed speakers ...):
+               no entries and flat from 60 min before to 60 min after (owner 2026-10-28, the forex news pause)
 Undo: RIDE = None (alpacabot/dayride.py) and redeploy.
 """
 
@@ -27,7 +28,8 @@ from .data import _fetch
 
 log = logging.getLogger("alpacabot.dayride")
 RIDE = {"symbols": sorted(set(universe.STOCKS) | {"SPY", "QQQ"}), "risk_pct": 0.0025, "gross_cap": 0.05, "max_open": 3,
-        "entry_from": dtime(10, 0), "entry_until": dtime(15, 0), "flat_at": dtime(15, 55), "fed_from": dtime(13, 0), "stop_atr": 0.5}
+        "entry_from": dtime(10, 0), "entry_until": dtime(15, 0), "flat_at": dtime(15, 55), "fed_from": dtime(13, 0), "stop_atr": 0.5,
+        "news_before": 60, "news_after": 60}
 
 
 class DayRide:
@@ -120,15 +122,43 @@ class DayRide:
         from fxbot.newsfilter import FOMC
         t = now.time()
         fed = day in FOMC and t >= self.cfg["fed_from"]
-        if t >= self.cfg["flat_at"] or fed:
+        news = self.news_pause(now)
+        if t >= self.cfg["flat_at"] or fed or news:
+            why = "15:55 flat" if t >= self.cfg["flat_at"] else "Fed decision: flat" if fed else news
             for sym in list(self.state["open"]):
-                self.exit(sym, now, "15:55 flat" if t >= self.cfg["flat_at"] else "Fed decision: flat")
+                self.exit(sym, now, why)
+            if news and news != self.state.get("news_logged"):
+                self.journal("news_pause", now, why=news)
+                self.state["news_logged"] = news
             self.save()
             return
         self.manage(now)
         if self.cfg["entry_from"] <= t < self.cfg["entry_until"]:
             self.scan(now)
         self.save()
+
+    def news_pause(self, now: datetime) -> str:
+        """Owner 2026-10-28 ("add the news pause to the stock ride too"): '' or why - a high-impact USD release (ForexFactory week, Fed +
+        jobs-report fallback; fxbot.newsfilter) from news_before min before to news_after min after: no entries and the rides are closed."""
+        if not self.cfg.get("news_before"):
+            return ""
+        import pandas as pd
+        from fxbot.newsfilter import live_events, paused
+        if getattr(self, "news_fetch", None) is None:
+            import requests
+
+            def _get(url):
+                r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+                r.raise_for_status()
+                return r.json()
+            self.news_fetch = _get
+        try:
+            ts = pd.Timestamp(now).tz_convert("UTC")
+            events, _ = live_events(self.dir / "news_calendar.json", ts, self.news_fetch)
+            return paused("USD_USD", ts, events, self.cfg["news_before"], self.cfg["news_after"])
+        except Exception as exc:
+            self.journal("error", now, where="news", error=str(exc)[:200])
+            return ""
 
     def manage(self, now: datetime):
         from fxbot.strongtrend import reversal
