@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families fx_tune
+started 2026-10-28 12:19:25 EDT
+RUNNING...
