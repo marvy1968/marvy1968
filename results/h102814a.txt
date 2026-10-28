@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families trend_sleeve
-started 2026-10-28 01:40:04 EDT
-RUNNING...
+started 2026-10-28 01:40:04 EDT, took 109s, exit 0
+
+daily data ready
+## trend_sleeve: cross-asset trend (12-month time-series momentum, inverse-vol, monthly), pre-declared
+### Cross-asset trend sleeve: SPY, EFA, EEM, TLT, IEF, GLD, DBC, UUP | data 2016-01-04..2026-10-27 | in-sample to 2018-12-31, OOS from 2019-01-01
+- TREND SLEEVE (12-month TSMOM): in-sample CAGR +1.4% Sharpe 0.29 maxDD -8.0% | OOS CAGR +5.5% Sharpe 1.08 maxDD -7.3% (7.8y)
+- variant: 200-day average: in-sample CAGR +4.8% Sharpe 0.91 maxDD -6.7% | OOS CAGR +5.6% Sharpe 1.21 maxDD -5.2% (7.8y)
+- control 1: same weights, always held: in-sample CAGR +2.9% Sharpe 0.71 maxDD -4.9% | OOS CAGR +6.4% Sharpe 1.12 maxDD -10.4% (7.8y)
+- TREND SLEEVE at 10 bps: in-sample CAGR +1.2% Sharpe 0.26 maxDD -8.1% | OOS CAGR +5.4% Sharpe 1.06 maxDD -7.3% (7.8y)
+- control 2: 60/40 SPY/IEF: in-sample CAGR +4.0% Sharpe 0.54 maxDD -10.8% | OOS CAGR +10.9% Sharpe 0.96 maxDD -21.0% (7.8y)
+- control 3: SPY buy-and-hold: in-sample CAGR +5.2% Sharpe 0.44 maxDD -19.3% | OOS CAGR +17.2% Sharpe 0.94 maxDD -33.8% (7.8y)
+- control 4: random monthly timing, each asset on as often as the sleeve holds it (66% on average), 20 seeds: full-period Sharpe 0.91 mean (min 0.67, max 1.14); the sleeve 0.93 beats 10/20
+- verdict: REJECT (OOS Sharpe >= 0.5 and above control 1, OOS maxDD shallower than control 1 and the 60/40, both windows profitable, OOS Sharpe >= 0.4 at 10 bps, beats 18/20 random timings)
+- today's signal (2026-10-27): SPY ON 15%, EFA ON 14%, EEM ON 7%, TLT off 0%, IEF off 0%, GLD off 0%, DBC ON 8%, UUP ON 30% | cash 25%
+ALL DONE
