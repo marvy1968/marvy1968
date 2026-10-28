@@ -2152,6 +2152,20 @@ def main(argv=None) -> int:
         _lg.basicConfig(level=_lg.WARNING, format="%(levelname)s %(message)s")
         tok, chat = _trade_tg_settings()
         print(f"bot token found: {'yes' if tok else 'NO'} | chat id found: {'yes' if chat else 'NO'}")   # never the values
+        import inspect
+        import requests as _rq
+        print(f"sender in use: {getattr(send_telegram, '__module__', '?')}.{getattr(send_telegram, '__name__', '?')} "
+              f"({inspect.getsourcefile(send_telegram) if callable(send_telegram) else '?'})")       # a VM-side override shows here
+        post = _rq.post
+        print(f"requests.post in use: {getattr(post, '__module__', '?')}.{getattr(post, '__name__', '?')}")
+        if tok and chat:                                           # Telegram's own answer, token never printed
+            try:
+                r = _rq.Session().post(f"https://api.telegram.org/bot{tok}/sendMessage",
+                                       json={"chat_id": chat, "text": "ALPACA PAPER: test message from the stock bot (Master_trade_bot check)"}, timeout=15)
+                body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+                print(f"direct send: HTTP {r.status_code} ok={body.get('ok')} {str(body.get('description', ''))[:160]}".replace(tok, "<token>"))
+            except Exception as exc:
+                print(f"direct send failed: {type(exc).__name__}: {str(exc)[:160]}".replace(tok, "<token>"))
         card = Path(a.state) / "report_card.txt"
         print("sent" if send_telegram(card.read_text() if card.exists() else "Alpaca paper bot: Telegram test") else "NOT sent (see the log line above)")
         return 0
