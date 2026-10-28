@@ -116,7 +116,12 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # owner 2026-10-27 ("implement the account profit lock on the OANDA side"): the Alpaca rule on this runner's book - once the book is up
           # start_pct on the trading day (17:00 New York to 17:00), giving back giveback_frac of that day's best gain stops NEW entries until the next
           # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
-          "profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35}}
+          "profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35},
+          # owner 2026-10-28 ("if there's major news coming out, just pause trading, flattening ... until after, like the Fed"): from before_min
+          # before to after_min after a HIGH-impact release for either currency of a pair (ForexFactory weekly calendar, cached 6 h; Fed + jobs
+          # report if it cannot be read), this runner closes its own trades on that pair, drops its waiting playbook orders there and takes no
+          # entries there. A guard, not an edge (fxbot.newsfilter: too few trades to prove a gain). Undo: "news_pause": None and redeploy.
+          "news_pause": {"before_min": 60, "after_min": 60}}
 
 
 def decimals(instrument: str) -> int:
@@ -261,6 +266,16 @@ class FxPaper:
             self.status(trades)
             return
         self.guard_foreign(trades)
+        news = self.news_pause(now)
+        if news:
+            for gid in list(self.groups):
+                if gid in self.groups and news.get(self.groups[gid]["instrument"]):
+                    self.close_group(gid, news[self.groups[gid]["instrument"]])
+            for key, p in list(self.pending.items()):
+                if news.get(p["instrument"]):
+                    self.pending.pop(key, None)
+                    self.journal("news_pause_drop", strategy=p["strategy"], instrument=p["instrument"], why=news[p["instrument"]])
+            trades = self.api.open_trades()
         eq = self.equity(trades)
         why = self.entries_allowed(eq)
         for gid in list(self.groups):
@@ -270,11 +285,34 @@ class FxPaper:
             spec = STRATS[name]
             for inst in PAIRS:
                 try:
-                    self.scan(name, spec, inst, eq, why, trades)
+                    self.scan(name, spec, inst, eq, why or news.get(inst, ""), trades)
                 except OandaError as exc:
                     self.journal("error", where="scan", strategy=name, instrument=inst, error=str(exc)[:300])
         self.save()
         self.status(self.api.open_trades())
+
+    def news_pause(self, now) -> dict:
+        """{pair: reason} for the pairs inside a news window now (CONFIG["news_pause"]); {} when off or none."""
+        cfg = self.cfg.get("news_pause")
+        if not cfg:
+            return {}
+        from .newsfilter import live_events, paused
+        ts = pd.Timestamp(now).tz_convert("UTC")
+        if getattr(self, "news_fetch", None) is None:
+            import requests
+
+            def _get(url):
+                r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+                r.raise_for_status()
+                return r.json()
+            self.news_fetch = _get
+        events, src = live_events(self.dir / "news_calendar.json", ts, self.news_fetch)
+        out = {i: paused(i, ts, events, cfg["before_min"], cfg["after_min"]) for i in PAIRS}
+        out = {i: r for i, r in out.items() if r}
+        if out and out != getattr(self, "_news_last", None):
+            self.journal("news_pause", pairs=sorted(out), why=sorted(set(out.values())), source=src)
+        self._news_last = out
+        return out
 
     def guard_foreign(self, trades: list):
         """Rails for trades that are not ours (the owner's fx-experts bot): a stop at the broker if there is none, a market close at -cut_pct of NAV."""
@@ -505,6 +543,8 @@ class FxPaper:
     def check_pending(self, eq: float, why: str, trades: list):
         for key, p in list(self.pending.items()):
             inst, sg = p["instrument"], p["side"]
+            if (getattr(self, "_news_last", None) or {}).get(inst):
+                continue                                     # news pause on this pair
             try:
                 bid, ask = self.api.price(inst)
             except OandaError as exc:

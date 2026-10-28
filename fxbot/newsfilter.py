@@ -196,3 +196,68 @@ def report(h1: dict, today: date, fetch=None, seeds: int = 20, start: date = dat
                        f"beaten {beat}/{seeds} | " + " | ".join(f"{k}: {a_['net']:+.1f}R -> {v_['net']:+.1f}R ({v_['trades']} t)" for k, (a_, v_) in win.items())
                        + f" | {'PASS' if ok else 'fail'}")
     return out
+
+
+# ---- LIVE news pause (owner 2026-10-28: "if there's major news coming out, just pause trading, flattening ... until after, like the Fed") ----
+# A guard, not an edge: the backtest above found too few trades to prove a gain. The runner (fxbot.live CONFIG["news_pause"]) flattens its own
+# trades on a pair and takes no entries there from before_min before to after_min after a high-impact release for either currency of the pair.
+# Calendar: ForexFactory's weekly feed (high impact only), cached; if it cannot be read, the Fed decisions above and the jobs-report rule (USD).
+FF_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+
+
+def parse_ff(rows: list, impact=("High",)) -> list[dict]:
+    """[{"t": UTC ISO, "ccy": "USD", "title": ...}] from ForexFactory's weekly JSON."""
+    out = []
+    for r in rows or []:
+        if r.get("impact") not in impact or not r.get("date"):
+            continue
+        try:
+            t = pd.Timestamp(r["date"]).tz_convert("UTC")
+        except (ValueError, TypeError):
+            continue
+        out.append({"t": t.isoformat(), "ccy": str(r.get("country", "")).upper(), "title": str(r.get("title", ""))[:60]})
+    return out
+
+
+def fallback_events(now: pd.Timestamp) -> list[dict]:
+    a, b = (now - pd.Timedelta(days=2)).date(), (now + pd.Timedelta(days=8)).date()
+    ev, _ = calendar(a, b, None)
+    return [{"t": t.isoformat(), "ccy": "USD", "title": {"fomc": "FOMC decision", "nfp": "US jobs report", "cpi": "US CPI"}[k]} for t, k in ev]
+
+
+def live_events(cache_path, now: pd.Timestamp, fetch_json=None, max_age_h: float = 6.0) -> tuple[list[dict], str]:
+    """(events, source). Refreshes the cached ForexFactory week at most every max_age_h hours."""
+    import json
+    from pathlib import Path
+    p = Path(cache_path)
+    cached = None
+    if p.exists():
+        try:
+            cached = json.loads(p.read_text())
+        except ValueError:
+            cached = None
+    fresh = cached and (now - pd.Timestamp(cached["fetched"])).total_seconds() < max_age_h * 3600
+    if not fresh and fetch_json is not None:
+        try:
+            ev = parse_ff(fetch_json(FF_URL))
+            if ev:
+                cached = {"fetched": now.isoformat(), "events": ev, "source": "forexfactory"}
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text(json.dumps(cached))
+        except Exception:
+            pass
+    if cached and cached.get("events") and (now - pd.Timestamp(cached["fetched"])).total_seconds() < 8 * 86400:
+        return cached["events"] + [e for e in fallback_events(now) if e["title"] == "FOMC decision"], cached.get("source", "cache")
+    return fallback_events(now), "fallback (Fed + jobs report)"
+
+
+def paused(inst: str, now: pd.Timestamp, events: list[dict], before_min: int = 60, after_min: int = 60) -> str:
+    """'' or the reason: a release for either currency of the pair within [t - before_min, t + after_min]."""
+    ccys = set(inst.split("_"))
+    for e in events:
+        if e["ccy"] not in ccys:
+            continue
+        t = pd.Timestamp(e["t"])
+        if t - pd.Timedelta(minutes=before_min) <= now <= t + pd.Timedelta(minutes=after_min):
+            return f"news pause: {e['ccy']} {e['title']} at {t.tz_convert(NY):%H:%M} New York"
+    return ""

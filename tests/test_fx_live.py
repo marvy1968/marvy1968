@@ -78,6 +78,7 @@ class FakeOanda:
 def runner(tmp, api, now=datetime(2026, 10, 14, 14, 0, 30, tzinfo=timezone.utc)):
     r = live.FxPaper(api=api, state_dir=tmp, clock=lambda: now, sleep=lambda *_: None)
     r.daily_bias = lambda inst: (0, [])           # range day, no map levels unless a test says otherwise
+    r.news_fetch = lambda url: []                 # no network: the news calendar falls back to the Fed + jobs-report dates
     return r
 
 
@@ -477,3 +478,62 @@ class PlaybookLiveTests(unittest.TestCase):
             with mock.patch.object(live, "live_setup", lambda df, rules: None):
                 r.scan_playbook("retest_h1", live.STRATS["retest_h1"], "EUR_USD", bars, live.mid(bars), "x")
             self.assertNotIn(gid, r.groups)                                    # out on the close back into the zone
+
+
+class NewsPauseTests(unittest.TestCase):
+    FOMC = datetime(2026, 10, 28, 17, 30, tzinfo=timezone.utc)          # 13:30 New York, 30 minutes before the Fed decision
+
+    def test_paused_window_and_pairs(self):
+        from fxbot.newsfilter import paused
+        ev = [{"t": "2026-10-28T18:00:00+00:00", "ccy": "USD", "title": "FOMC decision"},
+              {"t": "2026-10-29T12:00:00+00:00", "ccy": "EUR", "title": "ECB"}]
+        at = pd.Timestamp
+        self.assertTrue(paused("EUR_USD", at("2026-10-28T17:00:00Z"), ev).startswith("news pause: USD FOMC"))
+        self.assertTrue(paused("USD_JPY", at("2026-10-28T19:00:00Z"), ev))
+        self.assertEqual(paused("USD_JPY", at("2026-10-28T19:01:00Z"), ev), "")
+        self.assertEqual(paused("USD_JPY", at("2026-10-28T16:59:00Z"), ev), "")
+        self.assertEqual(paused("USD_JPY", at("2026-10-29T12:00:00Z"), ev), "")   # ECB: not a JPY or USD release
+        self.assertTrue(paused("EUR_USD", at("2026-10-29T12:00:00Z"), ev))
+
+    def test_parse_forexfactory(self):
+        from fxbot.newsfilter import parse_ff
+        rows = [{"title": "Federal Funds Rate", "country": "USD", "date": "2026-10-28T14:00:00-04:00", "impact": "High"},
+                {"title": "Crude Oil Inventories", "country": "USD", "date": "2026-10-28T10:30:00-04:00", "impact": "Medium"}]
+        ev = parse_ff(rows)
+        self.assertEqual(len(ev), 1)
+        self.assertEqual(pd.Timestamp(ev[0]["t"]), pd.Timestamp("2026-10-28T18:00:00Z"))
+
+    def test_runner_flattens_and_blocks_in_the_window(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            api = FakeOanda()
+            r = runner(tmp, api, now=self.FOMC)
+            r.groups["g1"] = {"id": "g1", "strategy": "lien_h1", "instrument": "EUR_USD", "side": 1, "trades": ["1"], "units": {"1": 1000},
+                              "avg": 1.1, "opened": "2026-10-28T16:00", "tier": 0}
+            api.trades["1"] = {"id": "1", "instrument": "EUR_USD", "currentUnits": "1000", "unrealizedPL": "0", "clientExtensions": {"id": "x", "tag": TAG}}
+            r.pending["k"] = {"strategy": "retest_h1", "instrument": "USD_JPY", "side": 1, "trig": 150.0}
+            news = r.news_pause(self.FOMC)
+            self.assertIn("EUR_USD", news)                         # fallback calendar holds the Oct 28 Fed decision
+            r.sync = lambda trades: None
+            r.scan = lambda *a, **k: None
+            r.manage = lambda *a, **k: None
+            r.step()
+            self.assertNotIn("g1", r.groups)
+            self.assertNotIn("1", api.trades)
+            self.assertEqual(r.pending, {})
+            seen = []
+            r.scan = lambda name, spec, inst, eq, why, trades: seen.append(why)
+            r.step()
+            self.assertTrue(seen and all(w.startswith("news pause") or w for w in seen))
+            self.assertTrue(any(w.startswith("news pause") for w in seen))
+
+    def test_outside_the_window_nothing_happens(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda(), now=datetime(2026, 10, 27, 15, 0, tzinfo=timezone.utc))
+            self.assertEqual(r.news_pause(r.clock()), {})
+
+    def test_off_and_live_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = runner(tmp, FakeOanda(), now=self.FOMC)
+            r.cfg = {**r.cfg, "news_pause": None}
+            self.assertEqual(r.news_pause(self.FOMC), {})
+        self.assertEqual(live.CONFIG["news_pause"], {"before_min": 60, "after_min": 60})
