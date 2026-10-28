@@ -1,3 +1,27 @@
 $ alpaca run-all --phase validate --families trend_groups
-started 2026-10-28 07:19:47 EDT
-RUNNING...
+started 2026-10-28 07:19:47 EDT, took 35s, exit 0
+
+daily data ready
+## trend_groups: 4 complementary trend groups, 3 of 4 must agree, calibrated 2025-07-28..2026-07-27 (daily zd, interquartile bands)
+- BREAKOUT (williams_vol_breakout, inside_bar_breakout, confirm_h1): buy -0.33..+1.62 | sell -1.23..+0.56 | long TP +0.10..+2.03 | short TP -1.69..+0.07
+- PULLBACK (raschke_holy_grail, cog_h4): buy -0.86..+1.39 | sell -1.14..+1.11 | long TP -0.08..+1.91 | short TP -1.61..+0.01
+- MOMENTUM (macd_200ema): buy +0.40..+1.69 | sell -1.45..-0.43 | long TP +0.78..+2.04 | short TP -1.68..-0.77
+- VOLATILITY (carter_ttm_squeeze): buy -0.64..+1.46 | sell -1.16..+0.89 | long TP -0.44..+1.71 | short TP -1.54..+0.39
+- 3-of-4 BUY band -0.33..+1.45 | 3-of-4 SELL band -1.15..+0.55 | take profit long at zd >= +0.10, short at <= +0.01 | out early long at <= +0.56, short at >= -0.33
+### Today's agreed zones in price (20-day average + zd x daily ATR14)
+- EUR_USD: last 1.1123 | BUY 1.1195-1.1301 TP 1.1221 out 1.1248 | SELL 1.1146-1.1247 TP 1.1215 out 1.1195
+- GBP_USD: last 1.3277 | BUY 1.3259-1.3382 TP 1.3289 out 1.3321 | SELL 1.3203-1.332 TP 1.3283 out 1.3259
+- AUD_USD: last 0.70281 | BUY 0.69648-0.70433 TP 0.69839 out 0.70041 | SELL 0.69286-0.70036 TP 0.69798 out 0.69647
+- NZD_USD: last 0.56028 | BUY 0.5625-0.56937 TP 0.56417 out 0.56593 | SELL 0.55934-0.5659 TP 0.56381 out 0.5625
+- USD_JPY: last 157.91 | BUY 157.67-159.17 TP 158.03 out 158.42 | SELL 156.98-158.41 TP 157.95 out 157.67
+- USD_CAD: last 1.4053 | BUY 1.4142-1.4258 TP 1.417 out 1.42 | SELL 1.4089-1.4199 TP 1.4164 out 1.4142
+- USD_CHF: last 0.83043 | BUY 0.82757-0.8364 TP 0.82971 out 0.83198 | SELL 0.8235-0.83194 TP 0.82925 out 0.82756
+### last 21 days (2026-10-07..2026-10-28), 7 majors, 1-hour bid/ask, financing
+- spread x1: all 635 trades, win 37%, PF 0.49, net -14.7R, avg -0.023R | longs 351 trades, win 35%, PF 0.42, net -9.3R, avg -0.026R | shorts 284 trades, win 39%, PF 0.58, net -5.5R, avg -0.019R | exits {'tp': 635, 'sell zone': 0, 'stop': 0, 'time': 0, 'end': 0}
+- spread x2: all 635 trades, win 29%, PF 0.26, net -30.7R, avg -0.048R | longs 351 trades, win 25%, PF 0.21, net -18.0R, avg -0.051R | shorts 284 trades, win 33%, PF 0.31, net -12.7R, avg -0.045R | exits {'tp': 635, 'sell zone': 0, 'stop': 0, 'time': 0, 'end': 0}
+  placebo (shuffled bars, 3 seeds): 575t avg -0.015R net -8.8R | 615t avg -0.017R net -10.4R | 232t avg -0.017R net -4.0R
+### last 92 days (2026-07-28..2026-10-28), 7 majors, 1-hour bid/ask, financing
+- spread x1: all 2188 trades, win 36%, PF 0.51, net -47.1R, avg -0.022R | longs 1239 trades, win 35%, PF 0.47, net -29.1R, avg -0.024R | shorts 949 trades, win 36%, PF 0.56, net -18.0R, avg -0.019R | exits {'tp': 2184, 'sell zone': 2, 'stop': 2, 'time': 0, 'end': 0}
+- spread x2: all 2188 trades, win 27%, PF 0.27, net -101.2R, avg -0.046R | longs 1239 trades, win 25%, PF 0.24, net -59.3R, avg -0.048R | shorts 949 trades, win 29%, PF 0.30, net -41.9R, avg -0.044R | exits {'tp': 2184, 'sell zone': 2, 'stop': 2, 'time': 0, 'end': 0}
+  placebo (shuffled bars, 3 seeds): 3069t avg -0.024R net -74.6R | 1938t avg -0.021R net -39.7R | 2231t avg -0.023R net -52.4R
+ALL DONE
