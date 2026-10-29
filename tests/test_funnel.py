@@ -154,6 +154,8 @@ class FunnelLiveTests(unittest.TestCase):
         full = _daily()
         with tempfile.TemporaryDirectory() as d:
             r = SwingRunner(self.B(), state_dir=d, fetch=lambda *a: pd.DataFrame(), sleep=lambda *_: None)
+            zc = r.zone_config
+            r.zone_config = lambda: {**zc(), "funnel": {**zc()["funnel"], "new_entries": True}}   # entries on for this check (live: log only)
             f = frame(full, (r.zone_config().get("funnel") or {}).get("rules"))           # the LIVE funnel rules (zones.json)
             cut = int(next(i for i in np.flatnonzero(f["long_entry"].to_numpy()) if i >= 199))   # the runner needs 200 days of history
             bars = full.iloc[:cut + 1]

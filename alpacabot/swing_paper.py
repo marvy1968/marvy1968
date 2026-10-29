@@ -175,6 +175,10 @@ class SwingRunner:
             cands = []
         else:
             self.state["lock_alerted"] = False
+        td_cfg = self.zone_config().get("topdown") or {}
+        if not td_cfg.get("new_entries", True) and cands:            # owner 2026-10-29: Top-Down log only (zones.json swing.topdown)
+            self.journal("topdown_logged", now, candidates=cands[:max(free, 0)])
+            cands = []
         entries = []
         for s in cands[:max(free, 0)]:
             px, stop = closes[s], float(frames[s]["stop"].iloc[-1])

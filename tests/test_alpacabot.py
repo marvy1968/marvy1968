@@ -1996,6 +1996,7 @@ class WeeklyLockTests(unittest.TestCase):
             box = {}
             fetch = lambda sym, tf, a, b, feed: data[sym][data[sym].index.date <= box["day"]]      # noqa: E731
             r = swing_paper.SwingRunner(R.SimBroker(data), state_dir=d, universe=["AAA", "BBB"], fetch=fetch, base_equity=100000.0)
+            (Path(d) / "zones_override.json").write_text('{"topdown": {"new_entries": true}}')     # the lock alone (Top-Down is log-only live)
             day = next(x.date() for x in R.DAYS[60:] if (box.update(day=x.date()) or True)
                        and r.scan(datetime(x.year, x.month, x.day, 16, 20, tzinfo=et)).get("entries"))
             r.state["equity_hist"] = [200000.0] * 4                       # a peak far above today's book: the lock must engage

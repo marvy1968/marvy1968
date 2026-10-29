@@ -83,7 +83,7 @@ class SwingReplayTest(unittest.TestCase):
         cls.spy = series(1, 0.0003, 0.009, 400.0)
         cls.data = getattr(cls, "data_override", None) or {"AAA": series(2, 0.0020), "BBB": series(3, 0.0012), "CCC": series(4, -0.0002)}
         cls.tmp = tempfile.TemporaryDirectory()
-        (Path(cls.tmp.name) / "zones_override.json").write_text('{"live": false, "index_trend": {"live": false}}')   # parity with the zone-free, ungated backtest (the 200-day gate is tested in test_funnel)
+        (Path(cls.tmp.name) / "zones_override.json").write_text('{"live": false, "index_trend": {"live": false}, "topdown": {"new_entries": true}}')   # parity with the zone-free, ungated backtest (the 200-day gate is tested in test_funnel)
         broker = SimBroker(cls.data)
         allbars = {**cls.data, "SPY": cls.spy}
 

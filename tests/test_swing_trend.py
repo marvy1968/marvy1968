@@ -129,5 +129,16 @@ class StairTests(unittest.TestCase):
         self.assertEqual(self.b.stops, [])
 
 
+class LogOnlyTests(unittest.TestCase):
+    def test_live_switches(self):
+        import json
+        from pathlib import Path
+        z = json.loads(Path(sp.__file__).with_name("zones.json").read_text())["swing"]
+        self.assertFalse(z["topdown"]["new_entries"])
+        self.assertFalse(z["funnel"]["new_entries"])
+        self.assertFalse(z["oversold"]["new_entries"])
+        self.assertTrue(z["index_trend"]["live"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -827,6 +827,8 @@
   "funnel": {
    "_note": "owner's Stock Funnel (pasted script 2026-10-17, rebuilt with its bugs fixed; alpacabot.funnel): daily bars, stage 2 longs / stage 4 shorts, 3 of 4 buy votes (at the 20-day MA not extended, above the 20-day VWAP, volume 1.2x, stochastic cross), stop at the Bollinger band kept 1-3 ATR away, take-profit 1.5R (both at Alpaca), sells on 2 of 3 (3 closes under the MA, under VWAP, stochastic turning down) or a stage change. Its own 3 slots at 0.5% risk. Set live to false to switch it off. 2026-10-17 check (55 stocks, daily): last 3 months 107 trades PF 0.80 - longs 67 +4.3R, shorts 40 -12.6R; last 12 months longs 281 +24.4R, shorts 152 -28.1R. Shorts lost in both windows (clearly harmful) -> shorts off (set shorts true to turn them back on); longs live. Owner 2026-10-22 Velez hybrid: + bottoming tail on the signal day (v_tail). 2 weeks: 2 trades +8.4R (live 7 trades +7.6R); 3 months PF 1.80 +13.0R (live 0.99 -0.7R); 12 months PF 1.42 +24.1R on 99 trades (live 1.25 +48.7R on 329). Higher hit rate and recent results, about half the 12-month total. Other Velez rules (trend, look-left, no-chase, 3-5 bar) did not beat it; on the oversold strategy none helped, so it is unchanged.",
    "live": true,
+   "new_entries": false,
+   "_note_new_entries": "owner 2026-10-29: funnel log only (no new entries; held trades keep their exits and broker stops). Evidence: last 3 months 33 trades PF 0.90 -1.3R at 10 bps, live 4 trades -$417. UNDO: new_entries true.",
    "risk_pct": 0.005,
    "shorts": false,
    "rules": {
@@ -835,6 +837,7 @@
     "v_tail": true
    }
   },
+  "topdown": {"new_entries": false, "_note": "owner 2026-10-29 ('yes do your recommendation for alpaca'): Top-Down plans no new entries, its candidates are only journalled (topdown_logged); held Top-Down trades keep their exits and broker stops. Evidence: last 3 months 162 trades PF 0.58 -34.7R at 10 bps, -21.5R even with the long-trend filter. UNDO: new_entries true."},
   "oversold": {
    "_note": "owner 2026-10-19 (adopt): majority-oversold confluence longs on daily bars - 3 of 4 (RSI14<30, stochastic<20, close at/under the lower Bollinger band, 1.5 SD under the 20-day average) plus volume 1.1x, any stage, 0.5% risk, stop 1.0 band distance, take-profit 1.25R, out when back over the 20-day average. 3-month backtest +7.8R PF 1.55, 12-month +7.7R PF 1.09 (live funnel 12-month +24R): adopted by the owner, own tag, 2 slots, paper decides. The 0.5 stop variant lost (PF 0.5-0.6) so the stop stays 1.0. Owner 2026-10-22: stop 0.75 (2 weeks: 7 trades 86% PF 11.3 vs 1.0 stop PF 1.66; 12 months +12.5R vs +4.8R).",
    "live": true,
