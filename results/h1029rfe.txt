@@ -1,3 +1,85 @@
 $ show alpaca_swing/state.json
-started 2026-10-29 16:34:10 EDT
-RUNNING...
+started 2026-10-29 16:34:10 EDT, took 0s, exit 0
+
+{
+ "positions": {
+  "SPY": {
+   "qty": 15,
+   "entry": 768.91,
+   "stop": 743.94,
+   "entry_date": "2026-10-29",
+   "side": 1,
+   "strategy": "trend200",
+   "stop_order_id": "63f2cb39-3221-4dcd-b610-7de8cd6b2762"
+  }
+ },
+ "plan": {
+  "made": "2026-10-29",
+  "exits": [],
+  "entries": [
+   {
+    "symbol": "QQQ",
+    "qty": 20,
+    "stop": 665.11,
+    "side": 1,
+    "strategy": "trend200",
+    "signal_close": 715.34,
+    "atr": 12.5569
+   },
+   {
+    "symbol": "BRK.B",
+    "qty": 14,
+    "stop": 528.0,
+    "zone_tp": 556.98,
+    "side": 1,
+    "strategy": "weekpicks",
+    "signal_close": 541.96
+   },
+   {
+    "symbol": "CVX",
+    "qty": 23,
+    "stop": 220.41,
+    "zone_tp": 241.81,
+    "side": 1,
+    "strategy": "weekpicks",
+    "signal_close": 231.46
+   },
+   {
+    "symbol": "V",
+    "qty": 15,
+    "stop": 394.0,
+    "zone_tp": 428.54,
+    "side": 1,
+    "strategy": "weekpicks",
+    "signal_close": 410.54
+   },
+   {
+    "symbol": "SPG",
+    "qty": 19,
+    "stop": 202.28,
+    "zone_tp": 225.34,
+    "side": 1,
+    "strategy": "weekpicks",
+    "signal_close": 215.72
+   },
+   {
+    "symbol": "MA",
+    "qty": 5,
+    "stop": 605.0,
+    "zone_tp": 670.66,
+    "side": 1,
+    "strategy": "weekpicks",
+    "signal_close": 635.7
+   }
+  ]
+ },
+ "base_equity": 53194.06,
+ "equity_hist": [
+  52532.8,
+  52532.8,
+  52436.29,
+  52346.95,
+  52353.7
+ ],
+ "lock_alerted": false
+}
