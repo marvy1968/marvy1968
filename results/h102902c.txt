@@ -1,3 +1,11 @@
 $ alpaca swing scan
-started 2026-10-29 00:59:14 EDT
-RUNNING...
+started 2026-10-29 00:59:14 EDT, took 1s, exit 0
+
+{}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 23, 10W/13L, P&L $-847
+  funnel: 4 trades, 1W, P&L $-417
+  oversold: 6 trades, 1W, P&L $-345
+  holding: nothing
+  next open: buy ['COP', 'EOG', 'SPY'], sell nothing
