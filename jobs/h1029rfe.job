@@ -1,0 +1,2 @@
+# timeout 300
+show alpaca_swing/state.json
