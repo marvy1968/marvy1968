@@ -306,6 +306,15 @@ def run_all(a) -> int:
                 lines += _f2.report(dd, SECTOR_OF, today_, Path("state/alpaca_forecast"), five=f5)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "weekpicks_fx":              # owner 2026-10-29: the weekly picks on the 7 OANDA majors, pure and with the trend experts (fxbot.weekpicks_fx)
+                import datetime as _dt
+                from fxbot import weekpicks_fx as _wfx
+                from fxbot.data import MAJORS, load as fx_load
+                today_ = _dt.date.today()
+                dd = {i: fx_load(i, "D", today_ - _dt.timedelta(days=1800), today_, Path("state/fx/cache")) for i in MAJORS}
+                lines += _wfx.report(dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
