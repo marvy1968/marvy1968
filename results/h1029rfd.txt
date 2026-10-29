@@ -1,0 +1,3 @@
+$ show alpaca_weekpicks/log.json
+started 2026-10-29 16:34:07 EDT
+RUNNING...
