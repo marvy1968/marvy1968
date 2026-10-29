@@ -20,6 +20,7 @@ from . import forecast2 as f2
 
 STATE = Path("state/alpaca_weekpicks")
 EVERY = 5
+HYBRID = True        # owner 2026-10-29: picks only among stocks our trend bots call up (fxbot.strongtrend long_state == 1, no daily reversal)
 
 
 def _load(path: Path) -> dict:
@@ -57,11 +58,13 @@ def run(daily_raw: dict, sector_of: dict, today: date, state_dir: Path = STATE, 
         for k in range(seeds):
             rs = [f2.week_trade(arr, s, t, sig[s]) for s in np.random.default_rng(k).choice(names, size=min(len(b["picks"]), len(names)), replace=False)]
             ctrl.append(float(np.nansum([x for x in rs if x is not None])))
+        pr = [f2.week_trade(arr, s, t, sig[s]) for s in b.get("pure", []) if s in sig]
+        b["net_pure"] = float(np.nansum([x for x in pr if x is not None]))
         spy = f2.week_trade(arr, "SPY", t, sig["SPY"]) if "SPY" in sig else None
         b.update({"graded": str(last.date()), "net": float(np.nansum([pk["r"] for pk in b["picks"] if pk["r"] is not None])),
                   "random_median": float(np.median(ctrl)), "spy": None if spy is None else spy * len(b["picks"])})
         out.append(f"graded batch {b['made']}: {b['net']:+.2f}R (" + ", ".join(f"{pk['symbol']} {pk['r']:+.2f}" if pk["r"] is not None else f"{pk['symbol']} -"
-                                                                     for pk in b["picks"]) + f") | random median {b['random_median']:+.2f}R | SPY {b['spy'] if b['spy'] is None else round(b['spy'], 2)}R")
+                                                                     for pk in b["picks"]) + f") | model-only top 5 {b['net_pure']:+.2f}R | random median {b['random_median']:+.2f}R | SPY {b['spy'] if b['spy'] is None else round(b['spy'], 2)}R")
     # a new batch every 5th session
     made = [pd.Timestamp(b["made"]) for b in st["batches"]]
     due = not made or (made[-1] in days and len(days) - 1 - days.index(made[-1]) >= EVERY) or made[-1] not in days
@@ -76,6 +79,15 @@ def run(daily_raw: dict, sector_of: dict, today: date, state_dir: Path = STATE, 
             fr = f2._fit_rel(p[p.index <= days[-6]])
             z = p[(p.index == last) & (p["sector"] != "")].dropna(subset=f2.FEATS2).copy()
             z["rel"] = fr(z)
+            pure = list(z.sort_values("rel").tail(f2.TOP_A).iloc[::-1]["symbol"])
+            if HYBRID:                                  # owner 2026-10-29 "hybrid it with our trend bots": long trend up + no short-term reversal
+                from fxbot.strongtrend import reversal, votes
+                ok = set()
+                for sym in z["symbol"]:
+                    d = daily.get(sym)
+                    if d is not None and len(d) > 270 and int(votes(d)["long_state"].iloc[-1]) == 1 and int(reversal(d)[-1]) != -1:
+                        ok.add(sym)
+                z = z[z["symbol"].isin(ok)]
             top = z.sort_values("rel").tail(f2.TOP_A).iloc[::-1]
             picks = []
             for r in top.itertuples():
@@ -84,8 +96,8 @@ def run(daily_raw: dict, sector_of: dict, today: date, state_dir: Path = STATE, 
                 stop = float(l[max(0, i - 9):i + 1].min())
                 picks.append({"symbol": r.symbol, "rel": round(float(r.rel), 3), "close": round(float(r.close), 2), "stop_10d_low": round(stop, 2),
                               "tp_est": round(float(r.close + 1.5 * r.vol * r.close * np.sqrt(5)), 2)})
-            st["batches"].append({"made": str(last.date()), "picks": picks})
-            out.append(f"NEW weekly picks from the {last.date()} close (log only, buy at the next open in the record): "
+            st["batches"].append({"made": str(last.date()), "picks": picks, "pure": pure, "hybrid": HYBRID})
+            out.append(f"NEW weekly picks from the {last.date()} close ({'trend-hybrid' if HYBRID else 'model only'}; model-only top 5: {' '.join(pure)}): "
                        + "; ".join(f"{x['symbol']} (vs SPY {x['rel']:+.2f}, stop {x['stop_10d_low']}, tp ~{x['tp_est']})" for x in picks))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(st, indent=1, default=str))
@@ -99,5 +111,5 @@ def status(st: dict) -> list[str]:
     beat_r = sum(b["net"] > b["random_median"] for b in g)
     beat_s = sum(b["spy"] is not None and b["net"] > b["spy"] for b in g)
     open_ = [b for b in st["batches"] if not b.get("graded")]
-    return [f"WEEKLY PICKS (log only): {len(g)} graded batches, picks {v1.fmt(s)} | batches beating random {beat_r}/{len(g)}, beating SPY {beat_s}/{len(g)} | "
+    return [f"WEEKLY PICKS (paper, trend-hybrid): {len(g)} graded batches, picks {v1.fmt(s)} | batches beating random {beat_r}/{len(g)}, beating SPY {beat_s}/{len(g)} | "
             f"open: " + (", ".join(f"{b['made']} " + " ".join(pk['symbol'] for pk in b['picks']) for b in open_) or "-")]
