@@ -1,3 +1,8 @@
 $ show fx_paper/journal-20261029.jsonl
-started 2026-10-29 02:13:56 EDT
-RUNNING...
+started 2026-10-29 02:13:56 EDT, took 0s, exit 0
+
+{"t": "2026-10-29T00:00:26+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-10-29T00:01:24+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-10-28T23:00:00+00:00", "result": "trend filter: no long trend or hard move today that way"}
+{"t": "2026-10-29T02:00:51+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-10-29T01:00:00+00:00", "result": "another bot holds this pair", "trend": "swing"}
+{"t": "2026-10-29T05:03:40+00:00", "kind": "error", "where": "scan", "strategy": "boxcons_h1", "instrument": "EUR_USD", "error": "OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/bhw2bat.css\"\n          onload=\"this.onload=null;thi"}
+{"t": "2026-10-29T06:00:58+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-10-29T05:00:00+00:00", "close": 1.1136599999999999, "stop_dist": 0.0017297801889670657, "result": "paused (signal logged)"}
