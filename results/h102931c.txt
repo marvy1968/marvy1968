@@ -1,3 +1,4 @@
 $ alpaca swing drop --symbols COP,EOG
-started 2026-10-29 01:58:01 EDT
-RUNNING...
+started 2026-10-29 01:58:01 EDT, took 1s, exit 0
+
+plan entries: ['COP', 'EOG', 'SPY'] -> ['SPY']
