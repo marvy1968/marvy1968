@@ -2126,6 +2126,11 @@ def main(argv=None) -> int:
             st_path.write_text(json.dumps(st, indent=1, default=str))
             print(f"plan entries: {before} -> {[e['symbol'] for e in plan['entries']]}")
             return 0
+        if a.action == "scan":                           # weekly beat-SPY picks: batch first, so the scan can plan its orders (never blocks the scan)
+            try:
+                print("\n".join(_weekpicks_run(os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))))
+            except Exception as exc:
+                print(f"weekpicks failed: {exc.__class__.__name__}: {exc}")
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
         only = [x.strip().upper() for x in a.symbols.split(",") if x.strip()] or None
@@ -2136,11 +2141,6 @@ def main(argv=None) -> int:
                 out = {**(out or {}), **{f"late {k}": v for k, v in late.items()}}
         print(json.dumps(out, indent=1, default=str))
         print("\n".join(summary(a.state)))
-        if a.action == "scan":                           # weekly beat-SPY picks ride on the after-close scan (log only, never blocks the scan)
-            try:
-                print("\n".join(_weekpicks_run(os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))))
-            except Exception as exc:
-                print(f"weekpicks failed: {exc.__class__.__name__}: {exc}")
         return 0
     if a.cmd == "weekpicks":                         # owner 2026-10-29: weekly beat-SPY picks, log only (alpacabot.weekpicks)
         from . import weekpicks as _wp

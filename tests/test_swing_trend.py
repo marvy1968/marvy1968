@@ -142,3 +142,29 @@ class LogOnlyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WeekPicksPlanTests(unittest.TestCase):
+    def test_batch_becomes_entries_and_old_picks_exit(self):
+        import json
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(None, state_dir=d, base_equity=50000.0)
+            log = Path(d) / "wp.json"
+            log.write_text(json.dumps({"batches": [{"made": "2026-10-29", "picks": [
+                {"symbol": "CAT", "close": 700.0, "stop_10d_low": 680.0, "tp_est": 740.0},
+                {"symbol": "BAD", "close": 50.0, "stop_10d_low": 51.0, "tp_est": 55.0}]}]}))
+            r.zone_config = lambda: {"live": True, "weekpicks": {"live": True, "risk_pct": 0.005, "max_frac": 0.15, "hold_sessions": 5, "log": str(log)}}
+            spy = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2026-10-20", "2026-10-29"))
+            held = {"GOOGL": {"qty": 3, "entry": 300.0, "stop": 290.0, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-23"},
+                    "NEW": {"qty": 3, "entry": 300.0, "stop": 290.0, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-28"}}
+            now = datetime(2026, 10, 29, 16, 25, tzinfo=ZoneInfo("America/New_York"))
+            exits, entries = r.weekpicks_plan(spy, {"CAT": 700.0}, held, [], [], 50000.0, 30000.0, False, now)
+            self.assertEqual(exits, ["GOOGL"])                                  # 5 sessions held (23, 26, 27, 28, 29)
+            self.assertEqual([e["symbol"] for e in entries], ["CAT"])          # BAD: stop above the close -> skipped
+            e = entries[0]
+            self.assertEqual((e["strategy"], e["zone_tp"], e["stop"]), ("weekpicks", 740.0, 680.0))
+            self.assertEqual(e["qty"], int(min(50000 * 0.005 / (20 + 700 * sp.SLIP_BPS / 1e4), 50000 * 0.15 / 700)))
+            self.assertTrue(json.loads(log.read_text())["batches"][0]["ordered"])
+            _, again = r.weekpicks_plan(spy, {"CAT": 700.0}, {}, [], [], 50000.0, 30000.0, False, now)
+            self.assertEqual(again, [])                                         # a batch is ordered once

@@ -1,4 +1,5 @@
-"""Weekly "beat SPY" picks, LOG ONLY (owner 2026-10-29: "set up the weekly picks log only"). No orders.
+"""Weekly "beat SPY" picks (owner 2026-10-29: "set up the weekly picks log only", then "add the new feature and let it trade"): the
+swing runner (SwingRunner.weekpicks_plan, zones.json swing.weekpicks) places PAPER orders for each new batch; this module picks and grades.
 
 Every 5th session, while SPY is above its 200-day, the forecast v2 relative model (alpacabot.forecast2) picks the 5 stocks with the highest
 predicted next-5-day return vs SPY. Each pick is graded with the tested rule: bought at the next open, stop = the 10-day low, moved to entry +

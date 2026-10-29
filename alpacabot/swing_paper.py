@@ -194,6 +194,7 @@ class SwingRunner:
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
+        exits, entries = self.weekpicks_plan(spy, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.trend_filters(held, exits, entries, now)
         self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
@@ -329,6 +330,49 @@ class SwingRunner:
                             "signal_close": px, "atr": round(atr, 4)})
             planned.append(sym)
         self.journal("index_trend_plan", now, entries=planned, exits=[e for e in exits if e in sleeve])
+        return exits, entries
+
+    def weekpicks_plan(self, spy: pd.DataFrame, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool,
+                       now) -> tuple:
+        """Owner 2026-10-29 ('add the new feature and let it trade'): the weekly beat-SPY picks (alpacabot.weekpicks writes a batch every 5th
+        session from the close; the after-close scan runs it first). A batch made today becomes plan entries (buy at the next open, OCO with stop
+        = 10-day low and take-profit = close + 1.5 x 5-day sigma); a held pick is sold at the open after hold_sessions sessions. zones.json
+        swing.weekpicks."""
+        cfg = self.zone_config().get("weekpicks") or {}
+        if not cfg.get("live"):
+            return exits, entries
+        days = [d.date() for d in spy.index]
+        for sym, p in held.items():
+            if p.get("strategy") == "weekpicks" and sym not in exits:
+                n = sum(1 for d in days if d >= date.fromisoformat(p["entry_date"]))
+                if n >= int(cfg.get("hold_sessions", 5)):
+                    exits.append(sym)
+        log_path = Path(cfg.get("log", "state/alpaca_weekpicks/log.json"))
+        try:
+            st = json.loads(log_path.read_text())
+        except (OSError, ValueError):
+            return exits, entries
+        today = now.astimezone(ET).date().isoformat()
+        batch = next((b for b in st.get("batches", []) if b.get("made") == today and b.get("picks") and not b.get("ordered")), None)
+        if batch is None or locked:
+            return exits, entries
+        cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)
+        planned = []
+        for pk in batch["picks"]:
+            sym, px, stop, tp = pk["symbol"], float(closes.get(pk["symbol"], pk["close"])), float(pk["stop_10d_low"]), float(pk["tp_est"])
+            if sym in held or any(e["symbol"] == sym for e in entries) or not stop < px < tp:
+                continue
+            risk_ps = (px - stop) + px * SLIP_BPS / 1e4
+            qty = int(min(equity * float(cfg.get("risk_pct", 0.005)) / risk_ps, equity * float(cfg.get("max_frac", 0.15)) / px, max(cash, 0) / px))
+            if qty < 1:
+                continue
+            cash -= qty * px
+            entries.append({"symbol": sym, "qty": qty, "stop": round(stop, 2), "zone_tp": round(tp, 2), "side": 1, "strategy": "weekpicks",
+                            "signal_close": px})
+            planned.append(sym)
+        batch["ordered"] = today
+        log_path.write_text(json.dumps(st, indent=1, default=str))
+        self.journal("weekpicks_plan", now, entries=planned, exits=[s for s in exits if held.get(s, {}).get("strategy") == "weekpicks"])
         return exits, entries
 
     def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now,
