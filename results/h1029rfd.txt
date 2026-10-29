@@ -1,3 +1,56 @@
 $ show alpaca_weekpicks/log.json
-started 2026-10-29 16:34:07 EDT
-RUNNING...
+started 2026-10-29 16:34:07 EDT, took 0s, exit 0
+
+{
+ "batches": [
+  {
+   "made": "2026-10-29",
+   "picks": [
+    {
+     "symbol": "BRK.B",
+     "rel": 0.057,
+     "close": 541.96,
+     "stop_10d_low": 528.0,
+     "tp_est": 556.98
+    },
+    {
+     "symbol": "CVX",
+     "rel": 0.045,
+     "close": 231.46,
+     "stop_10d_low": 220.41,
+     "tp_est": 241.81
+    },
+    {
+     "symbol": "V",
+     "rel": 0.036,
+     "close": 410.54,
+     "stop_10d_low": 394.0,
+     "tp_est": 428.54
+    },
+    {
+     "symbol": "SPG",
+     "rel": 0.034,
+     "close": 215.72,
+     "stop_10d_low": 202.28,
+     "tp_est": 225.34
+    },
+    {
+     "symbol": "MA",
+     "rel": 0.033,
+     "close": 635.7,
+     "stop_10d_low": 605.0,
+     "tp_est": 670.66
+    }
+   ],
+   "pure": [
+    "CAT",
+    "GOOGL",
+    "PG",
+    "TMUS",
+    "NFLX"
+   ],
+   "hybrid": true,
+   "ordered": "2026-10-29"
+  }
+ ]
+}
