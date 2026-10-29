@@ -107,7 +107,10 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # only LOG their signals (paused). lien_h1 stays (12 months PF 2.75, 3 years 0.94 - flat; the owner's 10-year fx-experts backtest PF 1.18) and
           # retest_h1 (the playbook, no live fills yet). UNDO: put the names back in this list (their signals are still logged and graded).
           # owner 2026-10-28: + the trend experts (TREND_EXPERTS, longs and shorts, behind the trend filters). Undo: ["lien_h1", "retest_h1"].
-          "trade": ["lien_h1", "retest_h1", "boxmr_h1", "confirm_h1", "cog_h4", "holygrail_h1", "ttm_h1", "macd200_h1", "insidebar_h1", "wvb_d1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
+          # owner 2026-10-29 ("yes, switch trend experts to log only"): zone_learn - the 7 trend experts lost in every zone of yesterday's
+          # range (last 92 days 1,090 trades PF 0.30, -690R at 2x spread with the live exits), so they only LOG their signals now.
+          # Undo: + TREND_EXPERTS.
+          "trade": ["lien_h1", "retest_h1", "boxmr_h1"],   # conf_h4 log-only (owner 2026-10-22: lost 2 weeks PF 0.57, 3 months PF 0.76)
           "risk_by_strategy": {"holygrail_h1": 0.005, "ttm_h1": 0.005, "macd200_h1": 0.005, "insidebar_h1": 0.005, "wvb_d1": 0.005, "hybrid_h1": 0.005, "box_h1": 0.005, "confirm_h1": 0.005, "boxmr_h1": 0.005, "conf_d1": 0.005, "conf_h4": 0.005, "cog_h4": 0.005, "retest_h1": 0.005},   # owner 2026-10-22: boxmr_h1 back to 0.5% (3 losses at 1%, -$255 live)
           # owner 2026-10-19: "if a trade turns negative, close it; don't wait for a reversal past 10%": every open trade is closed at market as soon
           # as the MID price is `loss_cut_r` x its risk (entry to stop distance) against its entry mid. 0.10 = 10% of the way to the stop. None = off.

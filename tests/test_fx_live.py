@@ -162,7 +162,7 @@ class FxLiveTests(unittest.TestCase):
             api = FakeOanda()
             r = runner(tmp, api)
             self.assertEqual(r.cfg["ladder"]["cut_fracs"], [])
-            self.assertEqual(r.cfg["trade"], ["lien_h1", "retest_h1", "boxmr_h1"] + live.TREND_EXPERTS)   # F0, the plain box and the other in-box experts only log
+            self.assertEqual(r.cfg["trade"], ["lien_h1", "retest_h1", "boxmr_h1"])   # trend experts log only (owner 2026-10-29)   # F0, the plain box and the other in-box experts only log
             self.assertEqual(r.cfg["risk_by_strategy"]["confirm_h1"], 0.005)
             r.try_open("lien_h1", "EUR_USD", 1, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], "2026-10-14T13:00:00+00:00")
             gid, g = next(iter(r.groups.items()))
@@ -622,7 +622,7 @@ class TrendFilterTests(unittest.TestCase):
     def test_live_config(self):
         self.assertEqual(live.CONFIG["trend_filters"], {"long": True, "short": True, "reversal": True, "day_close": "16:00"})
         for n in live.TREND_EXPERTS:
-            self.assertIn(n, live.CONFIG["trade"])
+            self.assertNotIn(n, live.CONFIG["trade"])                         # log only (owner 2026-10-29)
             self.assertIn(n, live.STRATS)
 
 
