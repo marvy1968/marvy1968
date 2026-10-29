@@ -148,3 +148,25 @@ threshold or confirmation to test instead of the plain cross.
 - **OANDA exit lab** (14 exits + the live 0.5R/1.25R rule on 11 strategies, bid/ask, last 3 months in two halves at 2x spread): nothing passed; lien_h1 had 0 trades in 3 months. The runner stays on lien_h1 + retest_h1 only.
 - **Live:** OANDA account profit lock (+0.4% day, 35% giveback, blocks new entries) and a per-trade lock on the fx-experts bot's trades (broker stop moved to keep half the best gain once a trade is up 0.2% of NAV, only tightened).
 **Round 8 question (stocks, daily bars):** the hindsight-free list is where Top-Down is thin (CAGR +0.3% with 3 slots, Sharpe 0.10 over 2016-now) while today's list is +2.0%, so part of the edge is survivorship in today's 55 names. Give ONE pre-declared change to Top-Down's candidate RANKING or UNIVERSE (not exits, not the market-wide gate) most likely to lift the hindsight-free result without the 2026 survivor list: e.g. rank competing signals by something other than 20-day relative strength (6-month RS, RS vs the stock's sector ETF, volume expansion), or widen the universe to all 11 sector ETFs plus the top 5 constituents by size AS OF each year. Give the exact rule, the control (current ranking, same list) and a kill rule.
+
+## ROUND 9 (2026-10-29 07:40 ET): owner's new direction - per-symbol forecast + levels (stocks)
+Since round 8: Top-Down and the funnel went log-only (live swing book lost -$847 over 23 trades); a same-day "hard move" ride (5-minute bars, 0.5 daily-ATR
+stop, reversal exit, news pause) is live; Jdub's 9:30 opening-range retest scalp was tested on 57 stocks x 92 days with our filters on top: every variant
+PF 0.18-0.37 at 5-10 bps, no better than random entries (1-minute retest stops are ~0.1%, costs eat ~1R a trade). The owner is unhappy with results and
+with our design creativity and asked for: (1) how every sector ETF and stock we trade behaved over the past year, (2) an algorithm that predicts where
+each one goes TODAY and over the next 7 days, (3) buy, stop and take-profit levels for each.
+**Our draft (alpacabot/forecast.py, being run now):** universe = 11 SPDR sector ETFs + the 5 largest names in each + SPY/QQQ (daily bars, ~4 years).
+- Behaviour table per symbol (252 sessions): return, vol, maxDD, % days above 200-day, beta, average day range, lag-1 autocorrelation (snap-back vs follow-through), vs sector.
+- Forecast: ONE pooled model. Features at the last close: vol-scaled returns 1/5/20/60/120/250d, distance from 20/50/200-day averages in ATRs, RSI(2), RSI(14),
+  vol20/vol60, 20-day strength vs sector ETF and vs SPY, SPY above its 200-day. Targets: next-day and next-5-day return in vol units. Ridge + shallow gradient
+  boosting averaged, logistic calibration on the latest 20% of the training window -> P(up). Ranges from EWMA vol (68% band = 1 sigma).
+- Levels (pre-declared): DAY long if P>=0.55 (short <=0.45): limit = last close - 0.3 sigma1, stop = entry - 1.0 sigma1, TP = entry + 1.5 sigma1, out at the close.
+  WEEK long if P5>=0.57 (short <=0.43): limit = close - 0.5 sigma5 within 2 sessions, stop 1.0 sigma5, TP 1.5 sigma5, out at the 5th close. 10 bps a side.
+- Test: walk-forward over the last 252 sessions, monthly refit, 5-day embargo; controls = same levels with a random side (20 seeds) and always-long.
+  USABLE only with 100+ trades, net R > 0, PF >= 1.1, beats 18/20 random sides AND always-long. Otherwise ranges only, no calls.
+**Round 9 questions (be concrete and creative, short):** (1) What is the single biggest flaw in this design, and the fix? (2) Give 3 features or model ideas
+from free daily OHLCV of these 68 symbols most likely to add real next-day / next-week directional skill for large-cap US stocks (e.g. cross-sectional
+ranking instead of absolute direction, sector-relative mean reversion, overnight vs intraday return split, volatility-regime conditioning) - exact definitions.
+(3) Is predicting DIRECTION the wrong target? Would forecasting the RANGE (high/low of today and the week) and trading the edges of that range be a better
+use of the model - give the exact rule. (4) How should buy/stop/TP be placed from a forecast distribution so that, if the forecast has a small edge,
+the levels keep it after 10 bps costs (e.g. stop at the 10th percentile, TP at the 75th)? One concrete rule per horizon.

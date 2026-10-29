@@ -272,6 +272,20 @@ def run_all(a) -> int:
                 lines += _jd.hybrid_report(f5, dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "forecast":                  # owner 2026-10-29: past-year behaviour + today / 7-day forecast + buy, stop, TP per symbol (alpacabot.forecast)
+                import datetime as _dt
+                from . import forecast as _fc
+                from .universe import SECTOR_ETFS, SECTOR_OF, STOCKS
+                today_ = _dt.date.today()
+                dd = {}
+                for s_ in sorted(set(STOCKS) | set(SECTOR_ETFS) | {"SPY", "QQQ"}):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=1700), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _fc.report(dd, SECTOR_OF, today_, Path("state/alpaca_forecast"))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
