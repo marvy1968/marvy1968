@@ -39,3 +39,22 @@ class ForecastTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Forecast2Tests(unittest.TestCase):
+    def test_day_fade_levels(self):
+        from alpacabot import forecast2 as f2
+        t0, t1 = pd.Timestamp("2026-10-27"), pd.Timestamp("2026-10-28")
+        arr = {"AAA": ({t0: 0, t1: 1}, np.array([100.0, 100.0]), np.array([101.0, 102.0]), np.array([99.0, 98.5]), np.array([100.0, 101.0]))}
+        q = {"lo10": np.log(99.0 / 100), "lo02": np.log(98.0 / 100), "c50": np.log(101.5 / 100)}
+        r = f2.day_fade(arr, "AAA", t0, 100.0, 1.0, q, ("lo10", "lo02", "c50"))
+        self.assertAlmostEqual(r, (101.5 * (1 - f2.COST) - 99.0 * (1 + f2.COST)) / 1.0)
+        q["c50"] = np.log(99.1 / 100)                                        # TP within 0.3% of the entry -> skip
+        self.assertIsNone(f2.day_fade(arr, "AAA", t0, 100.0, 1.0, q, ("lo10", "lo02", "c50")))
+
+    def test_report_runs(self):
+        from alpacabot import forecast2 as f2
+        daily = {s: bars(i) for i, s in enumerate(["SPY", "QQQ", "XLK", "AAA", "BBB", "CCC"])}
+        out = f2.report(daily, {"AAA": "XLK", "BBB": "XLK", "CCC": "XLK"}, (daily["SPY"].index[-1] + pd.Timedelta(days=1)).date())
+        self.assertTrue(any(x.startswith("- A RELATIVE") for x in out))
+        self.assertTrue(any(x.startswith("- B2") for x in out))
