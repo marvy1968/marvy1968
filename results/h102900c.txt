@@ -1,3 +1,24 @@
 $ alpaca run-all --phase validate --families zone_learn
-started 2026-10-29 00:21:43 EDT
-RUNNING...
+started 2026-10-29 00:21:43 EDT, took 28s, exit 0
+
+daily data ready
+## zone_learn: buy / sell / TP zones learned from yesterday's range, train 2025-10-29..2026-07-28, test 2026-07-29..2026-10-29 (and the last 2 weeks), 2x spread
+- RANGE BUY zones on train: below low 14t -0.30R/t | 0-25% 22t -0.42R/t | 25-50% 12t -0.71R/t | 50-75% 2t -1.00R/t | 75-100% 1t +2.50R/t | above high 4t +0.68R/t -> kept none
+- RANGE SELL zones on train: below low 7t -0.01R/t | 0-25% 0t +0.00R/t | 25-50% 1t -1.03R/t | 50-75% 3t +0.47R/t | 75-100% 12t -0.19R/t | above high 15t -0.95R/t -> kept none
+  RANGE TP 1.25R: train in-zone net +0.0R
+  RANGE TP 2R: train in-zone net +0.0R
+  RANGE TP 3R: train in-zone net +0.0R
+  RANGE TP far: train in-zone net +0.0R
+  RANGE learned TP: 1.25R
+- RANGE TEST 92 days: as live 19 t, win 37%, PF 1.43, +4.1R -> learned zones + 1.25R 0 t, win 0%, PF 0.00, +0.0R | random zone sets median +0.0R, beaten 0/20 | fail
+- RANGE last 2 weeks: as live 6 t, win 33%, PF 0.55, -1.8R -> learned zones + 1.25R 0 t, win 0%, PF 0.00, +0.0R | random zone sets median +0.0R, beaten 0/20
+- TREND BUY zones on train: below low 56t -0.53R/t | 0-25% 139t -0.53R/t | 25-50% 315t -0.56R/t | 50-75% 309t -0.60R/t | 75-100% 327t -0.55R/t | above high 456t -0.55R/t -> kept none
+- TREND SELL zones on train: below low 435t -0.45R/t | 0-25% 289t -0.53R/t | 25-50% 308t -0.68R/t | 50-75% 326t -0.59R/t | 75-100% 154t -0.65R/t | above high 67t -0.73R/t -> kept none
+  TREND TP 1.25R: train in-zone net +0.0R
+  TREND TP 2R: train in-zone net +0.0R
+  TREND TP 3R: train in-zone net +0.0R
+  TREND TP far: train in-zone net +0.0R
+  TREND learned TP: 1.25R
+- TREND TEST 92 days: as live 1090 t, win 15%, PF 0.30, -689.9R -> learned zones + 1.25R 0 t, win 0%, PF 0.00, +0.0R | random zone sets median +0.0R, beaten 0/20 | fail
+- TREND last 2 weeks: as live 157 t, win 17%, PF 0.34, -94.9R -> learned zones + 1.25R 0 t, win 0%, PF 0.00, +0.0R | random zone sets median +0.0R, beaten 0/20
+ALL DONE
