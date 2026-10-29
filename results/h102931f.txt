@@ -1,3 +1,28 @@
 $ alpaca run-all --phase validate --families jdub_930
-started 2026-10-29 01:58:14 EDT
-RUNNING...
+started 2026-10-29 01:58:14 EDT, took 414s, exit 0
+
+daily data ready
+## jdub_930: 5-minute opening range, 1-minute break, buy the RETEST (not the breakout), stop under the retest bar, flat 10:30; 57 stocks
+### last 2 weeks (2026-10-15..2026-10-29)
+- JDUB 2R: 5 bps 426 t, win 24%, PF 0.38, -270.7R | 10 bps 426 t, win 19%, PF 0.24, -381.0R | longs 229 t, win 21%, PF 0.27, -192.3R | shorts 197 t, win 17%, PF 0.20, -188.7R | random median -379.7R, beaten 7/20
+- JDUB 3R: 5 bps 426 t, win 20%, PF 0.41, -270.4R | 10 bps 426 t, win 16%, PF 0.26, -383.4R | longs 229 t, win 18%, PF 0.30, -190.4R | shorts 197 t, win 14%, PF 0.21, -193.0R | random median -376.1R, beaten 7/20
+- FVG 2R: 5 bps 283 t, win 25%, PF 0.39, -173.9R | 10 bps 283 t, win 19%, PF 0.23, -253.0R | longs 144 t, win 22%, PF 0.26, -119.8R | shorts 139 t, win 17%, PF 0.20, -133.2R | random median -253.3R, beaten 10/20
+- FVG 3R: 5 bps 283 t, win 20%, PF 0.42, -175.0R | 10 bps 283 t, win 16%, PF 0.24, -261.8R | longs 144 t, win 19%, PF 0.30, -119.2R | shorts 139 t, win 12%, PF 0.18, -142.7R | random median -257.0R, beaten 6/20
+- H1 2R: 5 bps 357 t, win 25%, PF 0.38, -225.6R | 10 bps 357 t, win 19%, PF 0.23, -322.2R | longs 212 t, win 21%, PF 0.25, -183.9R | shorts 145 t, win 17%, PF 0.21, -138.3R | random median -323.5R, beaten 11/20
+- H1 3R: 5 bps 357 t, win 20%, PF 0.41, -229.6R | 10 bps 357 t, win 16%, PF 0.24, -329.9R | longs 212 t, win 17%, PF 0.28, -182.9R | shorts 145 t, win 13%, PF 0.20, -147.0R | random median -320.0R, beaten 6/20
+- H2 2R: 5 bps 183 t, win 26%, PF 0.42, -103.9R | 10 bps 183 t, win 20%, PF 0.25, -157.6R | longs 99 t, win 21%, PF 0.27, -80.9R | shorts 84 t, win 18%, PF 0.22, -76.8R | random median -158.5R, beaten 11/20
+- H2 3R: 5 bps 183 t, win 20%, PF 0.43, -108.7R | 10 bps 183 t, win 15%, PF 0.22, -173.1R | longs 99 t, win 17%, PF 0.28, -83.8R | shorts 84 t, win 12%, PF 0.15, -89.3R | random median -158.6R, beaten 2/20
+- H3 2R: 5 bps 125 t, win 29%, PF 0.48, -61.0R | 10 bps 125 t, win 21%, PF 0.26, -103.8R | longs 61 t, win 21%, PF 0.25, -51.1R | shorts 64 t, win 20%, PF 0.27, -52.7R | random median -109.3R, beaten 14/20
+- H3 3R: 5 bps 125 t, win 22%, PF 0.46, -68.2R | 10 bps 125 t, win 15%, PF 0.21, -118.4R | longs 61 t, win 18%, PF 0.26, -52.2R | shorts 64 t, win 12%, PF 0.16, -66.2R | random median -109.5R, beaten 3/20
+### last 92 days (2026-07-29..2026-10-29)
+- JDUB 2R: 5 bps 2612 t, win 24%, PF 0.33, -1922.5R | 10 bps 2616 t, win 18%, PF 0.21, -2477.7R | longs 1297 t, win 18%, PF 0.21, -1237.4R | shorts 1319 t, win 18%, PF 0.21, -1240.2R | random median -2421.1R, beaten 0/20 | fail
+- JDUB 3R: 5 bps 2612 t, win 20%, PF 0.37, -1906.6R | 10 bps 2616 t, win 16%, PF 0.22, -2490.2R | longs 1297 t, win 16%, PF 0.22, -1239.9R | shorts 1319 t, win 16%, PF 0.22, -1250.3R | random median -2405.3R, beaten 1/20 | fail
+- FVG 2R: 5 bps 1732 t, win 24%, PF 0.32, -1352.5R | 10 bps 1736 t, win 17%, PF 0.19, -1709.1R | longs 848 t, win 17%, PF 0.19, -844.7R | shorts 888 t, win 17%, PF 0.19, -864.4R | random median -1620.5R, beaten 0/20 | fail
+- FVG 3R: 5 bps 1732 t, win 20%, PF 0.35, -1350.7R | 10 bps 1736 t, win 15%, PF 0.21, -1708.0R | longs 848 t, win 16%, PF 0.22, -832.7R | shorts 888 t, win 15%, PF 0.20, -875.3R | random median -1620.8R, beaten 1/20 | fail
+- H1 2R: 5 bps 2215 t, win 24%, PF 0.33, -1670.8R | 10 bps 2219 t, win 18%, PF 0.21, -2116.7R | longs 1207 t, win 18%, PF 0.21, -1160.3R | shorts 1012 t, win 18%, PF 0.21, -956.4R | random median -2045.5R, beaten 0/20 | fail
+- H1 3R: 5 bps 2215 t, win 20%, PF 0.36, -1644.5R | 10 bps 2219 t, win 16%, PF 0.22, -2126.3R | longs 1207 t, win 16%, PF 0.22, -1159.2R | shorts 1012 t, win 15%, PF 0.22, -967.1R | random median -2068.0R, beaten 1/20 | fail
+- H2 2R: 5 bps 1118 t, win 23%, PF 0.34, -788.0R | 10 bps 1121 t, win 17%, PF 0.20, -1102.2R | longs 600 t, win 16%, PF 0.18, -617.3R | shorts 521 t, win 18%, PF 0.22, -484.9R | random median -1042.4R, beaten 3/20 | fail
+- H2 3R: 5 bps 1118 t, win 19%, PF 0.36, -791.4R | 10 bps 1121 t, win 15%, PF 0.20, -1125.3R | longs 600 t, win 14%, PF 0.18, -629.1R | shorts 521 t, win 15%, PF 0.22, -496.2R | random median -1048.1R, beaten 0/20 | fail
+- H3 2R: 5 bps 745 t, win 23%, PF 0.33, -533.3R | 10 bps 748 t, win 16%, PF 0.18, -765.8R | longs 387 t, win 15%, PF 0.15, -431.5R | shorts 361 t, win 18%, PF 0.22, -334.3R | random median -716.9R, beaten 1/20 | fail
+- H3 3R: 5 bps 745 t, win 18%, PF 0.34, -544.7R | 10 bps 748 t, win 14%, PF 0.18, -782.4R | longs 387 t, win 13%, PF 0.15, -442.1R | shorts 361 t, win 16%, PF 0.22, -340.2R | random median -726.9R, beaten 1/20 | fail
+ALL DONE
