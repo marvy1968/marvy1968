@@ -140,5 +140,30 @@ class LogOnlyTests(unittest.TestCase):
         self.assertTrue(z["index_trend"]["live"])
 
 
+class OpenDropsSwitchedOffTests(unittest.TestCase):
+    def test_open_drops_entries_of_log_only_strategies(self):
+        from datetime import datetime as _d
+
+        class B:
+            def __init__(self):
+                self.sent = []
+
+            def submit_order(self, sym, qty, side, typ, tif, cid, stop_price=None):
+                self.sent.append(sym)
+                return {"id": cid, "status": "filled", "filled_avg_price": "100", "filled_qty": str(qty)}
+
+            def order(self, oid):
+                return {"id": oid, "status": "filled", "filled_avg_price": "100", "filled_qty": "1"}
+        with tempfile.TemporaryDirectory() as tmp:
+            b = B()
+            r = sp.SwingRunner(b, state_dir=tmp, base_equity=50000.0, sleep=lambda *_: None)
+            r.state["plan"] = {"made": "2026-10-28", "exits": [], "entries": [
+                {"symbol": "COP", "qty": 2, "stop": 90.0, "signal_close": 100.0},
+                {"symbol": "SPY", "qty": 1, "stop": 700.0, "side": 1, "strategy": "trend200", "signal_close": 770.0}]}
+            r.open(_d(2026, 10, 29, 9, 20, tzinfo=ZoneInfo("America/New_York")))
+            self.assertNotIn("COP", b.sent)
+            self.assertIn("SPY", b.sent)
+
+
 if __name__ == "__main__":
     unittest.main()

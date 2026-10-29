@@ -390,6 +390,14 @@ class SwingRunner:
             return {}                                    # a plan is acted on in a LATER session only
         if hasattr(self.b, "is_session") and not self.b.is_session(now.astimezone(ET).date()):
             return {}                                    # holiday: the plan waits for the next session
+        if not late:                                     # a strategy switched off since the scan buys nothing (owner 2026-10-29)
+            zc = self.zone_config()
+            off = {k for k in ("topdown", "funnel", "oversold") if not (zc.get(k) or {}).get("new_entries", True)}
+            dropped = [e["symbol"] for e in plan.get("entries", []) if e.get("strategy", "topdown") in off]
+            if dropped:
+                plan["entries"] = [e for e in plan["entries"] if e.get("strategy", "topdown") not in off]
+                self.journal("entries_dropped", now, symbols=dropped, reason="strategy log only")
+                self._save()
         tag = now.astimezone(ET).strftime("%Y%m%d")
         # Alpaca's paper account let all three opening-auction (OPG) orders expire unfilled on 2026-10-13, so orders are plain
         # market day orders sent a few seconds after the 09:30 open (the backtest fills at the open price).
