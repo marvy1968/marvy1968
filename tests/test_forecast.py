@@ -58,3 +58,14 @@ class Forecast2Tests(unittest.TestCase):
         out = f2.report(daily, {"AAA": "XLK", "BBB": "XLK", "CCC": "XLK"}, (daily["SPY"].index[-1] + pd.Timedelta(days=1)).date())
         self.assertTrue(any(x.startswith("- A RELATIVE") for x in out))
         self.assertTrue(any(x.startswith("- B2") for x in out))
+
+
+class IntradayOrderTests(unittest.TestCase):
+    def test_tp_before_the_dip_does_not_count(self):
+        from alpacabot import forecast2 as f2
+        b = pd.DataFrame({"open": [100.0, 101.0, 99.2], "high": [102.0, 101.0, 99.6], "low": [99.8, 98.9, 99.1], "close": [101.0, 99.2, 99.5]})
+        r = f2.intraday_fade(b, 99.0, 98.0, 101.5)            # high 102 came first, then the dip fills 99, closes 99.5
+        self.assertAlmostEqual(r, (99.5 * (1 - f2.COST) - 99.0 * (1 + f2.COST)) / 1.0)
+        b2 = b.copy()
+        b2.loc[2, "high"] = 101.6                               # after the fill it reaches the target
+        self.assertAlmostEqual(f2.intraday_fade(b2, 99.0, 98.0, 101.5), (101.5 * (1 - f2.COST) - 99.0 * (1 + f2.COST)) / 1.0)

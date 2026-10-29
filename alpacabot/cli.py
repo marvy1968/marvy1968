@@ -297,7 +297,13 @@ def run_all(a) -> int:
                         dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=1700), today_, cache)
                     except Exception as exc:
                         print(f"skip {s_}: {exc}", flush=True)
-                lines += _f2.report(dd, SECTOR_OF, today_, Path("state/alpaca_forecast"))
+                f5 = {}
+                for s_ in dd:
+                    try:
+                        f5[s_] = load(s_, "5Min", today_ - _dt.timedelta(days=100), today_, cache)
+                    except Exception as exc:
+                        print(f"skip 5Min {s_}: {exc}", flush=True)
+                lines += _f2.report(dd, SECTOR_OF, today_, Path("state/alpaca_forecast"), five=f5)
                 print("\n".join(lines[first:]), flush=True)
                 continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)

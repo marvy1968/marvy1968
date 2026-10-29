@@ -225,7 +225,7 @@ def eval_b(wf: pd.DataFrame, p: pd.DataFrame, arr: dict, spy200: dict) -> tuple[
     return out, ok_all
 
 
-def report(daily_raw: dict, sector_of: dict, today: date, state_dir=None) -> list[str]:
+def report(daily_raw: dict, sector_of: dict, today: date, state_dir=None, five: dict | None = None) -> list[str]:
     daily = {s: v1._dates(d) for s, d in daily_raw.items() if len(d)}
     daily = {s: d[d.index < pd.Timestamp(today)] for s, d in daily.items()}
     p = panel2(daily, sector_of)
@@ -238,6 +238,8 @@ def report(daily_raw: dict, sector_of: dict, today: date, state_dir=None) -> lis
     out.append(a_line)
     b_lines, b_ok = eval_b(wf, p, arr, spy200)
     out += b_lines
+    if five:
+        out += check_intraday(wf, p, arr, spy200, five, min(pd.Timestamp(d.index.min()).tz_convert('America/New_York').date() for d in five.values() if len(d)))
     # today's plan from models fitted on everything up to the last close
     days = np.sort(p.index.unique())
     last = pd.Timestamp(days[-1])
@@ -267,4 +269,66 @@ def report(daily_raw: dict, sector_of: dict, today: date, state_dir=None) -> lis
         sd = Path(state_dir)
         sd.mkdir(parents=True, exist_ok=True)
         pl.to_json(sd / f"plan2-{today:%Y%m%d}.json", orient="index", indent=1)
+    return out
+
+
+# ---- intraday order check (added after the first run: daily bars cannot tell whether the day's high came BEFORE the dip that filled the
+# buy, which can count a take-profit that happened before the entry). PRE-DECLARED: the same B1 levels (model and no-model), the next
+# session's 5-minute bars walked in time order: fill when a bar trades at/below the buy (a bar opening below fills at its open, skipped if
+# that is already below the stop); stop checked from the fill bar on, take-profit only from the bar AFTER the fill; else out at the last bar.
+def intraday_fade(bars5: pd.DataFrame, entry: float, stop: float, tgt: float) -> float | None:
+    o, h, l, c = (bars5[k].to_numpy(float) for k in ("open", "high", "low", "close"))
+    for k in range(len(o)):
+        if o[k] <= entry or l[k] <= entry:
+            e = min(o[k], entry)
+            if e <= stop:
+                return None
+            for j in range(k, len(o)):
+                if l[j] <= stop:
+                    px = o[j] if j > k and o[j] <= stop else stop
+                    return (px * (1 - COST) - e * (1 + COST)) / (e - stop)
+                if j > k and h[j] >= tgt:
+                    px = o[j] if o[j] >= tgt else tgt
+                    return (px * (1 - COST) - e * (1 + COST)) / (e - stop)
+            return (c[-1] * (1 - COST) - e * (1 + COST)) / (e - stop)
+    return None
+
+
+def check_intraday(wf: pd.DataFrame, p: pd.DataFrame, arr: dict, spy200: dict, five: dict, since) -> list[str]:
+    rule = B_RULES["B1"]
+    base = {}
+    for s, g in p.groupby("symbol"):
+        base[s] = pd.DataFrame({n: g[col].shift(1).rolling(250, min_periods=120).quantile(a) for n, (col, a) in QS.items()})
+    sess = {}
+    for s, m in five.items():
+        x = m.copy()
+        x.index = x.index.tz_convert("America/New_York")
+        x = x[(x.index.time >= pd.Timestamp("09:30").time()) & (x.index.time < pd.Timestamp("16:00").time())]
+        sess[s] = {pd.Timestamp(d): g for d, g in x.groupby(x.index.date)}
+    dates = {s: list(g.index) for s, g in p.groupby("symbol")}
+    res = {k: ([], []) for k in ("model", "no-model")}
+    for t, r in wf[wf.index >= pd.Timestamp(since)].iterrows():
+        s = r["symbol"]
+        if spy200.get(t, 0) <= 0 or r["sector"] == "" or s not in sess:
+            continue
+        pos = arr[s][0].get(t)
+        if pos is None or pos + 1 >= len(dates[s]):
+            continue
+        nxt = dates[s][pos + 1]
+        if nxt not in sess[s]:
+            continue
+        for kind, q in (("model", r), ("no-model", base[s].loc[t] if t in base[s].index else None)):
+            if q is None or not np.all(np.isfinite([q[k] for k in rule])):
+                continue
+            e, st, tg = (r["close"] * np.exp(q[k] * r["vol"]) for k in rule)
+            if not (st < e < tg) or (tg - e) / e < 0.003:
+                continue
+            d = day_fade(arr, s, t, r["close"], r["vol"], q, rule)
+            i = intraday_fade(sess[s][nxt], e, st, tg)
+            if d is not None and i is not None:
+                res[kind][0].append(d)
+                res[kind][1].append(i)
+    out = [f"## B1 intraday order check (5-minute bars, sessions since {since}): same trades, daily-bar result vs time-ordered result"]
+    for kind, (d, i) in res.items():
+        out.append(f"- {kind}: daily bars {v1.fmt(v1.summary(d))} -> 5-minute order {v1.fmt(v1.summary(i))}")
     return out
