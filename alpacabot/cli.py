@@ -234,7 +234,30 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam == "zone_learn":                # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
+            if fam == "jdub_930":                  # owner 2026-10-29: Jdub's 9:30 1-minute scalp + our hybrid rules (alpacabot.jdub)
+                import datetime as _dt
+                import pandas as _pd
+                from fxbot.newsfilter import calendar as _cal
+                from . import jdub as _jd
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                ev, _ = _cal(today_ - _dt.timedelta(days=110), today_ + _dt.timedelta(days=1))
+                ev_ns = sorted(t.value for t, _ in ev)
+
+                def _news(ts):
+                    v = _pd.Timestamp(ts).tz_convert("UTC").value
+                    return any(abs(v - e) <= 3600 * 10**9 for e in ev_ns)
+                m1, dl = {}, {}
+                for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
+                    try:
+                        m1[s_] = load(s_, "1Min", today_ - _dt.timedelta(days=100), today_, cache)
+                        dl[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=700), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _jd.report(m1, dl, today_, _news)
+                print("\n".join(lines[first:]), flush=True)
+                continue
+            if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
                 from fxbot.data import MAJORS, load as fx_load
