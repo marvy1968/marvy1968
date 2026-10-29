@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families range_pivot
-started 2026-10-28 22:50:34 EDT
-RUNNING...
+started 2026-10-28 22:50:34 EDT, took 602s, exit 0
+
+daily data ready
+## range_pivot: Sneaky Pivot as the range experts' buy / sell / TP guide (range filter on), 1-hour bars, 2x spread; 2 weeks 2026-10-14..2026-10-28, 92 days context
+- lien_h1 2 weeks: A 0 t, win 0%, PF 0.00, +0.0R | B 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 0/20) | C 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 0/20)
+- lien_h1 92 days: A 0 t, win 0%, PF 0.00, +0.0R | B 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 0/20) | C 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 0/20)
+- boxmr_h1 2 weeks: A 6 t, win 33%, PF 0.55, -1.8R | B 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 1/20) | C 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 1/20)
+- boxmr_h1 92 days: A 19 t, win 37%, PF 1.43, +4.1R | B 3 t, win 0%, PF 0.00, -0.7R (shuffled-day pivot median +1.4R, beaten 3/20) | C 3 t, win 0%, PF 0.00, -3.2R (shuffled-day pivot median +1.2R, beaten 1/20)
+- retest_h1 2 weeks: A 3 t, win 0%, PF 0.00, -2.8R | B 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 4/20)
+- retest_h1 92 days: A 9 t, win 22%, PF 0.56, -3.2R | B 0 t, win 0%, PF 0.00, +0.0R (shuffled-day pivot median +0.0R, beaten 3/20)
+ALL DONE
