@@ -234,7 +234,16 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam == "sneaky_pivot":              # owner 2026-10-28: Sneaky Pivot, forex + stocks, pre-declared (fxbot.sneaky)
+            if fam == "range_pivot":               # owner 2026-10-28: Sneaky Pivot as the range experts' buy / sell / TP guide, 2 weeks (fxbot.sneaky)
+                import datetime as _dt
+                from fxbot import sneaky as _sk
+                from fxbot.data import MAJORS, load as fx_load
+                today_ = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today_ - _dt.timedelta(days=340), today_, Path("state/fx/cache")) for i in MAJORS}
+                lines += _sk.range_pivot_report(h1, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
+            if fam == "sneaky_pivot":            # owner 2026-10-28: Sneaky Pivot, forex + stocks, pre-declared (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
                 from fxbot.data import MAJORS, load as fx_load

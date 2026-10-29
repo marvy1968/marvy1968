@@ -188,3 +188,127 @@ def report(market: str, data: dict, forex: bool, today: date, long_from: date, s
                    f"beaten {beat}/{seeds}" + ("" if label == "last 2 weeks" else f" | {'pass' if ok else 'fail'}"))
     out.append(f"- {market} VERDICT: {'PASS (both windows)' if all(verdicts) else 'FAIL'}")
     return out
+
+
+# ---- Sneaky Pivot as the range experts' buy / sell / take-profit guide (owner 2026-10-28: "use it in conjunction to help find buy, sell
+# and TP to complement our range experts; retest 2 weeks") -----------------------------------------------------------------------------
+# PRE-DECLARED. The live range experts (lien_h1, boxmr_h1 with the live 0.5R cut / 1.25R take-profit; retest_h1 with its own exits), only
+# when the pair has no trend (the live range filter: no long trend, no hard move today), on 1-hour bars, 2x spread:
+#   A  as live
+#   B  BUY zone / SELL zone = the pivot: a long only if in the last 3 one-hour bars price traded at or below yesterday's low and closed back
+#      above it (shorts: yesterday's high, closed back below) - the expert's own exits
+#   C  B + the pivot's exits: stop 0.1 ATR beyond the lowest low (highest high) of those 3 bars, take profit at yesterday's OTHER level
+#      (the far side of yesterday's range; needs at least 1R room), 48 bars at most (lien_h1 / boxmr_h1 only; retest keeps its structure)
+# Control: B / C with the pivot readings moved to other days (20 seeds). Read on the last 2 weeks (owner) and the last 92 days (context).
+def pivot_flags(m: pd.DataFrame, look: int = 3) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """(long_ok, short_ok, pdh, pdl) per 1-hour bar (forex day)."""
+    key = day_key(m.index, True)
+    pdh, pdl = prior_levels(m, key, True)
+    l, h, c = (m[k].to_numpy(float) for k in ("low", "high", "close"))
+    lt = (l <= pdl) & (c > pdl)
+    st = (h >= pdh) & (c < pdh)
+    lo = pd.Series(lt).rolling(look, min_periods=1).max().to_numpy(bool) & (c > pdl)
+    so = pd.Series(st).rolling(look, min_periods=1).max().to_numpy(bool) & (c < pdh)
+    return lo, so, pdh, pdl
+
+
+class PivotRange:
+    """A range expert behind the live range filter, with the pivot as buy / sell zone (exits='own') or zone + exits (exits='pivot')."""
+
+    def __init__(self, base, exits: str = "own", flags_fn=None, use_pivot: bool = True):
+        self.base, self.exits, self.flags_fn, self.use_pivot = base, exits, flags_fn or pivot_flags, use_pivot
+        self.max_bars = 48 if exits == "pivot" else base.max_bars
+        self.name = getattr(base, "name", type(base).__name__) + f" +pivot({exits})"
+
+    def frame(self, m):
+        from .strongtrend import daily_of, state_on_bars, today_state, votes
+        f = self.base.frame(m).copy()
+        d = daily_of(m)
+        flat = (state_on_bars(m, votes(d)["long_state"]) == 0) & (today_state(m, d, True) == 0)
+        lg = f["long"].fillna(False).astype(bool).to_numpy() & flat
+        sh = f["short"].fillna(False).astype(bool).to_numpy() & flat
+        if self.use_pivot:
+            lo, so, pdh, pdl = self.flags_fn(m)
+            lg, sh = lg & lo, sh & so
+        f["long"], f["short"] = lg, sh
+        if self.exits == "pivot":
+            atr = _atr(m)
+            c = m["close"].to_numpy(float)
+            low3 = m["low"].rolling(3, min_periods=1).min().to_numpy(float)
+            high3 = m["high"].rolling(3, min_periods=1).max().to_numpy(float)
+            _, _, pdh, pdl = pivot_flags(m)
+            sd_l, sd_s = c - (low3 - BUF_ATR * atr), (high3 + BUF_ATR * atr) - c
+            tg_l, tg_s = pdh - c, c - pdl
+            stop = np.where(lg, sd_l, np.where(sh, sd_s, f["stop"].to_numpy(float)))
+            tgt = np.where(lg, tg_l, np.where(sh, tg_s, np.nan))
+            room = np.where(lg | sh, tgt >= stop, True)
+            f["long"], f["short"] = lg & room, sh & room
+            f["stop"], f["target"] = stop, tgt
+            f["exit_long"], f["exit_short"] = False, False
+        return f
+
+
+def range_pivot_report(h1: dict, today: date, seeds: int = 20) -> list[str]:
+    from .engine import FIN_PER_NIGHT, simulate
+    from .exitlab import _spread
+    from .live import STRATS
+    from .strategies import TightStop
+    from .strongtrend import day_keys, permute_days, summary as ssum, fmt as sfmt
+    a14, a92 = today - timedelta(days=14), today - timedelta(days=92)
+    out = [f"## range_pivot: Sneaky Pivot as the range experts' buy / sell / TP guide (range filter on), 1-hour bars, 2x spread; "
+           f"2 weeks {a14}..{today}, 92 days context"]
+
+    def shuffled_flags(seed):
+        def fn(m):
+            lo, so, pdh, pdl = pivot_flags(m)
+            k = day_keys(m.index, True)
+            return permute_days(lo.astype(int), k, seed).astype(bool), permute_days(so.astype(int), k, seed).astype(bool), pdh, pdl
+        return fn
+
+    def run(name, variant, a, seed=None):
+        rs = []
+        for inst, df in h1.items():
+            d2 = _spread(df, 2.0)
+            if name == "retest_h1":
+                from .data import mid
+                from .playbook import PlaybookRules, simulate_playbook
+                from .strongtrend import daily_of, state_on_bars, today_state, votes
+                m = mid(df)
+                dd = daily_of(m)
+                flat = (state_on_bars(m, votes(dd)["long_state"]) == 0) & (today_state(m, dd, True) == 0)
+                lo, so, _, _ = (shuffled_flags(seed) if seed is not None else pivot_flags)(m)
+                pos = {t: i for i, t in enumerate(df.index)}
+                for t in simulate_playbook(inst, d2, PlaybookRules(be_at_r=0.0), a, today):
+                    k = pos.get(t["entry"])
+                    if k is None or not flat[k - 1]:
+                        continue
+                    side = 1 if t["side"] == "long" else -1
+                    if variant != "A" and not (lo[k - 1] if side == 1 else so[k - 1]):
+                        continue
+                    rs.append(t["r"])
+                continue
+            base = STRATS[name]["make"]()
+            fl = shuffled_flags(seed) if seed is not None else None
+            if variant == "A":
+                strat = TightStop(PivotRange(base, "own", use_pivot=False), 0.50, 1.25)
+            elif variant == "B":
+                strat = TightStop(PivotRange(base, "own", fl), 0.50, 1.25)
+            else:
+                strat = PivotRange(base, "pivot", fl)
+            for t in simulate(inst, d2, strat):
+                if a <= t.entry_time.date() <= today:
+                    rs.append(t.side * (t.exit_px - t.entry_px) / t.stop_dist - t.nights * FIN_PER_NIGHT * t.entry_px / t.stop_dist)
+        return rs
+    for name in ("lien_h1", "boxmr_h1", "retest_h1"):
+        variants = ("A", "B") if name == "retest_h1" else ("A", "B", "C")
+        for label, a in (("2 weeks", a14), ("92 days", a92)):
+            row = []
+            for v in variants:
+                s = ssum(run(name, v, a))
+                extra = ""
+                if v != "A":
+                    ctrl = [ssum(run(name, v, a, k))["net"] for k in range(seeds)]
+                    extra = f" (shuffled-day pivot median {np.median(ctrl):+.1f}R, beaten {sum(s['net'] > x for x in ctrl)}/{seeds})"
+                row.append(f"{v} {sfmt(s)}{extra}")
+            out.append(f"- {name} {label}: " + " | ".join(row))
+    return out
