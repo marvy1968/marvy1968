@@ -257,6 +257,21 @@ def run_all(a) -> int:
                 lines += _jd.report(m1, dl, today_, _news)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "jdub_hybrid":               # owner 2026-10-29: Jdub's ideas grafted onto our day ride (alpacabot.jdub.hybrid_report)
+                import datetime as _dt
+                from . import jdub as _jd
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd, f5 = {}, {}
+                for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=700), today_, cache)
+                        f5[s_] = load(s_, "5Min", today_ - _dt.timedelta(days=100), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _jd.hybrid_report(f5, dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
