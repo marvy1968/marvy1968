@@ -78,5 +78,11 @@ class PivotRangeTests(unittest.TestCase):
         self.assertTrue((np.isnan(f["target"]) | (f["target"] >= f["stop"]) | ~(f["long"] | f["short"])).all())
 
 
+class ZoneLearnTests(unittest.TestCase):
+    def test_zone_of(self):
+        self.assertEqual([sp.zone_of(p) for p in (-0.1, 0.1, 0.3, 0.6, 0.9, 1.2)], list(sp.ZONES))
+        self.assertEqual(sp.zone_of(float("nan")), "")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -312,3 +312,120 @@ def range_pivot_report(h1: dict, today: date, seeds: int = 20) -> list[str]:
                 row.append(f"{v} {sfmt(s)}{extra}")
             out.append(f"- {name} {label}: " + " | ".join(row))
     return out
+
+
+# ---- LEARN the profitable buy / sell / take-profit zones around yesterday's range (owner 2026-10-29: "I said hybrid with others to find
+# buy, sell, TP profitable zones, or learn the best practice with this") ------------------------------------------------------------------
+# PRE-DECLARED. Every live OANDA expert's own signals (range and trend families, no filters, so there is enough to learn from), 1-hour bars,
+# 7 majors, 2x spread, the last 12 months: TRAIN = the first 9 months, TEST = the last 92 days (unseen) and the last 2 weeks (owner).
+#  - Where a trade starts is read against yesterday's range: p = (entry - yesterday's low) / (yesterday's high - yesterday's low), in six
+#    zones: below the low, 0-25%, 25-50%, 50-75%, 75-100%, above the high.
+#  - BUY zones (longs) and SELL zones (shorts) = the zones with 15+ train trades and a positive average R, per family (range / trend).
+#  - TAKE-PROFIT: per family, the best on train of {live 1.25R, 2R, 3R, the far side of yesterday's range (>= 1R)} inside the kept zones.
+#  - TEST: only trades in the learned zones, with the learned take-profit. Control: the same number of zones picked at random (20 seeds).
+#  - PASS (per family): test 92 days at 2x: 20+ trades, net R > 0, beats the as-live family and 18 of 20 random zone sets.
+ZONES = ("below low", "0-25%", "25-50%", "50-75%", "75-100%", "above high")
+
+
+def zone_of(p: float) -> str:
+    if not np.isfinite(p):
+        return ""
+    return ZONES[0] if p < 0 else ZONES[5] if p > 1 else ZONES[1 + min(int(p * 4), 3)]
+
+
+class FarTarget:
+    """Take profit at the far side of yesterday's range (long: yesterday's high), the stop at the live 0.5R cut; skip if < 1R of room."""
+
+    def __init__(self, base):
+        self.base, self.max_bars = base, base.max_bars
+
+    def frame(self, m):
+        f = self.base.frame(m).copy()
+        _, _, pdh, pdl = pivot_flags(m)
+        c = m["close"].to_numpy(float)
+        sd = f["stop"].to_numpy(float) * 0.5
+        lg, sh = f["long"].fillna(False).to_numpy(bool), f["short"].fillna(False).to_numpy(bool)
+        tg = np.where(lg, pdh - c, np.where(sh, c - pdl, np.nan))
+        ok = np.isfinite(tg) & (tg >= sd)
+        f["long"], f["short"], f["stop"], f["target"] = lg & ok, sh & ok, sd, tg
+        return f
+
+
+def zone_trades(h1: dict, names: list, tp: str, spread: float = 2.0) -> list[dict]:
+    from .data import mid
+    from .engine import FIN_PER_NIGHT, simulate
+    from .exitlab import _spread
+    from .live import STRATS
+    from .strategies import TightStop
+    out = []
+    for inst, df in h1.items():
+        m = mid(df)
+        _, _, pdh, pdl = pivot_flags(m)
+        pos = {t: i for i, t in enumerate(df.index)}
+        d2 = _spread(df, spread)
+        for name in names:
+            if name == "retest_h1" or STRATS[name]["gran"] != "H1":
+                continue
+            base = STRATS[name]["make"]()
+            strat = FarTarget(base) if tp == "far" else TightStop(base, 0.50, {"1.25R": 1.25, "2R": 2.0, "3R": 3.0}[tp])
+            for t in simulate(inst, d2, strat):
+                k = pos.get(t.entry_time)
+                if k is None or k == 0:
+                    continue
+                rng = pdh[k - 1] - pdl[k - 1]
+                p = (t.entry_px - pdl[k - 1]) / rng if rng > 0 else np.nan
+                out.append({"name": name, "side": t.side, "date": t.entry_time.date(), "zone": zone_of(p),
+                            "r": t.side * (t.exit_px - t.entry_px) / t.stop_dist - t.nights * FIN_PER_NIGHT * t.entry_px / t.stop_dist})
+    return out
+
+
+def zone_learn_report(h1: dict, today: date, seeds: int = 20) -> list[str]:
+    from .live import RANGE_EXPERTS, TREND_EXPERTS
+    from .strongtrend import fmt as sfmt, summary as ssum
+    t_end = today - timedelta(days=92)
+    tr_a = today - timedelta(days=365)
+    a14 = today - timedelta(days=14)
+    out = [f"## zone_learn: buy / sell / TP zones learned from yesterday's range, train {tr_a}..{t_end - timedelta(days=1)}, test {t_end}..{today} "
+           f"(and the last 2 weeks), 2x spread"]
+    fams = {"RANGE": [n for n in RANGE_EXPERTS], "TREND": [n for n in TREND_EXPERTS]}
+    rng = np.random.default_rng(7)
+    for fam, names in fams.items():
+        by_tp = {tp: zone_trades(h1, names, tp) for tp in ("1.25R", "2R", "3R", "far")}
+        live = by_tp["1.25R"]
+        train = [t for t in live if tr_a <= t["date"] < t_end]
+        keep = {}
+        for side, lab in ((1, "BUY"), (-1, "SELL")):
+            rows = []
+            for z in ZONES:
+                rs = [t["r"] for t in train if t["side"] == side and t["zone"] == z]
+                s = ssum(rs)
+                rows.append(f"{z} {s['trades']}t {s['net'] / max(s['trades'], 1):+.2f}R/t")
+                if s["trades"] >= 15 and s["net"] > 0:
+                    keep.setdefault(side, set()).add(z)
+            out.append(f"- {fam} {lab} zones on train: " + " | ".join(rows) + f" -> kept {sorted(keep.get(side, set())) or 'none'}")
+
+        def inzone(t):
+            return t["zone"] in keep.get(t["side"], set())
+        best_tp, best = "1.25R", None
+        for tp, ts in by_tp.items():
+            v = sum(t["r"] for t in ts if tr_a <= t["date"] < t_end and inzone(t))
+            out.append(f"  {fam} TP {tp}: train in-zone net {v:+.1f}R")
+            if best is None or v > best:
+                best, best_tp = v, tp
+        out.append(f"  {fam} learned TP: {best_tp}")
+        n_keep = sum(len(v) for v in keep.values())
+        for label, a in (("TEST 92 days", t_end), ("last 2 weeks", a14)):
+            asl = ssum([t["r"] for t in live if t["date"] >= a])
+            lrn = ssum([t["r"] for t in by_tp[best_tp] if t["date"] >= a and inzone(t)])
+            ctrl = []
+            for _ in range(seeds):
+                pick = {1: set(), -1: set()}
+                choices = [(s_, z) for s_ in (1, -1) for z in ZONES]
+                for i in rng.choice(len(choices), size=min(n_keep, len(choices)), replace=False):
+                    pick[choices[i][0]].add(choices[i][1])
+                ctrl.append(sum(t["r"] for t in by_tp[best_tp] if t["date"] >= a and t["zone"] in pick[t["side"]]))
+            beat = sum(lrn["net"] > x for x in ctrl)
+            ok = lrn["trades"] >= 20 and lrn["net"] > 0 and lrn["net"] > asl["net"] and beat >= round(0.9 * seeds)
+            out.append(f"- {fam} {label}: as live {sfmt(asl)} -> learned zones + {best_tp} {sfmt(lrn)} | random zone sets median "
+                       f"{np.median(ctrl):+.1f}R, beaten {beat}/{seeds}" + (f" | {'PASS' if ok else 'fail'}" if label.startswith("TEST") else ""))
+    return out
