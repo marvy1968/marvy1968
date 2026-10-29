@@ -69,3 +69,22 @@ class IntradayOrderTests(unittest.TestCase):
         b2 = b.copy()
         b2.loc[2, "high"] = 101.6                               # after the fill it reaches the target
         self.assertAlmostEqual(f2.intraday_fade(b2, 99.0, 98.0, 101.5), (101.5 * (1 - f2.COST) - 99.0 * (1 + f2.COST)) / 1.0)
+
+
+class WeekPicksTests(unittest.TestCase):
+    def test_picks_then_grades(self):
+        from alpacabot import weekpicks as wp
+        daily = {s: bars(i, 760) for i, s in enumerate(["SPY", "QQQ", "XLK", "AAA", "BBB", "CCC", "DDD", "EEE", "FFF"])}
+        sec = {s: "XLK" for s in ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF"]}
+        with tempfile.TemporaryDirectory() as d:
+            end = daily["SPY"].index[-7].date()
+            out = wp.run(daily, sec, end, state_dir=d, seeds=2)
+            st = wp._load(__import__("pathlib").Path(d) / "log.json")
+            self.assertEqual(len(st["batches"]), 1)
+            again = wp.run(daily, sec, end, state_dir=d, seeds=2)                       # same day: no second batch
+            self.assertEqual(len(wp._load(__import__("pathlib").Path(d) / "log.json")["batches"]), 1)
+            later = wp.run(daily, sec, (daily["SPY"].index[-1] + pd.Timedelta(days=1)).date(), state_dir=d, seeds=2)
+            st = wp._load(__import__("pathlib").Path(d) / "log.json")
+            self.assertTrue(st["batches"][0].get("graded"))
+            self.assertTrue(any(x.startswith("WEEKLY PICKS") for x in later))
+            self.assertTrue(out and again)

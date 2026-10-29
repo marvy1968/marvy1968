@@ -1996,6 +1996,23 @@ def run_all(a) -> int:
     return 0
 
 
+def _weekpicks_run(cache) -> list[str]:
+    import datetime as _dt
+    from . import weekpicks as _wp
+    from .universe import SECTOR_ETFS, SECTOR_OF, STOCKS
+    from zoneinfo import ZoneInfo
+    now = _dt.datetime.now(ZoneInfo("America/New_York"))
+    today_ = now.date()
+    upto = today_ + _dt.timedelta(days=1) if (now.hour, now.minute) >= (16, 15) else today_     # before the close: completed sessions only
+    dd = {}
+    for s_ in sorted(set(STOCKS) | set(SECTOR_ETFS) | {"SPY", "QQQ"}):
+        try:
+            dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=1700), today_ + _dt.timedelta(days=1), Path(cache))
+        except Exception as exc:
+            print(f"skip {s_}: {exc}", flush=True)
+    return _wp.run(dd, SECTOR_OF, upto)
+
+
 def main(argv=None) -> int:
     load_env()
     ap = argparse.ArgumentParser(prog="alpacabot")
@@ -2037,6 +2054,9 @@ def main(argv=None) -> int:
     sw.add_argument("action", choices=["scan", "open", "status", "close", "drop"])
     sw.add_argument("--state", default="state/alpaca_swing")
     sw.add_argument("--symbols", default="", help="close: only these symbols (comma-separated); default the whole book")
+    wp = sub.add_parser("weekpicks", help="weekly beat-SPY picks, LOG ONLY: run (pick / grade) or status")
+    wp.add_argument("action", choices=["run", "status"])
+    wp.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
@@ -2116,6 +2136,18 @@ def main(argv=None) -> int:
                 out = {**(out or {}), **{f"late {k}": v for k, v in late.items()}}
         print(json.dumps(out, indent=1, default=str))
         print("\n".join(summary(a.state)))
+        if a.action == "scan":                           # weekly beat-SPY picks ride on the after-close scan (log only, never blocks the scan)
+            try:
+                print("\n".join(_weekpicks_run(os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))))
+            except Exception as exc:
+                print(f"weekpicks failed: {exc.__class__.__name__}: {exc}")
+        return 0
+    if a.cmd == "weekpicks":                         # owner 2026-10-29: weekly beat-SPY picks, log only (alpacabot.weekpicks)
+        from . import weekpicks as _wp
+        if a.action == "status":
+            print("\n".join(_wp.status(_wp._load(_wp.STATE / "log.json"))))
+            return 0
+        print("\n".join(_weekpicks_run(a.cache)))
         return 0
     if a.cmd == "close-others":
         import requests
