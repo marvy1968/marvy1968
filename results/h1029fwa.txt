@@ -1,3 +1,87 @@
 $ update
-started 2026-10-29 12:34:31 EDT
-RUNNING...
+started 2026-10-29 12:34:31 EDT, took 20s, exit 0
+
+Get:1 file:/etc/apt/mirrors/debian.list Mirrorlist [30 B]
+Get:2 file:/etc/apt/mirrors/debian-security.list Mirrorlist [39 B]
+Hit:3 https://deb.debian.org/debian bookworm InRelease
+Hit:7 https://packages.cloud.google.com/apt google-compute-engine-bookworm-stable InRelease
+Hit:4 https://deb.debian.org/debian bookworm-updates InRelease
+Hit:5 https://deb.debian.org/debian bookworm-backports InRelease
+Hit:6 https://deb.debian.org/debian-security bookworm-security InRelease
+Hit:8 https://packages.cloud.google.com/apt cloud-sdk-bookworm InRelease
+Hit:9 https://packages.cloud.google.com/apt google-cloud-ops-agent-bookworm-2 InRelease
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+git is already the newest version (1:2.39.5-0+deb12u3).
+python3 is already the newest version (3.11.2-1+b1).
+python3-venv is already the newest version (3.11.2-1+b1).
+The following packages will be upgraded:
+  tzdata
+1 upgraded, 0 newly installed, 0 to remove and 7 not upgraded.
+Need to get 308 kB of archives.
+After this operation, 1024 B of additional disk space will be used.
+Get:1 file:/etc/apt/mirrors/debian-security.list Mirrorlist [39 B]
+Get:2 https://deb.debian.org/debian-security bookworm-security/main amd64 tzdata all 2026f-0+deb12u1 [308 kB]
+apt-listchanges: Reading changelogs...
+Fetched 308 kB in 0s (2161 kB/s)
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 91083 files and directories currently installed.)
+Preparing to unpack .../tzdata_2026f-0+deb12u1_all.deb ...
+Unpacking tzdata (2026f-0+deb12u1) over (2026e-0+deb12u1) ...
+Setting up tzdata (2026f-0+deb12u1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Teletype
+
+Current default time zone: 'America/New_York'
+Local time is now:      Thu Oct 29 12:34:38 EDT 2026.
+Universal Time is now:  Thu Oct 29 16:34:38 UTC 2026.
+Run 'dpkg-reconfigure tzdata' if you wish to change it.
+
+branch 'claude/analysis-ak180w' set up to track 'origin/claude/analysis-ak180w'.
+Your branch is up to date with 'origin/claude/analysis-ak180w'.
+NEXT                        LEFT          LAST                        PASSED       UNIT                ACTIVATES
+Thu 2026-10-29 17:30:00 EDT 4h 55min left Wed 2026-10-28 17:30:01 EDT 19h ago      marv-bot-late.timer marv-bot-late.service
+Fri 2026-10-30 10:00:00 EDT 21h left      Thu 2026-10-29 10:00:01 EDT 2h 34min ago marv-bot.timer      marv-bot.service
+
+2 timers listed.
+Pass --all to see loaded but inactive timers, too.
+Installed. Test with: cd /opt/marv-bot && sudo -u marvbot .venv/bin/python -m marv test-telegram
+
+--- stderr ---
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Teletype
+dpkg-preconfigure: unable to re-open stdin: 
+From github.com:marvy1968/marvy1968
+ * branch            claude/analysis-ak180w -> FETCH_HEAD
+   9505c46..da2552a  claude/analysis-ak180w -> origin/claude/analysis-ak180w
+Reset branch 'claude/analysis-ak180w'
