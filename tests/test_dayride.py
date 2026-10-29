@@ -66,6 +66,8 @@ class Broker:
 
     def cancel_order(self, oid):
         self.cancelled.append(oid)
+        if oid in self.orders:
+            self.orders[oid]["status"] = "canceled"
 
 
 class DayRideTests(unittest.TestCase):
@@ -173,6 +175,45 @@ class RideNewsTests(unittest.TestCase):
 
     def test_config(self):
         self.assertEqual((dr.RIDE["news_before"], dr.RIDE["news_after"]), (60, 60))
+
+
+class MissedFlatTests(unittest.TestCase):
+    """2026-10-29: a 403 on the first 15:55 exit stopped the loop and ECL / GOOGL stayed open overnight."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.b = Broker()
+        self.r = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+        self.r.news_fetch = lambda url: []
+        self.r.adopted = True
+        pos = lambda: {"side": 1, "qty": 2, "entry": 100.0, "stop": 99.0, "stop_id": None, "opened": "x"}   # noqa: E731
+        self.r.state = {"date": "2026-10-29", "done": [], "open": {"ECL": pos(), "GOOGL": pos()}}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_one_failed_exit_does_not_block_the_others(self):
+        real = self.b.submit_market
+
+        def boom(sym, qty, cid, side="buy"):
+            if sym == "ECL":
+                raise RuntimeError("403 insufficient qty available")
+            return real(sym, qty, cid, side)
+        self.b.submit_market = boom
+        self.r.step(datetime(2026, 10, 29, 15, 55, 30, tzinfo=ET))
+        self.assertEqual(sorted(self.r.state["open"]), ["ECL"])          # GOOGL closed, ECL kept for the next try
+
+    def test_carried_over_ride_closes_at_the_next_open(self):
+        self.r.step(datetime(2026, 10, 30, 9, 31, 30, tzinfo=ET))
+        self.assertEqual(self.r.state["open"], {})
+        self.assertEqual(self.r.state["carried"], [])
+
+    def test_exit_waits_for_the_stop_cancel(self):
+        so = self.b.submit_order("ECL", 2, "sell", "stop", "day", "x", stop_price=99.0)
+        self.r.state["open"]["ECL"]["stop_id"] = so["id"]
+        self.r.exit("ECL", datetime(2026, 10, 29, 15, 55, 30, tzinfo=ET), "15:55 flat")
+        self.assertIn(so["id"], self.b.cancelled)
+        self.assertNotIn("ECL", self.r.state["open"])
 
 
 if __name__ == "__main__":

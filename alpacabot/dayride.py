@@ -112,7 +112,10 @@ class DayRide:
             return
         day = now.date().isoformat()
         if self.state.get("date") != day:
-            self.state = {"date": day, "done": [], "open": self.state.get("open", {})}
+            carried = self.state.get("open", {})
+            self.state = {"date": day, "done": [], "open": carried, "carried": sorted(carried)}
+            if carried:                                       # 2026-10-29 fix: a ride the 15:55 flat failed to close is closed at the next open
+                self.journal("carried_over", now, symbols=sorted(carried))
         if not self.adopted:
             self.adopt(now)
         slot = (now.hour, now.minute // 5)
@@ -123,10 +126,13 @@ class DayRide:
         t = now.time()
         fed = day in FOMC and t >= self.cfg["fed_from"]
         news = self.news_pause(now)
+        for sym in [x for x in self.state.get("carried", []) if x in self.state["open"]]:
+            self.safe_exit(sym, now, "carried over from the last session (missed flat)")
+        self.state["carried"] = [x for x in self.state.get("carried", []) if x in self.state["open"]]
         if t >= self.cfg["flat_at"] or fed or news:
             why = "15:55 flat" if t >= self.cfg["flat_at"] else "Fed decision: flat" if fed else news
             for sym in list(self.state["open"]):
-                self.exit(sym, now, why)
+                self.safe_exit(sym, now, why)
             if news and news != self.state.get("news_logged"):
                 self.journal("news_pause", now, why=news)
                 self.state["news_logged"] = news
@@ -173,7 +179,7 @@ class DayRide:
                 self.journal("error", now, where="bars", symbol=sym, error=str(exc)[:200])
                 continue
             if len(m) >= 60 and int(reversal(m)[-1]) == -pos["side"]:
-                self.exit(sym, now, "trend reversed")
+                self.safe_exit(sym, now, "trend reversed")
 
     def scan(self, now: datetime):
         from fxbot.strongtrend import today_state
@@ -233,6 +239,14 @@ class DayRide:
         self.journal("open", now, symbol=sym, side=side, qty=qty, fill=fill, stop=stop, stop_id=so.get("id"))
         self.save()                                           # at once: a restart must not lose a filled ride
 
+    def safe_exit(self, sym: str, now: datetime, reason: str):
+        """One failed exit never stops the others (2026-10-29: a 403 on ECL at 15:55 left ECL and GOOGL open overnight)."""
+        try:
+            self.exit(sym, now, reason)
+        except Exception as exc:
+            log.exception("ride exit %s failed", sym)
+            self.journal("error", now, where="exit", symbol=sym, error=str(exc)[:200])
+
     def exit(self, sym: str, now: datetime, reason: str):
         pos = self.state["open"].get(sym)
         if not pos:
@@ -242,10 +256,17 @@ class DayRide:
             if st.get("status") == "filled":
                 self.record(sym, pos, float(st.get("filled_avg_price") or pos["stop"]), "stop", now)
                 return
-            try:
-                self.b.cancel_order(pos["stop_id"])
-            except Exception:
-                log.exception("cancel ride stop %s", sym)
+            if st.get("status") not in ("canceled", "expired", "rejected"):
+                try:
+                    self.b.cancel_order(pos["stop_id"])
+                except Exception:
+                    log.exception("cancel ride stop %s", sym)
+                # 2026-10-29 fix: Alpaca holds the shares ("held_for_orders") until the cancel is processed; selling at once got
+                # 403 "insufficient qty available" at 15:55. Wait for the cancel (or a fill) first, as the swing runner does.
+                st = self._wait(pos["stop_id"] and {"id": pos["stop_id"]}, now, tries=20, sleep=0.5)
+                if st.get("status") == "filled":
+                    self.record(sym, pos, float(st.get("filled_avg_price") or pos["stop"]), "stop", now)
+                    return
         o = self.b.submit_market(sym, pos["qty"], f"rd-c-{sym}-{now.strftime('%Y%m%d%H%M')}", side="sell" if pos["side"] == 1 else "buy")
         st = self._wait(o, now)
         px = float(st.get("filled_avg_price") or 0) if st.get("status") == "filled" else 0.0
@@ -254,7 +275,7 @@ class DayRide:
             return
         self.record(sym, pos, px, reason, now)
 
-    def _wait(self, o, now, tries: int = 10) -> dict:
+    def _wait(self, o, now, tries: int = 10, sleep: float = 1.0) -> dict:
         import time
         if not o or not o.get("id"):
             return {"status": "rejected"}
@@ -263,7 +284,7 @@ class DayRide:
             st = self.b.order(o["id"])
             if st.get("status") in ("filled", "rejected", "canceled", "expired"):
                 break
-            time.sleep(1)
+            time.sleep(sleep)
         return st
 
     def record(self, sym: str, pos: dict, px: float, reason: str, now: datetime):
