@@ -1,3 +1,63 @@
 $ logs marv-swing-scan 60
-started 2026-10-29 16:34:13 EDT
-RUNNING...
+started 2026-10-29 16:34:13 EDT, took 0s, exit 0
+
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "trend200",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 715.34,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "atr": 12.5569
+Oct 29 16:21:14 instance-stockbot python[1716324]:   },
+Oct 29 16:21:14 instance-stockbot python[1716324]:   {
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "symbol": "BRK.B",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "qty": 14,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "stop": 528.0,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "zone_tp": 556.98,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "side": 1,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "weekpicks",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 541.96
+Oct 29 16:21:14 instance-stockbot python[1716324]:   },
+Oct 29 16:21:14 instance-stockbot python[1716324]:   {
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "symbol": "CVX",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "qty": 23,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "stop": 220.41,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "zone_tp": 241.81,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "side": 1,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "weekpicks",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 231.46
+Oct 29 16:21:14 instance-stockbot python[1716324]:   },
+Oct 29 16:21:14 instance-stockbot python[1716324]:   {
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "symbol": "V",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "qty": 15,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "stop": 394.0,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "zone_tp": 428.54,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "side": 1,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "weekpicks",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 410.54
+Oct 29 16:21:14 instance-stockbot python[1716324]:   },
+Oct 29 16:21:14 instance-stockbot python[1716324]:   {
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "symbol": "SPG",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "qty": 19,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "stop": 202.28,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "zone_tp": 225.34,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "side": 1,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "weekpicks",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 215.72
+Oct 29 16:21:14 instance-stockbot python[1716324]:   },
+Oct 29 16:21:14 instance-stockbot python[1716324]:   {
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "symbol": "MA",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "qty": 5,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "stop": 605.0,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "zone_tp": 670.66,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "side": 1,
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "strategy": "weekpicks",
+Oct 29 16:21:14 instance-stockbot python[1716324]:    "signal_close": 635.7
+Oct 29 16:21:14 instance-stockbot python[1716324]:   }
+Oct 29 16:21:14 instance-stockbot python[1716324]:  ]
+Oct 29 16:21:14 instance-stockbot python[1716324]: }
+Oct 29 16:21:14 instance-stockbot python[1716324]: SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+Oct 29 16:21:14 instance-stockbot python[1716324]:   closed trades 23, 10W/13L, P&L $-847
+Oct 29 16:21:14 instance-stockbot python[1716324]:   funnel: 4 trades, 1W, P&L $-417
+Oct 29 16:21:14 instance-stockbot python[1716324]:   oversold: 6 trades, 1W, P&L $-345
+Oct 29 16:21:14 instance-stockbot python[1716324]:   holding: SPY 15 @ 768.91 (stop 743.94, trend200)
+Oct 29 16:21:14 instance-stockbot python[1716324]:   next open: buy ['QQQ', 'BRK.B', 'CVX', 'V', 'SPG', 'MA'], sell nothing
+Oct 29 16:21:14 instance-stockbot systemd[1]: marv-swing-scan.service: Deactivated successfully.
+Oct 29 16:21:14 instance-stockbot systemd[1]: Finished marv-swing-scan.service - Alpaca PAPER swing runner: scan (Sector Top-Down, daily).
+Oct 29 16:21:14 instance-stockbot systemd[1]: marv-swing-scan.service: Consumed 40.766s CPU time.
