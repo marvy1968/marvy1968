@@ -1,3 +1,6 @@
 $ show alpaca_ride/journal-20261029.jsonl
-started 2026-10-29 10:12:00 EDT
-RUNNING...
+started 2026-10-29 10:12:00 EDT, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_ride/journal-20261029.jsonl' for reading: No such file or directory
