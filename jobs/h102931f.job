@@ -1,0 +1,2 @@
+# timeout 5400
+alpaca run-all --phase validate --families jdub_930
