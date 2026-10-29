@@ -1,3 +1,29 @@
 $ gemini round9
-started 2026-10-29 08:05:30 EDT
-RUNNING...
+started 2026-10-29 08:05:30 EDT, took 27s, exit 0
+
+Here are the answers to your Round 9 questions. Your strict testing regime is working exactly as it should: it is saving you from trading noise. 
+
+### 1. The Single Biggest Flaw in the Draft Design & The Fix
+**The Flaw:** Your pooled model predicting absolute direction `P(up)` on single stocks will just learn market beta. Because 70%+ of a stock's daily variance is driven by the broader market, the model will essentially become a noisy SPY predictor. When SPY drops, `P(up)` for all 68 symbols will drop. It will fail to beat the "always-long" control in bull markets and will get slaughtered in bear markets.
+**The Fix:** Switch the target from absolute return to **cross-sectional relative return** (e.g., target = `Symbol Next 5D Return - SPY Next 5D Return`). Train the model to predict which stocks will *outperform* the index, not just go up. To generate trades, rank the 68 symbols daily by this prediction. Go long the top 3-5 symbols (gated by your SPY > 200-day rule).
+
+### 2. Three Features Likely to Add Directional Skill (Free OHLCV)
+To beat the baseline, features must capture specific micro-structural or behavioral inefficiencies, not just generic momentum.
+*   **Feature A: Overnight vs. Intraday Split (The "Tug of War").** *Inefficiency:* Retail trades intraday (mean reverting); institutions execute near the close/open (trending). 
+    *   *Definition:* `(Sum of last 5 days Overnight Return) - (Sum of last 5 days Intraday Return)`. *Overnight = (Open / PrevClose) - 1. Intraday = (Close / Open) - 1.*
+*   **Feature B: Volume-Signed Relative Price Shock.** *Inefficiency:* High volume on a directional move implies institutional accumulation/distribution, not just retail noise.
+    *   *Definition:* `(Close - PrevClose) / PrevClose * (Volume / 20-day SMA of Volume)`. 
+*   **Feature C: Cross-Sectional Sector Rank.** *Inefficiency:* Absolute RSI or ATR distance is meaningless across different volatility regimes, but being the strongest stock in a sector is robust.
+    *   *Definition:* The percentile rank (0.0 to 1.0) of the stock's 20-day return *compared only to the other 4 stocks in its specific SPDR ETF*. 
+
+### 3. Predicting Direction vs. Forecasting Range
+**Yes, predicting direction on a 1-day horizon is almost entirely noise.** Forecasting volatility/range is highly autocorrelated and much more accurate. You should predict the *boundaries* of the day, and trade the reversion back inside them.
+*   **The Concept:** Use Quantile Regression (e.g., LightGBM with `alpha=0.1` and `alpha=0.9`) to predict the 10th percentile Low and the 90th percentile High of the day/week.
+*   **The Exact Rule (1-Day Range Fade):** If SPY > 200-day SMA, place a limit buy order for the stock at its predicted 10th percentile Low (the bottom edge of today's expected range). Place the Stop at the 2th percentile Low (extreme breakdown). Place the Take-Profit at the day's predicted Median. *Kill rule:* If the (Take-Profit - Limit Entry) is less than 3x your 10 bps cost (0.3%), do not place the trade. 
+
+### 4. How to Place Buy/Stop/TP from a Forecast Distribution
+Fixed standard deviations (1.0 sigma, 1.5 sigma) will chop you to death because stock returns are structurally skewed and fat-tailed, not normal. If your model has a slight edge, 10 bps slippage per side (20 bps round trip) will destroy it unless you force asymmetry.
+*   **1-Day Horizon (Liquidity Provision / Limit entries):** 
+    *   *Rule:* **Limit Entry** at the 25th percentile of the forecasted low distribution (force the market to pay you a liquidity premium to enter). **Stop** at the 5th percentile (a true structural break, not normal variance). **TP** at the 75th percentile of the high distribution. 
+*   **5-Day Horizon (Trend Capture / Market entries):**
+    *   *Rule:* **Entry** at Market on Open (limit orders on multi-day trends cause you to miss the biggest winners). **Stop** placed at the trailing 10-day actual low (not forecasted). **TP** at `Entry + Forecasted Mean Return + 1 Standard Error`. *Crucial addition:* Trail the stop to Breakeven + 10 bps (to cover costs) the moment the price reaches 50% of the Take-Profit distance.
