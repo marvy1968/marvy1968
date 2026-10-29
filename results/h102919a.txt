@@ -1,3 +1,12 @@
 $ alpaca positions
-started 2026-10-29 15:08:54 EDT
-RUNNING...
+started 2026-10-29 15:08:54 EDT, took 16s, exit 0
+
+equity $51,757.33  cash $40,487.08  long mv $12,119.84  short mv $-849.59
+3 open positions:
+  SPY        long  qty           15  value $ 11,515.50  unrealized $   -18.15
+  GOOGL      short qty           -3  value $   -849.57  unrealized $    -5.33
+  ECL        long  qty            2  value $    604.26  unrealized $     6.10
+3 open orders:
+  GOOGL      buy  3 stop new  id rd-s-GOOGL-202610291426
+  ECL        sell 2 stop new  id rd-s-ECL-202610291326
+  SPY        sell 15 stop new  id sw-s-SPY-20261029
