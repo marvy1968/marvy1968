@@ -1985,7 +1985,7 @@ def main(argv=None) -> int:
     sc.add_argument("--sectors", nargs="*", default=[], help="SYMBOL=ETF pairs for stocks outside the built-in map, e.g. XOM=XLE")
     sc.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
     sw = sub.add_parser("swing", help="daily Sector Top-Down swing runner (PAPER): scan after the close, open before the open, status")
-    sw.add_argument("action", choices=["scan", "open", "status", "close"])
+    sw.add_argument("action", choices=["scan", "open", "status", "close", "drop"])
     sw.add_argument("--state", default="state/alpaca_swing")
     sw.add_argument("--symbols", default="", help="close: only these symbols (comma-separated); default the whole book")
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
@@ -2047,6 +2047,16 @@ def main(argv=None) -> int:
             return 2
         setup = __import__("alpacabot.execution", fromlist=["setup_logging"]).setup_logging
         setup(Path(a.state) / "swing.log")
+        if a.action == "drop":                           # take symbols out of the waiting plan (no orders, no broker call)
+            only = [x.strip().upper() for x in a.symbols.split(",") if x.strip()]
+            st_path = Path(a.state) / "state.json"
+            st = json.loads(st_path.read_text())
+            plan = st.get("plan") or {}
+            before = [e["symbol"] for e in plan.get("entries", [])]
+            plan["entries"] = [e for e in plan.get("entries", []) if e["symbol"] not in only]
+            st_path.write_text(json.dumps(st, indent=1, default=str))
+            print(f"plan entries: {before} -> {[e['symbol'] for e in plan['entries']]}")
+            return 0
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
         only = [x.strip().upper() for x in a.symbols.split(",") if x.strip()] or None
