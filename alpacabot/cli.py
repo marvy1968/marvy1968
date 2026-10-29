@@ -234,7 +234,34 @@ def run_all(a) -> int:
                 lines += report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam == "fx_tune":                   # owner 2026-10-28 "optimize for OANDA": quick 30-day tuning of the live set-up (fxbot.strongtrend)
+            if fam == "sneaky_pivot":              # owner 2026-10-28: Sneaky Pivot, forex + stocks, pre-declared (fxbot.sneaky)
+                import datetime as _dt
+                from fxbot import sneaky as _sk
+                from fxbot.data import MAJORS, load as fx_load
+                from fxbot.exitlab import _spread
+                from .trendzones import to_bidask
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                fx = {i: fx_load(i, "M15", _dt.date(2023, 12, 1), today_, Path("state/fx/cache")) for i in MAJORS}
+                lines += [f"## sneaky_pivot: yesterday's high / low, 15-minute reversal candle, stop order next candle only, stop beyond the wick, "
+                          f"{_sk.TARGET_R:g}R target, out at the session end"]
+                lines += _sk.report("FOREX (7 majors, OANDA bid/ask)", {i: d for i, d in fx.items() if len(d) > 500}, True, today_,
+                                    _dt.date(2024, 1, 1), lambda d: _spread(d, 2.0))
+                print("\n".join(lines[first:]), flush=True)
+                first = len(lines)
+                st = {}
+                for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
+                    try:
+                        m5 = load(s_, "5Min", today_ - _dt.timedelta(days=200), today_, cache)
+                        if len(m5) > 1000:
+                            st[s_] = _sk.resample15(to_bidask(m5.astype(float), 5.0))
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _sk.report("STOCKS (55 + SPY/QQQ, 5 bps a side)", st, False, today_, today_ - _dt.timedelta(days=185),
+                                    lambda d: _spread(d, 2.0))
+                print("\n".join(lines[first:]), flush=True)
+                continue
+            if fam == "fx_tune":                # owner 2026-10-28 "optimize for OANDA": quick 30-day tuning of the live set-up (fxbot.strongtrend)
                 import datetime as _dt
                 from fxbot import strongtrend as _stg
                 from fxbot.data import MAJORS, load as fx_load
