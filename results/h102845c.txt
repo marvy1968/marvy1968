@@ -1,3 +1,8 @@
 $ alpaca paper-telegram
-started 2026-10-28 20:09:44 EDT
-RUNNING...
+started 2026-10-28 20:09:44 EDT, took 2s, exit 0
+
+bot token found: yes | chat id found: yes
+sender in use: alpacabot.paper.send_telegram (/opt/marv-bot/alpacabot/paper.py)
+requests.post in use: requests.api.post
+direct send: HTTP 403 ok=False Forbidden: bot was blocked by the user
+NOT sent (see the log line above)
