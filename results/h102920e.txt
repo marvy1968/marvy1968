@@ -1,3 +1,123 @@
 $ logs marv-alpaca-paper 120
-started 2026-10-29 16:10:35 EDT
-RUNNING...
+started 2026-10-29 16:10:35 EDT, took 0s, exit 0
+
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 239, in _new_conn
+Oct 29 09:51:50 instance-stockbot python[1680140]:     sock = connection.create_connection(
+Oct 29 09:51:50 instance-stockbot python[1680140]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/connection.py", line 85, in create_connection
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raise err
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/connection.py", line 73, in create_connection
+Oct 29 09:51:50 instance-stockbot python[1680140]:     sock.connect(sa)
+Oct 29 09:51:50 instance-stockbot python[1680140]: TimeoutError: timed out
+Oct 29 09:51:50 instance-stockbot python[1680140]: The above exception was the direct cause of the following exception:
+Oct 29 09:51:50 instance-stockbot python[1680140]: Traceback (most recent call last):
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 793, in urlopen
+Oct 29 09:51:50 instance-stockbot python[1680140]:     response = self._make_request(
+Oct 29 09:51:50 instance-stockbot python[1680140]:                ^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 494, in _make_request
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raise new_e
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 470, in _make_request
+Oct 29 09:51:50 instance-stockbot python[1680140]:     self._validate_conn(conn)
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 1125, in _validate_conn
+Oct 29 09:51:50 instance-stockbot python[1680140]:     conn.connect()
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 827, in connect
+Oct 29 09:51:50 instance-stockbot python[1680140]:     self.sock = sock = self._new_conn()
+Oct 29 09:51:50 instance-stockbot python[1680140]:                        ^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 248, in _new_conn
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raise ConnectTimeoutError(
+Oct 29 09:51:50 instance-stockbot python[1680140]: urllib3.exceptions.ConnectTimeoutError: (<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fe8ed6c0b50>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)')
+Oct 29 09:51:50 instance-stockbot python[1680140]: The above exception was the direct cause of the following exception:
+Oct 29 09:51:50 instance-stockbot python[1680140]: Traceback (most recent call last):
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 696, in send
+Oct 29 09:51:50 instance-stockbot python[1680140]:     resp = conn.urlopen(
+Oct 29 09:51:50 instance-stockbot python[1680140]:            ^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 847, in urlopen
+Oct 29 09:51:50 instance-stockbot python[1680140]:     retries = retries.increment(
+Oct 29 09:51:50 instance-stockbot python[1680140]:               ^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/retry.py", line 555, in increment
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+Oct 29 09:51:50 instance-stockbot python[1680140]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]: urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/ECL/bars?timeframe=1Min&start=2026-10-22T00%3A00%3A00Z&end=2026-10-29T15%3A50%3A09Z&limit=10000&adjustment=all&feed=iex (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fe8ed6c0b50>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+Oct 29 09:51:50 instance-stockbot python[1680140]: During handling of the above exception, another exception occurred:
+Oct 29 09:51:50 instance-stockbot python[1680140]: Traceback (most recent call last):
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/alpacabot/paper.py", line 1282, in run
+Oct 29 09:51:50 instance-stockbot python[1680140]:     self.on_bar_close(now)
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/alpacabot/paper.py", line 849, in on_bar_close
+Oct 29 09:51:50 instance-stockbot python[1680140]:     day = today_frame(sym, now_et, self.brain, self.fetch)
+Oct 29 09:51:50 instance-stockbot python[1680140]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/alpacabot/paper.py", line 195, in today_frame
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raw = fetch(sym, "1Min", start, (now_et + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ"), "iex")
+Oct 29 09:51:50 instance-stockbot python[1680140]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/alpacabot/data.py", line 53, in _fetch
+Oct 29 09:51:50 instance-stockbot python[1680140]:     r = s.get(URL.format(symbol=symbol), params=params, headers=_headers(), timeout=60)
+Oct 29 09:51:50 instance-stockbot python[1680140]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 671, in get
+Oct 29 09:51:50 instance-stockbot python[1680140]:     return self.request("GET", url, params=params, **kwargs)
+Oct 29 09:51:50 instance-stockbot python[1680140]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 651, in request
+Oct 29 09:51:50 instance-stockbot python[1680140]:     resp = self.send(prep, **send_kwargs)
+Oct 29 09:51:50 instance-stockbot python[1680140]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 784, in send
+Oct 29 09:51:50 instance-stockbot python[1680140]:     r = adapter.send(request, **kwargs)
+Oct 29 09:51:50 instance-stockbot python[1680140]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 09:51:50 instance-stockbot python[1680140]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 717, in send
+Oct 29 09:51:50 instance-stockbot python[1680140]:     raise ConnectTimeout(e, request=request)
+Oct 29 09:51:50 instance-stockbot python[1680140]: requests.exceptions.ConnectTimeout: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/ECL/bars?timeframe=1Min&start=2026-10-22T00%3A00%3A00Z&end=2026-10-29T15%3A50%3A09Z&limit=10000&adjustment=all&feed=iex (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fe8ed6c0b50>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+Oct 29 10:28:57 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 10:28:57 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 29 10:28:57 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 10:28:57 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 6min 58.984s CPU time.
+Oct 29 10:28:57 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 10:28:57 instance-stockbot python3[1685980]: gate re-applied
+Oct 29 10:28:57 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 10:29:03 instance-stockbot python[1685981]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 29 10:29:03 instance-stockbot python[1685981]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 29 10:29:03 instance-stockbot python[1685981]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 29 10:31:58 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 10:31:58 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 29 10:31:58 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 10:31:58 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 1min 11.646s CPU time.
+Oct 29 10:31:58 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 10:31:58 instance-stockbot python3[1687437]: gate re-applied
+Oct 29 10:31:59 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 10:32:02 instance-stockbot python[1687438]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 29 10:32:02 instance-stockbot python[1687438]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 29 10:32:03 instance-stockbot python[1687438]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 29 12:34:51 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 12:34:51 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 29 12:34:51 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 12:34:51 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 16min 22.242s CPU time.
+Oct 29 12:34:51 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 12:34:51 instance-stockbot python3[1697069]: gate re-applied
+Oct 29 12:34:51 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 12:34:56 instance-stockbot python[1697070]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 29 12:34:56 instance-stockbot python[1697070]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 29 12:34:56 instance-stockbot python[1697070]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 29 12:35:16 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 12:35:16 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 29 12:35:16 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 12:35:16 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 7.648s CPU time.
+Oct 29 12:35:16 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 29 12:35:16 instance-stockbot python3[1697875]: gate re-applied
+Oct 29 12:35:16 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 29 12:35:18 instance-stockbot python[1697876]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 29 12:35:18 instance-stockbot python[1697876]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 29 12:35:19 instance-stockbot python[1697876]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 29 15:55:20 instance-stockbot python[1697876]: ERROR day ride step failed (continuing)
+Oct 29 15:55:20 instance-stockbot python[1697876]: Traceback (most recent call last):
+Oct 29 15:55:20 instance-stockbot python[1697876]:   File "/opt/marv-bot/alpacabot/paper.py", line 1276, in run
+Oct 29 15:55:20 instance-stockbot python[1697876]:     self.ride.step(now)
+Oct 29 15:55:20 instance-stockbot python[1697876]:   File "/opt/marv-bot/alpacabot/dayride.py", line 129, in step
+Oct 29 15:55:20 instance-stockbot python[1697876]:     self.exit(sym, now, why)
+Oct 29 15:55:20 instance-stockbot python[1697876]:   File "/opt/marv-bot/alpacabot/dayride.py", line 249, in exit
+Oct 29 15:55:20 instance-stockbot python[1697876]:     o = self.b.submit_market(sym, pos["qty"], f"rd-c-{sym}-{now.strftime('%Y%m%d%H%M')}", side="sell" if pos["side"] == 1 else "buy")
+Oct 29 15:55:20 instance-stockbot python[1697876]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 15:55:20 instance-stockbot python[1697876]:   File "/opt/marv-bot/alpacabot/paper.py", line 144, in submit_market
+Oct 29 15:55:20 instance-stockbot python[1697876]:     r = self._req("POST", f"{TRADE_URL}/orders", json=body)
+Oct 29 15:55:20 instance-stockbot python[1697876]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 15:55:20 instance-stockbot python[1697876]:   File "/opt/marv-bot/alpacabot/paper.py", line 44, in _req
+Oct 29 15:55:20 instance-stockbot python[1697876]:     raise requests.HTTPError(f"{r.status_code} {r.text[:200]} for {method} {url}", response=r)      # (with Alpaca's reason)
+Oct 29 15:55:20 instance-stockbot python[1697876]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 29 15:55:20 instance-stockbot python[1697876]: requests.exceptions.HTTPError: 403 {"available":"0","code":40310000,"existing_qty":"2","held_for_orders":"2","message":"insufficient qty available for order (requested: 2, available: 0)","related_orders":["e3e07688-c7d9-4c42-9d29-43272 for POST https://paper-api.alpaca.markets/v2/orders
+Oct 29 16:05:02 instance-stockbot python[1697876]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER REPORT CARD 2026-10-29
+Oct 29 16:05:02 instance-stockbot python[1697876]: WARNING report card NOT delivered to Telegram (check TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
