@@ -266,7 +266,7 @@ def run_all(a) -> int:
                 for s_ in sorted(set(STOCKS) | {"SPY", "QQQ"}):
                     try:
                         dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=700), today_, cache)
-                        f5[s_] = load(s_, "5Min", today_ - _dt.timedelta(days=100), today_, cache)
+                        f5[s_] = load(s_, "5Min", today_ - _dt.timedelta(days=40), today_, cache)
                     except Exception as exc:
                         print(f"skip {s_}: {exc}", flush=True)
                 lines += _jd.hybrid_report(f5, dd, today_)

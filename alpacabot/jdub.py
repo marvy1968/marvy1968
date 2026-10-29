@@ -262,7 +262,7 @@ def ride_hybrid(m5: pd.DataFrame, ba: pd.DataFrame, td: np.ndarray, atr_bar: np.
     return out
 
 
-def hybrid_report(five: dict, daily: dict, today: date, seeds: int = 20) -> list[str]:
+def hybrid_report(five: dict, daily: dict, today: date, seeds: int = 10) -> list[str]:
     """five = {symbol: 5-minute bars (UTC)}, daily = {symbol: daily bars}."""
     from alpacabot.trendzones import to_bidask
     from fxbot.strongtrend import daily_atr_on, day_keys, permute_days, reversal, today_state
@@ -281,7 +281,7 @@ def hybrid_report(five: dict, daily: dict, today: date, seeds: int = 20) -> list
         return rs
     out = [f"## jdub_hybrid: Jdub's ideas (opening-range break, FVG, buy the pullback not the breakout, 2R target) on OUR day ride; "
            f"{len(pre)} stocks, 10 bps a side, shuffled-day controls x{seeds}"]
-    for label, a in (("last 2 weeks", today - timedelta(days=14)), ("last 92 days", today - timedelta(days=92))):
+    for label, a in (("last 2 weeks", today - timedelta(days=14)),):     # owner 2026-10-29: "tired of these long tests" -> 2 weeks only, paper decides
         out.append(f"### {label} ({a}..{today})")
         base = summary([t["r"] for t in trades(VARIANTS["BASE"], a)])
         for name, rules in VARIANTS.items():
@@ -289,8 +289,8 @@ def hybrid_report(five: dict, daily: dict, today: date, seeds: int = 20) -> list
             s = summary([t["r"] for t in tt])
             ctrl = [summary([t["r"] for t in trades(rules, a, k)])["net"] for k in range(seeds)]
             beat = sum(s["net"] > x for x in ctrl)
-            ok = s["trades"] >= 30 and s["net"] > 0 and s["pf"] >= 1.2 and beat >= round(0.9 * seeds) and (name == "BASE" or s["net"] > base["net"])
+            ok = s["trades"] >= 10 and s["net"] > 0 and s["pf"] >= 1.2 and beat >= round(0.9 * seeds) and (name == "BASE" or s["net"] > base["net"])
             out.append(f"- {name}: {fmt(s)} | longs {fmt(summary([t['r'] for t in tt if t['side'] == 1]))} | shorts "
                        f"{fmt(summary([t['r'] for t in tt if t['side'] == -1]))} | shuffled median {np.median(ctrl):+.1f}R, beaten {beat}/{seeds}"
-                       + (f" | {'PASS' if ok else 'fail'}" if label == "last 92 days" else ""))
+                       + f" | {'lead' if ok else 'no'}")
     return out
