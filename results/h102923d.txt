@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families sneaky_pivot
-started 2026-10-28 23:00:44 EDT
-RUNNING...
+started 2026-10-28 23:00:44 EDT, took 868s, exit 0
+
+daily data ready
+## sneaky_pivot: yesterday's high / low, 15-minute reversal candle, stop order next candle only, stop beyond the wick, 2R target, out at the session end
+### FOREX (7 majors, OANDA bid/ask): 7 symbols, long window 2024-01-01..2026-10-28
+- long window: 1x 2480 t, win 29%, PF 0.71, -488.2R | 2x 2660 t, win 23%, PF 0.50, -1005.9R | longs 1294 t, win 24%, PF 0.53, -452.8R | shorts 1366 t, win 22%, PF 0.47, -553.0R | exits {'target': 431, 'stop': 1958, 'session end': 271, 'day': 0} | random controls median -941.9R, beaten 5/20 | fail
+- last 92 days: 1x 224 t, win 27%, PF 0.60, -63.6R | 2x 249 t, win 18%, PF 0.33, -132.3R | longs 121 t, win 20%, PF 0.36, -59.8R | shorts 128 t, win 16%, PF 0.31, -72.5R | exits {'target': 26, 'stop': 197, 'session end': 26, 'day': 0} | random controls median -101.6R, beaten 0/20 | fail
+- last 2 weeks: 1x 35 t, win 26%, PF 0.50, -12.9R | 2x 40 t, win 15%, PF 0.27, -23.3R | longs 18 t, win 17%, PF 0.37, -8.2R | shorts 22 t, win 14%, PF 0.21, -15.0R | exits {'target': 3, 'stop': 32, 'session end': 5, 'day': 0} | random controls median -8.5R, beaten 0/20
+- FOREX (7 majors, OANDA bid/ask) VERDICT: FAIL
+### STOCKS (55 + SPY/QQQ, 5 bps a side): 57 symbols, long window 2026-04-26..2026-10-28
+- long window: 1x 3081 t, win 33%, PF 0.63, -677.0R | 2x 3368 t, win 26%, PF 0.41, -1337.4R | longs 1643 t, win 25%, PF 0.40, -662.6R | shorts 1725 t, win 26%, PF 0.41, -674.8R | exits {'target': 264, 'stop': 2108, 'session end': 996, 'day': 0} | random controls median -1370.2R, beaten 15/20 | fail
+- last 92 days: 1x 1614 t, win 31%, PF 0.59, -405.3R | 2x 1756 t, win 24%, PF 0.37, -759.8R | longs 871 t, win 25%, PF 0.39, -356.0R | shorts 885 t, win 23%, PF 0.34, -403.8R | exits {'target': 130, 'stop': 1123, 'session end': 503, 'day': 0} | random controls median -763.9R, beaten 10/20 | fail
+- last 2 weeks: 1x 251 t, win 34%, PF 0.72, -40.7R | 2x 268 t, win 25%, PF 0.43, -102.6R | longs 135 t, win 30%, PF 0.51, -42.2R | shorts 133 t, win 21%, PF 0.34, -60.4R | exits {'target': 23, 'stop': 165, 'session end': 80, 'day': 0} | random controls median -128.2R, beaten 18/20
+- STOCKS (55 + SPY/QQQ, 5 bps a side) VERDICT: FAIL
+ALL DONE
