@@ -1,3 +1,66 @@
 $ alpaca run-all --phase validate --families forecast2
-started 2026-10-29 08:51:51 EDT
-RUNNING...
+started 2026-10-29 08:51:51 EDT, took 312s, exit 0
+
+daily data ready
+## forecast v2 (Gemini round 9): walk-forward last 252 sessions to 2026-10-28, 68 symbols, 10 bps a side
+- A RELATIVE WEEK (top 5 by predicted return vs SPY, SPY > 200-day): 226 t, win 36%, PF 1.28, +30.8R | halves 108 t, win 39%, PF 0.92, -4.2R / 118 t, win 34%, PF 1.59, +34.9R | random stocks median -16.9R, beaten 19/20 | SPY same days 230 t, win 37%, PF 0.42, -66.1R | NOT usable
+- B1 RANGE FADE (buy lo10, stop lo02, TP c50): 1456 t, win 57%, PF 1.87, +383.3R | halves 812 t, win 60%, PF 1.84, +212.9R / 644 t, win 54%, PF 1.92, +170.4R | no-model quantiles 1344 t, win 57%, PF 1.92, +349.9R | USABLE
+- B2 RANGE FADE (buy lo25, stop lo05, TP hi75): 3597 t, win 42%, PF 0.60, -646.5R | halves 1816 t, win 43%, PF 0.57, -397.7R / 1781 t, win 41%, PF 0.64, -248.9R | no-model quantiles 3415 t, win 42%, PF 0.74, -298.0R | NOT usable
+## plan from the 2026-10-28 close (SPY above its 200-day: yes)
+A week (top 5 vs SPY): CAT +0.13, GOOGL +0.11, TMUS +0.07, BRK.B +0.07, PLD +0.06 (not usable: watch only)
+  CAT      713.38 | week vs SPY +0.13 | B1 buy 690.77 stop 676.20 tp 714.48 LIVE | B2 buy 699.34 stop 685.27 tp 730.42
+  GOOGL    324.89 | week vs SPY +0.11 | B1 buy 316.18 stop 311.37 tp 325.24 LIVE | B2 buy 319.51 stop 313.38 tp 331.27
+  TMUS     148.08 | week vs SPY +0.07 | B1 buy 141.88 stop 136.87 tp 148.40 LIVE | B2 buy 143.82 stop 139.90 tp 152.74
+  BRK.B    540.34 | week vs SPY +0.07 | B1 buy 532.99 stop 528.82 tp 540.72 LIVE | B2 buy 535.72 stop 531.01 tp 545.40
+  PLD      125.22 | week vs SPY +0.06 | B1 buy 123.11 stop 121.61 tp 125.32 LIVE | B2 buy 123.73 stop 122.52 tp 126.79
+  META     612.49 | week vs SPY +0.06 | B1 buy 586.08 stop 571.48 tp 613.99 LIVE | B2 buy 595.82 stop 580.20 tp 632.24
+  NFLX      61.99 | week vs SPY +0.05 | B1 buy 59.78 stop 57.90 tp 62.08 LIVE | B2 buy 60.60 stop 59.18 tp 63.61
+  BKNG     147.94 | week vs SPY +0.05 | B1 buy 142.88 stop 140.44 tp 148.13 LIVE | B2 buy 144.95 stop 142.07 tp 151.91
+  GEV      878.03 | week vs SPY +0.04 | B1 buy 832.91 stop 808.57 tp 880.30 LIVE | B2 buy 851.99 stop 823.14 tp 911.06
+  DIS      109.04 | week vs SPY +0.04 | B1 buy 106.77 stop 105.18 tp 109.11 LIVE | B2 buy 107.59 stop 106.18 tp 110.78
+  AVGO     351.81 | week vs SPY +0.03 | B1 buy 337.97 stop 330.19 tp 352.46 LIVE | B2 buy 343.27 stop 335.49 tp 361.08
+  WMT      118.77 | week vs SPY +0.03 | B1 buy 115.79 stop 113.87 tp 118.95 LIVE | B2 buy 116.63 stop 114.79 tp 120.67
+  CVX      229.20 | week vs SPY +0.02 | B1 buy 224.10 stop 220.76 tp 229.45 LIVE | B2 buy 225.67 stop 222.15 tp 232.73
+  EQIX    1007.66 | week vs SPY +0.02 | B1 buy 981.51 stop 964.13 tp 1008.95 LIVE | B2 buy 991.71 stop 974.55 tp 1026.67
+  HD       317.56 | week vs SPY +0.02 | B1 buy 310.15 stop 304.79 tp 317.81 LIVE | B2 buy 312.52 stop 307.61 tp 322.84
+  XOM      182.02 | week vs SPY +0.01 | B1 buy 177.58 stop 175.01 tp 182.23 LIVE | B2 buy 179.01 stop 176.16 tp 185.19
+  SO        91.52 | week vs SPY +0.01 | B1 buy 90.07 stop 89.26 tp 91.61 LIVE | B2 buy 90.60 stop 89.77 tp 92.74
+  COP      149.06 | week vs SPY +0.01 | B1 buy 144.66 stop 142.09 tp 149.34 LIVE | B2 buy 145.77 stop 143.35 tp 152.07
+  RTX      195.84 | week vs SPY +0.01 | B1 buy 191.94 stop 188.68 tp 195.97 LIVE | B2 buy 193.25 stop 190.84 tp 198.91
+  PG       158.26 | week vs SPY +0.01 | B1 buy 155.39 stop 153.95 tp 158.48 LIVE | B2 buy 156.54 stop 154.65 tp 160.64
+  MCD      250.50 | week vs SPY +0.01 | B1 buy 245.57 stop 242.50 tp 250.61 LIVE | B2 buy 247.38 stop 244.29 tp 253.68
+  SPG      211.24 | week vs SPY +0.01 | B1 buy 208.06 stop 205.75 tp 211.39 LIVE | B2 buy 209.13 stop 206.98 tp 213.70
+  LIN      508.16 | week vs SPY +0.00 | B1 buy 501.26 stop 497.16 tp 508.38 LIVE | B2 buy 503.42 stop 498.73 tp 512.88
+  COST     982.73 | week vs SPY +0.00 | B1 buy 965.10 stop 954.14 tp 983.53 LIVE | B2 buy 971.30 stop 961.16 tp 994.87
+  DUK      123.57 | week vs SPY +0.00 | B1 buy 121.57 stop 120.27 tp 123.64 LIVE | B2 buy 122.30 stop 120.95 tp 125.12
+  WELL     227.20 | week vs SPY -0.00 | B1 buy 221.92 stop 218.87 tp 227.50 LIVE | B2 buy 223.97 stop 220.45 tp 230.63
+  KO        91.73 | week vs SPY -0.00 | B1 buy 90.18 stop 88.91 tp 91.81 LIVE | B2 buy 90.77 stop 89.78 tp 92.87
+  LLY     1288.30 | week vs SPY -0.00 | B1 buy 1250.50 stop 1229.01 tp 1289.97 LIVE | B2 buy 1264.14 stop 1239.61 tp 1313.38
+  VST      142.72 | week vs SPY -0.00 | B1 buy 135.11 stop 130.87 tp 143.12 LIVE | B2 buy 138.29 stop 133.77 tp 147.91
+  TSLA     404.22 | week vs SPY -0.01 | B1 buy 389.27 stop 380.61 tp 404.97 LIVE | B2 buy 394.59 stop 385.80 tp 415.71
+  EOG      160.92 | week vs SPY -0.01 | B1 buy 155.73 stop 153.08 tp 161.19 LIVE | B2 buy 157.37 stop 154.31 tp 163.99
+  WMB       74.27 | week vs SPY -0.01 | B1 buy 72.23 stop 70.61 tp 74.37 LIVE | B2 buy 73.05 stop 71.65 tp 75.78
+  AMZN     254.60 | week vs SPY -0.01 | B1 buy 247.34 stop 243.13 tp 254.97 LIVE | B2 buy 250.20 stop 245.67 tp 259.38
+  JNJ      271.04 | week vs SPY -0.01 | B1 buy 265.14 stop 260.59 tp 271.30 LIVE | B2 buy 267.15 stop 262.96 tp 275.20
+  MA       610.31 | week vs SPY -0.01 | B1 buy 598.74 stop 589.27 tp 610.79 LIVE | B2 buy 602.95 stop 595.87 tp 617.90
+  PM       202.64 | week vs SPY -0.01 | B1 buy 197.76 stop 194.49 tp 202.83 LIVE | B2 buy 199.30 stop 196.54 tp 205.77
+  AAPL     343.83 | week vs SPY -0.01 | B1 buy 337.53 stop 333.67 tp 344.07 LIVE | B2 buy 339.89 stop 335.97 tp 348.16
+  MRK      140.93 | week vs SPY -0.02 | B1 buy 135.98 stop 133.07 tp 141.10 LIVE | B2 buy 137.84 stop 134.71 tp 144.30
+  V        400.60 | week vs SPY -0.02 | B1 buy 392.27 stop 385.56 tp 400.81 LIVE | B2 buy 395.01 stop 389.63 tp 406.09
+  BAC       50.85 | week vs SPY -0.02 | B1 buy 49.75 stop 48.99 tp 50.89 LIVE | B2 buy 50.16 stop 49.49 tp 51.59
+  NEE       81.02 | week vs SPY -0.02 | B1 buy 79.66 stop 78.89 tp 81.06 LIVE | B2 buy 80.23 stop 79.44 tp 82.20
+  UNH      407.10 | week vs SPY -0.02 | B1 buy 397.25 stop 389.28 tp 407.60 LIVE | B2 buy 400.67 stop 394.71 tp 413.92
+  AMT      183.75 | week vs SPY -0.02 | B1 buy 177.97 stop 173.85 tp 184.08 LIVE | B2 buy 179.92 stop 176.65 tp 187.96
+  CEG      258.08 | week vs SPY -0.03 | B1 buy 245.24 stop 237.71 tp 258.68 LIVE | B2 buy 249.78 stop 241.99 tp 266.28
+  SHW      320.80 | week vs SPY -0.04 | B1 buy 311.19 stop 304.32 tp 321.19 LIVE | B2 buy 314.63 stop 308.67 tp 327.11
+  NEM      113.92 | week vs SPY -0.04 | B1 buy 108.93 stop 105.71 tp 114.04 LIVE | B2 buy 110.62 stop 107.77 tp 117.08
+  NVDA     215.38 | week vs SPY -0.04 | B1 buy 208.28 stop 203.51 tp 215.66 LIVE | B2 buy 210.76 stop 206.41 tp 220.39
+  APD      307.20 | week vs SPY -0.04 | B1 buy 302.13 stop 297.53 tp 307.31 LIVE | B2 buy 303.60 stop 300.11 tp 310.38
+  GE       301.13 | week vs SPY -0.04 | B1 buy 293.15 stop 288.00 tp 301.43 LIVE | B2 buy 295.74 stop 291.11 tp 307.09
+  MSFT     531.01 | week vs SPY -0.04 | B1 buy 519.67 stop 511.72 tp 531.50 LIVE | B2 buy 523.46 stop 516.98 tp 538.83
+  JPM      339.30 | week vs SPY -0.05 | B1 buy 333.77 stop 330.07 tp 339.52 LIVE | B2 buy 335.75 stop 332.31 tp 342.71
+  ORCL     144.54 | week vs SPY -0.05 | B1 buy 135.14 stop 130.57 tp 144.46 LIVE | B2 buy 137.90 stop 132.85 tp 150.86
+  ECL      292.41 | week vs SPY -0.06 | B1 buy 287.29 stop 284.70 tp 292.55 LIVE | B2 buy 289.14 stop 286.23 tp 295.42
+  ABBV     285.99 | week vs SPY -0.07 | B1 buy 279.33 stop 275.26 tp 286.20 LIVE | B2 buy 281.77 stop 277.72 tp 290.10
+  UBER      65.27 | week vs SPY -0.08 | B1 buy 63.42 stop 62.05 tp 65.34 LIVE | B2 buy 64.03 stop 62.85 tp 66.70
+ALL DONE
