@@ -1,3 +1,9 @@
 $ alpaca run-all --phase validate --families weekpicks_fx
-started 2026-10-29 12:35:20 EDT
-RUNNING...
+started 2026-10-29 12:35:20 EDT, took 47s, exit 0
+
+daily data ready
+## weekpicks_fx: 7 majors, weekly long top / short bottom by predicted return vs the basket; walk-forward 2025-11-05..2026-10-25
+- PURE: 99 t, win 31%, PF 0.59, -21.7R (49 long, 50 short) | 3 bps 99 t, win 30%, PF 0.50, -29.2R | halves 49 t, win 22%, PF 0.40, -18.0R / 50 t, win 40%, PF 0.84, -3.7R | random median -9.0R, beaten 0/20 | NOT usable
+- HYBRID (trend experts agree): 64 t, win 42%, PF 0.60, -9.8R (42 long, 22 short) | 3 bps 64 t, win 41%, PF 0.55, -11.5R | halves 33 t, win 30%, PF 0.45, -8.3R / 31 t, win 55%, PF 0.84, -1.5R | random median -6.7R, beaten 7/20 | NOT usable
+now (2026-10-27 close): AUD_USD +0.29 trend +1, EUR_USD +0.26 trend -1, NZD_USD +0.21 trend +0, GBP_USD +0.12 trend +0, USD_JPY +0.08 trend +0, USD_CAD -0.14 trend +0, USD_CHF -0.22 trend +0 | pure picks [('AUD_USD', 1), ('USD_CHF', -1)] | hybrid picks [('AUD_USD', 1), ('EUR_USD', -1)]
+ALL DONE
