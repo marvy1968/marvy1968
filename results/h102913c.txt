@@ -1,3 +1,7 @@
 $ show alpaca_paper/journal-20261029.jsonl
-started 2026-10-29 09:42:29 EDT
-RUNNING...
+started 2026-10-29 09:42:29 EDT, took 0s, exit 0
+
+{"t": "2026-10-29T09:30:35-04:00", "kind": "kill_switch", "on": true}
+{"t": "2026-10-29T09:30:35-04:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "PG", "XOM", "CVX", "COP"], "short": []}
+{"t": "2026-10-29T09:30:35-04:00", "kind": "zonemap", "up": 24, "down": 23, "range": 35, "stocks": 82, "stage2": 36, "stage4": 27, "stage1": 10, "stage3": 9}
+{"t": "2026-10-29T09:30:35-04:00", "kind": "heat_map", "IWM": 0, "QQQ": 0, "SPY": 0, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": 0, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
