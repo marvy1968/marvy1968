@@ -238,6 +238,7 @@ def report(daily_raw: dict, sector_of: dict, today: date, state_dir=None, five: 
     out.append(a_line)
     b_lines, b_ok = eval_b(wf, p, arr, spy200)
     out += b_lines
+    out += sizing_report(wf, arr, spy200)
     if five:
         out += check_intraday(wf, p, arr, spy200, five, min(pd.Timestamp(d.index.min()).tz_convert('America/New_York').date() for d in five.values() if len(d)))
     # today's plan from models fitted on everything up to the last close
@@ -331,4 +332,91 @@ def check_intraday(wf: pd.DataFrame, p: pd.DataFrame, arr: dict, spy200: dict, f
     out = [f"## B1 intraday order check (5-minute bars, sessions since {since}): same trades, daily-bar result vs time-ordered result"]
     for kind, (d, i) in res.items():
         out.append(f"- {kind}: daily bars {v1.fmt(v1.summary(d))} -> 5-minute order {v1.fmt(v1.summary(i))}")
+    return out
+
+
+# ---- dynamic sizing + early loss cuts (owner 2026-10-30: "try aggressive dynamic sizing, cutting losers early") ------------------------------
+# PRE-DECLARED, on the A (relative week) trades of the same walk-forward year, entries unchanged:
+#  EXITS  base = 10-day-low stop as live | cut05 = stop at entry - 0.5 x (entry - 10-day low) | day2 = out at the 2nd close if under the entry
+#  SIZING (risk per trade as % of equity, compounding, trades in date order; same-day trades sized from the same equity)
+#    fixed 0.5% | fixed 1% | streak = 0.5% x (1 + wins in a row), max 2% | equity-curve = 1% while the last 10 trades sum > 0 R, else 0.25%
+#    half-Kelly = 0.5 x mean / variance of the last 30 trades' R (0.25%..3%)
+#  Read: final return and worst drawdown over the year; nothing is adopted unless it beats fixed 0.5% on return/drawdown in BOTH halves.
+def week_trade_x(arr, s, t, sig5, exit_rule: str) -> float | None:
+    pos, o, h, l, c = arr[s]
+    i = pos.get(t)
+    if i is None or i + 5 >= len(o) or i < 10:
+        return None
+    entry = o[i + 1] * (1 + COST)
+    stop0 = l[i - 9:i + 1].min()
+    if stop0 >= entry:
+        return None
+    risk = entry - stop0
+    stop = entry - 0.5 * risk if exit_rule == "cut05" else stop0
+    tgt = entry + 1.5 * sig5
+    be = False
+    for k in range(i + 1, i + 6):
+        if l[k] <= stop:
+            px = o[k] if k > i + 1 and o[k] <= stop else stop
+            return (px * (1 - COST) - entry) / risk
+        if h[k] >= tgt:
+            px = o[k] if k > i + 1 and o[k] >= tgt else tgt
+            return (px * (1 - COST) - entry) / risk
+        if exit_rule == "day2" and k == i + 2 and c[k] < entry:
+            return (c[k] * (1 - COST) - entry) / risk
+        if not be and h[k] >= entry + 0.5 * (tgt - entry):
+            stop, be = max(stop, entry * (1 + COST)), True
+    return (c[i + 5] * (1 - COST) - entry) / risk
+
+
+def _equity(trades: list, scheme: str) -> tuple[float, float]:
+    eq, peak, dd, hist = 1.0, 1.0, 0.0, []
+    for _, day in pd.Series(trades).groupby([t[0] for t in trades]):
+        rs = [t[1] for t in day]
+        if scheme == "fixed05":
+            f = 0.005
+        elif scheme == "fixed1":
+            f = 0.01
+        elif scheme == "streak":
+            n = 0
+            for x in reversed(hist):
+                if x <= 0:
+                    break
+                n += 1
+            f = min(0.02, 0.005 * (1 + n))
+        elif scheme == "equity":
+            f = 0.01 if len(hist) < 10 or sum(hist[-10:]) > 0 else 0.0025
+        else:                                                   # half-Kelly: 0.5 x mean / variance of the last 30 trades' R
+            w = np.asarray(hist[-30:], float)
+            f = 0.005 if len(w) < 10 or w.var() == 0 else float(np.clip(0.5 * w.mean() / w.var(), 0.0025, 0.03))
+        eq *= 1 + f * sum(rs)
+        hist += rs
+        peak = max(peak, eq)
+        dd = min(dd, eq / peak - 1)
+    return eq - 1, dd
+
+
+def sizing_report(wf: pd.DataFrame, arr: dict, spy200: dict) -> list[str]:
+    days = pd.DatetimeIndex(np.sort(wf.index.unique()))[::5]
+    mid = days[len(days) // 2]
+    out = ["## sizing_lab (A relative-week trades, last year): exit rule x sizing scheme -> return / worst drawdown (whole year | 1st half | 2nd half)"]
+    for ex in ("base", "cut05", "day2"):
+        trades = []
+        for t in days:
+            if spy200.get(t, 0) <= 0:
+                continue
+            g = wf.loc[[t]]
+            g = g[g["sector"] != ""]
+            for r in g.sort_values("rel").tail(TOP_A).itertuples():
+                x = week_trade_x(arr, r.symbol, t, r.vol * r.close * np.sqrt(5), ex)
+                if x is not None:
+                    trades.append((t, x))
+        s = v1.summary([x for _, x in trades])
+        out.append(f"- exit {ex}: {v1.fmt(s)}")
+        for sc in ("fixed05", "fixed1", "streak", "equity", "halfkelly"):
+            parts = []
+            for seg in (trades, [t for t in trades if t[0] < mid], [t for t in trades if t[0] >= mid]):
+                ret, dd = _equity(seg, sc) if seg else (0.0, 0.0)
+                parts.append(f"{ret:+.1%} / {dd:.1%}")
+            out.append(f"    {sc:9s} " + " | ".join(parts))
     return out
