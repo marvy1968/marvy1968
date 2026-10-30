@@ -1,0 +1,3 @@
+$ alpaca positions --fx
+started 2026-10-30 15:06:19 EDT
+RUNNING...
