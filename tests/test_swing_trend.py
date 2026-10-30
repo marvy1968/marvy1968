@@ -168,3 +168,26 @@ class WeekPicksPlanTests(unittest.TestCase):
             self.assertTrue(json.loads(log.read_text())["batches"][0]["ordered"])
             _, again = r.weekpicks_plan(spy, {"CAT": 700.0}, {}, [], [], 50000.0, 30000.0, False, now)
             self.assertEqual(again, [])                                         # a batch is ordered once
+
+
+class WeekPicksStreakTests(unittest.TestCase):
+    def test_streak_risk_and_brake(self):
+        import json
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(None, state_dir=d, base_equity=50000.0)
+            cfg = {"risk_pct": 0.005, "streak": {"live": True, "max": 0.02, "brake_pct": 0.05}}
+            now = datetime(2026, 11, 5, 16, 25, tzinfo=ZoneInfo("America/New_York"))
+            self.assertAlmostEqual(r.weekpicks_risk(cfg, 50000.0, now), 0.005)            # no history
+            t = Path(d) / "trades.jsonl"
+            rows = [{"pnl": -50, "strategy": "weekpicks"}, {"pnl": 80, "strategy": "weekpicks"}, {"pnl": 30, "strategy": "topdown"},
+                    {"pnl": 40, "strategy": "weekpicks"}]
+            t.write_text("\n".join(json.dumps(x) for x in rows) + "\n")
+            self.assertAlmostEqual(r.weekpicks_risk(cfg, 50000.0, now), 0.015)            # 2 wins in a row
+            rows += [{"pnl": 120, "strategy": "weekpicks"}] * 5
+            t.write_text("\n".join(json.dumps(x) for x in rows) + "\n")
+            self.assertAlmostEqual(r.weekpicks_risk(cfg, 50000.0, now), 0.02)             # capped
+            rows += [{"pnl": -2700, "strategy": "weekpicks"}]                               # 5.4% of equity below the best -> brake
+            t.write_text("\n".join(json.dumps(x) for x in rows) + "\n")
+            self.assertAlmostEqual(r.weekpicks_risk(cfg, 50000.0, now), 0.005)
+            self.assertAlmostEqual(r.weekpicks_risk({"risk_pct": 0.005}, 50000.0, now), 0.005)   # streak off

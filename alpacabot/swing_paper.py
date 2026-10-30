@@ -357,13 +357,14 @@ class SwingRunner:
         if batch is None or locked:
             return exits, entries
         cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)
+        risk_pct = self.weekpicks_risk(cfg, equity, now)
         planned = []
         for pk in batch["picks"]:
             sym, px, stop, tp = pk["symbol"], float(closes.get(pk["symbol"], pk["close"])), float(pk["stop_10d_low"]), float(pk["tp_est"])
             if sym in held or any(e["symbol"] == sym for e in entries) or not stop < px < tp:
                 continue
             risk_ps = (px - stop) + px * SLIP_BPS / 1e4
-            qty = int(min(equity * float(cfg.get("risk_pct", 0.005)) / risk_ps, equity * float(cfg.get("max_frac", 0.15)) / px, max(cash, 0) / px))
+            qty = int(min(equity * risk_pct / risk_ps, equity * float(cfg.get("max_frac", 0.15)) / px, max(cash, 0) / px))
             if qty < 1:
                 continue
             cash -= qty * px
@@ -374,6 +375,31 @@ class SwingRunner:
         log_path.write_text(json.dumps(st, indent=1, default=str))
         self.journal("weekpicks_plan", now, entries=planned, exits=[s for s in exits if held.get(s, {}).get("strategy") == "weekpicks"])
         return exits, entries
+
+    def weekpicks_risk(self, cfg: dict, equity: float, now) -> float:
+        """Owner 2026-10-30 ("turn on streak sizing"): risk per pick = risk_pct x (1 + closed weekly-pick wins in a row), capped at
+        streak.max; brake: back to risk_pct while the weekly picks' realized P&L sits brake_pct of equity or more below its best level.
+        sizing_lab (last year): fixed 0.5% +5.3% / maxDD -8.6%, streak +37.8% / -13.1%, but the first half was worse (-3.2% vs +0.7%)."""
+        base = float(cfg.get("risk_pct", 0.005))
+        st = cfg.get("streak") or {}
+        if not st.get("live"):
+            return base
+        p = self.dir / "trades.jsonl"
+        rows = [json.loads(x) for x in p.read_text().splitlines() if x.strip()] if p.exists() else []
+        rows = [r for r in rows if r.get("strategy") == "weekpicks"]
+        wins = 0
+        for r in reversed(rows):
+            if r["pnl"] <= 0:
+                break
+            wins += 1
+        cum, peak = 0.0, 0.0
+        for r in rows:
+            cum += r["pnl"]
+            peak = max(peak, cum)
+        braked = peak - cum >= float(st.get("brake_pct", 0.05)) * equity
+        risk = base if braked else min(float(st.get("max", 0.02)), base * (1 + wins))
+        self.journal("weekpicks_risk", now, wins_in_a_row=wins, braked=braked, risk_pct=risk)
+        return risk
 
     def funnel_plan(self, bars_: dict, closes: dict, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now,
                     name: str = "funnel") -> tuple:
