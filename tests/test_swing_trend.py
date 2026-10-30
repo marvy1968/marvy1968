@@ -154,7 +154,7 @@ class WeekPicksPlanTests(unittest.TestCase):
             log.write_text(json.dumps({"batches": [{"made": "2026-10-29", "picks": [
                 {"symbol": "CAT", "close": 700.0, "stop_10d_low": 680.0, "tp_est": 740.0},
                 {"symbol": "BAD", "close": 50.0, "stop_10d_low": 51.0, "tp_est": 55.0}]}]}))
-            r.zone_config = lambda: {"live": True, "weekpicks": {"live": True, "risk_pct": 0.005, "max_frac": 0.15, "hold_sessions": 5, "log": str(log)}}
+            r.zone_config = lambda: {"live": True, "weekpicks": {"live": True, "risk_pct": 0.005, "max_frac": 0.15, "hold_sessions": 5, "log": str(log), "heat_map": False}}
             spy = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2026-10-20", "2026-10-29"))
             held = {"GOOGL": {"qty": 3, "entry": 300.0, "stop": 290.0, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-23"},
                     "NEW": {"qty": 3, "entry": 300.0, "stop": 290.0, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-28"}}
@@ -225,3 +225,48 @@ class ProfitLockTests(unittest.TestCase):
             self.assertNotIn("CVX", r.state["positions"])
             self.assertIn(("CVX", "sell", "market"), b.sent)
             self.assertEqual(b.orders["st1"]["status"], "canceled")
+
+
+class WeekPicksFilterTests(unittest.TestCase):
+    def test_red_sector_pick_is_skipped(self):
+        import json
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(None, state_dir=d, base_equity=50000.0)
+            log = Path(d) / "wp.json"
+            log.write_text(json.dumps({"batches": [{"made": "2026-10-29", "picks": [
+                {"symbol": "CVX", "close": 230.0, "stop_10d_low": 220.0, "tp_est": 240.0},
+                {"symbol": "V", "close": 410.0, "stop_10d_low": 394.0, "tp_est": 428.0}]}]}))
+            r.zone_config = lambda: {"live": True, "weekpicks": {"live": True, "risk_pct": 0.005, "max_frac": 0.15, "log": str(log), "heat_map": True}}
+            r.sector_heat = lambda sym, now, cache: -1 if sym == "CVX" else 1                 # energy red, financials green
+            spy = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2026-10-20", "2026-10-29"))
+            now = datetime(2026, 10, 29, 16, 25, tzinfo=ZoneInfo("America/New_York"))
+            _, entries = r.weekpicks_plan(spy, {"CVX": 230.0, "V": 410.0}, {}, [], [], 50000.0, 40000.0, False, now)
+            self.assertEqual([e["symbol"] for e in entries], ["V"])
+
+    def test_news_window_defers_then_skips(self):
+        class B:
+            def __init__(self):
+                self.sent = []
+
+            def submit_order(self, *a, **k):
+                self.sent.append(a[0])
+                return {"id": a[0]}
+
+            def order(self, oid):
+                return {"status": "filled", "filled_avg_price": "100", "filled_qty": "1"}
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = sp.SwingRunner(b, state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            r.zone_config = lambda: {"live": True, "late_entry": {"strategies": [], "at": "10:00"}, "weekpicks": {"news": True},
+                                     "profiles": {"trend": {"chase_atr": 0.5}}}
+            r.news_pause = lambda now: "news pause: USD CPI m/m at 08:30 New York"
+            r._settle_open = lambda *a, **k: None
+            r.state["plan"] = {"made": "2026-10-29", "exits": [], "entries": [{"symbol": "V", "qty": 1, "stop": 90.0, "zone_tp": 120.0, "side": 1,
+                                                                              "strategy": "weekpicks", "signal_close": 100.0}]}
+            now = datetime(2026, 10, 30, 9, 31, tzinfo=ZoneInfo("America/New_York"))
+            r.open(now, wait_until=now)
+            self.assertEqual(b.sent, [])
+            self.assertEqual([e["symbol"] for e in r.state["plan"]["deferred"]], ["V"])
+            r.open(now.replace(hour=10, minute=1), late=True, wait_until=now)                  # still inside the window: skipped
+            self.assertEqual(b.sent, [])

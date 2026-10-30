@@ -25,6 +25,7 @@ import pandas as pd
 
 from .data import NY, _fetch
 from .strategies import SectorTopDown
+from . import universe
 from .universe import STOCKS
 
 ET = ZoneInfo(NY)
@@ -364,11 +365,16 @@ class SwingRunner:
             return exits, entries
         cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)
         risk_pct = self.weekpicks_risk(cfg, equity, now)
-        planned = []
+        planned, heat_cache = [], {}
         for pk in batch["picks"]:
             sym, px, stop, tp = pk["symbol"], float(closes.get(pk["symbol"], pk["close"])), float(pk["stop_10d_low"]), float(pk["tp_est"])
             if sym in held or any(e["symbol"] == sym for e in entries) or not stop < px < tp:
                 continue
+            if cfg.get("heat_map", True):                    # owner 2026-10-30: no weekly pick in a sector the heat map has red
+                heat = self.sector_heat(sym, now, heat_cache)
+                if heat == -1:
+                    self.journal("weekpicks_heat_skip", now, symbol=sym, sector=universe.SECTOR_OF.get(sym))
+                    continue
             risk_ps = (px - stop) + px * SLIP_BPS / 1e4
             qty = int(min(equity * risk_pct / risk_ps, equity * float(cfg.get("max_frac", 0.15)) / px, max(cash, 0) / px))
             if qty < 1:
@@ -381,6 +387,41 @@ class SwingRunner:
         log_path.write_text(json.dumps(st, indent=1, default=str))
         self.journal("weekpicks_plan", now, entries=planned, exits=[s for s in exits if held.get(s, {}).get("strategy") == "weekpicks"])
         return exits, entries
+
+    def sector_heat(self, sym: str, now, cache: dict) -> int:
+        """The stock's sector ETF on the heat map (alpacabot.gates: -1 red, 0 neutral, +1 green) as of the latest completed close."""
+        from . import gates
+        etf = universe.SECTOR_OF.get(sym)
+        if not etf:
+            return 0
+        if etf not in cache:
+            try:
+                d = daily_bars(etf, now, self.fetch)
+                cache[etf] = gates.state_on(gates.heat_state(d), now.astimezone(ET).date() + timedelta(days=1)) if len(d) else 0
+            except Exception as exc:
+                self.journal("heat_error", now, etf=etf, error=str(exc)[:120])
+                cache[etf] = 0
+        return cache[etf]
+
+    def news_pause(self, now) -> str:
+        """'' or why: a high-impact USD release within 60 minutes either side (fxbot.newsfilter, the same calendar as the ride and forex)."""
+        try:
+            import pandas as pd
+            from fxbot.newsfilter import live_events, paused
+            if getattr(self, "news_fetch", None) is None:
+                import requests
+
+                def _get(url):
+                    r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+                    r.raise_for_status()
+                    return r.json()
+                self.news_fetch = _get
+            ts = pd.Timestamp(now).tz_convert("UTC")
+            events, _ = live_events(Path(self.dir) / "news_calendar.json", ts, self.news_fetch)
+            return paused("USD_USD", ts, events, 60, 60)
+        except Exception as exc:
+            self.journal("news_error", now, error=str(exc)[:200])
+            return ""
 
     def weekpicks_risk(self, cfg: dict, equity: float, now) -> float:
         """Owner 2026-10-30 ("turn on streak sizing"): risk per pick = risk_pct x (1 + closed weekly-pick wins in a row), capped at
@@ -524,6 +565,15 @@ class SwingRunner:
                 plan.setdefault("deferred", []).append(e)
                 self.journal("entry_deferred", now, symbol=e["symbol"], strategy=e.get("strategy"), until=le.get("at", "10:00"))
                 continue
+            if e.get("strategy") == "weekpicks" and (zcfg.get("weekpicks") or {}).get("news", True):
+                why = self.news_pause(now)                   # owner 2026-10-30: weekly picks wait out a high-impact USD release
+                if why and not late:
+                    plan.setdefault("deferred", []).append(e)
+                    self.journal("entry_deferred", now, symbol=e["symbol"], strategy="weekpicks", until=le.get("at", "10:00"), why=why)
+                    continue
+                if why:
+                    self.journal("news_skip", now, symbol=e["symbol"], strategy="weekpicks", why=why)
+                    continue
             if late and hasattr(self.b, "quote"):                 # already at / through its stop or its take-profit by now: no trade
                 try:
                     bid, ask = (float(x) for x in self.b.quote(e["symbol"])[:2])
