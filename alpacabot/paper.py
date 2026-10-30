@@ -1268,6 +1268,17 @@ class PaperRunner:
                         self.journal("fed_flatten", result=res)
                 except Exception:
                     log.exception("fed flatten check failed (continuing)")
+                try:                                                # owner 2026-10-30: swing profit lock (virtual trail, alpacabot.swing_paper)
+                    from .swing_paper import PROFIT_LOCK, SwingRunner
+                    if PROFIT_LOCK and dtime(10, 5) <= now.time() < dtime(15, 59) and getattr(self, "_lock_min", None) != now.minute:
+                        self._lock_min = now.minute                 # once a minute, after the 09:20 open job is done
+                        sr = SwingRunner(RestBroker(), state_dir="state/alpaca_swing")
+                        res = sr.profit_lock(now, sr.b.quote)
+                        if res:
+                            self.journal("swing_profit_lock", result=res)
+                            send_telegram("SWING (paper) profit lock: " + ", ".join(f"{k} {v}" for k, v in res.items()))
+                except Exception:
+                    log.exception("swing profit lock failed (continuing)")
                 try:                                                # owner 2026-10-28: same-day ride (alpacabot.dayride), paper
                     from .dayride import RIDE, DayRide
                     if RIDE:

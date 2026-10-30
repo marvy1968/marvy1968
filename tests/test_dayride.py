@@ -246,3 +246,21 @@ class PendingExitTests(unittest.TestCase):
             b.orders[sent[0]].update(status="filled", filled_avg_price="281.40")
             r.exit("GOOGL", now + timedelta(minutes=9), "carried over")
             self.assertEqual((len(sent), r.state["open"]), (1, {}))
+
+
+class RideLockTests(unittest.TestCase):
+    def test_ride_keeps_half_the_best_gain(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker()
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            idx = pd.date_range("2026-10-30 14:00", periods=4, freq="5min", tz="UTC")
+            m = pd.DataFrame({"open": [100, 101, 103, 102], "high": [101, 103, 104, 102.5], "low": [99.8, 100.5, 102, 101.9],
+                              "close": [101, 103, 102.5, 101.9]}, index=idx, dtype=float)
+            pos = {"side": 1, "qty": 2, "entry": 100.0, "stop": 98.0, "stop_id": None, "opened": "2026-10-30T10:00:00-04:00"}
+            r.state = {"date": "2026-10-30", "done": [], "open": {"X": pos}}
+            now = datetime(2026, 10, 30, 10, 20, 30, tzinfo=ET)
+            self.assertTrue(r.locked_out("X", pos, m, now))              # best +2R (104), lock 102, close 101.9 -> out
+            self.assertNotIn("X", r.state["open"])
+            pos2 = dict(pos, entry=100.0, stop=90.0)                     # risk 10: +0.4R best -> not armed
+            r.state["open"]["Y"] = pos2
+            self.assertFalse(r.locked_out("Y", pos2, m, now))

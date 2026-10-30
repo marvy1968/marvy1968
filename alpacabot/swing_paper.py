@@ -45,6 +45,9 @@ TREND_FILTERS = {"long": ("topdown",), "reversal": True}
 # the stop steps up to entry + (k - 1) R (k = 1: break-even), only ever up. The runner keeps the staircase and moves the stop at Alpaca too
 # (the OCO is replaced with the same take-profit), so it holds if the VM is down. Not backtested; on paper. Undo: STAIR = None.
 STAIR = {"step_r": 1.0}
+# owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back"; no backtest): after +1R, sell if price gives back half the best gain
+# (never below entry + 0.2%). Checked every minute by the paper runner (alpacabot.paper). Off: PROFIT_LOCK = None.
+PROFIT_LOCK = {"trigger_r": 1.0, "keep": 0.5, "floor": 0.002}
 WEEKLY_LIMIT = 0.05     # swing book 5% below its peak of the last 5 scans -> no new entries (exits and stops still run)
 log = logging.getLogger("alpacabot.swing")
 
@@ -586,7 +589,47 @@ class SwingRunner:
         self._save()
         return sent
 
-    def close_all(self, now: datetime, wait_s: float = 60.0, only: list | None = None) -> dict:
+    def profit_lock(self, now: datetime, quote, cfg=None) -> dict:
+        """Owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back", no backtest): once a swing position has been
+        trigger_r x its initial risk in profit, a VIRTUAL stop (watched by the bot, not sent to Alpaca) sits at entry + keep x the best gain
+        so far, never below entry + floor; a print at or through it sells the position at market (reason "profit lock"). The broker stop /
+        OCO stays in place until then. quote(sym) -> (bid, ask)."""
+        cfg = cfg or PROFIT_LOCK
+        if not cfg:
+            return {}
+        out, changed = {}, False
+        for sym, pos in list(self.state["positions"].items()):
+            side = pos.get("side", 1)
+            risk = side * (pos["entry"] - float(pos.get("stop0", pos["stop"])))
+            if risk <= 0:
+                continue
+            try:
+                bid, ask = (float(x) for x in quote(sym)[:2])
+            except Exception as exc:
+                self.journal("lock_error", now, symbol=sym, error=str(exc)[:120])
+                continue
+            px = bid if side == 1 else ask
+            if px <= 0:
+                continue
+            peak = pos.get("peak", pos["entry"])
+            peak = max(peak, px) if side == 1 else min(peak, px)
+            if peak != pos.get("peak"):
+                pos["peak"], changed = peak, True
+            best = side * (peak - pos["entry"])
+            if best < float(cfg["trigger_r"]) * risk:
+                continue
+            lock = pos["entry"] + side * max(float(cfg["keep"]) * best, float(cfg["floor"]) * pos["entry"])
+            if round(lock, 2) != pos.get("lock"):
+                pos["lock"], changed = round(lock, 2), True
+            if side * (px - lock) <= 0:
+                self.journal("profit_lock", now, symbol=sym, px=px, lock=round(lock, 2), peak=peak, entry=pos["entry"])
+                out.update(self.close_all(now, wait_s=30.0, only=[sym], reason="profit lock"))
+                changed = False                              # close_all saved the state
+        if changed:
+            self._save()
+        return out
+
+    def close_all(self, now: datetime, wait_s: float = 60.0, only: list | None = None, reason: str = "owner_close") -> dict:
         """Owner's manual close: cancel each swing position's stop / OCO at Alpaca, sell it at market and book it as "owner_close".
         only = these symbols (e.g. a position that lost its broker stop); None = the whole book."""
         self.settle_stops(now)                            # a stop that already filled is booked at its own price first
@@ -600,6 +643,18 @@ class SwingRunner:
                     self.b.cancel_order(pos["stop_order_id"])
                 except Exception:
                     log.exception("cancel stop %s", sym)
+                st = {}                                   # wait for the cancel: Alpaca holds the shares until it is processed (403 otherwise)
+                for _ in range(20):
+                    try:
+                        st = self.b.order(pos["stop_order_id"]) or {}
+                    except Exception:
+                        st = {}
+                    if st.get("status") in ("canceled", "filled", "expired", "rejected"):
+                        break
+                    self.sleep(0.5)
+                if st.get("status") == "filled":
+                    self.settle_stops(now)
+                    continue
             sent[sym] = self.b.submit_order(sym, pos["qty"], "sell" if pos.get("side", 1) == 1 else "buy", "market", "day", f"sw-c-{sym}-{tag}")
         out, waited = {}, 0.0
         pending = dict(sent)
@@ -609,7 +664,7 @@ class SwingRunner:
                 if st.get("status") in ("filled", "rejected", "canceled", "expired"):
                     if st.get("status") == "filled":
                         px = float(st.get("filled_avg_price") or 0)
-                        self.record(sym, self.state["positions"].pop(sym), px, "owner_close", now)
+                        self.record(sym, self.state["positions"].pop(sym), px, reason, now)
                         out[sym] = f"closed @ {px:.2f}"
                     else:
                         out[sym] = f"NOT closed ({st.get('status')}): stop was cancelled, check it"
@@ -623,7 +678,7 @@ class SwingRunner:
                     out[sym] = "close order still working after %.0fs: check it" % wait_s
                 break
         self._save()
-        self.journal("owner_close", now, result=out)
+        self.journal(reason, now, result=out)
         return out
 
     def _settle_open(self, sym: str, kind: str, o: dict, now: datetime):

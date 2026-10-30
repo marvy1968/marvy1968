@@ -30,6 +30,9 @@ log = logging.getLogger("alpacabot.dayride")
 RIDE = {"symbols": sorted(set(universe.STOCKS) | {"SPY", "QQQ"}), "risk_pct": 0.0025, "gross_cap": 0.05, "max_open": 3,
         "entry_from": dtime(10, 0), "entry_until": dtime(15, 0), "flat_at": dtime(15, 55), "fed_from": dtime(13, 0), "stop_atr": 0.5,
         "news_before": 60, "news_after": 60}
+# owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back"; no backtest): after +0.5R the ride keeps at least half of its
+# best gain (never below entry + 0.1%). Off: LOCK = None.
+LOCK = {"trigger_r": 0.5, "keep": 0.5, "floor": 0.001}
 
 
 class DayRide:
@@ -178,8 +181,37 @@ class DayRide:
             except Exception as exc:
                 self.journal("error", now, where="bars", symbol=sym, error=str(exc)[:200])
                 continue
+            if self.locked_out(sym, pos, m, now):
+                continue
             if len(m) >= 60 and int(reversal(m)[-1]) == -pos["side"]:
                 self.safe_exit(sym, now, "trend reversed")
+
+    def locked_out(self, sym: str, pos: dict, m, now: datetime) -> bool:
+        """Owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back", no backtest): once the ride's best 5-minute
+        high (short: low) since entry is LOCK["trigger_r"] x its risk in profit, a virtual stop sits at entry + keep x the best gain (never
+        below entry + floor); a completed bar closing at or through it sells at market (reason "profit lock")."""
+        cfg = LOCK
+        if not cfg or not len(m):
+            return False
+        side, entry = pos["side"], pos["entry"]
+        risk = abs(entry - pos["stop"])
+        try:
+            since = m[m.index >= pd.Timestamp(pos["opened"]).tz_convert("UTC")]
+        except Exception:
+            since = m
+        if not len(since) or risk <= 0:
+            return False
+        peak = float(since["high"].max()) if side == 1 else float(since["low"].min())
+        best = side * (peak - entry)
+        if best < cfg["trigger_r"] * risk:
+            return False
+        lock = entry + side * max(cfg["keep"] * best, cfg["floor"] * entry)
+        pos["peak"], pos["lock"] = peak, round(lock, 2)
+        if side * (float(since["close"].iloc[-1]) - lock) <= 0:
+            self.journal("profit_lock", now, symbol=sym, close=float(since["close"].iloc[-1]), lock=round(lock, 2), peak=peak, entry=entry)
+            self.safe_exit(sym, now, "profit lock")
+            return True
+        return False
 
     def scan(self, now: datetime):
         from fxbot.strongtrend import today_state

@@ -61,8 +61,8 @@ class CloseOnlyTests(unittest.TestCase):
                 self.sent.append(sym)
                 return {"id": sym}
 
-            def order(self, oid):
-                return {"status": "filled", "filled_avg_price": "61.80"}
+            def order(self, oid):                    # the cancelled stop reads back as canceled; the market sell as filled
+                return {"status": "canceled"} if oid in self.cancelled else {"status": "filled", "filled_avg_price": "61.80"}
         with tempfile.TemporaryDirectory() as tmp:
             b = B()
             r = sp.SwingRunner(b, state_dir=tmp, base_equity=50000.0, sleep=lambda *_: None)
@@ -191,3 +191,37 @@ class WeekPicksStreakTests(unittest.TestCase):
             t.write_text("\n".join(json.dumps(x) for x in rows) + "\n")
             self.assertAlmostEqual(r.weekpicks_risk(cfg, 50000.0, now), 0.005)
             self.assertAlmostEqual(r.weekpicks_risk({"risk_pct": 0.005}, 50000.0, now), 0.005)   # streak off
+
+
+class ProfitLockTests(unittest.TestCase):
+    def test_lock_arms_after_1r_and_sells_on_giveback(self):
+        class B:
+            def __init__(self):
+                self.orders, self.sent = {"st1": {"id": "st1", "status": "new"}}, []
+
+            def cancel_order(self, oid):
+                self.orders[oid]["status"] = "canceled"
+
+            def order(self, oid):
+                return self.orders.get(oid, {"status": "filled", "filled_avg_price": "105.0", "filled_qty": "10"})
+
+            def submit_order(self, sym, qty, side, typ, tif, cid, stop_price=None):
+                self.sent.append((sym, side, typ))
+                return {"id": "x1"}
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            r = sp.SwingRunner(b, state_dir=d, base_equity=50000.0)
+            r.sleep = lambda s: None
+            r.state["positions"]["CVX"] = {"qty": 10, "entry": 100.0, "stop": 96.0, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-30",
+                                           "stop_order_id": "st1"}
+            now = datetime(2026, 10, 30, 11, 0, tzinfo=ZoneInfo("America/New_York"))
+            cfg = {"trigger_r": 1.0, "keep": 0.5, "floor": 0.002}
+            self.assertEqual(r.profit_lock(now, lambda s: (103.0, 103.1), cfg), {})          # +0.75R: not armed
+            self.assertNotIn("lock", r.state["positions"]["CVX"])
+            self.assertEqual(r.profit_lock(now, lambda s: (110.0, 110.1), cfg), {})          # +2.5R: armed, lock at 105
+            self.assertEqual(r.state["positions"]["CVX"]["lock"], 105.0)
+            out = r.profit_lock(now, lambda s: (104.9, 105.0), cfg)                           # gave back half: sold
+            self.assertIn("CVX", out)
+            self.assertNotIn("CVX", r.state["positions"])
+            self.assertIn(("CVX", "sell", "market"), b.sent)
+            self.assertEqual(b.orders["st1"]["status"], "canceled")
