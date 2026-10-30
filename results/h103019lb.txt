@@ -1,3 +1,15 @@
 $ alpaca swing close --symbols BRK.B,V,SPG,MA
-started 2026-10-30 15:52:33 EDT
-RUNNING...
+started 2026-10-30 15:52:33 EDT, took 7s, exit 0
+
+{
+ "BRK.B": "closed @ 543.47",
+ "MA": "closed @ 638.59",
+ "V": "closed @ 413.35",
+ "SPG": "closed @ 217.72"
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 29, 10W/19L, P&L $-1,459
+  funnel: 4 trades, 1W, P&L $-417
+  oversold: 6 trades, 1W, P&L $-345
+  holding: CVX 23 @ 234.68 (stop 220.41, weekpicks)
