@@ -309,6 +309,9 @@ class SwingRunner:
             self.journal("index_gate", now, spy=round(float(spy["close"].iloc[-1]), 2), sma200=round(float(spy["close"].rolling(200).mean().iloc[-1]), 2),
                          blocked=blocked)
         sleeve = {s for s, p in held.items() if p.get("strategy") == "trend200"}
+        if not cfg.get("sleeve", True):              # owner 2026-10-30: sleeve paused - the long gate above still runs, no SPY/QQQ buys
+            self.journal("index_trend_plan", now, entries=[], exits=[], sleeve="paused")
+            return exits, entries
         cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)       # the stock entries planned above use the cash first
         planned = []
         for sym, d in idx_bars.items():

@@ -29,7 +29,8 @@ from .data import _fetch
 log = logging.getLogger("alpacabot.dayride")
 RIDE = {"symbols": sorted(set(universe.STOCKS) | {"SPY", "QQQ"}), "risk_pct": 0.0025, "gross_cap": 0.05, "max_open": 3,
         "entry_from": dtime(10, 0), "entry_until": dtime(15, 0), "flat_at": dtime(15, 55), "fed_from": dtime(13, 0), "stop_atr": 0.5,
-        "news_before": 60, "news_after": 60}
+        "news_before": 60, "news_after": 60,
+        "paused": True}          # owner 2026-10-30 14:57 ("whatever is losing money pause it now"): no new rides; undo: "paused": False
 # owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back"; no backtest): after +0.5R the ride keeps at least half of its
 # best gain (never below entry + 0.1%). Off: LOCK = None.
 LOCK = {"trigger_r": 0.5, "keep": 0.5, "floor": 0.001}
@@ -142,6 +143,9 @@ class DayRide:
             self.save()
             return
         self.manage(now)
+        if self.cfg.get("paused"):               # owner 2026-10-30 ("whatever is losing money pause it now"): exits only, no new rides
+            self.save()
+            return
         if self.cfg["entry_from"] <= t < self.cfg["entry_until"]:
             self.scan(now)
         self.save()

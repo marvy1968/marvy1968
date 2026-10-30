@@ -79,7 +79,7 @@ class DayRideTests(unittest.TestCase):
         def fetch(sym, tf, start, end, feed):
             return daily() if tf == "1Day" else self.m5
         self.m5 = five(True)
-        cfg = {**dr.RIDE, "symbols": ["UP"]}
+        cfg = {**dr.RIDE, "paused": False, "symbols": ["UP"]}
         self.r = dr.DayRide(self.b, state_dir=self.tmp.name, cfg=cfg, fetch=fetch)
         self.r.news_fetch = lambda url: []                     # no network: Fed + jobs-report fallback calendar
 
@@ -113,7 +113,7 @@ class DayRideTests(unittest.TestCase):
         self.r.step(datetime(2026, 10, 27, 15, 55, 30, tzinfo=ET))
         self.assertEqual(self.r.state["open"], {})
         self.assertTrue(self.b.cancelled)
-        r2 = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else self.m5)
+        r2 = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "paused": False, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else self.m5)
         r2.news_fetch = lambda url: []
         r2.state = {"date": "2026-10-28", "done": [], "open": {"UP": {"side": 1, "qty": 5, "entry": 100.0, "stop": 99.0, "stop_id": None,
                                                                        "opened": "x"}}}
@@ -144,7 +144,7 @@ class AdoptTests(unittest.TestCase):
                     f.write(json.dumps({"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": sym, "side": side, "qty": qty,
                                         "fill": 100.0, "stop": 99.0}) + "\n")
                 f.write(json.dumps({"t": "2026-10-28T11:30:00-04:00", "kind": "close", "symbol": "DONE"}) + "\n")
-            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
             r.news_fetch = lambda url: []
             r.state = {"date": "2026-10-28", "done": [], "open": {}}
             r.adopt(datetime(2026, 10, 28, 12, 0, tzinfo=ET))
@@ -160,7 +160,7 @@ class RideNewsTests(unittest.TestCase):
         import json
         with tempfile.TemporaryDirectory() as tmp:
             b = Broker()
-            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else five(True))
+            r = dr.DayRide(b, state_dir=tmp, cfg={**dr.RIDE, "paused": False, "symbols": ["UP"]}, fetch=lambda *a: daily() if a[1] == "1Day" else five(True))
             r.news_fetch = lambda url: [{"title": "ISM Manufacturing PMI", "country": "USD", "date": "2026-10-27T10:00:00-04:00", "impact": "High"},
                                         {"title": "ECB", "country": "EUR", "date": "2026-10-27T12:00:00-04:00", "impact": "High"}]
             r.state = {"date": "2026-10-27", "done": [], "open": {"UP": {"side": 1, "qty": 5, "entry": 100.0, "stop": 99.0, "stop_id": None,
@@ -183,7 +183,7 @@ class MissedFlatTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.b = Broker()
-        self.r = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+        self.r = dr.DayRide(self.b, state_dir=self.tmp.name, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
         self.r.news_fetch = lambda url: []
         self.r.adopted = True
         pos = lambda: {"side": 1, "qty": 2, "entry": 100.0, "stop": 99.0, "stop_id": None, "opened": "x"}   # noqa: E731
@@ -235,7 +235,7 @@ class PendingExitTests(unittest.TestCase):
                 sent.append(o["id"])
                 return o
             b.submit_market = slow_market
-            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
             r._wait = lambda o, now, tries=10, sleep=1.0: b.orders.get(o["id"], o) if o and o.get("id") else {"status": "rejected"}
             r.state = {"date": "2026-10-30", "done": [], "open": {"GOOGL": {"side": -1, "qty": 3, "entry": 281.0, "stop": 285.0, "stop_id": None,
                                                                              "opened": "x"}}}
@@ -252,7 +252,7 @@ class RideLockTests(unittest.TestCase):
     def test_ride_keeps_half_the_best_gain(self):
         with tempfile.TemporaryDirectory() as d:
             b = Broker()
-            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
             idx = pd.date_range("2026-10-30 14:00", periods=4, freq="5min", tz="UTC")
             m = pd.DataFrame({"open": [100, 101, 103, 102], "high": [101, 103, 104, 102.5], "low": [99.8, 100.5, 102, 101.9],
                               "close": [101, 103, 102.5, 101.9]}, index=idx, dtype=float)
@@ -264,3 +264,16 @@ class RideLockTests(unittest.TestCase):
             pos2 = dict(pos, entry=100.0, stop=90.0)                     # risk 10: +0.4R best -> not armed
             r.state["open"]["Y"] = pos2
             self.assertFalse(r.locked_out("Y", pos2, m, now))
+
+
+class PausedRideTests(unittest.TestCase):
+    def test_paused_ride_takes_no_new_entries(self):
+        self.assertTrue(dr.RIDE.get("paused"))                       # owner 2026-10-30: paused live
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker()
+            m5 = five(True)
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "symbols": ["UP"]}, fetch=lambda s, tf, *a: daily() if tf == "1Day" else m5)
+            r.news_fetch = lambda url: []
+            r.step(datetime(2026, 10, 27, 11, 0, 30, tzinfo=ET))
+            self.assertEqual(r.state["open"], {})
+            self.assertEqual(b.orders, {})
