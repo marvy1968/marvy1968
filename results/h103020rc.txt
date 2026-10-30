@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families trendride
-started 2026-10-30 16:01:00 EDT
-RUNNING...
+started 2026-10-30 16:01:00 EDT, took 43s, exit 0
+
+daily data ready
+## trendride: the scanner picks an already-trending stock; the test is the TP zone and the sell (10 bps a side, random-stock control x20)
+### A PULLBACK to the 20-day EMA, stop 1 ATR, TP zone +1.5 ATR, sell on a close under the 50-day
+- last 2 weeks: 9 t, win 44%, PF 1.17, +0.6R, avg +0.07R | random stocks median +0.1R, beaten 12/20 | fail (under 20 trades: thin)
+- last 6 months: 176 t, win 43%, PF 1.03, +2.9R, avg +0.02R | random stocks median -17.3R, beaten 20/20
+### B HOLD from the day it turns trending, stop 1.5 ATR, TP zone +2 ATR, sell on a close under the 20-day EMA
+- last 2 weeks: 9 t, win 33%, PF 0.95, -0.2R, avg -0.02R | random stocks median +0.0R, beaten 8/20 | fail (under 20 trades: thin)
+- last 6 months: 85 t, win 35%, PF 0.84, -6.7R, avg -0.08R | random stocks median +0.7R, beaten 2/20
+ALL DONE
