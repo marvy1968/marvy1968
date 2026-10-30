@@ -1,3 +1,63 @@
 $ logs marv-alpaca-paper 60
-started 2026-10-30 14:08:34 EDT
-RUNNING...
+started 2026-10-30 14:08:34 EDT, took 1s, exit 0
+
+Oct 30 11:01:19 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 11:01:19 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 11:01:19 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 11:01:19 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 26min 36.300s CPU time.
+Oct 30 11:01:19 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 11:01:19 instance-stockbot python3[1804354]: gate re-applied
+Oct 30 11:01:19 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 11:01:24 instance-stockbot python[1804356]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 11:01:24 instance-stockbot python[1804356]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 11:01:24 instance-stockbot python[1804356]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 30 11:01:46 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 11:01:47 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 11:01:47 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 11:01:47 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 7.405s CPU time.
+Oct 30 11:01:47 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 11:01:47 instance-stockbot python3[1805176]: gate re-applied
+Oct 30 11:01:47 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 11:01:50 instance-stockbot python[1805177]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 11:01:50 instance-stockbot python[1805177]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 11:01:50 instance-stockbot python[1805177]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 30 13:28:53 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:28:53 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 13:28:53 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:28:53 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 21min 53.758s CPU time.
+Oct 30 13:28:53 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:28:53 instance-stockbot python3[1819754]: gate re-applied
+Oct 30 13:28:53 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:28:58 instance-stockbot python[1819755]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 13:28:58 instance-stockbot python[1819755]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 13:28:58 instance-stockbot python[1819755]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 30 13:29:27 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:29:27 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 13:29:27 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:29:27 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 9.707s CPU time.
+Oct 30 13:29:27 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:29:27 instance-stockbot python3[1820584]: gate re-applied
+Oct 30 13:29:27 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:29:29 instance-stockbot python[1820585]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 13:29:29 instance-stockbot python[1820585]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 13:29:29 instance-stockbot python[1820585]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 30 13:46:40 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:46:40 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 13:46:40 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:46:40 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 3min 34.316s CPU time.
+Oct 30 13:46:40 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:46:40 instance-stockbot python3[1822592]: gate re-applied
+Oct 30 13:46:40 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:46:46 instance-stockbot python[1822594]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 13:46:46 instance-stockbot python[1822594]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 13:46:46 instance-stockbot python[1822594]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
+Oct 30 13:47:10 instance-stockbot systemd[1]: Stopping marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:47:10 instance-stockbot systemd[1]: marv-alpaca-paper.service: Deactivated successfully.
+Oct 30 13:47:10 instance-stockbot systemd[1]: Stopped marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:47:10 instance-stockbot systemd[1]: marv-alpaca-paper.service: Consumed 8.631s CPU time.
+Oct 30 13:47:10 instance-stockbot systemd[1]: Starting marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only)...
+Oct 30 13:47:11 instance-stockbot python3[1823404]: gate re-applied
+Oct 30 13:47:11 instance-stockbot systemd[1]: Started marv-alpaca-paper.service - Alpaca PAPER trading loop (paper account only).
+Oct 30 13:47:13 instance-stockbot python[1823405]: INFO brain: {'experts': ['connors_rsi2', 'vwap_dev', 'bollinger_bounce', 'williams_r', 'brooks_pullback', 'opening_range_breakout'], 'short_experts': ['dual_regime', 'connors_rsi2', 'brooks_pullback', 'bollinger_bounce', 'vwap_dev', 'raschke_grail'], 'sector_filter': True, 'short_gate': 'red'}
+Oct 30 13:47:13 instance-stockbot python[1823405]: INFO paper runner started: ['SPY', 'QQQ', 'IWM', 'NVDA', 'MSFT', 'AAPL', 'AVGO', 'ORCL', 'GOOGL', 'META', 'NFLX', 'TMUS', 'DIS', 'AMZN', 'TSLA', 'HD', 'MCD', 'BKNG', 'BRK.B', 'JPM', 'V', 'MA', 'BAC', 'LLY', 'JNJ', 'ABBV', 'UNH', 'MRK', 'GE', 'CAT', 'RTX', 'GEV', 'UBER', 'WMT', 'COST', 'PG', 'KO', 'PM', 'XOM', 'CVX', 'COP', 'WMB', 'EOG', 'NEE', 'SO', 'CEG', 'DUK', 'VST', 'PLD', 'AMT', 'WELL', 'EQIX', 'SPG', 'LIN', 'NEM', 'SHW', 'ECL', 'APD', 'SOFI', 'RKLB', 'HIMS', 'RIVN', 'MARA', 'AFRM', 'DKNG', 'CHWY', 'ROKU', 'ELF', 'CELH', 'PATH', 'U', 'TOST', 'RIOT', 'IONQ', 'SOUN', 'BBAI', 'PLUG', 'JOBY', 'ACHR', 'LCID', 'OPEN', 'RUN']
+Oct 30 13:47:13 instance-stockbot python[1823405]: INFO ALPACA_TG off: not posting to Telegram: ALPACA PAPER (intraday): kill switch ON - no new entries
