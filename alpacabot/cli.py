@@ -329,6 +329,20 @@ def run_all(a) -> int:
                 lines += _dtp.report(dd, today_, Path("state/alpaca_daytp"))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trendride":                 # owner 2026-10-30: scanner picks the trending stock, the test is the TP zone + sell (alpacabot.trendride)
+                import datetime as _dt
+                from . import trendride as _tr
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {}
+                for s_ in sorted(set(STOCKS)):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=900), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _tr.report(dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
