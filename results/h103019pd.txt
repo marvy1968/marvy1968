@@ -1,3 +1,13 @@
 $ alpaca swing close --symbols SPY,QQQ
-started 2026-10-30 15:00:45 EDT
-RUNNING...
+started 2026-10-30 15:00:45 EDT, took 8s, exit 0
+
+{
+ "QQQ": "closed @ 685.05",
+ "SPY": "closed @ 751.74"
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 25, 10W/15L, P&L $-1,311
+  funnel: 4 trades, 1W, P&L $-417
+  oversold: 6 trades, 1W, P&L $-345
+  holding: BRK.B 14 @ 548.91 (stop 528.00, weekpicks), CVX 23 @ 234.68 (stop 220.41, weekpicks), MA 5 @ 641.55 (stop 605.00, weekpicks), V 15 @ 416.31 (stop 394.00, weekpicks), SPG 19 @ 218.39 (stop 202.28, weekpicks)
