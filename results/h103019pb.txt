@@ -1,3 +1,8 @@
 $ alpaca close-others
-started 2026-10-30 14:59:25 EDT
-RUNNING...
+started 2026-10-30 14:59:25 EDT, took 1s, exit 0
+
+new bot holds: {'SPY': 15, 'BRK.B': 14, 'CVX': 23, 'QQQ': 20, 'MA': 5, 'V': 15, 'SPG': 19}
+KEEP (the new bot's): [('BRK.B', 14), ('CVX', 23), ('MA', 5), ('QQQ', 20), ('SPG', 19), ('SPY', 15), ('V', 15)]
+CANCEL 3 orders not from the new bot: GE buy stop, AVGO buy stop, BAC buy stop
+CLOSE 3 positions not from the new bot: AVGO -2, BAC -17, GE -2
+DRY RUN: nothing was sent. Re-run with --execute to do it.
