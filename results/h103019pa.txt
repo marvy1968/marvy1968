@@ -1,3 +1,26 @@
 $ alpaca positions
-started 2026-10-30 14:59:21 EDT
-RUNNING...
+started 2026-10-30 14:59:21 EDT, took 1s, exit 0
+
+equity $51,257.34  cash $1,750.87  long mv $51,599.90  short mv $-2,093.43
+10 open positions:
+  QQQ        long  qty           20  value $ 13,713.59  unrealized $  -193.93
+  SPY        long  qty           15  value $ 11,281.50  unrealized $  -252.15
+  BRK.B      long  qty           14  value $  7,625.10  unrealized $   -59.64
+  V          long  qty           15  value $  6,228.00  unrealized $   -16.59
+  CVX        long  qty           23  value $  5,415.23  unrealized $    17.59
+  SPG        long  qty           19  value $  4,139.72  unrealized $    -9.63
+  MA         long  qty            5  value $  3,196.60  unrealized $   -11.15
+  BAC        short qty          -17  value $   -848.47  unrealized $     2.04
+  AVGO       short qty           -2  value $   -642.68  unrealized $     2.70
+  GE         short qty           -2  value $   -602.28  unrealized $    -0.88
+10 open orders:
+  GE         buy  2 stop new  id rd-s-GE-202610301451
+  AVGO       buy  2 stop new  id rd-s-AVGO-202610301356
+  BAC        buy  17 stop new  id rd-s-BAC-202610301256
+  SPG        sell 19 limit new  id sw-o-SPG-20261030
+  V          sell 15 limit new  id sw-o-V-20261030
+  MA         sell 5 limit new  id sw-o-MA-20261030
+  QQQ        sell 20 stop new  id sw-s-QQQ-20261030
+  CVX        sell 23 limit new  id sw-o-CVX-20261030
+  BRK.B      sell 14 limit new  id sw-o-BRK.B-20261030
+  SPY        sell 15 stop new  id sw-s-SPY-20261029
