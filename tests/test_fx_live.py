@@ -509,6 +509,27 @@ class PlaybookLiveTests(unittest.TestCase):
             self.assertNotIn(gid, r.groups)                                    # out on the close back into the zone
 
 
+    def test_retest_gets_the_trade_lock_but_no_other_runner_exit(self):
+        with tempfile.TemporaryDirectory() as d:
+            api = FakeOanda()
+            r = runner(d, api)
+            r.pending["retest_h1:EUR_USD"] = {"side": 1, "zu": 1.0990, "rlow": 1.0975, "trig": 1.1010, "stop": 1.0970, "tgt": 1.1130,
+                                              "strategy": "retest_h1", "instrument": "EUR_USD", "bar": "x", "bars": 0}
+            api.px["EUR_USD"] = (1.1011, 1.1012)
+            r.check_pending(58000.0, "", [])
+            gid = next(iter(r.groups))
+            g = r.groups[gid]
+            risk = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+            mid0 = g["mid0"]
+            api.px["EUR_USD"] = (mid0 + 1.5 * risk - 0.00005, mid0 + 1.5 * risk + 0.00005)   # +1.5R: past the runner's 1.25R TP, still held
+            r.manage(gid, 58000.0, "")
+            self.assertIn(gid, r.groups)
+            api.px["EUR_USD"] = (mid0 + 0.7 * risk - 0.00005, mid0 + 0.7 * risk + 0.00005)   # back under half of the best: locked out
+            r.manage(gid, 58000.0, "")
+            self.assertNotIn(gid, r.groups)
+            self.assertEqual(r.ledger()[-1]["reason"], "trade_lock")
+
+
 class NewsPauseTests(unittest.TestCase):
     FOMC = datetime(2026, 10, 28, 17, 30, tzinfo=timezone.utc)          # 13:30 New York, 30 minutes before the Fed decision
 

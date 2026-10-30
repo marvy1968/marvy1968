@@ -139,8 +139,8 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
           "profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35},
           # owner 2026-10-30 ("add this to OANDA, same deal, no backtest"): per-trade virtual trail - once a trade has been +trigger_r x its risk
-          # (mid vs entry mid), it is closed at market if it gives back to keep x its best R (never below +floor_r). Not for retest_h1 (own exits,
-          # owner-approved exemption). The OANDA stop / take-profit stay as the backstop. A guard, not backtested. Undo: "trade_lock": None.
+          # (mid vs entry mid), it is closed at market if it gives back to keep x its best R (never below +floor_r). retest_h1 too (owner 2026-10-30:
+          # "add it to retest_h1 too"; its own exits stay). The OANDA stop / take-profit stay as the backstop. A guard, not backtested. Undo: "trade_lock": None.
           "trade_lock": {"trigger_r": 0.5, "keep": 0.5, "floor_r": 0.05},
           # owner 2026-10-28 ("if there's major news coming out, just pause trading, flattening ... until after, like the Fed"): from before_min
           # before to after_min after a HIGH-impact release for either currency of a pair (ForexFactory weekly calendar, cached 6 h; Fed + jobs
@@ -741,15 +741,40 @@ class FxPaper:
         notional_per_unit = 1.0 if inst.startswith("USD") else px
         return max(0, min(units, int(eq * self.cfg["max_notional_x"] / notional_per_unit)))
 
+    def trade_lock(self, gid: str, g: dict, bid: float, ask: float) -> bool:
+        """Owner 2026-10-30: virtual trail - a trade that has been +trigger_r x its risk (mid vs entry mid) is closed at market once it gives
+        back to keep x its best R (never below +floor_r). True = closed."""
+        tl = self.cfg.get("trade_lock")
+        if not tl:
+            return False
+        side = g["side"]
+        risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+        mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
+        if risk0 <= 0:
+            return False
+        now_r = side * (mid_now - mid0) / risk0
+        best = max(float(g.get("best_r", 0.0)), now_r)
+        if best > float(g.get("best_r", 0.0)) + 0.01:
+            g["best_r"] = round(best, 3)
+            self.save()
+        if best >= tl["trigger_r"] and now_r <= max(tl["keep"] * best, tl["floor_r"]):
+            self.journal("trade_lock", group=gid, best_r=round(best, 3), now_r=round(now_r, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
+            self.close_group(gid, "trade_lock")
+            return True
+        return False
+
     def manage(self, gid: str, eq: float, why: str):
         g = self.groups[gid]
-        if g.get("own_exits"):              # the playbook's own exits only (OANDA stop + target, close-back exit at the bar close)
-            return
         inst, side = g["instrument"], g["side"]
+        if g.get("own_exits") and not self.cfg.get("trade_lock"):   # the playbook's own exits (OANDA stop + target, close-back exit)
+            return
         try:
             bid, ask = self.api.price(inst)
         except OandaError as exc:
             self.journal("error", where="price", instrument=inst, error=str(exc)[:300])
+            return
+        if g.get("own_exits"):              # owner 2026-10-30 ("add it to retest_h1 too"): its own exits PLUS the trade lock, nothing else
+            self.trade_lock(gid, g, bid, ask)
             return
         lad = self.cfg["ladder"]
         cut = self.cfg.get("loss_cut_r")
@@ -776,20 +801,8 @@ class FxPaper:
             elif g.get("neg_since"):
                 g["neg_since"] = None
                 self.save()
-        tl = self.cfg.get("trade_lock")
-        if tl:                                   # owner 2026-10-30: virtual trail - a trade that has been +trigger_r never turns back into a loss
-            risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
-            mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
-            if risk0 > 0:
-                now_r = side * (mid_now - mid0) / risk0
-                best = max(float(g.get("best_r", 0.0)), now_r)
-                if best > float(g.get("best_r", 0.0)) + 0.01:
-                    g["best_r"] = round(best, 3)
-                    self.save()
-                if best >= tl["trigger_r"] and now_r <= max(tl["keep"] * best, tl["floor_r"]):
-                    self.journal("trade_lock", group=gid, best_r=round(best, 3), now_r=round(now_r, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
-                    self.close_group(gid, "trade_lock")
-                    return
+        if self.trade_lock(gid, g, bid, ask):
+            return
         tpr = self.cfg.get("take_profit_r")
         if tpr:                                  # owner: take the profit and close the whole position out at +take_profit_r x the risk
             risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
