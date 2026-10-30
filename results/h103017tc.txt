@@ -1,3 +1,33 @@
 $ alpaca run-all --phase validate --families daytp
-started 2026-10-30 13:29:30 EDT
-RUNNING...
+started 2026-10-30 13:29:30 EDT, took 62s, exit 0
+
+daily data ready
+## daytp: daily TP estimator for trend stocks (rel volume, volatility, ADX, 20 vs 200 angle); fit before 2026-04-30, test 2026-04-30..2026-10-28, 1615 trend-stock days
+- median model: upside/ATR = 0.394 + 0.133 x lrvol + -0.126 x lvolr + 0.0 x trend + -0.007 x angle
+- whole: pinball model 0.1364 vs constant 0.1368 | TP hit: model median 49%, safer 64%, constant 48% | trade R/day avg: model TP -0.109 (-176R), safer TP -0.115 (-186R), constant TP -0.109 (-176R), no TP -0.123 (-198R)
+- 1st half: pinball model 0.1395 vs constant 0.1406 | TP hit: model median 49%, safer 66%, constant 48% | trade R/day avg: model TP -0.116 (-102R), safer TP -0.117 (-102R), constant TP -0.115 (-101R), no TP -0.128 (-112R)
+- 2nd half: pinball model 0.1327 vs constant 0.1324 | TP hit: model median 47%, safer 62%, constant 48% | trade R/day avg: model TP -0.101 (-74R), safer TP -0.114 (-84R), constant TP -0.102 (-75R), no TP -0.117 (-87R)
+- verdict: NOT better than a plain per-stock constant - shown for reference only
+### next-session TP for trend stocks (from the 2026-10-29 close; TP = open + estimate x ATR, ATR shown)
+  LLY   close   1373.70 ATR   43.95 | rvol 1.84 vol-ratio 1.07 ADX 34.5 angle +0.120 | TP median open+0.47 ATR (~1.49%), safer open+0.33 ATR
+  APD   close    311.75 ATR    4.84 | rvol 1.37 vol-ratio 0.80 ADX 29.4 angle +0.270 | TP median open+0.46 ATR (~0.72%), safer open+0.31 ATR
+  RTX   close    199.40 ATR    5.35 | rvol 2.13 vol-ratio 1.29 ADX 28.6 angle +0.074 | TP median open+0.46 ATR (~1.24%), safer open+0.33 ATR
+  EQIX  close   1036.67 ATR   32.37 | rvol 1.52 vol-ratio 1.11 ADX 22.9 angle -0.062 | TP median open+0.44 ATR (~1.37%), safer open+0.30 ATR
+  AAPL  close    348.91 ATR    6.06 | rvol 1.10 vol-ratio 0.80 ADX 20.6 angle +0.026 | TP median open+0.43 ATR (~0.76%), safer open+0.29 ATR
+  ECL   close    300.86 ATR    6.25 | rvol 1.43 vol-ratio 1.06 ADX 26.8 angle +0.107 | TP median open+0.43 ATR (~0.90%), safer open+0.30 ATR
+  MA    close    635.70 ATR   11.68 | rvol 1.43 vol-ratio 1.08 ADX 33.2 angle +0.231 | TP median open+0.43 ATR (~0.79%), safer open+0.30 ATR
+  V     close    410.54 ATR    7.48 | rvol 1.25 vol-ratio 1.06 ADX 32.6 angle +0.233 | TP median open+0.41 ATR (~0.76%), safer open+0.29 ATR
+  MRK   close    146.33 ATR    4.97 | rvol 1.32 vol-ratio 1.29 ADX 16.8 angle -0.078 | TP median open+0.40 ATR (~1.36%), safer open+0.28 ATR
+  EOG   close    162.22 ATR    3.80 | rvol 0.94 vol-ratio 0.93 ADX 25.7 angle +0.217 | TP median open+0.39 ATR (~0.92%), safer open+0.27 ATR
+  XOM   close    183.29 ATR    4.02 | rvol 0.95 vol-ratio 0.99 ADX 30.0 angle +0.177 | TP median open+0.39 ATR (~0.85%), safer open+0.26 ATR
+  BRK.B close    541.96 ATR    6.91 | rvol 0.97 vol-ratio 1.01 ADX 42.4 angle +0.266 | TP median open+0.39 ATR (~0.49%), safer open+0.27 ATR
+  COP   close    150.03 ATR    3.50 | rvol 0.90 vol-ratio 0.93 ADX 34.4 angle +0.258 | TP median open+0.39 ATR (~0.90%), safer open+0.26 ATR
+  KO    close     92.82 ATR    1.72 | rvol 0.95 vol-ratio 1.18 ADX 28.3 angle +0.089 | TP median open+0.37 ATR (~0.68%), safer open+0.25 ATR
+  JPM   close    343.58 ATR    6.49 | rvol 0.85 vol-ratio 1.06 ADX 14.2 angle +0.008 | TP median open+0.37 ATR (~0.69%), safer open+0.25 ATR
+  SPG   close    215.72 ATR    3.77 | rvol 0.87 vol-ratio 1.10 ADX 32.8 angle +0.083 | TP median open+0.36 ATR (~0.63%), safer open+0.25 ATR
+  CVX   close    231.46 ATR    4.71 | rvol 0.78 vol-ratio 0.97 ADX 32.8 angle +0.192 | TP median open+0.36 ATR (~0.74%), safer open+0.24 ATR
+  ABBV  close    290.79 ATR    6.78 | rvol 0.83 vol-ratio 1.04 ADX 31.8 angle +0.129 | TP median open+0.36 ATR (~0.84%), safer open+0.25 ATR
+  WMB   close     74.88 ATR    2.23 | rvol 0.87 vol-ratio 1.10 ADX 15.1 angle +0.069 | TP median open+0.36 ATR (~1.08%), safer open+0.25 ATR
+  JNJ   close    275.20 ATR    7.39 | rvol 0.78 vol-ratio 1.26 ADX 18.8 angle -0.029 | TP median open+0.33 ATR (~0.89%), safer open+0.23 ATR
+  UNH   close    410.91 ATR   12.86 | rvol 0.63 vol-ratio 1.23 ADX 34.1 angle +0.122 | TP median open+0.31 ATR (~0.96%), safer open+0.21 ATR
+ALL DONE
