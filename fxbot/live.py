@@ -138,6 +138,10 @@ CONFIG = {"ladder": {"entry_risk": [0.01], "entry_depth_atr": [0.0],            
           # start_pct on the trading day (17:00 New York to 17:00), giving back giveback_frac of that day's best gain stops NEW entries until the next
           # trading day; open trades keep their broker stops / targets and exits. A guard, not an edge (not backtested). Undo: "profit_lock": None.
           "profit_lock": {"start_pct": 0.004, "giveback_frac": 0.35},
+          # owner 2026-10-30 ("add this to OANDA, same deal, no backtest"): per-trade virtual trail - once a trade has been +trigger_r x its risk
+          # (mid vs entry mid), it is closed at market if it gives back to keep x its best R (never below +floor_r). Not for retest_h1 (own exits,
+          # owner-approved exemption). The OANDA stop / take-profit stay as the backstop. A guard, not backtested. Undo: "trade_lock": None.
+          "trade_lock": {"trigger_r": 0.5, "keep": 0.5, "floor_r": 0.05},
           # owner 2026-10-28 ("if there's major news coming out, just pause trading, flattening ... until after, like the Fed"): from before_min
           # before to after_min after a HIGH-impact release for either currency of a pair (ForexFactory weekly calendar, cached 6 h; Fed + jobs
           # report if it cannot be read), this runner closes its own trades on that pair, drops its waiting playbook orders there and takes no
@@ -772,6 +776,20 @@ class FxPaper:
             elif g.get("neg_since"):
                 g["neg_since"] = None
                 self.save()
+        tl = self.cfg.get("trade_lock")
+        if tl:                                   # owner 2026-10-30: virtual trail - a trade that has been +trigger_r never turns back into a loss
+            risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))
+            mid_now, mid0 = (bid + ask) / 2, g.get("mid0", g.get("fill", g["avg"]) - side * (ask - bid) / 2)
+            if risk0 > 0:
+                now_r = side * (mid_now - mid0) / risk0
+                best = max(float(g.get("best_r", 0.0)), now_r)
+                if best > float(g.get("best_r", 0.0)) + 0.01:
+                    g["best_r"] = round(best, 3)
+                    self.save()
+                if best >= tl["trigger_r"] and now_r <= max(tl["keep"] * best, tl["floor_r"]):
+                    self.journal("trade_lock", group=gid, best_r=round(best, 3), now_r=round(now_r, 3), mid=round(mid_now, 6), entry_mid=round(mid0, 6))
+                    self.close_group(gid, "trade_lock")
+                    return
         tpr = self.cfg.get("take_profit_r")
         if tpr:                                  # owner: take the profit and close the whole position out at +take_profit_r x the risk
             risk0 = abs(g.get("fill", g["avg"]) - g.get("stop0", g["stop_px"]))

@@ -223,6 +223,31 @@ class FxLiveTests(unittest.TestCase):
                 self.assertEqual(r.ledger()[-1]["reason"], "take_profit_r")
                 self.assertEqual(r.ledger()[-1]["side"], "long" if side == 1 else "short")
 
+    def test_trade_lock_keeps_half_the_best_gain(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for side, sign in ((1, 1), (-1, -1)):
+                api = FakeOanda()
+                r = runner(tmp, api)
+                r.cfg["trade_lock"] = {"trigger_r": 0.5, "keep": 0.5, "floor_r": 0.05}
+                r.cfg["neg_exit_min"] = None
+                r.try_open("lien_h1", "EUR_USD", side, 0.0030, 0.0060, frame(None, 1.1000), 58000.0, "", [], f"2026-10-14T14:0{side + 1}:00+00:00")
+                gid, g = next(iter(r.groups.items()))
+                mid0 = g["mid0"]
+                api.px["EUR_USD"] = (mid0 + sign * 0.0024 - 0.00005, mid0 + sign * 0.0024 + 0.00005)    # +0.8R: armed, held
+                r.manage(gid, 58000.0, "")
+                self.assertIn(gid, r.groups)
+                api.px["EUR_USD"] = (mid0 + sign * 0.0013 - 0.00005, mid0 + sign * 0.0013 + 0.00005)    # +0.43R > 0.4R kept: held
+                r.manage(gid, 58000.0, "")
+                self.assertIn(gid, r.groups)
+                api.px["EUR_USD"] = (mid0 + sign * 0.0011 - 0.00005, mid0 + sign * 0.0011 + 0.00005)    # +0.37R: gave back past half -> out
+                r.manage(gid, 58000.0, "")
+                self.assertNotIn(gid, r.groups)
+                self.assertEqual(r.ledger()[-1]["reason"], "trade_lock")
+
+    def test_trade_lock_live(self):
+        from fxbot.live import CONFIG
+        self.assertEqual(CONFIG["trade_lock"], {"trigger_r": 0.5, "keep": 0.5, "floor_r": 0.05})
+
     def test_live_default_is_the_backtested_best_pair(self):
         from fxbot.live import CONFIG
         self.assertEqual((CONFIG["loss_cut_r"], CONFIG["take_profit_r"]), (0.50, 1.25))
