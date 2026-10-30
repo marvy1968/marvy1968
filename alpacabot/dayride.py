@@ -267,8 +267,18 @@ class DayRide:
                 if st.get("status") == "filled":
                     self.record(sym, pos, float(st.get("filled_avg_price") or pos["stop"]), "stop", now)
                     return
-        o = self.b.submit_market(sym, pos["qty"], f"rd-c-{sym}-{now.strftime('%Y%m%d%H%M')}", side="sell" if pos["side"] == 1 else "buy")
-        st = self._wait(o, now)
+        if pos.get("exit_id"):                                # 2026-10-30 fix: an exit sent earlier is still working - never send a second one
+            st = self.b.order(pos["exit_id"])                 # (09:30 orders sat in pending_new; the 09:38 retry doubled them into new positions)
+            if st.get("status") == "filled":
+                self.record(sym, pos, float(st.get("filled_avg_price") or 0), reason, now)
+                return
+            if st.get("status") not in ("canceled", "expired", "rejected"):
+                return
+            pos.pop("exit_id", None)
+        o = self.b.submit_market(sym, pos["qty"], f"rd-c-{sym}-{now.strftime('%Y%m%d%H%M%S')}", side="sell" if pos["side"] == 1 else "buy")
+        pos["exit_id"] = o.get("id") if isinstance(o, dict) else None
+        self.save()
+        st = self._wait(o, now, tries=30)
         px = float(st.get("filled_avg_price") or 0) if st.get("status") == "filled" else 0.0
         if not px:
             self.journal("exit_not_filled", now, symbol=sym, status=st.get("status"), reason=reason)

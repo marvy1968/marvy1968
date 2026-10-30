@@ -218,3 +218,31 @@ class MissedFlatTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PendingExitTests(unittest.TestCase):
+    """2026-10-30: the 09:30 exits sat in pending_new; the 09:38 retry sent a second order and opened GOOGL long / ECL short."""
+
+    def test_a_working_exit_is_never_sent_twice(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker()
+            sent = []
+
+            def slow_market(sym, qty, cid, side="buy"):
+                b.n += 1
+                o = {"id": f"m{b.n}", "status": "pending_new", "symbol": sym, "qty": qty, "side": side}
+                b.orders[o["id"]] = o
+                sent.append(o["id"])
+                return o
+            b.submit_market = slow_market
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "symbols": []}, fetch=lambda *a: daily())
+            r._wait = lambda o, now, tries=10, sleep=1.0: b.orders.get(o["id"], o) if o and o.get("id") else {"status": "rejected"}
+            r.state = {"date": "2026-10-30", "done": [], "open": {"GOOGL": {"side": -1, "qty": 3, "entry": 281.0, "stop": 285.0, "stop_id": None,
+                                                                             "opened": "x"}}}
+            now = datetime(2026, 10, 30, 9, 30, 45, tzinfo=ET)
+            r.exit("GOOGL", now, "carried over")
+            r.exit("GOOGL", now + timedelta(minutes=8), "carried over")       # still pending: no second order
+            self.assertEqual(len(sent), 1)
+            b.orders[sent[0]].update(status="filled", filled_avg_price="281.40")
+            r.exit("GOOGL", now + timedelta(minutes=9), "carried over")
+            self.assertEqual((len(sent), r.state["open"]), (1, {}))
