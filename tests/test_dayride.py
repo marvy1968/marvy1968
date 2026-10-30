@@ -188,6 +188,7 @@ class MissedFlatTests(unittest.TestCase):
         self.r.adopted = True
         pos = lambda: {"side": 1, "qty": 2, "entry": 100.0, "stop": 99.0, "stop_id": None, "opened": "x"}   # noqa: E731
         self.r.state = {"date": "2026-10-29", "done": [], "open": {"ECL": pos(), "GOOGL": pos()}}
+        self.b.held = {"ECL": 2, "GOOGL": 2}                               # still held at the broker
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -235,6 +236,7 @@ class PendingExitTests(unittest.TestCase):
                 sent.append(o["id"])
                 return o
             b.submit_market = slow_market
+            b.held = {"GOOGL": -3}
             r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
             r._wait = lambda o, now, tries=10, sleep=1.0: b.orders.get(o["id"], o) if o and o.get("id") else {"status": "rejected"}
             r.state = {"date": "2026-10-30", "done": [], "open": {"GOOGL": {"side": -1, "qty": 3, "entry": 281.0, "stop": 285.0, "stop_id": None,
@@ -277,3 +279,16 @@ class PausedRideTests(unittest.TestCase):
             r.step(datetime(2026, 10, 27, 11, 0, 30, tzinfo=ET))
             self.assertEqual(r.state["open"], {})
             self.assertEqual(b.orders, {})
+
+
+class GoneAtBrokerTests(unittest.TestCase):
+    def test_ride_closed_outside_the_bot_is_not_closed_again(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker()
+            b.held = {}                                                   # the owner already closed it
+            r = dr.DayRide(b, state_dir=d, cfg={**dr.RIDE, "paused": False, "symbols": []}, fetch=lambda *a: daily())
+            r.state = {"date": "2026-10-30", "done": [], "open": {"BAC": {"side": -1, "qty": 17, "entry": 50.0, "stop": 51.0, "stop_id": None,
+                                                                           "opened": "x"}}}
+            r.exit("BAC", datetime(2026, 10, 30, 15, 55, 30, tzinfo=ET), "15:55 flat")
+            self.assertEqual(r.state["open"], {})
+            self.assertFalse([o for o in b.orders.values() if o["id"].startswith("m")])

@@ -311,6 +311,16 @@ class DayRide:
             if st.get("status") not in ("canceled", "expired", "rejected"):
                 return
             pos.pop("exit_id", None)
+        if hasattr(self.b, "positions"):               # 2026-10-30 fix: a ride closed outside the bot (owner close) must not be "closed" again -
+            try:                                       # a second order opened AVGO long, BAC long and GE long. Nothing held that way: drop it.
+                held = int(self.b.positions().get(sym, 0))
+            except Exception:
+                held = None
+            if held is not None and (held == 0 or (held > 0) != (pos["side"] == 1)):
+                self.journal("gone_at_broker", now, symbol=sym, held=held, reason=reason)
+                self.state["open"].pop(sym, None)
+                self.save()
+                return
         o = self.b.submit_market(sym, pos["qty"], f"rd-c-{sym}-{now.strftime('%Y%m%d%H%M%S')}", side="sell" if pos["side"] == 1 else "buy")
         pos["exit_id"] = o.get("id") if isinstance(o, dict) else None
         self.save()
