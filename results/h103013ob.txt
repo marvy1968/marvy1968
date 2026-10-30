@@ -1,3 +1,32 @@
 $ show alpaca_ride/journal.jsonl
-started 2026-10-30 09:43:16 EDT
-RUNNING...
+started 2026-10-30 09:43:16 EDT, took 0s, exit 0
+
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "ABBV", "side": 1, "qty": 2, "fill": 288.15, "stop": 284.77}
+{"t": "2026-10-28T11:08:38-04:00", "kind": "open", "symbol": "AMT", "side": -1, "qty": 4, "fill": 177.04, "stop": 180.37}
+{"t": "2026-10-28T11:09:03-04:00", "kind": "open", "symbol": "JNJ", "side": 1, "qty": 3, "fill": 272.32, "stop": 268.71}
+{"t": "2026-10-28T11:26:19-04:00", "kind": "open", "symbol": "KO", "side": 1, "qty": 9, "fill": 92.24, "stop": 91.38}
+{"t": "2026-10-28T11:46:31-04:00", "kind": "open", "symbol": "MA", "side": 1, "qty": 1, "fill": 615.79, "stop": 610.39}
+{"t": "2026-10-28T12:19:05-04:00", "kind": "adopted", "symbol": "ABBV", "stop_id": "21a47479-5994-42ed-b00a-ac3ca75ae3df"}
+{"t": "2026-10-28T12:19:05-04:00", "kind": "adopted", "symbol": "AMT", "stop_id": "b058936b-0209-4a3c-81c4-c69e02b72aef"}
+{"t": "2026-10-28T12:27:47-04:00", "kind": "close", "symbol": "MA", "px": 612.77, "pl": -3.02, "reason": "trend reversed"}
+{"t": "2026-10-28T12:46:42-04:00", "kind": "close", "symbol": "KO", "px": 91.83, "pl": -3.69, "reason": "trend reversed"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "JNJ", "px": 270.886667, "pl": -4.3, "reason": "Fed decision: flat"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "ABBV", "px": 286.9, "pl": -2.5, "reason": "Fed decision: flat"}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "close", "symbol": "AMT", "px": 177.68, "pl": -2.56, "reason": "Fed decision: flat"}
+{"t": "2026-10-29T10:02:02-04:00", "kind": "open", "symbol": "MA", "side": 1, "qty": 1, "fill": 638.0, "stop": 632.66, "stop_id": "7a2d02ca-82a2-4598-9ba0-fa0049392d15"}
+{"t": "2026-10-29T10:02:02-04:00", "kind": "open", "symbol": "MRK", "side": 1, "qty": 5, "fill": 147.62, "stop": 145.24, "stop_id": "3336059b-9050-4c15-a1bf-6f4468422237"}
+{"t": "2026-10-29T10:06:26-04:00", "kind": "open", "symbol": "V", "side": 1, "qty": 2, "fill": 411.93, "stop": 408.18, "stop_id": "82737a6b-f88f-4e40-9519-abb1b282890e"}
+{"t": "2026-10-29T12:02:01-04:00", "kind": "close", "symbol": "V", "px": 410.11, "pl": -3.64, "reason": "trend reversed"}
+{"t": "2026-10-29T12:02:01-04:00", "kind": "open", "symbol": "GE", "side": 1, "qty": 2, "fill": 312.37, "stop": 307.9, "stop_id": "a8fa7a3e-0274-4435-b2fd-5003b4c0c5bd"}
+{"t": "2026-10-29T12:06:17-04:00", "kind": "close", "symbol": "MA", "px": 634.05, "pl": -3.95, "reason": "trend reversed"}
+{"t": "2026-10-29T12:06:17-04:00", "kind": "open", "symbol": "LIN", "side": -1, "qty": 1, "fill": 499.72, "stop": 503.2, "stop_id": "ef44b12a-cba2-4f0d-b26d-58478c932d48"}
+{"t": "2026-10-29T13:21:39-04:00", "kind": "close", "symbol": "LIN", "px": 501.92, "pl": -2.2, "reason": "trend reversed"}
+{"t": "2026-10-29T13:26:18-04:00", "kind": "open", "symbol": "ECL", "side": 1, "qty": 2, "fill": 299.08, "stop": 296.22, "stop_id": "e3e07688-c7d9-4c42-9d29-432723941ec3"}
+{"t": "2026-10-29T13:36:21-04:00", "kind": "close", "symbol": "GE", "px": 311.34, "pl": -2.06, "reason": "trend reversed"}
+{"t": "2026-10-29T13:46:35-04:00", "kind": "close", "symbol": "MRK", "px": 147.21, "pl": -2.05, "reason": "trend reversed"}
+{"t": "2026-10-29T14:26:24-04:00", "kind": "open", "symbol": "GOOGL", "side": -1, "qty": 3, "fill": 281.413333, "stop": 285.44, "stop_id": "b0eae0d6-5ff1-4c6b-9fb9-33d75411d246"}
+{"t": "2026-10-30T09:30:43-04:00", "kind": "carried_over", "symbols": ["ECL", "GOOGL"]}
+{"t": "2026-10-30T09:30:43-04:00", "kind": "exit_not_filled", "symbol": "ECL", "status": "pending_new", "reason": "carried over from the last session (missed flat)"}
+{"t": "2026-10-30T09:30:43-04:00", "kind": "exit_not_filled", "symbol": "GOOGL", "status": "pending_new", "reason": "carried over from the last session (missed flat)"}
+{"t": "2026-10-30T09:38:26-04:00", "kind": "close", "symbol": "ECL", "px": 302.94, "pl": 7.72, "reason": "carried over from the last session (missed flat)"}
+{"t": "2026-10-30T09:38:26-04:00", "kind": "close", "symbol": "GOOGL", "px": 281.416667, "pl": -0.01, "reason": "carried over from the last session (missed flat)"}
