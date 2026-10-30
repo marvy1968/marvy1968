@@ -1,3 +1,9 @@
 $ alpaca close-others --execute
-started 2026-10-30 15:57:25 EDT
-RUNNING...
+started 2026-10-30 15:57:25 EDT, took 5s, exit 0
+
+new bot holds: {'CVX': 23}
+KEEP (the new bot's): [('CVX', 23)]
+CANCEL 0 orders not from the new bot: 
+CLOSE 2 positions not from the new bot: BAC +17, GE +2
+close BAC 17 200 
+close GE 2 200 
