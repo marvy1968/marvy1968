@@ -1,3 +1,22 @@
 $ show alpaca_ride/trades.jsonl
-started 2026-10-30 22:39:10 EDT
-RUNNING...
+started 2026-10-30 22:39:10 EDT, took 0s, exit 0
+
+{"symbol": "MA", "side": "long", "qty": 1, "entry": 615.79, "exit": 612.77, "pl": -3.02, "r": -0.559, "reason": "trend reversed", "opened": "2026-10-28T11:46:31.207309-04:00", "closed": "2026-10-28T12:27:47.845157-04:00"}
+{"symbol": "KO", "side": "long", "qty": 9, "entry": 92.24, "exit": 91.83, "pl": -3.69, "r": -0.477, "reason": "trend reversed", "opened": "2026-10-28T11:26:19.092882-04:00", "closed": "2026-10-28T12:46:42.396906-04:00"}
+{"symbol": "JNJ", "side": "long", "qty": 3, "entry": 272.32, "exit": 270.886667, "pl": -4.3, "r": -0.397, "reason": "Fed decision: flat", "opened": "2026-10-28T11:09:03.075959-04:00", "closed": "2026-10-28T13:00:21.894508-04:00"}
+{"symbol": "ABBV", "side": "long", "qty": 2, "entry": 288.15, "exit": 286.9, "pl": -2.5, "r": -0.37, "reason": "Fed decision: flat", "opened": "2026-10-28T11:08:38-04:00", "closed": "2026-10-28T13:00:21.894508-04:00"}
+{"symbol": "AMT", "side": "short", "qty": 4, "entry": 177.04, "exit": 177.68, "pl": -2.56, "r": -0.192, "reason": "Fed decision: flat", "opened": "2026-10-28T11:08:38-04:00", "closed": "2026-10-28T13:00:21.894508-04:00"}
+{"symbol": "V", "side": "long", "qty": 2, "entry": 411.93, "exit": 410.11, "pl": -3.64, "r": -0.485, "reason": "trend reversed", "opened": "2026-10-29T10:06:26.782328-04:00", "closed": "2026-10-29T12:02:01.899818-04:00"}
+{"symbol": "MA", "side": "long", "qty": 1, "entry": 638.0, "exit": 634.05, "pl": -3.95, "r": -0.74, "reason": "trend reversed", "opened": "2026-10-29T10:02:02.154922-04:00", "closed": "2026-10-29T12:06:17.724144-04:00"}
+{"symbol": "LIN", "side": "short", "qty": 1, "entry": 499.72, "exit": 501.92, "pl": -2.2, "r": -0.632, "reason": "trend reversed", "opened": "2026-10-29T12:06:17.724144-04:00", "closed": "2026-10-29T13:21:39.233053-04:00"}
+{"symbol": "GE", "side": "long", "qty": 2, "entry": 312.37, "exit": 311.34, "pl": -2.06, "r": -0.23, "reason": "trend reversed", "opened": "2026-10-29T12:02:01.899818-04:00", "closed": "2026-10-29T13:36:21.954085-04:00"}
+{"symbol": "MRK", "side": "long", "qty": 5, "entry": 147.62, "exit": 147.21, "pl": -2.05, "r": -0.172, "reason": "trend reversed", "opened": "2026-10-29T10:02:02.154922-04:00", "closed": "2026-10-29T13:46:35.847451-04:00"}
+{"symbol": "ECL", "side": "long", "qty": 2, "entry": 299.08, "exit": 302.94, "pl": 7.72, "r": 1.35, "reason": "carried over from the last session (missed flat)", "opened": "2026-10-29T13:26:18.209093-04:00", "closed": "2026-10-30T09:38:26.787662-04:00"}
+{"symbol": "GOOGL", "side": "short", "qty": 3, "entry": 281.413333, "exit": 281.416667, "pl": -0.01, "r": -0.001, "reason": "carried over from the last session (missed flat)", "opened": "2026-10-29T14:26:24.857011-04:00", "closed": "2026-10-30T09:38:26.787662-04:00"}
+{"symbol": "ABBV", "side": "long", "qty": 2, "entry": 296.84, "exit": 293.13, "pl": -7.42, "r": -1.094, "reason": "stop", "opened": "2026-10-30T10:06:06.793015-04:00", "closed": "2026-10-30T10:31:43.483972-04:00"}
+{"symbol": "AAPL", "side": "long", "qty": 2, "entry": 348.21, "exit": 347.015, "pl": -2.39, "r": -0.394, "reason": "trend reversed", "opened": "2026-10-30T11:26:30.059186-04:00", "closed": "2026-10-30T12:56:33.945223-04:00"}
+{"symbol": "TMUS", "side": "long", "qty": 5, "entry": 154.548, "exit": 157.49, "pl": 14.71, "r": 1.099, "reason": "trend reversed", "opened": "2026-10-30T10:06:06.793015-04:00", "closed": "2026-10-30T13:56:30.334676-04:00"}
+{"symbol": "AMZN", "side": "long", "qty": 3, "entry": 240.876667, "exit": 237.37, "pl": -10.52, "r": -1.003, "reason": "stop", "opened": "2026-10-30T11:26:30.059186-04:00", "closed": "2026-10-30T14:51:35.933595-04:00"}
+{"symbol": "AVGO", "side": "short", "qty": 2, "entry": 322.69, "exit": 321.19, "pl": 3.0, "r": 0.257, "reason": "profit lock", "opened": "2026-10-30T13:56:30.334676-04:00", "closed": "2026-10-30T15:02:20.509604-04:00"}
+{"symbol": "BAC", "side": "short", "qty": 17, "entry": 50.03, "exit": 49.999412, "pl": 0.52, "r": 0.049, "reason": "15:55 flat", "opened": "2026-10-30T12:56:33.945223-04:00", "closed": "2026-10-30T15:56:28.089633-04:00"}
+{"symbol": "GE", "side": "short", "qty": 2, "entry": 300.7, "exit": 300.76, "pl": -0.12, "r": -0.013, "reason": "15:55 flat", "opened": "2026-10-30T14:51:35.933595-04:00", "closed": "2026-10-30T15:56:28.089633-04:00"}
