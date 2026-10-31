@@ -31,3 +31,9 @@ class TrendRideTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PullbackFollowUpTests(unittest.TestCase):
+    def test_pullback_report_runs(self):
+        out = tr.pullback_report({f"S{i}": bars(i) for i in range(5)}, date(2026, 9, 1), seeds=2)
+        self.assertTrue(any(x.startswith("- chosen") for x in out))

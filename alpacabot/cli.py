@@ -341,6 +341,7 @@ def run_all(a) -> int:
                     except Exception as exc:
                         print(f"skip {s_}: {exc}", flush=True)
                 lines += _tr.report(dd, today_)
+                lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
