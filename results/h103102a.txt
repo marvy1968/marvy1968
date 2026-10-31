@@ -1,3 +1,32 @@
 $ show alpaca_swing/trades.jsonl
-started 2026-10-30 22:39:06 EDT
-RUNNING...
+started 2026-10-30 22:39:06 EDT, took 0s, exit 0
+
+{"date": "2026-10-14", "symbol": "AMD", "side": "long", "qty": 5, "entry": 588.24, "exit": 573.16, "pnl": -75.4, "r": -1.006, "reason": "stop", "opened": "2026-10-14"}
+{"date": "2026-10-16", "symbol": "META", "side": "long", "qty": 2, "entry": 755.19, "exit": 710.095, "pnl": -90.19, "r": -0.724, "reason": "owner_close", "opened": "2026-10-14"}
+{"date": "2026-10-16", "symbol": "MSFT", "side": "long", "qty": 5, "entry": 543.398, "exit": 525.362, "pnl": -90.18, "r": -0.497, "reason": "owner_close", "opened": "2026-10-14"}
+{"date": "2026-10-16", "symbol": "WMT", "side": "long", "qty": 17, "entry": 118.728235, "exit": 118.84, "pnl": 1.9, "r": 0.01, "reason": "owner_close", "opened": "2026-10-16"}
+{"date": "2026-10-19", "symbol": "WMT", "side": "long", "qty": 17, "entry": 118.261765, "exit": 118.7, "pnl": 7.45, "r": 0.045, "reason": "owner_close", "opened": "2026-10-19", "strategy": "topdown"}
+{"date": "2026-10-19", "symbol": "COST", "side": "long", "qty": 3, "entry": 987.836667, "exit": 994.12, "pnl": 18.85, "r": 0.105, "reason": "owner_close", "opened": "2026-10-19", "strategy": "topdown"}
+{"date": "2026-10-19", "symbol": "COP", "side": "long", "qty": 12, "entry": 145.7325, "exit": 145.28, "pnl": -5.43, "r": -0.032, "reason": "owner_close", "opened": "2026-10-19", "strategy": "topdown"}
+{"date": "2026-10-22", "symbol": "AMZN", "side": "long", "qty": 27, "entry": 264.144444, "exit": 252.8, "pnl": -306.3, "r": -1.004, "reason": "stop", "opened": "2026-10-20", "strategy": "funnel"}
+{"date": "2026-10-22", "symbol": "GE", "side": "long", "qty": 30, "entry": 293.13, "exit": 287.3, "pnl": -174.9, "r": -1.01, "reason": "stop", "opened": "2026-10-22", "strategy": "oversold"}
+{"date": "2026-10-22", "symbol": "GOOGL", "side": "long", "qty": 30, "entry": 330.454333, "exit": 326.14, "pnl": -129.43, "r": -0.998, "reason": "stop", "opened": "2026-10-22", "strategy": "oversold"}
+{"date": "2026-10-23", "symbol": "MRK", "side": "long", "qty": 61, "entry": 147.68, "exit": 144.390328, "pnl": -200.67, "r": -0.906, "reason": "stop", "opened": "2026-10-21", "strategy": "funnel"}
+{"date": "2026-10-23", "symbol": "CAT", "side": "long", "qty": 12, "entry": 693.21, "exit": 683.0, "pnl": -122.52, "r": -1.026, "reason": "stop", "opened": "2026-10-23", "strategy": "oversold"}
+{"date": "2026-10-27", "symbol": "EQIX", "side": "long", "qty": 11, "entry": 949.11, "exit": 979.635454, "pnl": 335.78, "r": 1.591, "reason": "signal", "opened": "2026-10-23", "strategy": "oversold"}
+{"date": "2026-10-28", "symbol": "META", "side": "long", "qty": 13, "entry": 624.1, "exit": 620.13, "pnl": -51.61, "r": -0.311, "reason": "signal", "opened": "2026-10-27", "strategy": "oversold"}
+{"date": "2026-10-28", "symbol": "NFLX", "side": "long", "qty": 157, "entry": 63.04, "exit": 61.75, "pnl": -202.53, "r": -1.654, "reason": "owner_close", "opened": "2026-10-27", "strategy": "oversold"}
+{"date": "2026-10-28", "symbol": "XOM", "side": "long", "qty": 14, "entry": 180.12, "exit": 183.09, "pnl": 41.58, "r": 0.209, "reason": "owner_close", "opened": "2026-10-20", "strategy": "topdown"}
+{"date": "2026-10-28", "symbol": "EOG", "side": "long", "qty": 14, "entry": 159.407143, "exit": 161.41, "pnl": 28.04, "r": 0.135, "reason": "owner_close", "opened": "2026-10-20", "strategy": "topdown"}
+{"date": "2026-10-28", "symbol": "COP", "side": "long", "qty": 14, "entry": 145.385714, "exit": 149.586429, "pnl": 58.81, "r": 0.354, "reason": "owner_close", "opened": "2026-10-21", "strategy": "topdown"}
+{"date": "2026-10-28", "symbol": "PM", "side": "long", "qty": 36, "entry": 199.199444, "exit": 203.05, "pnl": 138.62, "r": 0.432, "reason": "owner_close", "opened": "2026-10-22", "strategy": "funnel"}
+{"date": "2026-10-28", "symbol": "SPY", "side": "long", "qty": 12, "entry": 767.51, "exit": 771.635833, "pnl": 49.51, "r": 0.132, "reason": "owner_close", "opened": "2026-10-27", "strategy": "trend200"}
+{"date": "2026-10-28", "symbol": "WMT", "side": "long", "qty": 39, "entry": 118.38, "exit": 118.42, "pnl": 1.56, "r": 0.007, "reason": "owner_close", "opened": "2026-10-28", "strategy": "topdown"}
+{"date": "2026-10-28", "symbol": "MSFT", "side": "long", "qty": 8, "entry": 533.63875, "exit": 527.5725, "pnl": -48.53, "r": -0.506, "reason": "owner_close", "opened": "2026-10-28", "strategy": "funnel"}
+{"date": "2026-10-28", "symbol": "TSLA", "side": "long", "qty": 5, "entry": 408.304, "exit": 402.0, "pnl": -31.52, "r": -0.137, "reason": "owner_close", "opened": "2026-10-28", "strategy": "topdown"}
+{"date": "2026-10-30", "symbol": "QQQ", "side": "long", "qty": 20, "entry": 695.376, "exit": 685.05, "pnl": -206.52, "r": -0.341, "reason": "owner_close", "opened": "2026-10-30", "strategy": "trend200"}
+{"date": "2026-10-30", "symbol": "SPY", "side": "long", "qty": 15, "entry": 768.91, "exit": 751.736, "pnl": -257.61, "r": -0.688, "reason": "owner_close", "opened": "2026-10-29", "strategy": "trend200"}
+{"date": "2026-10-30", "symbol": "BRK.B", "side": "long", "qty": 14, "entry": 548.91, "exit": 543.47, "pnl": -76.16, "r": -0.26, "reason": "owner_close", "opened": "2026-10-30", "strategy": "weekpicks"}
+{"date": "2026-10-30", "symbol": "MA", "side": "long", "qty": 5, "entry": 641.55, "exit": 638.59, "pnl": -14.8, "r": -0.081, "reason": "owner_close", "opened": "2026-10-30", "strategy": "weekpicks"}
+{"date": "2026-10-30", "symbol": "V", "side": "long", "qty": 15, "entry": 416.306, "exit": 413.345333, "pnl": -44.41, "r": -0.133, "reason": "owner_close", "opened": "2026-10-30", "strategy": "weekpicks"}
+{"date": "2026-10-30", "symbol": "SPG", "side": "long", "qty": 19, "entry": 218.386842, "exit": 217.72, "pnl": -12.67, "r": -0.041, "reason": "owner_close", "opened": "2026-10-30", "strategy": "weekpicks"}
