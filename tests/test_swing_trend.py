@@ -270,3 +270,19 @@ class WeekPicksFilterTests(unittest.TestCase):
             self.assertEqual([e["symbol"] for e in r.state["plan"]["deferred"]], ["V"])
             r.open(now.replace(hour=10, minute=1), late=True, wait_until=now)                  # still inside the window: skipped
             self.assertEqual(b.sent, [])
+
+
+class WeekPicksPausedTests(unittest.TestCase):
+    def test_paused_batch_is_logged_not_ordered(self):
+        import json
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(None, state_dir=d, base_equity=50000.0)
+            log = Path(d) / "wp.json"
+            log.write_text(json.dumps({"batches": [{"made": "2026-11-05", "picks": [{"symbol": "V", "close": 410.0, "stop_10d_low": 394.0, "tp_est": 428.0}]}]}))
+            r.zone_config = lambda: {"live": True, "weekpicks": {"live": True, "new_entries": False, "log": str(log), "heat_map": False}}
+            spy = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2026-10-29", "2026-11-05"))
+            held = {"CVX": {"qty": 23, "entry": 234.68, "stop": 220.41, "side": 1, "strategy": "weekpicks", "entry_date": "2026-10-30"}}
+            now = datetime(2026, 11, 5, 16, 25, tzinfo=ZoneInfo("America/New_York"))
+            exits, entries = r.weekpicks_plan(spy, {"V": 410.0}, held, [], [], 50000.0, 40000.0, False, now)
+            self.assertEqual((exits, entries), (["CVX"], []))                 # the held pick still exits after 5 sessions; no new buys

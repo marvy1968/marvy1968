@@ -363,6 +363,9 @@ class SwingRunner:
         batch = next((b for b in st.get("batches", []) if b.get("made") == today and b.get("picks") and not b.get("ordered")), None)
         if batch is None or locked:
             return exits, entries
+        if not cfg.get("new_entries", True):          # owner 2026-10-31: paused - batches are still picked and graded (log only); held picks keep their exits
+            self.journal("weekpicks_logged", now, picks=[p["symbol"] for p in batch["picks"]])
+            return exits, entries
         cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)
         risk_pct = self.weekpicks_risk(cfg, equity, now)
         planned, heat_cache = [], {}
