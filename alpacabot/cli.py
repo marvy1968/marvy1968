@@ -344,6 +344,20 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "pacer":                     # owner 2026-10-31: relative-strength leaders ridden to ATR TP zones (alpacabot.pacer)
+                import datetime as _dt
+                from . import pacer as _pc
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {}
+                for s_ in sorted(set(STOCKS) | {"SPY"}):
+                    try:
+                        dd[s_] = load(s_, "1Day", today_ - _dt.timedelta(days=1500), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _pc.report(dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "zone_learn_pivot":          # owner 2026-10-29: learn buy / sell / TP zones around yesterday's range (fxbot.sneaky)
                 import datetime as _dt
                 from fxbot import sneaky as _sk
