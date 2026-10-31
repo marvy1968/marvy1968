@@ -134,7 +134,7 @@ class LogOnlyTests(unittest.TestCase):
         import json
         from pathlib import Path
         z = json.loads(Path(sp.__file__).with_name("zones.json").read_text())["swing"]
-        self.assertFalse(z["topdown"]["new_entries"])
+        self.assertTrue(z["topdown"]["new_entries"])              # owner 2026-10-31: back on
         self.assertFalse(z["funnel"]["new_entries"])
         self.assertFalse(z["oversold"]["new_entries"])
         self.assertTrue(z["index_trend"]["live"])
