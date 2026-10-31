@@ -1,3 +1,15 @@
 $ alpaca run-all --phase validate --families trendride
-started 2026-10-30 23:10:58 EDT
-RUNNING...
+started 2026-10-30 23:10:58 EDT, took 39s, exit 0
+
+daily data ready
+## trendride: the scanner picks an already-trending stock; the test is the TP zone and the sell (10 bps a side, random-stock control x20)
+### A PULLBACK to the 20-day EMA, stop 1 ATR, TP zone +1.5 ATR, sell on a close under the 50-day
+- last 2 weeks: 9 t, win 44%, PF 1.17, +0.6R, avg +0.07R | random stocks median +0.1R, beaten 12/20 | fail (under 20 trades: thin)
+- last 6 months: 176 t, win 43%, PF 1.03, +2.9R, avg +0.02R | random stocks median -17.3R, beaten 20/20
+### B HOLD from the day it turns trending, stop 1.5 ATR, TP zone +2 ATR, sell on a close under the 20-day EMA
+- last 2 weeks: 9 t, win 33%, PF 0.95, -0.2R, avg -0.02R | random stocks median +0.0R, beaten 8/20 | fail (under 20 trades: thin)
+- last 6 months: 85 t, win 35%, PF 0.84, -6.7R, avg -0.08R | random stocks median +0.7R, beaten 2/20
+## trendride pullback follow-up: 173 entries 2026-04-30..2026-07-31 (choose) / 126 entries 2026-07-31..2026-10-29 (confirm)
+top 5 on the first 3 months (stop ATR / TP ATR / sell rule): 1.0/1.0/None 103 t, win 54%, PF 1.04, +1.9R, avg +0.02R; 1.0/1.5/sma50 100 t, win 42%, PF 1.02, +0.8R, avg +0.01R; 1.0/1.5/None 92 t, win 45%, PF 1.00, +0.2R, avg +0.00R; 1.0/1.0/sma50 108 t, win 50%, PF 0.98, -0.9R, avg -0.01R; 1.5/1.5/sma50 99 t, win 44%, PF 0.97, -1.1R, avg -0.01R
+- chosen 1.0 ATR stop / TP 1.0 ATR / sell None: unseen last 3 months 88 t, win 55%, PF 1.08, +3.5R, avg +0.04R | random stocks median -4.1R, beaten 16/20 | yesterday's version on the same months 78 t, win 44%, PF 1.06, +2.3R, avg +0.03R | fail
+ALL DONE
