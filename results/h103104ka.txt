@@ -1,3 +1,24 @@
 $ alpaca run-all --phase validate --families pacer
-started 2026-10-30 23:12:41 EDT
-RUNNING...
+started 2026-10-30 23:12:41 EDT, took 35s, exit 0
+
+daily data ready
+## pacer: relative-strength leaders (top 20% 50-day RS vs SPY, 20-day RS > 0, ADX > 25, up-day volume) ridden to ATR TP zones; 55 stocks, 177 pacer signals, 10 bps a side
+### T2 = +3 ATR (T1 +2 ATR half off, stop 1.5 ATR -> break-even, trail after +1R, 20 sessions max)
+- since 2023: 170 t, win 56%, PF 1.18, +13.8R | random stocks median +9.7R, beaten 12/20 | SPY same days 68 t, win 51%, PF 0.91, -3.0R
+- 2023: 46 t, win 59%, PF 1.70, +12.3R
+- 2024: 52 t, win 60%, PF 1.33, +6.6R
+- 2025: 41 t, win 49%, PF 0.79, -5.4R
+- last 12 months: 36 t, win 58%, PF 1.04, +0.7R | random stocks median -0.2R, beaten 11/20 | SPY same days 20 t, win 45%, PF 0.51, -5.8R
+- last 6 months: 18 t, win 56%, PF 0.83, -1.7R
+- last 2 weeks: 2 t, win 0%, PF 0.00, -2.1R | random stocks median -0.0R, beaten 2/20 | SPY same days 1 t, win 100%, PF 99.00, +0.5R
+- verdict: fail
+### T2 = measured move (20-day range, at least +2.5 ATR) (T1 +2 ATR half off, stop 1.5 ATR -> break-even, trail after +1R, 20 sessions max)
+- since 2023: 170 t, win 56%, PF 1.22, +17.3R | random stocks median +12.1R, beaten 13/20 | SPY same days 61 t, win 56%, PF 1.02, +0.6R
+- 2023: 46 t, win 59%, PF 1.77, +13.6R
+- 2024: 52 t, win 60%, PF 1.36, +7.3R
+- 2025: 41 t, win 49%, PF 0.81, -5.0R
+- last 12 months: 36 t, win 58%, PF 1.17, +2.9R | random stocks median +0.3R, beaten 12/20 | SPY same days 19 t, win 47%, PF 0.53, -5.1R
+- last 6 months: 18 t, win 56%, PF 0.78, -2.1R
+- last 2 weeks: 2 t, win 0%, PF 0.00, -2.1R | random stocks median -0.0R, beaten 2/20 | SPY same days 1 t, win 100%, PF 99.00, +0.5R
+- verdict: fail
+ALL DONE
