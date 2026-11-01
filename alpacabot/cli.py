@@ -344,6 +344,20 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "anglepacer":                # owner 2026-11-01: trend-angle pacer spec (alpacabot.anglepacer), holdout 2024-now
+                import datetime as _dt
+                from . import anglepacer as _ap
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {}
+                for s_ in sorted(set(STOCKS)):
+                    try:
+                        dd[s_] = load(s_, "1Day", _dt.date(2018, 6, 1), today_, cache)
+                    except Exception as exc:
+                        print(f"skip {s_}: {exc}", flush=True)
+                lines += _ap.report(dd, today_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "pacer":                     # owner 2026-10-31: relative-strength leaders ridden to ATR TP zones (alpacabot.pacer)
                 import datetime as _dt
                 from . import pacer as _pc
