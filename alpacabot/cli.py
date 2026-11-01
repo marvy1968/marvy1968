@@ -344,18 +344,14 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam == "anglepacer":                # owner 2026-11-01: trend-angle pacer spec (alpacabot.anglepacer), holdout 2024-now
+            if fam == "anglepacer":                # owner 2026-11-01: Trend-Angle Pacer spec v1 (state/trend_angle_pacer_SPEC.md), research only
                 import datetime as _dt
                 from . import anglepacer as _ap
                 from .universe import STOCKS
-                today_ = _dt.date.today()
-                dd = {}
-                for s_ in sorted(set(STOCKS)):
-                    try:
-                        dd[s_] = load(s_, "1Day", _dt.date(2018, 6, 1), today_, cache)
-                    except Exception as exc:
-                        print(f"skip {s_}: {exc}", flush=True)
-                lines += _ap.report(dd, today_)
+                from fxbot.data import load as _fxl
+                syms = sorted(set(STOCKS) | {"SPY", "QQQ"})
+                lines += _ap.run(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), lambda s_, tf, a_, b_: _fxl(s_, tf, a_, b_, Path("state/fx/cache")),
+                                 syms, _dt.date.today(), Path("state/reports/trend_angle_pacer"), log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)
                 continue
             if fam == "pacer":                     # owner 2026-10-31: relative-strength leaders ridden to ATR TP zones (alpacabot.pacer)
