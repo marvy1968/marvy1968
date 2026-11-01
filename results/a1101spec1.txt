@@ -1,3 +1,88 @@
 $ show trend_angle_pacer_SPEC.md
-started 2026-11-01 17:07:50 EST
-RUNNING...
+started 2026-11-01 17:07:50 EST, took 0s, exit 0
+
+# Trend-Angle Pacer — Research Spec (v1, 2026-11-01)
+Status: RESEARCH ONLY. Log-only shadow at most. Nothing goes live, no service is touched, no keys printed, without Marvin's explicit approval.
+Do NOT touch: aj-bet-bot, marv-live, marv-bot (never restart marv-bot.service), kalshi-demo, polymarket-paper, or any live Alpaca/OANDA bot.
+Work folder on VM (136.119.238.123): create a NEW folder `~/research/trend_angle_pacer/`. Reuse existing walk-forward / random-control / exit-lab harness code by import or copy; do not edit it.
+
+## 1. Pacer design
+All indicators computed on CLOSED bars only (bar t uses data <= close of t; act at open of t+1).
+
+### 1.1 Trend angle (per timeframe)
+- ATR = Wilder ATR(14).
+- slope_t = OLS slope of close over last N bars (N=20 base TF), price units/bar.
+- angle_t = slope_t / ATR_t   (ATR per bar; dimensionless "ATR per bar").
+- deg_t = atan(angle_t) in degrees (reporting only).
+- fit quality R2_t of that regression (0..1).
+- strength_t = angle_t * sqrt(R2_t).
+- accel_t = angle_t − angle_{t−5}  (steepening >0 in uptrend, flattening <0).
+
+### 1.2 Multi-timeframe agreement
+| Market | Base TF (entries) | Higher TF (filter) |
+|---|---|---|
+| Stocks | 1H (RTH only) | Daily |
+| Stocks (alt) | Daily | Weekly |
+| Forex | H1 | H4 |
+Higher TF uses only its last CLOSED bar (no partial higher-TF bar = no lookahead).
+
+### 1.3 Direction
+- LONG if strength_base >= +0.05 AND strength_HTF >= +0.05 AND R2_base >= 0.35 AND accel_base > −0.02 (not sharply flattening).
+- SHORT mirror (<= −0.05, accel < +0.02). Stocks: shorts allowed for test, report long-only and long+short separately.
+- else NONE. Defaults to sweep ONLY on train: angle thr {0.03,0.05,0.08}, N {14,20,30}, R2 {0.25,0.35,0.5}. Max 27 combos; pick by train PF, freeze before holdout.
+
+### 1.4 Zones (computed at close of bar t, valid next K=5 base bars)
+- Regression line value at t: L_t (fitted price at last bar).
+- BUY zone (uptrend): [L_t − 1.0·ATR, L_t − 0.25·ATR]  (pullback into/under trend line). Limit entry at zone top; fill only if next bar low <= price (fill at limit + slippage). Cancel after K bars.
+- SELL/short zone (downtrend): [L_t + 0.25·ATR, L_t + 1.0·ATR], limit at zone bottom.
+- STOP: long = zone bottom − 1.0·ATR (≈ ≥1.75 ATR from entry; NO tight stops). Short mirror.
+- TP zone: projected = entry + angle·ATR·H (H=10 bars horizon); TP_low = projected, TP_high = projected + 1.0·ATR. Exit at TP_low. Enforce TP distance >= 1.5·ATR and >= 6× round-trip cost, else skip trade.
+- Time stop: exit at close after H·2 =20 bars. Also exit if direction flips to opposite on base TF (at next open).
+- One position per symbol; max 5 concurrent stocks / 4 forex; risk 0.5% equity per trade (R = entry−stop).
+
+### Pseudo-code
+```
+for t in bars (time order, all symbols merged by timestamp):
+    update open orders/positions with bar t (see 3.3 rules)
+    if bar t closed:
+        a,r2,acc = angle(base,N); A = angle(HTF_last_closed,N)
+        dir = LONG/SHORT/NONE per 1.3
+        if dir!=NONE and no position: place limit at zone edge, stop, tp, expiry=t+K
+        log zone record (symbol,t,dir,zone,stop,tp) for zone-hit test
+```
+
+## 2. Markets & data
+- Stocks: SPY, QQQ + ~40 liquid US names (top by $ volume, e.g. AAPL MSFT NVDA AMZN META GOOGL TSLA AVGO JPM XOM UNH LLY V MA HD COST NFLX AMD CRM ORCL ...). Use a FIXED list chosen from 2018 liquidity, or point-in-time list (survivorship bias warning). Data: Alpaca historical bars (IEX/SIP as available), 1H RTH + Daily, 2018-01 → now. Split-adjusted.
+- Forex: EUR_USD GBP_USD USD_JPY AUD_USD USD_CAD USD_CHF NZD_USD; OANDA practice candles mid + bid/ask, H1/H4, 2018 → now. Use existing cached data on VM if present.
+
+## 3. Testing instructions (for Claude)
+3.1 Strict time order: one event loop over merged timestamps; no vectorized future-shift; signals at close t, earliest fill at bar t+1. Unit-test: shifting future data must not change past signals.
+3.2 No lookahead: rolling stats only; HTF from last closed bar; param selection on train only; universe fixed.
+3.3 Intrabar rule: if a bar touches both stop and TP (or entry and stop in the fill bar), assume STOP first. Gaps: fill at open if open beyond stop/limit (worse price). Daily-bar results must be confirmed on 1H bars; if daily PF > hourly PF by >0.2, treat daily as inflated.
+3.4 Costs (round trip applied per trade):
+ - Stocks: $0 commission, slippage 0.02% each side + half-spread 0.01% (large caps) ; SPY/QQQ 0.01%. Short borrow 0.5%/yr.
+ - Forex: real OANDA spreads if bid/ask available, else EURUSD 1.4 pip, USDJPY 1.5, GBPUSD 2.0, AUD/NZD/CAD/CHF 2.0–2.5 pip, + 0.3 pip slippage each side, +1 pip extra during 17:00–18:00 ET rollover; financing ignored but noted.
+ - Sensitivity: rerun at 2× costs; must still be PF > 1.0.
+3.5 Split: Train 2018-01-01 → 2023-12-31; Holdout 2024-01-01 → now (untouched until params frozen). Also report last 6 months and calendar 2025 separately.
+3.6 Walk-forward: rolling 3y train / 6m test, step 6m, re-pick params each window; report stitched OOS.
+3.7 Random controls (20 seeds): same symbols, same bar count of entries per month, same direction mix, same stop/TP/time-stop rules & costs, random entry timestamps. Also 20 "shuffled-direction" controls (real entry times, random direction). Pacer must beat control PF in >=16/20 for BOTH.
+3.8 Zone-hit test: for every zone record (filled or not), label hit = price reaches TP_low before stop within 20 bars (stop-first rule). Compare to (a) random-time zones with same geometry, (b) theoretical chance = stop_dist/(stop_dist+tp_dist). Report hit rate, chance rate, binomial p-value. Better than chance only if p<0.05 on holdout.
+
+## 4. Pass bar (per market: stocks-1H, stocks-daily, forex)
+ALL required: holdout PF > 1.1 after costs; >=100 holdout trades; train PF > 1.0 with positive return; beats random >=16/20 (and shuffled >=16/20); PF > 1.0 at 2× costs. Fail any → FAIL.
+
+## 5. Known traps (Marvin's history)
+- Daily-bar range fade showed +383R, became −57R in strict time order → intrabar/lookahead inflation. Verify on 1H.
+- Prior momentum pacer (leaders + ATR TP): PF 1.18–1.22 since 2023 but lost in 2025 and last 6 mo; beat random only 12–13/20 → report per-year PF; decay = red flag.
+- Pullback-in-uptrend beat random 20/20 but break-even after costs → costs matter more than signal.
+- Tight stops / fast scalps killed by costs → keep stops >=1.75 ATR, TP >= 6× cost.
+- Forex trend experts PF 0.30 → expect forex to fail; don't overfit to rescue.
+- Most entries no better than random → random controls mandatory. Sector Top-Down PF 1.54/11y is the benchmark to beat.
+- Too-good results (PF>2, smooth equity) = assume bug; audit fills.
+
+## 6. Report table Claude must return
+| Market/TF | Params | Train PF | Train Ret% | Holdout PF | Holdout Ret% | Win% | MaxDD% | Holdout trades | PF @2× cost | Random beats /20 | Shuffled beats /20 | Zone hit% vs chance (p) | 2025 PF | Last 6m PF | WF OOS PF | PASS/FAIL |
+Plus: file paths, code commit/hash, one paragraph of caveats, recommendation (log-only shadow or drop).
+
+## 7. Rule
+Log-only. Even a PASS only qualifies for a log-only shadow (writes predicted zones to a CSV, places no orders). No live wiring, no service edits/restarts, no key printing, nothing live without Marvin's approval.
