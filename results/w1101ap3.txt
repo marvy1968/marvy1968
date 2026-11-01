@@ -1,3 +1,163 @@
 $ alpaca run-all --phase validate --families anglepacer
-started 2026-11-01 17:30:08 EST
-RUNNING...
+started 2026-11-01 17:30:08 EST, took 4466s, exit 0
+
+daily data ready
+loaded AAPL: 2471 daily, 15680 hourly
+loaded ABBV: 2471 daily, 15638 hourly
+loaded AMT: 2471 daily, 15614 hourly
+loaded AMZN: 2471 daily, 15678 hourly
+loaded APD: 2471 daily, 15610 hourly
+loaded AVGO: 2471 daily, 15661 hourly
+loaded BAC: 2471 daily, 15655 hourly
+loaded BKNG: 2471 daily, 15636 hourly
+loaded BRK.B: 2471 daily, 15644 hourly
+loaded CAT: 2471 daily, 15631 hourly
+loaded CEG: 1191 daily, 8325 hourly
+loaded COP: 2471 daily, 15630 hourly
+loaded COST: 2471 daily, 15659 hourly
+loaded CVX: 2471 daily, 15644 hourly
+loaded DIS: 2471 daily, 15653 hourly
+loaded DUK: 2471 daily, 15619 hourly
+loaded ECL: 2471 daily, 15618 hourly
+loaded EOG: 2471 daily, 15635 hourly
+loaded EQIX: 2471 daily, 15630 hourly
+loaded GE: 2471 daily, 15654 hourly
+loaded GEV: 649 daily, 4537 hourly
+loaded GOOGL: 2471 daily, 15669 hourly
+loaded HD: 2471 daily, 15638 hourly
+loaded JNJ: 2471 daily, 15644 hourly
+loaded JPM: 2471 daily, 15656 hourly
+loaded KO: 2471 daily, 15652 hourly
+loaded LIN: 2010 daily, 14008 hourly
+loaded LLY: 2471 daily, 15629 hourly
+loaded MA: 2471 daily, 15625 hourly
+loaded MCD: 2471 daily, 15635 hourly
+loaded META: 2471 daily, 15679 hourly
+loaded MRK: 2471 daily, 15638 hourly
+loaded MSFT: 2471 daily, 15679 hourly
+loaded NEE: 2471 daily, 15632 hourly
+loaded NEM: 2471 daily, 15639 hourly
+loaded NFLX: 2471 daily, 15677 hourly
+loaded NVDA: 2471 daily, 15680 hourly
+loaded ORCL: 2471 daily, 15644 hourly
+loaded PG: 2471 daily, 15633 hourly
+loaded PLD: 2471 daily, 15609 hourly
+loaded PM: 2471 daily, 15631 hourly
+loaded QQQ: 2471 daily, 15680 hourly
+loaded RTX: 2471 daily, 15631 hourly
+loaded SHW: 2471 daily, 15611 hourly
+loaded SO: 2471 daily, 15617 hourly
+loaded SPG: 2471 daily, 15615 hourly
+loaded SPY: 2471 daily, 15680 hourly
+loaded TMUS: 2471 daily, 15649 hourly
+loaded TSLA: 2471 daily, 15678 hourly
+loaded UBER: 1880 daily, 13133 hourly
+loaded UNH: 2471 daily, 15628 hourly
+loaded V: 2471 daily, 15632 hourly
+loaded VST: 2383 daily, 15618 hourly
+loaded WELL: 2471 daily, 15607 hourly
+loaded WMB: 2471 daily, 15619 hourly
+loaded WMT: 2471 daily, 15649 hourly
+loaded XOM: 2471 daily, 15650 hourly
+  stocks-daily (weekly filter) (0.03, 14, 0.25): 2010 trades
+  stocks-daily (weekly filter) (0.03, 14, 0.35): 2018 trades
+  stocks-daily (weekly filter) (0.03, 14, 0.5): 1956 trades
+  stocks-daily (weekly filter) (0.03, 20, 0.25): 1879 trades
+  stocks-daily (weekly filter) (0.03, 20, 0.35): 1879 trades
+  stocks-daily (weekly filter) (0.03, 20, 0.5): 1885 trades
+  stocks-daily (weekly filter) (0.03, 30, 0.25): 1566 trades
+  stocks-daily (weekly filter) (0.03, 30, 0.35): 1566 trades
+  stocks-daily (weekly filter) (0.03, 30, 0.5): 1567 trades
+  stocks-daily (weekly filter) (0.05, 14, 0.25): 1937 trades
+  stocks-daily (weekly filter) (0.05, 14, 0.35): 1929 trades
+  stocks-daily (weekly filter) (0.05, 14, 0.5): 1877 trades
+  stocks-daily (weekly filter) (0.05, 20, 0.25): 1776 trades
+  stocks-daily (weekly filter) (0.05, 20, 0.35): 1776 trades
+  stocks-daily (weekly filter) (0.05, 20, 0.5): 1745 trades
+  stocks-daily (weekly filter) (0.05, 30, 0.25): 1433 trades
+  stocks-daily (weekly filter) (0.05, 30, 0.35): 1433 trades
+  stocks-daily (weekly filter) (0.05, 30, 0.5): 1429 trades
+  stocks-daily (weekly filter) (0.08, 14, 0.25): 1788 trades
+  stocks-daily (weekly filter) (0.08, 14, 0.35): 1794 trades
+  stocks-daily (weekly filter) (0.08, 14, 0.5): 1774 trades
+  stocks-daily (weekly filter) (0.08, 20, 0.25): 1576 trades
+  stocks-daily (weekly filter) (0.08, 20, 0.35): 1575 trades
+  stocks-daily (weekly filter) (0.08, 20, 0.5): 1555 trades
+  stocks-daily (weekly filter) (0.08, 30, 0.25): 1204 trades
+  stocks-daily (weekly filter) (0.08, 30, 0.35): 1204 trades
+  stocks-daily (weekly filter) (0.08, 30, 0.5): 1203 trades
+  stocks-1H (daily filter) (0.03, 14, 0.25): 13892 trades
+  stocks-1H (daily filter) (0.03, 14, 0.35): 13807 trades
+  stocks-1H (daily filter) (0.03, 14, 0.5): 13425 trades
+  stocks-1H (daily filter) (0.03, 20, 0.25): 12901 trades
+  stocks-1H (daily filter) (0.03, 20, 0.35): 12870 trades
+  stocks-1H (daily filter) (0.03, 20, 0.5): 12511 trades
+  stocks-1H (daily filter) (0.03, 30, 0.25): 11319 trades
+  stocks-1H (daily filter) (0.03, 30, 0.35): 11305 trades
+  stocks-1H (daily filter) (0.03, 30, 0.5): 11166 trades
+  stocks-1H (daily filter) (0.05, 14, 0.25): 13331 trades
+  stocks-1H (daily filter) (0.05, 14, 0.35): 13244 trades
+  stocks-1H (daily filter) (0.05, 14, 0.5): 12750 trades
+  stocks-1H (daily filter) (0.05, 20, 0.25): 11947 trades
+  stocks-1H (daily filter) (0.05, 20, 0.35): 11926 trades
+  stocks-1H (daily filter) (0.05, 20, 0.5): 11610 trades
+  stocks-1H (daily filter) (0.05, 30, 0.25): 9948 trades
+  stocks-1H (daily filter) (0.05, 30, 0.35): 9938 trades
+  stocks-1H (daily filter) (0.05, 30, 0.5): 9804 trades
+  stocks-1H (daily filter) (0.08, 14, 0.25): 12282 trades
+  stocks-1H (daily filter) (0.08, 14, 0.35): 12202 trades
+  stocks-1H (daily filter) (0.08, 14, 0.5): 11798 trades
+  stocks-1H (daily filter) (0.08, 20, 0.25): 10760 trades
+  stocks-1H (daily filter) (0.08, 20, 0.35): 10711 trades
+  stocks-1H (daily filter) (0.08, 20, 0.5): 10411 trades
+  stocks-1H (daily filter) (0.08, 30, 0.25): 8098 trades
+  stocks-1H (daily filter) (0.08, 30, 0.35): 8099 trades
+  stocks-1H (daily filter) (0.08, 30, 0.5): 8047 trades
+loaded EUR_USD: 57013 H1
+loaded GBP_USD: 57016 H1
+loaded AUD_USD: 57007 H1
+loaded NZD_USD: 57028 H1
+loaded USD_JPY: 57030 H1
+loaded USD_CAD: 57039 H1
+loaded USD_CHF: 57017 H1
+  forex-H1 (H4 filter) (0.03, 14, 0.25): 10653 trades
+  forex-H1 (H4 filter) (0.03, 14, 0.35): 10611 trades
+  forex-H1 (H4 filter) (0.03, 14, 0.5): 10258 trades
+  forex-H1 (H4 filter) (0.03, 20, 0.25): 7546 trades
+  forex-H1 (H4 filter) (0.03, 20, 0.35): 7541 trades
+  forex-H1 (H4 filter) (0.03, 20, 0.5): 7436 trades
+  forex-H1 (H4 filter) (0.03, 30, 0.25): 5235 trades
+  forex-H1 (H4 filter) (0.03, 30, 0.35): 5235 trades
+  forex-H1 (H4 filter) (0.03, 30, 0.5): 5212 trades
+  forex-H1 (H4 filter) (0.05, 14, 0.25): 9557 trades
+  forex-H1 (H4 filter) (0.05, 14, 0.35): 9518 trades
+  forex-H1 (H4 filter) (0.05, 14, 0.5): 9200 trades
+  forex-H1 (H4 filter) (0.05, 20, 0.25): 6677 trades
+  forex-H1 (H4 filter) (0.05, 20, 0.35): 6674 trades
+  forex-H1 (H4 filter) (0.05, 20, 0.5): 6579 trades
+  forex-H1 (H4 filter) (0.05, 30, 0.25): 4562 trades
+  forex-H1 (H4 filter) (0.05, 30, 0.35): 4562 trades
+  forex-H1 (H4 filter) (0.05, 30, 0.5): 4549 trades
+  forex-H1 (H4 filter) (0.08, 14, 0.25): 8177 trades
+  forex-H1 (H4 filter) (0.08, 14, 0.35): 8153 trades
+  forex-H1 (H4 filter) (0.08, 14, 0.5): 7881 trades
+  forex-H1 (H4 filter) (0.08, 20, 0.25): 5557 trades
+  forex-H1 (H4 filter) (0.08, 20, 0.35): 5554 trades
+  forex-H1 (H4 filter) (0.08, 20, 0.5): 5484 trades
+  forex-H1 (H4 filter) (0.08, 30, 0.25): 3592 trades
+  forex-H1 (H4 filter) (0.08, 30, 0.35): 3592 trades
+  forex-H1 (H4 filter) (0.08, 30, 0.5): 3584 trades
+## Trend-Angle Pacer (spec v1, /opt/marv-bot/state/trend_angle_pacer_SPEC.md) - train 2018-2023, holdout 2024-01-01..2026-11-01
+| Market/TF | Params | Train PF | Train Ret% | Holdout PF | Holdout Ret% | Win% | MaxDD% | Holdout trades | PF @2x cost | Random beats /20 | Shuffled beats /20 | Zone hit% vs chance (p) | 2025 PF (n) | Last 6m PF (n) | WF OOS PF (n) | PASS/FAIL |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| stocks-daily (weekly filter) | thr 0.08, N 30, R2 0.25 | 0.61 | -61.4 | 0.70 | -31.2 | 38% | 36.5 | 386 | 0.68 | 0/20 | 0/20 | 60% vs 46% (p=0.000); random zones 69% (p=0.999), n=570 | 0.55 (116) | 0.38 (41) | 0.66 (756) | FAIL |
+| stocks-daily (weekly filter) LONG ONLY | same | 0.70 | -45.3 | 0.75 | -24.4 | 40% | 30.5 | 351 | 0.73 | 0/20 | 0/20 | - | - | - | - | FAIL |
+| stocks-1H (daily filter) | thr 0.08, N 20, R2 0.5 | 0.48 | -100.0 | 0.55 | -99.6 | 32% | 99.7 | 3328 | 0.49 | 0/20 | 0/20 | 52% vs 44% (p=0.000); random zones 60% (p=1.000), n=4878 | 0.58 (1079) | 0.57 (549) | 0.49 (7310) | FAIL |
+| stocks-1H (daily filter) LONG ONLY | same | 0.56 | -99.9 | 0.61 | -97.0 | 34% | 97.0 | 2487 | 0.56 | 0/20 | 0/20 | - | - | - | - | FAIL |
+| forex-H1 (H4 filter) | thr 0.08, N 14, R2 0.5 | 0.65 | -99.7 | 0.60 | -95.9 | 37% | 96.1 | 2393 | 0.49 | 0/20 | 0/20 | 48% vs 42% (p=0.000); random zones 52% (p=1.000), n=2586 | 0.63 (861) | 0.50 (400) | 0.60 (5334) | FAIL |
+
+- stocks-daily (weekly filter): per-year PF 2018 0.54 (123), 2019 0.75 (115), 2020 0.56 (128), 2021 0.57 (149), 2022 0.52 (116), 2023 0.83 (106), 2024 0.89 (181), 2025 0.55 (116), 2026 0.57 (89) | holdout exits {'tp': 128, 'stop': 236, 'time': 22, 'flip': 0} | long 346 t PF 0.74, short 40 t PF 0.42 | random median PF 1.42, shuffled median PF 1.01
+- stocks-1H (daily filter): per-year PF 2018 0.48 (1075), 2019 0.50 (1154), 2020 0.56 (1105), 2021 0.48 (1263), 2022 0.46 (1241), 2023 0.44 (1169), 2024 0.55 (1271), 2025 0.58 (1079), 2026 0.50 (978) | holdout exits {'tp': 881, 'stop': 2201, 'time': 246, 'flip': 0} | long 2260 t PF 0.59, short 1068 t PF 0.45 | random median PF 1.41, shuffled median PF 0.93
+- forex-H1 (H4 filter): per-year PF 2018 0.72 (879), 2019 0.65 (896), 2020 0.74 (896), 2021 0.63 (854), 2022 0.67 (856), 2023 0.51 (817), 2024 0.58 (842), 2025 0.63 (861), 2026 0.59 (690) | holdout exits {'tp': 627, 'stop': 1333, 'time': 433, 'flip': 0} | long 1291 t PF 0.62, short 1102 t PF 0.58 | random median PF 0.91, shuffled median PF 0.76
+- HOURLY CHECK: stocks-daily holdout PF 0.70 on daily bars vs 0.69 replayed on 1H bars (386 trades, 0 with no hourly fill) -> daily result holds on hourly bars; stocks-1H strategy holdout PF 0.55
+ALL DONE
