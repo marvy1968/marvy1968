@@ -1,0 +1,3 @@
+$ fx-experts-entries risk 0.15
+started 2026-11-02 06:54:22 EST
+RUNNING...
