@@ -1,3 +1,64 @@
 $ alpaca run-all --phase validate --families stairstep
-started 2026-11-01 20:33:44 EST
-RUNNING...
+started 2026-11-01 20:33:44 EST, took 236s, exit 0
+
+daily data ready
+universe: main 55 stocks, control 21, sector ETFs 11
+  A long: (63, 2, 'weekly') train PF 2.02 (30), holdout PF 1.04 (18)
+  A short: no combo had 30 train trades (max 23)
+  A both: (42, 2, 'weekly') train PF 1.25 (40), holdout PF 0.61 (23)
+  A2 long: no combo had 30 train trades (max 11)
+  A2 short: no combo had 30 train trades (max 13)
+  A2 both: no combo had 30 train trades (max 23)
+  B long: (63, 2, 'weekly') train PF 2.89 (30), holdout PF 0.85 (18)
+  B short: no combo had 30 train trades (max 23)
+  B both: (42, 3, 'anchored') train PF 1.49 (53), holdout PF 0.61 (33)
+  Bfull long: (63, 3, 'anchored') train PF 1.60 (40), holdout PF 1.51 (28)
+  Bfull short: no combo had 30 train trades (max 23)
+  Bfull both: (42, 3, 'anchored') train PF 1.17 (52), holdout PF 0.65 (29)
+  A long: no combo had 30 train trades (max 18)
+  A both: no combo had 30 train trades (max 21)
+  B long: no combo had 30 train trades (max 19)
+  B both: no combo had 30 train trades (max 21)
+## Stair-Step Trend Pipeline (spec v1, /opt/marv-bot/state/stair_step_trend_SPEC.md) - train 2018-2023, holdout 2024-01-01..2026-11-01
+**SURVIVORSHIP-BIASED**: no point-in-time S&P 500 list on the VM; main universe = today's 55 largest (5 per sector). Cross-check on the 2016-largest control list below.
+
+### Main universe (55, survivorship-biased)
+| Variant | Side | Params | Train PF | Train Ret% | Holdout PF | Holdout Ret% | Win% | Avg R | MaxDD% | Holdout trades | PF @2x | Random /20 | Shuffled /20 | 2025 PF (n) | Last 6m PF (n) | WF OOS PF (n) | PASS/FAIL |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A | long | RS 63d top/bottom 2, VWAP weekly | 2.02 | +6.6 | 1.04 | +0.2 | 44% | +0.02 (-63 bps) | 2.6 | 18 | 0.89 | 13/20 | 13/20 | 0.83 (5) | 0.77 (4) | 0.85 (5) | FAIL |
+| A | short | - | no combo with 30+ train trades (max 23) | | | | | | | | | | | | | | |
+| A | both | RS 42d top/bottom 2, VWAP weekly | 1.25 | +2.9 | 0.61 | -4.5 | 43% | -0.26 (-125 bps) | 8.3 | 23 | 0.47 | 11/20 | 10/20 | 0.45 (8) | 0.69 (5) | 0.70 (78) | FAIL |
+| A2 | long | - | no combo with 30+ train trades (max 11) | | | | | | | | | | | | | | |
+| A2 | short | - | no combo with 30+ train trades (max 13) | | | | | | | | | | | | | | |
+| A2 | both | - | no combo with 30+ train trades (max 23) | | | | | | | | | | | | | | |
+| B | long | RS 63d top/bottom 2, VWAP weekly | 2.89 | +7.3 | 0.85 | -0.8 | 56% | -0.06 (-67 bps) | 2.5 | 18 | 0.68 | 11/20 | 10/20 | 0.68 (5) | 0.71 (4) | 1.04 (5) | FAIL |
+| B | short | - | no combo with 30+ train trades (max 23) | | | | | | | | | | | | | | |
+| B | both | RS 42d top/bottom 3, VWAP anchored | 1.49 | +4.8 | 0.61 | -4.5 | 45% | -0.19 (-68 bps) | 8.3 | 33 | 0.45 | 3/20 | 7/20 | 0.46 (13) | 0.93 (6) | 1.00 (73) | FAIL |
+| Bfull | long | RS 63d top/bottom 3, VWAP anchored | 1.60 | +5.0 | 1.51 | +3.1 | 68% | +0.15 (+38 bps) | 1.9 | 28 | 1.23 | 12/20 | 19/20 | 1.58 (7) | 1.19 (5) | 23.65 (4) | FAIL |
+| Bfull | short | - | no combo with 30+ train trades (max 23) | | | | | | | | | | | | | | |
+| Bfull | both | RS 42d top/bottom 3, VWAP anchored | 1.17 | +2.0 | 0.65 | -3.4 | 48% | -0.16 (-73 bps) | 7.2 | 29 | 0.49 | 3/20 | 8/20 | 0.44 (10) | 0.93 (6) | 0.88 (70) | FAIL |
+
+### Cross-check: 2016-largest control list (21 names, chosen without hindsight, not point-in-time)
+| Variant | Side | Params | Train PF | Train Ret% | Holdout PF | Holdout Ret% | Win% | Avg R | MaxDD% | Holdout trades | PF @2x | Random /20 | Shuffled /20 | 2025 PF (n) | Last 6m PF (n) | WF OOS PF (n) | PASS/FAIL |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl A | long | - | no combo with 30+ train trades (max 18) | | | | | | | | | | | | | | |
+| ctrl A | both | - | no combo with 30+ train trades (max 21) | | | | | | | | | | | | | | |
+| ctrl B | long | - | no combo with 30+ train trades (max 19) | | | | | | | | | | | | | | |
+| ctrl B | both | - | no combo with 30+ train trades (max 21) | | | | | | | | | | | | | | |
+
+Trend-Angle Pacer (2026-11-01, same rules): stocks-daily holdout PF 0.70 (386 t), stocks-1H 0.55, forex-H1 0.60 - all FAIL.
+
+- A both, per year: 2018 0.06 (5), 2019 2.32 (7), 2020 1.01 (5), 2021 1.44 (11), 2022 3.48 (5), 2023 1.73 (7), 2024 0.36 (8), 2025 0.45 (8), 2026 1.54 (7)
+  holdout exits: {'stop': 9, 'trail': 7, 'trendbreak': 5, 'breakeven': 2} | random median PF 0.57, shuffled median 0.61 | avg trade -125 bps vs 24 bps round-trip cost | holdout Ret% at 0.5/0.75/1.0% risk: -3.0/-4.5/-5.9
+- B both, per year: 2018 0.51 (5), 2019 2.05 (9), 2020 0.68 (10), 2021 1.69 (13), 2022 4.69 (8), 2023 1.52 (8), 2024 0.45 (12), 2025 0.46 (13), 2026 2.16 (8)
+  holdout exits: {'stop': 15, 'tpsignal': 7, 'tp4': 6, 'trendbreak': 2, 'trail': 1, 'breakeven': 1, 'end': 1} | random median PF 0.91, shuffled median 0.71 | avg trade -68 bps vs 24 bps round-trip cost | holdout Ret% at 0.5/0.75/1.0% risk: -3.0/-4.5/-6.0
+- Bfull both, per year: 2018 0.07 (5), 2019 2.05 (9), 2020 0.70 (10), 2021 0.88 (13), 2022 4.69 (8), 2023 1.79 (7), 2024 0.50 (11), 2025 0.44 (10), 2026 2.16 (8)
+  holdout exits: {'stop': 12, 'tpsignal': 7, 'tp4': 5, 'trendbreak': 2, 'trail': 1, 'breakeven': 1, 'end': 1} | random median PF 0.92, shuffled median 0.80 | avg trade -73 bps vs 24 bps round-trip cost | holdout Ret% at 0.5/0.75/1.0% risk: -2.3/-3.4/-4.5
+- A both, holdout per sector: XLB PF 99.00 (1 t, +1.0R), XLC PF 0.26 (2 t, -0.8R), XLE PF 0.37 (5 t, -2.8R), XLF PF 99.00 (1 t, +0.9R), XLK PF 1.67 (4 t, +1.3R), XLP PF 0.00 (1 t, -1.1R), XLRE PF 99.00 (1 t, +0.9R), XLU PF 99.00 (2 t, +1.2R), XLV PF 0.11 (4 t, -2.6R), XLY PF 0.00 (2 t, -3.8R)
+- ablation (A exits, both sides, frozen params; holdout PF / trades | train PF):
+  entry triggers only, every stock: 0.81 / 632 | 0.85 (1340)
+  + weekly stage: 0.88 / 454 | 0.80 (866)
+  + sector RS: 1.01 / 127 | 1.26 (240)
+  + watchlist gates / top 3 (= A): 0.61 / 23 | 1.25 (40)
+- HOURLY CHECK (A both, 23 holdout trades replayed on 1H bars): PF 0.61 on daily bars vs 0.61 on hourly, mean R -0.26 vs -0.26 -> daily result holds
+ALL DONE
