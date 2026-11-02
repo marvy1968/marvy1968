@@ -1274,6 +1274,7 @@ class PaperRunner:
                         self._lock_min = now.minute                 # once a minute, after the 09:20 open job is done
                         sr = SwingRunner(RestBroker(), state_dir="state/alpaca_swing")
                         res = sr.profit_lock(now, sr.b.quote)
+                        res.update(sr.stair_partials(now, sr.b.quote))   # owner 2026-11-02: stair-step partials (alpacabot.stairlive)
                         if res:
                             self.journal("swing_profit_lock", result=res)
                             send_telegram("SWING (paper) profit lock: " + ", ".join(f"{k} {v}" for k, v in res.items()))

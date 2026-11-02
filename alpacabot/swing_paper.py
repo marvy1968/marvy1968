@@ -105,7 +105,7 @@ class SwingRunner:
     def record(self, sym: str, pos: dict, px: float, reason: str, when: datetime):
         side = pos.get("side", 1)
         pnl = side * (px - pos["entry"]) * pos["qty"]
-        risk = side * (pos["entry"] - pos["stop"]) * pos["qty"]
+        risk = side * (pos["entry"] - pos.get("r_stop", pos["stop"])) * pos["qty"]
         with open(self.dir / "trades.jsonl", "a") as f:
             f.write(json.dumps({"date": when.date().isoformat(), "symbol": sym, "side": "long" if side == 1 else "short", "qty": pos["qty"],
                                 "entry": pos["entry"], "exit": px, "pnl": round(pnl, 2), "r": round(pnl / risk, 3) if risk > 0 else 0.0,
@@ -211,6 +211,7 @@ class SwingRunner:
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.weekpicks_plan(spy, closes, held, exits, entries, equity, cash, locked, now)
+        exits, entries = self.stairstep_plan(held, exits, entries, equity, cash, locked, now)
         exits, entries = self.trend_filters(held, exits, entries, now)
         self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
@@ -244,7 +245,7 @@ class SwingRunner:
         rev = []
         if TREND_FILTERS.get("reversal"):
             for sym, p in held.items():
-                if sym in exits:
+                if sym in exits or p.get("strategy") == "stairstep":   # stair-step exits by its own rules
                     continue
                 d = bars(sym)
                 if len(d) >= 60 and int(reversal(d)[-1]) == -p.get("side", 1):
@@ -260,7 +261,7 @@ class SwingRunner:
         from fxbot.strongtrend import votes
         step = float(STAIR.get("step_r", 1.0))
         for sym, pos in held.items():
-            if sym in exits or pos.get("side", 1) != 1:
+            if sym in exits or pos.get("side", 1) != 1 or pos.get("strategy") == "stairstep":   # stair-step has its own runner trail
                 continue
             d = daily_bars(sym, now, self.fetch, days=420)
             if len(d) < 270 or int(votes(d)["long_state"].iloc[-1]) != 1 and not pos.get("stair"):
@@ -657,6 +658,144 @@ class SwingRunner:
         self._save()
         return sent
 
+    def stairstep_plan(self, held: dict, exits: list, entries: list, equity: float, cash: float, locked: bool, now) -> tuple:
+        """Owner 2026-11-02 ("small paper trade"): Stair-Step variant A, long only, 0.25% risk (alpacabot.stairlive; zones.json
+        swing.stairstep). Backtest FAILED the bar - this is the owner's paper override, graded as strategy "stairstep"."""
+        cfg = self.zone_config().get("stairstep") or {}
+        if not cfg.get("live"):
+            return exits, entries
+        from . import stairlive
+        names = sorted(set(universe.SECTOR_OF) | set(universe.SECTOR_ETFS) | {"SPY"})
+        bars = {}
+        for s_ in names:
+            try:
+                bars[s_] = daily_bars(s_, now, self.fetch, days=600)
+            except Exception as exc:
+                self.journal("stairstep_data_error", now, symbol=s_, error=str(exc)[:120])
+        try:
+            res = stairlive.plan(bars, now.astimezone(ET).date(), held, universe.SECTOR_OF, universe.SECTOR_ETFS,
+                                 {**cfg, "new_entries": cfg.get("new_entries", True) and not locked})
+        except Exception as exc:
+            log.exception("stairstep plan failed")
+            self.journal("stairstep_error", now, error=f"{type(exc).__name__}: {str(exc)[:200]}")
+            return exits, entries
+        today = now.astimezone(ET).date().isoformat()
+        for sym, b in res["below"].items():
+            held[sym].update(below=b, below_day=today)
+        for sym, why in res["exits"]:
+            if sym not in exits:
+                exits.append(sym)
+                held[sym]["exit_why"] = why
+        for sym, new in res["trail"].items():
+            if sym not in exits:
+                self._move_stop(sym, held[sym], new, now, f"st-{today.replace('-', '')}")
+                held[sym]["trail"] = new
+        cash -= sum(e["qty"] * e.get("signal_close", 0.0) for e in entries if e.get("side", 1) == 1)
+        planned = []
+        for e in res["entries"]:
+            px, stop = e["signal_close"], e["stop"]
+            risk_ps = (px - stop) + px * SLIP_BPS / 1e4
+            qty = int(min(equity * float(cfg.get("risk_pct", 0.0025)) / risk_ps, equity * float(cfg.get("max_frac", 0.15)) / px,
+                          max(cash, 0) / px)) if risk_ps > 0 else 0
+            if qty < 1 or any(x["symbol"] == e["symbol"] for x in entries):
+                continue
+            cash -= qty * px
+            entries.append({**e, "qty": qty, "side": 1, "strategy": "stairstep"})
+            planned.append(e["symbol"])
+        self.journal("stairstep_plan", now, watchlist=res["watchlist"], entries=planned, exits=res["exits"], trail=res["trail"],
+                     skipped=res.get("skipped"))
+        return exits, entries
+
+    def _cancel_wait(self, oid) -> str:
+        """Cancel a broker order and wait until Alpaca has processed it (shares stay held_for_orders until then)."""
+        try:
+            self.b.cancel_order(oid)
+        except Exception:
+            log.exception("cancel %s", oid)
+        st = {}
+        for _ in range(20):
+            try:
+                st = self.b.order(oid) or {}
+            except Exception:
+                st = {}
+            if st.get("status") in ("canceled", "filled", "expired", "rejected"):
+                break
+            self.sleep(0.5)
+        return st.get("status", "")
+
+    def _move_stop(self, sym: str, pos: dict, new: float, now, tag: str) -> bool:
+        try:
+            if pos.get("stop_order_id") and self._cancel_wait(pos["stop_order_id"]) == "filled":
+                self.settle_stops(now)
+                return False
+            so = self.b.submit_order(sym, pos["qty"], "sell", "stop", "gtc", f"sw-s-{sym}-{tag}", stop_price=round(new, 2))
+        except Exception as exc:
+            self.journal("stop_move_error", now, symbol=sym, error=str(exc)[:200])
+            _alert(f"SWING (paper): {sym} stop move to {new:.2f} FAILED ({type(exc).__name__}) - check its broker stop")
+            return False
+        pos.update(stop=round(new, 2), stop_order_id=so.get("id") if isinstance(so, dict) else None)
+        self.journal("stop_moved", now, symbol=sym, stop=round(new, 2), strategy=pos.get("strategy"))
+        return True
+
+    def stair_partials(self, now: datetime, quote, wait_s: float = 30.0) -> dict:
+        """Stair-step partial take-profits, checked once a minute: 1/3 at tp1 (+1R, then stop -> entry + costs), 1/3 at tp2 (+1.5R).
+        The broker stop is cancelled first, the part sold at market, and a new stop placed for the rest. quote(sym) -> (bid, ask)."""
+        out = {}
+        tag = now.astimezone(ET).strftime("%Y%m%d%H%M")
+        for sym, pos in list(self.state["positions"].items()):
+            if pos.get("strategy") != "stairstep" or int(pos.get("parts", 0)) >= 2:
+                continue
+            k = int(pos.get("parts", 0))
+            level = float(pos["tp1"] if k == 0 else pos["tp2"])
+            try:
+                bid = float(quote(sym)[0])
+            except Exception as exc:
+                self.journal("partial_quote_error", now, symbol=sym, error=str(exc)[:120])
+                continue
+            if bid < level:
+                continue
+            part = max(1, int(pos.get("qty0", pos["qty"])) // 3)
+            if pos["qty"] - part < 1:
+                part = pos["qty"]
+            if pos.get("stop_order_id") and self._cancel_wait(pos["stop_order_id"]) == "filled":
+                self.settle_stops(now)
+                continue
+            try:
+                o = self.b.submit_order(sym, part, "sell", "market", "day", f"sw-p{k + 1}-{sym}-{tag}")
+                st, waited = {}, 0.0
+                while waited <= wait_s:
+                    st = self.b.order(o["id"]) or {}
+                    if st.get("status") in ("filled", "rejected", "canceled", "expired"):
+                        break
+                    self.sleep(2)
+                    waited += 2
+            except Exception as exc:
+                st = {"status": f"error {type(exc).__name__}"}
+            if st.get("status") == "filled":
+                px = float(st.get("filled_avg_price") or bid)
+                self.record(sym, {**pos, "qty": part}, px, f"tp{k + 1}", now)
+                pos["qty"] -= part
+                pos["parts"] = k + 1
+                if k == 0:
+                    pos["stop"] = max(float(pos["stop"]), round(pos["entry"] * (1 + 0.0024), 2))
+                out[sym] = f"sold {part} @ {px:.2f} (tp{k + 1})"
+            else:
+                self.journal("partial_not_filled", now, symbol=sym, status=st.get("status"))
+                out[sym] = f"tp{k + 1} sell NOT filled ({st.get('status')}); stop re-placed"
+            if pos["qty"] <= 0:
+                del self.state["positions"][sym]
+                continue
+            try:
+                so = self.b.submit_order(sym, pos["qty"], "sell", "stop", "gtc", f"sw-s-{sym}-{tag}", stop_price=round(pos["stop"], 2))
+                pos["stop_order_id"] = so.get("id") if isinstance(so, dict) else None
+            except Exception as exc:
+                pos["stop_order_id"] = None
+                _alert(f"SWING (paper): {sym} stop after partial FAILED ({type(exc).__name__}) - {pos['qty']} shares have NO broker stop")
+            self.journal("stair_partial", now, symbol=sym, part=k + 1, result=out[sym], stop=pos["stop"], left=pos["qty"])
+        if out:
+            self._save()
+        return out
+
     def profit_lock(self, now: datetime, quote, cfg=None) -> dict:
         """Owner 2026-10-30 ("virtual trail stop so a profitable trade does not turn back", no backtest): once a swing position has been
         trigger_r x its initial risk in profit, a VIRTUAL stop (watched by the bot, not sent to Alpaca) sits at entry + keep x the best gain
@@ -667,6 +806,8 @@ class SwingRunner:
             return {}
         out, changed = {}, False
         for sym, pos in list(self.state["positions"].items()):
+            if pos.get("strategy") == "stairstep":           # its own partials + runner trail (stair_partials)
+                continue
             side = pos.get("side", 1)
             risk = side * (pos["entry"] - float(pos.get("stop0", pos["stop"])))
             if risk <= 0:
@@ -769,6 +910,9 @@ class SwingRunner:
         pos = {"qty": qty, "entry": px, "stop": e["stop"], "entry_date": now.astimezone(ET).date().isoformat()}
         if side == -1 or e.get("strategy"):
             pos.update(side=side, strategy=e.get("strategy", "topdown"))
+        if e.get("strategy") == "stairstep":                 # 1/3 at +1R, 1/3 at +1.5R (stair_partials), R from the actual fill
+            r0 = px - e["stop"]
+            pos.update(r_stop=e["stop"], qty0=qty, parts=0, tp1=round(px + r0, 2), tp2=round(px + 1.5 * r0, 2), below=0)
         if side * (px - e["stop"]) <= 0:                 # opened at/through its stop: the backtest takes no such trade, so get out now
             self.b.submit_order(sym, qty, close_side, "market", "day", f"sw-g-{sym}-{now.astimezone(ET):%Y%m%d}")
             self.record(sym, pos, px, "gap_below_stop", now)
@@ -827,7 +971,7 @@ def summary(state_dir="state/alpaca_swing") -> list[str]:
     w = sum(t["pnl"] > 0 for t in trades)
     lines = ["", "SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)",
              f"  closed trades {len(trades)}, {w}W/{len(trades) - w}L, P&L ${sum(t['pnl'] for t in trades):+,.0f}"]
-    for strat in ("topdown", "funnel", "oversold"):
+    for strat in ("topdown", "funnel", "oversold", "stairstep"):
         ts = [t for t in trades if t.get("strategy", "topdown") == strat]
         if ts and strat != "topdown":
             lines.append(f"  {strat}: {len(ts)} trades, {sum(t['pnl'] > 0 for t in ts)}W, P&L ${sum(t['pnl'] for t in ts):+,.0f}")
