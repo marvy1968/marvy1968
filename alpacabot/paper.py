@@ -1296,6 +1296,14 @@ class PaperRunner:
                         self.vwap.step(now)
                 except Exception:
                     log.exception("vwap sleeve step failed (continuing)")
+                try:                                                # owner 2026-11-02: Velez-Confirmed day bot (alpacabot.velez), paper, 0.1%
+                    from .velez import VELEZ_LIVE, VelezLive
+                    if VELEZ_LIVE:
+                        if getattr(self, "velez", None) is None:
+                            self.velez = VelezLive(RestBroker())
+                        self.velez.step(now)
+                except Exception:
+                    log.exception("velez sleeve step failed (continuing)")
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot

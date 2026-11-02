@@ -44,6 +44,7 @@ class VwapLive:
         self.state = json.loads(self.path.read_text()) if self.path.exists() else {}
         self.last_min = None
         self.adx_cache = {}
+        self.prefix = "vw"                                   # client order id prefix (the Velez sleeve subclasses this class)
 
     # ---------------------------------------------------------------- plumbing
     def save(self):
@@ -86,7 +87,7 @@ class VwapLive:
         pc = np.r_[np.nan, c[:-1]]
         tr = np.nanmax(np.c_[h - l, np.abs(h - pc), np.abs(l - pc)], axis=1)
         return {"atrd": float(vd._wilder(tr)[-1]), "prev_close": float(c[-1]), "adv20": float(np.mean((c * v)[-20:])),
-                "dvol60": float(np.mean((c * v)[-60:]))}
+                "dvol60": float(np.mean((c * v)[-60:])), "advsh20": float(np.mean(v[-20:]))}
 
     def bars(self, sym: str, now: datetime, m: int, days: int = 0) -> pd.DataFrame:
         """IEX minute bars from 09:30 (days back) to now, completed bars only, as vwapday.minute_frame rows."""
@@ -287,7 +288,7 @@ class VwapLive:
         if qty < 1:
             return
         tag = now.strftime("%Y%m%d%H%M")
-        o = self.b.submit_market(sym, qty, f"vw-o-{sym}-{tag}", side="buy" if side == 1 else "sell")
+        o = self.b.submit_market(sym, qty, f"{self.prefix}-o-{sym}-{tag}", side="buy" if side == 1 else "sell")
         stt = self._wait(o)
         if stt.get("status") != "filled":
             self.journal("entry_not_filled", now, symbol=sym, status=stt.get("status"))
@@ -303,7 +304,7 @@ class VwapLive:
             self.state["open"][sym] = pos
             self.safe_exit(sym, now, "filled_through_stop")
             return
-        so = self.b.submit_order(sym, qty, "sell" if side == 1 else "buy", "stop", "day", f"vw-s-{sym}-{tag}", stop_price=round(sig["stop"], 2))
+        so = self.b.submit_order(sym, qty, "sell" if side == 1 else "buy", "stop", "day", f"{self.prefix}-s-{sym}-{tag}", stop_price=round(sig["stop"], 2))
         pos["stop_id"] = so.get("id") if isinstance(so, dict) else None
         self.state["open"][sym] = pos
         self.journal("open", now, symbol=sym, strategy=strat, side=side, qty=qty, fill=fill, stop=sig["stop"], slippage_bps=round(
@@ -386,7 +387,7 @@ class VwapLive:
             return
         try:
             so = self.b.submit_order(sym, pos["qty"], "sell" if pos["side"] == 1 else "buy", "stop", "day",
-                                     f"vw-t-{sym}-{now:%Y%m%d%H%M}", stop_price=new)
+                                     f"{self.prefix}-t-{sym}-{now:%Y%m%d%H%M}", stop_price=new)
             pos.update(stop=new, stop_id=so.get("id") if isinstance(so, dict) else None)
             self.journal("trail", now, symbol=sym, stop=new)
         except Exception as exc:
@@ -402,13 +403,13 @@ class VwapLive:
             so = self.b.order(pos["stop_id"])
             self.record(sym, pos, float(so.get("filled_avg_price") or pos["stop"]), pos["qty"], "stop", now)
             return
-        o = self.b.submit_market(sym, part, f"vw-p-{sym}-{now:%Y%m%d%H%M}", side="sell" if pos["side"] == 1 else "buy")
+        o = self.b.submit_market(sym, part, f"{self.prefix}-p-{sym}-{now:%Y%m%d%H%M}", side="sell" if pos["side"] == 1 else "buy")
         st = self._wait(o)
         if st.get("status") == "filled":
             self.record(sym, pos, float(st.get("filled_avg_price") or 0), part, "tp1", now)
         pos["parts"] = 1
         if pos["qty"] > 0 and sym in self.state["open"]:
-            so = self.b.submit_order(sym, pos["qty"], "sell" if pos["side"] == 1 else "buy", "stop", "day", f"vw-s2-{sym}-{now:%Y%m%d%H%M}",
+            so = self.b.submit_order(sym, pos["qty"], "sell" if pos["side"] == 1 else "buy", "stop", "day", f"{self.prefix}-s2-{sym}-{now:%Y%m%d%H%M}",
                                      stop_price=round(pos["stop"], 2))
             pos["stop_id"] = so.get("id") if isinstance(so, dict) else None
 
@@ -442,7 +443,7 @@ class VwapLive:
             self.journal("gone_at_broker", now, symbol=sym, held=held, reason=reason)
             self.state["open"].pop(sym, None)
             return
-        o = self.b.submit_market(sym, pos["qty"], f"vw-c-{sym}-{now:%Y%m%d%H%M%S}", side="sell" if pos["side"] == 1 else "buy")
+        o = self.b.submit_market(sym, pos["qty"], f"{self.prefix}-c-{sym}-{now:%Y%m%d%H%M%S}", side="sell" if pos["side"] == 1 else "buy")
         pos["exit_id"] = o.get("id") if isinstance(o, dict) else None
         self.save()
         st = self._wait(o, tries=30)

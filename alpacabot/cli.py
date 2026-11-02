@@ -344,6 +344,13 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "velez_bt":                      # owner 2026-11-02: Velez-Confirmed day bot backtest (alpacabot.velez)
+                import datetime as _dt
+                from . import velez as _ve
+                lines += _ve.backtest(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), _dt.date.today(), Path("state/vwap_daytrade"),
+                                      log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam in ("vwapday", "vwapday_data", "vwapday_2w"):   # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday)
                 import datetime as _dt
                 from . import vwapday as _vd
@@ -2251,10 +2258,11 @@ def main(argv=None) -> int:
         if swing_state.exists():
             for s_, p_ in (json.loads(swing_state.read_text()).get("positions") or {}).items():
                 own[s_] = own.get(s_, 0) + int(p_["qty"])
-        vwap_state = Path(a.state).parent / "alpaca_vwap" / "state.json"      # owner 2026-11-02: the VWAP day-trade sleeve's positions are owned too
-        if vwap_state.exists():
-            for s_, p_ in (json.loads(vwap_state.read_text()).get("open") or {}).items():
-                own[s_] = own.get(s_, 0) + int(p_["qty"]) * int(p_.get("side", 1))
+        for sleeve in ("alpaca_vwap", "alpaca_velez"):                        # owner 2026-11-02: the day-trade sleeves' positions are owned too
+            st_ = Path(a.state).parent / sleeve / "state.json"
+            if st_.exists():
+                for s_, p_ in (json.loads(st_.read_text()).get("open") or {}).items():
+                    own[s_] = own.get(s_, 0) + int(p_["qty"]) * int(p_.get("side", 1))
         pos = requests.get(f"{api}/positions", headers=h, timeout=30).json()
         orders = requests.get(f"{api}/orders", headers=h, params={"status": "open", "limit": 500}, timeout=30).json()
         cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith(("ab-", "sw-"))]
