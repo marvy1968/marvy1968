@@ -46,5 +46,25 @@ class FxexpEntriesTests(unittest.TestCase):
         self.assertIsNone(vm_link.parse("fx-experts-entries delete")[0])
         self.assertIsNone(vm_link.parse("fx-experts-entries")[0])
 
+    def test_risk_sets_only_risk_pct_within_bounds(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "config.json")
+            cfg = {"systems": ["a"], "risk_pct": 0.25, "no_new_entries": True}
+            Path(p).write_text(json.dumps(cfg))
+            self.assertEqual(fe.main(["risk", "0.1"], p), 0)
+            new = json.loads(Path(p).read_text())
+            self.assertEqual(new["risk_pct"], 0.1)
+            self.assertTrue(new["no_new_entries"])
+            for bad in ("0.5", "1", "0.01", "x"):
+                self.assertEqual(fe.main(["risk", bad], p), 2)
+            self.assertEqual(json.loads(Path(p).read_text())["risk_pct"], 0.1)
+
+    def test_vm_link_risk_passes_the_value(self):
+        import vm_link
+        argv, err = vm_link.parse("fx-experts-entries risk 0.1")
+        self.assertEqual((err, argv[2:]), ("", ["risk", "0.1"]))
+        self.assertIsNone(vm_link.parse("fx-experts-entries risk 5")[0])
+
+
 if __name__ == "__main__":
     unittest.main()

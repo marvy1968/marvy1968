@@ -16,7 +16,7 @@ Accepted job lines:
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   read-bot-reports /abs/folder  tails of that bot's logs + heads of reports/csv (secrets scrubbed)
   export-bot <name> /abs/folder redacted copy of that bot's code into exports/<name>/ (committed to the vm-link branch)
-  fx-experts-entries status|stop|resume  show / set only no_new_entries in the fx-experts bot's config (deploy/fxexp_entries.py)
+  fx-experts-entries status|stop|resume|risk <0.05..0.25>  show / set only no_new_entries or risk_pct in the fx-experts bot's config
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
@@ -96,9 +96,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
             return None, "alpaca needs download, backtest, run-all, check or paper-report"
         return as_bot + [py, "-m", "alpacabot", *args], ""
     if cmd == "fx-experts-entries":  # owner 2026-10-28: show / set ONLY no_new_entries in /opt/fx-experts/config/config.json (deploy/fxexp_entries.py)
-        if len(args) != 1 or args[0] not in ("status", "stop", "resume"):
-            return None, "fx-experts-entries needs status, stop or resume"
-        return ["python3", str(BOT / "deploy/fxexp_entries.py"), args[0]], ""
+        if not ((len(args) == 1 and args[0] in ("status", "stop", "resume")) or
+                (len(args) == 2 and args[0] == "risk" and re.fullmatch(r"0\.\d{1,4}", args[1]))):
+            return None, "fx-experts-entries needs status, stop, resume or risk <0.05..0.25>"
+        return ["python3", str(BOT / "deploy/fxexp_entries.py"), *args], ""
     if cmd == "export-bot":  # redacted copy of a bot folder into exports/<name>/ on the vm-link branch (no 200 KB output limit)
         if len(args) != 2 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]) or not args[1].startswith("/") or ".." in args[1]:
             return None, "export-bot needs <name> /abs/folder"
