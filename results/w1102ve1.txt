@@ -1,3 +1,69 @@
 $ alpaca run-all --phase validate --families velez_bt
-started 2026-11-02 18:12:38 EST
-RUNNING...
+started 2026-11-02 18:12:38 EST, took 69s, exit 0
+
+daily data ready
+[1/55] AAPL
+[2/55] ABBV
+[3/55] AMT
+[4/55] AMZN
+[5/55] APD
+[6/55] AVGO
+[7/55] BAC
+[8/55] BKNG
+[9/55] BRK.B
+[10/55] CAT
+[11/55] CEG
+[12/55] COP
+[13/55] COST
+[14/55] CVX
+[15/55] DIS
+[16/55] DUK
+[17/55] ECL
+[18/55] EOG
+[19/55] EQIX
+[20/55] GE
+[21/55] GEV
+[22/55] GOOGL
+[23/55] HD
+[24/55] JNJ
+[25/55] JPM
+[26/55] KO
+[27/55] LIN
+[28/55] LLY
+[29/55] MA
+[30/55] MCD
+[31/55] META
+[32/55] MRK
+[33/55] MSFT
+[34/55] NEE
+[35/55] NEM
+[36/55] NFLX
+[37/55] NVDA
+[38/55] ORCL
+[39/55] PG
+[40/55] PLD
+[41/55] PM
+[42/55] RTX
+[43/55] SHW
+[44/55] SO
+[45/55] SPG
+[46/55] TMUS
+[47/55] TSLA
+[48/55] UBER
+[49/55] UNH
+[50/55] V
+[51/55] VST
+[52/55] WELL
+[53/55] WMB
+[54/55] WMT
+[55/55] XOM
+## Velez-Confirmed day bot - backtest 2026-08-05..2026-10-30 (62 sessions), 55 stocks, README rules (alpacabot/velez.py), long only, flat 15:50, 3 bps a side. SHORT HISTORY: about 3 months - a sample, not proof.
+| Set | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Random-entry beaten |
+|---|---|---|---|---|---|---|---|---|---|
+| all | 110 | 35% | 0.62 | +1.29 | -1.16 | -0.287 | -31.6 | 0.42 | 4/20 (median PF 0.69) |
+| trend | 110 | 35% | 0.62 | +1.29 | -1.16 | -0.287 | -31.6 | - | - |
+| exhaustion | 0 | 0% | 0.00 | +0.00 | +0.00 | +0.000 | +0.0 | - | - |
+| last 2 weeks | 19 | 32% | 0.50 | +1.16 | -1.07 | -0.365 | -6.9 | - | - |
+- exits: {'stop': 64, 'eod_1550': 24, 'trail': 10, 't2': 9, 'be': 3}; by month: 2026-08 PF 0.61 (34, -10.2R), 2026-09 PF 0.58 (27, -8.6R), 2026-10 PF 0.64 (49, -12.8R)
+- watchlist size per day: avg 4.1; days with no watchlist: 3
+ALL DONE
