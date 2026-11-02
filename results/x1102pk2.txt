@@ -1,3 +1,8 @@
 $ pack vwap_daytrade
-started 2026-11-02 13:43:43 EST
-RUNNING...
+started 2026-11-02 13:43:43 EST, took 0s, exit 0
+
+total 32
+drwxr-xr-x  3 marvbot marvbot  4096 Nov  2 13:43 .
+drwxr-xr-x 28 marvbot marvbot  4096 Nov  2 13:43 ..
+-rw-r--r--  1 marvbot marvbot 20033 Nov  2 13:43 SPEC.md
+drwxr-xr-x  2 marvbot marvbot  4096 Nov  2 13:43 quick-20261102
