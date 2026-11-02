@@ -1,0 +1,2 @@
+$ fx-experts-entries risk 0.15
+REFUSED: fx-experts-entries needs status, stop or resume
