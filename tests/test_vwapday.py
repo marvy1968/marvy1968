@@ -126,6 +126,29 @@ class VwapDayTests(unittest.TestCase):
                 self.assertTrue(((tr["entry_min"] >= 30) & (tr["entry_min"] <= 375)).all())
                 self.assertTrue(tr.groupby(["variant", "date"]).size().max() <= 4)
 
+    def test_quick_two_week_sample(self):
+        pool = {"XLK": ["AAA", "BBB", "CCC"], "XLF": ["EEE", "FFF", "GGG"]}
+        days = pd.bdate_range("2024-01-02", "2024-05-31")
+        cache = {}
+
+        def load(sym, tf, a, b):
+            if (sym, tf) not in cache:
+                seed = abs(hash(sym)) % 1000
+                if tf == "1Min":
+                    cache[(sym, tf)] = minute_bars(seed, days, vol=0.0016, trend_days=set(range(0, len(days), 3)))
+                else:
+                    d = pd.bdate_range("2022-06-01", "2024-05-31")
+                    rng = np.random.default_rng(seed)
+                    c = 100 * np.exp(np.cumsum(rng.normal(0, 0.03, len(d))))
+                    cache[(sym, tf)] = pd.DataFrame({"open": c, "high": c * 1.01, "low": c * 0.99, "close": c, "volume": 5e6}, index=d.tz_localize(vd.NY))
+            f = cache[(sym, tf)]
+            return f[(f.index.date >= a) & (f.index.date <= b)]
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(vd, "SECTOR", {s: e for e, ss in pool.items() for s in ss}), \
+                mock.patch.object(vd, "ETFS", ["XLK", "XLF"]):
+            lines = vd.quick(load, date(2024, 6, 1), Path(tmp), log=lambda m: None)
+            self.assertIn("2024-05-20..2024-05-31", lines[0])
+            self.assertEqual(sum(1 for x in lines if x.startswith("| orb") or x.startswith("| reclaim") or x.startswith("| band")), 6)
+
 
 if __name__ == "__main__":
     unittest.main()

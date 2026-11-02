@@ -344,11 +344,13 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam in ("vwapday", "vwapday_data"):     # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday), research only
+            if fam in ("vwapday", "vwapday_data", "vwapday_2w"):   # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday)
                 import datetime as _dt
                 from . import vwapday as _vd
                 _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)
-                if fam == "vwapday_data":
+                if fam == "vwapday_2w":                # "do a 2 week backtest": last 10 sessions, default params
+                    lines += _vd.quick(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
+                elif fam == "vwapday_data":
                     _vd.download(_ld, _dt.date(2018, 1, 1), _dt.date.today(), log=lambda m: print(m, flush=True))
                 else:
                     lines += _vd.main(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
@@ -2249,6 +2251,10 @@ def main(argv=None) -> int:
         if swing_state.exists():
             for s_, p_ in (json.loads(swing_state.read_text()).get("positions") or {}).items():
                 own[s_] = own.get(s_, 0) + int(p_["qty"])
+        vwap_state = Path(a.state).parent / "alpaca_vwap" / "state.json"      # owner 2026-11-02: the VWAP day-trade sleeve's positions are owned too
+        if vwap_state.exists():
+            for s_, p_ in (json.loads(vwap_state.read_text()).get("open") or {}).items():
+                own[s_] = own.get(s_, 0) + int(p_["qty"]) * int(p_.get("side", 1))
         pos = requests.get(f"{api}/positions", headers=h, timeout=30).json()
         orders = requests.get(f"{api}/orders", headers=h, params={"status": "open", "limit": 500}, timeout=30).json()
         cancel = [o for o in orders if not str(o.get("client_order_id") or "").startswith(("ab-", "sw-"))]

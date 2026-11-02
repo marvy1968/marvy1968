@@ -247,9 +247,12 @@ def sig_orb(sd, spy, dd, side, p):
     skips = []
     if not (atrd and np.isfinite(atrd)):
         return None, [("no_atr", None)]
+    av = len(c)
     for k5 in range(orm // 5, n // 5):
         s = 5 * k5 + 4
         j = s + 1
+        if j >= av:
+            break
         if j < 30:
             continue
         if s > 149 or j > last:
@@ -287,7 +290,7 @@ def sig_reclaim(sd, spy, dd, side, p):
     if not (atrd and np.isfinite(atrd)):
         return None, [("no_atr", None)]
     skips, touch, tk, pb = [], None, None, None
-    for i in range(30, min(n, last)):
+    for i in range(30, min(n, last, len(c) - 1)):
         if touch is None:
             kp = i // 5 - 1
             if kp < 0:
@@ -355,6 +358,8 @@ def sig_band(sd, spy, dd, side, p):
     for k5 in range(0, n // 5 - 1):
         s, s2 = 5 * k5 + 4, 5 * k5 + 9
         j = s2 + 1
+        if j >= len(c):
+            break
         if j < 30:
             continue
         if j > last:
@@ -1012,5 +1017,65 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
     _csv(all_sw, out / "swing_decisions.csv")
     cfg["summary"] = [{k: v for k, v in r.items()} for r in summary]
     (out / "config.json").write_text(json.dumps(cfg, indent=1, default=str))
+    (out / "summary.md").write_text("\n".join(lines) + "\n")
+    return lines
+
+
+# ---------------------------------------------------------------- quick sample (owner 2026-11-02: "do a 2 week backtest")
+def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> list[str]:
+    """The last `sessions` completed sessions with the spec's DEFAULT parameters (nothing tuned on these days), PIT-approx universe,
+    in-play filter, all three strategies x both sides, 1x and 2x costs, no swing (the live paper sleeve is flat by 15:50)."""
+    end = today - timedelta(days=1)
+    start = end - timedelta(days=120)                    # warm-up: 14 sessions of RVOL history, 60-day dollar volume
+    ctx = Ctx()
+    spy_mf = minute_frame(load("SPY", "1Min", start, end))
+    ctx.daily["SPY"] = daily_table(spy_mf, load("SPY", "1Day", start - timedelta(days=500), end))
+    last_min = spy_mf.groupby("d")["m"].max()
+    ctx.days = sorted(last_min.index)
+    ctx.sess = {d: (210 if last_min[d] < 230 else 390) for d in ctx.days}
+    test_days = ctx.days[-sessions:]
+    ctx.sd.update({("SPY", d): v for d, v in symbol_days(spy_mf, set(test_days), ctx.sess).items()})
+    mfs = {}
+    for s in sorted(SECTOR):
+        try:
+            mf = minute_frame(load(s, "1Min", start, end))
+            d1 = load(s, "1Day", start - timedelta(days=500), end)
+            if len(mf) and len(d1):
+                ctx.daily[s] = daily_table(mf, d1)
+                ctx.adx[s] = adx5_by_day(mf)
+                mfs[s] = mf
+        except Exception as exc:
+            log(f"{s}: {exc!r}")
+    build_universes(ctx, [])
+    build_inplay(ctx)
+    for s, mf in mfs.items():
+        ds = {d for d in test_days if s in ctx.inplay["pit"].get(d, [])}
+        for d, v in symbol_days(mf, ds, ctx.sess).items():
+            v["adx5"] = ctx.adx[s].get(d)
+            ctx.sd[(s, d)] = v
+    period = (test_days[0], test_days[-1])
+    out = out_root / f"quick-{today:%Y%m%d}"
+    out.mkdir(parents=True, exist_ok=True)
+    lines = [f"## VWAP / ORB day-trade - 2-week sample {period[0]}..{period[1]} ({len(test_days)} sessions), spec DEFAULT params, PIT-approx "
+             "universe + in-play filter, flat by 15:50. A SAMPLE, NOT EVIDENCE: too few trades to separate skill from luck.",
+             "| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x | exits |",
+             "|" + "---|" * 13]
+    allt = []
+    for strat in ("orb", "reclaim", "band"):
+        for side in (1, -1):
+            p = DEFAULT[strat]
+            tr, sig, *_ = run(ctx, strat, side, p, period=period, swing=False, logs={})
+            tr2, *_ = run(ctx, strat, side, p, mult=2.0, period=period, swing=False)
+            st, st2 = stats(tr), stats(tr2)
+            why = pd.Series([t["exit_reason"] for t in tr]).value_counts().to_dict() if tr else {}
+            lines.append(f"| {strat} | {'long' if side == 1 else 'short'} | {p} | {st['n']} | {st['win']:.0%} | {st['pf']:.2f} | {st['avg_win']:+.2f} | "
+                         f"{st['avg_loss']:+.2f} | {st['exp']:+.3f} | {st['net']:+.1f} | {st2['pf']:.2f} | {st2['net']:+.1f} | {why} |")
+            for t in tr:
+                t["variant"] = f"{strat}_{'long' if side == 1 else 'short'}"
+            allt += tr
+    a = stats(allt)
+    lines.append(f"- all strategies together: {a['n']} trades, win {a['win']:.0%}, PF {a['pf']:.2f}, net {a['net']:+.1f}R")
+    lines.append("- in-play names per day: " + ", ".join(f"{d}: {'/'.join(ctx.inplay['pit'].get(d, [])) or '-'}" for d in test_days))
+    _csv(allt, out / "trades.csv")
     (out / "summary.md").write_text("\n".join(lines) + "\n")
     return lines

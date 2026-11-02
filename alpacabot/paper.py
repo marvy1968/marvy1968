@@ -1288,6 +1288,14 @@ class PaperRunner:
                         self.ride.step(now)
                 except Exception:
                     log.exception("day ride step failed (continuing)")
+                try:                                                # owner 2026-11-02: VWAP / ORB day-trade sleeve (alpacabot.vwaplive), paper, 0.05%
+                    from .vwaplive import VWAP_LIVE, VwapLive
+                    if VWAP_LIVE:
+                        if getattr(self, "vwap", None) is None:
+                            self.vwap = VwapLive(RestBroker())
+                        self.vwap.step(now)
+                except Exception:
+                    log.exception("vwap sleeve step failed (continuing)")
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot
