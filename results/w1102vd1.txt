@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families vwapday_2w
-started 2026-11-02 13:36:22 EST
-RUNNING...
+started 2026-11-02 13:36:22 EST, took 438s, exit 0
+
+daily data ready
+## VWAP / ORB day-trade - 2-week sample 2026-10-19..2026-10-30 (10 sessions), spec DEFAULT params, PIT-approx universe + in-play filter, flat by 15:50. A SAMPLE, NOT EVIDENCE: too few trades to separate skill from luck.
+| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x | exits |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| orb | long | {'or': 30, 'k': 0.1} | 10 | 10% | 0.84 | +5.24 | -0.69 | -0.096 | -1.0 | 0.60 | -3.3 | {'trail': 5, 'stop': 4, 'eod_1550': 1} |
+| orb | short | {'or': 30, 'k': 0.1} | 9 | 0% | 0.00 | +0.00 | -0.82 | -0.817 | -7.4 | 0.00 | -9.6 | {'stop': 5, 'trail': 4} |
+| reclaim | long | {} | 6 | 0% | 0.00 | +0.00 | -0.70 | -0.695 | -4.2 | 0.00 | -5.1 | {'vwap': 6} |
+| reclaim | short | {} | 3 | 33% | 0.08 | +0.12 | -0.77 | -0.471 | -1.4 | 0.00 | -2.0 | {'vwap': 3} |
+| band | long | {'ks': 2.0, 'adx': 20} | 4 | 50% | 0.08 | +0.10 | -1.15 | -0.528 | -2.1 | 0.03 | -2.5 | {'stop': 2, 'time': 2} |
+| band | short | {'ks': 2.0, 'adx': 20} | 8 | 50% | 0.69 | +0.80 | -1.16 | -0.177 | -1.4 | 0.46 | -3.1 | {'time': 3, 'stop': 3, 'target': 2} |
+- all strategies together: 40 trades, win 20%, PF 0.33, net -17.4R
+- in-play names per day: 2026-10-19: -, 2026-10-20: GE/LLY/BRK.B, 2026-10-21: NFLX/NEE/GOOGL/TSLA, 2026-10-22: META/GE/NEE/NFLX/AMZN, 2026-10-23: COP/SHW/GE/BA/NEM, 2026-10-26: TSLA, 2026-10-27: WELL/SHW/META/BA/KO, 2026-10-28: BA/WELL/SHW/META, 2026-10-29: GOOGL/CAT/LLY/MSFT/EQIX, 2026-10-30: AMZN/LLY/XOM/LIN/GOOGL
+ALL DONE
