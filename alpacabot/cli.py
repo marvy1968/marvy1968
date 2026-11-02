@@ -344,6 +344,16 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam in ("vwapday", "vwapday_data"):     # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday), research only
+                import datetime as _dt
+                from . import vwapday as _vd
+                _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)
+                if fam == "vwapday_data":
+                    _vd.download(_ld, _dt.date(2018, 1, 1), _dt.date.today(), log=lambda m: print(m, flush=True))
+                else:
+                    lines += _vd.main(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "stairstep":                 # owner 2026-11-01: Stair-Step Trend spec v1 (state/stair_step_trend_SPEC.md), research only
                 import datetime as _dt
                 from . import stairstep as _ss
