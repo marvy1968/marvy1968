@@ -344,6 +344,13 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "stairstep":                 # owner 2026-11-01: Stair-Step Trend spec v1 (state/stair_step_trend_SPEC.md), research only
+                import datetime as _dt
+                from . import stairstep as _ss
+                lines += _ss.run(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), _dt.date.today(), Path("state/reports/stair_step"),
+                                 log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "anglepacer":                # owner 2026-11-01: Trend-Angle Pacer spec v1 (state/trend_angle_pacer_SPEC.md), research only
                 import datetime as _dt
                 from . import anglepacer as _ap
