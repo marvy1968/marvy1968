@@ -1,3 +1,8 @@
 $ fx-experts-entries resume
-started 2026-11-02 06:53:18 EST
-RUNNING...
+started 2026-11-02 06:53:18 EST, took 0s, exit 0
+
+no_new_entries before: True
+risk_pct before: 0.25
+no_new_entries after: False
+risk_pct after: 0.25
+systems listed: 11, installed: 11
