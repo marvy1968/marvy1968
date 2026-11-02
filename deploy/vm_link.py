@@ -15,6 +15,7 @@ Accepted job lines:
   telegram cards/<name>.txt [mirror]  send that card (committed by Claude) to the owner's Telegram chat
   find-odds-bot                 list other bots on the VM (paths, services, cron), no code
   read-bot-reports /abs/folder  tails of that bot's logs + heads of reports/csv (secrets scrubbed)
+  pack <name>                   copy packs/<name>/*.md|py|txt|csv|json (committed by Claude) into /opt/marv-bot/state/<name>/
   export-bot <name> /abs/folder redacted copy of that bot's code into exports/<name>/ (committed to the vm-link branch)
   fx-experts-entries status|stop|resume|risk <0.05..0.25>  show / set only no_new_entries or risk_pct in the fx-experts bot's config
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
@@ -100,6 +101,14 @@ def parse(line: str) -> tuple[list[str] | None, str]:
                 (len(args) == 2 and args[0] == "risk" and re.fullmatch(r"0\.\d{1,4}", args[1]))):
             return None, "fx-experts-entries needs status, stop, resume or risk <0.05..0.25>"
         return ["python3", str(BOT / "deploy/fxexp_entries.py"), *args], ""
+    if cmd == "pack":  # owner 2026-11-02: copy files Claude committed to packs/<name>/ on the vm-link branch into /opt/marv-bot/state/<name>/
+        if len(args) != 1 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]):
+            return None, "pack needs <name> (files committed under packs/<name>/)"
+        src, dst = f"{LINK}/packs/{args[0]}", f"{BOT}/state/{args[0]}"
+        script = (f"set -e; test -d {src}; mkdir -p {dst}; "
+                  f"find {src} -maxdepth 1 -type f \\( -name '*.md' -o -name '*.py' -o -name '*.txt' -o -name '*.csv' -o -name '*.json' \\) "
+                  f"-size -2M -exec cp {{}} {dst}/ \\; ; chown -R marvbot:marvbot {dst} 2>/dev/null || true; ls -la {dst}")
+        return ["bash", "-c", script], ""
     if cmd == "export-bot":  # redacted copy of a bot folder into exports/<name>/ on the vm-link branch (no 200 KB output limit)
         if len(args) != 2 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]) or not args[1].startswith("/") or ".." in args[1]:
             return None, "export-bot needs <name> /abs/folder"

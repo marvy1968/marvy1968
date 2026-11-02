@@ -65,6 +65,14 @@ class FxexpEntriesTests(unittest.TestCase):
         self.assertEqual((err, argv[2:]), ("", ["risk", "0.1"]))
         self.assertIsNone(vm_link.parse("fx-experts-entries risk 5")[0])
 
+    def test_vm_link_pack_copies_only_into_state(self):
+        import vm_link
+        argv, err = vm_link.parse("pack pacer_pack")
+        self.assertEqual(err, "")
+        self.assertIn("/opt/marv-bot/state/pacer_pack", argv[2])
+        self.assertIsNone(vm_link.parse("pack ../etc")[0])
+        self.assertIsNone(vm_link.parse("pack")[0])
+
 
 if __name__ == "__main__":
     unittest.main()
