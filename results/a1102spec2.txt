@@ -1,3 +1,98 @@
 $ show stair_step_trend_SPEC.md
-started 2026-11-01 20:13:42 EST
-RUNNING...
+started 2026-11-01 20:13:42 EST, took 0s, exit 0
+
+# Stair-Step Trend Pipeline — Research Spec (v1, 2026-11-01)
+Status: RESEARCH ONLY. Log-only shadow at most. Nothing goes live, no service is touched, no keys printed, without Marvin's explicit approval.
+Do NOT touch: aj-bet-bot, marv-live, marv-bot (never restart marv-bot.service), kalshi-demo, polymarket-paper, or any live Alpaca/OANDA bot.
+Work folder on VM: `~/research/trend_angle_pacer/stair_step/` (sibling of the pacer). Reuse walk-forward / random-control / exit-lab harness by import or copy; do not edit it. Reuse the pacer's `angle()` (spec 1.1) unchanged.
+Origin: Marvin's hand-drawn pipeline. Main variant = Grok's simplified rules (A); Marvin's original exits = variant B.
+
+## 1. Pipeline (all indicators on CLOSED bars; signal at close t, act at open t+1)
+Base TF = Daily (entries/exits). HTF = Weekly (last CLOSED week only). Intraday VWAP is unavailable on daily bars → **VWAP = anchored VWAP from the most recent confirmed swing low (long) / swing high (short)**, swing = 5-bar fractal (confirmed 2 bars after pivot, no lookahead). Robustness alt: weekly VWAP (reset each Monday) — report both, pick on train only.
+
+### 1.1 Stage filter (Weinstein, weekly)
+- MA30w = 30-week SMA of weekly close; slope = MA30w_t − MA30w_{t−4}.
+- STAGE 2 (long-eligible): weekly close > MA30w AND slope > 0. STAGE 4 (short-eligible): close < MA30w AND slope < 0. Else ineligible.
+
+### 1.2 Sector filter (proxy for "sector news")
+- 11 SPDR sectors: XLK XLF XLV XLY XLP XLE XLI XLB XLU XLRE(from 2015-10) XLC(from 2018-06; before that map to XLK/XLY per GICS-then).
+- RS_63 = ETF 63-day return − SPY 63-day return, computed at prior close. Rank weekly (Friday close, used next week).
+- LONG sectors = top 3 ranks; SHORT sectors = bottom 3. Sweep (train only): lookback {42,63,126}, top/bottom N {2,3}.
+
+### 1.3 Stock selection (top 3 per eligible sector)
+Candidates: S&P 500 members of that sector, passing stage filter for the side, price > $10, 20d avg $vol > $20M.
+Score = strength_daily (pacer 1.1: N=20 slope/ATR14 · sqrt(R2)) with confirmation gates:
+- HTF: weekly strength same sign, |strength_w| >= 0.05.
+- Volume: 20d avg volume / 100d avg volume >= 0.9 (participation not drying up).
+- Volatility: ATR14/close between 1% and 6%.
+- Candlestick (reporting-only feature, NOT a gate in A): last bar close in upper 1/3 of range (long).
+Pick top 3 by |score| per sector → watchlist (≤9 long, ≤9 short), refreshed weekly.
+
+### 1.4 Entry — Variant A (main): 2 non-redundant triggers
+LONG on watchlist name when BOTH at close t:
+1. **Buy line (pullback):** low_t <= SMA20_t + 0.25·ATR AND close_t > SMA20_t − 0.5·ATR (touched/near 20MA, did not break).
+2. **Timing:** Stoch(14,3,3) %K crossed above %D within last 3 bars with %D_min(last 5) < 30 (rising from low).
+Enter at open t+1 (market). RSI, Bollinger, VWAP, S/R are NOT entry gates in A. Short = mirror (high near SMA20, %K crosses below %D from >70).
+Variant A2 (ablation, report only): add "close > anchored VWAP" + "within S/R buy zone + RSI14 40–55" to show whether extra filters add edge or just cut trades.
+
+### 1.5 Initial stop & R
+- S/R zone: nearest support = lowest low of last confirmed swing low within 40 bars (zone = [swing low − 0.25 ATR, swing low]).
+- stop_long = min( zone bottom , SMA20 − 1.0·ATR ) — use the *nearer* of the two if it is >= 1.0 ATR from entry, else the farther. Hard floor: stop distance >= 1.0 ATR, cap <= 3.0 ATR (skip trade if > 3 ATR).
+- **R = entry − stop** (short: stop − entry).
+
+### 1.6 Exits — Variant A (main)
+- TP1: sell 1/3 at entry + 1R. On TP1 fill → stop on remainder to breakeven (entry + round-trip cost).
+- TP2: sell 1/3 at entry + 1.5R.
+- Runner 1/3 — **stair-step trail** (updated at each close, only ratchets up): trail = max(current trail, latest confirmed higher swing low − 0.1·ATR, SMA20 − 0.25·ATR).
+- Trend-break exit (all remaining): 3 consecutive closes below BOTH anchored VWAP and SMA20 → exit at next open.
+- TP signal (A, runner only, optional tighten): if RSI14 >= 70 OR close >= SMA20·1.08 OR close >= BB(20,2) upper → tighten trail to that bar's low. No time stop except 60 bars max hold.
+
+### 1.7 Exits — Variant B (Marvin original)
+- Scale out 1/4 each at 0.5R, 0.75R, 1R, 1.5R. Stair-step trail: after 0.5R move stop to −0.5R, after 1R to breakeven, then trail under each higher swing low.
+- Full exit on TP signal: Stoch %K >= 70 or RSI >= 70, or close >= 8% above SMA20, or close >= upper BB.
+- Full SELL on: stochastic turning down from >70 (%K cross below %D) OR 3 closes below VWAP and SMA20.
+- Same entries (1.4 A) so exits are the only difference. Also run B-entries (all of: stoch rising, close > VWAP, near 20MA) × B-exits as "B-full".
+
+### 1.8 Portfolio
+- One position per symbol; max 8 concurrent (≤5 per side, ≤2 per sector). Risk 0.75% equity per trade (sweep {0.5,1.0}% reporting only); shares = floor(risk$/R). Gross exposure cap 150%.
+- Signal ties → highest score first.
+
+### Pseudo-code
+```
+for day t (time order, all symbols merged):
+    process open positions on bar t: stop/TP/trail (3.3 rules)
+    at close t: if Friday -> recompute stage(weekly closed), sector RS rank, watchlist
+        for each watchlist name w/o position: if entry_A(t): queue market order for open t+1 with stop,R,targets
+        update trails/trend-break counters with close t
+```
+
+## 2. Universe & data
+- S&P 500 constituents **point-in-time** (membership history from e.g. Wikipedia change log / existing VM file); include delisted names where data exists. If only current members available: run anyway, label results "SURVIVORSHIP-BIASED", expect inflated long PF / deflated short PF.
+- Daily OHLCV split+dividend adjusted, 2017-01 → now (2017 warm-up for MA30w). Alpaca historical / cached VM data. Sector ETFs + SPY same source.
+
+## 3. Testing instructions (for Claude) — identical protocol to pacer spec §3
+3.1 Strict time order single event loop; signal at close t, earliest fill open t+1. Unit-test: shifting future data must not change past signals (incl. swing pivots, anchored VWAP, weekly stage).
+3.2 No lookahead: weekly values from last CLOSED week; sector ranks at prior close; params on train only.
+3.3 Intrabar: if a bar touches stop and any TP, **STOP first** (for the whole remaining size). Gaps beyond stop/target: fill at open. Partial targets in same bar: fill in order only if stop not touched.
+3.4 Costs: **10 bps each way** commission/spread proxy + slippage 0.02% each side (= 24 bps round trip); short borrow 0.5%/yr (HTB names 3%/yr if flagged). Sensitivity: **2× costs**, must still be PF > 1.0.
+3.5 Split: Train 2018-01-01 → 2023-12-31; Holdout 2024-01-01 → now (touch once, after freezing). Also report 2025 and last 6 months.
+3.6 Walk-forward: rolling 3y train / 6m test, step 6m; stitched OOS PF.
+3.7 Controls: 20 random-entry seeds (same watchlist-eligible symbols, same entries/month, same direction mix, same stop/R/exit rules & costs, random dates) + 20 shuffled-direction (real entry times, random side). Must beat control PF in >=16/20 for BOTH.
+3.8 Ablations (report): stage only; stage+sector; +top3 selection; +entry triggers. Shows which layer adds edge.
+
+## 4. Pass bar (per variant A / B, long-only and long+short)
+ALL required: holdout PF > 1.1 after costs; >= 100 holdout trades; train PF > 1.0 with positive return; beats random >=16/20 AND shuffled >=16/20; PF > 1.0 at 2× costs. Fail any → FAIL. PF computed on per-trade R (all partials of one trade combined).
+
+## 5. Known traps
+- Daily-bar inflation (+383R → −57R): stop-first rule mandatory; spot-check 50 trades on 1H bars where available.
+- Many filters → few trades: if holdout < 100 trades, relax only via train-chosen sweep, never on holdout.
+- Variant B's 0.5R/0.75R partials are cost-sensitive (24 bps vs small R) — report avg R in bps vs cost.
+- Benchmark to beat: Sector Top-Down PF 1.54/11y. PF > 2 or smooth equity = assume bug.
+
+## 6. Report Claude must return
+Table per variant (A, A2, B, B-full) × side (long, short, both):
+| Variant | Side | Params | Train PF | Train Ret% | Holdout PF | Holdout Ret% | Win% | Avg R | MaxDD% | Holdout trades | PF @2× | Random /20 | Shuffled /20 | 2025 PF | Last 6m PF | WF OOS PF | PASS/FAIL |
+Plus: **per-year** PF/trades (2018…2026), **per-sector** PF/trades/net R, exit-reason breakdown (TP1/TP2/trail/trend-break/stop/time), ablation table (3.8), survivorship label, file paths, code hash, caveats paragraph, recommendation (log-only shadow or drop).
+
+## 7. Rule
+Log-only. A PASS only qualifies for a log-only shadow (watchlist + signals to CSV, no orders). No live wiring, no service edits/restarts, no key printing without Marvin's approval.
