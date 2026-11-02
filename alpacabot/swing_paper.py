@@ -63,6 +63,18 @@ def daily_bars(symbol: str, now: datetime, fetch=_fetch, days: int = 260) -> pd.
         return fetch(symbol, "1Day", start, end, "iex")
 
 
+def catchup_time(now: datetime, fetch=_fetch) -> datetime | None:
+    """16:25 ET of the last completed session before today (owner 2026-11-02: catch-up scan), or None."""
+    spy = daily_bars("SPY", now, fetch, days=10)
+    if not len(spy):
+        return None
+    d = spy.index[-1]
+    d = (d.tz_convert(ET) if getattr(d, "tzinfo", None) else d).date()
+    if d >= now.astimezone(ET).date():
+        return None
+    return datetime(d.year, d.month, d.day, 16, 25, tzinfo=ET)
+
+
 class SwingRunner:
     def __init__(self, broker, state_dir="state/alpaca_swing", universe=None, fetch=_fetch, sleep=time.sleep, base_equity: float | None = None):
         self.b, self.universe, self.fetch, self.sleep = broker, universe or UNIVERSE, fetch, sleep

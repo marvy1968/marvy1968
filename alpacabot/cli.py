@@ -2123,6 +2123,8 @@ def main(argv=None) -> int:
     sw.add_argument("action", choices=["scan", "open", "status", "close", "drop"])
     sw.add_argument("--state", default="state/alpaca_swing")
     sw.add_argument("--symbols", default="", help="close: only these symbols (comma-separated); default the whole book")
+    sw.add_argument("--catchup", action="store_true", help="scan only: re-run the scan of the LAST completed session (its 16:25 ET), "
+                    "e.g. when a strategy was switched on after that scan; the open job then trades it at the next open")
     wp = sub.add_parser("weekpicks", help="weekly beat-SPY picks, LOG ONLY: run (pick / grade) or status")
     wp.add_argument("action", choices=["run", "status"])
     wp.add_argument("--cache", default=os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))
@@ -2195,13 +2197,20 @@ def main(argv=None) -> int:
             st_path.write_text(json.dumps(st, indent=1, default=str))
             print(f"plan entries: {before} -> {[e['symbol'] for e in plan['entries']]}")
             return 0
-        if a.action == "scan":                           # weekly beat-SPY picks: batch first, so the scan can plan its orders (never blocks the scan)
+        if a.action == "scan" and not a.catchup:         # weekly beat-SPY picks: batch first, so the scan can plan its orders (never blocks the scan)
             try:
                 print("\n".join(_weekpicks_run(os.environ.get("ALPACA_CACHE", "state/alpaca_cache"))))
             except Exception as exc:
                 print(f"weekpicks failed: {exc.__class__.__name__}: {exc}")
         r = SwingRunner(RestBroker(), state_dir=a.state)
         now = _dt.now(_ET)
+        if a.action == "scan" and a.catchup:             # owner 2026-11-02: Top-Down switched on after Friday's scan -> redo that scan
+            from .swing_paper import catchup_time
+            now = catchup_time(now, r.fetch)
+            if now is None:
+                print("catch-up refused: the last completed session is today (use a normal scan) or no SPY bar found")
+                return 1
+            print(f"catch-up scan as of {now.isoformat()}")
         only = [x.strip().upper() for x in a.symbols.split(",") if x.strip()] or None
         out = r.scan(now) if a.action == "scan" else r.close_all(now, only=only) if a.action == "close" else r.open(now)
         if a.action == "open":                           # owner 2026-10-23: deferred (oversold) entries at swing.late_entry.at (10:00)
