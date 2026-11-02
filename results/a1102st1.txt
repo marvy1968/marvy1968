@@ -1,3 +1,109 @@
 $ status
-started 2026-11-02 13:07:04 EST
-RUNNING...
+started 2026-11-02 13:07:04 EST, took 2s, exit 0
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-live.service.d
+             └─tf.conf, zz-marv-live-fixes.conf, zzz-no-march-edge-mirror.conf
+     Active: active (running) since Mon 2026-11-02 06:52:38 EST; 6h ago
+   Main PID: 2207706 (python)
+      Tasks: 10 (limit: 4617)
+     Memory: 173.8M
+        CPU: 1min 31.460s
+     CGroup: /system.slice/marv-live.service
+             └─2207706 /opt/marv-bot/.venv/bin/python /opt/marv-feed/run_marv_live.py live --interval 120
+
+Nov 02 12:57:15 instance-stockbot env[2207706]: 2026-11-02 12:57:15,308 INFO Odds API basketball_wncaab: 94312 credits left
+Nov 02 12:59:16 instance-stockbot env[2207706]: 2026-11-02 12:59:16,852 INFO Odds API basketball_ncaab: 94290 credits left
+Nov 02 12:59:17 instance-stockbot env[2207706]: 2026-11-02 12:59:17,453 INFO Odds API basketball_wncaab: 94287 credits left
+Nov 02 13:01:19 instance-stockbot env[2207706]: 2026-11-02 13:01:19,812 INFO Odds API basketball_ncaab: 94278 credits left
+Nov 02 13:01:21 instance-stockbot env[2207706]: 2026-11-02 13:01:21,193 INFO Odds API basketball_wncaab: 94275 credits left
+Nov 02 13:03:22 instance-stockbot env[2207706]: 2026-11-02 13:03:22,283 INFO Odds API basketball_ncaab: 94272 credits left
+Nov 02 13:03:22 instance-stockbot env[2207706]: 2026-11-02 13:03:22,663 INFO Odds API basketball_wncaab: 94269 credits left
+Nov 02 13:03:22 instance-stockbot env[2207706]: 2026-11-02 13:03:22,862 INFO preline ncaaw Maryland Terrapins @ South Carolina Gamecocks P2: model fed PREGAME spread -4.955945687628002 (team_est) total 144.8598400214782 (team_est); live line -33.5 / 174.5; p_home new 1.000 old 1.000
+Nov 02 13:05:24 instance-stockbot env[2207706]: 2026-11-02 13:05:24,549 INFO Odds API basketball_ncaab: 94263 credits left
+Nov 02 13:05:25 instance-stockbot env[2207706]: 2026-11-02 13:05:25,326 INFO Odds API basketball_wncaab: 94260 credits left
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 2 weeks 4 days ago
+    Trigger: Mon 2026-11-02 17:30:00 EST; 4h 22min left
+   Triggers: ● marv-bot-late.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-15 06:50:37 EDT; 2 weeks 4 days ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● marv-fx-paper.service - Marv FOREX practice runner (OANDA practice account only; separate from the Alpaca stock bot)
+     Loaded: loaded (/etc/systemd/system/marv-fx-paper.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-11-02 09:14:28 EST; 3h 52min ago
+   Main PID: 2221859 (python)
+      Tasks: 3 (limit: 4617)
+     Memory: 70.3M
+        CPU: 2min 34.412s
+     CGroup: /system.slice/marv-fx-paper.service
+             └─2221859 /opt/marv-bot/.venv/bin/python -m fxbot paper
+
+Nov 02 09:14:28 instance-stockbot systemd[1]: Started marv-fx-paper.service - Marv FOREX practice runner (OANDA practice account only; separate from the Alpaca stock bot).
+Nov 02 09:14:35 instance-stockbot python[2221859]: 2026-11-02 09:14:35,113 INFO fxbot.live: fx practice runner up (OANDA practice host only)
+Nov 02 09:24:41 instance-stockbot python[2221859]: 2026-11-02 09:24:41,573 INFO fxbot.live: error {'where': 'scan', 'strategy': 'f0_h4', 'instrument': 'AUD_USD', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+Nov 02 09:35:20 instance-stockbot python[2221859]: 2026-11-02 09:35:20,588 INFO fxbot.live: error {'where': 'scan', 'strategy': 'insidebar_h1', 'instrument': 'EUR_USD', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+Nov 02 10:02:36 instance-stockbot python[2221859]: 2026-11-02 10:02:36,198 INFO fxbot.live: error {'where': 'scan', 'strategy': 'boxcons_h1', 'instrument': 'EUR_USD', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+Nov 02 10:04:43 instance-stockbot python[2221859]: 2026-11-02 10:04:43,756 INFO fxbot.live: signal {'strategy': 'macd200_h1', 'instrument': 'USD_JPY', 'side': 'short', 'bar': '2026-11-02T14:00:00+00:00', 'close': 157.6335, 'stop_dist': 0.28283809707095114, 'result': 'paused (signal logged)'}
+Nov 02 10:04:50 instance-stockbot python[2221859]: 2026-11-02 10:04:50,218 INFO fxbot.live: signal {'strategy': 'macd200_h1', 'instrument': 'USD_CAD', 'side': 'short', 'bar': '2026-11-02T14:00:00+00:00', 'close': 1.396115, 'stop_dist': 0.0021313731805785805, 'result': 'paused (signal logged)'}
+Nov 02 10:59:13 instance-stockbot python[2221859]: 2026-11-02 10:59:13,159 INFO fxbot.live: error {'where': 'scan', 'strategy': 'f0_h4', 'instrument': 'USD_CHF', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+Nov 02 11:14:28 instance-stockbot python[2221859]: 2026-11-02 11:14:28,983 INFO fxbot.live: error {'where': 'scan', 'strategy': 'boxf0_h4', 'instrument': 'GBP_USD', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+Nov 02 11:24:48 instance-stockbot python[2221859]: 2026-11-02 11:24:48,004 INFO fxbot.live: error {'where': 'scan', 'strategy': 'f0_h4', 'instrument': 'AUD_USD', 'error': 'OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"\n          onload="this.onload=null;thi'}
+
+● marv-health.timer - Run the Marv watchdog every 30 minutes
+     Loaded: loaded (/etc/systemd/system/marv-health.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 2 weeks 4 days ago
+    Trigger: Mon 2026-11-02 13:25:40 EST; 18min left
+   Triggers: ● marv-health.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● marv-propgrade.timer - Marv prop grade v2 shadow: weekdays after the stock close + evenings, weekend late mornings (before 1pm ET kickoffs)
+     Loaded: loaded (/etc/systemd/system/marv-propgrade.timer; enabled; preset: enabled)
+     Active: active (waiting) since Fri 2026-10-16 20:19:42 EDT; 2 weeks 2 days ago
+    Trigger: Mon 2026-11-02 16:35:00 EST; 3h 27min left
+   Triggers: ● marv-propgrade.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● marv-soccer.timer - Run the Marv soccer node every 3 hours (weekly walk-forward re-validation inside the run)
+     Loaded: loaded (/etc/systemd/system/marv-soccer.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:55 EDT; 2 weeks 4 days ago
+    Trigger: Mon 2026-11-02 13:56:45 EST; 49min left
+NEXT                        LEFT          LAST                        PASSED       UNIT                      ACTIVATES
+Mon 2026-11-02 13:15:14 EST 8min left     Mon 2026-11-02 13:00:14 EST 6min ago     marv-master.timer         marv-master.service
+Mon 2026-11-02 13:20:00 EST 12min left    Mon 2026-11-02 12:20:01 EST 47min ago    marv-cfb-dog-shadow.timer marv-cfb-dog-shadow.service
+Mon 2026-11-02 13:25:00 EST 17min left    Mon 2026-11-02 13:05:01 EST 2min 6s ago  marv-news.timer           marv-news.service
+Mon 2026-11-02 13:25:40 EST 18min left    Mon 2026-11-02 12:55:40 EST 11min ago    marv-health.timer         marv-health.service
+Mon 2026-11-02 13:56:45 EST 49min left    Mon 2026-11-02 10:56:45 EST 2h 10min ago marv-soccer.timer         marv-soccer.service
+Mon 2026-11-02 14:05:00 EST 57min left    Mon 2026-11-02 13:05:01 EST 2min 6s ago  marv-alt70.timer          marv-alt70.service
+Mon 2026-11-02 14:17:00 EST 1h 9min left  Mon 2026-11-02 12:17:01 EST 50min ago    marv-qbout.timer          marv-qbout.service
+Mon 2026-11-02 16:20:00 EST 3h 12min left Fri 2026-10-30 16:20:02 EDT 2 days ago   marv-swing-scan.timer     marv-swing-scan.service
+Mon 2026-11-02 16:35:00 EST 3h 27min left Sun 2026-11-01 23:50:01 EST 13h ago      marv-propgrade.timer      marv-propgrade.service
+Mon 2026-11-02 17:30:00 EST 4h 22min left Sun 2026-11-01 17:30:01 EST 19h ago      marv-bot-late.timer       marv-bot-late.service
+Tue 2026-11-03 08:40:00 EST 19h left      Mon 2026-11-02 08:40:01 EST 4h 27min ago marv-dailypicks.timer     marv-dailypicks.service
+Tue 2026-11-03 09:15:00 EST 20h left      Mon 2026-11-02 09:15:00 EST 3h 52min ago marv-cfbprops-grade.timer marv-cfbprops-grade.service
+Tue 2026-11-03 09:20:00 EST 20h left      Mon 2026-11-02 09:20:00 EST 3h 47min ago marv-swing-open.timer     marv-swing-open.service
+Tue 2026-11-03 10:00:00 EST 20h left      Mon 2026-11-02 10:00:12 EST 3h 6min ago  marv-bot.timer            marv-bot.service
+Thu 2026-11-05 15:00:00 EST 3 days left   Sat 2026-10-31 14:00:02 EDT 2 days ago   marv-cfbprops.timer       marv-cfbprops.service
+-                           -             Mon 2026-11-02 13:07:02 EST 5s ago       marv-clvinj.timer         marv-clvinj.service
+-                           -             Mon 2026-11-02 13:07:03 EST 4s ago       marv-vmlink.timer         marv-vmlink.service
+
+17 timers listed.
+Pass --all to see loaded but inactive timers, too.
+15c8d38 vm-link: pack <name> copies packs/<name>/ files from the vm-link branch into /opt/marv-bot/state/<name>/ (owner 2026-11-02: share research with Super Grok)
+8b81d18 fx-experts-entries risk <0.05..0.25>: set only risk_pct in the fx-experts config (owner 2026-11-02: switch on with smaller size)
+57a2ecf Stair-Step variant A as a small PAPER sleeve (owner override after a failed backtest): long only, 0.25% risk, partials at +1R/+1.5R, runner trail, trend-break / 60-session exits; zones.json swing.stairstep
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   57G   38G  61% /
