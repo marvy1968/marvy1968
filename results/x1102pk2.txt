@@ -1,0 +1,3 @@
+$ pack vwap_daytrade
+started 2026-11-02 13:43:43 EST
+RUNNING...
