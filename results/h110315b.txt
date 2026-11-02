@@ -1,3 +1,5 @@
 $ show alpaca_vwap/journal.jsonl
-started 2026-11-02 15:09:10 EST
-RUNNING...
+started 2026-11-02 15:09:10 EST, took 0s, exit 0
+
+{"t": "2026-11-02T13:36:22-05:00", "kind": "universe", "names": ["NVDA", "AAPL", "MSFT", "V", "JPM", "BRK.B", "LLY", "UNH", "JNJ", "TSLA", "AMZN", "HD", "WMT", "COST", "KO", "XOM", "CVX", "COP", "CAT", "BA", "GE", "LIN", "NEM", "SHW", "NEE", "CEG", "SO", "WELL", "EQIX", "AMT", "META", "GOOGL", "NFLX"]}
+{"t": "2026-11-02T13:36:22-05:00", "kind": "inplay", "names": ["COP", "LLY", "BA", "COST", "GE"], "rvol": {"AAPL": 1.62, "LLY": 2.45, "COST": 1.91, "COP": 3.8, "BA": 2.04, "GE": 1.86, "CEG": 1.71, "NFLX": 1.56}}
