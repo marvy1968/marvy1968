@@ -508,6 +508,9 @@ def r_of(events, e, R0, side, mult):
     return num / R0
 
 
+RECLAIM_TP = 1.0     # reclaim: half off at this many R (spec 1R; alpacabot.tpearly patches it for the early-exit test)
+
+
 def walk(strat, sd, side, j, e, stop, start_stop=None):
     """Day-1 walk. Returns (events [(minute, frac, px, reason)], mfe_R, mae_R, state at 15:45 for the swing check or None)."""
     o, h, l, c = (sd[k] for k in ("o", "h", "l", "c"))
@@ -559,7 +562,7 @@ def walk(strat, sd, side, j, e, stop, start_stop=None):
                         ev.append((i + 1, rem, float(o[i + 1]), "trail"))
                         return ev, side * (best - e) / R0, side * (worst - e) / R0, None
         if strat == "reclaim" and not tp_done:
-            tp = e + side * R0
+            tp = e + side * RECLAIM_TP * R0
             if (hi >= tp) if side == 1 else (li <= tp):
                 ev.append((i, 0.5, oi if side * (oi - tp) >= 0 else tp, "tp1"))
                 rem, tp_done = 0.5, True
@@ -1159,7 +1162,7 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
 
 # ---------------------------------------------------------------- quick sample (owner 2026-11-02: "do a 2 week backtest")
 def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=print, days_back: int = 120, seeds: int = 0,
-          name: str = "quick") -> list[str]:
+          name: str = "quick", strats=("orb", "velezc", "reclaim", "band")) -> list[str]:
     """The last `sessions` completed sessions (None = every session after a 15-session warm-up) with the spec's DEFAULT parameters (nothing
     tuned on these days), PIT-approx universe, in-play filter, ORB / Variant C (Velez) / reclaim / band x both sides, 1x and 2x costs, no swing
     (the live paper sleeves are flat by 15:50). seeds > 0 adds the random-entry and shuffled-direction controls (same in-play names)."""
@@ -1205,7 +1208,7 @@ def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=prin
              "|" + "---|" * (16 if ctl else 13)]
     allt = []
     by_strat = {}
-    for strat in ("orb", "velezc", "reclaim", "band"):
+    for strat in strats:
         for side in (1, -1):
             p = DEFAULT[strat]
             tr, sig, *_ = run(ctx, strat, side, p, period=period, swing=False, logs={})

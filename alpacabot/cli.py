@@ -344,6 +344,13 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "tpearly":                       # owner 2026-11-03: exit a little before the target, pre-registered (alpacabot.tpearly)
+                import datetime as _dt
+                from . import tpearly as _tp
+                lines += _tp.run(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), _dt.date.today(), Path("state/vwap_daytrade"),
+                                 log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trendopt_bt":                   # owner 2026-11-03: Optimized Trend bot 3-month backtest (alpacabot.trendopt)
                 import datetime as _dt
                 from . import trendopt as _to

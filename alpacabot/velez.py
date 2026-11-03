@@ -136,10 +136,13 @@ def stop_for(row, entry: float, mode: str) -> float | None:
 
 
 # ---------------------------------------------------------------- one trade on 1-minute bars
+TGT = {"t1": 2.0, "t2": 3.0}      # the README's targets in R; alpacabot.tpearly patches these for the early-exit test (live uses 2R / 3R)
+
+
 def walk(sd: dict, j: int, e: float, stop: float, f_day: pd.DataFrame, flat: int = 380):
     o, h, l = sd["o"], sd["h"], sd["l"]
     R0 = e - stop
-    t1, t2 = e + 2 * R0, e + 3 * R0
+    t1, t2 = e + TGT["t1"] * R0, e + TGT["t2"] * R0
     sma_at = {int(cm): (float(cc), float(s)) for cm, cc, s in zip(f_day["close_min"], f_day["c"], f_day["sma20"])}
     ev, rem, half = [], 1.0, False
     end = min(flat, sd["n"] - 1)
