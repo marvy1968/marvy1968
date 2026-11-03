@@ -1,3 +1,13 @@
 $ show alpaca_trendopt/state.json
-started 2026-11-03 09:55:18 EST
-RUNNING...
+started 2026-11-03 09:55:18 EST, took 0s, exit 0
+
+{
+ "date": "2026-11-03",
+ "open": {},
+ "carried": [],
+ "done": [],
+ "traded": [],
+ "n_new": 0,
+ "realized_R": 0.0,
+ "sess": 390
+}
