@@ -1,3 +1,6 @@
 $ show alpaca_trendopt/journal.jsonl
-started 2026-11-03 09:55:15 EST
-RUNNING...
+started 2026-11-03 09:55:15 EST, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_trendopt/journal.jsonl' for reading: No such file or directory
