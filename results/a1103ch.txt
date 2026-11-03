@@ -1,3 +1,71 @@
 $ show alpaca_swing/state.json
-started 2026-11-03 09:56:41 EST
-RUNNING...
+started 2026-11-03 09:56:41 EST, took 0s, exit 0
+
+{
+ "positions": {
+  "CVX": {
+   "qty": 23,
+   "entry": 234.68,
+   "stop": 220.41,
+   "entry_date": "2026-10-30",
+   "side": 1,
+   "strategy": "weekpicks",
+   "stop_order_id": "f0166e00-2b8e-4b90-8946-69807103fb20",
+   "oco": true,
+   "zone_tp": 241.81,
+   "peak": 236.105
+  },
+  "LLY": {
+   "qty": 1,
+   "entry": 1427.9,
+   "stop": 1235.6742376666957,
+   "entry_date": "2026-11-03",
+   "stop_order_id": "9252e3cf-94e4-42e9-af0b-1e2b2657dda6",
+   "oco": true,
+   "zone_tp": 1761.62
+  },
+  "MA": {
+   "qty": 4,
+   "entry": 651.6875,
+   "stop": 600.9163081459,
+   "entry_date": "2026-11-03",
+   "stop_order_id": "ddef177c-984b-4f37-a894-50f00ed43082",
+   "oco": true,
+   "zone_tp": 772.47
+  }
+ },
+ "plan": {
+  "made": "2026-11-02",
+  "exits": [],
+  "entries": [
+   {
+    "symbol": "LLY",
+    "qty": 1,
+    "stop": 1235.6742376666957,
+    "rs": 0.2637,
+    "signal_close": 1410.99,
+    "zone_tp": 1761.62,
+    "atr": 44.5571
+   },
+   {
+    "symbol": "MA",
+    "qty": 4,
+    "stop": 600.9163081459,
+    "rs": 0.1967,
+    "signal_close": 658.1,
+    "zone_tp": 772.47,
+    "atr": 12.4797
+   }
+  ],
+  "done": true
+ },
+ "base_equity": 53194.06,
+ "equity_hist": [
+  52436.29,
+  52346.95,
+  52353.7,
+  51754.1,
+  51575.85
+ ],
+ "lock_alerted": false
+}
