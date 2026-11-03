@@ -1,3 +1,16 @@
 $ show alpaca_vwap/journal.jsonl
-started 2026-11-03 13:10:54 EST
-RUNNING...
+started 2026-11-03 13:10:54 EST, took 0s, exit 0
+
+{"t": "2026-11-02T13:36:22-05:00", "kind": "universe", "names": ["NVDA", "AAPL", "MSFT", "V", "JPM", "BRK.B", "LLY", "UNH", "JNJ", "TSLA", "AMZN", "HD", "WMT", "COST", "KO", "XOM", "CVX", "COP", "CAT", "BA", "GE", "LIN", "NEM", "SHW", "NEE", "CEG", "SO", "WELL", "EQIX", "AMT", "META", "GOOGL", "NFLX"]}
+{"t": "2026-11-02T13:36:22-05:00", "kind": "inplay", "names": ["COP", "LLY", "BA", "COST", "GE"], "rvol": {"AAPL": 1.62, "LLY": 2.45, "COST": 1.91, "COP": 3.8, "BA": 2.04, "GE": 1.86, "CEG": 1.71, "NFLX": 1.56}}
+{"t": "2026-11-03T09:50:14-05:00", "kind": "universe", "names": ["NVDA", "AAPL", "MSFT", "V", "JPM", "BRK.B", "LLY", "UNH", "JNJ", "TSLA", "AMZN", "HD", "WMT", "COST", "KO", "XOM", "CVX", "COP", "CAT", "BA", "GE", "LIN", "NEM", "SHW", "NEE", "CEG", "SO", "WELL", "EQIX", "AMT", "META", "GOOGL", "NFLX"]}
+{"t": "2026-11-03T10:00:19-05:00", "kind": "inplay", "names": ["AAPL", "COP", "SO"], "rvol": {"AAPL": 3.15, "COP": 2.62, "SO": 1.68}}
+{"t": "2026-11-03T10:08:58-05:00", "kind": "signal_missed", "symbol": "COP", "strategy": "orb", "side": -1, "signal_minute": 34}
+{"t": "2026-11-03T10:35:08-05:00", "kind": "signal_missed", "symbol": "COP", "strategy": "reclaim", "side": 1, "signal_minute": 59}
+{"t": "2026-11-03T10:55:31-05:00", "kind": "signal", "symbol": "SO", "strategy": "orb", "side": 1, "taken": true, "skip_reason": "", "entry": 94.08999633789062, "stop": 93.93909205939251, "rvol30": 1.68}
+{"t": "2026-11-03T10:55:31-05:00", "kind": "open", "symbol": "SO", "strategy": "orb", "side": 1, "qty": 135, "fill": 94.04, "stop": 93.93909205939251, "slippage_bps": -5.31}
+{"t": "2026-11-03T11:10:11-05:00", "kind": "signal", "symbol": "AAPL", "strategy": "reclaim", "side": 1, "taken": true, "skip_reason": "", "entry": 330.5050048828125, "stop": 329.3875821034366, "rvol30": 3.15}
+{"t": "2026-11-03T11:10:11-05:00", "kind": "open", "symbol": "AAPL", "strategy": "reclaim", "side": 1, "qty": 22, "fill": 330.45, "stop": 329.3875821034366, "slippage_bps": -1.66}
+{"t": "2026-11-03T11:21:50-05:00", "kind": "trail", "symbol": "SO", "stop": 94.04}
+{"t": "2026-11-03T11:35:20-05:00", "kind": "partial", "symbol": "AAPL", "px": 331.56, "qty": 11, "pl": 12.21, "reason": "tp1"}
+{"t": "2026-11-03T12:04:10-05:00", "kind": "close", "symbol": "SO", "px": 94.025629, "qty": 135, "pl": -1.94, "reason": "stop"}
