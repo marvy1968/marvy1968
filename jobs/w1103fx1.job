@@ -1,0 +1,2 @@
+# timeout 7200
+alpaca run-all --phase validate --families fx_candle_box_h1 fx_boxmr_ref_h1
