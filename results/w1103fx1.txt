@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families fx_candle_box_h1 fx_boxmr_ref_h1
+started 2026-11-03 17:30:38 EST
+RUNNING...
