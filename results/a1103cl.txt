@@ -1,0 +1,3 @@
+$ alpaca positions --closed CVX
+started 2026-11-03 10:07:02 EST
+RUNNING...
