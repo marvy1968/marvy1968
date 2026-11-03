@@ -1,3 +1,9 @@
 $ show alpaca_trendopt/journal.jsonl
-started 2026-11-03 12:10:56 EST
-RUNNING...
+started 2026-11-03 12:10:56 EST, took 0s, exit 0
+
+{"t": "2026-11-03T11:20:16-05:00", "kind": "signal", "symbol": "WELL", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 242.31, "stop": 241.98250000000002, "rvol30": null}
+{"t": "2026-11-03T11:20:16-05:00", "kind": "open", "symbol": "WELL", "strategy": "trend", "side": 1, "qty": 52, "fill": 242.44, "stop": 241.98250000000002, "slippage_bps": 5.37}
+{"t": "2026-11-03T11:25:16-05:00", "kind": "signal", "symbol": "RTX", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 205.13, "stop": 204.8267857142857, "rvol30": null}
+{"t": "2026-11-03T11:25:16-05:00", "kind": "open", "symbol": "RTX", "strategy": "trend", "side": 1, "qty": 62, "fill": 205.33, "stop": 204.8267857142857, "slippage_bps": 9.75}
+{"t": "2026-11-03T11:38:10-05:00", "kind": "close", "symbol": "RTX", "px": 204.665484, "qty": 62, "pl": -41.2, "reason": "hard_stop"}
+{"t": "2026-11-03T11:44:11-05:00", "kind": "close", "symbol": "WELL", "px": 241.96, "qty": 52, "pl": -24.96, "reason": "hard_stop"}
