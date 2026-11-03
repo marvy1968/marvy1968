@@ -1,3 +1,65 @@
 $ alpaca run-all --phase validate --families tpearly
-started 2026-11-03 14:17:10 EST
-RUNNING...
+started 2026-11-03 14:17:10 EST, took 1831s, exit 0
+
+daily data ready
+velez t1 2.0R / t2 3.0R (current): 112 trades
+velez t1 1.9R / t2 3.0R: 112 trades
+velez t1 1.8R / t2 3.0R: 112 trades
+velez t1 2.0R / t2 2.8R: 113 trades
+reclaim half at 1.0R (current): 50 trades
+reclaim half at 0.9R: 50 trades
+swing target 1.5 sigma5 (current): 224 trades
+swing target 0.5% lower: 224 trades
+## Exit a little before the target - pre-registered test (alpacabot/tpearly.py). Adopt only if avg R is higher in the 2nd half, not lower in the 1st, and PF at 2x costs is not lower. Costs included in every number.
+### Velez sleeve (55 stocks, last ~4 months, long, R weighted 1 trend / 0.5 exhaustion as live) (halves split at 2026-09-22)
+| Variant | All: n / PF / avg R / net R | 1st half: n / PF / avg R / net R | 2nd half: n / PF / avg R / net R | PF @2x costs | Win% | Adopt? |
+|---|---|---|---|---|---|---|
+| t1 2.0R / t2 3.0R (current) | 112 | 0.60 | -0.303 | -33.9 | 57 | 0.65 | -0.257 | -14.6 | 55 | 0.54 | -0.351 | -19.3 | 0.41 | 35% | current rule |
+| t1 1.9R / t2 3.0R | 112 | 0.62 | -0.280 | -31.4 | 57 | 0.66 | -0.248 | -14.1 | 55 | 0.58 | -0.314 | -17.2 | 0.43 | 36% | YES |
+| t1 1.8R / t2 3.0R | 112 | 0.63 | -0.272 | -30.4 | 57 | 0.64 | -0.262 | -14.9 | 55 | 0.61 | -0.282 | -15.5 | 0.43 | 37% | no |
+| t1 2.0R / t2 2.8R | 113 | 0.59 | -0.314 | -35.4 | 57 | 0.64 | -0.269 | -15.3 | 56 | 0.54 | -0.359 | -20.1 | 0.40 | 35% | no |
+### VWAP reclaim (in-play names, both sides, every session of the last ~5 months, spec defaults) (halves split at 2026-09-10)
+| Variant | All: n / PF / avg R / net R | 1st half: n / PF / avg R / net R | 2nd half: n / PF / avg R / net R | PF @2x costs | Win% | Adopt? |
+|---|---|---|---|---|---|---|
+| half at 1.0R (current) | 50 | 0.50 | -0.245 | -12.3 | 26 | 0.65 | -0.149 | -3.9 | 24 | 0.37 | -0.349 | -8.4 | 0.30 | 32% | current rule |
+| half at 0.9R | 50 | 0.47 | -0.261 | -13.0 | 26 | 0.60 | -0.169 | -4.4 | 24 | 0.35 | -0.359 | -8.6 | 0.29 | 32% | no |
+### Swing weekly picks (forecast v2 walk-forward, last 252 sessions, top 5 every 5th session while SPY > 200-day) (halves split at 2026-05-08)
+| Variant | All: n / PF / avg R / net R | 1st half: n / PF / avg R / net R | 2nd half: n / PF / avg R / net R | PF @2x costs | Win% | Adopt? |
+|---|---|---|---|---|---|---|
+| target 1.5 sigma5 (current) | 224 | 0.84 | -0.073 | -16.3 | 112 | 1.06 | +0.020 | +2.3 | 112 | 0.69 | -0.166 | -18.6 | 0.11 | 36% | current rule |
+| target 0.5% lower | 224 | 0.83 | -0.078 | -17.4 | 112 | 1.06 | +0.021 | +2.4 | 112 | 0.67 | -0.177 | -19.8 | 0.12 | 36% | no |
+ALL DONE
+
+--- stderr ---
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/marv-bot/.venv/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
