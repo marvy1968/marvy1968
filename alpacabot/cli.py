@@ -344,6 +344,13 @@ def run_all(a) -> int:
                 lines += _tr.pullback_report(dd, today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trendopt_bt":                   # owner 2026-11-03: Optimized Trend bot 3-month backtest (alpacabot.trendopt)
+                import datetime as _dt
+                from . import trendopt as _to
+                lines += _to.backtest(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), _dt.date.today(), Path("state/vwap_daytrade"),
+                                      log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "velez_bt":                      # owner 2026-11-02: Velez-Confirmed day bot backtest (alpacabot.velez)
                 import datetime as _dt
                 from . import velez as _ve
@@ -2264,7 +2271,7 @@ def main(argv=None) -> int:
         if swing_state.exists():
             for s_, p_ in (json.loads(swing_state.read_text()).get("positions") or {}).items():
                 own[s_] = own.get(s_, 0) + int(p_["qty"])
-        for sleeve in ("alpaca_vwap", "alpaca_velez"):                        # owner 2026-11-02: the day-trade sleeves' positions are owned too
+        for sleeve in ("alpaca_vwap", "alpaca_velez", "alpaca_trendopt"):                        # owner 2026-11-02: the day-trade sleeves' positions are owned too
             st_ = Path(a.state).parent / sleeve / "state.json"
             if st_.exists():
                 for s_, p_ in (json.loads(st_.read_text()).get("open") or {}).items():

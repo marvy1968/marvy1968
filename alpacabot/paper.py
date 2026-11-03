@@ -1304,6 +1304,14 @@ class PaperRunner:
                         self.velez.step(now)
                 except Exception:
                     log.exception("velez sleeve step failed (continuing)")
+                try:                                                # owner 2026-11-03: Optimized Trend bot (alpacabot.trendopt), paper, 0.5%
+                    from .trendopt import TRENDOPT_LIVE, TrendOptLive
+                    if TRENDOPT_LIVE:
+                        if getattr(self, "trendopt", None) is None:
+                            self.trendopt = TrendOptLive(RestBroker())
+                        self.trendopt.step(now)
+                except Exception:
+                    log.exception("trendopt sleeve step failed (continuing)")
                 slot = (now.hour, now.minute // 5)
                 if slot != last_slot and now.second >= 5:       # give the feed a few seconds to publish the closed bar
                     last_slot = slot
