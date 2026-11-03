@@ -1,3 +1,9 @@
 $ alpaca swing status
-started 2026-11-03 10:06:45 EST
-RUNNING...
+started 2026-11-03 10:06:45 EST, took 7s, exit 0
+
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 29, 10W/19L, P&L $-1,459
+  funnel: 4 trades, 1W, P&L $-417
+  oversold: 6 trades, 1W, P&L $-345
+  holding: CVX 23 @ 234.68 (stop 220.41, weekpicks), LLY 1 @ 1427.90 (stop 1235.67), MA 4 @ 651.69 (stop 600.92)
