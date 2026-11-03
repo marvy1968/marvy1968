@@ -1,3 +1,20 @@
 $ alpaca run-all --phase validate --families vwapday_100
-started 2026-11-02 19:19:18 EST
-RUNNING...
+started 2026-11-02 19:19:18 EST, took 568s, exit 0
+
+daily data ready
+## VWAP / ORB / Velez day-trade - short test 2026-06-26..2026-10-30 (89 sessions), spec DEFAULT params (nothing tuned), PIT-approx universe + in-play filter, 3 bps a side, flat by 15:50. NO train/holdout split and a few months of one market: a sample, NOT the spec's full pass bar.
+| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x | Random /20 | Shuffled /20 | Clears sample bar | exits |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| orb | long | {'or': 30, 'k': 0.1} | 67 | 3% | 0.14 | +3.74 | -0.83 | -0.698 | -46.7 | 0.10 | -62.6 | 1/20 | 2/20 | no | {'stop': 38, 'trail': 27, 'eod_1550': 2} |
+| orb | short | {'or': 30, 'k': 0.1} | 61 | 11% | 0.40 | +2.48 | -0.80 | -0.422 | -25.8 | 0.28 | -41.2 | 7/20 | 10/20 | no | {'stop': 28, 'trail': 27, 'eod_1550': 5, 'vwap': 1} |
+| velezc | long | {} | 55 | 36% | 0.64 | +1.28 | -1.14 | -0.264 | -14.5 | 0.41 | -29.4 | 7/20 | 7/20 | no | {'stop': 29, 'eod_1550': 18, 'trail': 5, 't2': 3} |
+| velezc | short | {} | 52 | 27% | 0.35 | +1.14 | -1.18 | -0.558 | -29.0 | 0.24 | -40.7 | 0/20 | 1/20 | no | {'stop': 34, 'eod_1550': 11, 'trail': 4, 't2': 3} |
+| reclaim | long | {} | 24 | 33% | 0.68 | +0.97 | -0.71 | -0.152 | -3.6 | 0.45 | -7.8 | 15/20 | 15/20 | no | {'vwap': 14, 'eod_1550': 8, 'stop': 2} |
+| reclaim | short | {} | 25 | 32% | 0.35 | +0.55 | -0.74 | -0.327 | -8.2 | 0.19 | -13.0 | 9/20 | 8/20 | no | {'vwap': 21, 'eod_1550': 3, 'stop': 1} |
+| band | long | {'ks': 2.0, 'adx': 20} | 37 | 38% | 0.70 | +0.86 | -0.75 | -0.139 | -5.2 | 0.46 | -11.6 | 13/20 | 18/20 | no | {'time': 16, 'stop': 12, 'target': 7, 'eod_1550': 2} |
+| band | short | {'ks': 2.0, 'adx': 20} | 35 | 40% | 0.58 | +0.76 | -0.87 | -0.218 | -7.6 | 0.36 | -14.7 | 16/20 | 14/20 | no | {'stop': 13, 'time': 8, 'eod_1550': 7, 'target': 7} |
+- orb, long + short together: 128 trades, win 7%, PF 0.26, net -72.5R; most recent 100 trades: win 7%, PF 0.28, net -54.9R
+- velezc, long + short together: 107 trades, win 32%, PF 0.49, net -43.5R; most recent 100 trades: win 32%, PF 0.49, net -40.5R
+- all strategies together: 356 trades, win 24%, PF 0.42, net -140.7R
+- in-play names per day: 2026-06-26: -, 2026-06-29: -, 2026-06-30: -, 2026-07-01: META/WMT/CEG, 2026-07-02: BA/META, 2026-07-06: V, 2026-07-07: V, 2026-07-08: COP, 2026-07-09: COST, 2026-07-10: META, 2026-07-13: -, 2026-07-14: JPM, 2026-07-15: GE/JPM/JNJ/NEE/V, 2026-07-16: UNH/GE, 2026-07-17: NFLX/BRK.B/SO/WELL/KO, 2026-07-20: -, 2026-07-21: -, 2026-07-22: SHW/AMT, 2026-07-23: GOOGL/TSLA/SHW, 2026-07-24: EQIX/NEE/TSLA, 2026-07-27: SHW, 2026-07-28: SHW/KO/WELL/BA/BRK.B, 2026-07-29: V/BA/SHW/KO/CAT, 2026-07-30: MSFT/META/AMZN/SO/CAT, 2026-07-31: LIN/AMZN/AAPL/META/MSFT, 2026-08-03: AMZN/BA/META/MSFT/CVX, 2026-08-04: SO/CAT/JPM/LIN, 2026-08-05: LLY/NVDA/NEM/AMT, 2026-08-06: CEG/NEE/LLY/COP, 2026-08-07: NEM, 2026-08-10: BRK.B/NEM, 2026-08-11: -, 2026-08-12: -, 2026-08-13: NFLX, 2026-08-14: TSLA, 2026-08-17: -, 2026-08-18: HD/NEE/META/XOM/JNJ, 2026-08-19: LLY/JNJ/HD/SHW/CVX, 2026-08-20: WMT/COST/NEE/KO, 2026-08-21: WMT/WELL/EQIX/JPM/AMT, 2026-08-24: V/BA/WMT, 2026-08-25: SO, 2026-08-26: META/LLY, 2026-08-27: NVDA, 2026-08-28: -, 2026-08-31: TSLA, 2026-09-01: AAPL/PLD/TSLA, 2026-09-02: JNJ/EQIX/CVX, 2026-09-03: TSLA/COST/CEG/META, 2026-09-04: TSLA, 2026-09-08: LIN/BRK.B/NFLX/CEG/JNJ, 2026-09-09: UNH/META/GOOGL/GE/CVX, 2026-09-10: AAPL/WELL/XOM/CVX, 2026-09-11: SHW/AAPL, 2026-09-14: GOOGL/NFLX/GE/CEG/PLD, 2026-09-15: EQIX, 2026-09-16: JPM/COP/SO/GE, 2026-09-17: BA/GE/COP/HD/JPM, 2026-09-18: WELL/NFLX/SHW/SO/PLD, 2026-09-21: META, 2026-09-22: META, 2026-09-23: BA/MSFT/META, 2026-09-24: BA, 2026-09-25: COST/MSFT/WELL/NEE/TSLA, 2026-09-28: BA/NVDA/EQIX, 2026-09-29: BA, 2026-09-30: CEG/BA, 2026-10-01: CEG/HD/PLD/KO, 2026-10-02: NVDA/TSLA/LIN/CAT, 2026-10-05: MSFT, 2026-10-06: CEG, 2026-10-07: CEG/CAT, 2026-10-08: -, 2026-10-09: UNH/AAPL/TSLA, 2026-10-12: CVX, 2026-10-13: UNH/JPM/JNJ/AAPL/META, 2026-10-14: UNH/JNJ/LLY/JPM/V, 2026-10-15: SO/WMT/CAT/SHW/EQIX, 2026-10-16: AAPL/JPM/UNH/BRK.B/COP, 2026-10-19: -, 2026-10-20: GE/LLY/BRK.B, 2026-10-21: NFLX/NEE/GOOGL/TSLA, 2026-10-22: META/GE/NEE/NFLX/AMZN, 2026-10-23: COP/SHW/GE/BA/NEM, 2026-10-26: TSLA, 2026-10-27: WELL/SHW/META/BA/KO, 2026-10-28: BA/WELL/SHW/META, 2026-10-29: GOOGL/CAT/LLY/MSFT/EQIX, 2026-10-30: AMZN/LLY/XOM/LIN/GOOGL
+ALL DONE
