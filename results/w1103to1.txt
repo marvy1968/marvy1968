@@ -1,3 +1,69 @@
 $ alpaca run-all --phase validate --families trendopt_bt
-started 2026-11-03 06:35:07 EST
-RUNNING...
+started 2026-11-03 06:35:07 EST, took 69s, exit 0
+
+daily data ready
+[1/55] AAPL
+[2/55] ABBV
+[3/55] AMT
+[4/55] AMZN
+[5/55] APD
+[6/55] AVGO
+[7/55] BAC
+[8/55] BKNG
+[9/55] BRK.B
+[10/55] CAT
+[11/55] CEG
+[12/55] COP
+[13/55] COST
+[14/55] CVX
+[15/55] DIS
+[16/55] DUK
+[17/55] ECL
+[18/55] EOG
+[19/55] EQIX
+[20/55] GE
+[21/55] GEV
+[22/55] GOOGL
+[23/55] HD
+[24/55] JNJ
+[25/55] JPM
+[26/55] KO
+[27/55] LIN
+[28/55] LLY
+[29/55] MA
+[30/55] MCD
+[31/55] META
+[32/55] MRK
+[33/55] MSFT
+[34/55] NEE
+[35/55] NEM
+[36/55] NFLX
+[37/55] NVDA
+[38/55] ORCL
+[39/55] PG
+[40/55] PLD
+[41/55] PM
+[42/55] RTX
+[43/55] SHW
+[44/55] SO
+[45/55] SPG
+[46/55] TMUS
+[47/55] TSLA
+[48/55] UBER
+[49/55] UNH
+[50/55] V
+[51/55] VST
+[52/55] WELL
+[53/55] WMB
+[54/55] WMT
+[55/55] XOM
+## Optimized Trend Stock bot - 3-month backtest 2026-08-03..2026-11-02 (65 sessions), 55 stocks, the uploaded settings unchanged (alpacabot/trendopt.py), 3 bps a side. No train/holdout split: the uploaded settings were already picked on this period (their note: test used to pick 1 of 18 variants).
+| Set | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | Max DD R | PF @2x | Random /20 | Shuffled /20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| all | 203 | 29% | 0.40 | +1.07 | -1.06 | -0.451 | -91.5 | 93.4 | 0.25 | 0/20 (median PF 1.23) | 5/20 (median PF 0.44) |
+| long | 120 | 29% | 0.40 | +1.01 | -1.04 | -0.445 | -53.4 | - | - | - | - |
+| short | 83 | 28% | 0.41 | +1.16 | -1.08 | -0.460 | -38.2 | - | - | - | - |
+- by month: 2026-08 PF 0.28 (67, -37.2R), 2026-09 PF 0.55 (56, -18.1R), 2026-10 PF 0.40 (75, -35.1R), 2026-11 PF 0.63 (5, -1.1R)
+- exits: {'hard_stop': 98, 'virtual_trail': 94, 'flatten_1545': 8, '3candle': 3}
+- at 0.5% risk: net -45.8% of equity over the period, worst run 46.7% (before the 25% notional cap)
+ALL DONE
