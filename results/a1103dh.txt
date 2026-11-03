@@ -1,3 +1,6 @@
 $ show alpaca_velez/trades.jsonl
-started 2026-11-03 11:50:26 EST
-RUNNING...
+started 2026-11-03 11:50:26 EST, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/alpaca_velez/trades.jsonl' for reading: No such file or directory
