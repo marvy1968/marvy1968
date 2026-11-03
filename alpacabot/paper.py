@@ -1275,6 +1275,7 @@ class PaperRunner:
                         sr = SwingRunner(RestBroker(), state_dir="state/alpaca_swing")
                         res = sr.profit_lock(now, sr.b.quote)
                         res.update(sr.stair_partials(now, sr.b.quote))   # owner 2026-11-02: stair-step partials (alpacabot.stairlive)
+                        res.update(sr.ensure_stops(now, sr.b.quote))     # 2026-11-03: re-place a swing stop that was cancelled / expired
                         if res:
                             self.journal("swing_profit_lock", result=res)
                             send_telegram("SWING (paper) profit lock: " + ", ".join(f"{k} {v}" for k, v in res.items()))

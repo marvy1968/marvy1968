@@ -153,6 +153,73 @@ class SwingRunner:
                 del self.state["positions"][sym]
         self._save()
 
+    def ensure_stops(self, now: datetime, quote) -> dict:
+        """Every held swing position must have a live stop at the broker (2026-11-03: CVX's stop order was gone - cancelled or expired -
+        with nothing re-placing it). Checked once a minute in market hours: a stop that is canceled / expired / rejected (or missing) is
+        re-placed at the position's own stop (as an OCO with its zone target when it had one); if price is already through the stop the
+        position is closed at market. Never acts on a position the broker no longer holds (journal + alert only)."""
+        out = {}
+        dead = ("canceled", "cancelled", "expired", "rejected")
+        held = None
+        for sym, pos in list(self.state["positions"].items()):
+            oid = pos.get("stop_order_id")
+            try:
+                st = (self.b.order(oid) or {}).get("status") if oid else None
+            except Exception as exc:
+                self.journal("stop_check_error", now, symbol=sym, error=str(exc)[:120])
+                continue
+            if oid and st not in dead:
+                continue
+            side = int(pos.get("side", 1))
+            try:
+                if held is None:
+                    held = self.b.positions()
+                q = int(held.get(sym, 0))
+            except Exception as exc:
+                self.journal("stop_check_error", now, symbol=sym, error=str(exc)[:120])
+                continue
+            if q * side < int(pos["qty"]):
+                if not pos.get("gone_alerted"):
+                    pos["gone_alerted"] = True
+                    self.journal("stop_missing_not_held", now, symbol=sym, held=q, qty=pos["qty"], stop_status=st)
+                    _alert(f"SWING (paper): {sym} stop order {st or 'missing'} and the broker holds {q} (book {pos['qty']}) - check it")
+                continue
+            ex = "sell" if side == 1 else "buy"
+            tag = now.astimezone(ET).strftime("%Y%m%d%H%M")
+            try:
+                bid, ask = (float(x) for x in quote(sym)[:2])
+                px = bid if side == 1 else ask
+                if side * (px - float(pos["stop"])) <= 0:          # already through the stop: out now, as the stop would have done
+                    o = self.b.submit_order(sym, pos["qty"], ex, "market", "day", f"sw-x-{sym}-{tag}")
+                    o2, waited = {}, 0.0
+                    while waited <= 30:
+                        o2 = self.b.order(o["id"]) or {}
+                        if o2.get("status") in ("filled", "rejected", "canceled", "expired"):
+                            break
+                        self.sleep(2)
+                        waited += 2
+                    if o2.get("status") == "filled":
+                        self.record(sym, pos, float(o2.get("filled_avg_price") or px), "stop", now)
+                        del self.state["positions"][sym]
+                    out[sym] = f"stop {st or 'missing'}, price {px:.2f} through stop {float(pos['stop']):.2f}: market exit {o2.get('status')}"
+                elif pos.get("oco") and pos.get("zone_tp") and hasattr(self.b, "submit_oco") and side * (float(pos["zone_tp"]) - px) > 0:
+                    so = self.b.submit_oco(sym, pos["qty"], round(float(pos["zone_tp"]), 2), round(float(pos["stop"]), 2), f"sw-r-{sym}-{tag}", side=ex)
+                    pos["stop_order_id"] = so.get("id") if isinstance(so, dict) else None
+                    out[sym] = f"stop {st or 'missing'}: re-placed OCO stop {float(pos['stop']):.2f} / target {float(pos['zone_tp']):.2f}"
+                else:
+                    so = self.b.submit_order(sym, pos["qty"], ex, "stop", "gtc", f"sw-r-{sym}-{tag}", stop_price=round(float(pos["stop"]), 2))
+                    pos["stop_order_id"], pos["oco"] = (so.get("id") if isinstance(so, dict) else None), False
+                    out[sym] = f"stop {st or 'missing'}: re-placed stop {float(pos['stop']):.2f}"
+                self.journal("stop_rearmed", now, symbol=sym, old_status=st, result=out[sym])
+            except Exception as exc:
+                self.journal("stop_rearm_error", now, symbol=sym, error=str(exc)[:200])
+                if not pos.get("rearm_alerted"):
+                    pos["rearm_alerted"] = True
+                    _alert(f"SWING (paper): {sym} has no broker stop and re-placing it FAILED ({type(exc).__name__}) - check it")
+        if out:
+            self._save()
+        return out
+
     def scan(self, now: datetime) -> dict:
         today = now.astimezone(ET).date()
         self.settle_stops(now)
