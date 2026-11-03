@@ -1,0 +1,3 @@
+$ show alpaca_vwap/state.json
+started 2026-11-03 11:50:20 EST
+RUNNING...
