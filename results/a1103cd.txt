@@ -1,3 +1,5 @@
 $ show alpaca_velez/journal.jsonl
-started 2026-11-03 09:55:22 EST
-RUNNING...
+started 2026-11-03 09:55:22 EST, took 0s, exit 0
+
+{"t": "2026-11-03T09:30:14-05:00", "kind": "universe", "n": 55}
+{"t": "2026-11-03T09:35:13-05:00", "kind": "inplay", "names": ["ORCL", "WMB", "AAPL", "CEG"], "scan": {"AAPL": {"rvol5": 3.57, "gap": -0.0376}, "CEG": {"rvol5": 1.29, "gap": 0.0126}, "ORCL": {"rvol5": 5.98, "gap": 0.0222}, "WMB": {"rvol5": 4.64, "gap": -0.0232}}}
