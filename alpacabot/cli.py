@@ -351,14 +351,17 @@ def run_all(a) -> int:
                                       log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)
                 continue
-            if fam in ("vwapday", "vwapday_data", "vwapday_2w"):   # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday)
+            if fam == "vwapday" or fam.startswith("vwapday_"):   # owner 2026-11-02: VWAP / ORB day-trade spec v1 (alpacabot.vwapday)
                 import datetime as _dt
                 from . import vwapday as _vd
                 _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)
                 if fam == "vwapday_2w":                # "do a 2 week backtest": last 10 sessions, default params
                     lines += _vd.quick(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
-                elif fam == "vwapday_data":
-                    _vd.download(_ld, _dt.date(2018, 1, 1), _dt.date.today(), log=lambda m: print(m, flush=True))
+                elif fam.startswith("vwapday_data"):   # vwapday_data = all years; vwapday_data_2021 = one year (short jobs, the hourly checks fit between)
+                    yr = fam.rsplit("_", 1)[-1]
+                    a_, b_ = ((_dt.date(int(yr), 1, 1), min(_dt.date(int(yr), 12, 31), _dt.date.today() - _dt.timedelta(days=1)))
+                              if yr.isdigit() else (_dt.date(2018, 1, 1), _dt.date.today() - _dt.timedelta(days=1)))
+                    _vd.download(_ld, a_, b_, log=lambda m: print(m, flush=True))
                 else:
                     lines += _vd.main(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)

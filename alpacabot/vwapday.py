@@ -28,7 +28,17 @@ VARIANT A VWAP reclaim: last 5-min close and SPY's on the trend side of VWAP, th
 VARIANT B band reversion, only if |SPY 09:30-10:00| < 0.3%: a 5-min close beyond VWAP -/+ ★k sigma (1.5/2/2.5), the next 5-min bar closes
           back toward VWAP, ADX(14, 5-min, continuous) of the confirming bar < ★20/25 -> entry. Target = VWAP of the previous minute
           (limit), stop = the closer of entry -/+ (VWAP - entry) and the session extreme -/+ 0.05 ATRd, time stop 60 min. No swing.
-SWING     longs of PRIMARY / A open at 15:45 with all of: 15:45 close in the top 20% of the day's range and > VWAP + 0.5 sigma; open >= +1R;
+VARIANT C Velez (README "Velez-Confirmed", owner 2026-11-03, trimmed): 2-minute bars, indicators continuous across days. Long: close > SMA20,
+          SMA20 rising (vs 5 bars ago), SMA20 > SMA200, "wide state" (ATR14 above its 20-bar mean and |SMA20 slope| >= 0.1 ATR), not choppy (fewer
+          than 4 SMA20 crosses in 20 bars); trigger = pullback (a low within SMA20 + 0.1 ATR in the last 5 bars, then a bullish bar closing above
+          SMA20 on more volume than the bar before) OR 2-bar reversal (bearish bar with a lower low, then a bullish bar closing above its high).
+          Short = the mirror image, scored separately. CONFIRMATION = only: close on the trend side of VWAP AND the bar's volume > 1.5x its
+          20-bar mean (the RSI / breakout / EMA votes, the gap filter and the exhaustion-reversal mode are dropped). No SPY filter. Entry at the next
+          minute's open (marketable limit, as the others). Stop = the nearer of the 5-bar pullback extreme and SMA20 -/+ 0.5 ATR(2-min), at least
+          max(0.5 ATR, 0.15% of price) away, skipped above 1.5% of price. Exits: half off at +2R and the stop to break-even; the rest at +3R or after
+          a 2-minute close through SMA20 (out at the next open); flat 15:50 or the same longs-only swing rule as the others. Risk 0.5%, daily cap -4R
+          (= 2% at 0.5% risk, instead of -2R). Other caps (4 new trades a day, 3 open, 2 per sector) are the harness's. No tuned parameters.
+SWING     longs of PRIMARY / A / C open at 15:45 with all of: 15:45 close in the top 20% of the day's range and > VWAP + 0.5 sigma; open >= +1R;
           price > EMA20 > SMA50 (daily, today's price as the close); 20-day return > its sector SPDR's; SPY > SMA200, SPY > its VWAP, SPY 20-day
           realized vol < its 1-year median. Earnings / ex-dividend / macro calendar NOT available -> not checked, flagged "unverified".
           Hold min(remaining, 50% of the original, risk from the overnight stop <= the original risk); the rest sold at 15:50.
@@ -76,10 +86,12 @@ TRAIN = (date(2018, 1, 1), date(2023, 12, 31))
 HOLD0 = date(2024, 1, 1)
 CB, SEC = 0.0003, 0.0000278
 MIN_TRAIN = 30
+DAILY_CAP_R = {"velezc": 4.0}          # realized R at which a strategy stops for the day (default 2.0); Variant C: 2% at 0.5% risk
 GRIDS = {"orb": [{"or": a, "k": b} for a in (15, 30, 60) for b in (0.08, 0.10, 0.15)],
          "reclaim": [{}],
+         "velezc": [{}],
          "band": [{"ks": a, "adx": b} for a in (1.5, 2.0, 2.5) for b in (20, 25)]}
-DEFAULT = {"orb": {"or": 30, "k": 0.10}, "reclaim": {}, "band": {"ks": 2.0, "adx": 20}}
+DEFAULT = {"orb": {"or": 30, "k": 0.10}, "reclaim": {}, "band": {"ks": 2.0, "adx": 20}, "velezc": {}}
 
 
 def sector_at(sym: str, d: date) -> str:
@@ -390,7 +402,101 @@ def sig_band(sd, spy, dd, side, p):
     return None, skips
 
 
-SIGNALS = {"orb": sig_orb, "reclaim": sig_reclaim, "band": sig_band}
+def velezc_by_day(mf: pd.DataFrame, days) -> dict:
+    """Variant C signals on 2-minute bars (continuous history, past bars only) -> {date: dict of arrays indexed by 2-min bar k} for `days`."""
+    if not len(mf) or not days:
+        return {}
+    k2 = mf["m"].to_numpy() // 2
+    g = mf.assign(k=k2).groupby(["d", "k"], sort=True)
+    b = pd.DataFrame({"o": g["o"].first(), "h": g["h"].max(), "l": g["l"].min(), "c": g["c"].last(), "v": g["v"].sum()})
+    typ = (mf["h"] + mf["l"] + mf["c"]) / 3
+    pv = (typ * mf["v"]).groupby(mf["d"]).cumsum()
+    cv = mf["v"].groupby(mf["d"]).cumsum()
+    vw1 = (pv / cv.replace(0, np.nan)).groupby([mf["d"], k2]).last()
+    vw = vw1.reindex(b.index).groupby(level=0).ffill().to_numpy()
+    c, o, h, l, v = b["c"], b["o"], b["h"], b["l"], b["v"]
+    pc = c.shift(1)
+    tr = pd.concat([h - l, (h - pc).abs(), (l - pc).abs()], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1 / 14, adjust=False, min_periods=14).mean()
+    sma20, sma200 = c.rolling(20).mean(), c.rolling(200).mean()
+    slope = sma20 - sma20.shift(5)
+    vavg = v.rolling(20).mean().shift(1)
+    side_sma = np.sign(c - sma20)
+    crosses = (side_sma != side_sma.shift(1)).astype(float).rolling(20).sum()
+    wide = (atr > atr.rolling(20).mean()) & (slope.abs() >= 0.1 * atr) & (crosses < 4)
+    low5, high5 = l.rolling(5).min(), h.rolling(5).max()
+    volup = v > v.shift(1)
+    vconf = v > 1.5 * vavg
+    vwa = pd.Series(vw, index=b.index)
+    pull_l = (low5 <= sma20 + 0.1 * atr) & (c > o) & (c > sma20) & volup
+    two_l = (c.shift(1) < o.shift(1)) & (l.shift(1) < l.shift(2)) & (c > h.shift(1)) & (c > o)
+    pull_s = (high5 >= sma20 - 0.1 * atr) & (c < o) & (c < sma20) & volup
+    two_s = (c.shift(1) > o.shift(1)) & (h.shift(1) > h.shift(2)) & (c < l.shift(1)) & (c < o)
+    long_ = (c > sma20) & (slope > 0) & (sma20 > sma200) & wide & (pull_l | two_l) & (c > vwa) & vconf
+    short_ = (c < sma20) & (slope < 0) & (sma20 < sma200) & wide & (pull_s | two_s) & (c < vwa) & vconf
+    raw_l, raw_s = np.maximum(low5, sma20 - 0.5 * atr), np.minimum(high5, sma20 + 0.5 * atr)
+    day_idx = b.index.get_level_values("d")
+    kk = b.index.get_level_values("k").to_numpy()
+    arrs = {"l": long_.fillna(False).to_numpy(bool), "s": short_.fillna(False).to_numpy(bool), "raw_l": raw_l.to_numpy(np.float32),
+            "raw_s": raw_s.to_numpy(np.float32), "atr": atr.to_numpy(np.float32), "sma20": sma20.to_numpy(np.float32)}
+    out = {}
+    want = set(days)
+    pos = {}
+    for i, d in enumerate(day_idx):
+        if d in want:
+            pos.setdefault(d, []).append(i)
+    for d, idx in pos.items():
+        idx = np.asarray(idx)
+        n2 = 195
+        rec = {}
+        for name, a in arrs.items():
+            full = np.zeros(n2, dtype=bool) if name in ("l", "s") else np.full(n2, np.nan, dtype=np.float32)
+            keep = kk[idx] < n2
+            full[kk[idx][keep]] = a[idx][keep]
+            rec[name] = full
+        out[d] = rec
+    return out
+
+
+def sig_velezc(sd, spy, dd, side, p):
+    vc = sd.get("vc")
+    if vc is None:
+        return None, [("no_data", None)]
+    n = sd["n"]
+    last, _ = _limits(n)
+    flags, raw = (vc["l"], vc["raw_l"]) if side == 1 else (vc["s"], vc["raw_s"])
+    atr = vc["atr"]
+    c, o = sd["c"], sd["o"]
+    skips = []
+    for k in np.flatnonzero(flags):
+        s = 2 * int(k) + 1
+        j = s + 1
+        if j >= len(c):
+            break
+        if j < 30:
+            continue
+        if j > last:
+            break
+        if side == -1 and _ssr(sd, dd, s):
+            return None, skips + [("ssr", s)]
+        e = float(o[j])
+        if not _ioc(side, e, float(c[s])):
+            skips.append(("no_fill", s))
+            continue
+        a = float(atr[k])
+        r = float(raw[k])
+        if not np.isfinite(a) or a <= 0:
+            continue
+        dist = max(side * (e - r) if np.isfinite(r) else 0.0, 0.5 * a, 0.0015 * e)
+        if dist > 0.015 * e:
+            skips.append(("risk_too_large", s))
+            continue
+        vwm, _ = vwap_sigma(sd)
+        return {"j": j, "s": s, "entry": e, "stop": float(e - side * dist), "vwap": float(vwm[s])}, skips
+    return None, skips
+
+
+SIGNALS = {"orb": sig_orb, "reclaim": sig_reclaim, "band": sig_band, "velezc": sig_velezc}
 
 
 # ---------------------------------------------------------------- one trade, minute by minute
@@ -430,6 +536,28 @@ def walk(strat, sd, side, j, e, stop, start_stop=None):
             if (hi >= tgt) if side == 1 else (li <= tgt):
                 ev.append((i, rem, tgt, "target"))
                 return ev, side * (tgt - e) / R0, side * (worst - e) / R0, None
+        if strat == "velezc":
+            if not tp_done:
+                t1 = e + side * 2 * R0
+                if (hi >= t1) if side == 1 else (li <= t1):
+                    ev.append((i, 0.5, oi if side * (oi - t1) >= 0 else t1, "tp1"))
+                    rem, tp_done = 0.5, True
+                    stop, why = e, "be"                            # break-even for the rest from the next bar
+                    t2 = e + side * 3 * R0
+                    if (hi >= t2) if side == 1 else (li <= t2):
+                        ev.append((i, rem, oi if side * (oi - t2) >= 0 else t2, "t2"))
+                        return ev, side * ((max(best, hi) if side == 1 else min(best, li)) - e) / R0, side * (worst - e) / R0, None
+            else:
+                t2 = e + side * 3 * R0
+                if (hi >= t2) if side == 1 else (li <= t2):
+                    ev.append((i, rem, oi if side * (oi - t2) >= 0 else t2, "t2"))
+                    return ev, side * ((max(best, hi) if side == 1 else min(best, li)) - e) / R0, side * (worst - e) / R0, None
+                vcd = sd.get("vc")
+                if vcd is not None and (i + 1) % 2 == 0 and i + 1 < end:
+                    sm = float(vcd["sma20"][i // 2])
+                    if np.isfinite(sm) and side * (float(c[i]) - sm) < 0:
+                        ev.append((i + 1, rem, float(o[i + 1]), "trail"))
+                        return ev, side * (best - e) / R0, side * (worst - e) / R0, None
         if strat == "reclaim" and not tp_done:
             tp = e + side * R0
             if (hi >= tp) if side == 1 else (li <= tp):
@@ -616,7 +744,7 @@ def run(ctx: Ctx, strat: str, side: int, p: dict, mult: float = 1.0, universe: s
                 open_.remove(t)
                 if stopped is None:
                     realized += t["w"] * t["R"]
-                    if realized <= -2.0:                    # daily limit: everything still open goes out at the next minute
+                    if realized <= -DAILY_CAP_R.get(strat, 2.0):   # daily limit: everything still open goes out at the next minute
                         stopped = t["exit_min"] + 1
                         for u in list(open_):
                             if u["exit_min"] >= stopped:
@@ -660,7 +788,7 @@ def run(ctx: Ctx, strat: str, side: int, p: dict, mult: float = 1.0, universe: s
                  "atrd": dd.get("atrd"), "rvol30": dd.get("rvol30"), "_sd": sd, "_ev": ev, "swing": False, "cost_mult": mult,
                  "split": "holdout" if d >= HOLD0 else "train", "universe": universe}
             # swing (longs, PRIMARY / A only)
-            if swing and side == 1 and strat in ("orb", "reclaim") and st45 is not None and ev and ev[-1][3] == "eod_1550" and di + 1 < len(days):
+            if swing and side == 1 and strat in ("orb", "reclaim", "velezc") and st45 is not None and ev and ev[-1][3] == "eod_1550" and di + 1 < len(days):
                 chk = swing_check(sym, d, sd, spy, side, sig["entry"], R0, st45, dd, ctx.dd("SPY", d),
                                   {"ret20_today": ctx.etf_ret20.get((sector_at(sym, d), d), np.nan)})
                 nd = days[di + 1]
@@ -900,19 +1028,24 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
     for i, (s, ds) in enumerate(sorted(need.items())):
         mf = minute_frame(load(s, "1Min", start, end))
         got = symbol_days(mf, ds, ctx.sess)
+        vcd = velezc_by_day(mf, ds)
         for d, v in got.items():
             a = ctx.adx.get(s, {}).get(d)
             if a is not None:
                 v["adx5"] = a
+            v["vc"] = vcd.get(d)
             ctx.sd[(s, d)] = v
         log(f"pass2 [{i + 1}/{len(need)}] {s}: {len(got)}/{len(ds)} days")
     for e in ETFS:                                     # control (c): ETFs on holdout days
         try:
-            mf = minute_frame(load(e, "1Min", HOLD0, end))
+            mf = minute_frame(load(e, "1Min", start, end))
             d1 = load(e, "1Day", start - timedelta(days=500), end)
-            ctx.daily[e] = daily_table(minute_frame(load(e, "1Min", start, end)), d1)
-            for d, v in symbol_days(mf, {d for d in ctx.days if d >= HOLD0}, ctx.sess).items():
+            ctx.daily[e] = daily_table(mf, d1)
+            hold_days = {d for d in ctx.days if d >= HOLD0}
+            vcd = velezc_by_day(mf, hold_days)
+            for d, v in symbol_days(mf, hold_days, ctx.sess).items():
                 v["adx5"] = None
+                v["vc"] = vcd.get(d)
                 ctx.sd[(e, d)] = v
         except Exception as exc:
             log(f"etf minute {e}: {exc!r}")
@@ -931,7 +1064,7 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
            "holdout": [str(HOLD0), str(end_d)], "costs": {"bps_side": CB * 1e4, "sec_bps_sells": SEC * 1e4, "stress": 2},
            "grids": GRIDS, "sizing": {"risk_pct": 0.005, "notional_cap": 0.25}, "chosen": {}}
     all_tr, all_sig, all_sw = [], [], []
-    for strat in ("orb", "reclaim", "band"):
+    for strat in ("orb", "velezc", "reclaim", "band"):
         for side in (1, -1):
             sname = "long" if side == 1 else "short"
             key = lambda p: tuple(sorted(p.items()))
@@ -1012,6 +1145,9 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
     g = gao_diagnostic(ctx)
     lines.append(f"- Gao et al. diagnostic (SPY long 15:30-15:50 when 09:30-15:30 is up, 3 bps a side): {g}")
     lines.append(f"- verdict: {sum(r['pass'] for r in summary)} of {len(summary)} strategy x side rows PASS")
+    lines.append("- ORB primary vs Variant C (Velez), pass/fail vs the §8 bar: " + "; ".join(
+        f"{r['strategy']} {r['side']}: {'PASS' if r['pass'] else 'FAIL'} (holdout PF {r['hold']['pf']:.2f}, n {r['hold']['n']}, "
+        f"2x PF {r['pf2']:.2f}, random {r['random']}/{seeds}, shuffled {r['shuffled']}/{seeds})" for r in summary if r["strategy"] in ("orb", "velezc")))
     _csv(all_tr, out / "trades.csv")
     _csv(all_sig, out / "signals.csv")
     _csv(all_sw, out / "swing_decisions.csv")
@@ -1050,8 +1186,10 @@ def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> l
     build_inplay(ctx)
     for s, mf in mfs.items():
         ds = {d for d in test_days if s in ctx.inplay["pit"].get(d, [])}
+        vcd_q = velezc_by_day(mf, ds)
         for d, v in symbol_days(mf, ds, ctx.sess).items():
             v["adx5"] = ctx.adx[s].get(d)
+            v["vc"] = vcd_q.get(d)
             ctx.sd[(s, d)] = v
     period = (test_days[0], test_days[-1])
     out = out_root / f"quick-{today:%Y%m%d}"
@@ -1061,7 +1199,7 @@ def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> l
              "| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x | exits |",
              "|" + "---|" * 13]
     allt = []
-    for strat in ("orb", "reclaim", "band"):
+    for strat in ("orb", "velezc", "reclaim", "band"):
         for side in (1, -1):
             p = DEFAULT[strat]
             tr, sig, *_ = run(ctx, strat, side, p, period=period, swing=False, logs={})

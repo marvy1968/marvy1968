@@ -112,7 +112,7 @@ class VwapDayTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, \
                 mock.patch.object(vd, "POOL", pool), mock.patch.object(vd, "SECTOR", {s: e for e, ss in pool.items() for s in ss}), \
                 mock.patch.object(vd, "ETFS", ["XLK", "XLF"]), mock.patch.object(vd, "MIN_TRAIN", 3), mock.patch.object(vd, "TRAIN", (date(2023, 7, 1), date(2023, 12, 31))), \
-                mock.patch.object(vd, "GRIDS", {"orb": [{"or": 30, "k": 0.10}, {"or": 30, "k": 0.15}], "reclaim": [{}], "band": [{"ks": 1.5, "adx": 99}]}), \
+                mock.patch.object(vd, "GRIDS", {"orb": [{"or": 30, "k": 0.10}, {"or": 30, "k": 0.15}], "reclaim": [{}], "velezc": [{}], "band": [{"ks": 1.5, "adx": 99}]}), \
                 mock.patch("alpacabot.universe.SECTOR_TOP5", {"XLK": ["AAA", "BBB", "CCC"], "XLF": ["EEE", "FFF", "GGG"]}):
             lines = vd.main(load, date(2024, 3, 30), Path(tmp), log=lambda m: None, seeds=2, start=date(2023, 7, 3))
             self.assertTrue(any(x.startswith("- verdict") for x in lines))
@@ -147,7 +147,66 @@ class VwapDayTests(unittest.TestCase):
                 mock.patch.object(vd, "ETFS", ["XLK", "XLF"]):
             lines = vd.quick(load, date(2024, 6, 1), Path(tmp), log=lambda m: None)
             self.assertIn("2024-05-20..2024-05-31", lines[0])
-            self.assertEqual(sum(1 for x in lines if x.startswith("| orb") or x.startswith("| reclaim") or x.startswith("| band")), 6)
+            self.assertEqual(sum(1 for x in lines if x.startswith("| orb") or x.startswith("| reclaim") or x.startswith("| band") or x.startswith("| velezc")), 8)
+
+    def test_velezc_signals_do_not_see_the_future(self):
+        days = pd.bdate_range("2024-01-02", periods=14)
+        mf = vd.minute_frame(minute_bars(5, days, drift=0.00004, vol=0.0009))
+        want = {days[-1].date()}
+        full = vd.velezc_by_day(mf, want)[days[-1].date()]
+        cut = mf[(mf["d"] < days[-1].date()) | (mf["m"] < 240)]
+        part = vd.velezc_by_day(cut, want)[days[-1].date()]
+        for name in ("l", "s"):
+            np.testing.assert_array_equal(full[name][:119], part[name][:119], err_msg=name)
+        for name in ("raw_l", "raw_s", "atr", "sma20"):
+            np.testing.assert_allclose(full[name][:119], part[name][:119], equal_nan=True, rtol=1e-5, err_msg=name)
+
+    def test_velezc_walk_long_and_short(self):
+        n = 390
+
+        def sd_flat(level=100.0):
+            sd = {k: np.full(n, level) for k in ("o", "h", "l", "c")}
+            sd.update(n=n, v=np.full(n, 1000.0))
+            sd["vc"] = {"sma20": np.full(195, 99.0, dtype=np.float32)}
+            return sd
+
+        def lift(sd, frm, level):                                  # price sits at `level` from minute `frm` on
+            for k in ("o", "h", "l", "c"):
+                sd[k][frm:] = level
+        # long: +2R half (102), then +3R (103)
+        sd = sd_flat()
+        sd["h"][50] = 102.2
+        lift(sd, 51, 102.5)
+        sd["h"][60] = 103.1
+        ev, *_ = vd.walk("velezc", sd, 1, 40, 100.0, 99.0)
+        self.assertEqual([x[3] for x in ev], ["tp1", "t2"])
+        self.assertAlmostEqual(vd.r_of(ev, 100.0, 1.0, 1, 0.0), 0.5 * 2 + 0.5 * 3, places=1)
+        # long: half off, then the break-even stop
+        sd = sd_flat()
+        sd["h"][50] = 102.2
+        lift(sd, 51, 101.0)
+        sd["l"][70] = 99.9
+        ev, *_ = vd.walk("velezc", sd, 1, 40, 100.0, 99.0)
+        self.assertEqual([x[3] for x in ev], ["tp1", "be"])
+        # short mirror: +2R half off then +3R
+        sd = sd_flat()
+        sd["l"][50] = 97.8
+        lift(sd, 51, 97.5)
+        sd["l"][60] = 96.9
+        ev, *_ = vd.walk("velezc", sd, -1, 40, 100.0, 101.0)
+        self.assertEqual([x[3] for x in ev], ["tp1", "t2"])
+        # trail: after the half, a 2-minute close below SMA20 (99) ends the rest at the next open
+        sd = sd_flat()
+        sd["h"][50] = 102.2
+        lift(sd, 51, 101.0)
+        sd["c"][81] = 98.5
+        ev, *_ = vd.walk("velezc", sd, 1, 40, 100.0, 99.0)
+        self.assertEqual([x[3] for x in ev], ["tp1", "trail"])
+        self.assertEqual(ev[-1][0], 82)
+
+    def test_velezc_daily_cap_is_four_r(self):
+        self.assertEqual(vd.DAILY_CAP_R.get("velezc"), 4.0)
+        self.assertEqual(vd.DAILY_CAP_R.get("orb", 2.0), 2.0)
 
 
 if __name__ == "__main__":
