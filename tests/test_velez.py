@@ -111,5 +111,52 @@ class VelezTests(unittest.TestCase):
                     self.assertLessEqual(x["qty"] * abs(x["fill"] - x["stop"]), 0.001 * 100_000 + 1e-6)
 
 
+    def test_manage_uses_entry_targets_not_fill(self):
+        """2026-11-03 CEG: fill 263.77 vs quote 263.24, stop 262.29 -> tp1 is 265.14 (set at entry), not 266.73 from the fill."""
+        class B:
+            def __init__(self):
+                self.orders, self.n, self.bid = {}, 0, 265.20
+
+            def _new(self, **kw):
+                self.n += 1
+                self.orders[f"o{self.n}"] = {"id": f"o{self.n}", **kw}
+                return self.orders[f"o{self.n}"]
+
+            def quote(self, sym):
+                return self.bid, self.bid + 0.02
+
+            def order(self, oid):
+                return self.orders[oid]
+
+            def cancel_order(self, oid):
+                self.orders[oid]["status"] = "canceled"
+
+            def submit_market(self, sym, qty, cid=None, side="buy"):
+                return self._new(type="market", qty=qty, side=side, status="filled", filled_avg_price=self.bid, filled_qty=qty)
+
+            def submit_order(self, sym, qty, side, type_, tif, cid, stop_price=None):
+                return self._new(type=type_, qty=qty, side=side, status="new", stop_price=stop_price)
+
+            def positions(self):
+                return {"CEG": 48}
+        with tempfile.TemporaryDirectory() as d:
+            b = B()
+            live = ve.VelezLive(b, state_dir=d, sleep=lambda *_: None)
+            so = b.submit_order("CEG", 48, "sell", "stop", "day", "x", stop_price=262.29)
+            live.state = {"date": "2026-11-03", "open": {"CEG": {"strategy": "trend", "side": 1, "qty": 48, "qty0": 48, "entry": 263.77,
+                          "stop": 262.29, "R0": 1.48, "entry_min": 34, "opened": "2026-11-03T10:04:08-05:00", "parts": 0, "best": 263.77,
+                          "trail": False, "realized_R": 0.0, "stop_id": so["id"], "t1": 265.14, "t2": 266.09}},
+                          "done": [], "traded": ["CEG"], "n_new": 1, "realized_R": 0.0}
+            now = datetime(2026, 11, 3, 11, 0, 10, tzinfo=ET)
+            live.manage(now, 90)
+            pos = live.state["open"]["CEG"]
+            self.assertEqual((pos["parts"], pos["qty"]), (1, 24))
+            self.assertEqual(b.orders[so["id"]]["status"], "canceled")
+            self.assertAlmostEqual(b.orders[pos["stop_id"]]["stop_price"], 263.77)          # rest at break-even
+            b.bid = 266.10
+            live.manage(now + timedelta(minutes=1), 91)
+            self.assertNotIn("CEG", live.state["open"])                                     # t2 266.09 (not 268.21)
+
+
 if __name__ == "__main__":
     unittest.main()

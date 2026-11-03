@@ -452,7 +452,10 @@ class VelezLive(VwapLive):
                 self.journal("error", now, where="manage", symbol=sym, error=str(exc)[:160])
                 continue
             e, R0 = pos["entry"], pos["R0"]
-            t1, t2 = e + 2 * R0, e + 3 * R0
+            # 2026-11-03 fix: the targets set at entry (2R / 3R on the signal's own risk). Recomputing them from the fill made a slipped
+            # fill push them out (CEG: fill 20 bps above the quote -> R 1.48 instead of 0.95, tp1 266.73 instead of 265.14: never locked)
+            t1, t2 = float(pos.get("t1") or e + 2 * R0), float(pos.get("t2") or e + 3 * R0)
+            pos["best"] = max(float(pos.get("best", e)), bid)
             if pos["parts"] == 0 and bid >= t1:
                 pos["stop"] = round(e, 2)                     # break-even for the rest (partial re-places the stop at pos["stop"])
                 self.partial(sym, pos, now)
