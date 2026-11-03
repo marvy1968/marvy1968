@@ -1,3 +1,16 @@
 $ alpaca positions
-started 2026-11-03 11:09:42 EST
-RUNNING...
+started 2026-11-03 11:09:42 EST, took 1s, exit 0
+
+equity $51,024.38  cash $16,390.68  long mv $34,633.70  short mv $0.00
+5 open positions:
+  CEG        long  qty           48  value $ 12,728.64  unrealized $    67.68
+  SO         long  qty          135  value $ 12,698.10  unrealized $     2.70
+  CVX        long  qty           23  value $  5,194.66  unrealized $  -202.97
+  MA         long  qty            4  value $  2,593.66  unrealized $   -13.09
+  LLY        long  qty            1  value $  1,418.60  unrealized $    -9.30
+5 open orders:
+  SO         sell 135 stop new  id vw-s-SO-202611031055
+  CVX        sell 23 limit new  id sw-r-CVX-202611031028
+  CEG        sell 48 stop new  id ve-s-CEG-202611031004
+  MA         sell 4 limit new  id sw-o-MA-20261103
+  LLY        sell 1 limit new  id sw-o-LLY-20261103
