@@ -317,7 +317,11 @@ def backtest(load, today: date, out_root: Path, log=print, seeds: int = 20, days
 # ---------------------------------------------------------------- live paper sleeve
 from .vwaplive import VwapLive  # noqa: E402
 
-VELEZ_LIVE = {**CFG, "notional_cap": 0.25, "daily_limit_r": CFG["daily_cap_r"], "paused": False, "start_date": "2026-11-03"}
+VELEZ_LIVE = {**CFG, "notional_cap": 0.25, "daily_limit_r": CFG["daily_cap_r"], "paused": False, "start_date": "2026-11-03",
+              # 2026-11-03 owner-approved pre-registered test (alpacabot.tpearly): first target 1.9R beat 2R in both halves and at 2x costs
+              # (avg R -0.314 vs -0.351 2nd half, -0.248 vs -0.257 1st, PF@2x 0.43 vs 0.41; 112 trades). Small - the system still loses.
+              # UNDO: "t1_r": 2.0
+              "t1_r": 1.9, "t2_r": 3.0}
 
 
 class VelezLive(VwapLive):
@@ -436,7 +440,7 @@ class VelezLive(VwapLive):
             finally:
                 self.cfg = cfg
             if sym in st["open"]:
-                st["open"][sym].update(t1=ask + 2 * (ask - stop), t2=ask + 3 * (ask - stop), votes=int(r["votes"]))
+                st["open"][sym].update(t1=ask + cfg.get("t1_r", 2.0) * (ask - stop), t2=ask + cfg.get("t2_r", 3.0) * (ask - stop), votes=int(r["votes"]))
                 st["per"][sym] = st["per"].get(sym, 0) + 1
 
     def manage(self, now, m):
