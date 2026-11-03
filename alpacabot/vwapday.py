@@ -1158,18 +1158,20 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
 
 
 # ---------------------------------------------------------------- quick sample (owner 2026-11-02: "do a 2 week backtest")
-def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> list[str]:
-    """The last `sessions` completed sessions with the spec's DEFAULT parameters (nothing tuned on these days), PIT-approx universe,
-    in-play filter, all three strategies x both sides, 1x and 2x costs, no swing (the live paper sleeve is flat by 15:50)."""
+def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=print, days_back: int = 120, seeds: int = 0,
+          name: str = "quick") -> list[str]:
+    """The last `sessions` completed sessions (None = every session after a 15-session warm-up) with the spec's DEFAULT parameters (nothing
+    tuned on these days), PIT-approx universe, in-play filter, ORB / Variant C (Velez) / reclaim / band x both sides, 1x and 2x costs, no swing
+    (the live paper sleeves are flat by 15:50). seeds > 0 adds the random-entry and shuffled-direction controls (same in-play names)."""
     end = today - timedelta(days=1)
-    start = end - timedelta(days=120)                    # warm-up: 14 sessions of RVOL history, 60-day dollar volume
+    start = end - timedelta(days=days_back)              # warm-up: 14 sessions of RVOL history, 60-day dollar volume
     ctx = Ctx()
     spy_mf = minute_frame(load("SPY", "1Min", start, end))
     ctx.daily["SPY"] = daily_table(spy_mf, load("SPY", "1Day", start - timedelta(days=500), end))
     last_min = spy_mf.groupby("d")["m"].max()
     ctx.days = sorted(last_min.index)
     ctx.sess = {d: (210 if last_min[d] < 230 else 390) for d in ctx.days}
-    test_days = ctx.days[-sessions:]
+    test_days = ctx.days[-sessions:] if sessions else ctx.days[15:]
     ctx.sd.update({("SPY", d): v for d, v in symbol_days(spy_mf, set(test_days), ctx.sess).items()})
     mfs = {}
     for s in sorted(SECTOR):
@@ -1192,13 +1194,17 @@ def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> l
             v["vc"] = vcd_q.get(d)
             ctx.sd[(s, d)] = v
     period = (test_days[0], test_days[-1])
-    out = out_root / f"quick-{today:%Y%m%d}"
+    out = out_root / f"{name}-{today:%Y%m%d}"
     out.mkdir(parents=True, exist_ok=True)
-    lines = [f"## VWAP / ORB day-trade - 2-week sample {period[0]}..{period[1]} ({len(test_days)} sessions), spec DEFAULT params, PIT-approx "
-             "universe + in-play filter, flat by 15:50. A SAMPLE, NOT EVIDENCE: too few trades to separate skill from luck.",
-             "| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x | exits |",
-             "|" + "---|" * 13]
+    ctl = seeds > 0
+    lines = [f"## VWAP / ORB / Velez day-trade - short test {period[0]}..{period[1]} ({len(test_days)} sessions), spec DEFAULT params (nothing tuned), "
+             "PIT-approx universe + in-play filter, 3 bps a side, flat by 15:50. NO train/holdout split and a few months of one market: a sample, "
+             "NOT the spec's full pass bar.",
+             "| Strategy | Side | Params | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | PF @2x | Net R @2x |" +
+             (" Random /%d | Shuffled /%d | Clears sample bar |" % (seeds, seeds) if ctl else "") + " exits |",
+             "|" + "---|" * (16 if ctl else 13)]
     allt = []
+    by_strat = {}
     for strat in ("orb", "velezc", "reclaim", "band"):
         for side in (1, -1):
             p = DEFAULT[strat]
@@ -1206,11 +1212,25 @@ def quick(load, today: date, out_root: Path, sessions: int = 10, log=print) -> l
             tr2, *_ = run(ctx, strat, side, p, mult=2.0, period=period, swing=False)
             st, st2 = stats(tr), stats(tr2)
             why = pd.Series([t["exit_reason"] for t in tr]).value_counts().to_dict() if tr else {}
+            extra = ""
+            if ctl:
+                rnd, shf = controls(ctx, strat, tr, seeds) if tr else ([], [])
+                br, bs = sum(st["pf"] > x for x in rnd), sum(st["pf"] > x for x in shf)
+                ok = st["pf"] > 1.1 and st["n"] >= 100 and st2["pf"] > 1.0 and br >= 0.8 * seeds and bs >= 0.8 * seeds
+                extra = f" {br}/{seeds} | {bs}/{seeds} | {'YES' if ok else 'no'} |"
+            by_strat.setdefault(strat, []).extend(tr)
             lines.append(f"| {strat} | {'long' if side == 1 else 'short'} | {p} | {st['n']} | {st['win']:.0%} | {st['pf']:.2f} | {st['avg_win']:+.2f} | "
-                         f"{st['avg_loss']:+.2f} | {st['exp']:+.3f} | {st['net']:+.1f} | {st2['pf']:.2f} | {st2['net']:+.1f} | {why} |")
+                         f"{st['avg_loss']:+.2f} | {st['exp']:+.3f} | {st['net']:+.1f} | {st2['pf']:.2f} | {st2['net']:+.1f} |{extra} {why} |")
             for t in tr:
                 t["variant"] = f"{strat}_{'long' if side == 1 else 'short'}"
             allt += tr
+    for strat in ("orb", "velezc"):
+        ts = sorted(by_strat.get(strat, []), key=lambda t: (t["date"], t["entry_min"]))
+        if ts:
+            x, last100 = stats(ts), stats(ts[-100:])
+            lines.append(f"- {strat}, long + short together: {x['n']} trades, win {x['win']:.0%}, PF {x['pf']:.2f}, net {x['net']:+.1f}R; most recent "
+                         f"{min(100, len(ts))} trades: win {last100['win']:.0%}, PF {last100['pf']:.2f}, net {last100['net']:+.1f}R"
+                         + ("" if len(ts) >= 100 else " (fewer than 100 trades in this window)"))
     a = stats(allt)
     lines.append(f"- all strategies together: {a['n']} trades, win {a['win']:.0%}, PF {a['pf']:.2f}, net {a['net']:+.1f}R")
     lines.append("- in-play names per day: " + ", ".join(f"{d}: {'/'.join(ctx.inplay['pit'].get(d, [])) or '-'}" for d in test_days))

@@ -355,7 +355,10 @@ def run_all(a) -> int:
                 import datetime as _dt
                 from . import vwapday as _vd
                 _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)
-                if fam == "vwapday_2w":                # "do a 2 week backtest": last 10 sessions, default params
+                if fam == "vwapday_100":               # owner 2026-11-02: "a shorter test of 100 trades": every session of the last ~5 months, controls on
+                    lines += _vd.quick(_ld, _dt.date.today(), Path("state/vwap_daytrade"), sessions=None, days_back=150, seeds=20, name="short100",
+                                       log=lambda m: print(m, flush=True))
+                elif fam == "vwapday_2w":              # "do a 2 week backtest": last 10 sessions, default params
                     lines += _vd.quick(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: print(m, flush=True))
                 elif fam.startswith("vwapday_data"):   # vwapday_data = all years; vwapday_data_2021 = one year (short jobs, the hourly checks fit between)
                     yr = fam.rsplit("_", 1)[-1]

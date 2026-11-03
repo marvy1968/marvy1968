@@ -149,6 +149,34 @@ class VwapDayTests(unittest.TestCase):
             self.assertIn("2024-05-20..2024-05-31", lines[0])
             self.assertEqual(sum(1 for x in lines if x.startswith("| orb") or x.startswith("| reclaim") or x.startswith("| band") or x.startswith("| velezc")), 8)
 
+    def test_short_test_with_controls(self):
+        pool = {"XLK": ["AAA", "BBB", "CCC"], "XLF": ["EEE", "FFF", "GGG"]}
+        days = pd.bdate_range("2024-01-02", "2024-05-31")
+        cache = {}
+
+        def load(sym, tf, a, b):
+            if (sym, tf) not in cache:
+                seed = abs(hash(sym)) % 1000
+                if tf == "1Min":
+                    cache[(sym, tf)] = minute_bars(seed, days, vol=0.0016, trend_days=set(range(0, len(days), 3)))
+                else:
+                    d = pd.bdate_range("2022-06-01", "2024-05-31")
+                    rng = np.random.default_rng(seed)
+                    c = 100 * np.exp(np.cumsum(rng.normal(0, 0.03, len(d))))
+                    cache[(sym, tf)] = pd.DataFrame({"open": c, "high": c * 1.01, "low": c * 0.99, "close": c, "volume": 5e6}, index=d.tz_localize(vd.NY))
+            f = cache[(sym, tf)]
+            return f[(f.index.date >= a) & (f.index.date <= b)]
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(vd, "SECTOR", {s: e for e, ss in pool.items() for s in ss}), \
+                mock.patch.object(vd, "ETFS", ["XLK", "XLF"]):
+            lines = vd.quick(load, date(2024, 6, 1), Path(tmp), sessions=None, days_back=150, seeds=2, name="short100", log=lambda m: None)
+            self.assertIn("short test", lines[0])
+            self.assertIn("Clears sample bar", lines[1])
+            rows = [x for x in lines if x.startswith(("| orb", "| velezc", "| reclaim", "| band"))]
+            self.assertEqual(len(rows), 8)
+            self.assertTrue(all(r.count("/2") >= 2 for r in rows))
+            self.assertTrue(any(x.startswith("- velezc") or x.startswith("- orb") for x in lines))
+            self.assertTrue((next(Path(tmp).iterdir()) / "summary.md").exists())
+
     def test_velezc_signals_do_not_see_the_future(self):
         days = pd.bdate_range("2024-01-02", periods=14)
         mf = vd.minute_frame(minute_bars(5, days, drift=0.00004, vol=0.0009))
