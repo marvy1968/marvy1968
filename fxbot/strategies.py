@@ -590,6 +590,39 @@ class InBox:
         return f
 
 
+class CandlePattern:
+    """Candlestick reversal patterns as a timing trigger (owner 2026-11-03: "learn candlestick patterns and hybrid them into the range experts").
+    Textbook definitions, fixed before any test (no tuning):
+      bullish engulfing  prior bar bearish; signal bar bullish and its body covers the prior bar's body (open <= prior close, close >= prior open)
+      bullish pin bar    lower wick >= 2 x body and >= 2 x upper wick, close in the top half of the bar's range (hammer / pin)
+      mirrors for shorts (bearish engulfing, shooting star: upper wick, close in the bottom half).
+    kind: "engulf" | "pin" | "either". The pattern only says WHEN; the range box (InBox) says WHERE and sets the stop and target."""
+
+    def __init__(self, kind: str = "either", max_bars: int = 48):
+        assert kind in ("engulf", "pin", "either")
+        self.kind, self.max_bars = kind, max_bars
+        self.name = f"candle {kind}"
+
+    def frame(self, m):
+        o, h, l, c = m["open"], m["high"], m["low"], m["close"]
+        body = (c - o).abs()
+        rng = (h - l).where(lambda x: x > 0)
+        lower, upper = np.minimum(o, c) - l, h - np.maximum(o, c)
+        po, pc = o.shift(1), c.shift(1)
+        bull_eng = (pc < po) & (c > o) & (o <= pc) & (c >= po)
+        bear_eng = (pc > po) & (c < o) & (o >= pc) & (c <= po)
+        bull_pin = (lower >= 2 * body) & (lower >= 2 * upper) & (c >= (h + l) / 2) & (rng.notna())
+        bear_pin = (upper >= 2 * body) & (upper >= 2 * lower) & (c <= (h + l) / 2) & (rng.notna())
+        if self.kind == "engulf":
+            bull, bear = bull_eng, bear_eng
+        elif self.kind == "pin":
+            bull, bear = bull_pin, bear_pin
+        else:
+            bull, bear = bull_eng | bull_pin, bear_eng | bear_pin
+        none = pd.Series(False, index=m.index)
+        return _frame(m.index, bull.fillna(False), bear.fillna(False), none, none, atr(m, 14).fillna(0.0))
+
+
 class Reversed:
     """Research (owner 2026-10-27, "change each expert 10 times until positive"): the base strategy's signals traded the OTHER way (longs <-> shorts, exit
     flags swapped), same stop distance and target. A strategy that reliably loses before costs may win reversed; costs still apply both ways."""

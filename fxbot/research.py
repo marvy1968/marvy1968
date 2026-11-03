@@ -14,7 +14,7 @@ import numpy as np
 
 from .data import MAJORS
 from .engine import Book, metrics, portfolio, simulate
-from .strategies import InBox, TightStop, BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
+from .strategies import CandlePattern, VelezFx, InBox, TightStop, BoxConfirm, RangeBoxFailed, BoxGated, DirectionZoneMap, Laddered, Locked, Zoned, AsianBreakout, ConsensusMR, F0Reversion, LienFader, MaCrossBigBuild, Donchian, EmaPullback, NR7Breakout, RangeBoxFade, RangeBox200, RangeMR, RegimeSwitch, TsMom
 
 TRAIN = (date(2016, 1, 1), date(2020, 12, 31))
 VALIDATE = (date(2021, 1, 1), date(2022, 12, 31))
@@ -835,3 +835,13 @@ def pristine_check(data_by_gran: dict, a, b) -> list[str]:
                 out.append(f"- {label}: {m.get('trades') or 0} trades, win {m.get('win_rate') or 0:.0%}, PF {m.get('profit_factor') or 0:.2f}, "
                            f"total {m.get('total_return') or 0:+.2%}, maxDD {m.get('max_drawdown') or 0:.1%}")
     return out
+
+
+# 2026-11-03 owner: "learn candlestick patterns and hybrid them into the range experts". The live boxmr_h1 expert = the range box arena (InBox) +
+# Velez look-left, timed by RangeMR. The candle family keeps the arena, the box stop/target and the look-left, and swaps the timing for a candle
+# pattern (strategies.CandlePattern). Same pass bar as every family (train 2016-20 picks the pattern, validate 2021-22 decides, 2x spread,
+# shuffled-data placebo). The reference row is the live boxmr_h1 itself. Nothing is tuned beyond the three pattern kinds.
+FAMILIES["fx_candle_box_h1"] = ("H1", lambda kind: VelezFx(InBox(CandlePattern(kind), tp_frac=0.5, label="candle"), env=False, look_left=True),
+                                {"kind": ["engulf", "pin", "either"]})
+FAMILIES["fx_boxmr_ref_h1"] = ("H1", lambda: VelezFx(InBox(RangeMR(bb_k=2.0, stop_atr=1.5, asian_only=False), tp_frac=0.5, label="range_mr"),
+                                                    env=False, look_left=True), {})
