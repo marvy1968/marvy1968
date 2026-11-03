@@ -1,3 +1,8 @@
 $ show alpaca_paper/journal-20261103.jsonl
-started 2026-11-03 09:55:32 EST
-RUNNING...
+started 2026-11-03 09:55:32 EST, took 0s, exit 0
+
+{"t": "2026-11-03T09:30:14-05:00", "kind": "kill_switch", "on": true}
+{"t": "2026-11-03T09:30:14-05:00", "kind": "trend_lists", "source": "news", "long": ["DIS", "BRK.B", "V", "MA", "LLY", "ABBV", "KO", "XOM", "CVX", "COP", "AMT", "SPG", "ECL", "APD"], "short": []}
+{"t": "2026-11-03T09:30:14-05:00", "kind": "zonemap", "up": 25, "down": 23, "range": 34, "stocks": 82, "stage2": 33, "stage4": 26, "stage1": 15, "stage3": 8}
+{"t": "2026-11-03T09:30:14-05:00", "kind": "heat_map", "IWM": 0, "QQQ": -1, "SPY": -1, "XLB": 1, "XLC": -1, "XLE": 1, "XLF": 1, "XLI": 0, "XLK": -1, "XLP": 1, "XLRE": 1, "XLU": 1, "XLV": 1, "XLY": 1}
+{"t": "2026-11-03T09:55:06-05:00", "kind": "signal", "symbol": "SPY", "side": "short", "tag": "S:brooks_pullback", "ref": 753.59, "result": "shadow: not in entry_symbols"}
