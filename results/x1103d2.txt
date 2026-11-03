@@ -1,3 +1,8 @@
 $ show alpaca_velez/journal.jsonl
-started 2026-11-03 12:09:23 EST
-RUNNING...
+started 2026-11-03 12:09:23 EST, took 0s, exit 0
+
+{"t": "2026-11-03T09:30:14-05:00", "kind": "universe", "n": 55}
+{"t": "2026-11-03T09:35:13-05:00", "kind": "inplay", "names": ["ORCL", "WMB", "AAPL", "CEG"], "scan": {"AAPL": {"rvol5": 3.57, "gap": -0.0376}, "CEG": {"rvol5": 1.29, "gap": 0.0126}, "ORCL": {"rvol5": 5.98, "gap": 0.0222}, "WMB": {"rvol5": 4.64, "gap": -0.0232}}}
+{"t": "2026-11-03T10:04:08-05:00", "kind": "signal", "symbol": "CEG", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 263.24, "stop": 262.29, "rvol30": 1.29}
+{"t": "2026-11-03T10:04:08-05:00", "kind": "open", "symbol": "CEG", "strategy": "trend", "side": 1, "qty": 48, "fill": 263.77, "stop": 262.29, "slippage_bps": 20.13}
+{"t": "2026-11-03T12:08:46-05:00", "kind": "partial", "symbol": "CEG", "px": 265.96, "qty": 24, "pl": 52.56, "reason": "tp1"}
