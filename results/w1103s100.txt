@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --families vwapday_100
+started 2026-11-02 19:19:18 EST
+RUNNING...
