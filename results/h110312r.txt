@@ -1,3 +1,5 @@
 $ show alpaca_vwap/trades.jsonl
-started 2026-11-03 12:10:51 EST
-RUNNING...
+started 2026-11-03 12:10:51 EST, took 0s, exit 0
+
+{"date": "2026-11-03", "symbol": "AAPL", "strategy": "reclaim", "side": "long", "qty": 11, "entry": 330.45, "exit": 331.56, "pl": 12.21, "r_part": 0.5224, "r_trade": null, "reason": "tp1", "opened": "2026-11-03T11:10:11.081629-05:00", "closed": "2026-11-03T11:35:20.387497-05:00", "final": false}
+{"date": "2026-11-03", "symbol": "SO", "strategy": "orb", "side": "long", "qty": 135, "entry": 94.04, "exit": 94.025629, "pl": -1.94, "r_part": -0.1424, "r_trade": -0.1424, "reason": "stop", "opened": "2026-11-03T10:55:31.391689-05:00", "closed": "2026-11-03T12:04:10.601505-05:00", "final": true}
