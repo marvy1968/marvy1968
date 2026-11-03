@@ -1,3 +1,16 @@
 $ alpaca positions
-started 2026-11-03 13:10:41 EST
-RUNNING...
+started 2026-11-03 13:10:41 EST, took 2s, exit 0
+
+equity $50,992.05  cash $25,432.66  long mv $25,559.39  short mv $0.00
+5 open positions:
+  WMB        long  qty          173  value $ 12,692.15  unrealized $    -4.33
+  CVX        long  qty           23  value $  5,209.61  unrealized $  -188.03
+  AAPL       long  qty           11  value $  3,639.24  unrealized $     4.29
+  MA         long  qty            4  value $  2,596.64  unrealized $   -10.11
+  LLY        long  qty            1  value $  1,421.74  unrealized $    -6.16
+5 open orders:
+  WMB        sell 173 stop new  id ve-s-WMB-202611031310
+  AAPL       sell 11 stop new  id vw-s2-AAPL-202611031135
+  CVX        sell 23 limit new  id sw-r-CVX-202611031028
+  MA         sell 4 limit new  id sw-o-MA-20261103
+  LLY        sell 1 limit new  id sw-o-LLY-20261103
