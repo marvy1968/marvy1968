@@ -1,0 +1,3 @@
+$ show alpaca_trendopt/state.json
+started 2026-11-03 09:55:18 EST
+RUNNING...
