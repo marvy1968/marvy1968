@@ -1,3 +1,15 @@
 $ show alpaca_trendopt/journal.jsonl
-started 2026-11-03 14:09:46 EST
-RUNNING...
+started 2026-11-03 14:09:46 EST, took 0s, exit 0
+
+{"t": "2026-11-03T11:20:16-05:00", "kind": "signal", "symbol": "WELL", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 242.31, "stop": 241.98250000000002, "rvol30": null}
+{"t": "2026-11-03T11:20:16-05:00", "kind": "open", "symbol": "WELL", "strategy": "trend", "side": 1, "qty": 52, "fill": 242.44, "stop": 241.98250000000002, "slippage_bps": 5.37}
+{"t": "2026-11-03T11:25:16-05:00", "kind": "signal", "symbol": "RTX", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 205.13, "stop": 204.8267857142857, "rvol30": null}
+{"t": "2026-11-03T11:25:16-05:00", "kind": "open", "symbol": "RTX", "strategy": "trend", "side": 1, "qty": 62, "fill": 205.33, "stop": 204.8267857142857, "slippage_bps": 9.75}
+{"t": "2026-11-03T11:38:10-05:00", "kind": "close", "symbol": "RTX", "px": 204.665484, "qty": 62, "pl": -41.2, "reason": "hard_stop"}
+{"t": "2026-11-03T11:44:11-05:00", "kind": "close", "symbol": "WELL", "px": 241.96, "qty": 52, "pl": -24.96, "reason": "hard_stop"}
+{"t": "2026-11-03T12:25:18-05:00", "kind": "signal", "symbol": "UNH", "strategy": "trend", "side": 1, "taken": true, "skip_reason": "", "entry": 403.3, "stop": 402.80678571428575, "rvol30": null}
+{"t": "2026-11-03T12:25:18-05:00", "kind": "open", "symbol": "UNH", "strategy": "trend", "side": 1, "qty": 31, "fill": 403.35, "stop": 402.80678571428575, "slippage_bps": 1.24}
+{"t": "2026-11-03T12:29:20-05:00", "kind": "close", "symbol": "UNH", "px": 402.65, "qty": 31, "pl": -21.7, "reason": "hard_stop"}
+{"t": "2026-11-03T12:40:13-05:00", "kind": "signal", "symbol": "PLD", "strategy": "trend", "side": -1, "taken": true, "skip_reason": "", "entry": 127.875, "stop": 128.0, "rvol30": null}
+{"t": "2026-11-03T12:40:13-05:00", "kind": "open", "symbol": "PLD", "strategy": "trend", "side": -1, "qty": 99, "fill": 127.85, "stop": 128.0, "slippage_bps": 1.96}
+{"t": "2026-11-03T12:45:08-05:00", "kind": "close", "symbol": "PLD", "px": 128.024848, "qty": 99, "pl": -17.31, "reason": "hard_stop"}
