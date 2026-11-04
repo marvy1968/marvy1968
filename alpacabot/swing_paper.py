@@ -277,8 +277,11 @@ class SwingRunner:
             if qty < 1:
                 continue
             cash -= qty * px
-            entries.append({"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px,
-                            **swing_zone(bars_[s], px, stop, self.zone_config())})
+            ent = {"symbol": s, "qty": qty, "stop": stop, "rs": round(float(frames[s]["rs"].iloc[-1]), 4), "signal_close": px,
+                   **swing_zone(bars_[s], px, stop, self.zone_config())}
+            if td_cfg.get("tp_r"):                               # owner 2026-11-04: fixed R take-profit (re-set from the actual fill at entry)
+                ent.update(tp_r=float(td_cfg["tp_r"]), zone_tp=round(px + float(td_cfg["tp_r"]) * (px - stop), 2))
+            entries.append(ent)
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.funnel_plan(bars_, closes, held, exits, entries, equity, cash, locked, now, name="oversold")
         exits, entries = self.index_trend_plan(spy, idx_bars, held, exits, entries, equity, cash, locked, now)
@@ -990,6 +993,8 @@ class SwingRunner:
             self.record(sym, pos, px, "gap_below_stop", now)
             return
         tp = e.get("zone_tp")
+        if e.get("tp_r") and side * (px - e["stop"]) > 0:        # owner 2026-11-04: Top-Down 2R take-profit measured from the real fill
+            tp = round(px + float(e["tp_r"]) * (px - e["stop"]), 2)         # long and short alike
         if tp and self.zone_config()["live"]:
             if side * (px - tp) >= 0:                      # opened at/past its take-profit zone: take the profit now
                 self.b.submit_order(sym, qty, close_side, "market", "day", f"sw-z-{sym}-{now.astimezone(ET):%Y%m%d}")

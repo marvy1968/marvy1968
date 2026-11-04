@@ -121,6 +121,27 @@ class EnsureStopsTests(unittest.TestCase):
             r2.ensure_stops(NOW, lambda s: (219.0, 219.1))
             self.assertEqual(al.call_count, 1)
 
+    def test_topdown_2r_tp_from_fill(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker({})
+            r = sp.SwingRunner(b, state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            r.state["plan"] = {"entries": [{"symbol": "AAA", "qty": 10, "stop": 95.0, "zone_tp": 130.0, "tp_r": 2.0}]}
+            with unittest.mock.patch.object(r, "zone_config", return_value={"live": True}):
+                r._settle_open("AAA", "entry", {"status": "filled", "filled_avg_price": 100.5, "filled_qty": 10}, NOW)
+            pos = r.state["positions"]["AAA"]
+            self.assertEqual(pos["zone_tp"], 111.5)                       # 100.5 + 2 x (100.5 - 95), not the zone map's 130
+            oco = b.orders[pos["stop_order_id"]]
+            self.assertEqual((oco["limit"], oco["stop_price"]), (111.5, 95.0))
+
+    def test_zone_tp_unchanged_without_tp_r(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = Broker({})
+            r = sp.SwingRunner(b, state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            r.state["plan"] = {"entries": [{"symbol": "AAA", "qty": 10, "stop": 95.0, "zone_tp": 130.0}]}
+            with unittest.mock.patch.object(r, "zone_config", return_value={"live": True}):
+                r._settle_open("AAA", "entry", {"status": "filled", "filled_avg_price": 100.5, "filled_qty": 10}, NOW)
+            self.assertEqual(r.state["positions"]["AAA"]["zone_tp"], 130.0)
+
 
 if __name__ == "__main__":
     import unittest.mock  # noqa: F401
