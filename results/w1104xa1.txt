@@ -1,3 +1,104 @@
 $ alpaca run-all --phase validate --families fx_exits_muse_all
-started 2026-11-04 09:46:18 EST
-RUNNING...
+started 2026-11-04 09:46:18 EST, took 823s, exit 0
+
+daily data ready
+## fx_exits_muse SHORT test: last 3 months, halves at 2x spread, bid/ask, 7 majors. PASS = PF >= 1.0 in each half at 2x (3+ trades each), 10+ trades, total R above the live exits (0.5R cut / 1.25R target)
+### boxmr_h1 (short test, last 3 months)
+- own: normal spread 17 tr, PF 0.91, win 0.412, -0.64R (-0.32% at 0.5% risk) | 2x spread 17 tr, PF 0.83, win 0.412, -1.26R (-0.63% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.73 (16)
+- live: normal spread 16 tr, PF 1.94, win 0.438, +4.25R (+2.12% at 0.5% risk) | 2x spread 17 tr, PF 1.36, win 0.353, +2.0R (+1.0% at 0.5% risk) | halves at 2x PF 2.5 (2) / 1.25 (15)
+- fixed_1r: normal spread 13 tr, PF 1.17, win 0.538, +1.0R (+0.5% at 0.5% risk) | 2x spread 13 tr, PF 1.16, win 0.538, +0.94R (+0.47% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.99 (12)
+- fixed_2r: normal spread 8 tr, PF 0.67, win 0.25, -2.0R (-1.0% at 0.5% risk) | 2x spread 8 tr, PF 0.67, win 0.25, -2.0R (-1.0% at 0.5% risk) | halves at 2x PF 0.0 (1) / 0.8 (7)
+- fixed_3r: normal spread 6 tr, PF 1.5, win 0.333, +2.0R (+1.0% at 0.5% risk) | 2x spread 6 tr, PF 1.5, win 0.333, +2.0R (+1.0% at 0.5% risk) | halves at 2x PF 0.0 (1) / 2.0 (5)
+- time_10: normal spread 17 tr, PF 0.83, win 0.529, -1.1R (-0.55% at 0.5% risk) | 2x spread 17 tr, PF 0.74, win 0.529, -1.71R (-0.85% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.71 (16)
+- time_20: normal spread 13 tr, PF 0.31, win 0.308, -4.58R (-2.29% at 0.5% risk) | 2x spread 14 tr, PF 0.44, win 0.357, -4.16R (-2.08% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.41 (13)
+- atr_trail_2: normal spread 15 tr, PF 0.66, win 0.333, -2.5R (-1.25% at 0.5% risk) | 2x spread 15 tr, PF 0.6, win 0.333, -2.93R (-1.47% at 0.5% risk) | halves at 2x PF 2.62 (2) / 0.47 (13)
+- atr_trail_3: normal spread 11 tr, PF 0.39, win 0.364, -3.67R (-1.84% at 0.5% risk) | 2x spread 11 tr, PF 0.35, win 0.364, -4.05R (-2.02% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.32 (10)
+- sma20_close: normal spread 31 tr, PF 0.28, win 0.387, -4.78R (-2.39% at 0.5% risk) | 2x spread 31 tr, PF 0.18, win 0.323, -6.33R (-3.16% at 0.5% risk) | halves at 2x PF 0.49 (3) / 0.16 (28)
+- sma50_close: normal spread 31 tr, PF 0.54, win 0.452, -2.82R (-1.41% at 0.5% risk) | 2x spread 31 tr, PF 0.38, win 0.355, -4.4R (-2.2% at 0.5% risk) | halves at 2x PF 0.49 (3) / 0.37 (28)
+- swing_5: normal spread 22 tr, PF 0.56, win 0.273, -2.86R (-1.43% at 0.5% risk) | 2x spread 22 tr, PF 0.75, win 0.273, -1.78R (-0.89% at 0.5% risk) | halves at 2x PF 1.37 (3) / 0.67 (19)
+- be1r_atr2: normal spread 11 tr, PF 0.51, win 0.455, -2.93R (-1.46% at 0.5% risk) | 2x spread 11 tr, PF 0.47, win 0.455, -3.22R (-1.61% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.38 (10)
+- psar: normal spread 15 tr, PF 0.47, win 0.4, -3.55R (-1.78% at 0.5% risk) | 2x spread 15 tr, PF 0.38, win 0.4, -4.34R (-2.17% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.28 (14)
+- own_atr3: normal spread 14 tr, PF 0.77, win 0.429, -1.36R (-0.68% at 0.5% risk) | 2x spread 14 tr, PF 0.69, win 0.429, -1.9R (-0.95% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.57 (13)
+- ponsi: normal spread 10 tr, PF 0.32, win 0.3, -4.77R (-2.39% at 0.5% risk) | 2x spread 10 tr, PF 0.3, win 0.3, -4.92R (-2.46% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.22 (9)
+- raschke: normal spread 9 tr, PF 0.83, win 0.111, -0.7R (-0.35% at 0.5% risk) | 2x spread 9 tr, PF 0.77, win 0.111, -1.01R (-0.5% at 0.5% risk) | halves at 2x PF 0.0 (1) / 0.86 (8)
+- turtle: normal spread 4 tr, PF 0.0, win 0.0, -3.39R (-1.69% at 0.5% risk) | 2x spread 4 tr, PF 0.0, win 0.0, -3.44R (-1.72% at 0.5% risk) | halves at 2x PF 0.0 (1) / 0.0 (3)
+- wstair: normal spread 23 tr, PF 0.86, win 0.348, -0.91R (-0.46% at 0.5% risk) | 2x spread 23 tr, PF 0.71, win 0.348, -2.08R (-1.04% at 0.5% risk) | halves at 2x PF 0.02 (3) / 0.79 (20)
+- wstair_ag: normal spread 23 tr, PF 0.75, win 0.304, -1.65R (-0.82% at 0.5% risk) | 2x spread 23 tr, PF 0.61, win 0.304, -2.81R (-1.41% at 0.5% risk) | halves at 2x PF 0.02 (3) / 0.68 (20)
+- crabel: normal spread 15 tr, PF 0.66, win 0.4, -2.37R (-1.18% at 0.5% risk) | 2x spread 15 tr, PF 0.49, win 0.4, -3.77R (-1.89% at 0.5% risk) | halves at 2x PF 99.0 (1) / 0.49 (14)
+- williams: normal spread 26 tr, PF 0.5, win 0.654, -3.56R (-1.78% at 0.5% risk) | 2x spread 25 tr, PF 0.41, win 0.56, -4.33R (-2.16% at 0.5% risk) | halves at 2x PF 29.44 (2) / 0.4 (23)
+### lien_h1 (short test, last 3 months)
+- own: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- live: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- fixed_1r: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- fixed_2r: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- fixed_3r: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- time_10: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- time_20: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- atr_trail_2: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- atr_trail_3: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- sma20_close: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- sma50_close: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- swing_5: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- be1r_atr2: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- psar: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- own_atr3: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- ponsi: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- raschke: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- turtle: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- wstair: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- wstair_ag: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- crabel: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+- williams: normal spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | 2x spread 0 tr, PF None, win None, +0.0R (+0.0% at 0.5% risk) | halves at 2x PF None (0) / None (0)
+## fx_exits_muse LONG test: 5 years up to the short window, last 12 months sequestered, 2x spread. KEEP = OOS 40+ trades, PF >= 1.15, beats the live exits, PF > 1 in most years, beats random entries with the same exit (5 seeds)
+### boxmr_h1 long test (2x spread, last 12 months sequestered)
+- live: in-sample 341 tr, PF 0.37, win 0.132, -94.45R (-47.23% at 0.5% risk) | OOS 84 tr, PF 0.49, win 0.167, -18.12R (-9.06% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.286 (control)
+  by year: 2021 PF 0.34 -17.34R (57), 2022 PF 0.34 -21.65R (74), 2023 PF 0.38 -22.38R (83), 2024 PF 0.52 -12.58R (62), 2025 PF 0.4 -22.74R (87), 2026 PF 0.41 -15.87R (62)
+- own: in-sample 288 tr, PF 0.61, win 0.295, -49.19R (-24.6% at 0.5% risk) | OOS 76 tr, PF 0.41, win 0.329, -17.66R (-8.83% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.462 -> reject
+  by year: 2021 PF 0.6 -8.94R (53), 2022 PF 0.27 -21.74R (58), 2023 PF 0.55 -15.53R (83), 2024 PF 1.32 +5.28R (44), 2025 PF 0.57 -11.91R (70), 2026 PF 0.41 -14.02R (56)
+- fixed_1r: in-sample 207 tr, PF 0.49, win 0.333, -72.21R (-36.11% at 0.5% risk) | OOS 54 tr, PF 0.5, win 0.333, -18.0R (-9.0% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.322 -> reject
+- fixed_2r: in-sample 185 tr, PF 0.52, win 0.211, -71.21R (-35.61% at 0.5% risk) | OOS 45 tr, PF 0.65, win 0.244, -12.05R (-6.02% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.377 -> reject
+- fixed_3r: in-sample 180 tr, PF 0.56, win 0.161, -67.21R (-33.61% at 0.5% risk) | OOS 42 tr, PF 0.6, win 0.167, -14.05R (-7.02% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.356 -> reject
+- time_10: in-sample 229 tr, PF 0.56, win 0.31, -59.09R (-29.55% at 0.5% risk) | OOS 59 tr, PF 0.46, win 0.339, -17.67R (-8.84% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.322 -> reject
+- time_20: in-sample 201 tr, PF 0.63, win 0.274, -50.69R (-25.34% at 0.5% risk) | OOS 49 tr, PF 0.51, win 0.286, -15.98R (-7.99% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.366 -> reject
+- atr_trail_2: in-sample 241 tr, PF 0.51, win 0.253, -66.52R (-33.26% at 0.5% risk) | OOS 65 tr, PF 0.71, win 0.231, -9.75R (-4.88% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.354 -> reject
+- atr_trail_3: in-sample 204 tr, PF 0.59, win 0.216, -54.98R (-27.49% at 0.5% risk) | OOS 53 tr, PF 0.89, win 0.264, -3.35R (-1.68% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.404 -> reject
+- sma20_close: in-sample 440 tr, PF 0.28, win 0.245, -104.52R (-52.26% at 0.5% risk) | OOS 100 tr, PF 0.36, win 0.23, -19.38R (-9.69% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.319 -> reject
+- sma50_close: in-sample 445 tr, PF 0.28, win 0.27, -100.29R (-50.15% at 0.5% risk) | OOS 103 tr, PF 0.26, win 0.243, -21.92R (-10.96% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.305 -> reject
+- swing_5: in-sample 335 tr, PF 0.39, win 0.146, -90.13R (-45.07% at 0.5% risk) | OOS 89 tr, PF 0.28, win 0.146, -26.43R (-13.22% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.339 -> reject
+- be1r_atr2: in-sample 201 tr, PF 0.59, win 0.289, -55.61R (-27.81% at 0.5% risk) | OOS 48 tr, PF 0.77, win 0.333, -6.98R (-3.49% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.361 -> reject
+- psar: in-sample 233 tr, PF 0.47, win 0.236, -74.59R (-37.29% at 0.5% risk) | OOS 59 tr, PF 0.4, win 0.237, -20.46R (-10.23% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.349 -> reject
+- own_atr3: in-sample 295 tr, PF 0.56, win 0.292, -54.66R (-27.33% at 0.5% risk) | OOS 76 tr, PF 0.43, win 0.316, -16.94R (-8.47% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.363 -> reject
+- ponsi: in-sample 195 tr, PF 0.55, win 0.287, -64.47R (-32.24% at 0.5% risk) | OOS 48 tr, PF 0.51, win 0.354, -15.24R (-7.62% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.407 -> reject
+- raschke: in-sample 181 tr, PF 0.92, win 0.149, -11.36R (-5.68% at 0.5% risk) | OOS 47 tr, PF 0.71, win 0.191, -10.13R (-5.06% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.364 -> reject
+- turtle: in-sample 171 tr, PF 1.3, win 0.082, +46.79R (+23.4% at 0.5% risk) | OOS 40 tr, PF 0.57, win 0.05, -16.3R (-8.15% at 0.5% risk) | years PF>1 3/6 | random-entry OOS avg R -0.465 -> reject
+- wstair: in-sample 368 tr, PF 0.37, win 0.234, -93.36R (-46.68% at 0.5% risk) | OOS 86 tr, PF 0.53, win 0.221, -15.04R (-7.52% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.295 -> reject
+- wstair_ag: in-sample 371 tr, PF 0.38, win 0.248, -90.39R (-45.2% at 0.5% risk) | OOS 86 tr, PF 0.53, win 0.221, -14.86R (-7.43% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.296 -> reject
+- crabel: in-sample 238 tr, PF 0.38, win 0.227, -97.6R (-48.8% at 0.5% risk) | OOS 55 tr, PF 0.41, win 0.273, -19.66R (-9.83% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.479 -> reject
+- williams: in-sample 323 tr, PF 0.38, win 0.492, -71.78R (-35.89% at 0.5% risk) | OOS 80 tr, PF 0.3, win 0.438, -19.88R (-9.94% at 0.5% risk) | years PF>1 0/6 | random-entry OOS avg R -0.263 -> reject
+### lien_h1 long test (2x spread, last 12 months sequestered)
+- live: in-sample 78 tr, PF 0.58, win 0.192, -13.52R (-6.76% at 0.5% risk) | OOS 16 tr, PF 1.5, win 0.375, +2.5R (+1.25% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.222 (control)
+  by year: 2021 PF 0.0 -0.5R (1), 2022 PF 1.33 +3.12R (29), 2023 PF 0.23 -8.43R (23), 2024 PF 0.23 -4.25R (12), 2025 PF 0.39 -3.96R (14), 2026 PF 1.67 +3.0R (15)
+- own: in-sample 78 tr, PF 0.75, win 0.282, -14.26R (-7.13% at 0.5% risk) | OOS 16 tr, PF 1.71, win 0.438, +5.79R (+2.9% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.031 -> reject
+  by year: 2021 PF 0.0 -1.0R (1), 2022 PF 1.05 +1.0R (29), 2023 PF 0.71 -5.0R (23), 2024 PF 0.42 -5.26R (12), 2025 PF 0.55 -5.0R (14), 2026 PF 1.94 +6.79R (15)
+- fixed_1r: in-sample 78 tr, PF 0.7, win 0.41, -13.68R (-6.84% at 0.5% risk) | OOS 16 tr, PF 2.2, win 0.688, +6.0R (+3.0% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.219 -> reject
+- fixed_2r: in-sample 78 tr, PF 0.74, win 0.269, -15.05R (-7.52% at 0.5% risk) | OOS 16 tr, PF 1.56, win 0.438, +5.0R (+2.5% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.223 -> reject
+- fixed_3r: in-sample 78 tr, PF 0.71, win 0.192, -18.05R (-9.02% at 0.5% risk) | OOS 16 tr, PF 0.69, win 0.188, -4.0R (-2.0% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.282 -> reject
+- time_10: in-sample 78 tr, PF 0.6, win 0.308, -18.83R (-9.42% at 0.5% risk) | OOS 16 tr, PF 3.23, win 0.562, +13.08R (+6.54% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.243 -> reject
+- time_20: in-sample 78 tr, PF 0.68, win 0.256, -16.88R (-8.44% at 0.5% risk) | OOS 16 tr, PF 3.58, win 0.562, +16.92R (+8.46% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.162 -> reject
+- atr_trail_2: in-sample 78 tr, PF 0.93, win 0.295, -3.51R (-1.75% at 0.5% risk) | OOS 16 tr, PF 2.57, win 0.5, +9.93R (+4.96% at 0.5% risk) | years PF>1 3/6 | random-entry OOS avg R -0.231 -> reject
+- atr_trail_3: in-sample 78 tr, PF 1.08, win 0.231, +4.44R (+2.22% at 0.5% risk) | OOS 16 tr, PF 2.03, win 0.312, +8.43R (+4.22% at 0.5% risk) | years PF>1 3/6 | random-entry OOS avg R -0.22 -> reject
+- sma20_close: in-sample 78 tr, PF 1.06, win 0.269, +3.14R (+1.57% at 0.5% risk) | OOS 16 tr, PF 3.63, win 0.625, +15.76R (+7.88% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.192 -> reject
+- sma50_close: in-sample 78 tr, PF 0.95, win 0.218, -2.93R (-1.46% at 0.5% risk) | OOS 16 tr, PF 2.57, win 0.438, +13.53R (+6.77% at 0.5% risk) | years PF>1 3/6 | random-entry OOS avg R -0.144 -> reject
+- swing_5: in-sample 78 tr, PF 0.28, win 0.192, -28.74R (-14.37% at 0.5% risk) | OOS 16 tr, PF 2.3, win 0.25, +7.58R (+3.79% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.268 -> reject
+- be1r_atr2: in-sample 78 tr, PF 0.75, win 0.269, -11.5R (-5.75% at 0.5% risk) | OOS 16 tr, PF 3.25, win 0.5, +11.24R (+5.62% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.224 -> reject
+- psar: in-sample 78 tr, PF 0.68, win 0.218, -15.1R (-7.55% at 0.5% risk) | OOS 16 tr, PF 3.96, win 0.562, +16.0R (+8.0% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.211 -> reject
+- own_atr3: in-sample 78 tr, PF 0.76, win 0.282, -13.04R (-6.52% at 0.5% risk) | OOS 16 tr, PF 1.79, win 0.438, +6.19R (+3.1% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.255 -> reject
+- ponsi: in-sample 78 tr, PF 0.76, win 0.321, -11.93R (-5.96% at 0.5% risk) | OOS 16 tr, PF 3.82, win 0.625, +14.11R (+7.05% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R -0.188 -> reject
+- raschke: in-sample 78 tr, PF 0.8, win 0.128, -12.18R (-6.09% at 0.5% risk) | OOS 16 tr, PF 1.92, win 0.25, +8.65R (+4.32% at 0.5% risk) | years PF>1 3/6 | random-entry OOS avg R -0.106 -> reject
+- turtle: in-sample 77 tr, PF 1.83, win 0.13, +55.98R (+27.99% at 0.5% risk) | OOS 16 tr, PF 0.48, win 0.125, -7.34R (-3.67% at 0.5% risk) | years PF>1 2/6 | random-entry OOS avg R 0.009 -> reject
+- wstair: in-sample 78 tr, PF 0.35, win 0.321, -21.68R (-10.84% at 0.5% risk) | OOS 16 tr, PF 1.33, win 0.438, +1.61R (+0.81% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.212 -> reject
+- wstair_ag: in-sample 78 tr, PF 0.35, win 0.321, -21.68R (-10.84% at 0.5% risk) | OOS 16 tr, PF 1.33, win 0.438, +1.61R (+0.81% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.21 -> reject
+- crabel: in-sample 78 tr, PF 0.35, win 0.256, -31.11R (-15.56% at 0.5% risk) | OOS 16 tr, PF 2.71, win 0.5, +9.51R (+4.76% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.284 -> reject
+- williams: in-sample 78 tr, PF 0.47, win 0.474, -18.19R (-9.09% at 0.5% risk) | OOS 16 tr, PF 1.98, win 0.562, +4.02R (+2.01% at 0.5% risk) | years PF>1 1/6 | random-entry OOS avg R -0.166 -> reject
+- VERDICT (adopt only if it passes the short test AND keeps in the long test; crabel / williams are controls): nothing qualifies - live exits stay
+ALL DONE
