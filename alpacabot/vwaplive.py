@@ -34,6 +34,9 @@ VWAP_LIVE = {"risk_pct": 0.0005, "notional_cap": 0.25, "max_new": 4, "max_open":
              # owner 2026-11-04 ("do what gives the best ROI"): ORB off - it lost in every test: 2-week sample, the 89-session test (PF 0.26),
              # the minute-bar exit lab (133 trades PF 0.24, best of 18 exits 0.71). Open ORB trades keep their exits. UNDO: put "orb" back.
              "strategies": ["reclaim", "band"], "sides": [1, -1], "paused": False,
+             # owner 2026-11-04 ("switch the losing sleeves to log only"): reclaim PF 0.50, band 0.64 in the 5-month test, no exit of 18 fixed
+             # either. Signals are still scanned and journalled (skip_reason log_only); open trades keep their exits. UNDO: "log_only": False.
+             "log_only": True,
              "start_date": "2026-11-03"}     # first session it may trade (after the owner sees the 2-week sample)
 
 
@@ -280,6 +283,10 @@ class VwapLive:
             self.enter(sym, strat, side, sig, now, m)
 
     def enter(self, sym, strat, side, sig, now, m):
+        if self.cfg.get("log_only"):                         # owner 2026-11-04 ("switch the losing sleeves to log only"): signal logged, no order
+            self.journal("signal", now, symbol=sym, strategy=strat, side=side, taken=False, skip_reason="log_only", entry=sig["entry"],
+                         stop=sig["stop"])
+            return
         equity = self.b.equity()
         R0 = side * (sig["entry"] - sig["stop"])
         if R0 <= 0:

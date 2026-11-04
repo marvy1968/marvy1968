@@ -339,7 +339,10 @@ VELEZ_LIVE = {**CFG, "notional_cap": 0.25, "daily_limit_r": CFG["daily_cap_r"], 
               # 2026-11-03 owner-approved pre-registered test (alpacabot.tpearly): first target 1.9R beat 2R in both halves and at 2x costs
               # (avg R -0.314 vs -0.351 2nd half, -0.248 vs -0.257 1st, PF@2x 0.43 vs 0.41; 112 trades). Small - the system still loses.
               # UNDO: "t1_r": 2.0
-              "t1_r": 1.9, "t2_r": 3.0}
+              "t1_r": 1.9, "t2_r": 3.0,
+              # owner 2026-11-04 ("switch the losing sleeves to log only"): 4-month backtest PF 0.59 (113 trades), no exit of 18 fixed it.
+              # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
+              "log_only": True}
 
 
 class VelezLive(VwapLive):

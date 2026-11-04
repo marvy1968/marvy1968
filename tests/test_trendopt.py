@@ -204,7 +204,7 @@ class LiveTests(unittest.TestCase):
     def test_full_day(self):
         with tempfile.TemporaryDirectory() as d, mock.patch.object(universe, "STOCKS", ["AAA", "BBB"]):
             b = FakeBroker()
-            live = to.TrendOptLive(b, state_dir=d, fetch=fake_fetch, sleep=lambda *_: None)
+            live = to.TrendOptLive(b, state_dir=d, cfg={**to.TRENDOPT_LIVE, "log_only": False}, fetch=fake_fetch, sleep=lambda *_: None)
             j = self.run_day(d, b, live)
             opens = [x for x in j if x["kind"] == "open"]
             self.assertTrue(opens)
@@ -222,7 +222,7 @@ class LiveTests(unittest.TestCase):
     def test_filled_stop_is_booked_not_exited(self):
         with tempfile.TemporaryDirectory() as d, mock.patch.object(universe, "STOCKS", ["AAA"]):
             b = FakeBroker()
-            live = to.TrendOptLive(b, state_dir=d, fetch=fake_fetch, sleep=lambda *_: None)
+            live = to.TrendOptLive(b, state_dir=d, cfg={**to.TRENDOPT_LIVE, "log_only": False}, fetch=fake_fetch, sleep=lambda *_: None)
             self.run_day(d, b, live, until=datetime(2026, 11, 3, 10, 30, 10, tzinfo=ET))
             self.assertIn("AAA", live.state["open"])
             pos = live.state["open"]["AAA"]
@@ -237,6 +237,19 @@ class LiveTests(unittest.TestCase):
             tr = [json.loads(x) for x in open(f"{d}/trades.jsonl")]
             self.assertEqual(tr[-1]["reason"], "hard_stop")
             self.assertAlmostEqual(tr[-1]["r_trade"], -1.0, places=6)
+
+    def test_log_only_live_default(self):
+        self.assertTrue(to.TRENDOPT_LIVE["log_only"])
+        from alpacabot import velez as ve
+        self.assertTrue(ve.VELEZ_LIVE["log_only"])
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(universe, "STOCKS", ["AAA"]):
+            b = FakeBroker()
+            live = to.TrendOptLive(b, state_dir=d, fetch=fake_fetch, sleep=lambda *_: None)
+            self.run_day(d, b, live, until=datetime(2026, 11, 3, 11, 0, 10, tzinfo=ET))
+            self.assertEqual(b.orders, {})
+            with open(f"{d}/journal.jsonl") as fh:
+                j = [json.loads(x) for x in fh]
+            self.assertTrue(any(x["kind"] == "signal" and x.get("skip_reason") == "log_only" for x in j))
 
     def test_forming_bar_dropped(self):
         with tempfile.TemporaryDirectory() as d:

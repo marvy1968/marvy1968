@@ -101,7 +101,7 @@ class VwapLiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d, mock.patch.object(vd, "SECTOR", {s: e for e, ss in POOL.items() for s in ss}), \
                 mock.patch.object(vd, "ETFS", ["XLK", "XLF"]), mock.patch.object(vd, "MEMBER_FROM", {}):
             b = FakeBroker()
-            cfg = {**vl.VWAP_LIVE, "strategies": ["orb"], "start_date": ""}
+            cfg = {**vl.VWAP_LIVE, "strategies": ["orb"], "start_date": "", "log_only": False}
             live = vl.VwapLive(b, state_dir=d, cfg=cfg, fetch=fake_fetch, sleep=lambda *_: None)
             t = datetime(2026, 11, 3, 9, 50, 10, tzinfo=ET)
             while t <= datetime(2026, 11, 3, 15, 52, 10, tzinfo=ET):
@@ -145,6 +145,24 @@ class VwapLiveTests(unittest.TestCase):
                 live.step(t)
                 t += timedelta(minutes=1)
             self.assertEqual(b.positions(), {})
+
+    def test_log_only_places_no_orders(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(vd, "SECTOR", {s: e for e, ss in POOL.items() for s in ss}), \
+                mock.patch.object(vd, "ETFS", ["XLK", "XLF"]), mock.patch.object(vd, "MEMBER_FROM", {}):
+            b = FakeBroker()
+            cfg = {**vl.VWAP_LIVE, "strategies": ["orb"], "start_date": "", "log_only": True}
+            live = vl.VwapLive(b, state_dir=d, cfg=cfg, fetch=fake_fetch, sleep=lambda *_: None)
+            t = datetime(2026, 11, 3, 9, 50, 10, tzinfo=ET)
+            while t <= datetime(2026, 11, 3, 15, 52, 10, tzinfo=ET):
+                b.now = pd.Timestamp(t) - pd.Timedelta(minutes=1)
+                live.step(t)
+                t += timedelta(minutes=1)
+            with open(f"{d}/journal.jsonl") as fh:
+                j = [json.loads(x) for x in fh]
+            self.assertEqual(b.orders, {})
+            self.assertFalse(any(x["kind"] == "open" for x in j))
+            self.assertTrue(any(x["kind"] == "signal" and x.get("skip_reason") == "log_only" for x in j))
+        self.assertTrue(vl.VWAP_LIVE["log_only"])                     # owner 2026-11-04: the live sleeve is log only
 
 
 if __name__ == "__main__":

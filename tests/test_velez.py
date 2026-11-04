@@ -94,7 +94,7 @@ class VelezTests(unittest.TestCase):
             return m[(m.index >= a) & (m.index + pd.Timedelta(minutes=1) <= b)]
         with tempfile.TemporaryDirectory() as d, mock.patch("alpacabot.universe.STOCKS", syms), mock.patch.dict(tv.MIN, data):
             b = FakeBroker()
-            live = ve.VelezLive(b, state_dir=d, cfg={**ve.VELEZ_LIVE, "adv_sh": 1, "start_date": ""}, fetch=fetch, sleep=lambda *_: None)
+            live = ve.VelezLive(b, state_dir=d, cfg={**ve.VELEZ_LIVE, "adv_sh": 1, "start_date": "", "log_only": False}, fetch=fetch, sleep=lambda *_: None)
             t = datetime(2026, 11, 3, 9, 34, 10, tzinfo=ET)
             while t <= datetime(2026, 11, 3, 15, 52, 10, tzinfo=ET):
                 b.now = pd.Timestamp(t) - pd.Timedelta(minutes=1)
