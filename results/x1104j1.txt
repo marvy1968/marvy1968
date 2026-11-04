@@ -1,3 +1,22 @@
 $ alpaca equity-vs-spy
-started 2026-11-04 18:57:21 EST
-RUNNING...
+started 2026-11-04 18:57:21 EST, took 1s, exit 1
+
+
+--- stderr ---
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/marv-bot/alpacabot/__main__.py", line 3, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/opt/marv-bot/alpacabot/cli.py", line 2406, in main
+    print("\n".join(_eq()))
+                    ^^^^^
+  File "/opt/marv-bot/alpacabot/eqspy.py", line 46, in run
+    spy_df = _fetch("SPY", "1Day", f"{start}T00:00:00Z", today.tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ"), "sip")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/marv-bot/alpacabot/data.py", line 57, in _fetch
+    r.raise_for_status()
+  File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://data.alpaca.markets/v2/stocks/SPY/bars?timeframe=1Day&start=2026-10-09T00%3A00%3A00Z&end=2026-11-04T23%3A57%3A23Z&limit=10000&adjustment=all&feed=sip
