@@ -1,3 +1,63 @@
 $ logs marv-alpaca-paper 60
-started 2026-11-04 12:11:34 EST
-RUNNING...
+started 2026-11-04 12:11:34 EST, took 0s, exit 0
+
+Nov 04 10:42:02 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 10:47:43 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 10:52:08 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 10:56:45 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 10:59:53 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:00:14 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:04:12 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:05:09 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:08:37 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:09:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:10:14 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:13:20 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:14:11 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:15:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:18:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:19:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:20:12 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:25:00 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:25:31 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:28:22 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:29:04 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:30:10 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:32:19 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:33:14 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:34:01 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:35:10 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:36:57 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:37:21 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:38:08 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:39:15 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:40:03 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:42:30 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:43:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:44:09 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:45:00 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:46:52 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:47:13 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:48:15 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:49:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:50:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:51:25 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:52:12 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:53:03 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:54:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:55:09 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:56:32 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:57:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:58:10 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 11:59:01 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:00:04 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:02:41 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:03:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:04:07 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:05:12 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:06:43 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:07:03 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:08:05 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:09:10 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:10:12 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
+Nov 04 12:11:33 instance-stockbot python[2505975]: INFO ALPACA_TG off: not posting to Telegram: SWING (paper): CVX stop order canceled and the broker holds 0 (book 23) - check it
