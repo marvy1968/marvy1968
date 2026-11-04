@@ -1204,6 +1204,32 @@ def run_all(a) -> int:
                                         "the hindsight-free 2016 list")
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "swing_exits_muse_all":      # owner 2026-11-04 ("apply and run the same for alpaca"): all 14 old exits + Muse's 7, every swing strategy
+                import datetime as _dt
+                from . import exitlab as _xl
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in sorted(set(STOCKS) | {"SPY", "QQQ"})}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                spy_c = dd["SPY"]["close"]
+                exs = _xl.EXITS + _xl.MUSE_EXITS
+                sh = _xl.short_test(dd, spy_c, today_, exits=exs)
+                lines += ["## swing_exits_muse_all SHORT test: last 3 months, two halves, 10 bps a side. PASS = PF >= 1.0 in both halves, 10+ trades "
+                          "(2 for index200), total R above the strategy's own exits"] + _xl.short_lines(sh)
+                picks = {st: [e for e in exs if e != "own"] for st in _xl.STRATEGIES}      # pre-declared: every exit goes to the long test
+                lg = _xl.long_test(dd, spy_c, today_, picks)
+                lines += ["## swing_exits_muse_all LONG test: 2016 to 3 months ago, last 12 months sequestered (OOS), 10 bps a side. KEEP = OOS 40+ "
+                          "trades (10 for index200), PF >= 1.15, beats own exits, PF > 1 in most years, beats random entries"] + _xl.long_lines(lg, "today's list")
+                cd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in SECTOR_TD_CONTROL}
+                cd = {s: d for s, d in cd.items() if len(d) > 300}
+                lg2 = _xl.long_test({**cd, "SPY": dd["SPY"]}, spy_c, today_, {k: v for k, v in picks.items() if k != "index200"})
+                lines += _xl.long_lines(lg2, "the hindsight-free 2016 list")
+                ok = [f"{st}:{ex}" for st, rows in lg.items() for ex, r in rows.items() if r.get("keep") and sh[st][ex]["pass"]
+                      and ex not in ("crabel", "williams") and (st == "index200" or lg2.get(st, {}).get(ex, {}).get("keep"))]
+                lines.append(f"- VERDICT (adopt only if it passes the short test AND keeps in the long test on both lists; crabel / williams are "
+                             f"controls): {ok or 'nothing qualifies - own exits stay'}")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "swing_exits":               # owner 2026-10-27: every exit type on every swing strategy, short test then long test (exitlab)
                 import datetime as _dt
                 from . import exitlab as _xl

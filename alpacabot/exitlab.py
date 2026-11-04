@@ -30,6 +30,12 @@ from .indicators import atr
 EXITS = ("own", "fixed_1r", "fixed_2r", "fixed_3r", "time_10", "time_20", "atr_trail_2", "atr_trail_3", "sma20_close", "sma50_close",
          "swing_low_5", "be1r_atr2", "psar", "own_atr3")
 STRATEGIES = ("topdown", "funnel", "oversold", "index200")
+# Muse's exits on daily bars (owner 2026-11-04, "apply the same for alpaca"), pre-declared, nothing tuned: ponsi = break-even after a 1R
+# close, then trail at the 10-day EMA - 0.5 ATR; raschke = stop to the prior day's low - 1 cent (only tightens), flat after day 6; turtle =
+# out on a close under the prior 10-day low; wstair / wstair_ag = trail at the highest high - a distance in R set by the stock's realized R
+# this week (Monday reset: <=0R 0.50, <=2R 0.40, <=5R 0.30, >5R 0.20; aggressive 0.50/0.30/0.20/0.10); controls crabel = out at the next
+# open after the entry day's close, williams = out at the next open after the first profitable close. No fixed target.
+MUSE_EXITS = ("ponsi", "raschke", "turtle", "wstair", "wstair_ag", "crabel", "williams")
 MAX_HOLD = 120
 FUNNEL_RULES = {"stop_frac": 0.5, "tp_r": 1.25, "v_tail": True}
 OVERSOLD_RULES = {"oversold": True, "os_stage": None, "tp_r": 1.25, "stop_frac": 0.75}
@@ -71,6 +77,9 @@ def simulate(d: pd.DataFrame, sig: pd.DataFrame, exit_: str, start, end, slip_bp
     ent = sig["entry"].to_numpy(bool) if entry_mask is None else entry_mask
     stops, tps, own_x = sig["stop"].to_numpy(float), sig["tp"].to_numpy(float), sig["exit"].to_numpy(bool)
     dates, n, slip = np.asarray(d.index.date), len(d), slip_bps / 1e4
+    ema10 = d["close"].ewm(span=10, adjust=False).mean().to_numpy(float)
+    lo10 = d["low"].rolling(10).min().shift(1).to_numpy(float)
+    week_r = {}
     out, i = [], 0
     while i < n - 1:
         if not ent[i] or not (start <= dates[i] <= end):
@@ -92,6 +101,8 @@ def simulate(d: pd.DataFrame, sig: pd.DataFrame, exit_: str, start, end, slip_bp
             i += 1
             continue
         stop, hh, j, px, why = stop0, h[i + 1], i + 1, None, ""
+        wk = pd.Timestamp(dates[i + 1]).isocalendar()[:2]
+        armed = False
         sar, ep, af = stop0, h[i + 1], 0.02
         while j < n:
             if j > i + 1 and o[j] <= stop:
@@ -104,7 +115,9 @@ def simulate(d: pd.DataFrame, sig: pd.DataFrame, exit_: str, start, end, slip_bp
                 held = j - i
                 flag = {"own": own_x[j] and entry_mask is None, "own_atr3": own_x[j] and entry_mask is None,
                         "time_10": held >= 10, "time_20": held >= 20,
-                        "sma20_close": c[j] < s20[j], "sma50_close": c[j] < s50[j]}.get(exit_, False)
+                        "sma20_close": c[j] < s20[j], "sma50_close": c[j] < s50[j],
+                        "raschke": held >= 6, "turtle": bool(np.isfinite(lo10[j]) and c[j] < lo10[j]),
+                        "crabel": held >= 1, "williams": c[j] > fill}.get(exit_, False)
                 if entry_mask is not None and exit_ in ("own", "own_atr3"):
                     flag = c[j] < s20[j]                                      # random entries have no own signal: use the 20-day close
                 if flag or held >= MAX_HOLD:
@@ -124,12 +137,25 @@ def simulate(d: pd.DataFrame, sig: pd.DataFrame, exit_: str, start, end, slip_bp
             elif exit_ == "be1r_atr2":
                 if hh - fill >= risk:
                     stop = max(stop, fill, hh - 2.0 * ai)
+            elif exit_ == "ponsi":
+                if not armed and c[j] - fill >= risk:
+                    armed = True
+                if armed and np.isfinite(ema10[j]) and np.isfinite(a[j]):
+                    stop = max(stop, fill, ema10[j] - 0.5 * a[j])
+            elif exit_ == "raschke":
+                stop = max(stop, l[j] - 0.01)
+            elif exit_ in ("wstair", "wstair_ag"):
+                wr = week_r.get(wk, 0.0)
+                tiers = (0.50, 0.40, 0.30, 0.20) if exit_ == "wstair" else (0.50, 0.30, 0.20, 0.10)
+                dist = tiers[0] if wr <= 0 else tiers[1] if wr <= 2 else tiers[2] if wr <= 5 else tiers[3]
+                stop = max(stop, hh - dist * risk)
             elif exit_ == "psar":
                 if j > i + 1:
                     sar, ep, af = _psar_step(sar, ep, af, h[j])
                 stop = max(stop, min(sar, l[j]))
             j += 1
         px *= (1 - slip)
+        week_r[wk] = week_r.get(wk, 0.0) + (px - fill) / risk
         out.append({"entry_date": dates[i + 1], "exit_date": dates[min(j, n - 1)], "r": (px - fill) / risk, "reason": why,
                     "days": int(min(j, n - 1) - i)})
         i = j + 1 if why != "end" else n
@@ -165,14 +191,14 @@ def _sel(trades, a, b):
     return [t["r"] for t in trades if a <= t["entry_date"] <= b]
 
 
-def short_test(bars: dict, spy_close, today: date, months: int = 3, slip_bps: float = 10.0) -> dict:
+def short_test(bars: dict, spy_close, today: date, months: int = 3, slip_bps: float = 10.0, exits=EXITS) -> dict:
     """Last `months` months, two halves, 2x slippage (10 bps a side). Returns {strategy: {exit: row}} with a 'pass' flag."""
     a = today - timedelta(days=int(months * 30.5))
     mid = a + (today - a) / 2
     res = {}
     for st in STRATEGIES:
         rows = {}
-        for ex in EXITS:
+        for ex in exits:
             tr = run(st, bars, ex, a, today - timedelta(days=1), slip_bps, spy_close)
             h1, h2, al = stats(_sel(tr, a, mid)), stats(_sel(tr, mid + timedelta(days=1), today)), stats([t["r"] for t in tr])
             rows[ex] = {"all": al, "half1": h1, "half2": h2}
