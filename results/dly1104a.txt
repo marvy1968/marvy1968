@@ -1,3 +1,10 @@
 $ show alpaca_vwap/trades.jsonl
-started 2026-11-04 16:48:22 EST
-RUNNING...
+started 2026-11-04 16:48:22 EST, took 0s, exit 0
+
+{"date": "2026-11-03", "symbol": "AAPL", "strategy": "reclaim", "side": "long", "qty": 11, "entry": 330.45, "exit": 331.56, "pl": 12.21, "r_part": 0.5224, "r_trade": null, "reason": "tp1", "opened": "2026-11-03T11:10:11.081629-05:00", "closed": "2026-11-03T11:35:20.387497-05:00", "final": false}
+{"date": "2026-11-03", "symbol": "SO", "strategy": "orb", "side": "long", "qty": 135, "entry": 94.04, "exit": 94.025629, "pl": -1.94, "r_part": -0.1424, "r_trade": -0.1424, "reason": "stop", "opened": "2026-11-03T10:55:31.391689-05:00", "closed": "2026-11-03T12:04:10.601505-05:00", "final": true}
+{"date": "2026-11-03", "symbol": "AAPL", "strategy": "reclaim", "side": "long", "qty": 11, "entry": 330.45, "exit": 330.179091, "pl": -2.98, "r_part": -0.1275, "r_trade": 0.3949, "reason": "vwap", "opened": "2026-11-03T11:10:11.081629-05:00", "closed": "2026-11-03T14:55:18.935456-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "AMZN", "strategy": "orb", "side": "long", "qty": 30, "entry": 270.9, "exit": 270.104, "pl": -23.88, "r_part": -1.0659, "r_trade": -1.0659, "reason": "stop", "opened": "2026-11-04T10:05:31.629032-05:00", "closed": "2026-11-04T10:10:27.930955-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "XOM", "strategy": "orb", "side": "short", "qty": 59, "entry": 170.76, "exit": 169.800339, "pl": 56.62, "r_part": 2.0714, "r_trade": 2.0714, "reason": "eod_1550", "opened": "2026-11-04T11:30:09.161474-05:00", "closed": "2026-11-04T15:50:11.084618-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "NEE", "strategy": "orb", "side": "long", "qty": 146, "entry": 87.939726, "exit": 88.18, "pl": 35.08, "r_part": 1.4146, "r_trade": 1.4146, "reason": "eod_1550", "opened": "2026-11-04T11:45:16.060972-05:00", "closed": "2026-11-04T15:50:11.084618-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "NEM", "strategy": "orb", "side": "long", "qty": 61, "entry": 116.103115, "exit": 118.11, "pl": 122.42, "r_part": 5.72, "r_trade": 5.72, "reason": "eod_1550", "opened": "2026-11-04T11:45:16.060972-05:00", "closed": "2026-11-04T15:50:11.084618-05:00", "final": true}
