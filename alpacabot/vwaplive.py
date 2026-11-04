@@ -31,7 +31,9 @@ from .data import _fetch
 log = logging.getLogger("alpacabot.vwaplive")
 ET = "America/New_York"
 VWAP_LIVE = {"risk_pct": 0.0005, "notional_cap": 0.25, "max_new": 4, "max_open": 3, "sector_cap": 2, "daily_limit_r": 2.0,
-             "strategies": ["orb", "reclaim", "band"], "sides": [1, -1], "paused": False,
+             # owner 2026-11-04 ("do what gives the best ROI"): ORB off - it lost in every test: 2-week sample, the 89-session test (PF 0.26),
+             # the minute-bar exit lab (133 trades PF 0.24, best of 18 exits 0.71). Open ORB trades keep their exits. UNDO: put "orb" back.
+             "strategies": ["reclaim", "band"], "sides": [1, -1], "paused": False,
              "start_date": "2026-11-03"}     # first session it may trade (after the owner sees the 2-week sample)
 
 
