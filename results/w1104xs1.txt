@@ -1,3 +1,257 @@
 $ alpaca run-all --phase validate --families swing_exits_muse_all
-started 2026-11-04 10:00:08 EST
-RUNNING...
+started 2026-11-04 10:00:08 EST, took 5400s, exit 0
+
+daily data ready
+## swing_exits_muse_all SHORT test: last 3 months, two halves, 10 bps a side. PASS = PF >= 1.0 in both halves, 10+ trades (2 for index200), total R above the strategy's own exits
+### topdown (short test, 2x slippage)
+- own: 114 tr, PF 0.77, win 0.307, -9.78R (-4.89% at 0.5% risk) | half1 PF 0.45 (67) | half2 PF 1.37 (47)
+- fixed_1r: 105 tr, PF 1.06, win 0.505, +2.67R (+1.34% at 0.5% risk) | half1 PF 1.02 (56) | half2 PF 1.14 (49) -> PASS
+- fixed_2r: 82 tr, PF 1.25, win 0.463, +9.45R (+4.72% at 0.5% risk) | half1 PF 1.08 (46) | half2 PF 1.78 (36) -> PASS
+- fixed_3r: 76 tr, PF 1.44, win 0.421, +15.68R (+7.84% at 0.5% risk) | half1 PF 1.42 (44) | half2 PF 1.47 (32) -> PASS
+- time_10: 135 tr, PF 1.25, win 0.481, +12.19R (+6.1% at 0.5% risk) | half1 PF 0.97 (71) | half2 PF 1.78 (64)
+- time_20: 93 tr, PF 1.38, win 0.419, +16.41R (+8.2% at 0.5% risk) | half1 PF 1.12 (51) | half2 PF 1.9 (42) -> PASS
+- atr_trail_2: 126 tr, PF 1.36, win 0.429, +16.04R (+8.02% at 0.5% risk) | half1 PF 0.73 (67) | half2 PF 2.56 (59)
+- atr_trail_3: 89 tr, PF 1.36, win 0.416, +12.33R (+6.16% at 0.5% risk) | half1 PF 0.86 (48) | half2 PF 2.78 (41)
+- sma20_close: 113 tr, PF 0.85, win 0.345, -6.27R (-3.14% at 0.5% risk) | half1 PF 0.57 (67) | half2 PF 1.33 (46)
+- sma50_close: 80 tr, PF 1.18, win 0.362, +6.04R (+3.02% at 0.5% risk) | half1 PF 0.97 (44) | half2 PF 1.66 (36)
+- swing_low_5: 187 tr, PF 1.06, win 0.246, +3.02R (+1.51% at 0.5% risk) | half1 PF 0.68 (106) | half2 PF 1.62 (81)
+- be1r_atr2: 86 tr, PF 1.25, win 0.465, +9.2R (+4.6% at 0.5% risk) | half1 PF 1.06 (49) | half2 PF 1.68 (37) -> PASS
+- psar: 105 tr, PF 1.21, win 0.438, +7.88R (+3.94% at 0.5% risk) | half1 PF 0.74 (59) | half2 PF 2.14 (46)
+- own_atr3: 122 tr, PF 0.81, win 0.32, -8.09R (-4.05% at 0.5% risk) | half1 PF 0.48 (69) | half2 PF 1.42 (53)
+- ponsi: 82 tr, PF 1.15, win 0.451, +5.85R (+2.93% at 0.5% risk) | half1 PF 0.87 (47) | half2 PF 2.06 (35)
+- raschke: 254 tr, PF 0.87, win 0.331, -6.99R (-3.49% at 0.5% risk) | half1 PF 0.65 (132) | half2 PF 1.15 (122)
+- turtle: 84 tr, PF 1.28, win 0.369, +9.3R (+4.65% at 0.5% risk) | half1 PF 0.84 (47) | half2 PF 2.35 (37)
+- wstair: 184 tr, PF 0.9, win 0.386, -4.86R (-2.43% at 0.5% risk) | half1 PF 0.75 (100) | half2 PF 1.12 (84)
+- wstair_ag: 184 tr, PF 0.87, win 0.38, -6.01R (-3.01% at 0.5% risk) | half1 PF 0.75 (100) | half2 PF 1.06 (84)
+- crabel: 329 tr, PF 0.77, win 0.48, -12.3R (-6.15% at 0.5% risk) | half1 PF 0.68 (165) | half2 PF 0.85 (164)
+- williams: 229 tr, PF 1.02, win 0.659, +0.84R (+0.42% at 0.5% risk) | half1 PF 0.84 (111) | half2 PF 1.26 (118)
+### funnel (short test, 2x slippage)
+- own: 31 tr, PF 1.99, win 0.452, +15.11R (+7.56% at 0.5% risk) | half1 PF 1.85 (20) | half2 PF 2.24 (11)
+- fixed_1r: 32 tr, PF 1.23, win 0.562, +3.25R (+1.63% at 0.5% risk) | half1 PF 1.11 (20) | half2 PF 1.5 (12)
+- fixed_2r: 30 tr, PF 1.21, win 0.4, +3.78R (+1.89% at 0.5% risk) | half1 PF 1.24 (20) | half2 PF 1.14 (10)
+- fixed_3r: 29 tr, PF 1.26, win 0.345, +5.03R (+2.52% at 0.5% risk) | half1 PF 1.16 (19) | half2 PF 1.48 (10)
+- time_10: 33 tr, PF 1.93, win 0.424, +18.03R (+9.02% at 0.5% risk) | half1 PF 1.55 (20) | half2 PF 2.51 (13) -> PASS
+- time_20: 28 tr, PF 2.43, win 0.321, +25.93R (+12.96% at 0.5% risk) | half1 PF 1.06 (18) | half2 PF 5.53 (10) -> PASS
+- atr_trail_2: 31 tr, PF 2.58, win 0.387, +24.72R (+12.36% at 0.5% risk) | half1 PF 1.27 (19) | half2 PF 4.35 (12) -> PASS
+- atr_trail_3: 27 tr, PF 2.17, win 0.296, +20.73R (+10.37% at 0.5% risk) | half1 PF 0.67 (18) | half2 PF 6.62 (9)
+- sma20_close: 29 tr, PF 2.66, win 0.31, +26.23R (+13.12% at 0.5% risk) | half1 PF 1.19 (19) | half2 PF 5.55 (10) -> PASS
+- sma50_close: 24 tr, PF 1.62, win 0.375, +7.26R (+3.63% at 0.5% risk) | half1 PF 1.23 (17) | half2 PF 3.32 (7)
+- swing_low_5: 36 tr, PF 2.64, win 0.222, +24.47R (+12.24% at 0.5% risk) | half1 PF 1.97 (21) | half2 PF 3.13 (15) -> PASS
+- be1r_atr2: 29 tr, PF 3.49, win 0.448, +31.82R (+15.91% at 0.5% risk) | half1 PF 1.84 (19) | half2 PF 6.76 (10) -> PASS
+- psar: 31 tr, PF 1.64, win 0.355, +10.65R (+5.32% at 0.5% risk) | half1 PF 1.18 (19) | half2 PF 2.33 (12)
+- own_atr3: 31 tr, PF 1.91, win 0.452, +14.46R (+7.23% at 0.5% risk) | half1 PF 1.74 (20) | half2 PF 2.24 (11)
+- ponsi: 30 tr, PF 2.98, win 0.433, +29.76R (+14.88% at 0.5% risk) | half1 PF 1.4 (20) | half2 PF 6.72 (10) -> PASS
+- raschke: 36 tr, PF 1.05, win 0.306, +0.66R (+0.33% at 0.5% risk) | half1 PF 1.95 (21) | half2 PF 0.49 (15)
+- turtle: 25 tr, PF 2.62, win 0.32, +24.46R (+12.23% at 0.5% risk) | half1 PF 0.85 (17) | half2 PF 8.64 (8)
+- wstair: 36 tr, PF 0.97, win 0.333, -0.43R (-0.21% at 0.5% risk) | half1 PF 2.05 (21) | half2 PF 0.36 (15)
+- wstair_ag: 36 tr, PF 0.97, win 0.333, -0.43R (-0.21% at 0.5% risk) | half1 PF 2.05 (21) | half2 PF 0.36 (15)
+- crabel: 36 tr, PF 1.34, win 0.528, +3.52R (+1.76% at 0.5% risk) | half1 PF 2.92 (21) | half2 PF 0.61 (15)
+- williams: 35 tr, PF 1.1, win 0.543, +1.28R (+0.64% at 0.5% risk) | half1 PF 2.21 (21) | half2 PF 0.48 (14)
+### oversold (short test, 2x slippage)
+- own: 76 tr, PF 0.91, win 0.5, -2.17R (-1.09% at 0.5% risk) | half1 PF 1.3 (26) | half2 PF 0.74 (50)
+- fixed_1r: 75 tr, PF 0.73, win 0.453, -11.77R (-5.89% at 0.5% risk) | half1 PF 0.58 (25) | half2 PF 0.82 (50)
+- fixed_2r: 73 tr, PF 0.75, win 0.288, -13.83R (-6.91% at 0.5% risk) | half1 PF 0.72 (25) | half2 PF 0.77 (48)
+- fixed_3r: 71 tr, PF 0.77, win 0.239, -13.37R (-6.68% at 0.5% risk) | half1 PF 0.55 (24) | half2 PF 0.9 (47)
+- time_10: 73 tr, PF 0.85, win 0.247, -8.31R (-4.16% at 0.5% risk) | half1 PF 0.29 (24) | half2 PF 1.15 (49)
+- time_20: 72 tr, PF 1.06, win 0.264, +3.39R (+1.7% at 0.5% risk) | half1 PF 0.48 (24) | half2 PF 1.38 (48)
+- atr_trail_2: 71 tr, PF 0.8, win 0.211, -11.14R (-5.57% at 0.5% risk) | half1 PF 0.31 (24) | half2 PF 1.08 (47)
+- atr_trail_3: 71 tr, PF 0.92, win 0.211, -4.99R (-2.49% at 0.5% risk) | half1 PF 0.57 (24) | half2 PF 1.12 (47)
+- sma20_close: 76 tr, PF 1.0, win 0.5, +0.09R (+0.05% at 0.5% risk) | half1 PF 1.45 (26) | half2 PF 0.84 (50)
+- sma50_close: 76 tr, PF 0.93, win 0.474, -1.82R (-0.91% at 0.5% risk) | half1 PF 1.45 (26) | half2 PF 0.75 (50)
+- swing_low_5: 74 tr, PF 0.89, win 0.176, -4.05R (-2.02% at 0.5% risk) | half1 PF 0.42 (25) | half2 PF 1.14 (49)
+- be1r_atr2: 74 tr, PF 1.06, win 0.189, +2.72R (+1.36% at 0.5% risk) | half1 PF 0.28 (25) | half2 PF 1.54 (49)
+- psar: 72 tr, PF 0.92, win 0.222, -4.44R (-2.22% at 0.5% risk) | half1 PF 0.26 (24) | half2 PF 1.25 (48)
+- own_atr3: 76 tr, PF 0.91, win 0.5, -2.17R (-1.09% at 0.5% risk) | half1 PF 1.3 (26) | half2 PF 0.74 (50)
+- ponsi: 73 tr, PF 1.2, win 0.384, +9.91R (+4.95% at 0.5% risk) | half1 PF 0.51 (24) | half2 PF 1.58 (49)
+- raschke: 75 tr, PF 0.74, win 0.267, -8.96R (-4.48% at 0.5% risk) | half1 PF 0.72 (25) | half2 PF 0.75 (50)
+- turtle: 71 tr, PF 0.66, win 0.197, -17.2R (-8.6% at 0.5% risk) | half1 PF 0.31 (24) | half2 PF 0.83 (47)
+- wstair: 76 tr, PF 0.94, win 0.329, -1.77R (-0.88% at 0.5% risk) | half1 PF 1.64 (26) | half2 PF 0.68 (50)
+- wstair_ag: 76 tr, PF 0.94, win 0.329, -1.77R (-0.88% at 0.5% risk) | half1 PF 1.64 (26) | half2 PF 0.68 (50)
+- crabel: 76 tr, PF 1.0, win 0.5, +0.09R (+0.05% at 0.5% risk) | half1 PF 1.45 (26) | half2 PF 0.84 (50)
+- williams: 76 tr, PF 0.85, win 0.5, -5.09R (-2.55% at 0.5% risk) | half1 PF 0.91 (26) | half2 PF 0.82 (50)
+### index200 (short test, 2x slippage)
+- own: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- fixed_1r: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- fixed_2r: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- fixed_3r: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- time_10: 12 tr, PF 1.12, win 0.583, +0.26R (+0.13% at 0.5% risk) | half1 PF 10.77 (6) | half2 PF 0.41 (6)
+- time_20: 8 tr, PF 0.65, win 0.375, -0.94R (-0.47% at 0.5% risk) | half1 PF 11.02 (4) | half2 PF 0.16 (4)
+- atr_trail_2: 15 tr, PF 0.37, win 0.2, -2.11R (-1.05% at 0.5% risk) | half1 PF 0.45 (7) | half2 PF 0.31 (8)
+- atr_trail_3: 7 tr, PF 0.45, win 0.429, -0.85R (-0.42% at 0.5% risk) | half1 PF 0.12 (3) | half2 PF 0.65 (4)
+- sma20_close: 23 tr, PF 0.29, win 0.348, -2.02R (-1.01% at 0.5% risk) | half1 PF 0.26 (11) | half2 PF 0.31 (12)
+- sma50_close: 16 tr, PF 0.2, win 0.375, -1.89R (-0.94% at 0.5% risk) | half1 PF 0.24 (9) | half2 PF 0.18 (7)
+- swing_low_5: 22 tr, PF 0.42, win 0.182, -1.61R (-0.8% at 0.5% risk) | half1 PF 0.54 (11) | half2 PF 0.35 (11)
+- be1r_atr2: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- psar: 9 tr, PF 0.4, win 0.222, -1.46R (-0.73% at 0.5% risk) | half1 PF 3.12 (4) | half2 PF 0.07 (5)
+- own_atr3: 7 tr, PF 0.45, win 0.429, -0.85R (-0.42% at 0.5% risk) | half1 PF 0.12 (3) | half2 PF 0.65 (4)
+- ponsi: 2 tr, PF 0.0, win 0.0, -0.28R (-0.14% at 0.5% risk) | half1 PF 0.0 (2) | half2 PF None (0)
+- raschke: 32 tr, PF 0.75, win 0.344, -0.72R (-0.36% at 0.5% risk) | half1 PF 2.15 (14) | half2 PF 0.29 (18)
+- turtle: 13 tr, PF 0.14, win 0.308, -1.94R (-0.97% at 0.5% risk) | half1 PF 0.12 (6) | half2 PF 0.15 (7)
+- wstair: 15 tr, PF 0.46, win 0.2, -1.63R (-0.81% at 0.5% risk) | half1 PF 0.55 (7) | half2 PF 0.39 (8)
+- wstair_ag: 15 tr, PF 0.46, win 0.2, -1.63R (-0.81% at 0.5% risk) | half1 PF 0.55 (7) | half2 PF 0.39 (8)
+- crabel: 44 tr, PF 0.41, win 0.386, -2.77R (-1.39% at 0.5% risk) | half1 PF 1.08 (22) | half2 PF 0.23 (22)
+- williams: 22 tr, PF 0.75, win 0.727, -0.83R (-0.42% at 0.5% risk) | half1 PF 28.91 (10) | half2 PF 0.34 (12)
+## swing_exits_muse_all LONG test: 2016 to 3 months ago, last 12 months sequestered (OOS), 10 bps a side. KEEP = OOS 40+ trades (10 for index200), PF >= 1.15, beats own exits, PF > 1 in most years, beats random entries
+### topdown long test on today's list (2x slippage)
+- own: in-sample 2655 tr, PF 1.54, win 0.405, +490.33R (+245.16% at 0.5% risk) | OOS 327 tr, PF 1.22, win 0.315, +25.62R (+12.81% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.032 (control)
+  by year: 2016 PF 1.59 +44.35R (230), 2017 PF 2.68 +89.33R (223), 2018 PF 0.95 -4.89R (277), 2019 PF 1.97 +81.31R (275), 2020 PF 1.05 +5.05R (292), 2021 PF 1.52 +51.68R (298), 2022 PF 0.87 -16.85R (342), 2023 PF 1.97 +96.55R (276), 2024 PF 2.85 +151.52R (268), 2025 PF 1.06 +7.3R (296), 2026 PF 1.12 +9.72R (207)
+- fixed_1r: in-sample 2857 tr, PF 1.4, win 0.594, +490.14R (+245.07% at 0.5% risk) | OOS 314 tr, PF 1.19, win 0.551, +27.98R (+13.99% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.038 -> KEEP
+- fixed_2r: in-sample 1885 tr, PF 1.61, win 0.471, +625.15R (+312.58% at 0.5% risk) | OOS 206 tr, PF 1.5, win 0.456, +58.93R (+29.47% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.115 -> KEEP
+- fixed_3r: in-sample 1589 tr, PF 1.8, win 0.43, +748.55R (+374.28% at 0.5% risk) | OOS 167 tr, PF 1.49, win 0.383, +51.18R (+25.59% at 0.5% risk) | years PF>1 10/11 | random-entry OOS avg R 0.207 -> KEEP
+- time_10: in-sample 4187 tr, PF 1.3, win 0.526, +404.81R (+202.4% at 0.5% risk) | OOS 468 tr, PF 1.13, win 0.496, +22.45R (+11.23% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.078 -> reject
+- time_20: in-sample 2807 tr, PF 1.48, win 0.518, +555.84R (+277.92% at 0.5% risk) | OOS 313 tr, PF 1.36, win 0.46, +50.76R (+25.38% at 0.5% risk) | years PF>1 10/11 | random-entry OOS avg R 0.143 -> KEEP
+- atr_trail_2: in-sample 3562 tr, PF 1.38, win 0.415, +442.62R (+221.31% at 0.5% risk) | OOS 492 tr, PF 0.9, win 0.343, -17.26R (-8.63% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.033 -> reject
+- atr_trail_3: in-sample 2223 tr, PF 1.67, win 0.426, +628.61R (+314.31% at 0.5% risk) | OOS 288 tr, PF 1.07, win 0.333, +9.72R (+4.86% at 0.5% risk) | years PF>1 10/11 | random-entry OOS avg R 0.141 -> reject
+- sma20_close: in-sample 2819 tr, PF 1.51, win 0.406, +473.9R (+236.95% at 0.5% risk) | OOS 344 tr, PF 1.09, win 0.308, +10.86R (+5.43% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.013 -> reject
+- sma50_close: in-sample 1718 tr, PF 1.91, win 0.397, +688.69R (+344.34% at 0.5% risk) | OOS 196 tr, PF 1.28, win 0.327, +26.02R (+13.01% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.012 -> KEEP
+- swing_low_5: in-sample 5526 tr, PF 1.17, win 0.25, +223.42R (+111.71% at 0.5% risk) | OOS 691 tr, PF 0.91, win 0.219, -15.64R (-7.82% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.02 -> reject
+- be1r_atr2: in-sample 2445 tr, PF 1.52, win 0.553, +557.55R (+278.78% at 0.5% risk) | OOS 298 tr, PF 1.06, win 0.507, +8.41R (+4.21% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.056 -> reject
+- psar: in-sample 3142 tr, PF 1.39, win 0.447, +458.66R (+229.33% at 0.5% risk) | OOS 365 tr, PF 1.11, win 0.356, +16.69R (+8.34% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.051 -> reject
+- own_atr3: in-sample 2972 tr, PF 1.46, win 0.401, +447.43R (+223.71% at 0.5% risk) | OOS 377 tr, PF 1.05, win 0.31, +6.18R (+3.09% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.032 -> reject
+- ponsi: in-sample 2328 tr, PF 1.61, win 0.548, +674.95R (+337.47% at 0.5% risk) | OOS 255 tr, PF 1.16, win 0.471, +23.53R (+11.76% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.08 -> reject
+- raschke: in-sample 8597 tr, PF 0.97, win 0.363, -41.56R (-20.78% at 0.5% risk) | OOS 1033 tr, PF 0.87, win 0.358, -25.12R (-12.56% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.028 -> reject
+- turtle: in-sample 2036 tr, PF 1.68, win 0.425, +597.86R (+298.93% at 0.5% risk) | OOS 234 tr, PF 1.24, win 0.346, +27.26R (+13.63% at 0.5% risk) | years PF>1 10/11 | random-entry OOS avg R 0.15 -> reject
+- wstair: in-sample 5645 tr, PF 1.06, win 0.39, +77.45R (+38.72% at 0.5% risk) | OOS 765 tr, PF 0.83, win 0.345, -30.84R (-15.42% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R -0.028 -> reject
+- wstair_ag: in-sample 5653 tr, PF 1.06, win 0.391, +75.07R (+37.53% at 0.5% risk) | OOS 766 tr, PF 0.82, win 0.345, -32.96R (-16.48% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R -0.028 -> reject
+- crabel: in-sample 11720 tr, PF 0.8, win 0.466, -306.58R (-153.29% at 0.5% risk) | OOS 1388 tr, PF 0.78, win 0.468, -41.1R (-20.55% at 0.5% risk) | years PF>1 0/11 | random-entry OOS avg R -0.045 -> reject
+- williams: in-sample 8195 tr, PF 1.09, win 0.717, +112.38R (+56.19% at 0.5% risk) | OOS 923 tr, PF 1.03, win 0.71, +4.09R (+2.05% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.021 -> reject
+### funnel long test on today's list (2x slippage)
+- own: in-sample 1096 tr, PF 0.85, win 0.31, -115.12R (-57.56% at 0.5% risk) | OOS 110 tr, PF 1.11, win 0.327, +7.82R (+3.91% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.004 (control)
+  by year: 2016 PF 0.59 -13.73R (41), 2017 PF 0.68 -34.16R (147), 2018 PF 0.55 -40.69R (115), 2019 PF 1.03 +2.43R (129), 2020 PF 0.86 -12.8R (129), 2021 PF 0.74 -26.13R (149), 2022 PF 0.73 -13.9R (73), 2023 PF 1.29 +16.21R (89), 2024 PF 0.94 -6.12R (158), 2025 PF 1.22 +16.14R (120), 2026 PF 1.17 +6.2R (58)
+- fixed_1r: in-sample 1125 tr, PF 0.76, win 0.46, -162.75R (-81.38% at 0.5% risk) | OOS 113 tr, PF 0.98, win 0.487, -1.53R (-0.76% at 0.5% risk) | years PF>1 0/11 | random-entry OOS avg R 0.037 -> reject
+- fixed_2r: in-sample 1051 tr, PF 0.85, win 0.321, -119.52R (-59.76% at 0.5% risk) | OOS 103 tr, PF 1.23, win 0.369, +15.49R (+7.74% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R 0.038 -> reject
+- fixed_3r: in-sample 1008 tr, PF 0.99, win 0.271, -7.89R (-3.94% at 0.5% risk) | OOS 99 tr, PF 1.13, win 0.273, +9.97R (+4.98% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.113 -> reject
+- time_10: in-sample 1115 tr, PF 0.92, win 0.35, -59.73R (-29.87% at 0.5% risk) | OOS 111 tr, PF 0.82, win 0.315, -13.55R (-6.77% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.035 -> reject
+- time_20: in-sample 1056 tr, PF 1.04, win 0.292, +30.51R (+15.25% at 0.5% risk) | OOS 102 tr, PF 0.94, win 0.304, -4.56R (-2.28% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.025 -> reject
+- atr_trail_2: in-sample 1075 tr, PF 0.94, win 0.287, -41.2R (-20.6% at 0.5% risk) | OOS 111 tr, PF 0.74, win 0.324, -18.21R (-9.1% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.068 -> reject
+- atr_trail_3: in-sample 980 tr, PF 1.17, win 0.256, +127.48R (+63.74% at 0.5% risk) | OOS 102 tr, PF 0.74, win 0.235, -18.99R (-9.49% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.016 -> reject
+- sma20_close: in-sample 1080 tr, PF 1.13, win 0.256, +87.12R (+43.56% at 0.5% risk) | OOS 103 tr, PF 0.78, win 0.252, -14.64R (-7.32% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.036 -> reject
+- sma50_close: in-sample 925 tr, PF 1.24, win 0.231, +163.25R (+81.63% at 0.5% risk) | OOS 95 tr, PF 1.0, win 0.211, -0.17R (-0.08% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R -0.075 -> reject
+- swing_low_5: in-sample 1156 tr, PF 0.87, win 0.198, -72.68R (-36.34% at 0.5% risk) | OOS 112 tr, PF 0.76, win 0.223, -11.74R (-5.87% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.015 -> reject
+- be1r_atr2: in-sample 1058 tr, PF 0.92, win 0.298, -56.54R (-28.27% at 0.5% risk) | OOS 111 tr, PF 0.85, win 0.333, -9.19R (-4.59% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.042 -> reject
+- psar: in-sample 1097 tr, PF 0.99, win 0.301, -10.44R (-5.22% at 0.5% risk) | OOS 108 tr, PF 0.89, win 0.324, -6.83R (-3.41% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.041 -> reject
+- own_atr3: in-sample 1098 tr, PF 0.84, win 0.305, -118.03R (-59.02% at 0.5% risk) | OOS 110 tr, PF 1.11, win 0.327, +7.42R (+3.71% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.003 -> reject
+- ponsi: in-sample 1059 tr, PF 0.98, win 0.342, -11.3R (-5.65% at 0.5% risk) | OOS 104 tr, PF 0.92, win 0.327, -5.16R (-2.58% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.025 -> reject
+- raschke: in-sample 1193 tr, PF 0.71, win 0.308, -148.56R (-74.28% at 0.5% risk) | OOS 117 tr, PF 1.0, win 0.333, -0.21R (-0.1% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.005 -> reject
+- turtle: in-sample 961 tr, PF 1.27, win 0.247, +207.54R (+103.77% at 0.5% risk) | OOS 96 tr, PF 0.87, win 0.229, -9.27R (-4.63% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.027 -> reject
+- wstair: in-sample 1193 tr, PF 0.71, win 0.347, -134.81R (-67.4% at 0.5% risk) | OOS 116 tr, PF 1.03, win 0.371, +1.22R (+0.61% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.017 -> reject
+- wstair_ag: in-sample 1193 tr, PF 0.71, win 0.347, -134.81R (-67.4% at 0.5% risk) | OOS 116 tr, PF 1.03, win 0.371, +1.22R (+0.61% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.017 -> reject
+- crabel: in-sample 1214 tr, PF 0.6, win 0.429, -160.6R (-80.3% at 0.5% risk) | OOS 117 tr, PF 0.95, win 0.436, -1.68R (-0.84% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.022 -> reject
+- williams: in-sample 1190 tr, PF 0.7, win 0.548, -144.33R (-72.16% at 0.5% risk) | OOS 116 tr, PF 0.97, win 0.552, -1.43R (-0.71% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R 0.014 -> reject
+### oversold long test on today's list (2x slippage)
+- own: in-sample 2882 tr, PF 0.56, win 0.442, -760.07R (-380.03% at 0.5% risk) | OOS 315 tr, PF 0.95, win 0.47, -5.41R (-2.7% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.029 (control)
+  by year: 2016 PF 0.82 -21.64R (246), 2017 PF 0.23 -219.8R (187), 2018 PF 0.59 -77.91R (352), 2019 PF 0.58 -43.55R (242), 2020 PF 0.69 -51.77R (358), 2021 PF 1.2 +20.39R (309), 2022 PF 0.52 -111.01R (429), 2023 PF 1.0 -0.11R (293), 2024 PF 0.62 -46.72R (267), 2025 PF 0.31 -223.66R (318), 2026 PF 1.15 +10.31R (196)
+- fixed_1r: in-sample 2803 tr, PF 0.62, win 0.474, -788.71R (-394.36% at 0.5% risk) | OOS 303 tr, PF 1.02, win 0.525, +2.77R (+1.38% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R 0.016 -> reject
+- fixed_2r: in-sample 2686 tr, PF 0.82, win 0.357, -432.14R (-216.07% at 0.5% risk) | OOS 296 tr, PF 1.23, win 0.395, +44.51R (+22.25% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.07 -> reject
+- fixed_3r: in-sample 2605 tr, PF 0.91, win 0.291, -233.47R (-116.74% at 0.5% risk) | OOS 282 tr, PF 1.16, win 0.291, +34.73R (+17.37% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.131 -> reject
+- time_10: in-sample 2676 tr, PF 0.94, win 0.322, -136.14R (-68.07% at 0.5% risk) | OOS 296 tr, PF 1.28, win 0.345, +55.66R (+27.83% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.006 -> KEEP
+- time_20: in-sample 2639 tr, PF 1.07, win 0.268, +176.85R (+88.42% at 0.5% risk) | OOS 291 tr, PF 1.5, win 0.306, +107.73R (+53.87% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.089 -> KEEP
+- atr_trail_2: in-sample 2670 tr, PF 1.09, win 0.298, +204.52R (+102.26% at 0.5% risk) | OOS 296 tr, PF 1.25, win 0.324, +48.31R (+24.15% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.037 -> KEEP
+- atr_trail_3: in-sample 2516 tr, PF 1.3, win 0.252, +748.58R (+374.29% at 0.5% risk) | OOS 275 tr, PF 1.6, win 0.236, +127.07R (+63.54% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.031 -> KEEP
+- sma20_close: in-sample 2894 tr, PF 0.57, win 0.417, -748.95R (-374.48% at 0.5% risk) | OOS 319 tr, PF 1.02, win 0.461, +2.81R (+1.41% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.02 -> reject
+- sma50_close: in-sample 2839 tr, PF 0.63, win 0.401, -664.74R (-332.37% at 0.5% risk) | OOS 316 tr, PF 1.16, win 0.443, +18.81R (+9.4% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R 0.036 -> reject
+- swing_low_5: in-sample 2810 tr, PF 0.9, win 0.218, -210.88R (-105.44% at 0.5% risk) | OOS 308 tr, PF 1.54, win 0.273, +83.99R (+42.0% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.045 -> KEEP
+- be1r_atr2: in-sample 2712 tr, PF 1.01, win 0.25, +31.1R (+15.55% at 0.5% risk) | OOS 297 tr, PF 1.47, win 0.3, +76.7R (+38.35% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.009 -> KEEP
+- psar: in-sample 2694 tr, PF 1.01, win 0.29, +17.04R (+8.52% at 0.5% risk) | OOS 300 tr, PF 1.39, win 0.317, +71.9R (+35.95% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.015 -> KEEP
+- own_atr3: in-sample 2882 tr, PF 0.56, win 0.442, -760.07R (-380.03% at 0.5% risk) | OOS 315 tr, PF 0.95, win 0.47, -5.41R (-2.7% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.03 -> reject
+- ponsi: in-sample 2714 tr, PF 0.87, win 0.399, -305.02R (-152.51% at 0.5% risk) | OOS 299 tr, PF 1.41, win 0.448, +72.75R (+36.38% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.047 -> KEEP
+- raschke: in-sample 2841 tr, PF 0.7, win 0.313, -589.44R (-294.72% at 0.5% risk) | OOS 309 tr, PF 1.2, win 0.359, +28.34R (+14.17% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.022 -> reject
+- turtle: in-sample 2579 tr, PF 1.19, win 0.248, +448.42R (+224.21% at 0.5% risk) | OOS 284 tr, PF 1.65, win 0.246, +128.05R (+64.03% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.052 -> KEEP
+- wstair: in-sample 2881 tr, PF 0.62, win 0.364, -690.15R (-345.08% at 0.5% risk) | OOS 317 tr, PF 1.13, win 0.41, +15.98R (+7.99% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.04 -> reject
+- wstair_ag: in-sample 2881 tr, PF 0.62, win 0.365, -689.99R (-344.99% at 0.5% risk) | OOS 317 tr, PF 1.13, win 0.41, +15.98R (+7.99% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R -0.04 -> reject
+- crabel: in-sample 2895 tr, PF 0.57, win 0.418, -754.07R (-377.04% at 0.5% risk) | OOS 319 tr, PF 0.99, win 0.461, -0.78R (-0.39% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.041 -> reject
+- williams: in-sample 2840 tr, PF 0.63, win 0.487, -672.68R (-336.34% at 0.5% risk) | OOS 314 tr, PF 1.18, win 0.551, +22.36R (+11.18% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.025 -> reject
+### index200 long test on today's list (2x slippage)
+- own: in-sample 69 tr, PF 2.85, win 0.406, +38.22R (+19.11% at 0.5% risk) | OOS 5 tr, PF 2.84, win 0.4, +3.29R (+1.64% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.148 (control)
+  by year: 2016 PF 99.0 +4.68R (2), 2017 PF 99.0 +12.03R (4), 2018 PF 0.87 -0.68R (12), 2019 PF 0.99 -0.03R (10), 2020 PF 8.79 +6.77R (6), 2021 PF 1.71 +1.76R (5), 2022 PF 0.0 -1.89R (10), 2023 PF 2.7 +7.18R (12), 2024 PF 4.38 +4.44R (4), 2025 PF 1.94 +2.16R (7), 2026 PF 99.0 +5.08R (2)
+- fixed_1r: in-sample 141 tr, PF 1.51, win 0.617, +28.9R (+14.45% at 0.5% risk) | OOS 14 tr, PF 1.76, win 0.643, +3.86R (+1.93% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.119 -> KEEP
+- fixed_2r: in-sample 82 tr, PF 1.74, win 0.488, +33.23R (+16.62% at 0.5% risk) | OOS 8 tr, PF 1.28, win 0.5, +1.14R (+0.57% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.292 -> reject
+- fixed_3r: in-sample 69 tr, PF 1.85, win 0.449, +34.22R (+17.11% at 0.5% risk) | OOS 6 tr, PF 1.51, win 0.5, +1.56R (+0.78% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.296 -> reject
+- time_10: in-sample 333 tr, PF 1.23, win 0.604, +17.55R (+8.77% at 0.5% risk) | OOS 43 tr, PF 1.18, win 0.558, +1.42R (+0.71% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.086 -> reject
+- time_20: in-sample 198 tr, PF 1.54, win 0.631, +31.47R (+15.74% at 0.5% risk) | OOS 23 tr, PF 2.44, win 0.652, +4.78R (+2.39% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.04 -> KEEP
+- atr_trail_2: in-sample 261 tr, PF 1.72, win 0.46, +35.94R (+17.97% at 0.5% risk) | OOS 33 tr, PF 0.61, win 0.212, -3.23R (-1.61% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.122 -> reject
+- atr_trail_3: in-sample 125 tr, PF 2.05, win 0.416, +36.11R (+18.05% at 0.5% risk) | OOS 17 tr, PF 0.84, win 0.235, -0.86R (-0.43% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.082 -> reject
+- sma20_close: in-sample 388 tr, PF 1.33, win 0.459, +17.17R (+8.58% at 0.5% risk) | OOS 67 tr, PF 1.11, win 0.343, +0.83R (+0.41% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.089 -> reject
+- sma50_close: in-sample 273 tr, PF 1.57, win 0.403, +21.78R (+10.89% at 0.5% risk) | OOS 43 tr, PF 0.97, win 0.372, -0.14R (-0.07% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.088 -> reject
+- swing_low_5: in-sample 470 tr, PF 1.17, win 0.302, +12.71R (+6.36% at 0.5% risk) | OOS 69 tr, PF 0.87, win 0.217, -1.45R (-0.72% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.099 -> reject
+- be1r_atr2: in-sample 114 tr, PF 1.49, win 0.588, +24.71R (+12.36% at 0.5% risk) | OOS 7 tr, PF 1.56, win 0.571, +1.73R (+0.86% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.056 -> reject
+- psar: in-sample 222 tr, PF 1.5, win 0.559, +29.84R (+14.92% at 0.5% risk) | OOS 30 tr, PF 1.47, win 0.5, +2.99R (+1.5% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R -0.028 -> reject
+- own_atr3: in-sample 141 tr, PF 2.02, win 0.39, +34.46R (+17.23% at 0.5% risk) | OOS 17 tr, PF 0.84, win 0.235, -0.86R (-0.43% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.145 -> reject
+- ponsi: in-sample 114 tr, PF 1.65, win 0.596, +31.76R (+15.88% at 0.5% risk) | OOS 11 tr, PF 2.72, win 0.727, +5.24R (+2.62% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.052 -> KEEP
+- raschke: in-sample 842 tr, PF 0.98, win 0.392, -2.01R (-1.01% at 0.5% risk) | OOS 114 tr, PF 0.81, win 0.377, -2.39R (-1.2% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.069 -> reject
+- turtle: in-sample 150 tr, PF 1.68, win 0.467, +27.35R (+13.67% at 0.5% risk) | OOS 22 tr, PF 2.1, win 0.455, +4.51R (+2.26% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.198 -> KEEP
+- wstair: in-sample 238 tr, PF 1.79, win 0.462, +34.77R (+17.38% at 0.5% risk) | OOS 32 tr, PF 0.62, win 0.219, -3.19R (-1.6% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.071 -> reject
+- wstair_ag: in-sample 238 tr, PF 1.79, win 0.462, +34.77R (+17.38% at 0.5% risk) | OOS 32 tr, PF 0.62, win 0.219, -3.19R (-1.6% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R -0.066 -> reject
+- crabel: in-sample 1229 tr, PF 0.66, win 0.468, -35.5R (-17.75% at 0.5% risk) | OOS 160 tr, PF 0.59, win 0.487, -5.96R (-2.98% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R -0.093 -> reject
+- williams: in-sample 712 tr, PF 0.99, win 0.709, -0.63R (-0.32% at 0.5% risk) | OOS 78 tr, PF 0.62, win 0.654, -3.68R (-1.84% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R -0.121 -> reject
+### topdown long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 951 tr, PF 1.32, win 0.383, +110.87R (+55.43% at 0.5% risk) | OOS 134 tr, PF 1.35, win 0.388, +15.41R (+7.7% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.007 (control)
+  by year: 2016 PF 2.12 +24.76R (78), 2017 PF 2.38 +23.84R (69), 2018 PF 0.94 -2.52R (103), 2019 PF 1.17 +6.2R (95), 2020 PF 1.28 +6.76R (81), 2021 PF 1.47 +17.16R (108), 2022 PF 1.05 +2.33R (129), 2023 PF 0.9 -4.23R (100), 2024 PF 2.35 +45.56R (113), 2025 PF 0.77 -13.06R (134), 2026 PF 1.88 +21.13R (76)
+- fixed_1r: in-sample 1005 tr, PF 1.19, win 0.559, +87.93R (+43.96% at 0.5% risk) | OOS 123 tr, PF 1.31, win 0.577, +16.91R (+8.45% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.104 -> KEEP
+- fixed_2r: in-sample 697 tr, PF 1.35, win 0.429, +141.39R (+70.69% at 0.5% risk) | OOS 73 tr, PF 2.16, win 0.548, +39.2R (+19.6% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.234 -> KEEP
+- fixed_3r: in-sample 589 tr, PF 1.34, win 0.372, +130.45R (+65.23% at 0.5% risk) | OOS 65 tr, PF 1.6, win 0.415, +23.08R (+11.54% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.368 -> reject
+- time_10: in-sample 1454 tr, PF 1.18, win 0.501, +88.33R (+44.17% at 0.5% risk) | OOS 195 tr, PF 1.39, win 0.549, +24.7R (+12.35% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.163 -> reject
+- time_20: in-sample 980 tr, PF 1.26, win 0.483, +113.13R (+56.57% at 0.5% risk) | OOS 130 tr, PF 1.51, win 0.485, +28.06R (+14.03% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.336 -> reject
+- atr_trail_2: in-sample 1259 tr, PF 1.16, win 0.383, +72.93R (+36.46% at 0.5% risk) | OOS 206 tr, PF 1.18, win 0.403, +12.13R (+6.07% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.152 -> reject
+- atr_trail_3: in-sample 835 tr, PF 1.23, win 0.386, +87.94R (+43.97% at 0.5% risk) | OOS 118 tr, PF 1.32, win 0.373, +16.63R (+8.32% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.456 -> reject
+- sma20_close: in-sample 1014 tr, PF 1.37, win 0.405, +125.65R (+62.83% at 0.5% risk) | OOS 140 tr, PF 1.46, win 0.371, +19.88R (+9.94% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.074 -> KEEP
+- sma50_close: in-sample 657 tr, PF 1.33, win 0.333, +105.04R (+52.52% at 0.5% risk) | OOS 80 tr, PF 1.76, win 0.388, +24.03R (+12.01% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.155 -> KEEP
+- swing_low_5: in-sample 1931 tr, PF 1.07, win 0.236, +31.9R (+15.95% at 0.5% risk) | OOS 278 tr, PF 1.08, win 0.252, +5.19R (+2.59% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.08 -> reject
+- be1r_atr2: in-sample 878 tr, PF 1.22, win 0.511, +92.73R (+46.36% at 0.5% risk) | OOS 119 tr, PF 1.52, win 0.563, +25.04R (+12.52% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.193 -> KEEP
+- psar: in-sample 1103 tr, PF 1.27, win 0.426, +120.49R (+60.24% at 0.5% risk) | OOS 149 tr, PF 1.32, win 0.43, +17.11R (+8.55% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.211 -> reject
+- own_atr3: in-sample 1064 tr, PF 1.25, win 0.381, +92.45R (+46.22% at 0.5% risk) | OOS 155 tr, PF 1.33, win 0.355, +17.29R (+8.64% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.008 -> KEEP
+- ponsi: in-sample 814 tr, PF 1.24, win 0.496, +101.1R (+50.55% at 0.5% risk) | OOS 104 tr, PF 1.46, win 0.529, +23.74R (+11.87% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.254 -> reject
+- raschke: in-sample 2925 tr, PF 0.91, win 0.354, -49.29R (-24.65% at 0.5% risk) | OOS 415 tr, PF 1.13, win 0.386, +9.6R (+4.8% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.004 -> reject
+- turtle: in-sample 752 tr, PF 1.3, win 0.391, +102.83R (+51.41% at 0.5% risk) | OOS 99 tr, PF 1.27, win 0.394, +12.23R (+6.12% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.454 -> reject
+- wstair: in-sample 1896 tr, PF 1.02, win 0.394, +10.34R (+5.17% at 0.5% risk) | OOS 309 tr, PF 1.24, win 0.411, +15.92R (+7.96% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.003 -> KEEP
+- wstair_ag: in-sample 1897 tr, PF 1.02, win 0.394, +10.78R (+5.39% at 0.5% risk) | OOS 309 tr, PF 1.25, win 0.414, +16.18R (+8.09% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R -0.002 -> KEEP
+- crabel: in-sample 3954 tr, PF 0.74, win 0.459, -131.31R (-65.65% at 0.5% risk) | OOS 573 tr, PF 0.92, win 0.485, -6.17R (-3.08% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R -0.027 -> reject
+- williams: in-sample 2830 tr, PF 0.89, win 0.7, -49.67R (-24.83% at 0.5% risk) | OOS 381 tr, PF 1.26, win 0.738, +15.48R (+7.74% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.019 -> reject
+### funnel long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 368 tr, PF 0.98, win 0.342, -5.05R (-2.53% at 0.5% risk) | OOS 48 tr, PF 1.3, win 0.396, +8.38R (+4.19% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.074 (control)
+  by year: 2016 PF 0.24 -7.52R (12), 2017 PF 1.13 +4.04R (54), 2018 PF 0.64 -11.13R (36), 2019 PF 0.61 -15.39R (51), 2020 PF 1.21 +4.7R (32), 2021 PF 0.58 -14.11R (46), 2022 PF 0.85 -2.34R (24), 2023 PF 1.74 +14.21R (29), 2024 PF 1.56 +16.91R (56), 2025 PF 1.39 +13.52R (56), 2026 PF 1.14 +1.82R (21)
+- fixed_1r: in-sample 387 tr, PF 0.78, win 0.47, -49.08R (-24.54% at 0.5% risk) | OOS 48 tr, PF 1.36, win 0.542, +8.27R (+4.14% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.246 -> reject
+- fixed_2r: in-sample 359 tr, PF 0.94, win 0.348, -16.5R (-8.25% at 0.5% risk) | OOS 46 tr, PF 1.4, win 0.391, +12.09R (+6.04% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.507 -> reject
+- fixed_3r: in-sample 344 tr, PF 1.01, win 0.276, +2.69R (+1.35% at 0.5% risk) | OOS 45 tr, PF 1.43, win 0.311, +14.24R (+7.12% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.525 -> reject
+- time_10: in-sample 380 tr, PF 1.13, win 0.384, +32.35R (+16.18% at 0.5% risk) | OOS 48 tr, PF 1.06, win 0.312, +1.96R (+0.98% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.325 -> reject
+- time_20: in-sample 361 tr, PF 1.12, win 0.299, +32.84R (+16.42% at 0.5% risk) | OOS 44 tr, PF 1.24, win 0.295, +7.82R (+3.91% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.413 -> reject
+- atr_trail_2: in-sample 370 tr, PF 1.2, win 0.303, +47.34R (+23.67% at 0.5% risk) | OOS 47 tr, PF 1.11, win 0.383, +3.01R (+1.5% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.22 -> reject
+- atr_trail_3: in-sample 333 tr, PF 1.22, win 0.285, +55.96R (+27.98% at 0.5% risk) | OOS 43 tr, PF 0.88, win 0.256, -3.37R (-1.68% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.395 -> reject
+- sma20_close: in-sample 361 tr, PF 1.35, win 0.305, +78.24R (+39.12% at 0.5% risk) | OOS 44 tr, PF 0.84, win 0.273, -4.46R (-2.23% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.137 -> reject
+- sma50_close: in-sample 307 tr, PF 1.62, win 0.251, +135.28R (+67.64% at 0.5% risk) | OOS 40 tr, PF 0.78, win 0.25, -5.41R (-2.7% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.013 -> reject
+- swing_low_5: in-sample 393 tr, PF 0.91, win 0.224, -18.26R (-9.13% at 0.5% risk) | OOS 49 tr, PF 0.6, win 0.184, -9.02R (-4.51% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.049 -> reject
+- be1r_atr2: in-sample 362 tr, PF 1.24, win 0.315, +56.75R (+28.37% at 0.5% risk) | OOS 46 tr, PF 1.2, win 0.326, +4.55R (+2.27% at 0.5% risk) | years PF>1 8/11 | random-entry OOS avg R 0.236 -> reject
+- psar: in-sample 377 tr, PF 1.18, win 0.332, +41.94R (+20.97% at 0.5% risk) | OOS 47 tr, PF 0.73, win 0.319, -8.11R (-4.06% at 0.5% risk) | years PF>1 7/11 | random-entry OOS avg R 0.399 -> reject
+- own_atr3: in-sample 368 tr, PF 1.01, win 0.345, +2.5R (+1.25% at 0.5% risk) | OOS 48 tr, PF 1.29, win 0.375, +8.19R (+4.09% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.068 -> reject
+- ponsi: in-sample 363 tr, PF 1.06, win 0.364, +14.89R (+7.44% at 0.5% risk) | OOS 45 tr, PF 0.86, win 0.333, -4.05R (-2.02% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.297 -> reject
+- raschke: in-sample 408 tr, PF 0.78, win 0.319, -37.8R (-18.9% at 0.5% risk) | OOS 49 tr, PF 1.1, win 0.367, +1.98R (+0.99% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.068 -> reject
+- turtle: in-sample 326 tr, PF 1.54, win 0.279, +135.96R (+67.98% at 0.5% risk) | OOS 37 tr, PF 1.32, win 0.27, +8.41R (+4.21% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.344 -> reject
+- wstair: in-sample 406 tr, PF 0.7, win 0.345, -47.21R (-23.6% at 0.5% risk) | OOS 49 tr, PF 1.38, win 0.449, +6.79R (+3.4% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.072 -> reject
+- wstair_ag: in-sample 406 tr, PF 0.7, win 0.345, -47.21R (-23.6% at 0.5% risk) | OOS 49 tr, PF 1.38, win 0.449, +6.79R (+3.4% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.072 -> reject
+- crabel: in-sample 414 tr, PF 0.56, win 0.43, -61.92R (-30.96% at 0.5% risk) | OOS 49 tr, PF 1.07, win 0.49, +1.29R (+0.64% at 0.5% risk) | years PF>1 3/11 | random-entry OOS avg R -0.044 -> reject
+- williams: in-sample 405 tr, PF 0.69, win 0.541, -50.56R (-25.28% at 0.5% risk) | OOS 49 tr, PF 1.41, win 0.612, +7.62R (+3.81% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.04 -> reject
+### oversold long test on the hindsight-free 2016 list (2x slippage)
+- own: in-sample 1281 tr, PF 0.48, win 0.412, -428.23R (-214.11% at 0.5% risk) | OOS 97 tr, PF 0.56, win 0.412, -16.89R (-8.44% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.044 (control)
+  by year: 2016 PF 1.06 +3.0R (113), 2017 PF 0.57 -24.12R (116), 2018 PF 0.34 -53.54R (165), 2019 PF 0.4 -29.96R (98), 2020 PF 0.67 -29.04R (179), 2021 PF 0.97 -1.52R (134), 2022 PF 0.46 -58.74R (155), 2023 PF 0.72 -17.2R (137), 2024 PF 0.42 -31.44R (103), 2025 PF 0.15 -188.82R (117), 2026 PF 0.51 -13.73R (61)
+- fixed_1r: in-sample 1257 tr, PF 0.6, win 0.478, -383.49R (-191.75% at 0.5% risk) | OOS 94 tr, PF 0.87, win 0.511, -7.09R (-3.55% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R 0.106 -> reject
+- fixed_2r: in-sample 1189 tr, PF 0.75, win 0.342, -274.25R (-137.12% at 0.5% risk) | OOS 94 tr, PF 1.21, win 0.404, +13.8R (+6.9% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.228 -> reject
+- fixed_3r: in-sample 1155 tr, PF 0.85, win 0.281, -173.55R (-86.78% at 0.5% risk) | OOS 88 tr, PF 1.19, win 0.307, +13.46R (+6.73% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.298 -> reject
+- time_10: in-sample 1193 tr, PF 0.83, win 0.312, -194.53R (-97.26% at 0.5% risk) | OOS 95 tr, PF 1.14, win 0.358, +9.3R (+4.65% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.122 -> reject
+- time_20: in-sample 1181 tr, PF 0.96, win 0.261, -53.02R (-26.51% at 0.5% risk) | OOS 93 tr, PF 1.29, win 0.312, +21.64R (+10.82% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.334 -> reject
+- atr_trail_2: in-sample 1192 tr, PF 0.89, win 0.284, -120.18R (-60.09% at 0.5% risk) | OOS 94 tr, PF 1.22, win 0.33, +14.12R (+7.06% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.156 -> reject
+- atr_trail_3: in-sample 1125 tr, PF 0.95, win 0.237, -53.38R (-26.69% at 0.5% risk) | OOS 88 tr, PF 1.16, win 0.25, +11.18R (+5.59% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.278 -> reject
+- sma20_close: in-sample 1286 tr, PF 0.47, win 0.382, -430.08R (-215.04% at 0.5% risk) | OOS 98 tr, PF 0.58, win 0.398, -16.15R (-8.07% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.127 -> reject
+- sma50_close: in-sample 1262 tr, PF 0.51, win 0.371, -410.28R (-205.14% at 0.5% risk) | OOS 98 tr, PF 1.31, win 0.378, +12.99R (+6.5% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.168 -> reject
+- swing_low_5: in-sample 1247 tr, PF 0.87, win 0.221, -133.0R (-66.5% at 0.5% risk) | OOS 96 tr, PF 1.14, win 0.25, +7.08R (+3.54% at 0.5% risk) | years PF>1 5/11 | random-entry OOS avg R 0.01 -> reject
+- be1r_atr2: in-sample 1203 tr, PF 0.84, win 0.24, -154.6R (-77.3% at 0.5% risk) | OOS 93 tr, PF 1.29, win 0.301, +15.8R (+7.9% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.143 -> reject
+- psar: in-sample 1202 tr, PF 0.86, win 0.28, -154.79R (-77.39% at 0.5% risk) | OOS 95 tr, PF 1.17, win 0.316, +10.49R (+5.25% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.196 -> reject
+- own_atr3: in-sample 1281 tr, PF 0.48, win 0.412, -428.23R (-214.11% at 0.5% risk) | OOS 97 tr, PF 0.56, win 0.412, -16.89R (-8.44% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R 0.045 -> reject
+- ponsi: in-sample 1214 tr, PF 0.79, win 0.388, -224.84R (-112.42% at 0.5% risk) | OOS 95 tr, PF 1.43, win 0.495, +24.03R (+12.02% at 0.5% risk) | years PF>1 4/11 | random-entry OOS avg R 0.217 -> reject
+- raschke: in-sample 1258 tr, PF 0.64, win 0.301, -333.4R (-166.7% at 0.5% risk) | OOS 95 tr, PF 0.88, win 0.326, -5.51R (-2.76% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.042 -> reject
+- turtle: in-sample 1151 tr, PF 0.98, win 0.226, -22.17R (-11.09% at 0.5% risk) | OOS 89 tr, PF 1.47, win 0.225, +29.94R (+14.97% at 0.5% risk) | years PF>1 6/11 | random-entry OOS avg R 0.327 -> KEEP
+- wstair: in-sample 1281 tr, PF 0.53, win 0.342, -401.77R (-200.88% at 0.5% risk) | OOS 97 tr, PF 0.77, win 0.361, -9.34R (-4.67% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.034 -> reject
+- wstair_ag: in-sample 1281 tr, PF 0.53, win 0.342, -401.6R (-200.8% at 0.5% risk) | OOS 97 tr, PF 0.77, win 0.361, -9.34R (-4.67% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R -0.034 -> reject
+- crabel: in-sample 1286 tr, PF 0.47, win 0.383, -432.14R (-216.07% at 0.5% risk) | OOS 98 tr, PF 0.58, win 0.398, -16.15R (-8.07% at 0.5% risk) | years PF>1 1/11 | random-entry OOS avg R -0.048 -> reject
+- williams: in-sample 1262 tr, PF 0.56, win 0.475, -378.55R (-189.27% at 0.5% risk) | OOS 96 tr, PF 0.71, win 0.49, -13.14R (-6.57% at 0.5% risk) | years PF>1 2/11 | random-entry OOS avg R 0.031 -> reject
+- VERDICT (adopt only if it passes the short test AND keeps in the long test on both lists; crabel / williams are controls): ['topdown:fixed_1r', 'topdown:fixed_2r']
+ALL DONE
