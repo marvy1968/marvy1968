@@ -1,3 +1,35 @@
 $ alpaca run-all --phase validate --families fx_autopsy_boxmr
-started 2026-11-03 21:40:24 EST
-RUNNING...
+started 2026-11-03 21:40:24 EST, took 33s, exit 0
+
+daily data ready
+## boxmr_h1 loser autopsy (pre-registered: discovery 2016-20 picks one bucket, 2021-today confirms; PASS = >= 20% of losers cut and a smaller share of winners)
+- trades: discovery 293 (PF 0.51, -54.5R), confirmation 456 (PF 0.75, -41.1R); losers 192 / 277
+| Trait | Bucket | Discovery n / PF / net R | Confirmation n / PF / net R |
+|---|---|---|---|
+| session | asia | 104 / 0.49 / -16.9 | 133 / 0.86 / -5.7 |
+| session | london | 60 / 0.55 / -12.4 | 115 / 1.04 / +1.6 |
+| session | ny | 56 / 0.62 / -7.3 | 83 / 0.92 / -2.1 |
+| session | overlap | 49 / 0.47 / -12.8 | 93 / 0.43 / -26.4 |
+| session | roll | 24 / 0.37 / -5.0 | 32 / 0.35 / -8.4 |
+| weekday | Mon | 52 / 0.48 / -11.2 | 82 / 0.81 / -5.0 |
+| weekday | Sun | 60 / 0.28 / -14.5 | 84 / 0.96 / -1.2 |
+| weekday | Thu | 57 / 0.70 / -7.0 | 99 / 0.90 / -3.3 |
+| weekday | Tue | 64 / 0.36 / -16.9 | 92 / 0.88 / -4.0 |
+| weekday | Wed | 60 / 0.77 / -4.8 | 99 / 0.38 / -27.5 |
+| atr_pct | high | 98 / 0.47 / -20.7 | 128 / 0.87 / -5.4 |
+| atr_pct | low | 98 / 0.55 / -16.4 | 172 / 0.84 / -10.0 |
+| atr_pct | mid | 97 / 0.52 / -17.4 | 156 / 0.57 / -25.7 |
+| box_atr | high | 98 / 0.56 / -14.6 | 112 / 0.89 / -4.0 |
+| box_atr | low | 98 / 0.45 / -22.2 | 158 / 0.47 / -34.8 |
+| box_atr | mid | 97 / 0.54 / -17.7 | 186 / 0.96 / -2.3 |
+| edge | high | 98 / 0.42 / -21.0 | 166 / 0.69 / -13.5 |
+| edge | low | 98 / 0.42 / -25.7 | 141 / 1.03 / +1.6 |
+| edge | mid | 97 / 0.75 / -7.9 | 149 / 0.48 / -29.3 |
+| spread_atr | high | 98 / 0.49 / -18.8 | 134 / 0.74 / -12.3 |
+| spread_atr | low | 98 / 0.37 / -24.6 | 181 / 0.43 / -39.2 |
+| spread_atr | mid | 97 / 0.69 / -11.1 | 141 / 1.21 / +10.4 |
+- discovery pick (lowest PF, 20+ trades): weekday = Sun (PF 0.28)
+- confirmation half without weekday = Sun: losers cut 18%, winners cut 19%; PF 0.75 -> 0.71, net -41.1R -> -39.8R, trades 456 -> 372  => FAIL
+- boxmr_h1 at 2x spread: 772 trades, PF 0.49, -170.3R | 2016-20 PF 0.35 | 2021-today PF 0.59
+- FADE (every signal reversed, same stop / target): 718 trades, PF 0.98, -4.4R | 2016-20 PF 0.91 | 2021-today PF 1.03
+ALL DONE
