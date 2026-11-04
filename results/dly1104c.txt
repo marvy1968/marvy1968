@@ -1,3 +1,12 @@
 $ show alpaca_trendopt/trades.jsonl
-started 2026-11-04 16:48:27 EST
-RUNNING...
+started 2026-11-04 16:48:27 EST, took 0s, exit 0
+
+{"date": "2026-11-03", "symbol": "RTX", "strategy": "trend", "side": "long", "qty": 62, "entry": 205.33, "exit": 204.665484, "pl": -41.2, "r_part": -1.3205, "r_trade": -1.3205, "reason": "hard_stop", "opened": "2026-11-03T11:25:16.496172-05:00", "closed": "2026-11-03T11:38:10.518493-05:00", "final": true}
+{"date": "2026-11-03", "symbol": "WELL", "strategy": "trend", "side": "long", "qty": 52, "entry": 242.44, "exit": 241.96, "pl": -24.96, "r_part": -1.0492, "r_trade": -1.0492, "reason": "hard_stop", "opened": "2026-11-03T11:20:16.097449-05:00", "closed": "2026-11-03T11:44:11.274214-05:00", "final": true}
+{"date": "2026-11-03", "symbol": "UNH", "strategy": "trend", "side": "long", "qty": 31, "entry": 403.35, "exit": 402.65, "pl": -21.7, "r_part": -1.2886, "r_trade": -1.2886, "reason": "hard_stop", "opened": "2026-11-03T12:25:18.800521-05:00", "closed": "2026-11-03T12:29:20.699067-05:00", "final": true}
+{"date": "2026-11-03", "symbol": "PLD", "strategy": "trend", "side": "short", "qty": 99, "entry": 127.85, "exit": 128.024848, "pl": -17.31, "r_part": -1.1657, "r_trade": -1.1657, "reason": "hard_stop", "opened": "2026-11-03T12:40:13.573878-05:00", "closed": "2026-11-03T12:45:08.394330-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "AMT", "strategy": "trend", "side": "long", "qty": 65, "entry": 195.38, "exit": 193.891846, "pl": -96.73, "r_part": -1.3766, "r_trade": -1.3766, "reason": "hard_stop", "opened": "2026-11-04T09:55:15.401586-05:00", "closed": "2026-11-04T10:10:27.930955-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "CEG", "strategy": "trend", "side": "short", "qty": 51, "entry": 246.31, "exit": 240.37, "pl": 302.94, "r_part": 2.018, "r_trade": 2.018, "reason": "virtual_trail", "opened": "2026-11-04T10:10:27.930955-05:00", "closed": "2026-11-04T11:30:09.161474-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "GEV", "strategy": "trend", "side": "short", "qty": 14, "entry": 846.272143, "exit": 821.97, "pl": 340.23, "r_part": 2.4167, "r_trade": 2.4167, "reason": "virtual_trail", "opened": "2026-11-04T09:50:13.691406-05:00", "closed": "2026-11-04T11:55:08.992939-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "V", "strategy": "trend", "side": "long", "qty": 29, "entry": 433.97, "exit": 433.0, "pl": -28.13, "r_part": -1.1009, "r_trade": -1.1009, "reason": "hard_stop", "opened": "2026-11-04T11:40:18.614680-05:00", "closed": "2026-11-04T11:59:16.221804-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "WELL", "strategy": "trend", "side": "long", "qty": 52, "entry": 247.71, "exit": 247.05, "pl": -34.32, "r_part": -1.1039, "r_trade": -1.1039, "reason": "hard_stop", "opened": "2026-11-04T12:00:20.155317-05:00", "closed": "2026-11-04T13:18:16.780552-05:00", "final": true}
