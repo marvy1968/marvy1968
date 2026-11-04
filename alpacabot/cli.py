@@ -1035,6 +1035,16 @@ def run_all(a) -> int:
                     lines.append("- nothing passed the short test: no long test")
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_autopsy_boxmr":          # owner 2026-11-04: loser autopsy on boxmr_h1 (fxbot.autopsy, pre-registered)
+                import datetime as _dt
+                from fxbot import autopsy as _ap
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                dg = {i: fx_load(i, "H1", _dt.date(2015, 10, 1), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += _ap.run(dg, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_exits_muse":             # owner 2026-11-04: Muse's exits (Ponsi, Raschke, Turtle, weekly stair) on boxmr_h1 / lien_h1 entries
                 import datetime as _dt
                 from fxbot import exitlab as _fxl
