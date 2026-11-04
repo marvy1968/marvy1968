@@ -99,6 +99,28 @@ class EnsureStopsTests(unittest.TestCase):
             r.ensure_stops(NOW, lambda s: (219.0, 219.1))
             self.assertEqual(al.call_count, 1)                                                 # alerted once
 
+    def test_oco_stop_leg_filled_is_booked_not_flagged(self):
+        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(sp, "_alert") as al:
+            b = Broker({})
+            so = b.submit_oco("CVX", 23, 241.81, 220.41, "x")
+            b.orders[so["id"]].update(status="canceled", legs=[{"status": "filled", "filled_avg_price": 220.30}])
+            r = runner(d, b, stop_order_id=so["id"])
+            self.assertEqual(r.ensure_stops(NOW, lambda s: (219.0, 219.1)), {})
+            self.assertNotIn("CVX", r.state["positions"])
+            self.assertEqual(al.call_count, 0)
+            t = json.loads(open(f"{d}/trades.jsonl").read().splitlines()[-1])
+            self.assertEqual((t["symbol"], t["exit"] if "exit" in t else t.get("px")), ("CVX", 220.30))
+
+    def test_not_held_alert_persists_across_runners(self):
+        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(sp, "_alert") as al:
+            b = Broker({})
+            so = b.submit_oco("CVX", 23, 241.81, 220.41, "x")
+            b.cancel_order(so["id"])
+            runner(d, b, stop_order_id=so["id"]).ensure_stops(NOW, lambda s: (219.0, 219.1))
+            r2 = sp.SwingRunner(b, state_dir=d, base_equity=50000.0, sleep=lambda *_: None)     # a new minute = a new runner
+            r2.ensure_stops(NOW, lambda s: (219.0, 219.1))
+            self.assertEqual(al.call_count, 1)
+
 
 if __name__ == "__main__":
     import unittest.mock  # noqa: F401

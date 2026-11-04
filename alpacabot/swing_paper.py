@@ -160,6 +160,10 @@ class SwingRunner:
         position is closed at market. Never acts on a position the broker no longer holds (journal + alert only)."""
         out = {}
         dead = ("canceled", "cancelled", "expired", "rejected")
+        try:                                                     # 2026-11-04 (CVX): an OCO whose stop LEG filled shows the parent as
+            self.settle_stops(now)                               # canceled - book that fill first, so it is not taken for a lost stop
+        except Exception as exc:
+            self.journal("stop_check_error", now, where="settle", error=str(exc)[:120])
         held = None
         for sym, pos in list(self.state["positions"].items()):
             oid = pos.get("stop_order_id")
@@ -183,6 +187,7 @@ class SwingRunner:
                     pos["gone_alerted"] = True
                     self.journal("stop_missing_not_held", now, symbol=sym, held=q, qty=pos["qty"], stop_status=st)
                     _alert(f"SWING (paper): {sym} stop order {st or 'missing'} and the broker holds {q} (book {pos['qty']}) - check it")
+                    self._save()                                 # once, not every minute
                 continue
             ex = "sell" if side == 1 else "buy"
             tag = now.astimezone(ET).strftime("%Y%m%d%H%M")
