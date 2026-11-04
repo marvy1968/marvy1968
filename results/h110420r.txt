@@ -1,3 +1,63 @@
 $ logs marv-alpaca-paper 60
-started 2026-11-04 15:10:12 EST
-RUNNING...
+started 2026-11-04 15:10:12 EST, took 0s, exit 0
+
+Nov 04 14:51:50 instance-stockbot python[2524089]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/connection.py", line 85, in create_connection
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raise err
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/connection.py", line 73, in create_connection
+Nov 04 14:51:50 instance-stockbot python[2524089]:     sock.connect(sa)
+Nov 04 14:51:50 instance-stockbot python[2524089]: TimeoutError: timed out
+Nov 04 14:51:50 instance-stockbot python[2524089]: The above exception was the direct cause of the following exception:
+Nov 04 14:51:50 instance-stockbot python[2524089]: Traceback (most recent call last):
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 793, in urlopen
+Nov 04 14:51:50 instance-stockbot python[2524089]:     response = self._make_request(
+Nov 04 14:51:50 instance-stockbot python[2524089]:                ^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 494, in _make_request
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raise new_e
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 470, in _make_request
+Nov 04 14:51:50 instance-stockbot python[2524089]:     self._validate_conn(conn)
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 1125, in _validate_conn
+Nov 04 14:51:50 instance-stockbot python[2524089]:     conn.connect()
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 827, in connect
+Nov 04 14:51:50 instance-stockbot python[2524089]:     self.sock = sock = self._new_conn()
+Nov 04 14:51:50 instance-stockbot python[2524089]:                        ^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connection.py", line 248, in _new_conn
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raise ConnectTimeoutError(
+Nov 04 14:51:50 instance-stockbot python[2524089]: urllib3.exceptions.ConnectTimeoutError: (<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fc6064401d0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)')
+Nov 04 14:51:50 instance-stockbot python[2524089]: The above exception was the direct cause of the following exception:
+Nov 04 14:51:50 instance-stockbot python[2524089]: Traceback (most recent call last):
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 696, in send
+Nov 04 14:51:50 instance-stockbot python[2524089]:     resp = conn.urlopen(
+Nov 04 14:51:50 instance-stockbot python[2524089]:            ^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py", line 847, in urlopen
+Nov 04 14:51:50 instance-stockbot python[2524089]:     retries = retries.increment(
+Nov 04 14:51:50 instance-stockbot python[2524089]:               ^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/urllib3/util/retry.py", line 555, in increment
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+Nov 04 14:51:50 instance-stockbot python[2524089]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]: urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/WMT/bars?timeframe=1Min&start=2026-10-28T00%3A00%3A00Z&end=2026-11-04T20%3A50%3A10Z&limit=10000&adjustment=all&feed=iex (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fc6064401d0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
+Nov 04 14:51:50 instance-stockbot python[2524089]: During handling of the above exception, another exception occurred:
+Nov 04 14:51:50 instance-stockbot python[2524089]: Traceback (most recent call last):
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/alpacabot/paper.py", line 1319, in run
+Nov 04 14:51:50 instance-stockbot python[2524089]:     self.on_bar_close(now)
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/alpacabot/paper.py", line 849, in on_bar_close
+Nov 04 14:51:50 instance-stockbot python[2524089]:     day = today_frame(sym, now_et, self.brain, self.fetch)
+Nov 04 14:51:50 instance-stockbot python[2524089]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/alpacabot/paper.py", line 195, in today_frame
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raw = fetch(sym, "1Min", start, (now_et + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ"), "iex")
+Nov 04 14:51:50 instance-stockbot python[2524089]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/alpacabot/data.py", line 53, in _fetch
+Nov 04 14:51:50 instance-stockbot python[2524089]:     r = s.get(URL.format(symbol=symbol), params=params, headers=_headers(), timeout=60)
+Nov 04 14:51:50 instance-stockbot python[2524089]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 671, in get
+Nov 04 14:51:50 instance-stockbot python[2524089]:     return self.request("GET", url, params=params, **kwargs)
+Nov 04 14:51:50 instance-stockbot python[2524089]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 651, in request
+Nov 04 14:51:50 instance-stockbot python[2524089]:     resp = self.send(prep, **send_kwargs)
+Nov 04 14:51:50 instance-stockbot python[2524089]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/sessions.py", line 784, in send
+Nov 04 14:51:50 instance-stockbot python[2524089]:     r = adapter.send(request, **kwargs)
+Nov 04 14:51:50 instance-stockbot python[2524089]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 14:51:50 instance-stockbot python[2524089]:   File "/opt/marv-bot/.venv/lib/python3.11/site-packages/requests/adapters.py", line 717, in send
+Nov 04 14:51:50 instance-stockbot python[2524089]:     raise ConnectTimeout(e, request=request)
+Nov 04 14:51:50 instance-stockbot python[2524089]: requests.exceptions.ConnectTimeout: HTTPSConnectionPool(host='data.alpaca.markets', port=443): Max retries exceeded with url: /v2/stocks/WMT/bars?timeframe=1Min&start=2026-10-28T00%3A00%3A00Z&end=2026-11-04T20%3A50%3A10Z&limit=10000&adjustment=all&feed=iex (Caused by ConnectTimeoutError(<HTTPSConnection(host='data.alpaca.markets', port=443) at 0x7fc6064401d0>, 'Connection to data.alpaca.markets timed out. (connect timeout=60)'))
