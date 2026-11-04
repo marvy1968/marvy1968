@@ -1,3 +1,18 @@
 $ alpaca positions
-started 2026-11-04 14:09:18 EST
-RUNNING...
+started 2026-11-04 14:09:18 EST, took 19s, exit 0
+
+equity $51,540.50  cash $24,553.61  long mv $36,951.99  short mv $-9,965.10
+6 open positions:
+  NEE        long  qty          146  value $ 12,920.27  unrealized $    81.07
+  UNH        long  qty           31  value $ 12,776.65  unrealized $    14.88
+  XOM        short qty          -59  value $ -9,965.10  unrealized $   109.74
+  NEM        long  qty           61  value $  7,152.86  unrealized $    70.57
+  MA         long  qty            4  value $  2,681.20  unrealized $    74.45
+  LLY        long  qty            1  value $  1,425.66  unrealized $    -2.24
+6 open orders:
+  UNH        sell 31 stop new  id ve-s-UNH-202611041406
+  NEE        sell 146 stop new  id vw-t-NEE-202611041200
+  NEM        sell 61 stop new  id vw-t-NEM-202611041158
+  XOM        buy  59 stop new  id vw-t-XOM-202611041135
+  MA         sell 4 limit new  id sw-o-MA-20261103
+  LLY        sell 1 limit new  id sw-o-LLY-20261103
