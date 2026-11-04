@@ -1,3 +1,238 @@
 $ show alpaca_swing/journal.jsonl
-started 2026-11-04 12:33:17 EST
-RUNNING...
+started 2026-11-04 12:33:17 EST, took 0s, exit 0
+
+{"t": "2026-10-12T16:20:06-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "META", "qty": 3, "stop": 689.1026888985886, "rs": 0.0919, "signal_close": 742.96}, {"symbol": "MSFT", "qty": 5, "stop": 504.4092831845755, "rs": 0.0456, "signal_close": 541.15}, {"symbol": "XLK", "qty": 46, "stop": 192.42043958167847, "rs": 0.0416, "signal_close": 196.36}], "equity": 53194.06}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "orders", "sent": {"META": "entry", "MSFT": "entry", "XLK": "entry"}}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "META", "status": "expired"}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "XLK", "status": "expired"}
+{"t": "2026-10-13T09:20:06-04:00", "kind": "entry_not_filled", "symbol": "MSFT", "status": "expired"}
+{"t": "2026-10-13T16:20:06-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "AMD", "qty": 5, "stop": 573.2530958243219, "rs": 0.1712, "signal_close": 605.53}, {"symbol": "META", "qty": 2, "stop": 692.9451098479672, "rs": 0.1088, "signal_close": 762.5}, {"symbol": "MSFT", "qty": 5, "stop": 507.1384082969777, "rs": 0.0634, "signal_close": 543.45}], "equity": 53194.06}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "orders", "sent": {"AMD": "entry", "META": "entry", "MSFT": "entry"}}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "META", "qty": 2, "fill": 755.19, "stop": 692.9451098479672}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "AMD", "qty": 5, "fill": 588.24, "stop": 573.2530958243219}
+{"t": "2026-10-14T09:20:06-04:00", "kind": "entry", "symbol": "MSFT", "qty": 5, "fill": 543.398, "stop": 507.1384082969777}
+{"t": "2026-10-14T16:20:05-04:00", "kind": "exit", "symbol": "AMD", "px": 573.16, "reason": "stop", "pnl": -75.4}
+{"t": "2026-10-14T16:20:05-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COST", "qty": 2, "stop": 920.2496507460207, "rs": 0.0756, "signal_close": 982.0, "zone_tp": 1105.5, "atr": 15.4764}], "equity": 53034.82}
+{"t": "2026-10-15T09:20:03-04:00", "kind": "chase_skip", "symbol": "COST", "ask": 997.89, "signal_close": 982.0, "atr": 15.4764}
+{"t": "2026-10-15T09:20:03-04:00", "kind": "orders", "sent": {}}
+{"t": "2026-10-15T16:20:05-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "WMT", "qty": 17, "stop": 107.58301642404133, "rs": 0.0892, "signal_close": 117.87, "zone_tp": 138.44, "atr": 2.5165}], "equity": 53061.93}
+{"t": "2026-10-16T09:20:04-04:00", "kind": "orders", "sent": {"WMT": "entry"}}
+{"t": "2026-10-16T09:20:04-04:00", "kind": "entry", "symbol": "WMT", "qty": 17, "fill": 118.728235, "stop": 107.58301642404133, "zone_tp": 138.44}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "META", "px": 710.095, "reason": "owner_close", "pnl": -90.19}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "MSFT", "px": 525.362, "reason": "owner_close", "pnl": -90.18}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "exit", "symbol": "WMT", "px": 118.84, "reason": "owner_close", "pnl": 1.9}
+{"t": "2026-10-16T13:24:54-04:00", "kind": "owner_close", "result": {"META": "closed @ 710.10", "MSFT": "closed @ 525.36", "WMT": "closed @ 118.84"}}
+{"t": "2026-10-16T16:20:07-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "WMT", "qty": 17, "stop": 108.47733706625412, "rs": 0.1111, "signal_close": 118.81, "zone_tp": 139.48, "atr": 2.4517}, {"symbol": "COP", "qty": 12, "stop": 131.58624664066835, "rs": 0.1093, "signal_close": 146.51, "zone_tp": 176.36, "atr": 3.2355}, {"symbol": "COST", "qty": 3, "stop": 927.9605712609301, "rs": 0.1027, "signal_close": 989.11, "zone_tp": 1111.41, "atr": 16.4932}], "equity": 52940.19}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "orders", "sent": {"WMT": "entry", "COP": "entry", "COST": "entry"}}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "WMT", "qty": 17, "fill": 118.261765, "stop": 108.47733706625412, "zone_tp": 139.48, "side": 1, "strategy": null}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "COST", "qty": 3, "fill": 987.836667, "stop": 927.9605712609301, "zone_tp": 1111.41, "side": 1, "strategy": null}
+{"t": "2026-10-19T09:20:05-04:00", "kind": "entry", "symbol": "COP", "qty": 12, "fill": 145.7325, "stop": 131.58624664066835, "zone_tp": 176.36, "side": 1, "strategy": null}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "WMT", "px": 118.7, "reason": "owner_close", "pnl": 7.45}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "COST", "px": 994.12, "reason": "owner_close", "pnl": 18.85}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "exit", "symbol": "COP", "px": 145.28, "reason": "owner_close", "pnl": -5.43}
+{"t": "2026-10-19T13:14:58-04:00", "kind": "owner_close", "result": {"WMT": "closed @ 118.70", "COST": "closed @ 994.12", "COP": "closed @ 145.28"}}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": ["AMZN"]}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "oversold_plan", "exits": [], "entries": []}
+{"t": "2026-10-19T16:20:03-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COP", "qty": 14, "stop": 132.63635453766233, "rs": 0.1479, "signal_close": 145.24, "zone_tp": 170.45, "atr": 3.1776}, {"symbol": "XOM", "qty": 14, "stop": 165.8975017541014, "rs": 0.1353, "signal_close": 178.28, "zone_tp": 203.04, "atr": 3.5237}, {"symbol": "EOG", "qty": 14, "stop": 144.5732799002627, "rs": 0.1316, "signal_close": 157.65, "zone_tp": 183.8, "atr": 3.5182}, {"symbol": "AMZN", "qty": 27, "stop": 252.85, "side": 1, "strategy": "funnel", "signal_close": 262.45, "zone_tp": 286.46, "atr": 6.5042}], "equity": 52961.06}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "chase_skip", "symbol": "COP", "ask": 147.05, "signal_close": 145.24, "atr": 3.1776}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "orders", "sent": {"XOM": "entry", "EOG": "entry", "AMZN": "entry"}}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "XOM", "qty": 14, "fill": 180.12, "stop": 165.8975017541014, "zone_tp": 203.04, "side": 1, "strategy": null}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "AMZN", "qty": 27, "fill": 264.144444, "stop": 252.85, "zone_tp": 286.46, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-20T09:20:02-04:00", "kind": "entry", "symbol": "EOG", "qty": 14, "fill": 159.407143, "stop": 144.5732799002627, "zone_tp": 183.8, "side": 1, "strategy": null}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "funnel_plan", "exits": [], "entries": ["MRK"]}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "oversold_plan", "exits": [], "entries": ["GEV"]}
+{"t": "2026-10-20T16:20:08-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COP", "qty": 14, "stop": 133.5179495797702, "rs": 0.1707, "signal_close": 145.95, "zone_tp": 170.81, "atr": 3.2613}, {"symbol": "MRK", "qty": 61, "stop": 144.05, "side": 1, "strategy": "funnel", "signal_close": 148.3, "zone_tp": 158.92, "atr": 3.9942}, {"symbol": "GEV", "qty": 6, "stop": 848.6, "side": 1, "strategy": "oversold", "signal_close": 890.33, "zone_tp": 942.49, "atr": 41.7282}], "equity": 52867.57}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "chase_skip", "symbol": "GEV", "ask": 919.62, "signal_close": 890.33, "atr": 41.7282}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "orders", "sent": {"COP": "entry", "MRK": "entry"}}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "entry", "symbol": "MRK", "qty": 61, "fill": 147.68, "stop": 144.05, "zone_tp": 158.92, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-21T09:20:04-04:00", "kind": "entry", "symbol": "COP", "qty": 14, "fill": 145.385714, "stop": 133.5179495797702, "zone_tp": 170.81, "side": 1, "strategy": null}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": ["PM"]}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "oversold_plan", "exits": [], "entries": ["GE", "GOOGL"]}
+{"t": "2026-10-21T16:20:03-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "PM", "qty": 36, "stop": 190.29, "side": 1, "strategy": "funnel", "signal_close": 197.46, "zone_tp": 215.39, "atr": 5.6439}, {"symbol": "GE", "qty": 30, "stop": 287.36, "side": 1, "strategy": "oversold", "signal_close": 295.88, "zone_tp": 306.54, "atr": 8.5247}, {"symbol": "GOOGL", "qty": 30, "stop": 326.13, "side": 1, "strategy": "oversold", "signal_close": 334.76, "zone_tp": 345.55, "atr": 8.6309}], "equity": 53001.53}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "orders", "sent": {"PM": "entry", "GE": "entry", "GOOGL": "entry"}}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "GE", "qty": 30, "fill": 293.13, "stop": 287.36, "zone_tp": 306.54, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "PM", "qty": 36, "fill": 199.199444, "stop": 190.29, "zone_tp": 215.39, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-22T09:20:03-04:00", "kind": "entry", "symbol": "GOOGL", "qty": 30, "fill": 330.454333, "stop": 326.13, "zone_tp": 345.55, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "AMZN", "px": 252.8, "reason": "stop", "pnl": -306.3}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "GE", "px": 287.3, "reason": "stop", "pnl": -174.9}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "exit", "symbol": "GOOGL", "px": 326.14, "reason": "stop", "pnl": -129.43}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "oversold_plan", "exits": [], "entries": ["CAT", "EQIX"]}
+{"t": "2026-10-22T16:20:04-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "CAT", "qty": 12, "stop": 683.26, "side": 1, "strategy": "oversold", "signal_close": 704.05, "zone_tp": 738.71, "atr": 27.7263}, {"symbol": "EQIX", "qty": 11, "stop": 929.92, "side": 1, "strategy": "oversold", "signal_close": 952.62, "zone_tp": 990.45, "atr": 30.2678}], "equity": 52371.75}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "orders", "sent": {"CAT": "entry", "EQIX": "entry"}}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "entry", "symbol": "EQIX", "qty": 11, "fill": 949.11, "stop": 929.92, "zone_tp": 990.45, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-23T09:20:04-04:00", "kind": "entry", "symbol": "CAT", "qty": 12, "fill": 693.21, "stop": 683.26, "zone_tp": 738.71, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "exit", "symbol": "MRK", "px": 144.390328, "reason": "stop", "pnl": -200.67}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "exit", "symbol": "CAT", "px": 683.0, "reason": "stop", "pnl": -122.52}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["CAT", "GE"]}
+{"t": "2026-10-23T16:20:04-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "CAT", "qty": 12, "stop": 666.47, "side": 1, "strategy": "oversold", "signal_close": 687.0, "zone_tp": 721.22, "atr": 27.3758}, {"symbol": "GE", "qty": 37, "stop": 278.8, "side": 1, "strategy": "oversold", "signal_close": 285.64, "zone_tp": 297.04, "atr": 9.1218}], "equity": 52271.88}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T16:20:03-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}], "equity": 52532.8}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "index_trend_plan", "entries": ["SPY", "QQQ"], "exits": []}
+{"t": "2026-10-26T20:11:18-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}, {"symbol": "SPY", "qty": 20, "stop": 736.36, "side": 1, "strategy": "trend200", "signal_close": 765.37, "atr": 7.2514}, {"symbol": "QQQ", "qty": 17, "stop": 662.77, "side": 1, "strategy": "trend200", "signal_close": 712.2, "atr": 12.3569}], "equity": 52532.8}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "oversold_plan", "exits": ["EQIX"], "entries": ["META", "NFLX"]}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "index_trend_plan", "entries": ["SPY"], "exits": []}
+{"t": "2026-10-26T20:13:16-04:00", "kind": "plan", "exits": ["EQIX"], "entries": [{"symbol": "META", "qty": 13, "stop": 611.33, "side": 1, "strategy": "oversold", "signal_close": 630.56, "zone_tp": 662.61, "atr": 25.6375}, {"symbol": "NFLX", "qty": 157, "stop": 62.26, "side": 1, "strategy": "oversold", "signal_close": 63.9, "zone_tp": 66.63, "atr": 2.1813}, {"symbol": "SPY", "qty": 12, "stop": 736.36, "side": 1, "strategy": "trend200", "signal_close": 765.37, "atr": 7.2514}], "equity": 52532.8}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry_deferred", "symbol": "META", "strategy": "oversold", "until": "10:00"}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry_deferred", "symbol": "NFLX", "strategy": "oversold", "until": "10:00"}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "orders", "sent": {"EQIX": "exit", "SPY": "entry"}}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "entry", "symbol": "SPY", "qty": 12, "fill": 767.51, "stop": 736.36}
+{"t": "2026-10-27T09:20:03-04:00", "kind": "exit", "symbol": "EQIX", "px": 979.635454, "reason": "signal", "pnl": 335.78}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "orders_late", "sent": {"META": "entry", "NFLX": "entry"}}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "entry", "symbol": "META", "qty": 13, "fill": 624.1, "stop": 611.33, "zone_tp": 662.61, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-27T09:32:58-04:00", "kind": "entry", "symbol": "NFLX", "qty": 157, "fill": 63.04, "stop": 62.26, "zone_tp": 66.63, "side": 1, "strategy": "oversold"}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": ["MSFT"]}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "index_trend_plan", "entries": [], "exits": []}
+{"t": "2026-10-27T16:20:04-04:00", "kind": "plan", "exits": ["META", "NFLX"], "entries": [{"symbol": "TSLA", "qty": 5, "stop": 362.42602074285355, "rs": 0.1477, "signal_close": 407.46, "zone_tp": 497.53, "atr": 13.7083}, {"symbol": "WMT", "qty": 39, "stop": 112.79891293407236, "rs": 0.1101, "signal_close": 119.32, "zone_tp": 132.36, "atr": 2.3974}, {"symbol": "MSFT", "qty": 8, "stop": 521.64, "side": 1, "strategy": "funnel", "signal_close": 531.33, "zone_tp": 555.55, "atr": 10.945}], "equity": 52436.29}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "exit_error", "symbol": "NFLX", "error": "403 {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"157\",\"held_for_orders\":\"157\",\"message\":\"insufficient qty available for order (requested: 157, available: 0)\",\"related_orders\":[\"d7149c66-3378-479c-"}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "orders", "sent": {"META": "exit", "TSLA": "entry", "WMT": "entry", "MSFT": "entry"}}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "entry", "symbol": "WMT", "qty": 39, "fill": 118.38, "stop": 112.79891293407236, "zone_tp": 132.36, "side": 1, "strategy": null}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "entry", "symbol": "MSFT", "qty": 8, "fill": 533.63875, "stop": 521.64, "zone_tp": 555.55, "side": 1, "strategy": "funnel"}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "exit", "symbol": "META", "px": 620.13, "reason": "signal", "pnl": -51.61}
+{"t": "2026-10-28T09:20:05-04:00", "kind": "entry", "symbol": "TSLA", "qty": 5, "fill": 408.304, "stop": 362.42602074285355, "zone_tp": 497.53, "side": 1, "strategy": null}
+{"t": "2026-10-28T10:45:37-04:00", "kind": "exit", "symbol": "NFLX", "px": 61.75, "reason": "owner_close", "pnl": -202.53}
+{"t": "2026-10-28T10:45:37-04:00", "kind": "owner_close", "result": {"NFLX": "closed @ 61.75"}}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "XOM", "px": 183.09, "reason": "owner_close", "pnl": 41.58}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "EOG", "px": 161.41, "reason": "owner_close", "pnl": 28.04}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "COP", "px": 149.586429, "reason": "owner_close", "pnl": 58.81}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "PM", "px": 203.05, "reason": "owner_close", "pnl": 138.62}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "SPY", "px": 771.635833, "reason": "owner_close", "pnl": 49.51}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "WMT", "px": 118.42, "reason": "owner_close", "pnl": 1.56}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "MSFT", "px": 527.5725, "reason": "owner_close", "pnl": -48.53}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "exit", "symbol": "TSLA", "px": 402.0, "reason": "owner_close", "pnl": -31.52}
+{"t": "2026-10-28T13:00:21-04:00", "kind": "owner_close", "result": {"XOM": "closed @ 183.09", "EOG": "closed @ 161.41", "COP": "closed @ 149.59", "PM": "closed @ 203.05", "SPY": "closed @ 771.64", "WMT": "closed @ 118.42", "MSFT": "closed @ 527.57", "TSLA": "closed @ 402.00"}}
+{"t": "2026-10-28T16:20:04-04:00", "kind": "funnel_plan", "exits": [], "entries": []}
+{"t": "2026-10-28T16:20:04-04:00", "kind": "index_trend_plan", "entries": ["SPY"], "exits": []}
+{"t": "2026-10-28T16:20:04-04:00", "kind": "trend_filters", "blocked": ["WMT", "TSLA", "AMT"], "reversal_exits": []}
+{"t": "2026-10-28T16:20:04-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "COP", "qty": 24, "stop": 138.60372508039376, "rs": 0.1784, "signal_close": 149.06, "zone_tp": 169.97, "atr": 3.5132}, {"symbol": "EOG", "qty": 25, "stop": 150.67324270067036, "rs": 0.1633, "signal_close": 160.92, "zone_tp": 181.41, "atr": 3.7378}, {"symbol": "SPY", "qty": 15, "stop": 743.94, "side": 1, "strategy": "trend200", "signal_close": 772.31, "atr": 7.0923}], "equity": 52346.95}
+{"t": "2026-10-29T00:59:17-04:00", "kind": "scan_skipped", "reason": "no completed daily bar for today (holiday or data not ready)"}
+{"t": "2026-10-29T09:20:14-04:00", "kind": "orders", "sent": {"SPY": "entry"}}
+{"t": "2026-10-29T09:20:14-04:00", "kind": "entry", "symbol": "SPY", "qty": 15, "fill": 768.91, "stop": 743.94}
+{"t": "2026-10-29T16:20:55-04:00", "kind": "topdown_logged", "candidates": ["LLY", "COP", "HD", "WMT", "MA"]}
+{"t": "2026-10-29T16:20:55-04:00", "kind": "index_trend_plan", "entries": ["QQQ"], "exits": []}
+{"t": "2026-10-29T16:20:55-04:00", "kind": "weekpicks_plan", "entries": ["BRK.B", "CVX", "V", "SPG", "MA"], "exits": []}
+{"t": "2026-10-29T16:20:55-04:00", "kind": "plan", "exits": [], "entries": [{"symbol": "QQQ", "qty": 20, "stop": 665.11, "side": 1, "strategy": "trend200", "signal_close": 715.34, "atr": 12.5569}, {"symbol": "BRK.B", "qty": 14, "stop": 528.0, "zone_tp": 556.98, "side": 1, "strategy": "weekpicks", "signal_close": 541.96}, {"symbol": "CVX", "qty": 23, "stop": 220.41, "zone_tp": 241.81, "side": 1, "strategy": "weekpicks", "signal_close": 231.46}, {"symbol": "V", "qty": 15, "stop": 394.0, "zone_tp": 428.54, "side": 1, "strategy": "weekpicks", "signal_close": 410.54}, {"symbol": "SPG", "qty": 19, "stop": 202.28, "zone_tp": 225.34, "side": 1, "strategy": "weekpicks", "signal_close": 215.72}, {"symbol": "MA", "qty": 5, "stop": 605.0, "zone_tp": 670.66, "side": 1, "strategy": "weekpicks", "signal_close": 635.7}], "equity": 52353.7}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "orders", "sent": {"QQQ": "entry", "BRK.B": "entry", "CVX": "entry", "V": "entry", "SPG": "entry", "MA": "entry"}}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "BRK.B", "qty": 14, "fill": 548.91, "stop": 528.0, "zone_tp": 556.98, "side": 1, "strategy": "weekpicks"}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "CVX", "qty": 23, "fill": 234.68, "stop": 220.41, "zone_tp": 241.81, "side": 1, "strategy": "weekpicks"}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "QQQ", "qty": 20, "fill": 695.376, "stop": 665.11}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "MA", "qty": 5, "fill": 641.55, "stop": 605.0, "zone_tp": 670.66, "side": 1, "strategy": "weekpicks"}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "V", "qty": 15, "fill": 416.306, "stop": 394.0, "zone_tp": 428.54, "side": 1, "strategy": "weekpicks"}
+{"t": "2026-10-30T09:20:21-04:00", "kind": "entry", "symbol": "SPG", "qty": 19, "fill": 218.386842, "stop": 202.28, "zone_tp": 225.34, "side": 1, "strategy": "weekpicks"}
+{"t": "2026-10-30T15:00:49-04:00", "kind": "exit", "symbol": "QQQ", "px": 685.05, "reason": "owner_close", "pnl": -206.52}
+{"t": "2026-10-30T15:00:49-04:00", "kind": "exit", "symbol": "SPY", "px": 751.736, "reason": "owner_close", "pnl": -257.61}
+{"t": "2026-10-30T15:00:49-04:00", "kind": "owner_close", "result": {"QQQ": "closed @ 685.05", "SPY": "closed @ 751.74"}}
+{"t": "2026-10-30T15:52:37-04:00", "kind": "exit", "symbol": "BRK.B", "px": 543.47, "reason": "owner_close", "pnl": -76.16}
+{"t": "2026-10-30T15:52:37-04:00", "kind": "exit", "symbol": "MA", "px": 638.59, "reason": "owner_close", "pnl": -14.8}
+{"t": "2026-10-30T15:52:37-04:00", "kind": "exit", "symbol": "V", "px": 413.345333, "reason": "owner_close", "pnl": -44.41}
+{"t": "2026-10-30T15:52:37-04:00", "kind": "exit", "symbol": "SPG", "px": 217.72, "reason": "owner_close", "pnl": -12.67}
+{"t": "2026-10-30T15:52:37-04:00", "kind": "owner_close", "result": {"BRK.B": "closed @ 543.47", "MA": "closed @ 638.59", "V": "closed @ 413.35", "SPG": "closed @ 217.72"}}
+{"t": "2026-10-30T16:21:03-04:00", "kind": "topdown_logged", "candidates": ["LLY", "COP", "WMT", "EOG", "HD"]}
+{"t": "2026-10-30T16:21:03-04:00", "kind": "index_trend_plan", "entries": [], "exits": [], "sleeve": "paused"}
+{"t": "2026-10-30T16:21:03-04:00", "kind": "plan", "exits": [], "entries": [], "equity": 51754.1}
+{"t": "2026-11-02T09:20:08-05:00", "kind": "orders", "sent": {}}
+{"t": "2026-11-02T16:21:11-05:00", "kind": "index_trend_plan", "entries": [], "exits": [], "sleeve": "paused"}
+{"t": "2026-11-02T16:21:11-05:00", "kind": "stairstep_plan", "watchlist": ["ABBV", "MRK"], "entries": [], "exits": [], "trail": {}, "skipped": null}
+{"t": "2026-11-02T16:21:11-05:00", "kind": "trend_filters", "blocked": ["WMT", "HD", "AMT"], "reversal_exits": []}
+{"t": "2026-11-02T16:21:11-05:00", "kind": "plan", "exits": [], "entries": [{"symbol": "LLY", "qty": 1, "stop": 1235.6742376666957, "rs": 0.2637, "signal_close": 1410.99, "zone_tp": 1761.62, "atr": 44.5571}, {"symbol": "MA", "qty": 4, "stop": 600.9163081459, "rs": 0.1967, "signal_close": 658.1, "zone_tp": 772.47, "atr": 12.4797}], "equity": 51575.85}
+{"t": "2026-11-03T09:20:05-05:00", "kind": "orders", "sent": {"LLY": "entry", "MA": "entry"}}
+{"t": "2026-11-03T09:20:05-05:00", "kind": "entry", "symbol": "LLY", "qty": 1, "fill": 1427.9, "stop": 1235.6742376666957, "zone_tp": 1761.62, "side": 1, "strategy": null}
+{"t": "2026-11-03T09:20:05-05:00", "kind": "entry", "symbol": "MA", "qty": 4, "fill": 651.6875, "stop": 600.9163081459, "zone_tp": 772.47, "side": 1, "strategy": null}
+{"t": "2026-11-03T10:28:00-05:00", "kind": "stop_rearmed", "symbol": "CVX", "old_status": "canceled", "result": "stop canceled: re-placed OCO stop 220.41 / target 241.81"}
+{"t": "2026-11-03T16:20:53-05:00", "kind": "index_trend_plan", "entries": [], "exits": [], "sleeve": "paused"}
+{"t": "2026-11-03T16:20:53-05:00", "kind": "stairstep_plan", "watchlist": ["ABBV", "MRK"], "entries": [], "exits": [], "trail": {}, "skipped": null}
+{"t": "2026-11-03T16:20:53-05:00", "kind": "trend_filters", "blocked": ["WMT", "HD", "AMT"], "reversal_exits": []}
+{"t": "2026-11-03T16:20:53-05:00", "kind": "plan", "exits": [], "entries": [], "equity": 51481.8}
+{"t": "2026-11-04T09:20:14-05:00", "kind": "orders", "sent": {}}
+{"t": "2026-11-04T10:05:31-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:10:27-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:16:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:20:36-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:27:13-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:31:35-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:36:37-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:42:00-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:47:41-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:52:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:56:43-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T10:59:52-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:00:12-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:04:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:05:08-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:08:36-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:09:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:10:13-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:13:19-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:14:10-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:15:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:18:03-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:19:03-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:20:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:24:58-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:25:30-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:28:20-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:29:02-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:30:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:32:19-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:33:13-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:34:01-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:35:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:36:57-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:37:20-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:38:08-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:39:14-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:40:02-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:42:30-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:43:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:44:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:45:00-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:46:52-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:47:12-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:48:14-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:49:04-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:50:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:51:24-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:52:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:53:02-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:54:04-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:55:08-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:56:31-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:57:07-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:58:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T11:59:00-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:00:02-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:02:40-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:03:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:04:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:05:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:06:42-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:07:02-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:08:04-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:09:09-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:10:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:11:32-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:12:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:13:10-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:14:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:15:01-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:16:37-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:17:13-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:18:00-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:19:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:20:07-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:21:36-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:22:08-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:23:01-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:24:03-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:25:08-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:26:29-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:27:05-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:28:06-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:29:11-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:30:13-05:00", "kind": "stop_missing_not_held", "symbol": "CVX", "held": 0, "qty": 23, "stop_status": "canceled"}
+{"t": "2026-11-04T12:32:15-05:00", "kind": "exit", "symbol": "CVX", "px": 218.837826, "reason": "stop", "pnl": -364.37}
