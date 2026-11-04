@@ -1035,6 +1035,31 @@ def run_all(a) -> int:
                     lines.append("- nothing passed the short test: no long test")
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_exits_muse":             # owner 2026-11-04: Muse's exits (Ponsi, Raschke, Turtle, weekly stair) on boxmr_h1 / lien_h1 entries
+                import datetime as _dt
+                from fxbot import exitlab as _fxl
+                from fxbot import live as _fxlive
+                from fxbot.data import MAJORS
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                strats = {k: (_fxlive.STRATS[k]["make"], _fxlive.STRATS[k]["gran"]) for k in ("boxmr_h1", "lien_h1")}
+                exs = ("own", "live") + _fxl.MUSE_EXITS
+                dg = {"H1": {i: fx_load(i, "H1", today - _dt.timedelta(days=92 + 60), today, Path("state/fx/cache")) for i in MAJORS}}
+                sh = _fxl.short_test(strats, dg, today, exits=exs)
+                lines += ["## fx_exits_muse SHORT test: last 3 months, halves at 2x spread, bid/ask, 7 majors. PASS = PF >= 1.0 in each half at 2x "
+                          "(3+ trades each), 10+ trades, total R above the live exits (0.5R cut / 1.25R target)"] + _fxl.short_lines(sh)
+                picks = {k: list(_fxl.MUSE_EXITS) for k in strats}           # pre-declared: every Muse exit goes to the long test, pass or not
+                dl = {"H1": {i: fx_load(i, "H1", today - _dt.timedelta(days=93 + 365 * 5 + 60), today, Path("state/fx/cache")) for i in MAJORS}}
+                lg = _fxl.long_test(strats, dl, today, picks)
+                lines += ["## fx_exits_muse LONG test: 5 years up to the short window, last 12 months sequestered, 2x spread. KEEP = OOS 40+ trades, "
+                          "PF >= 1.15, beats the live exits, PF > 1 in most years, beats random entries with the same exit (5 seeds)"]
+                lines += _fxl.long_lines(lg)
+                ok = [f"{st}:{ex}" for st in strats for ex in _fxl.MUSE_EXITS
+                      if sh[st][ex]["pass"] and lg.get(st, {}).get(ex, {}).get("keep") and ex not in ("crabel", "williams")]
+                lines.append(f"- VERDICT (adopt only if it passes the short test AND keeps in the long test; crabel / williams are controls): "
+                             f"{ok or 'nothing qualifies - live exits stay'}")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "strict_fx":                 # owner + Gemini r5 promotion bar for methods_fx candidates (3y train / 1y select / 1y OOS)
                 import datetime as _dt
                 from fxbot.data import MAJORS

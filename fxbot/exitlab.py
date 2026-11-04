@@ -25,6 +25,14 @@ from .engine import simulate as engine_simulate
 EXITS = ("own", "live", "fixed_1r", "fixed_2r", "fixed_3r", "time_10", "time_20", "atr_trail_2", "atr_trail_3", "sma20_close", "sma50_close",
          "swing_5", "be1r_atr2", "psar", "own_atr3")
 MAX_BARS = 500
+# Muse's exits (owner 2026-11-04, pre-declared, nothing tuned): ponsi = break-even after a 1R close, then trail at the 10 EMA -/+ 0.5 ATR;
+# raschke = stop to the prior 24 bars' low -/+ 1 pip every 24 bars (only tightens), flat after 120 bars (day 6); turtle = out on a close
+# beyond the prior 240-bar (10-day) low / high; wstair / wstair_ag = virtual trail at the best price -/+ a distance in R set by this
+# instrument's realized R so far this week (Monday reset): <=0R 0.50, <=2R 0.40, <=5R 0.30, >5R 0.20 (aggressive 0.50/0.30/0.20/0.10);
+# controls crabel = flat at the trading-day close (17:00 New York), williams = out at the next open after the first profitable close.
+# No fixed target on any of them. The initial stop distance stays the strategy's own, so R is comparable across exits (turtle's 2 ATR
+# initial stop is therefore not applied).
+MUSE_EXITS = ("ponsi", "raschke", "turtle", "wstair", "wstair_ag", "crabel", "williams")
 
 
 def _atr(m: pd.DataFrame, n: int = 14) -> np.ndarray:
@@ -69,6 +77,14 @@ def simulate(df: pd.DataFrame, strat, exit_: str, start, end, spread_mult: float
     a = _atr(m)
     s20, s50 = (m["close"].rolling(k).mean().to_numpy(float) for k in (20, 50))
     dates = np.asarray(df.index.date)
+    ema10 = m["close"].ewm(span=10, adjust=False).mean().to_numpy(float)
+    pip = 0.01 if float(mc[-1]) > 20 else 0.0001
+    lo240 = pd.Series(bl).rolling(240).min().shift(1).to_numpy(float)
+    hi240 = pd.Series(ah).rolling(240).max().shift(1).to_numpy(float)
+    ny = pd.DatetimeIndex(df.index)
+    ny = (ny.tz_convert("America/New_York") if ny.tz is not None else ny.tz_localize("UTC").tz_convert("America/New_York"))
+    tday = np.asarray((ny - pd.Timedelta(hours=17)).date)
+    week_r = {}
     out, i = [], 0
     while i < n - 1:
         side = 1 if lg[i] else -1 if sh[i] else 0
@@ -88,6 +104,8 @@ def simulate(df: pd.DataFrame, strat, exit_: str, start, end, spread_mult: float
             tdist = 1.25 * sd
         tgt = fill + side * tdist if np.isfinite(tdist) else None
         best, sar, ep, af = fill, stop, fill, 0.02
+        armed = False
+        wk = pd.Timestamp(dates[j0]).isocalendar()[:2]
         k, px = j0, None
         while k < n:
             lo, hi, op = (bl[k], bh[k], bo[k]) if side == 1 else (al[k], ah[k], ao[k])
@@ -103,7 +121,11 @@ def simulate(df: pd.DataFrame, strat, exit_: str, start, end, spread_mult: float
                 held = k - j0 + 1
                 own_flag = (xl[k] if side == 1 else xs[k]) and seed is None and exit_ == "own_atr3"
                 flag = own_flag or {"time_10": held >= 10, "time_20": held >= 20,
-                                    "sma20_close": side * (mc[k] - s20[k]) < 0, "sma50_close": side * (mc[k] - s50[k]) < 0}.get(exit_, False)
+                                    "sma20_close": side * (mc[k] - s20[k]) < 0, "sma50_close": side * (mc[k] - s50[k]) < 0,
+                                    "raschke": held >= 120,
+                                    "turtle": bool(np.isfinite(lo240[k]) and (mc[k] < lo240[k] if side == 1 else mc[k] > hi240[k])),
+                                    "crabel": k + 1 < n and tday[k + 1] != tday[j0],
+                                    "williams": side * (mc[k] - fill) > 0}.get(exit_, False)
                 if flag or held >= MAX_BARS:
                     if k + 1 < n:
                         k += 1
@@ -122,6 +144,20 @@ def simulate(df: pd.DataFrame, strat, exit_: str, start, end, spread_mult: float
                 lvl = float(np.min(bl[max(j0, k - 4):k + 1])) if side == 1 else float(np.max(ah[max(j0, k - 4):k + 1]))
             elif exit_ == "be1r_atr2" and side * (best - fill) >= sd:
                 lvl = fill if side * ((best - side * 2.0 * a[i]) - fill) < 0 else best - side * 2.0 * a[i]
+            elif exit_ == "ponsi":
+                if not armed and side * (mc[k] - fill) >= sd:
+                    armed = True
+                if armed and np.isfinite(ema10[k]) and np.isfinite(a[k]):
+                    tr_ = ema10[k] - side * 0.5 * a[k]
+                    lvl = tr_ if side * (tr_ - fill) > 0 else fill
+            elif exit_ == "raschke":
+                if (k - j0 + 1) % 24 == 0:
+                    lvl = float(np.min(bl[k - 23:k + 1])) - pip if side == 1 else float(np.max(ah[k - 23:k + 1])) + pip
+            elif exit_ in ("wstair", "wstair_ag"):
+                wr = week_r.get(wk, 0.0)
+                tiers = (0.50, 0.40, 0.30, 0.20) if exit_ == "wstair" else (0.50, 0.30, 0.20, 0.10)
+                dist = tiers[0] if wr <= 0 else tiers[1] if wr <= 2 else tiers[2] if wr <= 5 else tiers[3]
+                lvl = best - side * dist * sd
             elif exit_ == "psar":
                 if k > j0:
                     if side * (best - ep) > 0:
@@ -132,7 +168,9 @@ def simulate(df: pd.DataFrame, strat, exit_: str, start, end, spread_mult: float
                 stop = lvl
             k += 1
         k = min(k, n - 1)
-        out.append({"entry": dates[j0], "r": side * (px - fill) / sd})
+        r_ = side * (px - fill) / sd
+        week_r[wk] = week_r.get(wk, 0.0) + r_
+        out.append({"entry": dates[j0], "r": r_})
         i = max(k, i + 1)
     return out
 
@@ -145,14 +183,14 @@ def _sel(tr, a, b):
     return [t["r"] for t in tr if a <= t["entry"] <= b]
 
 
-def short_test(strats: dict, data: dict, today: date, days: int = 92) -> dict:
+def short_test(strats: dict, data: dict, today: date, days: int = 92, exits=EXITS) -> dict:
     """strats: name -> (make, granularity); data: granularity -> {instrument: bid/ask bars}."""
     a = today - timedelta(days=days)
     mid_ = a + (today - a) / 2
     res = {}
     for name, (make, g) in strats.items():
         rows = {}
-        for ex in EXITS:
+        for ex in exits:
             tr = run(make, data[g], ex, a, today)
             tr2 = run(make, data[g], ex, a, today, spread_mult=2.0)
             rows[ex] = {"all": stats([t["r"] for t in tr]), "all_2x": stats([t["r"] for t in tr2]),
