@@ -1,3 +1,10 @@
 $ show alpaca_velez/trades.jsonl
-started 2026-11-04 16:48:25 EST
-RUNNING...
+started 2026-11-04 16:48:25 EST, took 0s, exit 0
+
+{"date": "2026-11-03", "symbol": "CEG", "strategy": "trend", "side": "long", "qty": 24, "entry": 263.77, "exit": 265.96, "pl": 52.56, "r_part": 0.7399, "r_trade": null, "reason": "tp1", "opened": "2026-11-03T10:04:08.101940-05:00", "closed": "2026-11-03T12:08:46.972429-05:00", "final": false}
+{"date": "2026-11-03", "symbol": "CEG", "strategy": "trend", "side": "long", "qty": 24, "entry": 263.77, "exit": 266.244166, "pl": 59.38, "r_part": 0.8359, "r_trade": 1.5757, "reason": "t2", "opened": "2026-11-03T10:04:08.101940-05:00", "closed": "2026-11-03T12:10:58.056977-05:00", "final": true}
+{"date": "2026-11-03", "symbol": "WMB", "strategy": "trend", "side": "long", "qty": 173, "entry": 73.39, "exit": 73.157803, "pl": -40.17, "r_part": -1.0554, "r_trade": -1.0554, "reason": "stop", "opened": "2026-11-03T13:10:13.774059-05:00", "closed": "2026-11-03T14:08:19.826684-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "AMZN", "strategy": "trend", "side": "long", "qty": 47, "entry": 270.08, "exit": 269.01, "pl": -50.29, "r_part": -1.0036, "r_trade": -1.0036, "reason": "stop", "opened": "2026-11-04T13:10:12.769314-05:00", "closed": "2026-11-04T13:32:08.227568-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "UNH", "strategy": "trend", "side": "long", "qty": 15, "entry": 411.67, "exit": 413.276, "pl": 24.09, "r_part": 0.5415, "r_trade": null, "reason": "tp1", "opened": "2026-11-04T14:06:59.300886-05:00", "closed": "2026-11-04T14:36:33.091758-05:00", "final": false}
+{"date": "2026-11-04", "symbol": "UNH", "strategy": "trend", "side": "long", "qty": 16, "entry": 411.67, "exit": 412.53, "pl": 13.76, "r_part": 0.3093, "r_trade": 0.8508, "reason": "trail", "opened": "2026-11-04T14:06:59.300886-05:00", "closed": "2026-11-04T15:06:59.143966-05:00", "final": true}
+{"date": "2026-11-04", "symbol": "UNH", "strategy": "trend", "side": "long", "qty": 31, "entry": 413.66, "exit": 412.834516, "pl": -25.59, "r_part": -1.1621, "r_trade": -1.1621, "reason": "stop", "opened": "2026-11-04T15:14:17.287495-05:00", "closed": "2026-11-04T15:18:54.118155-05:00", "final": true}
