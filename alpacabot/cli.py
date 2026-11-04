@@ -1204,6 +1204,13 @@ def run_all(a) -> int:
                                         "the hindsight-free 2016 list")
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "minexits":                  # owner 2026-11-04: minute-bar exit lab for the VWAP / Velez sleeves (alpacabot.minexits)
+                import datetime as _dt
+                from . import minexits as _mx
+                lines += _mx.run_all(lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache), _dt.date.today(), Path("state/vwap_daytrade"),
+                                     log=lambda m: print(m, flush=True))
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "swing_exits_muse_all":      # owner 2026-11-04 ("apply and run the same for alpaca"): all 14 old exits + Muse's 7, every swing strategy
                 import datetime as _dt
                 from . import exitlab as _xl

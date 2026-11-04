@@ -140,6 +140,9 @@ TGT = {"t1": 2.0, "t2": 3.0}      # the README's targets in R; alpacabot.tpearly
 
 
 def walk(sd: dict, j: int, e: float, stop: float, f_day: pd.DataFrame, flat: int = 380):
+    from . import minexits as _mx
+    if _mx.OVERRIDE["exit"] and _mx.OVERRIDE["exit"] != "own":          # minute-bar exit lab only (never set by the live sleeve)
+        return _mx.min_walk(_mx.OVERRIDE["exit"], sd, 1, j, e, stop, min(flat, sd["n"] - 1))[0]
     o, h, l = sd["o"], sd["h"], sd["l"]
     R0 = e - stop
     t1, t2 = e + TGT["t1"] * R0, e + TGT["t2"] * R0
@@ -205,7 +208,8 @@ def watchlist(tables: dict, d, cfg=CFG) -> list:
 
 
 # ---------------------------------------------------------------- backtest
-def backtest(load, today: date, out_root: Path, log=print, seeds: int = 20, days_back: int = 120, cfg=CFG) -> list[str]:
+def prep(load, today: date, log=print, days_back: int = 120, cfg=CFG) -> dict:
+    """Data for the backtest (loaded once; alpacabot.minexits re-runs the trades with other exits)."""
     from .universe import STOCKS
     end = today - timedelta(days=1)
     start = end - timedelta(days=days_back)
@@ -237,51 +241,65 @@ def backtest(load, today: date, out_root: Path, log=print, seeds: int = 20, days
         for d, v in vd.symbol_days(sds[s], ds, sess).items():
             sd_map[(s, d)] = v
     sds.clear()
+    return {"cfg": cfg, "test_days": test_days, "wl": wl, "sd_map": sd_map, "feats": feats, "sess": sess}
+
+
+def run_trades(P: dict, mult=1.0, rng=None, recs=None):
+    cfg, test_days, wl, sd_map, feats, sess = P["cfg"], P["test_days"], P["wl"], P["sd_map"], P["feats"], P["sess"]
+    from . import minexits as _mx
+    trades = []
+    for d in test_days:
+        _mx.CUR["week"] = d.isocalendar()[:2]
+        flat = 200 if sess[d] <= 210 else cfg["flat"]
+        last_entry = 195 if sess[d] <= 210 else cfg["last_entry"]
+        cands = []
+        for s in wl[d]:
+            sd = sd_map.get((s, d))
+            if sd is None:
+                continue
+            fd = feats[s][feats[s]["d"] == d]
+            sig = fd[(fd["trend"] | (fd["exh"] if cfg["exhaustion"] else False))]
+            for _, r in sig.iterrows():
+                j = int(r["close_min"]) + 1
+                if j < cfg["first_min"] or j > last_entry:
+                    continue
+                mode = "trend" if r["trend"] else "exhaustion"
+                cands.append((j, s, mode, r, fd, sd))
+        if rng is not None:                               # control: same names / count, random entry minutes
+            cands = [(int(rng.integers(cfg["first_min"], last_entry + 1)), s, m, r, fd, sd) for _, s, m, r, fd, sd in cands]
+        cands.sort(key=lambda x: (x[0], x[1]))
+        open_, n_new, per, realized, stopped = [], 0, {}, 0.0, False
+        for j, s, mode, r, fd, sd in cands:
+            for t in [t for t in open_ if t["exit_min"] < j]:
+                open_.remove(t)
+                realized += t["w"] * t["R"]
+                if realized <= -cfg["daily_cap_r"]:
+                    stopped = True
+            if stopped or n_new >= cfg["max_new"] or len(open_) >= cfg["max_open"] or per.get(s, 0) >= cfg["per_symbol"] \
+                    or any(t["symbol"] == s for t in open_):
+                continue
+            e = float(sd["o"][j])
+            st = stop_for(r, e, mode)
+            if st is None:
+                continue
+            ev = walk(sd, j, e, st, fd, flat)
+            R = r_of(ev, e, e - st, mult)
+            t = {"date": d, "symbol": s, "mode": mode, "entry_min": j, "entry": e, "stop": st, "R": R, "w": 1.0 if mode == "trend" else 0.5,
+                 "exit_min": ev[-1][0], "exit_reason": ev[-1][3], "votes": int(r["votes"]), "rsi": float(r["rsi"])}
+            open_.append(t)
+            trades.append(t)
+            n_new += 1
+            per[s] = per.get(s, 0) + 1
+    return trades
+
+
+def backtest(load, today: date, out_root: Path, log=print, seeds: int = 20, days_back: int = 120, cfg=CFG) -> list[str]:
+    P = prep(load, today, log=log, days_back=days_back, cfg=cfg)
+    test_days = P["test_days"]
+    wl = P["wl"]
 
     def run(mult=1.0, rng=None, recs=None):
-        trades = []
-        for d in test_days:
-            flat = 200 if sess[d] <= 210 else cfg["flat"]
-            last_entry = 195 if sess[d] <= 210 else cfg["last_entry"]
-            cands = []
-            for s in wl[d]:
-                sd = sd_map.get((s, d))
-                if sd is None:
-                    continue
-                fd = feats[s][feats[s]["d"] == d]
-                sig = fd[(fd["trend"] | (fd["exh"] if cfg["exhaustion"] else False))]
-                for _, r in sig.iterrows():
-                    j = int(r["close_min"]) + 1
-                    if j < cfg["first_min"] or j > last_entry:
-                        continue
-                    mode = "trend" if r["trend"] else "exhaustion"
-                    cands.append((j, s, mode, r, fd, sd))
-            if rng is not None:                               # control: same names / count, random entry minutes
-                cands = [(int(rng.integers(cfg["first_min"], last_entry + 1)), s, m, r, fd, sd) for _, s, m, r, fd, sd in cands]
-            cands.sort(key=lambda x: (x[0], x[1]))
-            open_, n_new, per, realized, stopped = [], 0, {}, 0.0, False
-            for j, s, mode, r, fd, sd in cands:
-                for t in [t for t in open_ if t["exit_min"] < j]:
-                    open_.remove(t)
-                    realized += t["w"] * t["R"]
-                    if realized <= -cfg["daily_cap_r"]:
-                        stopped = True
-                if stopped or n_new >= cfg["max_new"] or len(open_) >= cfg["max_open"] or per.get(s, 0) >= cfg["per_symbol"] \
-                        or any(t["symbol"] == s for t in open_):
-                    continue
-                e = float(sd["o"][j])
-                st = stop_for(r, e, mode)
-                if st is None:
-                    continue
-                ev = walk(sd, j, e, st, fd, flat)
-                R = r_of(ev, e, e - st, mult)
-                t = {"date": d, "symbol": s, "mode": mode, "entry_min": j, "entry": e, "stop": st, "R": R, "w": 1.0 if mode == "trend" else 0.5,
-                     "exit_min": ev[-1][0], "exit_reason": ev[-1][3], "votes": int(r["votes"]), "rsi": float(r["rsi"])}
-                open_.append(t)
-                trades.append(t)
-                n_new += 1
-                per[s] = per.get(s, 0) + 1
-        return trades
+        return run_trades(P, mult, rng, recs)
 
     tr, tr2 = run(), run(mult=2.0)
     ctrl = [vd.pf(t["R"] for t in run(rng=np.random.default_rng(k))) for k in range(seeds)]

@@ -513,6 +513,10 @@ RECLAIM_TP = 1.0     # reclaim: half off at this many R (spec 1R; alpacabot.tpea
 
 def walk(strat, sd, side, j, e, stop, start_stop=None):
     """Day-1 walk. Returns (events [(minute, frac, px, reason)], mfe_R, mae_R, state at 15:45 for the swing check or None)."""
+    from . import minexits as _mx
+    if _mx.OVERRIDE["exit"] and _mx.OVERRIDE["exit"] != "own":          # minute-bar exit lab only (never set by the live sleeves)
+        ev, mfe, mae = _mx.min_walk(_mx.OVERRIDE["exit"], sd, side, j, e, stop, _limits(sd["n"])[1])
+        return ev, mfe, mae, None
     o, h, l, c = (sd[k] for k in ("o", "h", "l", "c"))
     n = sd["n"]
     _, flat = _limits(n)
@@ -713,6 +717,8 @@ def run(ctx: Ctx, strat: str, side: int, p: dict, mult: float = 1.0, universe: s
     sig_fn = SIGNALS[strat]
     for di, d in enumerate(days):
         wk = d.isocalendar()[:2]
+        from . import minexits as _mx
+        _mx.CUR["week"] = wk
         if wk != week:
             if week is not None:
                 next_week_half = equity <= week_start_eq * 0.96
@@ -1161,11 +1167,8 @@ def main(load, today: date, out_root: Path, log=print, seeds: int = 20, start: d
 
 
 # ---------------------------------------------------------------- quick sample (owner 2026-11-02: "do a 2 week backtest")
-def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=print, days_back: int = 120, seeds: int = 0,
-          name: str = "quick", strats=("orb", "velezc", "reclaim", "band")) -> list[str]:
-    """The last `sessions` completed sessions (None = every session after a 15-session warm-up) with the spec's DEFAULT parameters (nothing
-    tuned on these days), PIT-approx universe, in-play filter, ORB / Variant C (Velez) / reclaim / band x both sides, 1x and 2x costs, no swing
-    (the live paper sleeves are flat by 15:50). seeds > 0 adds the random-entry and shuffled-direction controls (same in-play names)."""
+def quick_ctx(load, today: date, sessions: int | None = 10, days_back: int = 120, log=print):
+    """The quick test's data (PIT-approx universe, in-play names, minute days); alpacabot.minexits reuses it for every exit."""
     end = today - timedelta(days=1)
     start = end - timedelta(days=days_back)              # warm-up: 14 sessions of RVOL history, 60-day dollar volume
     ctx = Ctx()
@@ -1197,6 +1200,15 @@ def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=prin
             v["vc"] = vcd_q.get(d)
             ctx.sd[(s, d)] = v
     period = (test_days[0], test_days[-1])
+    return ctx, test_days, period
+
+
+def quick(load, today: date, out_root: Path, sessions: int | None = 10, log=print, days_back: int = 120, seeds: int = 0,
+          name: str = "quick", strats=("orb", "velezc", "reclaim", "band")) -> list[str]:
+    """The last `sessions` completed sessions (None = every session after a 15-session warm-up) with the spec's DEFAULT parameters (nothing
+    tuned on these days), PIT-approx universe, in-play filter, ORB / Variant C (Velez) / reclaim / band x both sides, 1x and 2x costs, no swing
+    (the live paper sleeves are flat by 15:50). seeds > 0 adds the random-entry and shuffled-direction controls (same in-play names)."""
+    ctx, test_days, period = quick_ctx(load, today, sessions, days_back, log)
     out = out_root / f"{name}-{today:%Y%m%d}"
     out.mkdir(parents=True, exist_ok=True)
     ctl = seeds > 0
