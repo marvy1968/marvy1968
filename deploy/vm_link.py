@@ -93,7 +93,7 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "find-odds-bot":  # where the owner's other bots live and how they run (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh")], ""
     if cmd == "alpaca":  # backtests / data download for alpacabot (never live trading: that has no job here)
-        if not args or args[0] not in ("download", "backtest", "run-all", "check", "paper-report", "coverage", "history", "symbol-check", "positions", "close-others", "swing", "paper-eod", "paper-pause", "paper-flatten", "paper-trades", "paper-telegram"):
+        if not args or args[0] not in ("download", "backtest", "run-all", "check", "paper-report", "coverage", "history", "symbol-check", "positions", "close-others", "swing", "paper-eod", "paper-pause", "paper-flatten", "paper-trades", "paper-telegram", "equity-vs-spy"):
             return None, "alpaca needs download, backtest, run-all, check or paper-report"
         return as_bot + [py, "-m", "alpacabot", *args], ""
     if cmd == "fx-experts-entries":  # owner 2026-10-28: show / set ONLY no_new_entries in /opt/fx-experts/config/config.json (deploy/fxexp_entries.py)

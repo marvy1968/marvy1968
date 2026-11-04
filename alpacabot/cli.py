@@ -2238,6 +2238,7 @@ def main(argv=None) -> int:
     co = sub.add_parser("close-others", help="close every position and cancel every order that is NOT the new bot's (dry run unless --execute)")
     co.add_argument("--execute", action="store_true")
     co.add_argument("--state", default="state/alpaca_paper")
+    sub.add_parser("equity-vs-spy", help="read-only: the paper account's daily result next to SPY's (alpacabot.eqspy)")
     ps_ = sub.add_parser("positions", help="read-only: every open position and open order on the paper account")
     ps_.add_argument("--fx", action="store_true", help="the FOREX practice runner instead (fxbot; OANDA practice, separate book)")
     ps_.add_argument("--closed", help="also today's closed orders (OCO legs included) for these comma-separated symbols, e.g. GE,GOOGL")
@@ -2400,6 +2401,10 @@ def main(argv=None) -> int:
         except Exception as exc:
             print(f"OANDA account read failed: {type(exc).__name__}: {str(exc)[:150]}")
         return rc
+    if a.cmd == "equity-vs-spy":
+        from .eqspy import run as _eq
+        print("\n".join(_eq()))
+        return 0
     if a.cmd == "positions":
         import requests
 
