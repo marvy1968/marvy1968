@@ -1,0 +1,190 @@
+# muse1/alpaca — Stock Bot, Experts + Hedge-Fund Overlay
+# PAPER ONLY. Live trading is ALWAYS blocked in bot.py (--live exits 2).
+name: muse1/alpaca
+# UNVALIDATED: needs an out-of-sample backtest and a paper forward test
+# before any live use. Do NOT run on the same Alpaca paper account as the
+# existing bots — that would break max-open / daily-trade limits.
+
+paper: true
+allow_live: false
+
+watchlist:
+  # TOP 3 IN EVERY S&P 500 SECTOR (owner 2026-11-05) — by market cap,
+  # S&P 500 constituents only, as of Nov 4-5, 2026 (stockrow S&P 500 list).
+  # 11 sectors x 3 = 33 stocks, plus SPY (the filter symbol).
+  # Technology: AAPL, NVDA, MSFT
+  # Communication Services: GOOGL, META, NFLX
+  # Consumer Discretionary: AMZN, TSLA, HD
+  # Healthcare: LLY, JNJ, ABBV
+  # Financials: BRK.B, JPM, V
+  # Consumer Staples: WMT, COST, KO
+  # Energy: XOM, CVX, COP
+  # Industrials: GE, CAT, RTX
+  # Materials: LIN, NEM, FCX
+  # Utilities: NEE, SO, DUK
+  # Real Estate: WELL, PLD, EQIX
+  # NOTE: rankings drift — re-check market caps monthly and re-rank.
+  # Dropped from the old 11-name list: QQQ (ETF, not a sector stock),
+  # AMD, AVGO (tech 5th/4th), BA (industrials, ~$140B, not top 3).
+  - SPY
+  - AAPL
+  - NVDA
+  - MSFT
+  - GOOGL
+  - META
+  - NFLX
+  - AMZN
+  - TSLA
+  - HD
+  - LLY
+  - JNJ
+  - ABBV
+  - BRK.B
+  - JPM
+  - V
+  - WMT
+  - COST
+  - KO
+  - XOM
+  - CVX
+  - COP
+  - GE
+  - CAT
+  - RTX
+  - LIN
+  - NEM
+  - FCX
+  - NEE
+  - SO
+  - DUK
+  - WELL
+  - PLD
+  - EQIX
+
+# Sector map for portfolio limits (Two Sigma / Citadel exposure control).
+# Keep it coarse: the point is concentration, not a sector model.
+sectors:
+  SPY: index
+  AAPL: tech
+  NVDA: tech
+  MSFT: tech
+  GOOGL: comm_services
+  META: comm_services
+  NFLX: comm_services
+  AMZN: consumer_disc
+  TSLA: consumer_disc
+  HD: consumer_disc
+  LLY: healthcare
+  JNJ: healthcare
+  ABBV: healthcare
+  BRK.B: financials
+  JPM: financials
+  V: financials
+  WMT: consumer_staples
+  COST: consumer_staples
+  KO: consumer_staples
+  XOM: energy
+  CVX: energy
+  COP: energy
+  GE: industrials
+  CAT: industrials
+  RTX: industrials
+  LIN: materials
+  NEM: materials
+  FCX: materials
+  NEE: utilities
+  SO: utilities
+  DUK: utilities
+  WELL: real_estate
+  PLD: real_estate
+  EQIX: real_estate
+
+sleeves:
+  scalp:
+    enabled: true
+    timeframe: 5min
+    window_et: "10:00-15:45"   # owner 2026-11-05: scalp only 10:00-15:45 ET
+    flatten_et: "15:45"
+    intended_hold_minutes: 30
+    risk_pct: 0.0025        # 0.25% — smallest risk; see README: scalps were the weakest sleeve in the 2026-11-05 Brain audit
+    max_open: 5             # owner 2026-11-05: allow up to 5 open at once
+    experts: [crabel_idnr4, williams_vbo, lien_zeros, bollinger_squeeze]
+  day:
+    enabled: true
+    timeframe: 5min
+    window_et: "10:00-15:45"   # owner 2026-11-05: was 09:45-15:45, now 10:00-15:45 ET
+    flatten_et: "15:45"
+    risk_pct: 0.005         # 0.5%
+    max_open: 5             # owner 2026-11-05: allow up to 5 open at once
+    max_new_per_day: 5
+    experts: [lien_fader, raschke_soup, faith_turtle, ponsi_trend, brooks_range_fade, dalton_value]
+  swing:
+    enabled: true
+    timeframe: daily
+    risk_pct: 0.005         # 0.5%
+    max_open: 5
+    take_profit_r: 2.0      # approved Top-Down-style 2R TP for swing only
+    stop_atr: 1.0           # EMA20 - 1 ATR (long) / EMA20 + 1 ATR (short)
+    experts: [faith_turtle, ponsi_trend, raschke_soup, dalton_value]
+    # CARRYOVER (owner 2026-11-05): swing trades can carry to the next
+    # day if warranted. No day-end flatten for swing. A swing carries
+    # while price is still on the right side of EMA20 and it has not
+    # hit its stop or its 2R TP; it exits on stop, TP, EMA20 break, or
+    # signal decay. See bot.py swing_should_carry().
+
+# SIZING — available equity (owner 2026-11-05): sizing must consider
+# the TOTAL AVAILABLE equity before sizing a trade, not the full account
+# equity as if nothing were already committed. Available equity =
+# account equity − notional already committed to open positions
+# (positions opened in this scan + real broker positions when keys are
+# present). Both the risk dollars (equity × risk_pct) and the 25%
+# notional cap are computed on AVAILABLE equity, so each new trade gets
+# smaller as the book fills. See bot.py available_equity().
+risk:
+  daily_loss_cap_pct: 0.02  # 2% — no new trades after this
+  max_open_day_scalp: 5     # owner 2026-11-05: allow up to 5 open at once (was 2)
+  max_open_swing: 5
+  max_open_total: 5         # hard total cap across all sleeves: 5 open at once
+  max_new_day_per_day: 5
+  max_per_sector: 2
+  max_notional_pct: 0.25    # no single position > 25% of equity (stress cap)
+  max_net_exposure_pct: 0.60  # D.E. Shaw-style: net long-minus-short exposure cap
+
+# Hedge-fund overlay (hedge_fund_overlay.py) — principles only, no invented fund rules.
+hedge_fund_overlay:
+  vol_scaled_sizing: true   # Man AHL: size = fixed dollar risk / ATR stop distance
+  no_fixed_1r_tp: true      # Man AHL/AQR: no fixed 1R TP; use 2.5-3R or no-TP + breakeven after +1R
+  take_profit_r_day: 2.5    # day/scalp target when a fixed TP is used at all
+  breakeven_after_r: 1.0
+  time_exit_bars: 12        # signal-decay exit: no progress past +0.5R in 12 x 5-min bars
+  disaster_stop_atr: 2.0    # wide disaster stop under every time/signal-decay exit
+  costs_bps_per_side: 3     # model costs before trading (AQR: net costs in research)
+  sec_fee_bps: 0.1
+
+# SPY filter — ON by owner override 2026-11-05 ("Add the rule that if
+# snp is up or down"). Rule: SPY up = longs only, SPY down = shorts only.
+# Mode vs_open (this bot's rule): SPY's last close vs today's open
+# (5-min sleeves: today's first 5-min open; swing: last daily bar's open).
+# If SPY is flat / exactly at open, both sides allowed.
+# WARNING: both SPY ideas failed pre-registered tests on the OTHER sleeves
+# on 2026-11-05 (SMA20 regime: Trend PF 0.40 -> 0.33, Top-Down 1.51 -> 1.46;
+# SPY vs today's open: Trend halves 0.32/0.55 -> 0.51/0.36, reclaim/band
+# worse). This new bot is UNVALIDATED — this filter has NOT been proven
+# here either. It is on because the owner asked for it, not because it
+# passed a test. Undo: enabled: false.
+spy_filter:
+  enabled: true
+  mode: vs_open   # vs_open | sma20_regime
+  # FLAT rule (owner 2026-11-05: "How about flat were range trade or scalp"):
+  # SPY flat = |last close - today's open| / open < flat_threshold_pct.
+  # When flat, there is no trend to follow, so:
+  #   - trend + breakout experts OFF (ponsi_trend, faith_turtle,
+  #     raschke_soup, bollinger_squeeze, crabel_idnr4, williams_vbo)
+  #   - range experts ONLY (lien_fader, brooks_range_fade, dalton_value,
+  #     lien_zeros)
+  #   - scalp sleeve preferred, day sleeve range-only, swing sleeve OFF
+  #     (swing is a trend sleeve; no trend swing on a flat day)
+  # This is a NEW rule on this unvalidated bot — it has not been backtested.
+  flat_threshold_pct: 0.15
+  flat_mode: range_scalp
+  range_experts: [lien_fader, brooks_range_fade, dalton_value, lien_zeros]
