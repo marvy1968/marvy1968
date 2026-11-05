@@ -171,7 +171,7 @@ class VwapLiveTests(unittest.TestCase):
             return pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=d)
         with tempfile.TemporaryDirectory() as d:
             b = FakeBroker()
-            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False}, fetch=fetch, sleep=lambda *_: None)
+            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False, "spy_regime": True}, fetch=fetch, sleep=lambda *_: None)
             now = datetime(2026, 11, 3, 10, 30, 10, tzinfo=ET)
             self.assertFalse(live.spy_side_ok(1, now))
             self.assertTrue(live.spy_side_ok(-1, now))

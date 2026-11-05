@@ -39,7 +39,7 @@ VWAP_LIVE = {"risk_pct": 0.0005, "notional_cap": 0.25, "max_new": 4, "max_open":
              "log_only": True,
              # owner 2026-11-05 ("if the S&P 500 is down overall let it short only, if up look for longs"): SPY prev close vs its rising /
              # falling SMA20 picks the side (VwapLive.spy_side_ok). UNDO: "spy_regime": False.
-             "spy_regime": True,
+             "spy_regime": False,      # 2026-11-05 OFF: failed its tests (Top-Down PF 1.51 -> 1.46 OOS, Trend 0.40 -> 0.33)
              "start_date": "2026-11-03"}     # first session it may trade (after the owner sees the 2-week sample)
 
 
