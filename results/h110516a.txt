@@ -1,0 +1,3 @@
+$ logs marv-bridge 15
+started 2026-11-05 10:01:05 EST
+RUNNING...
