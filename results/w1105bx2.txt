@@ -1,0 +1,3 @@
+$ alpaca run-all --phase validate --months3 --families brain_exits
+started 2026-11-05 10:01:57 EST
+RUNNING...
