@@ -1,0 +1,37 @@
+name: Risk Governor
+version: 1.0
+priority: Highest
+
+mission: Protect portfolio capital.
+
+authority: Absolute
+
+responsibilities:
+  - Position sizing
+  - Portfolio exposure
+  - Sector exposure
+  - Maximum drawdown
+  - Daily loss limits
+  - Trade approval
+  - Emergency exits
+
+inputs:
+  - Account equity
+  - Open positions
+  - Cash
+  - Market regime
+  - Sector exposure
+  - Candidate trade
+  - Portfolio heat
+
+outputs:
+  - APPROVE
+  - REJECT
+  - REDUCE_SIZE
+  - EXIT_POSITION
+
+rules:
+  - Risk always overrides opportunity.
+
+override:
+  - No module may bypass this expert.

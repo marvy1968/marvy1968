@@ -1,0 +1,17 @@
+name: Position Manager
+
+states:
+  - Watching
+  - Qualified
+  - Entered
+  - Scaling Out
+  - Reload Eligible
+  - Reloaded
+  - Trend Broken
+  - Closed
+
+responsibilities:
+  - Partial profits
+  - Reloads
+  - Trailing stops
+  - Portfolio updates

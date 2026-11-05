@@ -1,0 +1,122 @@
+{
+  "META": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 25.0,
+    "r_trig": 2.0,
+    "atr_mult": 1.0,
+    "max_bars": 36
+  },
+  "GOOGL": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 48
+  },
+  "AVGO": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 20.0,
+    "r_trig": 2.0,
+    "atr_mult": 1.4,
+    "max_bars": 36
+  },
+  "NEM": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.4,
+    "max_bars": 48
+  },
+  "FCX": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 36
+  },
+  "UNH": {
+    "profile": "TREND_RUNNER",
+    "mode": "BOTH",
+    "adx": 30.0,
+    "r_trig": 1.5,
+    "atr_mult": 0.6,
+    "max_bars": 36
+  },
+  "TSLA": {
+    "profile": "HYBRID_TARGET",
+    "mode": "SHORT_ONLY",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "MSFT": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "DIS": {
+    "profile": "HYBRID_TARGET",
+    "mode": "BOTH",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "BAC": {
+    "profile": "HYBRID_TARGET",
+    "mode": "BOTH",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "HD": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "COP": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "NFLX": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "LLY": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 25.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  },
+  "CEG": {
+    "profile": "HYBRID_TARGET",
+    "mode": "LONG_ONLY",
+    "adx": 20.0,
+    "r_trig": 1.5,
+    "atr_mult": 1.0,
+    "max_bars": 30
+  }
+}

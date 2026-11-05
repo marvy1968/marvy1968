@@ -1,0 +1,19 @@
+name: Stage 4 Expert
+
+mission: Trade institutional downtrends.
+
+requirements:
+  - Stage 4
+  - Falling 150 SMA
+  - Falling 20 EMA
+  - Negative Mansfield RS
+  - Weak Sector
+  - Weak SPY
+  - 15 Minute Short Trigger
+  - Risk Governor Approval
+
+management:
+  - Cover 1/3
+  - Cover 1/3
+  - Cover remainder
+  - Reload after bearish rejection

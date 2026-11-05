@@ -1,0 +1,42 @@
+{
+  "methodology": {
+    "version": "v7",
+    "purpose": "final crypto edge-quality go/no-go test",
+    "symbols": [
+      "BTC/USD",
+      "ETH/USD",
+      "DOGE/USD",
+      "LINK/USD",
+      "AVAX/USD"
+    ],
+    "timeframes": [
+      "1h",
+      "4h"
+    ],
+    "forward_start": "2024-11-01 00:00:00+00:00",
+    "forward_end": "2026-08-08 23:00:01+00:00",
+    "forward_blocks": 8,
+    "fee_bps_per_side": 15.0,
+    "slippage_bps_per_side": 5.0,
+    "parameter_optimization": false,
+    "execution_enabled": false
+  },
+  "gates": {
+    "minimum_oos_trades": 30,
+    "minimum_pf": 1.25,
+    "minimum_expectancy_bps": 2.0,
+    "minimum_profitable_block_pct": 50.0,
+    "minimum_mc_probability_pct": 65.0
+  },
+  "verdict": "STOP_CRYPTO",
+  "reason": "No edge-quality candidate survived the complete forward/Monte-Carlo gates. Do not continue parameter tuning on this crypto strategy family.",
+  "champion": null,
+  "champion_monte_carlo": {},
+  "champion_forward_blocks": [],
+  "champion_by_symbol": {},
+  "score_monotonicity_spearman": {
+    "1h": 0.5636363636363636,
+    "4h": 0.12727272727272726
+  },
+  "mc_candidates": []
+}

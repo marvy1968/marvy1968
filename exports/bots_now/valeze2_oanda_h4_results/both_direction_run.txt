@@ -1,0 +1,105 @@
+========================================================================================================================
+VALEZE2 -> OANDA H4 PARITY / FEASIBILITY TEST
+========================================================================================================================
+Data directory       : /home/moonrider1968/bots/oanda_data
+Pairs                : EUR_USD, GBP_USD, USD_JPY, AUD_USD, USD_CAD, NZD_USD, USD_CHF, EUR_JPY, GBP_JPY
+Direction mode       : both
+Initial NAV          : $100,000.00
+Risk per trade       : 0.50%
+Portfolio slot cap   : 3
+
+V1: 200-SMA Rubber-Band Snapback
+    RSI2 <= 25.0 | distance <= 0.35 ATR | SMA200 20-bar slope >= -0.15%
+    Stop = signal low - 0.15 ATR | exit SMA20 or +1.50R
+
+C1: Connors RSI(2) Strict Panic
+    Close > SMA200 | RSI2 < 5.0 | stop 2.50 ATR
+    recovery exit RSI2 >= 70.0 or Close >= SMA5
+========================================================================================================================
+
+[DATA] EUR_USD  -> /home/moonrider1968/bots/oanda_data/h4/EUR_USD_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] EUR_USD  V1=   3 C1= 118
+[DATA] GBP_USD  -> /home/moonrider1968/bots/oanda_data/h4/GBP_USD_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] GBP_USD  V1=   8 C1= 120
+[DATA] USD_JPY  -> /home/moonrider1968/bots/oanda_data/h4/USD_JPY_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] USD_JPY  V1=  14 C1= 117
+[DATA] AUD_USD  -> /home/moonrider1968/bots/oanda_data/h4/AUD_USD_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] AUD_USD  V1=   7 C1= 102
+[DATA] USD_CAD  -> /home/moonrider1968/bots/oanda_data/h4/USD_CAD_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] USD_CAD  V1=  10 C1= 103
+[DATA] NZD_USD  -> /home/moonrider1968/bots/oanda_data/h4/NZD_USD_H4.csv (4,999 bars, 2023-06-14 17:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] NZD_USD  V1=   6 C1= 118
+[DATA] USD_CHF  -> /home/moonrider1968/bots/oanda_data/h4/USD_CHF_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] USD_CHF  V1=  10 C1= 113
+[DATA] EUR_JPY  -> /home/moonrider1968/bots/oanda_data/h4/EUR_JPY_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] EUR_JPY  V1=  15 C1= 106
+[DATA] GBP_JPY  -> /home/moonrider1968/bots/oanda_data/h4/GBP_JPY_H4.csv (4,999 bars, 2023-06-14 09:00:00+00:00 -> 2026-09-01 09:00:00+00:00)
+[SIGNALS] GBP_JPY  V1=   9 C1= 114
+[F0] No uniquely verified 628-event F0 CSV found.
+
+========================================================================================================================
+OVERALL F0 vs V1 vs C1 SCORECARD
+========================================================================================================================
+Strategy  Trades  WinPct   MeanR     PF  MedianR  AvgBars  ReturnPct  RealizedMaxDDPct  Accepted  SkippedSlots
+      V1      82 47.5610 -0.1313 0.7539  -0.0176   2.9390    -5.3447            8.7252        82             0
+      C1    1011 64.6884 -0.0018 0.9901   0.1288   4.6044    -5.9023           11.5408       881           130
+
+========================================================================================================================
+PAIR BREAKDOWN
+========================================================================================================================
+Strategy instrument  Trades  WinPct   MeanR     PF  MedianR  AvgBars
+      V1    AUD_USD       7 42.8571 -0.2550 0.5839  -1.0308   2.0000
+      V1    EUR_JPY      15 66.6667  0.3282 2.1665   0.6602   3.5333
+      V1    EUR_USD       3 33.3333 -0.2559 0.6476  -1.0193   1.6667
+      V1    GBP_JPY       9 22.2222 -0.6308 0.2474  -1.0651   3.0000
+      V1    GBP_USD       8 75.0000  0.0716 1.1866   0.5370   4.0000
+      V1    NZD_USD       6 83.3333  0.5578 4.0242   0.8486   3.5000
+      V1    USD_CAD      10 20.0000 -0.5822 0.2224  -1.0625   2.6000
+      V1    USD_CHF      10 30.0000 -0.4522 0.3182  -1.0732   3.0000
+      V1    USD_JPY      14 50.0000 -0.0738 0.8567  -0.4883   2.3571
+      C1    AUD_USD     102 68.6275  0.0245 1.1362   0.1720   4.2745
+      C1    EUR_JPY     106 62.2642 -0.0457 0.8130   0.1701   4.5094
+      C1    EUR_USD     118 72.0339  0.1226 2.1295   0.1536   4.6780
+      C1    GBP_JPY     114 63.1579 -0.0332 0.8128   0.1082   4.6140
+      C1    GBP_USD     120 68.3333  0.0456 1.2997   0.1521   4.7167
+      C1    NZD_USD     118 60.1695 -0.0384 0.8089   0.1070   4.6780
+      C1    USD_CAD     103 58.2524 -0.0866 0.6384   0.0772   4.9806
+      C1    USD_CHF     113 66.3717  0.0146 1.0913   0.1060   4.4336
+      C1    USD_JPY     117 62.3932 -0.0330 0.8505   0.1156   4.5385
+
+========================================================================================================================
+YEAR BREAKDOWN
+========================================================================================================================
+Strategy  year  Trades  WinPct   MeanR     PF  MedianR  AvgBars
+      V1  2023       6 50.0000 -0.0414 0.9216  -0.5037   2.5000
+      V1  2024      26 53.8462 -0.0124 0.9699   0.1383   3.0385
+      V1  2025      34 38.2353 -0.3211 0.5082  -1.0251   2.9412
+      V1  2026      16 56.2500  0.0452 1.0938   0.2422   2.9375
+      C1  2023     133 66.1654  0.0490 1.3374   0.1502   4.5188
+      C1  2024     319 63.3229 -0.0069 0.9647   0.1298   4.5799
+      C1  2025     325 64.0000 -0.0121 0.9385   0.1452   4.5969
+      C1  2026     234 66.6667 -0.0094 0.9470   0.1086   4.6966
+
+========================================================================================================================
+EXPLORATORY V1+C1 PORTFOLIO
+========================================================================================================================
+Portfolio     StartNAV      EndNAV  ReturnPct  RealizedMaxDDPct  Accepted  SkippedSlots
+    V1+C1 100,000.0000 93,635.1281    -6.3649           15.0967       945           148
+
+========================================================================================================================
+FIRST-PASS RESEARCH GATES
+========================================================================================================================
+V1: FAIL | Trades 82 PASS | MeanR -0.131 FAIL | PF 0.754 FAIL | Positive pairs 3/9 FAIL
+C1: FAIL | Trades 1011 PASS | MeanR -0.002 FAIL | PF 0.990 FAIL | Positive pairs 4/9 FAIL
+
+NOTE:
+  These are feasibility gates, NOT final certification. Any survivor still requires walk-forward/OOS,
+  historical bid/ask friction, MTM portfolio drawdown, parameter perturbation, and Monte Carlo/stress testing.
+
+F0 STATUS: NOT COMPARED
+The script deliberately did not reconstruct F0 from incomplete strategy information.
+If auto-discovery printed the correct F0 file above, rerun with:
+  python3 run_valeze2_oanda_h4_parity.py --f0-events /exact/path/to/f0_events.csv
+
+Results written to: /home/moonrider1968/bots/valeze2_oanda_h4_results
+========================================================================================================================

@@ -1,0 +1,10 @@
+system:
+  name: Panda Master AI
+  version: 1.0
+
+trading:
+  paper: true
+  max_positions: 20
+
+logging:
+  level: INFO

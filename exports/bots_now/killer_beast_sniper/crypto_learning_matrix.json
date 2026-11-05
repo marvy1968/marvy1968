@@ -1,0 +1,58 @@
+{
+  "BTC/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "ETH/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "SOL/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "LTC/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "BCH/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "LINK/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "UNI/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "AAVE/USD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "AVAX/USD": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1
+  }
+}

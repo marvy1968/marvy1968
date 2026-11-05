@@ -1,0 +1,22 @@
+{
+  "project": "G3-B5 Kraken Execution & Shadow Daemon",
+  "certified_at_utc": "2026-08-28T19:35:41.748700+00:00",
+  "lifecycle_gates": {
+    "Phase_1_Lifecycle_Order": "PASS (Open Exits -> Entries -> Low Stops -> MTM Ratchet)",
+    "Phase_2_Baseline_Parity": "PASS (30/30 trades, $0.00 delta on CORE_N27 & MATURE_N24)",
+    "Phase_3_Adaptive_Attribution": "PASS (0.40% risk governor, max DD 7.41% -> 3.03%, penalty verified)",
+    "Phase_4_Daemon_Idempotency": "PASS (Daily bar slicing, single-session watermark lock)",
+    "Phase_5_Cron_Deployment": "DEPLOYED (Active at 5 0 * * * UTC, SHA-256 manifest locked)",
+    "Phase_6A_Source_Audit": "PASS (Read-only private interface verified)",
+    "Phase_6B_Live_Auth": "BLOCKED_BY_DESIGN (Zero API keys on host, fail-closed safety)",
+    "Phase_6C_Monotonic_Nonce": "PASS (Thread-safe atomic microsecond generator certified)",
+    "Phase_6D_cl_ord_id_Schema": "PASS (RFC 3986 32-char collision-resistant format certified)",
+    "Phase_6E_Fault_Injection": "PASS (Deduplication, min order, rate-limit trapping certified)",
+    "Phase_6F_Crash_Reconciliation": "PASS (In-flight intent recovery certified)"
+  },
+  "production_authority": {
+    "Shadow_Trading": "ACTIVE_AUTOMATED",
+    "Live_Order_Submission": "BLOCKED",
+    "Real_Money_Capital": "BLOCKED"
+  }
+}

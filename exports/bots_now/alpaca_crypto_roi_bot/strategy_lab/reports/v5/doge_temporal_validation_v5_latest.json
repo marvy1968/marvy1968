@@ -1,0 +1,137 @@
+{
+  "methodology": {
+    "timeframe": "4h",
+    "train_start": "2023-08-09 16:00:00+00:00",
+    "train_end": "2024-11-01 16:00:00+00:00",
+    "forward_end": "2026-08-08 20:00:00+00:00",
+    "train_days": 450,
+    "block_days": 90,
+    "reoptimization_after_training": false
+  },
+  "selected_parameters": {
+    "lookback": 30,
+    "adx_min": 15,
+    "min_atr_rank": 0.5,
+    "min_vol_ratio": 1.0,
+    "min_breakout_atr": 0.0,
+    "btc_filter": "bull",
+    "exclude_weekend": true,
+    "stop_atr": 1.6,
+    "target_r": 2.5,
+    "max_hold": 12
+  },
+  "forward_blocks": [
+    {
+      "block": 1,
+      "start": "2024-11-01 16:00:00+00:00",
+      "end": "2025-01-30 16:00:00+00:00",
+      "trades": 0,
+      "roi_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": 0.0,
+      "max_drawdown_pct": 0.0,
+      "profitable": false
+    },
+    {
+      "block": 2,
+      "start": "2025-01-30 16:00:00+00:00",
+      "end": "2025-04-30 16:00:00+00:00",
+      "trades": 0,
+      "roi_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": 0.0,
+      "max_drawdown_pct": 0.0,
+      "profitable": false
+    },
+    {
+      "block": 3,
+      "start": "2025-04-30 16:00:00+00:00",
+      "end": "2025-07-29 16:00:00+00:00",
+      "trades": 5,
+      "roi_pct": 0.7509063633762469,
+      "profit_factor": 1.4555050585025204,
+      "expectancy": 15.018127267525022,
+      "max_drawdown_pct": 0.5575960304609907,
+      "profitable": true
+    },
+    {
+      "block": 4,
+      "start": "2025-07-29 16:00:00+00:00",
+      "end": "2025-10-27 16:00:00+00:00",
+      "trades": 0,
+      "roi_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": 0.0,
+      "max_drawdown_pct": 0.0,
+      "profitable": false
+    },
+    {
+      "block": 5,
+      "start": "2025-10-27 16:00:00+00:00",
+      "end": "2026-01-25 16:00:00+00:00",
+      "trades": 1,
+      "roi_pct": -0.553155943264394,
+      "profit_factor": 0.0,
+      "expectancy": -55.31559432643956,
+      "max_drawdown_pct": 0.5531559432643917,
+      "profitable": false
+    },
+    {
+      "block": 6,
+      "start": "2026-01-25 16:00:00+00:00",
+      "end": "2026-04-25 16:00:00+00:00",
+      "trades": 1,
+      "roi_pct": -0.5568659310854263,
+      "profit_factor": 0.0,
+      "expectancy": -55.68659310854356,
+      "max_drawdown_pct": 0.5568659310854309,
+      "profitable": false
+    },
+    {
+      "block": 7,
+      "start": "2026-04-25 16:00:00+00:00",
+      "end": "2026-07-24 16:00:00+00:00",
+      "trades": 0,
+      "roi_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": 0.0,
+      "max_drawdown_pct": 0.0,
+      "profitable": false
+    },
+    {
+      "block": 8,
+      "start": "2026-07-24 16:00:00+00:00",
+      "end": "2026-08-08 20:00:01+00:00",
+      "trades": 0,
+      "roi_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": 0.0,
+      "max_drawdown_pct": 0.0,
+      "profitable": false
+    }
+  ],
+  "aggregate_oos": {
+    "trades": 7,
+    "roi_pct": -0.3591155109735844,
+    "win_rate_pct": 28.57142857142857,
+    "profit_factor": 0.8698166140791658,
+    "expectancy": -5.130221585336858,
+    "max_drawdown_pct": 1.6270442269458123
+  },
+  "profitable_blocks": 1,
+  "profitable_block_pct": 12.5,
+  "family_survival_pct": 92.1875,
+  "monte_carlo": {
+    "iterations": 10000,
+    "trades": 7,
+    "warning": "insufficient trades"
+  },
+  "research_gate": {
+    "minimum_oos_trades": 25,
+    "minimum_pf": 1.25,
+    "minimum_profitable_blocks_pct": 50,
+    "minimum_family_survival_pct": 50,
+    "minimum_mc_probability_pct": 65,
+    "passed": false
+  }
+}

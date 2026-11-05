@@ -1,0 +1,106 @@
+{
+  "methodology": {
+    "timeframe": "4h fixed",
+    "development_start": "2023-08-09 16:00:00+00:00",
+    "development_end": "2025-12-11 16:00:00+00:00",
+    "holdout_start": "2025-12-11 20:00:00+00:00",
+    "holdout_end": "2026-08-08 20:00:00+00:00",
+    "holdout_days": 240,
+    "holdout_used_for_selection": false,
+    "fee_bps_per_side": 15.0,
+    "slippage_bps_per_side": 5.0
+  },
+  "selected_parameters": {
+    "lookback": 30,
+    "adx_min": 15,
+    "min_atr_rank": 0.65,
+    "min_vol_ratio": 1.0,
+    "min_breakout_atr": 0.15,
+    "btc_filter": "not_bear",
+    "exclude_weekend": false,
+    "stop_atr": 1.6,
+    "target_r": 2.5,
+    "max_hold": 12
+  },
+  "development": {
+    "trades": 22,
+    "roi_pct": 8.13160829961943,
+    "win_rate_pct": 54.54545454545454,
+    "profit_factor": 2.785649345368132,
+    "expectancy": 36.96185590736117,
+    "max_drawdown_pct": 1.0734875495991765,
+    "avg_hold_bars": 6.818181818181818
+  },
+  "holdout": {
+    "trades": 2,
+    "roi_pct": -1.1185254289359015,
+    "win_rate_pct": 0.0,
+    "profit_factor": 0.0,
+    "expectancy": -55.92627144679563,
+    "max_drawdown_pct": 1.118525428935918,
+    "avg_hold_bars": 5.5
+  },
+  "holdout_monte_carlo": {
+    "iterations": 10000,
+    "trades": 2,
+    "warning": "insufficient trades"
+  },
+  "holdout_parameter_neighborhood": {
+    "variants_tested": 16,
+    "profitable_variants": 4,
+    "profitable_variant_pct": 25.0
+  },
+  "holdout_attribution": {
+    "dow": [
+      {
+        "dow": 2,
+        "count": 1,
+        "sum": -56.1659497850477,
+        "mean": -56.1659497850477
+      },
+      {
+        "dow": 3,
+        "count": 1,
+        "sum": -55.68659310854356,
+        "mean": -55.68659310854356
+      }
+    ],
+    "hour": [
+      {
+        "hour": 8,
+        "count": 1,
+        "sum": -56.1659497850477,
+        "mean": -56.1659497850477
+      },
+      {
+        "hour": 16,
+        "count": 1,
+        "sum": -55.68659310854356,
+        "mean": -55.68659310854356
+      }
+    ],
+    "btc_bull": [
+      {
+        "btc_bull": true,
+        "count": 2,
+        "sum": -111.85254289359126,
+        "mean": -55.92627144679563
+      }
+    ],
+    "btc_not_bear": [
+      {
+        "btc_not_bear": true,
+        "count": 2,
+        "sum": -111.85254289359126,
+        "mean": -55.92627144679563
+      }
+    ]
+  },
+  "research_gate": {
+    "mc_threshold_pct": 65.0,
+    "minimum_holdout_trades": 10,
+    "minimum_holdout_pf": 1.25,
+    "minimum_neighbor_profitable_pct": 50.0,
+    "passed": false
+  }
+}

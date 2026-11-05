@@ -1,0 +1,18 @@
+ALPACA MULTI-SCALPER V2 SAFETY REPAIR
+UTC: 20260818T120015Z
+
+Source: /home/moonrider1968/bots/killer_beast_sniper/multi_scalper_shadow.py
+Backup: /home/moonrider1968/bots/killer_beast_sniper/backups/v2_safety_repair_20260818T120015Z/multi_scalper_shadow.py.before_v2
+
+Safety controls:
+  equity risk target: 1%
+  minimum stop: max(0.35% price, 0.35 ATR)
+  maximum position: 5% equity
+  maximum position: 10% available buying power
+  absolute maximum shares: 1000
+  final independent order gateway: enabled
+  account snapshot failure: fail closed
+
+Services intentionally left stopped:
+  masterbrain.service
+  shadowbot.service

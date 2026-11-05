@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-08-05T13:39:22.595024",
+  "signals": [
+    {
+      "symbol": "NVDA",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "AAPL",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "MSFT",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "AMZN",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "GOOGL",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "AVGO",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "META",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "TSLA",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "LLY",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    },
+    {
+      "symbol": "JPM",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "No Momentum / Low RVOL"
+      }
+    }
+  ]
+}

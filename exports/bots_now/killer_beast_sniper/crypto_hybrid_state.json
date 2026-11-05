@@ -1,0 +1,14 @@
+{
+  "AAVE/USD": {
+    "engine": "crypto_trend_long",
+    "symbol": "AAVE/USD",
+    "side": "long",
+    "entry": 76.06025,
+    "stop": 75.8031125,
+    "tp": 76.6602375,
+    "size": 1129.3299499295174,
+    "initial_risk": 0.2571374999999989,
+    "hold_count": 0,
+    "peak_close": 76.06025
+  }
+}

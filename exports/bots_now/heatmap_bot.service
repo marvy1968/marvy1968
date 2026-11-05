@@ -1,0 +1,16 @@
+[Unit]
+Description=Scout Heatmap & News Bot (separate paper account)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moonrider1968
+WorkingDirectory=/home/moonrider1968/bots
+EnvironmentFile=/home/moonrider1968/bots/.env.heatmap
+ExecStart=/home/moonrider1968/bots/venv/bin/python3 /home/moonrider1968/bots/heatmap_news_bot_standalone.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

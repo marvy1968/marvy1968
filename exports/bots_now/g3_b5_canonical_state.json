@@ -1,0 +1,12 @@
+{
+    "high_water": 100000.0,
+    "nav": 54466.86,
+    "governor_state": "D3",
+    "state_dwell_counter": 0,
+    "cooldown_counter": 0,
+    "last_governor_date": "20260828",
+    "last_cooldown_decrement_date": "20260828",
+    "g3b5_positions": {},
+    "pending_orders": {},
+    "pending_exits": {}
+}

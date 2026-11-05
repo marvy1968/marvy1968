@@ -1,0 +1,19 @@
+{
+    "timestamp": "2026-07-30 06:49:54",
+    "btc_regime": "TRENDING_BULL",
+    "orderflow_bias": "NEUTRAL",
+    "allow_short_trend": true,
+    "sizing_multiplier": 0.5,
+    "account_nav_usdt": 60000.0,
+    "session_roi_pct": 0.0,
+    "stop_floor_pct": -3.5,
+    "orderflow_metrics": {
+        "symbol": "BTC/USD",
+        "buy_vol": 1.37,
+        "sell_vol": 1.01,
+        "delta_ratio": 0.152,
+        "imbalance_ratio": 0.375,
+        "institutional_short_signal": false,
+        "institutional_long_signal": false
+    }
+}

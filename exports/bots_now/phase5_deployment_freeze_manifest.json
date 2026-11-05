@@ -1,0 +1,46 @@
+{
+  "audit_event": "PHASE_5_SHADOW_DEPLOYMENT_FREEZE",
+  "frozen_at_utc": "2026-08-28T19:01:16.908363+00:00",
+  "artifacts": {
+    "run_stitched_oos_engine.py": {
+      "sha256": "e2185adf936757b46d99bf30c2fa242ccafc351b5c66b8aa8fce818cc0e178ba",
+      "bytes": 13026,
+      "status": "FROZEN"
+    },
+    "run_v3_shadow_historical_replay_p1_aligned.py": {
+      "sha256": "9f12fb6db7ed7e0c78717ea4faf74a81de90e3ba97d0f1c7843eacf902df304b",
+      "bytes": 11706,
+      "status": "FROZEN"
+    },
+    "kraken_g3b5_shadow_v3.py": {
+      "sha256": "974f617a61bbe386efb86d4056a0e7b8fa393715f783c96f7beb155bdc9cfac0",
+      "bytes": 14168,
+      "status": "FROZEN"
+    },
+    "run_daily_shadow_cron.py": {
+      "sha256": "d6b19e592ce6deb06e780df2b08c1b7ac2021ca91db2d09e9f9681f3f9a33749",
+      "bytes": 3737,
+      "status": "FROZEN"
+    },
+    "kraken_preflight_adapter.py": {
+      "sha256": "c5b62e0d033ea652eecf1ced115d9d7baefc202e9d4e7b2fdcba915007e5f4e7",
+      "bytes": 6700,
+      "status": "FROZEN"
+    },
+    "adaptive_learning_engine_v3.py": {
+      "sha256": "8609acb81b14d98014d93fbdeb2f780cd615a9856789dddd8b341603875736a6",
+      "bytes": 8291,
+      "status": "FROZEN"
+    },
+    "crypto_data/universe_manifest.csv": {
+      "sha256": "943835782322d79861e7afcd1b2c0f0741f658c0411ff0502d358f114470af0a",
+      "bytes": 2102,
+      "status": "FROZEN"
+    },
+    "shadow_state.json": {
+      "sha256": "18ace8185778c629e8991f0acc944c5ddf0d7df87b051c7e0be5868811460899",
+      "bytes": 234,
+      "status": "FROZEN"
+    }
+  }
+}

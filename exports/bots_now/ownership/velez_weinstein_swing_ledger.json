@@ -1,0 +1,210 @@
+{
+  "bot": "velez_weinstein_swing",
+  "prefix": "vws-",
+  "positions": {
+    "CRWD": {
+      "symbol": "CRWD",
+      "side": "long",
+      "qty": 14.0,
+      "orders": [
+        {
+          "id": "8b976c2e-ef45-4a36-a9c0-ee1400792480",
+          "coid": "vws-l1-1001195505-630ffbfe",
+          "role": "entry",
+          "qty": "7",
+          "at": "2026-10-01T19:55:05.795611+00:00",
+          "filled": 7.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "c4f2a2ab-e488-4701-b920-fe473481ab66",
+          "coid": "vws-l2-1001195505-016eeb56",
+          "role": "entry",
+          "qty": "7",
+          "at": "2026-10-01T19:55:05.839229+00:00",
+          "filled": 7.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:05.795584+00:00",
+      "meta": {}
+    },
+    "NET": {
+      "symbol": "NET",
+      "side": "long",
+      "qty": 10.0,
+      "orders": [
+        {
+          "id": "ac204c07-c663-417d-a27d-591ead69bfa8",
+          "coid": "vws-l1-1001195505-2b4859d4",
+          "role": "entry",
+          "qty": "5",
+          "at": "2026-10-01T19:55:05.997741+00:00",
+          "filled": 5.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "93f8b693-0f20-4d5e-95a5-e94b28dd52d5",
+          "coid": "vws-l2-1001195505-745079ba",
+          "role": "entry",
+          "qty": "5",
+          "at": "2026-10-01T19:55:06.036145+00:00",
+          "filled": 5.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:05.997709+00:00",
+      "meta": {}
+    },
+    "ARM": {
+      "symbol": "ARM",
+      "side": "long",
+      "qty": 13.0,
+      "orders": [
+        {
+          "id": "6e0710c8-3587-4cd0-9be3-046eb9d63907",
+          "coid": "vws-l1-1001195506-0b377fcb",
+          "role": "entry",
+          "qty": "6",
+          "at": "2026-10-01T19:55:06.224113+00:00",
+          "filled": 6.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "a35d2f72-5ede-44f8-814b-9766c43458a7",
+          "coid": "vws-l2-1001195506-ad2bf1f3",
+          "role": "entry",
+          "qty": "7",
+          "at": "2026-10-01T19:55:06.261151+00:00",
+          "filled": 7.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:06.224082+00:00",
+      "meta": {}
+    },
+    "PANW": {
+      "symbol": "PANW",
+      "side": "long",
+      "qty": 9.0,
+      "orders": [
+        {
+          "id": "b0c592b8-2422-4363-a179-0354e2d8932f",
+          "coid": "vws-l1-1001195506-9d15b65b",
+          "role": "entry",
+          "qty": "4",
+          "at": "2026-10-01T19:55:06.432789+00:00",
+          "filled": 4.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "ff342f25-f8db-4eda-a1e7-7a7f8939d9f0",
+          "coid": "vws-l2-1001195506-31952443",
+          "role": "entry",
+          "qty": "5",
+          "at": "2026-10-01T19:55:06.467257+00:00",
+          "filled": 5.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:06.432712+00:00",
+      "meta": {}
+    },
+    "SHOP": {
+      "symbol": "SHOP",
+      "side": "long",
+      "qty": 28.0,
+      "orders": [
+        {
+          "id": "7e35a8ba-2bf0-427f-8c5e-9e72cda1e3c2",
+          "coid": "vws-l1-1001195506-525f0eef",
+          "role": "entry",
+          "qty": "14",
+          "at": "2026-10-01T19:55:06.644458+00:00",
+          "filled": 14.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "5b2cbf61-d8ee-4893-86f0-0727810a6e38",
+          "coid": "vws-l2-1001195506-a4afb344",
+          "role": "entry",
+          "qty": "14",
+          "at": "2026-10-01T19:55:06.687924+00:00",
+          "filled": 14.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:06.644434+00:00",
+      "meta": {}
+    },
+    "SNOW": {
+      "symbol": "SNOW",
+      "side": "long",
+      "qty": 24.0,
+      "orders": [
+        {
+          "id": "14e332da-7ec1-4da1-8d09-35a1084b6b29",
+          "coid": "vws-l1-1001195506-792f4e3d",
+          "role": "entry",
+          "qty": "12",
+          "at": "2026-10-01T19:55:06.876848+00:00",
+          "filled": 12.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "6ae2f148-7227-4ee9-b127-325081274759",
+          "coid": "vws-l2-1001195506-fb427869",
+          "role": "entry",
+          "qty": "12",
+          "at": "2026-10-01T19:55:06.920186+00:00",
+          "filled": 12.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:06.876819+00:00",
+      "meta": {}
+    },
+    "CAT": {
+      "symbol": "CAT",
+      "side": "long",
+      "qty": 9.0,
+      "orders": [
+        {
+          "id": "e19ec047-910f-46fa-a32b-1616a4cd7d18",
+          "coid": "vws-l1-1001195507-671fdec1",
+          "role": "entry",
+          "qty": "4",
+          "at": "2026-10-01T19:55:07.087473+00:00",
+          "filled": 4.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "8d6afb02-357d-4bbb-a0e6-ad325eac9bfe",
+          "coid": "vws-l2-1001195507-e6809e6f",
+          "role": "entry",
+          "qty": "5",
+          "at": "2026-10-01T19:55:07.130657+00:00",
+          "filled": 5.0,
+          "legs_filled": 0.0,
+          "done": true
+        }
+      ],
+      "opened_at": "2026-10-01T19:55:07.087448+00:00",
+      "meta": {}
+    }
+  },
+  "updated_at": "2026-10-01T20:05:02.509343+00:00"
+}

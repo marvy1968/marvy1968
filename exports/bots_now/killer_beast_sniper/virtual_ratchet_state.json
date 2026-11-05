@@ -1,0 +1,11 @@
+{
+  "490918": {
+    "instrument": "USD_JPY",
+    "regime": "TREND",
+    "remaining_units": 20000,
+    "entry_px": 156.176,
+    "initial_risk": 0.4754999999999927,
+    "virtual_sl": 155.7005,
+    "tp_tier": 0
+  }
+}

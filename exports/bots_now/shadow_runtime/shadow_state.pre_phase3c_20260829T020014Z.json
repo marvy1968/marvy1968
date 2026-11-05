@@ -1,0 +1,21 @@
+{
+  "positions": {
+    "NVDA": {
+      "entry_date": "2026-08-29",
+      "entry_price": 217.545,
+      "initial_stop": 208.86704433658173,
+      "current_stop": 208.86704433658173,
+      "qty": 21,
+      "risk_per_share": 8.67795566341826
+    },
+    "MSFT": {
+      "entry_date": "2026-08-29",
+      "entry_price": 513.67,
+      "initial_stop": 472.27387391973724,
+      "current_stop": 472.27387391973724,
+      "qty": 4,
+      "risk_per_share": 41.39612608026272
+    }
+  },
+  "last_eval_date": "2026-08-29"
+}

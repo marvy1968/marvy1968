@@ -1,0 +1,372 @@
+{
+  "NVDA": {
+    "asset_type": "Equities",
+    "wins": 682,
+    "losses": 106,
+    "win_rate": 0.87,
+    "consecutive_wins": 30,
+    "consecutive_failures": 0,
+    "total_trades": 788,
+    "pnl_r": 405.7
+  },
+  "AAPL": {
+    "asset_type": "Equities",
+    "wins": 14,
+    "losses": 51,
+    "win_rate": 0.22,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 65,
+    "pnl_r": -40.4
+  },
+  "ABT": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "BLK": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "GOOGL": {
+    "asset_type": "Equities",
+    "wins": 215,
+    "losses": 52,
+    "win_rate": 0.81,
+    "consecutive_wins": 69,
+    "consecutive_failures": 0,
+    "total_trades": 267,
+    "pnl_r": 109.25
+  },
+  "JPM": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "MA": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "PEP": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "TJX": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "UPS": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "V": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "WFC": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "WMT": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "AMD": {
+    "asset_type": "Equities",
+    "wins": 122,
+    "losses": 41,
+    "win_rate": 0.75,
+    "consecutive_wins": 55,
+    "consecutive_failures": 0,
+    "total_trades": 163,
+    "pnl_r": 50.5
+  },
+  "AMZN": {
+    "asset_type": "Equities",
+    "wins": 109,
+    "losses": 179,
+    "win_rate": 0.38,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 288,
+    "pnl_r": -91.25
+  },
+  "TSLA": {
+    "asset_type": "Equities",
+    "wins": 105,
+    "losses": 40,
+    "win_rate": 0.72,
+    "consecutive_wins": 52,
+    "consecutive_failures": 0,
+    "total_trades": 145,
+    "pnl_r": 38.75
+  },
+  "META": {
+    "asset_type": "Equities",
+    "wins": 28,
+    "losses": 54,
+    "win_rate": 0.34,
+    "consecutive_wins": 0,
+    "consecutive_failures": 13,
+    "total_trades": 82,
+    "pnl_r": -33.0
+  },
+  "MSFT": {
+    "asset_type": "Equities",
+    "wins": 13,
+    "losses": 54,
+    "win_rate": 0.19,
+    "consecutive_wins": 0,
+    "consecutive_failures": 41,
+    "total_trades": 67,
+    "pnl_r": -44.25
+  },
+  "ISRG": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 2,
+    "pnl_r": -0.15
+  },
+  "KO": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": -1.0
+  },
+  "TGT": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "PFE": {
+    "asset_type": "Equities",
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 1,
+    "pnl_r": 0.0
+  },
+  "JNJ": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 1,
+    "pnl_r": 0.85
+  },
+  "BA": {
+    "asset_type": "Equities",
+    "wins": 2,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 2,
+    "consecutive_failures": 0,
+    "total_trades": 2,
+    "pnl_r": 1.7
+  },
+  "AXP": {
+    "asset_type": "Equities",
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 2,
+    "pnl_r": 1.15
+  },
+  "NFLX": {
+    "asset_type": "Equities",
+    "wins": 28,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 28,
+    "consecutive_failures": 0,
+    "total_trades": 28,
+    "pnl_r": 23.8
+  },
+  "GBP_USD": {
+    "asset_type": "Forex",
+    "wins": 60,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 60,
+    "consecutive_failures": 0,
+    "total_trades": 60,
+    "pnl_r": 50.9
+  },
+  "EUR_JPY": {
+    "asset_type": "Forex",
+    "wins": 58,
+    "losses": 2,
+    "win_rate": 0.97,
+    "consecutive_wins": 18,
+    "consecutive_failures": 0,
+    "total_trades": 60,
+    "pnl_r": 47.2
+  },
+  "GBP_JPY": {
+    "asset_type": "Forex",
+    "wins": 70,
+    "losses": 2,
+    "win_rate": 0.97,
+    "consecutive_wins": 13,
+    "consecutive_failures": 0,
+    "total_trades": 72,
+    "pnl_r": 57.4
+  },
+  "EUR_USD": {
+    "asset_type": "Forex",
+    "wins": 68,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 68,
+    "consecutive_failures": 0,
+    "total_trades": 68,
+    "pnl_r": 57.8
+  },
+  "USD_JPY": {
+    "asset_type": "Forex",
+    "wins": 71,
+    "losses": 1,
+    "win_rate": 0.99,
+    "consecutive_wins": 56,
+    "consecutive_failures": 0,
+    "total_trades": 72,
+    "pnl_r": 59.35
+  },
+  "AUD_USD": {
+    "asset_type": "Forex",
+    "wins": 60,
+    "losses": 1,
+    "win_rate": 0.98,
+    "consecutive_wins": 30,
+    "consecutive_failures": 0,
+    "total_trades": 61,
+    "pnl_r": 50.0
+  },
+  "NZD_USD": {
+    "asset_type": "Forex",
+    "wins": 100,
+    "losses": 1,
+    "win_rate": 0.99,
+    "consecutive_wins": 29,
+    "consecutive_failures": 0,
+    "total_trades": 101,
+    "pnl_r": 84.0
+  },
+  "USD_CHF": {
+    "asset_type": "Forex",
+    "wins": 57,
+    "losses": 2,
+    "win_rate": 0.97,
+    "consecutive_wins": 0,
+    "consecutive_failures": 1,
+    "total_trades": 59,
+    "pnl_r": 46.45
+  },
+  "USD_CAD": {
+    "asset_type": "Forex",
+    "wins": 70,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_wins": 70,
+    "consecutive_failures": 0,
+    "total_trades": 70,
+    "pnl_r": 59.5
+  },
+  "EUR_AUD": {
+    "asset_type": "Forex",
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_wins": 1,
+    "consecutive_failures": 0,
+    "total_trades": 2,
+    "pnl_r": -0.15
+  },
+  "GBP_AUD": {
+    "asset_type": "Forex",
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "consecutive_wins": 0,
+    "consecutive_failures": 2,
+    "total_trades": 2,
+    "pnl_r": -2.0
+  }
+}

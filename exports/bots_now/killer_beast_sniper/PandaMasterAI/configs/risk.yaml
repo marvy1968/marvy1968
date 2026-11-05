@@ -1,0 +1,5 @@
+risk:
+  max_positions: 20
+  max_sector_positions: 4
+  max_portfolio_heat: 0.06
+  max_drawdown: 0.10

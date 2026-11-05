@@ -1,0 +1,11 @@
+{
+  "reference_equity": 54241.38,
+  "paused_until": null,
+  "trade_log": [],
+  "positions": {},
+  "sector_cache": {
+    "computed_at": null,
+    "sectors": {}
+  },
+  "news_cache": {}
+}

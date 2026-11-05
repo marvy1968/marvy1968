@@ -1,0 +1,418 @@
+[
+  {
+    "name": "BASELINE",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9911.53863581466,\n  \"roi_pct\": -0.8846136418533934,\n  \"max_drawdown_pct\": 1.1607742756073014,\n  \"closed_trades\": 8,\n  \"win_rate_pct\": 37.5,\n  \"profit_factor\": 0.20826739322648052,\n  \"expectancy_dollars\": -11.057670523167474,\n  \"average_win\": 7.7566666500445836,\n  \"average_loss\": -22.346272827094708,\n  \"average_hold_bars\": 18.0,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -18.97839272844635,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -18.97839272844635\n    },\n    \"DOGE/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 0.04072114361269996,\n      \"win_rate_pct\": 66.66666666666666,\n      \"profit_factor\": 1.0018182808648954,\n      \"expectancy\": 0.013573714537566653\n    },\n    \"ETH/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -16.194868333611566,\n      \"win_rate_pct\": 50.0,\n      \"profit_factor\": 0.048968386100245835,\n      \"expectancy\": -8.097434166805783\n    },\n    \"LINK/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -53.32882426689457,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -26.664412133447286\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 8,\n      \"net_pnl\": -88.46136418533979,\n      \"win_rate_pct\": 37.5,\n      \"profit_factor\": 0.20826739322648052,\n      \"expectancy\": -11.057670523167474\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.8846136418533934,
+    "max_drawdown_pct": 1.1607742756073014,
+    "closed_trades": 8,
+    "win_rate_pct": 37.5,
+    "profit_factor": 0.20826739322648052,
+    "expectancy_dollars": -11.057670523167474,
+    "ending_equity": 9911.53863581466,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -18.97839272844635,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -18.97839272844635
+      },
+      "DOGE/USD": {
+        "trades": 3,
+        "net_pnl": 0.04072114361269996,
+        "win_rate_pct": 66.66666666666666,
+        "profit_factor": 1.0018182808648954,
+        "expectancy": 0.013573714537566653
+      },
+      "ETH/USD": {
+        "trades": 2,
+        "net_pnl": -16.194868333611566,
+        "win_rate_pct": 50.0,
+        "profit_factor": 0.048968386100245835,
+        "expectancy": -8.097434166805783
+      },
+      "LINK/USD": {
+        "trades": 2,
+        "net_pnl": -53.32882426689457,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -26.664412133447286
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 8,
+        "net_pnl": -88.46136418533979,
+        "win_rate_pct": 37.5,
+        "profit_factor": 0.20826739322648052,
+        "expectancy": -11.057670523167474
+      }
+    }
+  },
+  {
+    "name": "LOWER_COSTS",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9961.518559895676,\n  \"roi_pct\": -0.38481440104324305,\n  \"max_drawdown_pct\": 0.6942608085431123,\n  \"closed_trades\": 8,\n  \"win_rate_pct\": 37.5,\n  \"profit_factor\": 0.5237988367890762,\n  \"expectancy_dollars\": -4.810180013040139,\n  \"average_win\": 14.109256844803895,\n  \"average_loss\": -16.16184212774656,\n  \"average_hold_bars\": 18.0,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -12.772152538820592,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -12.772152538820592\n    },\n    \"DOGE/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 18.900820483497228,\n      \"win_rate_pct\": 66.66666666666666,\n      \"profit_factor\": 2.1614686719855594,\n      \"expectancy\": 6.300273494499076\n    },\n    \"ETH/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -3.688729094784776,\n      \"win_rate_pct\": 50.0,\n      \"profit_factor\": 0.6597889161491948,\n      \"expectancy\": -1.844364547392388\n    },\n    \"LINK/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -40.92137895421297,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -20.460689477106484\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 8,\n      \"net_pnl\": -38.48144010432111,\n      \"win_rate_pct\": 37.5,\n      \"profit_factor\": 0.5237988367890762,\n      \"expectancy\": -4.810180013040139\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.38481440104324305,
+    "max_drawdown_pct": 0.6942608085431123,
+    "closed_trades": 8,
+    "win_rate_pct": 37.5,
+    "profit_factor": 0.5237988367890762,
+    "expectancy_dollars": -4.810180013040139,
+    "ending_equity": 9961.518559895676,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -12.772152538820592,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -12.772152538820592
+      },
+      "DOGE/USD": {
+        "trades": 3,
+        "net_pnl": 18.900820483497228,
+        "win_rate_pct": 66.66666666666666,
+        "profit_factor": 2.1614686719855594,
+        "expectancy": 6.300273494499076
+      },
+      "ETH/USD": {
+        "trades": 2,
+        "net_pnl": -3.688729094784776,
+        "win_rate_pct": 50.0,
+        "profit_factor": 0.6597889161491948,
+        "expectancy": -1.844364547392388
+      },
+      "LINK/USD": {
+        "trades": 2,
+        "net_pnl": -40.92137895421297,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -20.460689477106484
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 8,
+        "net_pnl": -38.48144010432111,
+        "win_rate_pct": 37.5,
+        "profit_factor": 0.5237988367890762,
+        "expectancy": -4.810180013040139
+      }
+    }
+  },
+  {
+    "name": "ENTRY_Z_1_75",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9900.843503709302,\n  \"roi_pct\": -0.9915649629069767,\n  \"max_drawdown_pct\": 1.2358575309635023,\n  \"closed_trades\": 11,\n  \"win_rate_pct\": 36.36363636363637,\n  \"profit_factor\": 0.3240716557621366,\n  \"expectancy_dollars\": -9.014226935518268,\n  \"average_win\": 11.885065261145314,\n  \"average_loss\": -20.956679619326028,\n  \"average_hold_bars\": 21.818181818181817,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -13.921090153352452,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -13.921090153352452\n    },\n    \"DOGE/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 0.08395577804799359,\n      \"win_rate_pct\": 66.66666666666666,\n      \"profit_factor\": 1.0036884162709725,\n      \"expectancy\": 0.027985259349331198\n    },\n    \"ETH/USD\": {\n      \"trades\": 4,\n      \"net_pnl\": -55.74953431657468,\n      \"win_rate_pct\": 25.0,\n      \"profit_factor\": 0.042580303794780894,\n      \"expectancy\": -13.93738357914367\n    },\n    \"LINK/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": -29.569827598821803,\n      \"win_rate_pct\": 33.33333333333333,\n      \"profit_factor\": 0.4289854049881434,\n      \"expectancy\": -9.856609199607268\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 11,\n      \"net_pnl\": -99.15649629070094,\n      \"win_rate_pct\": 36.36363636363637,\n      \"profit_factor\": 0.3240716557621366,\n      \"expectancy\": -9.014226935518268\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.9915649629069767,
+    "max_drawdown_pct": 1.2358575309635023,
+    "closed_trades": 11,
+    "win_rate_pct": 36.36363636363637,
+    "profit_factor": 0.3240716557621366,
+    "expectancy_dollars": -9.014226935518268,
+    "ending_equity": 9900.843503709302,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -13.921090153352452,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -13.921090153352452
+      },
+      "DOGE/USD": {
+        "trades": 3,
+        "net_pnl": 0.08395577804799359,
+        "win_rate_pct": 66.66666666666666,
+        "profit_factor": 1.0036884162709725,
+        "expectancy": 0.027985259349331198
+      },
+      "ETH/USD": {
+        "trades": 4,
+        "net_pnl": -55.74953431657468,
+        "win_rate_pct": 25.0,
+        "profit_factor": 0.042580303794780894,
+        "expectancy": -13.93738357914367
+      },
+      "LINK/USD": {
+        "trades": 3,
+        "net_pnl": -29.569827598821803,
+        "win_rate_pct": 33.33333333333333,
+        "profit_factor": 0.4289854049881434,
+        "expectancy": -9.856609199607268
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 11,
+        "net_pnl": -99.15649629070094,
+        "win_rate_pct": 36.36363636363637,
+        "profit_factor": 0.3240716557621366,
+        "expectancy": -9.014226935518268
+      }
+    }
+  },
+  {
+    "name": "ENTRY_Z_1_50",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9795.2938430562,\n  \"roi_pct\": -2.0470615694379912,\n  \"max_drawdown_pct\": 2.3265292134883375,\n  \"closed_trades\": 18,\n  \"win_rate_pct\": 27.77777777777778,\n  \"profit_factor\": 0.22858975240465698,\n  \"expectancy_dollars\": -11.372564274655335,\n  \"average_win\": 12.131995880883778,\n  \"average_loss\": -20.412779719093457,\n  \"average_hold_bars\": 16.88888888888889,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -39.1385988041643,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -19.56929940208215\n    },\n    \"DOGE/USD\": {\n      \"trades\": 5,\n      \"net_pnl\": 3.3325849484090213,\n      \"win_rate_pct\": 60.0,\n      \"profit_factor\": 1.1010069393571416,\n      \"expectancy\": 0.6665169896818043\n    },\n    \"ETH/USD\": {\n      \"trades\": 7,\n      \"net_pnl\": -118.90624246688299,\n      \"win_rate_pct\": 14.285714285714285,\n      \"profit_factor\": 0.008795835623131415,\n      \"expectancy\": -16.98660606669757\n    },\n    \"LINK/USD\": {\n      \"trades\": 4,\n      \"net_pnl\": -49.99390062115776,\n      \"win_rate_pct\": 25.0,\n      \"profit_factor\": 0.31769909045463796,\n      \"expectancy\": -12.49847515528944\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 18,\n      \"net_pnl\": -204.70615694379603,\n      \"win_rate_pct\": 27.77777777777778,\n      \"profit_factor\": 0.22858975240465698,\n      \"expectancy\": -11.372564274655335\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -2.0470615694379912,
+    "max_drawdown_pct": 2.3265292134883375,
+    "closed_trades": 18,
+    "win_rate_pct": 27.77777777777778,
+    "profit_factor": 0.22858975240465698,
+    "expectancy_dollars": -11.372564274655335,
+    "ending_equity": 9795.2938430562,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 2,
+        "net_pnl": -39.1385988041643,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -19.56929940208215
+      },
+      "DOGE/USD": {
+        "trades": 5,
+        "net_pnl": 3.3325849484090213,
+        "win_rate_pct": 60.0,
+        "profit_factor": 1.1010069393571416,
+        "expectancy": 0.6665169896818043
+      },
+      "ETH/USD": {
+        "trades": 7,
+        "net_pnl": -118.90624246688299,
+        "win_rate_pct": 14.285714285714285,
+        "profit_factor": 0.008795835623131415,
+        "expectancy": -16.98660606669757
+      },
+      "LINK/USD": {
+        "trades": 4,
+        "net_pnl": -49.99390062115776,
+        "win_rate_pct": 25.0,
+        "profit_factor": 0.31769909045463796,
+        "expectancy": -12.49847515528944
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 18,
+        "net_pnl": -204.70615694379603,
+        "win_rate_pct": 27.77777777777778,
+        "profit_factor": 0.22858975240465698,
+        "expectancy": -11.372564274655335
+      }
+    }
+  },
+  {
+    "name": "RELAX_CORR",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9905.171124299013,\n  \"roi_pct\": -0.948288757009863,\n  \"max_drawdown_pct\": 0.9841251944430085,\n  \"closed_trades\": 8,\n  \"win_rate_pct\": 0.0,\n  \"profit_factor\": 0.0,\n  \"expectancy_dollars\": -11.853609462623751,\n  \"average_win\": 0.0,\n  \"average_loss\": -11.853609462623751,\n  \"average_hold_bars\": 27.0,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -29.173418469889384,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -14.586709234944692\n    },\n    \"DOGE/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -12.651759229619984,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -6.325879614809992\n    },\n    \"ETH/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": -51.05956854342617,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -17.019856181142057\n    },\n    \"LINK/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -1.9441294580544763,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -1.9441294580544763\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 8,\n      \"net_pnl\": -94.82887570099001,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -11.853609462623751\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.948288757009863,
+    "max_drawdown_pct": 0.9841251944430085,
+    "closed_trades": 8,
+    "win_rate_pct": 0.0,
+    "profit_factor": 0.0,
+    "expectancy_dollars": -11.853609462623751,
+    "ending_equity": 9905.171124299013,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 2,
+        "net_pnl": -29.173418469889384,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -14.586709234944692
+      },
+      "DOGE/USD": {
+        "trades": 2,
+        "net_pnl": -12.651759229619984,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -6.325879614809992
+      },
+      "ETH/USD": {
+        "trades": 3,
+        "net_pnl": -51.05956854342617,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -17.019856181142057
+      },
+      "LINK/USD": {
+        "trades": 1,
+        "net_pnl": -1.9441294580544763,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -1.9441294580544763
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 8,
+        "net_pnl": -94.82887570099001,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -11.853609462623751
+      }
+    }
+  },
+  {
+    "name": "RELAX_ADF",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9948.970634666597,\n  \"roi_pct\": -0.5102936533340263,\n  \"max_drawdown_pct\": 1.2302054774865234,\n  \"closed_trades\": 10,\n  \"win_rate_pct\": 30.0,\n  \"profit_factor\": 0.6478124360936408,\n  \"expectancy_dollars\": -5.102936533340198,\n  \"average_win\": 31.287738747577276,\n  \"average_loss\": -20.698940225161973,\n  \"average_hold_bars\": 18.4,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -22.13595508016556,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -22.13595508016556\n    },\n    \"DOGE/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 20.125966102943266,\n      \"win_rate_pct\": 66.66666666666666,\n      \"profit_factor\": 2.3401802163566496,\n      \"expectancy\": 6.708655367647755\n    },\n    \"ETH/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": -61.80526873748295,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -20.601756245827648\n    },\n    \"LINK/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 12.785892381303256,\n      \"win_rate_pct\": 33.33333333333333,\n      \"profit_factor\": 1.2783535605538747,\n      \"expectancy\": 4.261964127101085\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 10,\n      \"net_pnl\": -51.029365333401984,\n      \"win_rate_pct\": 30.0,\n      \"profit_factor\": 0.6478124360936408,\n      \"expectancy\": -5.102936533340198\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.5102936533340263,
+    "max_drawdown_pct": 1.2302054774865234,
+    "closed_trades": 10,
+    "win_rate_pct": 30.0,
+    "profit_factor": 0.6478124360936408,
+    "expectancy_dollars": -5.102936533340198,
+    "ending_equity": 9948.970634666597,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -22.13595508016556,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -22.13595508016556
+      },
+      "DOGE/USD": {
+        "trades": 3,
+        "net_pnl": 20.125966102943266,
+        "win_rate_pct": 66.66666666666666,
+        "profit_factor": 2.3401802163566496,
+        "expectancy": 6.708655367647755
+      },
+      "ETH/USD": {
+        "trades": 3,
+        "net_pnl": -61.80526873748295,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -20.601756245827648
+      },
+      "LINK/USD": {
+        "trades": 3,
+        "net_pnl": 12.785892381303256,
+        "win_rate_pct": 33.33333333333333,
+        "profit_factor": 1.2783535605538747,
+        "expectancy": 4.261964127101085
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 10,
+        "net_pnl": -51.029365333401984,
+        "win_rate_pct": 30.0,
+        "profit_factor": 0.6478124360936408,
+        "expectancy": -5.102936533340198
+      }
+    }
+  },
+  {
+    "name": "LONGER_HALF_LIFE",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9959.792090630457,\n  \"roi_pct\": -0.4020790936954288,\n  \"max_drawdown_pct\": 1.122773963088386,\n  \"closed_trades\": 9,\n  \"win_rate_pct\": 33.33333333333333,\n  \"profit_factor\": 0.7001001581367928,\n  \"expectancy_dollars\": -4.467545485504843,\n  \"average_win\": 31.287738747577276,\n  \"average_loss\": -22.3451876020459,\n  \"average_hold_bars\": 17.77777777777778,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -22.13595508016556,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -22.13595508016556\n    },\n    \"DOGE/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 20.125966102943266,\n      \"win_rate_pct\": 66.66666666666666,\n      \"profit_factor\": 2.3401802163566496,\n      \"expectancy\": 6.708655367647755\n    },\n    \"ETH/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -50.98381277362455,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -25.491906386812275\n    },\n    \"LINK/USD\": {\n      \"trades\": 3,\n      \"net_pnl\": 12.785892381303256,\n      \"win_rate_pct\": 33.33333333333333,\n      \"profit_factor\": 1.2783535605538747,\n      \"expectancy\": 4.261964127101085\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 9,\n      \"net_pnl\": -40.207909369543586,\n      \"win_rate_pct\": 33.33333333333333,\n      \"profit_factor\": 0.7001001581367928,\n      \"expectancy\": -4.467545485504843\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -0.4020790936954288,
+    "max_drawdown_pct": 1.122773963088386,
+    "closed_trades": 9,
+    "win_rate_pct": 33.33333333333333,
+    "profit_factor": 0.7001001581367928,
+    "expectancy_dollars": -4.467545485504843,
+    "ending_equity": 9959.792090630457,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -22.13595508016556,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -22.13595508016556
+      },
+      "DOGE/USD": {
+        "trades": 3,
+        "net_pnl": 20.125966102943266,
+        "win_rate_pct": 66.66666666666666,
+        "profit_factor": 2.3401802163566496,
+        "expectancy": 6.708655367647755
+      },
+      "ETH/USD": {
+        "trades": 2,
+        "net_pnl": -50.98381277362455,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -25.491906386812275
+      },
+      "LINK/USD": {
+        "trades": 3,
+        "net_pnl": 12.785892381303256,
+        "win_rate_pct": 33.33333333333333,
+        "profit_factor": 1.2783535605538747,
+        "expectancy": 4.261964127101085
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 9,
+        "net_pnl": -40.207909369543586,
+        "win_rate_pct": 33.33333333333333,
+        "profit_factor": 0.7001001581367928,
+        "expectancy": -4.467545485504843
+      }
+    }
+  },
+  {
+    "name": "WIDER_RSI",
+    "return_code": 0,
+    "stdout": "{\n  \"starting_equity\": 10000.0,\n  \"ending_equity\": 9899.070402336776,\n  \"roi_pct\": -1.0092959766322407,\n  \"max_drawdown_pct\": 1.069062199497961,\n  \"closed_trades\": 7,\n  \"win_rate_pct\": 14.285714285714285,\n  \"profit_factor\": 0.15227280683028235,\n  \"expectancy_dollars\": -14.418513951889215,\n  \"average_win\": 18.12945633012555,\n  \"average_loss\": -19.843175665558345,\n  \"average_hold_bars\": 20.571428571428573,\n  \"open_positions\": 0,\n  \"per_symbol\": {\n    \"AVAX/USD\": {\n      \"trades\": 1,\n      \"net_pnl\": -18.70968090615679,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -18.70968090615679\n    },\n    \"DOGE/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": 13.442856361105669,\n      \"win_rate_pct\": 50.0,\n      \"profit_factor\": 3.86836010113255,\n      \"expectancy\": 6.721428180552834\n    },\n    \"ETH/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -45.4791696633215,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -22.73958483166075\n    },\n    \"LINK/USD\": {\n      \"trades\": 2,\n      \"net_pnl\": -50.18360345485189,\n      \"win_rate_pct\": 0.0,\n      \"profit_factor\": 0.0,\n      \"expectancy\": -25.091801727425946\n    }\n  },\n  \"per_regime\": {\n    \"range\": {\n      \"trades\": 7,\n      \"net_pnl\": -100.92959766322451,\n      \"win_rate_pct\": 14.285714285714285,\n      \"profit_factor\": 0.15227280683028235,\n      \"expectancy\": -14.418513951889215\n    }\n  },\n  \"warning\": \"Research backtest only; no guarantee of future returns.\"\n}",
+    "stderr": "",
+    "roi_pct": -1.0092959766322407,
+    "max_drawdown_pct": 1.069062199497961,
+    "closed_trades": 7,
+    "win_rate_pct": 14.285714285714285,
+    "profit_factor": 0.15227280683028235,
+    "expectancy_dollars": -14.418513951889215,
+    "ending_equity": 9899.070402336776,
+    "per_symbol": {
+      "AVAX/USD": {
+        "trades": 1,
+        "net_pnl": -18.70968090615679,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -18.70968090615679
+      },
+      "DOGE/USD": {
+        "trades": 2,
+        "net_pnl": 13.442856361105669,
+        "win_rate_pct": 50.0,
+        "profit_factor": 3.86836010113255,
+        "expectancy": 6.721428180552834
+      },
+      "ETH/USD": {
+        "trades": 2,
+        "net_pnl": -45.4791696633215,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -22.73958483166075
+      },
+      "LINK/USD": {
+        "trades": 2,
+        "net_pnl": -50.18360345485189,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -25.091801727425946
+      }
+    },
+    "per_regime": {
+      "range": {
+        "trades": 7,
+        "net_pnl": -100.92959766322451,
+        "win_rate_pct": 14.285714285714285,
+        "profit_factor": 0.15227280683028235,
+        "expectancy": -14.418513951889215
+      }
+    }
+  }
+]

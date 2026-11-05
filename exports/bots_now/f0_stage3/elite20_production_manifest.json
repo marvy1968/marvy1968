@@ -1,0 +1,8 @@
+{
+    "timestamp_utc": "2026-11-04T21:10:02.349829+00:00",
+    "engine_file": "/home/moonrider1968/bots/live_equities_elite20_hardened.py",
+    "engine_sha256": "99915c36a8786ee7cbaa323a9ea4c24ab2b1ab68dcf540345b2bbcfd85b5cced",
+    "certified_csv": "/home/moonrider1968/bots/logs/elite20_parity_certified_trades.csv",
+    "certified_csv_sha256": "ad6d9035f5eb12a4fcc82119f2670eecf844778d70c66b42814c98cdeb1bf63f",
+    "status": "VERIFIED_LOCKED"
+}

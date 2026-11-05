@@ -1,0 +1,529 @@
+{
+  "summary": {
+    "windows": 6,
+    "profitable_windows": 2,
+    "profitable_window_pct": 33.33333333333333,
+    "avg_oos_roi_pct": 0.9777820300260291,
+    "worst_oos_dd_pct": 0.5575960304609907,
+    "avg_oos_pf": 333.48516835283414,
+    "oos_trades": 11
+  },
+  "monte_carlo": {
+    "trades": 11,
+    "iterations": 10000,
+    "probability_profitable_pct": 98.24000000000001,
+    "median_roi_pct": 5.920906110330993,
+    "roi_5th_pct": 1.098430020247777,
+    "roi_95th_pct": 10.090591048842963,
+    "median_dd_pct": 1.0629597445584542,
+    "dd_95th_pct": 2.1640123149278323
+  },
+  "regime_attribution": {
+    "dow": [
+      {
+        "dow": 0,
+        "count": 3,
+        "sum": 197.4326022122387,
+        "mean": 65.81086740407956
+      },
+      {
+        "dow": 1,
+        "count": 1,
+        "sum": 125.60561394213651,
+        "mean": 125.60561394213651
+      },
+      {
+        "dow": 2,
+        "count": 2,
+        "sum": 239.9420138052798,
+        "mean": 119.9710069026399
+      },
+      {
+        "dow": 3,
+        "count": 2,
+        "sum": 64.74110260958824,
+        "mean": 32.37055130479412
+      },
+      {
+        "dow": 4,
+        "count": 2,
+        "sum": 13.438280566147967,
+        "mean": 6.719140283073983
+      },
+      {
+        "dow": 5,
+        "count": 1,
+        "sum": -54.490395119772565,
+        "mean": -54.490395119772565
+      }
+    ],
+    "hour": [
+      {
+        "hour": 0,
+        "count": 2,
+        "sum": 13.438280566147967,
+        "mean": 6.719140283073983
+      },
+      {
+        "hour": 4,
+        "count": 1,
+        "sum": -55.759603046098434,
+        "mean": -55.759603046098434
+      },
+      {
+        "hour": 8,
+        "count": 1,
+        "sum": -54.490395119772565,
+        "mean": -54.490395119772565
+      },
+      {
+        "hour": 12,
+        "count": 3,
+        "sum": 200.24134573129606,
+        "mean": 66.74711524376535
+      },
+      {
+        "hour": 16,
+        "count": 2,
+        "sum": 243.29757607876581,
+        "mean": 121.64878803938291
+      },
+      {
+        "hour": 20,
+        "count": 2,
+        "sum": 239.9420138052798,
+        "mean": 119.9710069026399
+      }
+    ],
+    "btc_bull": [
+      {
+        "btc_bull": true,
+        "count": 11,
+        "sum": 586.6692180156186,
+        "mean": 53.33356527414715
+      }
+    ],
+    "btc_bear": [
+      {
+        "btc_bear": false,
+        "count": 11,
+        "sum": 586.6692180156186,
+        "mean": 53.33356527414715
+      }
+    ]
+  },
+  "windows": [
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2024-08-08 19:30:00+00:00",
+      "test_start": "2024-08-08 19:30:00+00:00",
+      "test_end": "2024-12-06 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 30,
+        "adx_min": 15,
+        "min_vol_ratio": 1.0,
+        "min_atr_rank": 0.35,
+        "min_breakout_atr": 0.0,
+        "btc_filter": "none",
+        "exclude_weekend": true,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 12,
+        "roi_pct": 0.07875801815269146,
+        "win_rate_pct": 33.33333333333333,
+        "profit_factor": 1.0208258422701066,
+        "expectancy": 0.6563168179392385,
+        "max_drawdown_pct": 1.8665498930038122,
+        "avg_hold_bars": 8.166666666666666
+      },
+      "test": {
+        "trades": 5,
+        "roi_pct": 5.660689767977645,
+        "win_rate_pct": 100.0,
+        "profit_factor": 999.0,
+        "expectancy": 113.21379535955323,
+        "max_drawdown_pct": 0.0,
+        "avg_hold_bars": 7.4
+      },
+      "trades": [
+        {
+          "entry_time": "2024-09-26 20:00:00+00:00",
+          "exit_time": "2024-09-28 12:00:00+00:00",
+          "entry": 0.11769,
+          "exit": 0.13076871757142858,
+          "pnl": 120.50070565568667,
+          "return_pct": 1.2050070565568667,
+          "bars": 11,
+          "reason": "target",
+          "dow": 3,
+          "hour": 16,
+          "atr_rank": 1.0,
+          "vol_ratio": 2.247895243750993,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2024-10-18 04:00:00+00:00",
+          "exit_time": "2024-10-20 04:00:00+00:00",
+          "entry": 0.132615,
+          "exit": 0.142855,
+          "pnl": 68.73072293835422,
+          "return_pct": 0.6791237403891006,
+          "bars": 13,
+          "reason": "time",
+          "dow": 4,
+          "hour": 0,
+          "atr_rank": 0.77,
+          "vol_ratio": 1.8508645068132392,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2024-10-28 20:00:00+00:00",
+          "exit_time": "2024-10-29 16:00:00+00:00",
+          "entry": 0.15822,
+          "exit": 0.175864,
+          "pnl": 122.79687042307914,
+          "return_pct": 1.2051632282929041,
+          "bars": 6,
+          "reason": "target",
+          "dow": 0,
+          "hour": 16,
+          "atr_rank": 0.41,
+          "vol_ratio": 2.7810304294649715,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2024-11-05 16:00:00+00:00",
+          "exit_time": "2024-11-06 00:00:00+00:00",
+          "entry": 0.174664,
+          "exit": 0.20199757142857144,
+          "pnl": 125.60561394213651,
+          "return_pct": 1.2180495466067376,
+          "bars": 3,
+          "reason": "target",
+          "dow": 1,
+          "hour": 12,
+          "atr_rank": 0.94,
+          "vol_ratio": 1.3352775941209503,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2024-11-11 16:00:00+00:00",
+          "exit_time": "2024-11-12 04:00:00+00:00",
+          "entry": 0.31027,
+          "exit": 0.38982557142857144,
+          "pnl": 128.43506383850954,
+          "return_pct": 1.2304997943934968,
+          "bars": 4,
+          "reason": "target",
+          "dow": 0,
+          "hour": 12,
+          "atr_rank": 0.88,
+          "vol_ratio": 1.6178347923532492,
+          "btc_bull": true,
+          "btc_bear": false
+        }
+      ]
+    },
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2024-12-06 19:30:00+00:00",
+      "test_start": "2024-12-06 19:30:00+00:00",
+      "test_end": "2025-04-05 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 30,
+        "adx_min": 15,
+        "min_vol_ratio": 1.0,
+        "min_atr_rank": 0.35,
+        "min_breakout_atr": 0.0,
+        "btc_filter": "bull",
+        "exclude_weekend": true,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 16,
+        "roi_pct": 6.307369483648584,
+        "win_rate_pct": 56.25,
+        "profit_factor": 2.9303127144129175,
+        "expectancy": 39.421059272803824,
+        "max_drawdown_pct": 1.3436392641509154,
+        "avg_hold_bars": 7.8125
+      },
+      "test": {
+        "trades": 0,
+        "roi_pct": 0.0,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": 0.0,
+        "max_drawdown_pct": 0.0,
+        "avg_hold_bars": 0.0
+      },
+      "trades": []
+    },
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2025-04-05 19:30:00+00:00",
+      "test_start": "2025-04-05 19:30:00+00:00",
+      "test_end": "2025-08-03 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 30,
+        "adx_min": 15,
+        "min_vol_ratio": 1.0,
+        "min_atr_rank": 0.35,
+        "min_breakout_atr": 0.0,
+        "btc_filter": "bull",
+        "exclude_weekend": true,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 16,
+        "roi_pct": 6.307369483648584,
+        "win_rate_pct": 56.25,
+        "profit_factor": 2.9303127144129175,
+        "expectancy": 39.421059272803824,
+        "max_drawdown_pct": 1.3436392641509154,
+        "avg_hold_bars": 7.8125
+      },
+      "test": {
+        "trades": 5,
+        "roi_pct": 0.7509063633762469,
+        "win_rate_pct": 40.0,
+        "profit_factor": 1.4555050585025204,
+        "expectancy": 15.018127267525022,
+        "max_drawdown_pct": 0.5575960304609907,
+        "avg_hold_bars": 6.2
+      },
+      "trades": [
+        {
+          "entry_time": "2025-07-03 08:00:00+00:00",
+          "exit_time": "2025-07-04 00:00:00+00:00",
+          "entry": 0.174575,
+          "exit": 0.1685129502857143,
+          "pnl": -55.759603046098434,
+          "return_pct": -0.5575960304609843,
+          "bars": 5,
+          "reason": "stop",
+          "dow": 3,
+          "hour": 4,
+          "atr_rank": 0.5,
+          "vol_ratio": 1.7955367447967046,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2025-07-10 00:00:00+00:00",
+          "exit_time": "2025-07-10 20:00:00+00:00",
+          "entry": 0.18058,
+          "exit": 0.19620380357142858,
+          "pnl": 118.55622594402249,
+          "return_pct": 1.1922099749352237,
+          "bars": 6,
+          "reason": "target",
+          "dow": 2,
+          "hour": 20,
+          "atr_rank": 0.6,
+          "vol_ratio": 6.038284378197209,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2025-07-11 04:00:00+00:00",
+          "exit_time": "2025-07-12 12:00:00+00:00",
+          "entry": 0.198372,
+          "exit": 0.19035274348571427,
+          "pnl": -55.29244237220625,
+          "return_pct": -0.5494739131106767,
+          "bars": 9,
+          "reason": "stop",
+          "dow": 4,
+          "hour": 0,
+          "atr_rank": 0.87,
+          "vol_ratio": 3.716548578935961,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2025-07-17 00:00:00+00:00",
+          "exit_time": "2025-07-18 04:00:00+00:00",
+          "entry": 0.21303,
+          "exit": 0.24177717285714284,
+          "pnl": 121.38578786125731,
+          "return_pct": 1.212947660791091,
+          "bars": 8,
+          "reason": "target",
+          "dow": 2,
+          "hour": 20,
+          "atr_rank": 0.86,
+          "vol_ratio": 2.273285543183268,
+          "btc_bull": true,
+          "btc_bear": false
+        },
+        {
+          "entry_time": "2025-07-21 16:00:00+00:00",
+          "exit_time": "2025-07-22 00:00:00+00:00",
+          "entry": 0.28242,
+          "exit": 0.26428556000000003,
+          "pnl": -53.79933204935,
+          "return_pct": -0.5311473638005917,
+          "bars": 3,
+          "reason": "stop",
+          "dow": 0,
+          "hour": 12,
+          "atr_rank": 0.75,
+          "vol_ratio": 2.014106230496659,
+          "btc_bull": true,
+          "btc_bear": false
+        }
+      ]
+    },
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2025-08-03 19:30:00+00:00",
+      "test_start": "2025-08-03 19:30:00+00:00",
+      "test_end": "2025-12-01 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 30,
+        "adx_min": 15,
+        "min_vol_ratio": 1.25,
+        "min_atr_rank": 0.65,
+        "min_breakout_atr": 0.0,
+        "btc_filter": "bull",
+        "exclude_weekend": false,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 18,
+        "roi_pct": 8.422909904603792,
+        "win_rate_pct": 55.55555555555556,
+        "profit_factor": 3.4139380153717096,
+        "expectancy": 46.79394391446543,
+        "max_drawdown_pct": 1.0734875495991765,
+        "avg_hold_bars": 6.888888888888889
+      },
+      "test": {
+        "trades": 1,
+        "roi_pct": -0.5449039511977172,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": -54.490395119772565,
+        "max_drawdown_pct": 0.5449039511977207,
+        "avg_hold_bars": 2.0
+      },
+      "trades": [
+        {
+          "entry_time": "2025-09-13 12:00:00+00:00",
+          "exit_time": "2025-09-13 16:00:00+00:00",
+          "entry": 0.2962,
+          "exit": 0.2830073970285714,
+          "pnl": -54.490395119772565,
+          "return_pct": -0.5449039511977257,
+          "bars": 2,
+          "reason": "stop",
+          "dow": 5,
+          "hour": 8,
+          "atr_rank": 0.98,
+          "vol_ratio": 1.9842759363665348,
+          "btc_bull": true,
+          "btc_bear": false
+        }
+      ]
+    },
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2025-12-01 19:30:00+00:00",
+      "test_start": "2025-12-01 19:30:00+00:00",
+      "test_end": "2026-03-31 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 25,
+        "adx_min": 20,
+        "min_vol_ratio": 1.0,
+        "min_atr_rank": 0.65,
+        "min_breakout_atr": 0.15,
+        "btc_filter": "none",
+        "exclude_weekend": false,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 22,
+        "roi_pct": 8.942253217605224,
+        "win_rate_pct": 54.54545454545454,
+        "profit_factor": 2.9632924654626964,
+        "expectancy": 40.64660553456939,
+        "max_drawdown_pct": 1.0734875495991765,
+        "avg_hold_bars": 6.590909090909091
+      },
+      "test": {
+        "trades": 0,
+        "roi_pct": 0.0,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": 0.0,
+        "max_drawdown_pct": 0.0,
+        "avg_hold_bars": 0.0
+      },
+      "trades": []
+    },
+    {
+      "train_start": "2023-08-09 19:30:00+00:00",
+      "train_end": "2026-03-31 19:30:00+00:00",
+      "test_start": "2026-03-31 19:30:00+00:00",
+      "test_end": "2026-07-29 19:30:00+00:00",
+      "timeframe": "4h",
+      "params": {
+        "lookback": 30,
+        "adx_min": 15,
+        "min_vol_ratio": 1.0,
+        "min_atr_rank": 0.65,
+        "min_breakout_atr": 0.15,
+        "btc_filter": "none",
+        "exclude_weekend": false,
+        "stop_atr": 1.6,
+        "target_r": 2.5,
+        "max_hold": 12
+      },
+      "train": {
+        "trades": 23,
+        "roi_pct": 9.431103416297603,
+        "win_rate_pct": 56.52173913043478,
+        "profit_factor": 3.071010188992891,
+        "expectancy": 41.0047974621637,
+        "max_drawdown_pct": 1.0734875495991765,
+        "avg_hold_bars": 6.913043478260869
+      },
+      "test": {
+        "trades": 0,
+        "roi_pct": 0.0,
+        "win_rate_pct": 0.0,
+        "profit_factor": 0.0,
+        "expectancy": 0.0,
+        "max_drawdown_pct": 0.0,
+        "avg_hold_bars": 0.0
+      },
+      "trades": []
+    }
+  ],
+  "research_gate": {
+    "mc_threshold_pct": 65.0,
+    "passed_mc": true,
+    "note": "Research-only. No order execution."
+  }
+}

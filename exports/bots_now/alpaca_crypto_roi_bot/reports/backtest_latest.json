@@ -1,0 +1,54 @@
+{
+  "starting_equity": 10000.0,
+  "ending_equity": 9899.070402336776,
+  "roi_pct": -1.0092959766322407,
+  "max_drawdown_pct": 1.069062199497961,
+  "closed_trades": 7,
+  "win_rate_pct": 14.285714285714285,
+  "profit_factor": 0.15227280683028235,
+  "expectancy_dollars": -14.418513951889215,
+  "average_win": 18.12945633012555,
+  "average_loss": -19.843175665558345,
+  "average_hold_bars": 20.571428571428573,
+  "open_positions": 0,
+  "per_symbol": {
+    "AVAX/USD": {
+      "trades": 1,
+      "net_pnl": -18.70968090615679,
+      "win_rate_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": -18.70968090615679
+    },
+    "DOGE/USD": {
+      "trades": 2,
+      "net_pnl": 13.442856361105669,
+      "win_rate_pct": 50.0,
+      "profit_factor": 3.86836010113255,
+      "expectancy": 6.721428180552834
+    },
+    "ETH/USD": {
+      "trades": 2,
+      "net_pnl": -45.4791696633215,
+      "win_rate_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": -22.73958483166075
+    },
+    "LINK/USD": {
+      "trades": 2,
+      "net_pnl": -50.18360345485189,
+      "win_rate_pct": 0.0,
+      "profit_factor": 0.0,
+      "expectancy": -25.091801727425946
+    }
+  },
+  "per_regime": {
+    "range": {
+      "trades": 7,
+      "net_pnl": -100.92959766322451,
+      "win_rate_pct": 14.285714285714285,
+      "profit_factor": 0.15227280683028235,
+      "expectancy": -14.418513951889215
+    }
+  },
+  "warning": "Research backtest only; no guarantee of future returns."
+}

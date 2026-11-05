@@ -1,0 +1,20 @@
+{
+    "EUR_USD": {
+        "wins": 0,
+        "losses": 0,
+        "win_rate": 0.0,
+        "consecutive_failures": 0
+    },
+    "GBP_USD": {
+        "wins": 0,
+        "losses": 0,
+        "win_rate": 0.0,
+        "consecutive_failures": 0
+    },
+    "EUR_GBP": {
+        "wins": 0,
+        "losses": 0,
+        "win_rate": 0.0,
+        "consecutive_failures": 0
+    }
+}

@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-08-05T15:36:36.677342",
+  "signals": [
+    {
+      "symbol": "NVDA",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "AAPL",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "MSFT",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "AMZN",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "GOOGL",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "AVGO",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "META",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "TSLA",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "LLY",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    },
+    {
+      "symbol": "JPM",
+      "setup": {
+        "signal": "NO_TRADE",
+        "reason": "Awaiting Confluence"
+      }
+    }
+  ]
+}

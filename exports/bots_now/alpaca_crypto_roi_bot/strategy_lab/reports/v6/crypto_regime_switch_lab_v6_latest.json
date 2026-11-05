@@ -1,0 +1,194 @@
+{
+  "methodology": {
+    "symbols": [
+      "BTC/USD",
+      "ETH/USD",
+      "DOGE/USD",
+      "LINK/USD",
+      "AVAX/USD"
+    ],
+    "timeframes": [
+      "1h",
+      "4h"
+    ],
+    "forward_start": "2024-11-01 19:00:00+00:00",
+    "forward_end": "2026-08-08 20:00:00+00:00",
+    "parameter_optimization": false,
+    "execution_enabled": false
+  },
+  "aggregate_oos": {
+    "trades": 933,
+    "roi_pct": -113.44691922567046,
+    "profit_factor": 0.6485640572257343,
+    "expectancy": -12.159369691926083,
+    "max_drawdown_pct": 113.10659422046105
+  },
+  "forward_blocks": [
+    {
+      "block": 1,
+      "start": "2024-11-01 19:00:00+00:00",
+      "end": "2025-01-30 19:00:00+00:00",
+      "trades": 191,
+      "roi_pct": -13.901154990282116,
+      "profit_factor": 0.776203829841829,
+      "expectancy": -7.278091617948759,
+      "max_drawdown_pct": 17.636901126788537,
+      "profitable": false
+    },
+    {
+      "block": 2,
+      "start": "2025-01-30 19:00:00+00:00",
+      "end": "2025-04-30 19:00:00+00:00",
+      "trades": 87,
+      "roi_pct": -2.4901149780298004,
+      "profit_factor": 0.8969776327076108,
+      "expectancy": -2.8622011241721794,
+      "max_drawdown_pct": 6.8084213779278775,
+      "profitable": false
+    },
+    {
+      "block": 3,
+      "start": "2025-04-30 19:00:00+00:00",
+      "end": "2025-07-29 19:00:00+00:00",
+      "trades": 202,
+      "roi_pct": -14.14324818742032,
+      "profit_factor": 0.7835352327189287,
+      "expectancy": -7.001608013574421,
+      "max_drawdown_pct": 24.144199530950523,
+      "profitable": false
+    },
+    {
+      "block": 4,
+      "start": "2025-07-29 19:00:00+00:00",
+      "end": "2025-10-27 19:00:00+00:00",
+      "trades": 151,
+      "roi_pct": -6.9006954124398945,
+      "profit_factor": 0.8667114426573886,
+      "expectancy": -4.569996961880723,
+      "max_drawdown_pct": 15.24796427509569,
+      "profitable": false
+    },
+    {
+      "block": 5,
+      "start": "2025-10-27 19:00:00+00:00",
+      "end": "2026-01-25 19:00:00+00:00",
+      "trades": 89,
+      "roi_pct": -25.978505457871904,
+      "profit_factor": 0.2748218015817119,
+      "expectancy": -29.18933197513698,
+      "max_drawdown_pct": 26.263111661091877,
+      "profitable": false
+    },
+    {
+      "block": 6,
+      "start": "2026-01-25 19:00:00+00:00",
+      "end": "2026-04-25 19:00:00+00:00",
+      "trades": 130,
+      "roi_pct": -27.68922632200309,
+      "profit_factor": 0.43561826783215296,
+      "expectancy": -21.2994048630793,
+      "max_drawdown_pct": 28.341045174535495,
+      "profitable": false
+    },
+    {
+      "block": 7,
+      "start": "2026-04-25 19:00:00+00:00",
+      "end": "2026-07-24 19:00:00+00:00",
+      "trades": 80,
+      "roi_pct": -22.59812515356028,
+      "profit_factor": 0.3339222602290121,
+      "expectancy": -28.247656441950348,
+      "max_drawdown_pct": 23.05677444149316,
+      "profitable": false
+    },
+    {
+      "block": 8,
+      "start": "2026-07-24 19:00:00+00:00",
+      "end": "2026-08-08 20:00:01+00:00",
+      "trades": 3,
+      "roi_pct": 0.25415127593706455,
+      "profit_factor": 1.4222950246442032,
+      "expectancy": 8.471709197902552,
+      "max_drawdown_pct": 0.5968381695917243,
+      "profitable": true
+    }
+  ],
+  "profitable_blocks": 1,
+  "profitable_block_pct": 12.5,
+  "by_strategy": {
+    "breakout": {
+      "trades": 83,
+      "roi_pct": -9.15003529278663,
+      "profit_factor": 0.6771025574226448,
+      "expectancy": -11.02413890697184,
+      "max_drawdown_pct": 10.903271854644899
+    },
+    "momentum": {
+      "trades": 814,
+      "roi_pct": -100.80944395986874,
+      "profit_factor": 0.6422557774283856,
+      "expectancy": -12.384452574922447,
+      "max_drawdown_pct": 101.03090930091143
+    },
+    "vol_release": {
+      "trades": 36,
+      "roi_pct": -3.487439973014994,
+      "profit_factor": 0.7249746360474454,
+      "expectancy": -9.687333258374984,
+      "max_drawdown_pct": 9.498113666509497
+    }
+  },
+  "by_symbol": {
+    "AVAX/USD": {
+      "trades": 197,
+      "roi_pct": -15.97408362838183,
+      "profit_factor": 0.7534025623013443,
+      "expectancy": -8.108671892579611,
+      "max_drawdown_pct": 19.1591658936277
+    },
+    "BTC/USD": {
+      "trades": 157,
+      "roi_pct": -37.65621170497055,
+      "profit_factor": 0.4012536551252097,
+      "expectancy": -23.984848219726473,
+      "max_drawdown_pct": 39.43383737028313
+    },
+    "DOGE/USD": {
+      "trades": 182,
+      "roi_pct": -12.981525599594313,
+      "profit_factor": 0.7861593145665354,
+      "expectancy": -7.132706373403465,
+      "max_drawdown_pct": 18.100347491316363
+    },
+    "ETH/USD": {
+      "trades": 187,
+      "roi_pct": -14.89143245068546,
+      "profit_factor": 0.753489123474796,
+      "expectancy": -7.963332861329129,
+      "max_drawdown_pct": 14.91045820298232
+    },
+    "LINK/USD": {
+      "trades": 210,
+      "roi_pct": -31.943665842038172,
+      "profit_factor": 0.5684721360748729,
+      "expectancy": -15.211269448589606,
+      "max_drawdown_pct": 31.943665842038172
+    }
+  },
+  "monte_carlo": {
+    "iterations": 10000,
+    "trades": 933,
+    "probability_profitable_pct": 0.0,
+    "median_roi_pct": -113.75301552463796,
+    "roi_5th_pct": -143.61286077371744,
+    "roi_95th_pct": -83.10634125272533,
+    "dd_95th_pct": 144.29105690948913
+  },
+  "research_gate": {
+    "minimum_oos_trades": 30,
+    "minimum_pf": 1.25,
+    "minimum_profitable_block_pct": 50.0,
+    "minimum_mc_probability_pct": 65.0,
+    "passed": false
+  }
+}

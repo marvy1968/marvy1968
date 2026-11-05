@@ -1,0 +1,9 @@
+engine=/home/moonrider1968/bots/run_f0_hardened_portfolio_v2.py
+engine_sha256=fff76188cc77d0a742cfdb5f1694e6ea8f10bcc4c18234383508b96eeafd3ab6
+module_object=events_df
+trades=628
+r_column=r_mult
+mean_r=0.100840049
+profit_factor=1.164920764
+events_csv=/home/moonrider1968/bots/f0_stage3/f0_canonical_628_events.csv
+events_csv_sha256=ba6d4f896443a0d16d1d9d0e59daa409155d319af654ddaabcb32f19e876933a

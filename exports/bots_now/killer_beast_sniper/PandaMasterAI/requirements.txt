@@ -1,0 +1,10 @@
+pandas
+numpy
+yfinance
+ta
+scipy
+sqlalchemy
+pyyaml
+requests
+matplotlib
+plotly

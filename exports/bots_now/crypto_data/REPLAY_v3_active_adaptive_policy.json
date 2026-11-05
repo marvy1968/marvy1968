@@ -1,0 +1,12 @@
+{
+  "base_risk_pct": 0.004,
+  "btc_risk_multipliers": {
+    "STRONG_BULL": 1.0,
+    "WEAK_BULL": 1.0
+  },
+  "vol_risk_multipliers": {
+    "HIGH_VOL": 1.0,
+    "NORM_VOL": 1.0
+  },
+  "symbol_penalty_box": {}
+}

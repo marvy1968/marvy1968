@@ -1,0 +1,19 @@
+symbols: [BTC/USD, ETH/USD, DOGE/USD, LINK/USD, AVAX/USD]
+benchmark: BTC/USD
+download:
+  location: us
+  base_timeframe: 15Min
+  years: 3
+  page_limit: 10000
+  sleep_seconds: 0.25
+research:
+  starting_equity: 10000.0
+  fee_bps_per_side: 15.0
+  slippage_bps_per_side: 3.0
+  allocation_pct: 20.0
+  max_hold_bars: 96
+  stop_loss_pct: 2.0
+  take_profit_pct: 4.0
+  minimum_trades: 20
+  timeframes: [15min, 1h, 4h]
+  strategies: [trend, momentum, breakout, pullback, mean_reversion, relative_strength, vol_compression]

@@ -1,0 +1,8 @@
+[Unit]
+Description=Alpaca Crypto ROI Bot
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/alpaca_crypto_roi_bot
+ExecStart=%h/alpaca_crypto_roi_bot/.venv/bin/python %h/alpaca_crypto_roi_bot/roi_bot.py paper

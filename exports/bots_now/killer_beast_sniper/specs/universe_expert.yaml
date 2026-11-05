@@ -1,0 +1,14 @@
+name: Universe Expert
+version: 1.0
+
+mission: Build today's investment universe.
+
+tasks:
+  - Download S&P 500
+  - Clean symbols
+  - Validate data
+  - Update database
+  - Remove delisted stocks
+
+output:
+  - Daily Universe

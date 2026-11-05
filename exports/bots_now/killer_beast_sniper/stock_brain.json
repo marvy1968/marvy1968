@@ -1,0 +1,1 @@
+{"MAX_HEAT_SECTOR": 2, "MAX_GLOBAL_HEAT": 5, "ADX_TREND_THRESHOLD": 19.0, "BOX_LOOKBACK": 20, "SL_DIST_MULT": 1.5, "ATR_GASKET_MULT": 0.15, "WEINSTEIN_EMA_LOOKBACK": 150, "total_trades": 2, "win_count": 1, "net_pnl_usd": 54.800000000000225, "loss_streak": 0, "last_reset_week": 23}

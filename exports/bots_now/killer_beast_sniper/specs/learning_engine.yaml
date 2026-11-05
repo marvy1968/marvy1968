@@ -1,0 +1,23 @@
+name: Learning Engine
+
+record:
+  - Entry
+  - Exit
+  - Grade
+  - Trend Score
+  - MFE
+  - MAE
+  - R Multiple
+  - Holding Time
+  - Sector
+  - Market Regime
+  - Reload Count
+  - Win Rate
+  - Profit Factor
+  - Expectancy
+
+objective:
+  Recommend improvements.
+
+restriction:
+  Never change production rules automatically.

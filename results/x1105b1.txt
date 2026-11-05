@@ -1,3 +1,4 @@
 $ export-bot bots_now /home/moonrider1968/bots
-started 2026-11-04 19:26:41 EST
-RUNNING...
+started 2026-11-04 19:26:41 EST, took 419s, exit 0
+
+exported 1076 files, 8848 KB

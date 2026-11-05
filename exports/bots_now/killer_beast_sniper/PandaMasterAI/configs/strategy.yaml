@@ -1,0 +1,5 @@
+strategy:
+  name: AWTS
+  long_stage: 2
+  short_stage: 4
+  minimum_grade: A-

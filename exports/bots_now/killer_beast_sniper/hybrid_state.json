@@ -1,0 +1,22 @@
+{
+  "AAPL": {
+    "engine": "brokered_sync",
+    "symbol": "AAPL",
+    "side": "long",
+    "entry": 312.009497,
+    "stop": 305.76930706,
+    "tp": 324.48987688,
+    "size": 2.34,
+    "initial_risk": 6.2401899400000005
+  },
+  "QQQ": {
+    "engine": "brokered_sync",
+    "symbol": "QQQ",
+    "side": "long",
+    "entry": 720.47,
+    "stop": 706.0606,
+    "tp": 749.2888,
+    "size": 1.01,
+    "initial_risk": 14.409400000000002
+  }
+}

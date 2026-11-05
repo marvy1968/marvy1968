@@ -1,0 +1,16 @@
+ALPACA MULTI-SCALPER V2.1 DRY-RUN INSTALL
+UTC=20260818T120221Z
+
+Dry-run source=/home/moonrider1968/bots/killer_beast_sniper/multi_scalper_shadow_v2_1_dryrun.py
+Backup=/home/moonrider1968/bots/killer_beast_sniper/backups/v2_1_dryrun_20260818T120221Z/multi_scalper_shadow.py.v2_before_v21
+
+ENTRY_POSTS=SUPPRESSED
+EXIT_POSTS=SUPPRESSED
+EXISTING_POSITION_ADOPTION=DISABLED
+REAL_ACCOUNT_SNAPSHOT=ENABLED
+REAL_MARKET_DATA=ENABLED
+PAPER_ONLY_GUARD=ENABLED
+
+Production services:
+masterbrain.service=STOPPED
+shadowbot.service=STOPPED

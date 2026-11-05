@@ -1,0 +1,114 @@
+[
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "STRONG_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.39431322156572773,
+    "sample_size": 15,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.2884034621795544,
+    "sample_size": 15,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "STRONG_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.3560647004229858,
+    "sample_size": 16,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.2567743009984483,
+    "sample_size": 16,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "STRONG_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.35695028311858223,
+    "sample_size": 17,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.26350049542489984,
+    "sample_size": 17,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "STRONG_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.38410691090776944,
+    "sample_size": 18,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.2958487780859583,
+    "sample_size": 18,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.3236024986566233,
+    "sample_size": 19,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.33275620544720186,
+    "sample_size": 20,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.32743241886364416,
+    "sample_size": 21,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.33558263608790323,
+    "sample_size": 22,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.2928028088257304,
+    "sample_size": 23,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "NORM_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -0.23022304590524154,
+    "sample_size": 24,
+    "status": "QUEUED_SHADOW_REPLAY"
+  }
+]

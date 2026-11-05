@@ -1,0 +1,30 @@
+{
+  "created_utc": "2026-08-30T22:10:31.794554+00:00",
+  "universe": [
+    "AAVE/USD",
+    "ADA/USD",
+    "AVAX/USD",
+    "BAT/USD",
+    "BCH/USD",
+    "BTC/USD",
+    "CRV/USD",
+    "DOGE/USD",
+    "DOT/USD",
+    "ETH/USD",
+    "GRT/USD",
+    "LINK/USD",
+    "LTC/USD",
+    "ONDO/USD",
+    "PEPE/USD",
+    "POL/USD",
+    "SHIB/USD",
+    "SOL/USD",
+    "UNI/USD",
+    "XRP/USD"
+  ],
+  "start": "2024-09-08T00:00:00+00:00",
+  "last_completed": "2026-08-27T00:00:00+00:00",
+  "source": "Alpaca CryptoHistoricalDataClient",
+  "timeframe": "1Day",
+  "core_n27_modified": false
+}

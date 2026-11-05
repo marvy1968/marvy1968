@@ -1,0 +1,22 @@
+name: Trend Confidence
+
+weights:
+  Stage: 30
+  Mansfield_RS: 20
+  SMA150: 15
+  EMA20: 10
+  Volume: 10
+  Sector: 5
+  SPY: 5
+  Persistence: 5
+
+output:
+  score: 0-100
+  grades:
+    - A+
+    - A
+    - A-
+    - B+
+    - B
+    - B-
+    - Reject

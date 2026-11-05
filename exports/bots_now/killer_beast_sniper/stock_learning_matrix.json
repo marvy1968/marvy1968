@@ -1,0 +1,392 @@
+{
+  "AAPL": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "MSFT": {
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "NVDA": {
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.5,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "TSLA": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "AMD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0
+  },
+  "META": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "AMZN": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "GOOGL": {
+    "wins": 0,
+    "losses": 3,
+    "win_rate": 0.5,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "AVGO": {
+    "wins": 2,
+    "losses": 3,
+    "win_rate": 0.4,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "ORCL": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "JPM": {
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "BAC": {
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "consecutive_failures": 2,
+    "consecutive_wins": 0
+  },
+  "WFC": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "MS": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "GS": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "LLY": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "UNH": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "JNJ": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "MRK": {
+    "wins": 1,
+    "losses": 2,
+    "win_rate": 0.3333,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "ABBV": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "HD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "MCD": {
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "consecutive_failures": 2,
+    "consecutive_wins": 0
+  },
+  "LOW": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "NFLX": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "DIS": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "CMCSA": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "CAT": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "GE": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "HON": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "UNP": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "RTX": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "WMT": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "PG": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "COST": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "KO": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "PEP": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "XOM": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "CVX": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "COP": {
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "SLB": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "EOG": {
+    "wins": 2,
+    "losses": 1,
+    "win_rate": 0.6667,
+    "consecutive_failures": 0,
+    "consecutive_wins": 2
+  },
+  "NEE": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "SO": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "DUK": {
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "consecutive_failures": 2,
+    "consecutive_wins": 0
+  },
+  "CEG": {
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 0.5,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "AEP": {
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 1.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 1
+  },
+  "PLD": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "AMT": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "EQIX": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "CCI": {
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "consecutive_failures": 2,
+    "consecutive_wins": 0
+  },
+  "DLR": {
+    "wins": 2,
+    "losses": 1,
+    "win_rate": 0.6667,
+    "consecutive_failures": 0,
+    "consecutive_wins": 2
+  },
+  "LIN": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "SHW": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  },
+  "APD": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "FCX": {
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "consecutive_failures": 1,
+    "consecutive_wins": 0
+  },
+  "NEM": {
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "consecutive_failures": 0,
+    "consecutive_wins": 0
+  }
+}

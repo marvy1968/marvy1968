@@ -1,0 +1,15 @@
+name: Daily Screener
+
+workflow:
+  - Download Universe
+  - Stage Analysis
+  - Trend Score
+  - Grade
+  - Rank
+  - Hotlist
+  - Capital Queue
+
+outputs:
+  - stage2_hotlist.json
+  - daily_rankings.json
+  - capital_queue.json

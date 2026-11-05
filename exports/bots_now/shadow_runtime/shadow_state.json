@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "active_positions": {
+    "MSFT": {
+      "entry_date": "2026-08-31",
+      "entry_price": 513.8317875,
+      "initial_stop": 472.27387391973724,
+      "current_stop": 472.27387391973724,
+      "qty": 4,
+      "risk_per_share": 41.55791358026278
+    },
+    "AAPL": {
+      "entry_date": "2026-09-11",
+      "entry_price": 325.912875,
+      "initial_stop": 310.19982729057085,
+      "current_stop": 310.19982729057085,
+      "qty": 12,
+      "risk_per_share": 15.713047709429134
+    },
+    "TSLA": {
+      "entry_date": "2026-09-14",
+      "entry_price": 359.79981,
+      "initial_stop": 342.50006877312046,
+      "current_stop": 342.50006877312046,
+      "qty": 11,
+      "risk_per_share": 17.29974122687952
+    }
+  },
+  "pending_entries": {},
+  "pending_exits": {},
+  "last_scan_date": "2026-09-11",
+  "last_fill_date": "2026-09-14"
+}

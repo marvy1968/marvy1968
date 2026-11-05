@@ -1,0 +1,17 @@
+name: Entry Expert
+
+requirements:
+  - Stage 2
+  - Grade A-
+  - Rising 20 EMA
+  - Rising 150 SMA
+  - Positive Mansfield RS
+  - Strong Sector
+  - Bullish SPY
+  - 15 Minute Trigger
+  - Risk Governor Approval
+
+decision:
+  - ENTER
+  - WAIT
+  - REJECT

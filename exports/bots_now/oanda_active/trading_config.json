@@ -1,0 +1,11 @@
+{
+  "risk_per_trade_pct": 0.01,
+  "max_concurrent_trades": {
+    "swing": 6,
+    "daytrade": 8,
+    "crypto": 10
+  },
+  "global_drawdown_pause_pct": 0.01,
+  "pause_duration_hours": 8,
+  "log_level": "INFO"
+}

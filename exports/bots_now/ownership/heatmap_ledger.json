@@ -1,0 +1,117 @@
+{
+  "bot": "heatmap",
+  "prefix": "hm-",
+  "positions": {
+    "MSFT": {
+      "symbol": "MSFT",
+      "side": "long",
+      "qty": 1.0,
+      "orders": [
+        {
+          "id": "69240652-70be-48d2-9dba-e84b79c09b9d",
+          "coid": "(pre-ownership untagged; from heatmap_bot.log 2026-10-01 12:30 ET)",
+          "role": "entry",
+          "qty": "1",
+          "at": "2026-10-01T16:30:31Z",
+          "filled": 1.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "c23fc3a5-aab8-4205-8e95-4f4e1a2c957b",
+          "coid": "hm-x-1001194948-9f2485d5",
+          "role": "exit",
+          "qty": "1",
+          "at": "2026-10-01T19:49:48.591247+00:00"
+        }
+      ],
+      "opened_at": "2026-10-01T16:30:31+00:00",
+      "meta": {
+        "seeded": "2026-10-01 manual seed of pre-patch heatmap brackets"
+      }
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "side": "long",
+      "qty": 2.0,
+      "orders": [
+        {
+          "id": "333a8c29-6027-4676-9dce-c8444463694a",
+          "coid": "(pre-ownership untagged; from heatmap_bot.log 2026-10-01 12:30 ET)",
+          "role": "entry",
+          "qty": "2",
+          "at": "2026-10-01T16:30:32Z",
+          "filled": 2.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "a867b64d-c34a-42a1-afec-c56ad389afc6",
+          "coid": "hm-x-1001194948-91cc6207",
+          "role": "exit",
+          "qty": "2",
+          "at": "2026-10-01T19:49:48.686665+00:00"
+        }
+      ],
+      "opened_at": "2026-10-01T16:30:32+00:00",
+      "meta": {
+        "seeded": "2026-10-01 manual seed of pre-patch heatmap brackets"
+      }
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "side": "long",
+      "qty": 1.0,
+      "orders": [
+        {
+          "id": "5bc56317-4a60-48a8-a420-050c3b31c63b",
+          "coid": "(pre-ownership untagged; from heatmap_bot.log 2026-10-01 12:30 ET)",
+          "role": "entry",
+          "qty": "1",
+          "at": "2026-10-01T16:30:33Z",
+          "filled": 1.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "2f6fcf4f-8dda-41a0-a8b7-aa693e6082fa",
+          "coid": "hm-x-1001194948-8fe9efed",
+          "role": "exit",
+          "qty": "1",
+          "at": "2026-10-01T19:49:48.783172+00:00"
+        }
+      ],
+      "opened_at": "2026-10-01T16:30:33+00:00",
+      "meta": {
+        "seeded": "2026-10-01 manual seed of pre-patch heatmap brackets"
+      }
+    },
+    "CVX": {
+      "symbol": "CVX",
+      "side": "long",
+      "qty": 2.0,
+      "orders": [
+        {
+          "id": "58d494c0-ccba-4d31-8ca9-20d17086357d",
+          "coid": "hm-en-1001173438-e2e05e2a",
+          "role": "entry",
+          "qty": "2",
+          "at": "2026-10-01T17:34:38.529297+00:00",
+          "filled": 2.0,
+          "legs_filled": 0.0,
+          "done": true
+        },
+        {
+          "id": "4dda702b-fa1e-41ef-bd2d-4906cc8bdc59",
+          "coid": "hm-x-1001194948-d883e0f8",
+          "role": "exit",
+          "qty": "2",
+          "at": "2026-10-01T19:49:48.876842+00:00"
+        }
+      ],
+      "opened_at": "2026-10-01T17:34:38.529271+00:00",
+      "meta": {}
+    }
+  },
+  "updated_at": "2026-10-01T19:49:48.876869+00:00"
+}

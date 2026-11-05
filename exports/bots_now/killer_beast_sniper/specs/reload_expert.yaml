@@ -1,0 +1,16 @@
+name: Reload Expert
+
+requirements:
+  - Stage Valid
+  - High Trend Confidence
+  - Rising 20 EMA
+  - Rising 150 SMA
+  - Positive Mansfield RS
+  - Bullish SPY
+  - Light Volume Pullback
+  - Bullish Confirmation Candle
+  - Risk Governor Approval
+
+decision:
+  - ADD
+  - WAIT

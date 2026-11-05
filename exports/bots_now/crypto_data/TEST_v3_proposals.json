@@ -1,0 +1,34 @@
+[
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "WEAK_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -1.0,
+    "sample_size": 15,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "HIGH_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -1.0,
+    "sample_size": 15,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "btc_risk_multipliers",
+    "bucket": "WEAK_BULL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -1.0,
+    "sample_size": 16,
+    "status": "QUEUED_SHADOW_REPLAY"
+  },
+  {
+    "type": "vol_risk_multipliers",
+    "bucket": "HIGH_VOL",
+    "proposed_scalar": 0.625,
+    "observed_exp": -1.0,
+    "sample_size": 16,
+    "status": "QUEUED_SHADOW_REPLAY"
+  }
+]

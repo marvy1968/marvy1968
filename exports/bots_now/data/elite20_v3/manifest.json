@@ -1,0 +1,253 @@
+{
+  "frozen_timestamp_utc": "2026-09-04T19:38:44.089701+00:00",
+  "feed": "iex",
+  "nyse_official_sessions": 1258,
+  "symbols": [
+    {
+      "symbol": "AAPL",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "e132b8bc353fe50cbb72f69b265e7a2a79f864e6955a7d1863e97d98dc10e6a1"
+    },
+    {
+      "symbol": "AMZN",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "387b657294ab40bb1ef773baf1d240907ea8e42ef74b2f4ed0473c58141157f3"
+    },
+    {
+      "symbol": "AVGO",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "91434b184aeff29308c8823bb02b83255246ccdb3bcc9d0f00b61913f46abda5"
+    },
+    {
+      "symbol": "CAT",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "ec589e731aa910e976ee5b5745603d5cb9b556162343b268397fc2a8262897a6"
+    },
+    {
+      "symbol": "COP",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "d50e849e6a39f6ee19c3784eb5304fb4e2f18fe82ce62be280c092cc36013170"
+    },
+    {
+      "symbol": "COST",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "e2fbdba216dc4dbbcd0f4637beb3f4e81a3cd718aa105cb4fdb07163589001ce"
+    },
+    {
+      "symbol": "CVX",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "9b2b28effabf7e63d75731676b83f67ac15ed36aac1832435f81f33570099062"
+    },
+    {
+      "symbol": "GE",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1257,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 1,
+      "missing_sessions": [
+        "2021-10-25"
+      ],
+      "sha256": "0bf4b133263491d655b3adb3df076d25d4984925de7d127f8485bcd570ff9c86"
+    },
+    {
+      "symbol": "GOOGL",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "15d3269bff19812f45f6242f084121d9daa5f0068052e3fb95b3f9c5f9522e0d"
+    },
+    {
+      "symbol": "GS",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "5cae4be91e1563c52686fd7ad0759d95c9cbe518f20f7632cd5151763937ee5e"
+    },
+    {
+      "symbol": "JPM",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "2b7ebc6cc1e49d4ada1f3a7a2cb961912f35c7e53a00fea3a7f6961025cbf5c7"
+    },
+    {
+      "symbol": "META",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "3253fdcf7bd02d789e0d3757d67102cadcb68e812c063fb73e19629759f17782"
+    },
+    {
+      "symbol": "MSFT",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "81f7d3c369f511816267bef53a7085c96ef4c126da9145d2ebf89d8353a52252"
+    },
+    {
+      "symbol": "NFLX",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "83388d4d527cb02bc55177050ad7b23cbaeaa3a1b0c0e3d66fb496f294b8a379"
+    },
+    {
+      "symbol": "NVDA",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "ac8740a596012310788e5c27e551c04189059137e7973c5201b9fc65dcea03da"
+    },
+    {
+      "symbol": "PG",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "b0ee546e16b81d8103469129cc6547d2dfd21e69d6a8f96558b80db8160ed73b"
+    },
+    {
+      "symbol": "QQQ",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "ee256e315b8ac16c1de09e1149661571eecc1f70dd1d8c052c850a390f031a2c"
+    },
+    {
+      "symbol": "SPY",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1258,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 0,
+      "missing_sessions": [],
+      "sha256": "ac080ba46bad64e2490fb078c36a63637473717b4e90c50193599fe5ebe2fdb6"
+    },
+    {
+      "symbol": "WMT",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "343dd6a61ef4ea0db07f5e823c2f298a9f07529da80bb71997f22270d5c125d2"
+    },
+    {
+      "symbol": "XOM",
+      "feed": "iex",
+      "source": "Alpaca_API_v2",
+      "bars": 1256,
+      "start_date": "2021-09-01",
+      "end_date": "2026-09-04",
+      "missing_session_count": 2,
+      "missing_sessions": [
+        "2021-10-25",
+        "2022-03-08"
+      ],
+      "sha256": "0beb23a49b8ec611a44669def4fed7b3538cf56e1fc07e96dcd7b0a132ce66e9"
+    }
+  ]
+}
