@@ -1,3 +1,18 @@
 $ logs marv-bridge 15
-started 2026-11-05 10:01:05 EST
-RUNNING...
+started 2026-11-05 10:01:05 EST, took 0s, exit 0
+
+Nov 05 07:55:42 instance-stockbot systemd[1]: marv-bridge.service: Consumed 11.915s CPU time.
+Nov 05 07:55:42 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Nov 05 07:55:51 instance-stockbot python[2657917]: 2026-11-05 07:55:51,611 INFO Marv bridge listening on http://127.0.0.1:8787
+Nov 05 09:17:44 instance-stockbot systemd[1]: Stopping marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot...
+Nov 05 09:17:44 instance-stockbot systemd[1]: marv-bridge.service: Deactivated successfully.
+Nov 05 09:17:44 instance-stockbot systemd[1]: Stopped marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Nov 05 09:17:44 instance-stockbot systemd[1]: marv-bridge.service: Consumed 11.725s CPU time.
+Nov 05 09:17:44 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Nov 05 09:18:09 instance-stockbot python[2667274]: 2026-11-05 09:18:09,966 INFO Marv bridge listening on http://127.0.0.1:8787
+Nov 05 09:19:22 instance-stockbot systemd[1]: Stopping marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot...
+Nov 05 09:19:22 instance-stockbot systemd[1]: marv-bridge.service: Deactivated successfully.
+Nov 05 09:19:22 instance-stockbot systemd[1]: Stopped marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Nov 05 09:19:22 instance-stockbot systemd[1]: marv-bridge.service: Consumed 24.009s CPU time.
+Nov 05 09:19:22 instance-stockbot systemd[1]: Started marv-bridge.service - Marv bridge - local fair-price API for the odds alert bot.
+Nov 05 09:19:49 instance-stockbot python[2668569]: 2026-11-05 09:19:49,755 INFO Marv bridge listening on http://127.0.0.1:8787
