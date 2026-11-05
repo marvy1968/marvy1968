@@ -1,3 +1,38 @@
 $ alpaca run-all --phase validate --weeks2 --families brain_shorts
-started 2026-11-05 09:19:34 EST
-RUNNING...
+started 2026-11-05 09:19:34 EST, took 1736s, exit 0
+
+daily data ready
+- daily lists from sector NEWS: a stock was on the LONG list 0 of 594 stock-days, on the SHORT list 0
+- rule: PRE-REGISTERED (owner 2026-11-05 'Yes do the 2 week shorts only test'): the Brain with NO long experts and the live short experts (brain_config.json), the live filters (direction first, stage, trend confirm, Velez hybrid 1.5R stop / 0.5R target, 10-minute under-water exit), the live entry list (24 mid / small caps), last two weeks split into two one-week halves. PROPOSE resuming the Brain shorts-only on paper only if: 10+ trades over the two weeks, PF >= 1.1 in BOTH halves, PF >= 1.0 over both weeks with costs doubled, and avg R above the mean of 3 random-timing controls. Otherwise the kill switch stays.
+- checks: 10+ trades OK, PF >= 1.1 week 1 NO, PF >= 1.1 week 2 OK, PF >= 1.0 at 2x costs NO, avg R beats random timing NO | random-timing avg R 0.16086127824166646
+## brain_shorts: FAIL: PF >= 1.1 week 1, PF >= 1.0 at 2x costs, avg R beats random timing - the Brain stays paused
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- first week | live long + short (reference): 36t win 53% PF 0.86 avgR +0.01 daily -0.045% CAGR +0.0% maxDD -0.8%
+- first week | SHORTS ONLY (live short experts): 31t win 55% PF 0.80 avgR +0.03 daily -0.069% CAGR +0.0% maxDD -0.8%
+- first week | short dual_regime alone: 15t win 40% PF 0.71 avgR -0.05 daily -0.079% CAGR +0.0% maxDD -0.4%
+- first week | short connors_rsi2 alone: 5t win 0% PF 0.00 avgR -0.22 daily -0.150% CAGR +0.0% maxDD -0.5%
+- first week | short brooks_pullback alone: 11t win 82% PF 1.77 avgR +0.15 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first week | short bollinger_bounce alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first week | short vwap_dev alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first week | short raschke_grail alone: 11t win 82% PF 2.82 avgR +0.19 daily +0.000% CAGR +0.0% maxDD 0.0%
+- first week | (info) shorts + vz_scalp / vz_day short side: 38t win 53% PF 0.95 avgR +0.03 daily -0.031% CAGR +0.0% maxDD -0.7%
+- second week | live long + short (reference): 25t win 68% PF 1.94 avgR +0.06 daily +0.238% CAGR +0.0% maxDD 0.0%
+- second week | SHORTS ONLY (live short experts): 25t win 72% PF 2.23 avgR +0.08 daily +0.299% CAGR +0.0% maxDD 0.0%
+- second week | short dual_regime alone: 10t win 70% PF 1.66 avgR +0.10 daily +0.092% CAGR +0.0% maxDD -0.1%
+- second week | short connors_rsi2 alone: 7t win 71% PF 12.96 avgR +0.21 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second week | short brooks_pullback alone: 7t win 71% PF 0.82 avgR -0.06 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second week | short bollinger_bounce alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second week | short vwap_dev alone: 0t win 0% PF 0.00 avgR +0.00 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second week | short raschke_grail alone: 7t win 71% PF 0.69 avgR -0.12 daily +0.000% CAGR +0.0% maxDD 0.0%
+- second week | (info) shorts + vz_scalp / vz_day short side: 29t win 62% PF 1.71 avgR +0.04 daily +0.192% CAGR +0.0% maxDD 0.0%
+- both weeks | SHORTS ONLY: 56t win 62% PF 1.27 avgR +0.05 daily +0.057% CAGR +0.0% maxDD -0.8%
+- both weeks | SHORTS ONLY at 2x costs: 56t win 59% PF 0.97 avgR +0.01 daily -0.013% CAGR +0.0% maxDD -1.1%
+- both weeks | random-timing control 1: 56t win 36% PF 0.90 avgR -0.04 daily -0.084% CAGR +0.0% maxDD -1.5%
+- both weeks | random-timing control 2: 56t win 45% PF 2.33 avgR +0.32 daily +0.463% CAGR +0.0% maxDD -0.7%
+- both weeks | random-timing control 3: 58t win 45% PF 1.86 avgR +0.21 daily +0.292% CAGR +0.0% maxDD -1.0%
+ALL DONE
