@@ -183,6 +183,18 @@ class EnsureStopsTests(unittest.TestCase):
             self.assertLess(row[0]["score_48h"], 0)
             self.assertEqual(row[1]["error"], "http 403")
 
+    def test_market_news_filter(self):
+        ents = [{"symbol": "AAA", "side": 1}, {"symbol": "BBB", "side": -1}]
+        now = pd.Timestamp("2026-11-05 16:20", tz=sp.ET).to_pydatetime()
+        bad = [{"t": "2026-11-05T1%d:00:00Z" % i, "symbols": ["QQQ"], "s": -1} for i in range(4)]       # "Nasdaq falls ..." x4
+        good = [{"t": "2026-11-05T1%d:00:00Z" % i, "symbols": ["SPY"], "s": 1} for i in range(4)]
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(Broker({}), state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            with unittest.mock.patch.object(r, "zone_config", return_value={"market_news": {"live": True}}):
+                self.assertEqual([e["symbol"] for e in r.market_news_filter(ents, now, fetch_news=lambda *a: bad)], ["BBB"])   # longs out
+                self.assertEqual(r.market_news_filter(ents, now, fetch_news=lambda *a: good), ents)
+                self.assertEqual(r.market_news_filter(ents, now, fetch_news=lambda *a: bad[:2]), ents)                         # < 3 articles
+
 
 if __name__ == "__main__":
     import unittest.mock  # noqa: F401

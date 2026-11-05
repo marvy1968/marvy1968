@@ -292,8 +292,14 @@ class SwingRunner:
             entries = self.spy_regime_filter(spy, entries, now)
         if (self.zone_config().get("stock_news") or {}).get("live") and entries:   # owner 2026-11-05: skip longs with bad recent headlines
             entries = self.stock_news_filter(entries, now)
-        if (self.zone_config().get("seeking_alpha") or {}).get("log"):              # owner 2026-11-05: Seeking Alpha headlines, LOG ONLY
-            self.seeking_alpha_log(sorted({e["symbol"] for e in entries} | set(held)), now)
+        if (self.zone_config().get("market_news") or {}).get("live") and entries:  # owner 2026-11-05: general market headlines (S&P / Nasdaq)
+            entries = self.market_news_filter(entries, now)
+        sa = self.zone_config().get("seeking_alpha") or {}
+        if sa.get("log"):                                                           # owner 2026-11-05: Seeking Alpha headlines, LOG ONLY
+            if sa.get("market", True):
+                self.seeking_alpha_log(["market"], now, urls={"market": "https://seekingalpha.com/market_currents.xml"})
+            else:
+                self.seeking_alpha_log(sorted({e["symbol"] for e in entries} | set(held)), now)
         self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
@@ -331,7 +337,35 @@ class SwingRunner:
             self.journal("stock_news_skip", now, skipped={k: {"articles": v[0], "score": v[1]} for k, v in bad.items()}, hours=hours)
         return [e for e in entries if not (e.get("side", 1) == 1 and e["symbol"] in bad)]
 
-    def seeking_alpha_log(self, symbols: list, now: datetime, get=None) -> None:
+    def market_news_filter(self, entries: list, now: datetime, fetch_news=None) -> list:
+        """Owner 2026-11-05 ("the general headlines, e.g. Nasdaq down because ..."; not backtested by the owner's choice): Alpaca/Benzinga
+        articles tagged with the market symbols (SPY, QQQ) over the last `hours`, word-scored (alpacabot.news); a negative total blocks every
+        new swing LONG that day. Needs `min_articles`; a feed failure blocks nothing."""
+        cfg = self.zone_config().get("market_news") or {}
+        hours, syms, min_n = float(cfg.get("hours", 48)), list(cfg.get("symbols", ["SPY", "QQQ"])), int(cfg.get("min_articles", 3))
+        if not any(e.get("side", 1) == 1 for e in entries):
+            return entries
+        since = now.astimezone(timezone.utc) - timedelta(hours=hours)
+        try:
+            from .news import fetch as _fetch_news
+            arts = (fetch_news or _fetch_news)(syms, since.date(), now.astimezone(timezone.utc).date(), self.dir / "news_cache")
+        except Exception as exc:
+            self.journal("market_news_error", now, error=str(exc)[:160])
+            return entries
+        n, total = 0, 0
+        for a in arts:
+            t = pd.Timestamp(a["t"])
+            t = t.tz_localize("UTC") if t.tzinfo is None else t
+            if t >= pd.Timestamp(since) and set(a.get("symbols") or []) & set(syms):
+                n, total = n + 1, total + int(a.get("s") or 0)
+        self.journal("market_news", now, articles=n, score=total, hours=hours)
+        if n >= min_n and total < 0:
+            blocked = [e["symbol"] for e in entries if e.get("side", 1) == 1]
+            self.journal("market_news_skip", now, articles=n, score=total, blocked=blocked)
+            return [e for e in entries if e.get("side", 1) != 1]
+        return entries
+
+    def seeking_alpha_log(self, symbols: list, now: datetime, get=None, urls: dict | None = None) -> None:
         """Owner 2026-11-05: Seeking Alpha's free per-stock RSS (headlines only, ~20 latest, no history) for the swing candidates and holdings,
         scored with the same word list and appended to seekingalpha.jsonl. LOG ONLY - it never changes a trade. A few requests a day."""
         import xml.etree.ElementTree as ET
@@ -346,7 +380,7 @@ class SwingRunner:
         rows = []
         for sym in symbols[:25]:
             try:
-                r = get(f"https://seekingalpha.com/api/sa/combined/{sym}.xml")
+                r = get((urls or {}).get(sym) or f"https://seekingalpha.com/api/sa/combined/{sym}.xml")
                 if r.status_code != 200:
                     rows.append({"symbol": sym, "error": f"http {r.status_code}"})
                     continue
