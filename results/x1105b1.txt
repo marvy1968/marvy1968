@@ -1,0 +1,3 @@
+$ export-bot bots_now /home/moonrider1968/bots
+started 2026-11-04 19:26:41 EST
+RUNNING...
