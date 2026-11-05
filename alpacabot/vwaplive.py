@@ -37,6 +37,9 @@ VWAP_LIVE = {"risk_pct": 0.0005, "notional_cap": 0.25, "max_new": 4, "max_open":
              # owner 2026-11-04 ("switch the losing sleeves to log only"): reclaim PF 0.50, band 0.64 in the 5-month test, no exit of 18 fixed
              # either. Signals are still scanned and journalled (skip_reason log_only); open trades keep their exits. UNDO: "log_only": False.
              "log_only": True,
+             # owner 2026-11-05 ("if the S&P 500 is down overall let it short only, if up look for longs"): SPY prev close vs its rising /
+             # falling SMA20 picks the side (VwapLive.spy_side_ok). UNDO: "spy_regime": False.
+             "spy_regime": True,
              "start_date": "2026-11-03"}     # first session it may trade (after the owner sees the 2-week sample)
 
 
@@ -282,7 +285,29 @@ class VwapLive:
                 continue
             self.enter(sym, strat, side, sig, now, m)
 
+    def spy_side_ok(self, side: int, now) -> bool:
+        """Owner 2026-11-05: SPY's previous close over its rising SMA20 -> longs only; under a falling one -> shorts only; else both.
+        Cached per day; if SPY cannot be read the signal is allowed (the gate never blocks on a data error)."""
+        day = now.date().isoformat()
+        if self.state.get("spy_regime_day") != day:
+            try:
+                from .trendopt import daily_flags
+                start = (now - timedelta(days=90)).astimezone(timezone.utc).strftime("%Y-%m-%dT00:00:00Z")
+                end = pd.Timestamp(now.date(), tz=ET).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+                lo, sh = daily_flags(self.fetch("SPY", "1Day", start, end, "sip")).get("_next", (False, False))
+                self.state["spy_regime"] = "long" if lo and not sh else "short" if sh and not lo else "both"
+            except Exception as exc:
+                self.journal("error", now, where="spy_regime", error=str(exc)[:160])
+                self.state["spy_regime"] = "both"
+            self.state["spy_regime_day"] = day
+        reg = self.state.get("spy_regime", "both")
+        return reg == "both" or (reg == "long" and side == 1) or (reg == "short" and side == -1)
+
     def enter(self, sym, strat, side, sig, now, m):
+        if self.cfg.get("spy_regime") and not self.spy_side_ok(side, now):
+            self.journal("signal", now, symbol=sym, strategy=strat, side=side, taken=False, skip_reason="spy_regime",
+                         regime=self.state.get("spy_regime"), entry=sig["entry"], stop=sig["stop"])
+            return
         if self.cfg.get("log_only"):                         # owner 2026-11-04 ("switch the losing sleeves to log only"): signal logged, no order
             self.journal("signal", now, symbol=sym, strategy=strat, side=side, taken=False, skip_reason="log_only", entry=sig["entry"],
                          stop=sig["stop"])

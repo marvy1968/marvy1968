@@ -288,11 +288,29 @@ class SwingRunner:
         exits, entries = self.weekpicks_plan(spy, closes, held, exits, entries, equity, cash, locked, now)
         exits, entries = self.stairstep_plan(held, exits, entries, equity, cash, locked, now)
         exits, entries = self.trend_filters(held, exits, entries, now)
+        if self.zone_config().get("spy_regime") and entries:     # owner 2026-11-05: S&P down overall -> no new longs (shorts only)
+            entries = self.spy_regime_filter(spy, entries, now)
         self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
+
+    def spy_regime_filter(self, spy: pd.DataFrame, entries: list, now: datetime) -> list:
+        """SPY's latest close over its rising SMA20 -> keep long entries only; under a falling SMA20 -> short entries only; else all."""
+        try:
+            from .trendopt import daily_flags
+            lo, sh = daily_flags(spy).get("_next", (False, False))
+        except Exception as exc:
+            self.journal("spy_regime_error", now, error=str(exc)[:160])
+            return entries
+        drop = 1 if (sh and not lo) else -1 if (lo and not sh) else 0
+        if not drop:
+            return entries
+        blocked = [e["symbol"] for e in entries if e.get("side", 1) == drop]
+        if blocked:
+            self.journal("spy_regime", now, regime="short" if drop == 1 else "long", blocked=blocked)
+        return [e for e in entries if e.get("side", 1) != drop]
 
     def trend_filters(self, held: dict, exits: list, entries: list, now: datetime) -> tuple[list, list]:
         """Owner 2026-10-28 (TREND_FILTERS; fxbot.strongtrend, on PAPER without a finished backtest): a new swing entry needs the stock's LONG

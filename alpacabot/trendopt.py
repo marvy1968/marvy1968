@@ -243,7 +243,8 @@ from .vwaplive import VwapLive  # noqa: E402
 
 # owner 2026-11-04 ("switch the losing sleeves to log only"): 3-month backtest PF 0.40 (203 trades, lost to random entries 20/20).
 # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
-TRENDOPT_LIVE = {**CFG, "daily_limit_r": 1e9, "paused": False, "start_date": "2026-11-03", "log_only": True}
+TRENDOPT_LIVE = {**CFG, "daily_limit_r": 1e9, "paused": False, "start_date": "2026-11-03", "log_only": True,
+                 "spy_regime": True}          # owner 2026-11-05: SPY regime gate (also in its backtest: trendopt_regime). UNDO: False
 
 
 class TrendOptLive(VwapLive):
@@ -349,11 +350,6 @@ class TrendOptLive(VwapLive):
             side = 1 if r["long"] else -1 if r["short"] else 0
             if not side or not (float(r["atr"]) > 0):
                 continue
-            if cfg.get("spy_regime"):
-                lo, sh = self.flags("SPY", now).get(now.date(), (False, False))
-                if (lo and not sh and side == -1) or (sh and not lo and side == 1):
-                    self.journal("signal", now, symbol=sym, strategy="trend", side=side, taken=False, skip_reason="spy_regime")
-                    continue
             if side == -1 and not self.b.shortable(sym):
                 self.journal("signal", now, symbol=sym, strategy="trend", side=-1, taken=False, skip_reason="not easy to borrow")
                 continue

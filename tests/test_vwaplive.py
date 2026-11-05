@@ -164,6 +164,24 @@ class VwapLiveTests(unittest.TestCase):
             self.assertTrue(any(x["kind"] == "signal" and x.get("skip_reason") == "log_only" for x in j))
         self.assertTrue(vl.VWAP_LIVE["log_only"])                     # owner 2026-11-04: the live sleeve is log only
 
+    def test_spy_regime_gate(self):
+        def fetch(sym, tf, a, b, feed):
+            d = pd.bdate_range(end=TODAY - pd.Timedelta(days=1), periods=60).tz_localize(ET)
+            c = np.linspace(480, 400, 60)                       # SPY falling under a falling SMA20 -> shorts only
+            return pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=d)
+        with tempfile.TemporaryDirectory() as d:
+            b = FakeBroker()
+            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False}, fetch=fetch, sleep=lambda *_: None)
+            now = datetime(2026, 11, 3, 10, 30, 10, tzinfo=ET)
+            self.assertFalse(live.spy_side_ok(1, now))
+            self.assertTrue(live.spy_side_ok(-1, now))
+            live.state = {**live.state, "open": {}, "traded": [], "n_new": 0}
+            live.enter("AAA", "reclaim", 1, {"entry": 100.0, "stop": 99.0}, now, 60)
+            self.assertEqual(b.orders, {})
+            with open(f"{d}/journal.jsonl") as fh:
+                j = [json.loads(x) for x in fh]
+            self.assertEqual(j[-1]["skip_reason"], "spy_regime")
+
 
 if __name__ == "__main__":
     unittest.main()

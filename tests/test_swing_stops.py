@@ -3,6 +3,7 @@ import tempfile
 import unittest
 import unittest.mock
 
+import numpy as np
 import pandas as pd
 
 from alpacabot import swing_paper as sp
@@ -141,6 +142,16 @@ class EnsureStopsTests(unittest.TestCase):
             with unittest.mock.patch.object(r, "zone_config", return_value={"live": True}):
                 r._settle_open("AAA", "entry", {"status": "filled", "filled_avg_price": 100.5, "filled_qty": 10}, NOW)
             self.assertEqual(r.state["positions"]["AAA"]["zone_tp"], 130.0)
+
+    def test_spy_regime_filter(self):
+        idx = pd.bdate_range(end="2026-11-04", periods=60)
+        up = pd.DataFrame({"close": np.linspace(400, 480, 60)}, index=idx)
+        dn = pd.DataFrame({"close": np.linspace(480, 400, 60)}, index=idx)
+        ents = [{"symbol": "AAA", "side": 1}, {"symbol": "BBB", "side": -1}]
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(Broker({}), state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            self.assertEqual([e["symbol"] for e in r.spy_regime_filter(up, ents, NOW)], ["AAA"])
+            self.assertEqual([e["symbol"] for e in r.spy_regime_filter(dn, ents, NOW)], ["BBB"])
 
 
 if __name__ == "__main__":
