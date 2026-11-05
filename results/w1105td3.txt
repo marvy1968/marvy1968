@@ -1,3 +1,29 @@
 $ alpaca run-all --phase validate --families topdown_size2r
-started 2026-11-05 12:02:19 EST
-RUNNING...
+started 2026-11-05 12:02:19 EST, took 362s, exit 0
+
+daily data ready
+## topdown_size2r: pre-declared (research.SIZE2R_SPEC)
+### Top-Down sizing with the live 2R target (SPY 200-day gate, 10 bps a side, $100k start, short test - small samples): first half 2026-08-05..2026-09-19, second half (unseen) 2026-09-20..2026-11-05
+| Period | List | Setting | Trades | PF | CAGR | Max DD | Sharpe | Net P&L |
+|---|---|---|---|---|---|---|---|---|
+| select | today's list | 0.50% x 5 (LIVE) | 14 | 0.55 | -5.6% | -2.0% | 0.29 | $-952 |
+| select | today's list | 0.50% x 8 | 21 | 0.27 | -15.6% | -3.7% | -1.01 | $-2,180 |
+| select | today's list | 0.75% x 5 | 14 | 0.54 | -8.6% | -3.0% | 0.28 | $-1,463 |
+| select | today's list | 0.75% x 8 | 21 | 0.23 | -23.5% | -5.5% | -1.11 | $-3,469 |
+| select | hindsight-free 2016 list | 0.50% x 5 (LIVE) | 17 | 1.49 | +9.3% | -3.2% | 1.11 | $+1,361 |
+| select | hindsight-free 2016 list | 0.50% x 8 | 25 | 1.15 | +6.6% | -3.8% | 0.72 | $+599 |
+| select | hindsight-free 2016 list | 0.75% x 5 | 17 | 1.46 | +13.4% | -4.7% | 1.08 | $+1,960 |
+| select | hindsight-free 2016 list | 0.75% x 8 | 24 | 1.10 | +5.9% | -5.6% | 0.49 | $+587 |
+| unseen | today's list | 0.50% x 5 (LIVE) | 19 | 0.59 | -14.0% | -2.6% | -3.47 | $-1,619 |
+| unseen | today's list | 0.50% x 8 | 29 | 0.76 | -14.4% | -2.7% | -3.23 | $-1,392 |
+| unseen | today's list | 0.75% x 5 | 19 | 0.56 | -21.7% | -4.2% | -3.71 | $-2,602 |
+| unseen | today's list | 0.75% x 8 | 29 | 0.64 | -27.1% | -5.1% | -4.20 | $-3,125 |
+| unseen | hindsight-free 2016 list | 0.50% x 5 (LIVE) | 12 | 0.46 | -14.5% | -2.5% | -3.08 | $-1,532 |
+| unseen | hindsight-free 2016 list | 0.50% x 8 | 15 | 0.79 | -10.5% | -2.5% | -1.61 | $-617 |
+| unseen | hindsight-free 2016 list | 0.75% x 5 | 12 | 0.42 | -22.3% | -3.9% | -3.27 | $-2,492 |
+| unseen | hindsight-free 2016 list | 0.75% x 8 | 15 | 0.74 | -16.7% | -3.9% | -1.76 | $-1,143 |
+- 0.50% x 8: FAIL (PF >= live and max DD within 1.5x live, both periods, both lists; more net P&L than live in the unseen years)
+- 0.75% x 5: FAIL (PF >= live and max DD within 1.5x live, both periods, both lists; more net P&L than live in the unseen years)
+- 0.75% x 8: FAIL (PF >= live and max DD within 1.5x live, both periods, both lists; more net P&L than live in the unseen years)
+- PRE-REGISTERED VERDICT: no larger setting passes - keep 0.5% x 5
+ALL DONE
