@@ -1,3 +1,16 @@
 $ alpaca run-all --phase validate --families spy_open_filter
-started 2026-11-05 07:34:06 EST
-RUNNING...
+started 2026-11-05 07:34:06 EST, took 322s, exit 0
+
+daily data ready
+## SPY vs today's open (pre-registered: keep only if PF is higher in BOTH halves for that system)
+### Optimized Trend WITHOUT the SPY-vs-open filter
+| all | 205 | 29% | 0.44 | +1.11 | -1.05 | -0.420 | -86.0 | 92.2 | 0.27 | 0/20 (median PF 1.23) | 4/20 (median PF 0.49) |
+- halves (split 2026-09-21): 1st 103 trades PF 0.32 -52.2R | 2nd 102 trades PF 0.55 -33.9R
+### Optimized Trend WITH the SPY-vs-open filter
+| all | 137 | 31% | 0.42 | +0.95 | -1.03 | -0.410 | -56.1 | 58.1 | 0.25 | 0/20 (median PF 1.27) | 6/20 (median PF 0.48) |
+- halves (split 2026-09-21): 1st 61 trades PF 0.51 -19.9R | 2nd 76 trades PF 0.36 -36.2R
+- VWAP reclaim WITHOUT the filter: 51 trades, PF 0.50, net -12.1R | halves PF 0.65 (26) / 0.38 (25)
+- VWAP band WITHOUT the filter: 72 trades, PF 0.64, net -12.8R | halves PF 1.43 (26) / 0.37 (46)
+- VWAP reclaim WITH the filter: 41 trades, PF 0.46, net -10.9R | halves PF 0.45 (21) / 0.48 (20)
+- VWAP band WITH the filter: 34 trades, PF 0.41, net -11.6R | halves PF 0.73 (15) / 0.22 (19)
+ALL DONE
