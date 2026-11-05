@@ -1,0 +1,2 @@
+$ logs marv-fx-paper 60
+REFUSED: logs needs one of: marv-alpaca-paper, marv-bot, marv-bot-late, marv-bridge, marv-edges, marv-health, marv-live, marv-swing-open, marv-swing-scan, marv-vmlink
