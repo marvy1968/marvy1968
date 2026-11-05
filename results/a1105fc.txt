@@ -1,3 +1,4 @@
 $ alpaca paper-pause on
-started 2026-11-05 12:24:53 EST
-RUNNING...
+started 2026-11-05 12:24:53 EST, took 2s, exit 0
+
+intraday entries PAUSED (the running service picks this up within 15 s)
