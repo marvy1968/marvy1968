@@ -1100,6 +1100,46 @@ def swing_short_study(universes: dict, spy: pd.DataFrame, costs: Costs) -> dict:
                         else "no short variant beat the long-only swing book in every row: the swing bot stays long-only")}
 
 
+def swing_short_spy_study(universes: dict, spy: pd.DataFrame, costs: Costs, recent_end: date) -> dict:
+    """Owner 2026-11-05 ("if the S&P is down let it not trade up - build"): the Top-Down short mirror (strategies.SectorTopDownShort) taken
+    ONLY on days the live SPY rule says short (SPY close under its falling SMA20), added to the long-only Top-Down book. Pre-registered:
+    PASS only if the long + short book beats long-only in EVERY row (2 lists x train 2016-03..2019 / validate 2020-22 / recent 2023-now,
+    research._zone_verdict). Shorts alone are shown for information."""
+    from .engine import simulate_swing_short
+    from .strategies import GatedSectorTopDown, SectorTopDown, SectorTopDownShort
+    pf = Portfolio(risk_pct=0.0035, max_positions=3, max_pos_frac=0.333)
+    periods = {"train": (date(2016, 3, 1), date(2019, 12, 31)), "validate": (date(2020, 1, 1), date(2022, 12, 31)),
+               "recent": (date(2023, 1, 1), recent_end)}
+    keys = ("trades", "win_rate", "avg_r", "expectancy_pct_notional", "profit_factor")
+    sc = spy["close"].astype(float)
+    sma = sc.rolling(20).mean()
+    gate = ((sc < sma) & (sma < sma.shift(1))).fillna(False)              # the live rule: short-only days
+
+    def book(data, a, b, with_long=True, with_short=False):
+        trades = []
+        for sym, d in data.items():
+            if with_long:
+                trades += simulate_swing(sym, d, SectorTopDown(spy["close"]), costs, all_signals=True)
+            if with_short:
+                trades += simulate_swing_short(sym, d, GatedSectorTopDown(SectorTopDownShort(spy["close"]), gate), costs)
+        trades = [t for t in trades if a <= t.entry_time.date() <= b]
+        closes = {sym: d["close"] for sym, d in data.items()}
+        fills, curve = size_swing(sorted(trades, key=lambda t: (t.entry_time, -t.rank)), closes, costs, pf, a, b)
+        return {**{k: metrics(fills, curve, pf.equity).get(k) for k in keys}, **_curve_stats(curve, pf.equity)}
+    rows = []
+    for name, data in universes.items():
+        for per, (a, b) in periods.items():
+            base = book(data, a, b)
+            rows.append({"universe": name, "period": per, "variant": "long + short on SPY-down days", "without": base,
+                         "with": book(data, a, b, True, True)})
+            rows.append({"universe": name, "period": per, "variant": "(info) short on SPY-down days alone", "without": base,
+                         "with": book(data, a, b, False, True)})
+    ok = _zone_verdict([r for r in rows if r["variant"] == "long + short on SPY-down days"])
+    return {"family": "swing_short_spy", "rows": rows, "passes": bool(ok), "variant_passes": {"long + short on SPY-down days": ok},
+            "verdict": ("PASS: adding the short side on SPY-down days beat long-only Top-Down in every row - propose it for paper" if ok
+                        else "FAIL: the short side on SPY-down days did not beat long-only Top-Down in every row - Top-Down stays long-only")}
+
+
 def mtf_confirm_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.01, max_positions=6), ckpt=None) -> dict:
     """Owner's multi-timeframe trend confirmation (2026-10-15) on the live configuration (direction first + Weinstein stage + zones + zone map +
     the drawn exit plan): (a) entries confirmed on weekly / 1-hour / 15-minute, (b) plus the in-trade re-check (1-hour trend turns against a
