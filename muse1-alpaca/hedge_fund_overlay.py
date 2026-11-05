@@ -56,21 +56,29 @@ def edge_after_costs(expected_r, risk_dollars, trade_cost):
 
 def check_portfolio_limits(open_positions, new_symbol, new_sector, new_side,
                            sectors, max_open=2, max_per_sector=2,
-                           max_net_exposure_pct=0.60, equity=100000.0):
+                           max_net_exposure_pct=0.60, equity=100000.0,
+                           new_notional=0.0):
     """Two Sigma / D.E. Shaw / Citadel: portfolio-level limits.
     open_positions: list of dicts {symbol, sector, side, notional}.
-    Returns (ok, reason)."""
+    Returns (ok, reason).
+
+    FIX 2026-11-05 (Claude fix list): the exposure check must count the
+    NEW order's size AND direction. The old code checked the net exposure
+    of the existing book only, with a comment that "the caller re-checks"
+    — no caller ever did. Now net_after = current net + new_side *
+    new_notional, and the cap is applied to net_after."""
     if len(open_positions) >= max_open:
         return False, f"max_open {max_open} reached"
     sector_count = sum(1 for p in open_positions if p.get("sector") == new_sector)
     if sector_count >= max_per_sector:
         return False, f"sector {new_sector} at cap {max_per_sector}"
-    # net exposure: (long notional - short notional) / equity
+    # net exposure: (long notional - short notional) / equity,
+    # INCLUDING the new order being considered.
     net = sum(p["side"] * p.get("notional", 0.0) for p in open_positions)
-    # new trade's notional is unknown here; use a conservative 25% cap slice
-    # — the caller re-checks with the real notional in bot.py.
-    if abs(net) / max(equity, 1.0) > max_net_exposure_pct:
-        return False, "net exposure cap breached"
+    net_after = net + new_side * float(new_notional)
+    if abs(net_after) / max(equity, 1.0) > max_net_exposure_pct:
+        return False, (f"net exposure cap breached: {net_after / max(equity, 1.0):.1%} "
+                       f"after this order (cap {max_net_exposure_pct:.0%})")
     return True, "ok"
 
 def stress_test(open_positions, equity):

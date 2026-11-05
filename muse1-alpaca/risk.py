@@ -32,6 +32,18 @@ class RiskState:
             self.day_pnl_dollars = 0.0
             self.day_pnl_r = 0.0
 
+    def seed(self, day_pnl_dollars, trades_today, open_day_scalp, open_swing,
+             day_pnl_r=0.0):
+        """Seed the day's counters from the persisted state file (bot.py),
+        so a fresh process does not forget today's trades, realized P&L,
+        or open positions. Called once per run, before any can_open()."""
+        self._rollover()
+        self.day_pnl_dollars = float(day_pnl_dollars)
+        self.day_pnl_r = float(day_pnl_r)
+        self.trades_today = int(trades_today)
+        self.open_day_scalp = int(open_day_scalp)
+        self.open_swing = int(open_swing)
+
     def daily_loss_cap_dollars(self):
         return self.equity * self.daily_loss_cap_pct
 

@@ -81,7 +81,21 @@ def _signal(expert, side, entry, stop, tp_r, exit_logic, reason):
 def _need(bars, n):
     return len(bars) >= n
 
-# ---------------------------------------------------------------- 1 Lien Fader
+# Minimum reward:risk for the range/value fades (Brooks, Dalton), frozen
+# 2026-11-05 (Claude fix list). Computed on the ACTUAL stop distance,
+# not the 1-ATR proxy. 1.5 is stricter than the locks' own reward>=risk
+# (1.0) because round-trip costs eat the edge at 1.0. bot.py overrides
+# this from config.yaml `strategy.min_reward_risk` before scanning.
+MIN_REWARD_RISK = 1.5
+
+def _rr_ok(entry, stop, target):
+    """True if the trade's reward (entry->target) is at least
+    MIN_REWARD_RISK times its risk (entry->stop)."""
+    risk = abs(entry - stop)
+    reward = abs(entry - target)
+    if risk <= 0 or reward <= 0:
+        return False
+    return reward / risk >= MIN_REWARD_RISK
 
 def lien_fader(bars):
     """Mean-reversion fade: close beyond the Bollinger band, fade back to the
@@ -150,12 +164,34 @@ def faith_turtle(bars):
 
 # ---------------------------------------------------------------- 4 Bollinger Squeeze
 
+def _bandwidth(closes, n=20, k=2.0):
+    """Bollinger bandwidth (upper - lower) / middle on the last n closes.
+    Same 20-bar window as bollinger() — the squeeze test must compare
+    like with like."""
+    if len(closes) < n:
+        return None
+    w = closes[-n:]
+    m = sum(w) / n
+    var = sum((x - m) ** 2 for x in w) / n
+    sd = math.sqrt(var)
+    return (2 * k * sd) / m if m else None
+
 def bollinger_squeeze(bars):
     """Volatility expansion: Bollinger bandwidth at its lowest in 10 bars
     (squeeze), then a close outside the band. Exit is a PSAR-style trail,
     proxied here by a 2-ATR trail (the original PSAR run on Yahoo was buggy
-    and discarded — see README). No fixed TP."""
-    if not _need(bars, 21):
+    and discarded — see README). No fixed TP.
+
+    FIX 2026-11-05 (squeeze definition): the old code compared the
+    CURRENT 20-bar band std against the minimum of rolling 10-close
+    stds — different window lengths, so the comparison was meaningless:
+    a 20-bar std is systematically larger than a 10-bar std on a
+    trending series, so genuine squeezes were missed and the test fired
+    on the wrong thing. Now bandwidth is computed on the SAME 20-bar
+    window for the current bar and each of the prior 10 completed bars,
+    and the squeeze requires the current bandwidth to be at or near
+    (within 5%) the 10-bar low."""
+    if not _need(bars, 31):
         return None
     a = atr(bars)
     bb = bollinger(bars)
@@ -163,44 +199,61 @@ def bollinger_squeeze(bars):
         return None
     m, up, lo, sd = bb
     c = _c(bars)
-    if len(c) < 11:
+    # Squeeze judged on the market BEFORE the breakout bar: bandwidth
+    # through the prior bar must be at/near its 10-bar low. (Judging it
+    # on the current bar would fail by construction — the expansion bar
+    # itself widens the band.)
+    prior_closes = c[:-1]
+    squeeze_bw = _bandwidth(prior_closes)
+    if squeeze_bw is None:
         return None
-    # bandwidth proxy: rolling std over the last 10 bars vs the current one
-    widths = []
-    for i in range(10):
-        w = c[-11 - i:-1 - i] if len(c) >= 11 + i else []
-        if len(w) >= 10:
-            mm = sum(w) / len(w)
-            widths.append(math.sqrt(sum((x - mm) ** 2 for x in w) / len(w)))
-    if widths and sd <= min(widths) * 1.05:  # squeezed, at/near the 10-bar low
-        if c[-1] > up:
-            return _signal("bollinger_squeeze", 1, c[-1], c[-1] - 2.0 * a, None,
-                           "atr_trail_2", "squeeze then close above upper band")
-        if c[-1] < lo:
-            return _signal("bollinger_squeeze", -1, c[-1], c[-1] + 2.0 * a, None,
-                           "atr_trail_2", "squeeze then close below lower band")
+    prior = []
+    for j in range(1, 11):
+        bw = _bandwidth(prior_closes[:-j])
+        if bw is None:
+            return None
+        prior.append(bw)
+    if squeeze_bw > min(prior) * 1.05:  # not squeezed: bandwidth not at 10-bar low
+        return None
+    if c[-1] > up:
+        return _signal("bollinger_squeeze", 1, c[-1], c[-1] - 2.0 * a, None,
+                       "atr_trail_2", "squeeze (bandwidth at 10-bar low) then close above upper band")
+    if c[-1] < lo:
+        return _signal("bollinger_squeeze", -1, c[-1], c[-1] + 2.0 * a, None,
+                       "atr_trail_2", "squeeze (bandwidth at 10-bar low) then close below lower band")
     return None
 
 # ---------------------------------------------------------------- 5 Crabel IDNR4
 
 def crabel_idnr4(bars):
-    """Narrow-range breakout: today's range is the narrowest in 4 bars
-    (IDNR4) and the bar is inside the prior bar (inside day). Breakout of
-    the narrow bar's high/low. Flat at close, stop = opposite side (lock).
-    No fixed TP."""
-    if not _need(bars, 5):
+    """Narrow-range breakout: the SETUP bar is the narrowest in 4 bars
+    (IDNR4) and inside the prior bar (inside day). The trade is entered
+    ONLY on the NEXT bar, AFTER it closes beyond the narrow bar's high
+    (long) or low (short). The setup alone is never a trade — the old
+    code signalled long on the setup bar itself, before any breakout,
+    and only ever long. Stop = opposite side of the narrow bar (lock).
+    Flat at close, no fixed TP."""
+    if not _need(bars, 7):
         return None
     a = atr(bars)
     if a is None or a <= 0:
         return None
     rng = [b["h"] - b["l"] for b in bars]
-    last = bars[-1]
-    if rng[-1] <= min(rng[-5:-1]) and last["h"] <= bars[-2]["h"] and last["l"] >= bars[-2]["l"]:
-        # narrow + inside: signal on the NEXT bar's breakout is the trade;
-        # here we report the setup with the breakout levels as entry/stop.
-        return _signal("crabel_idnr4", 1, last["h"], last["l"], None,
+    setup = bars[-2]   # the narrow inside day
+    prior = bars[-3]
+    # setup: narrowest range of the 4 bars before it, and inside the prior bar
+    if not (rng[-2] <= min(rng[-6:-2])
+            and setup["h"] <= prior["h"] and setup["l"] >= prior["l"]):
+        return None
+    cur = bars[-1]     # the breakout bar — must CLOSE beyond the narrow bar
+    if cur["c"] > setup["h"]:
+        return _signal("crabel_idnr4", 1, cur["c"], setup["l"], None,
                        "flat_at_close",
-                       "IDNR4 inside day, long on break of narrow-bar high")
+                       "IDNR4 inside day, next bar closed above narrow-bar high")
+    if cur["c"] < setup["l"]:
+        return _signal("crabel_idnr4", -1, cur["c"], setup["h"], None,
+                       "flat_at_close",
+                       "IDNR4 inside day, next bar closed below narrow-bar low")
     return None
 
 # ---------------------------------------------------------------- 6 Lien Zeros
@@ -257,7 +310,15 @@ def ponsi_trend(bars):
     """Trend: close above EMA20 and EMA20 above EMA50 (long), pullback to
     EMA10, then a close back in the trend direction. Stop to breakeven
     after a >=1R close, then trail EMA10 - 0.5 ATR, never loosened (lock).
-    No fixed TP."""
+    No fixed TP.
+
+    FIX 2026-11-05 (EMA timing): the pullback test must compare the
+    PRIOR close against the PRIOR bar's EMA10, not against today's EMA10.
+    The old code used ema(all closes, 10) — which includes the last bar —
+    for both. A big up bar lifts today's EMA10 toward the last close, so
+    the old test could "see" a pullback that never happened (prior close
+    below today's EMA10 while it was above the EMA10 of its own bar).
+    Now: e10_prev = ema(closes[:-1], 10)."""
     if not _need(bars, 51):
         return None
     a = atr(bars)
@@ -265,15 +326,16 @@ def ponsi_trend(bars):
     if a is None or a <= 0:
         return None
     e20, e50, e10 = ema(c, 20), ema(c, 50), ema(c, 10)
-    if e20 is None or e50 is None or e10 is None:
+    e10_prev = ema(c[:-1], 10)
+    if e20 is None or e50 is None or e10 is None or e10_prev is None:
         return None
     last = c[-1]
-    # pullback: prior close was at/below EMA10, now back above it
-    if last > e20 > e50 and c[-2] <= e10 < last:
+    # pullback: prior close was at/below the PRIOR bar's EMA10, now back above it
+    if last > e20 > e50 and c[-2] <= e10_prev and last > e10:
         return _signal("ponsi_trend", 1, last, last - a, None,
                        "ponsi_be_then_ema_trail",
                        "uptrend, pullback to EMA10 then back above it")
-    if last < e20 < e50 and c[-2] >= e10 > last:
+    if last < e20 < e50 and c[-2] >= e10_prev and last < e10:
         return _signal("ponsi_trend", -1, last, last + a, None,
                        "ponsi_be_then_ema_trail",
                        "downtrend, pullback to EMA10 then back below it")
@@ -285,7 +347,13 @@ def brooks_range_fade(bars):
     """Range fade: 20-bar range, a bar pokes beyond the edge then closes
     back inside — the breakout failed, fade to the range midpoint. TP is
     the midpoint if reward >= risk, stop 1 ATR beyond the signal bar
-    (lock, pips -> ATR). Flat at close."""
+    (lock, pips -> ATR). Flat at close.
+
+    FIX 2026-11-05 (reward:risk): the old code only checked that the
+    midpoint was >= 1 ATR away — it never compared the reward against
+    the ACTUAL stop distance. A far stop can make a "reward >= 1 ATR"
+    trade a bad bet. Now the entry is refused unless
+    reward / actual-risk >= MIN_REWARD_RISK (1.5, frozen in config)."""
     if not _need(bars, 21):
         return None
     a = atr(bars)
@@ -294,11 +362,11 @@ def brooks_range_fade(bars):
     h, l, c = _h(bars), _l(bars), _c(bars)
     hi20, lo20 = max(h[-21:-1]), min(l[-21:-1])
     mid = (hi20 + lo20) / 2.0
-    if h[-1] > hi20 and c[-1] < hi20 and (hi20 - mid) >= a:
+    if h[-1] > hi20 and c[-1] < hi20 and _rr_ok(c[-1], h[-1] + a, mid):
         return _signal("brooks_range_fade", -1, c[-1], h[-1] + a, None,
                        "midpoint_tp_flat_close",
                        "failed upside breakout, fade to range midpoint")
-    if l[-1] < lo20 and c[-1] > lo20 and (mid - lo20) >= a:
+    if l[-1] < lo20 and c[-1] > lo20 and _rr_ok(c[-1], l[-1] - a, mid):
         return _signal("brooks_range_fade", 1, c[-1], l[-1] - a, None,
                        "midpoint_tp_flat_close",
                        "failed downside breakout, fade to range midpoint")
@@ -322,11 +390,14 @@ def dalton_value(bars):
         return None
     up, lo = m + a, m - a
     last = c[-1]
-    if bars[-1]["h"] > up and last < up:
+    # FIX 2026-11-05 (reward:risk): same as Brooks — the old code never
+    # checked the target against the actual stop distance. Refuse the
+    # entry unless reward / actual-risk >= MIN_REWARD_RISK (1.5).
+    if bars[-1]["h"] > up and last < up and _rr_ok(last, bars[-1]["h"] + a, lo):
         return _signal("dalton_value", -1, last, bars[-1]["h"] + a, None,
                        "opposite_value_edge_flat_close",
                        "failed break above value area, trade to lower edge")
-    if bars[-1]["l"] < lo and last > lo:
+    if bars[-1]["l"] < lo and last > lo and _rr_ok(last, bars[-1]["l"] - a, up):
         return _signal("dalton_value", 1, last, bars[-1]["l"] - a, None,
                        "opposite_value_edge_flat_close",
                        "failed break below value area, trade to upper edge")

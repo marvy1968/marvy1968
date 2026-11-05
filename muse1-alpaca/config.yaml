@@ -2,11 +2,41 @@
 # PAPER ONLY. Live trading is ALWAYS blocked in bot.py (--live exits 2).
 name: muse1/alpaca
 # UNVALIDATED: needs an out-of-sample backtest and a paper forward test
-# before any live use. Do NOT run on the same Alpaca paper account as the
-# existing bots — that would break max-open / daily-trade limits.
+# before any live use. This bot MUST run on its OWN Alpaca paper account,
+# separate from Brain — the VM .env must hold muse1-only paper keys
+# (see DEPLOY.md). Running it on Brain's account is not supported.
+# Version 0.2.0 (2026-11-05, Claude fix list): real bracket exits,
+# state.json + lock file, fail-closed reads, feed=iex + completed bars,
+# market calendar, one expert log-only (raschke_soup), flatten 15:50 ET.
 
 paper: true
 allow_live: false
+
+# STRATEGY (frozen 2026-11-05, Claude fix list):
+# min_reward_risk: Brooks range fade and Dalton value entries are refused
+# unless reward / actual-stop-risk >= this. 1.5 is stricter than the
+# locks' own reward>=risk (1.0) because round-trip costs eat the edge
+# at 1.0. See experts.py _rr_ok().
+strategy:
+  min_reward_risk: 1.5
+
+# ROLLOUT (frozen 2026-11-05, Claude fix list): ONE expert in log-only
+# mode. raschke_soup is the only expert with a real-data record on two
+# engines (Yahoo H1 PF 1.17-1.37; 10-year Dukascopy PF 1.02, n=1,941).
+# live: [] — no expert places real orders yet. An expert moves to live
+# only after a pre-registered backtest passes (PF >= 1 on validation
+# and holdout, beats baseline and random, realistic costs).
+rollout:
+  log_only: [raschke_soup]
+  live: []
+
+# DATA (frozen 2026-11-05, Claude fix list): feed=iex explicitly,
+# start/end bar requests (no bare limit=100), completed bars only.
+data:
+  feed: iex
+  history_days_5min: 5
+  history_days_daily: 90
+  stale_bar_minutes: 30
 
 watchlist:
   # TOP 3 IN EVERY S&P 500 SECTOR (owner 2026-11-05) — by market cap,
@@ -104,8 +134,8 @@ sleeves:
     enabled: true
     timeframe: 5min
     window_et: "10:00-15:45"   # owner 2026-11-05: scalp only 10:00-15:45 ET
-    flatten_et: "15:45"
-    intended_hold_minutes: 30
+    flatten_et: "15:50"        # Claude fix list 2026-11-05: flatten 15:50 ET (was 15:45)
+    intended_hold_minutes: 30  # max hold for scalp (enforced every run)
     risk_pct: 0.0025        # 0.25% — smallest risk; see README: scalps were the weakest sleeve in the 2026-11-05 Brain audit
     max_open: 5             # owner 2026-11-05: allow up to 5 open at once
     experts: [crabel_idnr4, williams_vbo, lien_zeros, bollinger_squeeze]
@@ -113,7 +143,7 @@ sleeves:
     enabled: true
     timeframe: 5min
     window_et: "10:00-15:45"   # owner 2026-11-05: was 09:45-15:45, now 10:00-15:45 ET
-    flatten_et: "15:45"
+    flatten_et: "15:50"        # Claude fix list 2026-11-05: flatten 15:50 ET (was 15:45)
     risk_pct: 0.005         # 0.5%
     max_open: 5             # owner 2026-11-05: allow up to 5 open at once
     max_new_per_day: 5
@@ -123,6 +153,7 @@ sleeves:
     timeframe: daily
     risk_pct: 0.005         # 0.5%
     max_open: 5
+    max_hold_days: 10       # Claude fix list 2026-11-05: swing safety cap (carryover still applies within it)
     take_profit_r: 2.0      # approved Top-Down-style 2R TP for swing only
     stop_atr: 1.0           # EMA20 - 1 ATR (long) / EMA20 + 1 ATR (short)
     experts: [faith_turtle, ponsi_trend, raschke_soup, dalton_value]
