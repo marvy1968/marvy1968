@@ -37,3 +37,24 @@ class BrainShortsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BrainExitsTest(unittest.TestCase):
+    def test_runs_and_rules(self):
+        from alpacabot.research import BRAIN_EXIT_VARIANTS, brain_exits_study
+        syms = ["SPY", "QQQ", "IWM", "SOFI", "RKLB"]
+        minute = {s: minute_bars(30 + k, 20 + 5 * k) for k, s in enumerate(syms)}
+        daily = {"SPY": daily_bars(-0.004, 1), "QQQ": daily_bars(-0.002, 2), "IWM": daily_bars(0.0, 3), "XLF": daily_bars(-0.004, 4),
+                 "XLI": daily_bars(-0.004, 5)}
+        gates.add_sector("SOFI", "XLF")
+        gates.add_sector("RKLB", "XLI")
+        days = gates.add_gates(split_days(minute, minutes=5, feature_fn=features_both), daily)
+        days = attach(days, {**daily, "SOFI": daily_bars(-0.005, 7), "RKLB": daily_bars(-0.005, 8)})
+        d = [x.date() for x in SESSIONS]
+        with tempfile.TemporaryDirectory() as td:
+            res = brain_exits_study(days, (d[1], d[3]), (d[4], d[6]), ckpt=Path(td) / "ck.json", symbols=["SOFI", "RKLB"])
+        self.assertEqual(len(res["checks"]), 2 * (len(BRAIN_EXIT_VARIANTS) - 1))
+        self.assertEqual(res["passes"], bool(res["winners"]))
+        self.assertTrue(res["verdict"].startswith("PASS" if res["passes"] else "FAIL"))
+        rows = res["periods"]["shorts only | 3 months"]
+        self.assertGreater(rows["live (1.5x stop, 0.33R target) (3 months)"]["trades"], 0)

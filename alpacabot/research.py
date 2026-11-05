@@ -2469,3 +2469,122 @@ def brain_shorts_study(days, train, validate, costs: Costs = Costs(), pf: Portfo
                 "verdict": ("PASS: propose resuming the Brain SHORTS ONLY on paper (owner approval needed; kill switch stays on until then)" if ok else
                             "FAIL: " + ", ".join(k for k, v in checks.items() if not v) + " - the Brain stays paused")})
     return out
+
+
+BRAIN_EXITS_RULE = ("PRE-REGISTERED (owner 2026-11-05, hedge-fund plan Tests 1 and 2): the Brain on the live configuration (live experts, filters, "
+                    "zones.json ladder incl. the profit lock, 10-minute under-water exit, the 24 entry stocks), last 3 months in two halves, each "
+                    "variant changes ONE thing vs live (1.5x expert stop, target 0.5x expert risk = 0.33R). Test 1 targets: 2.5R, 3R, no target "
+                    "with break-even at +1R then a 1R trail. Test 2 stops: 1.5 ATR and 2.0 ATR (5-minute ATR), live target price kept; risk-based "
+                    "size so dollar risk per trade stays the same. A variant PASSES in a book only if: PF >= 1.0 in BOTH halves, PF above live in "
+                    "BOTH halves, PF >= 1.0 over 3 months at 2x costs, avg R above its own random-timing control, and at least half live's trades. "
+                    "Books: long + short and shorts only. Nothing goes live without the owner; the Brain kill switch stays on.")
+
+
+class AtrStop:
+    """Research (BRAIN_EXITS_RULE Test 2): every signal's stop at k x the 5-minute ATR at the signal bar; target price and everything else kept."""
+
+    def __init__(self, brain, k: float):
+        self.brain, self.k = brain, k
+
+    def __getattr__(self, name):
+        return getattr(self.brain, name)
+
+    def signals(self, day):
+        from dataclasses import replace as _rep
+        sigs = self.brain.signals(day)
+        a = day["f_atr"].to_numpy(float) if "f_atr" in day else None
+        out = []
+        for s in sigs:
+            atr = s.atr if s.atr > 0 else (float(a[s.i]) if a is not None else 0.0)
+            out.append(_rep(s, stop_dist=float(self.k * atr)) if atr > 0 else s)
+        return out
+
+
+def live_intraday_ladder() -> dict:
+    """zones.json intraday ladder as the paper bot builds it (velez_hybrid one-TP plan for its experts, the profit lock kept)."""
+    import json as _json
+    from pathlib import Path as _P
+    z = _json.loads((_P(__file__).with_name("zones.json")).read_text())["intraday"]
+    lad = {k: v for k, v in (z.get("ladder") or {}).items() if not k.startswith("_")}
+    vh = z.get("velez_hybrid") or {}
+    if vh.get("live") and vh.get("ladder"):
+        lad["by_expert"] = {**(lad.get("by_expert") or {}), **{n: dict(vh["ladder"]) for n in vh.get("experts", [])}}
+    return lad
+
+
+BRAIN_EXIT_VARIANTS = {   # name -> (VelezHybrid stop_r, target_r in expert-risk units, ATR stop k or 0, extra plan keys for every expert)
+    "live (1.5x stop, 0.33R target)": (1.5, 0.5, 0.0, {}),
+    "T1 target 2.5R": (1.5, 3.75, 0.0, {}),
+    "T1 target 3R": (1.5, 4.5, 0.0, {}),
+    "T1 no target, break-even at +1R then 1R trail": (1.5, 75.0, 0.0, {"trail_start_r": 1.0, "trail_from_entry_r": 1.0}),
+    "T2 stop 1.5 ATR": (1.5, 0.5, 1.5, {}),
+    "T2 stop 2.0 ATR": (1.5, 0.5, 2.0, {}),
+}
+
+
+def brain_exits_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6),
+                      ckpt=None, symbols=None) -> dict:
+    """Owner 2026-11-05 hedge-fund plan, Tests 1 (targets) and 2 (ATR stops) on the Brain (BRAIN_EXITS_RULE)."""
+    import json as _json
+    from dataclasses import replace as _rep
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid
+    from .engine import ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean")
+    cp = Checkpoint(ckpt)
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+    base_lad = live_intraday_ladder()
+    sub = {s_: fr for s_, fr in days.items() if s_ in set(symbols or days)}
+    books = {"long + short": (live["experts"], live["short_experts"]), "shorts only": ([], live["short_experts"])}
+
+    def strat(longs, shorts, var):
+        stop_r, tgt_r, k, extra = BRAIN_EXIT_VARIANTS[var]
+        br = Brain(experts=list(longs), short_experts=list(shorts), sector_filter=True, short_gate="red", cooldown=2)
+        lad = dict(base_lad)
+        if extra:
+            names = set(longs) | set(shorts)
+            lad["by_expert"] = {**(lad.get("by_expert") or {}), **{n: {**(lad.get("by_expert") or {}).get(n, {}), **extra} for n in names}}
+        br.zones = {"profiles": dict(ZONE_PROFILES), "levels": True, "trend_exit": True, "ladder": lad}
+        inner = VelezHybrid(br, env=True, look_left=True, stop_r=stop_r, target_r=tgt_r)
+        if k:
+            inner = AtrStop(inner, k)
+        s = TrendConfirm(StageFilter(DirectionFirst(inner)))
+        s.neg_bars = 2
+        return s
+
+    def run(book, var, a, b, c=costs, seed=None):
+        if not sub:
+            return {"trades": 0}
+        r = run_intraday(strat(*books[book], var), sub, c, pf, a, b, placebo_seed=seed)
+        return {k_: r["metrics"].get(k_) for k_ in keys}
+    c2 = _rep(costs, slip_bps=costs.slip_bps * 2, fee_bps_sell=costs.fee_bps_sell * 2)
+    a0, b1 = train[0], validate[1]
+    out = {"rule": BRAIN_EXITS_RULE, "symbols": sorted(sub), "periods": {}, "checks": {}}
+    for book in books:
+        for per, (a, b) in (("first half", train), ("second half", validate)):
+            out["periods"][f"{book} | {per}"] = {v: cp.get(f"bx-{book[:2]}-{per[:2]}-{v}", lambda v=v, a=a, b=b, book=book: run(book, v, a, b))
+                                                 for v in BRAIN_EXIT_VARIANTS}
+        whole = {}
+        for v in BRAIN_EXIT_VARIANTS:
+            whole[f"{v} at 2x costs"] = cp.get(f"bx-{book[:2]}-2x-{v}", lambda v=v, book=book: run(book, v, a0, b1, c=c2))
+            whole[f"{v} random-timing control"] = cp.get(f"bx-{book[:2]}-plc-{v}", lambda v=v, book=book: run(book, v, a0, b1, seed=0))
+            whole[f"{v} (3 months)"] = cp.get(f"bx-{book[:2]}-all-{v}", lambda v=v, book=book: run(book, v, a0, b1))
+        out["periods"][f"{book} | 3 months"] = whole
+        h1, h2 = out["periods"][f"{book} | first half"], out["periods"][f"{book} | second half"]
+        base = "live (1.5x stop, 0.33R target)"
+        for v in BRAIN_EXIT_VARIANTS:
+            if v == base:
+                continue
+            pf_ = lambda m: m.get("profit_factor") or 0.0     # noqa: E731
+            w, pl = whole[f"{v} (3 months)"], whole[f"{v} random-timing control"]
+            ch = {"PF >= 1.0 both halves": pf_(h1[v]) >= 1.0 and pf_(h2[v]) >= 1.0,
+                  "PF above live both halves": pf_(h1[v]) > pf_(h1[base]) and pf_(h2[v]) > pf_(h2[base]),
+                  "PF >= 1.0 at 2x costs": pf_(whole[f"{v} at 2x costs"]) >= 1.0,
+                  "avg R above random timing": bool(w.get("trades")) and (w.get("avg_r") or 0) > (pl.get("avg_r") if pl.get("trades") else float("-inf")),
+                  "trades >= half of live": (w.get("trades") or 0) >= 0.5 * (whole[f"{base} (3 months)"].get("trades") or 0)}
+            out["checks"][f"{book} | {v}"] = ch
+    winners = [k for k, ch in out["checks"].items() if all(ch.values())]
+    out.update({"family": "brain_exits", "passes": bool(winners), "winners": winners,
+                "verdict": (f"PASS: {'; '.join(winners)} - propose to the owner (Brain stays paused until he approves)" if winners else
+                            "FAIL: no target or stop variant cleared every check in either book - the Brain stays paused, live exits unchanged")})
+    return out

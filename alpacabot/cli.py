@@ -1969,7 +1969,7 @@ def run_all(a) -> int:
                                      {s: load(s, "1Day", start, end, cache) for s in HEAT_ETFS})
                     days = attach(days, {s: load(s, "1Day", start, end, cache) for s in intraday_syms})
                     res = trend_stairs_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_tstairs.json")
-                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign", "brain_shorts"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
+                elif fam in ("trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign", "brain_shorts", "brain_exits"):   # owner's drawings on all 58 stocks (+ the no-stop retest)
                     from datetime import timedelta as _td
                     from . import gates as _g
                     from . import universe as _u
@@ -1981,7 +1981,7 @@ def run_all(a) -> int:
                     for s_ in _u.STOCKS:
                         _g.add_sector(s_, _u.SECTOR_OF[s_])
                     syms58 = sorted(set(_PS) | set(_u.STOCKS))
-                    if fam == "brain_shorts":                       # owner 2026-11-05: the live entry list (zones.json entry_symbols) + index ETFs
+                    if fam in ("brain_shorts", "brain_exits"):      # owner 2026-11-05: the live entry list (zones.json entry_symbols) + index ETFs
                         _ent = json.loads(Path(__file__).with_name("zones.json").read_text())["intraday"].get("entry_symbols") or []
                         for s_, etf_ in {**_u.MID_CAPS, **_u.SMALL_CAPS}.items():
                             _g.add_sector(s_, etf_)
@@ -2033,6 +2033,12 @@ def run_all(a) -> int:
                         lines.append(f"- rule: {res['rule']}")
                         lines.append("- checks: " + ", ".join(f"{k} {'OK' if v else 'NO'}" for k, v in res["checks"].items())
                                      + f" | random-timing avg R {res['placebo_avg_r']}")
+                    elif fam == "brain_exits":
+                        from .research import brain_exits_study
+                        res = brain_exits_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_bexits.json", symbols=_ent)
+                        lines.append(f"- rule: {res['rule']}")
+                        for k_, ch_ in res["checks"].items():
+                            lines.append(f"- {k_}: " + ", ".join(f"{c_} {'OK' if v_ else 'NO'}" for c_, v_ in ch_.items()))
                     elif fam == "velez_repair":
                         from .research import velez_repair_study
                         res = velez_repair_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_vrep.json")
@@ -2184,7 +2190,7 @@ def run_all(a) -> int:
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t PF {m_.get('profit_factor') or 0:.2f} daily {m_.get('daily_ret_pct_mean') or 0:+.3f}% "
                                  f"maxDD {m_.get('max_drawdown') or 0:.1%}")
             lines.append(f"- chosen on train: {res.get('chosen_changes')}")
-        if fam in ("ladder_intraday", "eod_squeeze", "sector_mom", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign", "brain_shorts"):
+        if fam in ("ladder_intraday", "eod_squeeze", "sector_mom", "orb_candidate", "mtf_confirm", "profile_assign", "box_range", "box_strategy", "box_confirm", "trend_continuation", "expert_breakdown", "reversal_confirm", "trend_stairs", "trend_stairs58", "trend_stairs58_opt", "no_stops", "fixed_r", "oversold_gate", "scalper", "velez", "velez2", "velez3", "velez4", "velez_hybrid", "winrate_tune", "winrate_live", "velez_all", "velez_repair", "velez_redesign", "brain_shorts", "brain_exits"):
             for per, rows_ in res.get("periods", {}).items():
                 for name, m_ in rows_.items():
                     lines.append(f"- {per} | {name}: {m_.get('trades')}t win {m_.get('win_rate') or 0:.0%} PF {m_.get('profit_factor') or 0:.2f} "
