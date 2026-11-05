@@ -1,3 +1,27 @@
 $ alpaca run-all --phase validate --families trendopt_regime
-started 2026-11-04 21:19:52 EST
-RUNNING...
+started 2026-11-04 21:19:52 EST, took 899s, exit 0
+
+daily data ready
+### Optimized Trend WITHOUT the SPY regime filter
+## Optimized Trend Stock bot - 3-month backtest 2026-08-03..2026-11-03 (66 sessions), 55 stocks, the uploaded settings unchanged (alpacabot/trendopt.py), 3 bps a side. No train/holdout split: the uploaded settings were already picked on this period (their note: test used to pick 1 of 18 variants).
+| Set | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | Max DD R | PF @2x | Random /20 | Shuffled /20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| all | 203 | 29% | 0.40 | +1.07 | -1.06 | -0.451 | -91.5 | 93.4 | 0.25 | 0/20 (median PF 1.23) | 5/20 (median PF 0.44) |
+| long | 120 | 29% | 0.40 | +1.01 | -1.04 | -0.445 | -53.4 | - | - | - | - |
+| short | 83 | 28% | 0.41 | +1.16 | -1.08 | -0.460 | -38.2 | - | - | - | - |
+- by month: 2026-08 PF 0.28 (67, -37.2R), 2026-09 PF 0.55 (56, -18.1R), 2026-10 PF 0.40 (75, -35.1R), 2026-11 PF 0.63 (5, -1.1R)
+- halves (split 2026-09-18): 1st 105 trades PF 0.33 -53.4R | 2nd 98 trades PF 0.49 -38.1R
+- exits: {'hard_stop': 98, 'virtual_trail': 94, 'flatten_1545': 8, '3candle': 3}
+- at 0.5% risk: net -45.8% of equity over the period, worst run 46.7% (before the 25% notional cap)
+### Optimized Trend WITH the SPY regime filter
+## Optimized Trend Stock bot - 3-month backtest 2026-08-03..2026-11-03 (66 sessions), 55 stocks, the uploaded settings unchanged (alpacabot/trendopt.py), 3 bps a side. No train/holdout split: the uploaded settings were already picked on this period (their note: test used to pick 1 of 18 variants).
+| Set | Trades | Win% | PF | Avg win R | Avg loss R | Exp R | Net R | Max DD R | PF @2x | Random /20 | Shuffled /20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| all | 144 | 25% | 0.33 | +1.09 | -1.08 | -0.541 | -77.9 | 78.0 | 0.18 | 0/20 (median PF 1.30) | 1/20 (median PF 0.48) |
+| long | 103 | 27% | 0.37 | +1.07 | -1.08 | -0.497 | -51.1 | - | - | - | - |
+| short | 41 | 20% | 0.25 | +1.13 | -1.09 | -0.653 | -26.8 | - | - | - | - |
+- by month: 2026-08 PF 0.27 (53, -28.6R), 2026-09 PF 0.45 (34, -14.7R), 2026-10 PF 0.33 (57, -34.7R)
+- halves (split 2026-09-18): 1st 80 trades PF 0.31 -40.9R | 2nd 64 trades PF 0.36 -37.0R | SPY regime filter ON (65 long-only days, 31 short-only)
+- exits: {'hard_stop': 73, 'virtual_trail': 64, 'flatten_1545': 5, '3candle': 2}
+- at 0.5% risk: net -38.9% of equity over the period, worst run 39.0% (before the 25% notional cap)
+ALL DONE
