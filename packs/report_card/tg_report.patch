@@ -1,0 +1,75 @@
+--- tg_report.py
++++ tg_report.py
+@@ -65,10 +65,61 @@
+             pass
+     return trades
+ 
++# Marv bots (added 2026-11-04 at the owner's request: the card showed 0 trades while these traded). Their ledgers, read-only.
++MARV_STATE = Path("/opt/marv-bot/state")
++MARV_LEDGERS = {"VWAP sleeve": "alpaca_vwap", "Velez sleeve": "alpaca_velez", "Optimized Trend": "alpaca_trendopt"}
++
++
++def _jsonl(p: Path) -> list:
++    out = []
++    try:
++        for line in p.read_text().splitlines():
++            try:
++                out.append(json.loads(line))
++            except Exception:
++                pass
++    except Exception:
++        pass
++    return out
++
++
++def extract_marv_trades():
++    """Closed trades of the Marv day-trade sleeves (partials summed into one trade), the Marv swing bot and the Marv OANDA runner.
++    Dates are New York trading dates (the sleeves' own); missing / unreadable files are skipped."""
++    trades = []
++    for engine, d in MARV_LEDGERS.items():
++        open_ = {}
++        for r in _jsonl(MARV_STATE / d / "trades.jsonl"):
++            key = (r.get("symbol"), r.get("opened"))
++            acc = open_.setdefault(key, 0.0)
++            open_[key] = acc + float(r.get("pl") or 0.0)
++            if r.get("final"):
++                trades.append({"engine": engine, "date": str(r.get("date")), "time": str(r.get("closed", ""))[:19].replace("T", " "),
++                               "symbol": str(r.get("symbol")), "side": str(r.get("side", "")).upper(), "exit_px": float(r.get("exit") or 0),
++                               "pnl": round(open_.pop(key), 2), "reason": str(r.get("reason") or "")})
++    for r in _jsonl(MARV_STATE / "alpaca_swing" / "trades.jsonl"):
++        trades.append({"engine": "Swing (Marv)", "date": str(r.get("date")), "time": str(r.get("date")), "symbol": str(r.get("symbol")),
++                       "side": str(r.get("side", "")).upper(), "exit_px": float(r.get("exit") or 0), "pnl": float(r.get("pnl") or 0),
++                       "reason": str(r.get("reason") or "")})
++    for r in _jsonl(MARV_STATE / "fx_paper" / "trades.jsonl"):
++        if r.get("partial"):
++            continue
++        trades.append({"engine": "Forex (Marv runner)", "date": str(r.get("closed", ""))[:10], "time": str(r.get("closed", ""))[:19],
++                       "symbol": str(r.get("instrument")), "side": str(r.get("side", "")).upper(), "exit_px": float(r.get("exit") or 0),
++                       "pnl": float(r.get("pl") or 0), "reason": str(r.get("reason") or "")})
++    return trades
++
++
+ def build_daily_reportcard():
+     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+     all_trades = extract_all_trades()
+     today_trades = [t for t in all_trades if t["date"] == today]
++    try:                                                   # Marv bots, by their New York trading date
++        from zoneinfo import ZoneInfo
++        ny_today = datetime.datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
++        today_trades += [t for t in extract_marv_trades() if t["date"] == ny_today]
++    except Exception as e:
++        print(f"Marv ledgers skipped: {e}")
+ 
+     tot_pnl = sum(t["pnl"] for t in today_trades)
+     wins = [t["pnl"] for t in today_trades if t["pnl"] > 0]
+@@ -102,6 +153,10 @@
+     start_date = (today - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+     all_trades = extract_all_trades()
+     r7_trades = [t for t in all_trades if t["date"] >= start_date]
++    try:
++        r7_trades += [t for t in extract_marv_trades() if t["date"] >= start_date]
++    except Exception as e:
++        print(f"Marv ledgers skipped: {e}")
+ 
+     tot_pnl = sum(t["pnl"] for t in r7_trades)
+     wins = [t["pnl"] for t in r7_trades if t["pnl"] > 0]
