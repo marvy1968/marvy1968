@@ -43,7 +43,8 @@ def run(start: str = "2026-10-09") -> list[str]:
     acct = pd.Series(h.get("equity") or [], index=ts, dtype=float)
     acct = acct[acct > 0]
     today = pd.Timestamp.now(tz="America/New_York")
-    spy_df = _fetch("SPY", "1Day", f"{start}T00:00:00Z", today.tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ"), "sip")
+    end = (today - pd.Timedelta(minutes=20)).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")   # SIP refuses the last 15 minutes
+    spy_df = _fetch("SPY", "1Day", f"{start}T00:00:00Z", end, "sip")
     idx = pd.DatetimeIndex(spy_df.index)
     idx = idx.tz_convert("America/New_York") if idx.tz is not None else idx
     spy = pd.Series(spy_df["close"].to_numpy(float), index=idx.date)
