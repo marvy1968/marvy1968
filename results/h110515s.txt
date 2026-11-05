@@ -1,3 +1,109 @@
 $ status
-started 2026-11-05 09:50:03 EST
-RUNNING...
+started 2026-11-05 09:50:03 EST, took 1s, exit 0
+
+● marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half
+     Loaded: loaded (/etc/systemd/system/marv-live.service; enabled; preset: enabled)
+    Drop-In: /etc/systemd/system/marv-live.service.d
+             └─tf.conf, zz-marv-live-fixes.conf, zzz-no-march-edge-mirror.conf
+     Active: active (running) since Thu 2026-11-05 09:19:22 EST; 30min ago
+   Main PID: 2668567 (python)
+      Tasks: 4 (limit: 4617)
+     Memory: 133.9M
+        CPU: 15.295s
+     CGroup: /system.slice/marv-live.service
+             └─2668567 /opt/marv-bot/.venv/bin/python /opt/marv-feed/run_marv_live.py live --interval 120
+
+Nov 05 09:19:22 instance-stockbot systemd[1]: Started marv-live.service - Marv live monitor - re-price ML and O/U after every quarter/half.
+Nov 05 09:19:27 instance-stockbot env[2668567]: marv_preline applied: in-game model fed the PREGAME line (off: MARV_INGAME_PRELINE=live | /opt/marv-feed/MARV_INGAME_PRELINE_LIVE); wnba/ncaab/ncaaw fed the team-scoring estimate they were trained on: ON (off: MARV_PRELINE_BB_TRAINED=off | /opt/marv-feed/MARV_PRELINE_BB_TRAINED_OFF); shadow /opt/marv-bot/state/marv_live_preline_shadow.jsonl
+Nov 05 09:19:27 instance-stockbot env[2668567]: marv_live_fixes applied (loss posts, prob clamp 1-99%, finished-game guard, near-final gate); off: /opt/marv-feed/MARV_LIVE_FIXES_OFF
+Nov 05 09:19:27 instance-stockbot env[2668567]: marv_type_gate live applied: ML favs ON, in-game Overs ON, Q1 blackout ON, fav cap -200 ON (off: MARV_MLFAV_TRACK / MARV_LIVE_OVER_TRACK / MARV_LIVE_Q1_BLACKOUT / MARV_FAV_CAP =off or *_OFF files in /opt/marv-feed)
+Nov 05 09:19:27 instance-stockbot env[2668567]: marv_live_unproven applied: NBA live % hidden until 100+ graded & profitable (off: /opt/marv-feed/MARV_NBA_LIVE_PCT_HIDE_OFF)
+Nov 05 09:19:27 instance-stockbot env[2668567]: marv_v4 live applied: shrink=shadow pace_ramp=off clv_log=on (master MARV_V4=on; config /opt/marv-feed/marv_v4.json)
+Nov 05 09:19:48 instance-stockbot env[2668567]: 2026-11-05 09:19:48,028 INFO live monitor watching nfl, cfb, euroleague, wnba, nba, ncaab, ncaaw every 120s
+
+● marv-bot-late.timer - Re-check injuries and stats shortly before games
+     Loaded: loaded (/etc/systemd/system/marv-bot-late.timer; enabled; preset: enabled)
+     Active: active (waiting) since Thu 2026-10-15 06:48:54 EDT; 3 weeks 0 days ago
+    Trigger: Thu 2026-11-05 17:30:00 EST; 7h left
+   Triggers: ● marv-bot-late.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+× marv-dailypicks.service - Marv daily card: ranked 2-leg parlays per sport + best pregame ML and O/U (paper, Telegram)
+     Loaded: loaded (/etc/systemd/system/marv-dailypicks.service; static)
+    Drop-In: /etc/systemd/system/marv-dailypicks.service.d
+             └─***.conf, tf.conf, v32-cfb.conf
+     Active: failed (Result: timeout) since Thu 2026-11-05 09:40:13 EST; 9min ago
+TriggeredBy: ● marv-dailypicks.timer
+    Process: 2663471 ExecStart=/opt/marv-bot/.venv/bin/python /opt/marv-feed/run_dailypicks.py (code=killed, signal=TERM)
+   Main PID: 2663471 (code=killed, signal=TERM)
+        CPU: 55min 52.452s
+
+Nov 05 08:49:42 instance-stockbot python[2663471]: 2026-11-05 08:49:42,495 WARNING NBA injury report unreachable: HTTPSConnectionPool(host='ak-static.cms.nba.com', port=443): Read timed out. (read timeout=20)
+Nov 05 08:49:50 instance-stockbot python[2663471]: 2026-11-05 08:49:50,313 INFO Odds API basketball_ncaab: 80022 credits left
+Nov 05 08:49:50 instance-stockbot python[2663471]: 2026-11-05 08:49:50,646 INFO ncaab: Odds API matched 42/65 games
+Nov 05 09:10:59 instance-stockbot python[2663471]: 2026-11-05 09:10:59,087 INFO Odds API basketball_wncaab: 80009 credits left
+Nov 05 09:10:59 instance-stockbot python[2663471]: 2026-11-05 09:10:59,090 INFO ncaaw: Odds API matched 0/86 games
+Nov 05 09:40:12 instance-stockbot systemd[1]: marv-dailypicks.service: start operation timed out. Terminating.
+Nov 05 09:40:13 instance-stockbot systemd[1]: marv-dailypicks.service: Main process exited, code=killed, status=15/TERM
+Nov 05 09:40:13 instance-stockbot systemd[1]: marv-dailypicks.service: Failed with result 'timeout'.
+Nov 05 09:40:13 instance-stockbot systemd[1]: Failed to start marv-dailypicks.service - Marv daily card: ranked 2-leg parlays per sport + best pregame ML and O/U (paper, Telegram).
+Nov 05 09:40:13 instance-stockbot systemd[1]: marv-dailypicks.service: Consumed 55min 52.452s CPU time.
+
+● marv-vmlink.timer - Check the vm-link branch for Marv jobs every minute
+     Loaded: loaded (/etc/systemd/system/marv-vmlink.timer; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-15 06:50:37 EDT; 3 weeks 0 days ago
+    Trigger: n/a
+   Triggers: ● marv-vmlink.service
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● marv-fx-paper.service - Marv FOREX practice runner (OANDA practice account only; separate from the Alpaca stock bot)
+     Loaded: loaded (/etc/systemd/system/marv-fx-paper.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-11-05 09:19:27 EST; 30min ago
+   Main PID: 2668658 (python)
+      Tasks: 3 (limit: 4617)
+     Memory: 69.3M
+        CPU: 1min 11.923s
+     CGroup: /system.slice/marv-fx-paper.service
+             └─2668658 /opt/marv-bot/.venv/bin/python -m fxbot paper
+
+Nov 05 09:20:13 instance-stockbot python[2668658]:     <link rel="preload" as="style" href="https://use.typekit.net/bhw2bat.css"
+Nov 05 09:20:13 instance-stockbot python[2668658]:           onload="this.onload=null;this.rel='stylesheet'">
+Nov 05 09:20:13 instance-stockbot python[2668658]:     <style>/* fallback */
+Nov 05 09:20:13 instance-stockbot python[2668658]: @font-face {
+Nov 05 09:20:13 instance-stockbot python[2668658]:   font-family: 'Material Icons';
+Nov 05 09:20:13 instance-stockbot python[2668658]:   font-style: normal;
+Nov 05 09:20:13 instance-stockbot python[2668658]:   font-weight: 400;
+Nov 05 09:20:13 instance-stockbot python[2668658]:   font-display: swap;
+Nov 05 09:20:13 instance-stockbot python[2668658]:   src: url(data:font/woff2;base64,d09GMgABAAAAAfZoAA4A
+Nov 05 09:20:13 instance-stockbot python[2668658]: 2026-11-05 09:20:13,511 INFO fxbot.live: error {'where': 'step', 'error': 'OandaError: OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8"/>\n    <title>Internal Server Error</title>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n\n    <link rel="p'}
+
+● marv-health.timer - Run the Marv watchdog every 30 minutes
+     Loaded: loaded (/etc/systemd/system/marv-health.timer; enabled; preset: enabled)
+NEXT                        LEFT          LAST                        PASSED       UNIT                      ACTIVATES
+Thu 2026-11-05 09:52:00 EST 1min 53s left Thu 2026-11-05 09:37:01 EST 13min ago    marv-clvinj.timer         marv-clvinj.service
+Thu 2026-11-05 09:53:22 EST 3min 16s left Thu 2026-11-05 09:38:22 EST 11min ago    marv-master.timer         marv-master.service
+Thu 2026-11-05 10:00:00 EST 9min left     Wed 2026-11-04 10:00:00 EST 23h ago      marv-bot.timer            marv-bot.service
+Thu 2026-11-05 10:00:29 EST 10min left    Thu 2026-11-05 09:30:29 EST 19min ago    marv-health.timer         marv-health.service
+Thu 2026-11-05 10:05:00 EST 14min left    Thu 2026-11-05 09:05:00 EST 45min ago    marv-alt70.timer          marv-alt70.service
+Thu 2026-11-05 10:05:00 EST 14min left    Thu 2026-11-05 09:45:01 EST 5min ago     marv-news.timer           marv-news.service
+Thu 2026-11-05 10:17:00 EST 26min left    Thu 2026-11-05 08:17:01 EST 1h 33min ago marv-qbout.timer          marv-qbout.service
+Thu 2026-11-05 10:20:00 EST 29min left    Thu 2026-11-05 09:20:00 EST 30min ago    marv-cfb-dog-shadow.timer marv-cfb-dog-shadow.service
+Thu 2026-11-05 10:58:21 EST 1h 8min left  Thu 2026-11-05 07:58:21 EST 1h 51min ago marv-soccer.timer         marv-soccer.service
+Thu 2026-11-05 15:00:00 EST 5h 9min left  Sat 2026-10-31 14:00:02 EDT 4 days ago   marv-cfbprops.timer       marv-cfbprops.service
+Thu 2026-11-05 16:20:00 EST 6h left       Wed 2026-11-04 16:20:01 EST 17h ago      marv-swing-scan.timer     marv-swing-scan.service
+Thu 2026-11-05 16:35:00 EST 6h left       Wed 2026-11-04 23:50:02 EST 10h ago      marv-propgrade.timer      marv-propgrade.service
+Thu 2026-11-05 17:30:00 EST 7h left       Wed 2026-11-04 17:30:02 EST 16h ago      marv-bot-late.timer       marv-bot-late.service
+Fri 2026-11-06 08:40:00 EST 22h left      Thu 2026-11-05 08:40:12 EST 1h 9min ago  marv-dailypicks.timer     marv-dailypicks.service
+Fri 2026-11-06 09:15:00 EST 23h left      Thu 2026-11-05 09:15:00 EST 35min ago    marv-cfbprops-grade.timer marv-cfbprops-grade.service
+Fri 2026-11-06 09:20:00 EST 23h left      Thu 2026-11-05 09:20:00 EST 30min ago    marv-swing-open.timer     marv-swing-open.service
+-                           -             Thu 2026-11-05 09:50:01 EST 4s ago       marv-vmlink.timer         marv-vmlink.service
+
+17 timers listed.
+Pass --all to see loaded but inactive timers, too.
+950fcd3 research: Brain exits test (hedge-fund plan Tests 1-2: 2.5R / 3R / no target + BE, 1.5 / 2.0 ATR stops; pre-registered, research only)
+f66f7e9 research: 2-week shorts-only Brain test (brain_shorts family, pre-registered rule; research only, kill switch unchanged)
+39187ba swing: general market-news gate (Alpaca SPY/QQQ headlines 48h negative -> no new swing longs) replaces the per-stock check; Seeking Alpha logs its market feed
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        99G   58G   37G  62% /
