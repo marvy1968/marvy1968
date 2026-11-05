@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta
@@ -190,6 +191,29 @@ class BacktestTests(unittest.TestCase):
             tr = pd.read_csv(f"{d}/trendopt-{(TODAY + pd.Timedelta(days=1)):%Y%m%d}/trades.csv")
             self.assertEqual(set(tr["symbol"]), {"AAA"})
             self.assertTrue((tr["side"] == 1).all())
+
+
+class RegimeTests(unittest.TestCase):
+    def _load(self, spy_up):
+        idx = pd.bdate_range(end=TODAY, periods=80).tz_localize(ET)
+        c = np.linspace(400, 480, 80) if spy_up else np.linspace(480, 400, 80)
+        spy = pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=idx)
+
+        def load(s, tf, a, b):
+            if s == "SPY":
+                return spy
+            m = MIN[s]
+            return daily(m)[lambda x: x.index.date <= b] if tf == "1Day" else m
+        return load
+
+    def test_falling_spy_blocks_longs(self):
+        for up, expect in ((True, True), (False, False)):
+            with tempfile.TemporaryDirectory() as d, mock.patch.object(universe, "STOCKS", ["AAA", "BBB"]):
+                to.backtest(self._load(up), (TODAY + pd.Timedelta(days=1)).date(), d, log=lambda *_: None, seeds=2, months=1,
+                            cfg={**to.CFG, "spy_regime": True})
+                tr = pd.read_csv(f"{d}/trendopt-spyregime-{(TODAY + pd.Timedelta(days=1)):%Y%m%d}/trades.csv") \
+                    if os.path.getsize(f"{d}/trendopt-spyregime-{(TODAY + pd.Timedelta(days=1)):%Y%m%d}/trades.csv") else pd.DataFrame()
+                self.assertEqual(bool(len(tr) and (tr["side"] == 1).any()), expect)
 
 
 class LiveTests(unittest.TestCase):

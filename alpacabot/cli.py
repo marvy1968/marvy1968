@@ -351,6 +351,15 @@ def run_all(a) -> int:
                                  log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "trendopt_regime":               # owner 2026-11-05: SPY regime filter (long-only / short-only / both) vs the same bot without it
+                import datetime as _dt
+                from . import trendopt as _to
+                _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)   # noqa: E731
+                for lab, cfg_ in (("WITHOUT the SPY regime filter", _to.CFG), ("WITH the SPY regime filter", {**_to.CFG, "spy_regime": True})):
+                    lines.append(f"### Optimized Trend {lab}")
+                    lines += _to.backtest(_ld, _dt.date.today(), Path("state/vwap_daytrade"), log=lambda m: None, cfg=cfg_)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trendopt_bt":                   # owner 2026-11-03: Optimized Trend bot 3-month backtest (alpacabot.trendopt)
                 import datetime as _dt
                 from . import trendopt as _to

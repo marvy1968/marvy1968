@@ -147,6 +147,13 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
         except Exception as exc:
             log(f"{s}: {exc!r}")
     test_days = sorted({d for _, d in days_data})
+    regime = {}
+    if cfg.get("spy_regime"):        # owner 2026-11-05: SPY's previous close vs its rising / falling SMA20 picks the side (daily_flags rule)
+        regime = daily_flags(load("SPY", "1Day", start - timedelta(days=90), end))
+
+    def allowed(d, side):
+        lo, sh = regime.get(d, (False, False))
+        return not ((lo and not sh and side == -1) or (sh and not lo and side == 1))
 
     def run(mult=1.0, rng=None, shuffle=False):
         trades = []
@@ -158,6 +165,8 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
                     if j >= len(g) or g["k"].iat[j] < cfg["start_bar"] or g["k"].iat[j] >= cfg["flat_bar"]:
                         continue
                     side = 1 if g["long"].iat[i] else -1
+                    if regime and not allowed(d, side):
+                        continue
                     cands.append((j, s, side, float(g["atr"].iat[i]), g))
             cands.sort(key=lambda x: (x[0], x[1]))
             open_, n_new, realized, busy = [], 0, 0.0, {}
@@ -200,7 +209,7 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
         eq += t["R"]
         peak = max(peak, eq)
         dd = max(dd, peak - eq)
-    out = Path(out_root) / f"trendopt-{today:%Y%m%d}"
+    out = Path(out_root) / f"trendopt{'-spyregime' if regime else ''}-{today:%Y%m%d}"
     out.mkdir(parents=True, exist_ok=True)
     lines = [f"## Optimized Trend Stock bot - {months}-month backtest {test_days[0] if test_days else '-'}..{test_days[-1] if test_days else '-'} "
              f"({len(test_days)} sessions), 55 stocks, the uploaded settings unchanged (alpacabot/trendopt.py), 3 bps a side. "
@@ -215,6 +224,12 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
     for t in tr:
         by_m.setdefault(t["month"], []).append(t["R"])
     lines.append("- by month: " + ", ".join(f"{k} PF {vd.pf(v):.2f} ({len(v)}, {sum(v):+.1f}R)" for k, v in sorted(by_m.items())))
+    if test_days:
+        mid = test_days[len(test_days) // 2]
+        h1, h2 = vd.stats([t for t in tr if t["date"] < str(mid)]), vd.stats([t for t in tr if t["date"] >= str(mid)])
+        lines.append(f"- halves (split {mid}): 1st {h1['n']} trades PF {h1['pf']:.2f} {h1['net']:+.1f}R | 2nd {h2['n']} trades PF {h2['pf']:.2f} "
+                     f"{h2['net']:+.1f}R" + (f" | SPY regime filter ON ({sum(1 for v in regime.values() if v[0] and not v[1])} long-only days, "
+                                             f"{sum(1 for v in regime.values() if v[1] and not v[0])} short-only)" if regime else ""))
     why = pd.Series([t["exit_reason"] for t in tr]).value_counts().to_dict() if tr else {}
     lines.append(f"- exits: {why}")
     lines.append(f"- at 0.5% risk: net {st['net'] * 0.5:+.1f}% of equity over the period, worst run {dd * 0.5:.1f}% (before the 25% notional cap)")
@@ -334,6 +349,11 @@ class TrendOptLive(VwapLive):
             side = 1 if r["long"] else -1 if r["short"] else 0
             if not side or not (float(r["atr"]) > 0):
                 continue
+            if cfg.get("spy_regime"):
+                lo, sh = self.flags("SPY", now).get(now.date(), (False, False))
+                if (lo and not sh and side == -1) or (sh and not lo and side == 1):
+                    self.journal("signal", now, symbol=sym, strategy="trend", side=side, taken=False, skip_reason="spy_regime")
+                    continue
             if side == -1 and not self.b.shortable(sym):
                 self.journal("signal", now, symbol=sym, strategy="trend", side=-1, taken=False, skip_reason="not easy to borrow")
                 continue
