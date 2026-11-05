@@ -2588,3 +2588,80 @@ def brain_exits_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
                 "verdict": (f"PASS: {'; '.join(winners)} - propose to the owner (Brain stays paused until he approves)" if winners else
                             "FAIL: no target or stop variant cleared every check in either book - the Brain stays paused, live exits unchanged")})
     return out
+
+
+# ------------------------------------------------------------------ Top-Down sizing with the live 2R target (owner 2026-11-05 "Yes run the Top-Down sizing test")
+# PRE-DECLARED before any run. Live Top-Down as it trades now (SPY 200-day gate, 2R take-profit, 0.5% risk x 5 slots, notional cap 1/3 of equity,
+# 10 bps a side) vs 0.5% x 8 slots, 0.75% x 5 and 0.75% x 8. Select years 2016-03..2022, unseen years 2023..today, on today's list and the
+# hindsight-free 2016 list. A setting PASSES when, in BOTH periods and on BOTH lists, its profit factor is >= live's and its max drawdown is no
+# worse than 1.5x live's, AND its net P&L in the UNSEEN years beats live's on both lists (a setting that changes nothing does not pass). Among passing settings the one with the best worst-list CAGR in the SELECT years is proposed; nothing changes live
+# until the owner approves.
+SIZE2R_SPEC = {"risks": (0.005, 0.0075), "slots": (5, 8), "live": (0.005, 5), "tp_r": 2.0, "dd_mult": 1.5, "slip_bps": 10.0,
+               "select": ("2016-03-01", "2022-12-31"), "confirm_from": "2023-01-01", "max_pos_frac": 0.333}
+
+
+class _TopDown2R:
+    """GatedSectorTopDown with the live fixed take-profit (tp_r x the risk from the fill) through simulate_swing's zone target, nothing else."""
+
+    def __init__(self, gated, tp_r: float):
+        self.g = gated
+        self.max_days, self.name = gated.max_days, gated.name + f"+tp{tp_r}"
+        self.zones = {"lookback": 1, "chase_atr": 1e9, "min_r": 1e9, "default_r": tp_r, "exhaust_r": 1e9}
+
+    def frame(self, d):
+        return self.g.frame(d)
+
+    def stop_dist(self, f, i):
+        return self.g.stop_dist(f, i)
+
+    def stop_price(self, f, i):
+        return self.g.stop_price(f, i)
+
+    def rank(self, f, i):
+        return self.g.rank(f, i)
+
+
+def topdown_size2r_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[str]:
+    from .strategies import GatedSectorTopDown, SectorTopDown
+    sp = SIZE2R_SPEC
+    c = spy["close"]
+    gate = (c > c.rolling(200).mean()).where(c.rolling(200).mean().notna(), True)
+    strat = _TopDown2R(GatedSectorTopDown(SectorTopDown(c), gate), sp["tp_r"])
+    costs = Costs(slip_bps=sp["slip_bps"])
+    periods = {"select": tuple(date.fromisoformat(x) for x in sp["select"]), "unseen": (date.fromisoformat(sp["confirm_from"]), end)}
+    combos = [(r_, n) for r_ in sp["risks"] for n in sp["slots"]]
+    res = {}
+    for per, (a, b) in periods.items():
+        for label, data in universes.items():
+            for r_, n in combos:
+                res[(per, label, r_, n)] = run_swing(strat, data, costs, Portfolio(risk_pct=r_, max_positions=n, max_pos_frac=sp["max_pos_frac"]),
+                                                     a, b)["metrics"]
+    out = [f"### Top-Down sizing with the live 2R target (SPY 200-day gate, 10 bps a side, $100k start): select {periods['select'][0]}.."
+           f"{periods['select'][1]}, unseen {periods['unseen'][0]}..{end}",
+           "| Period | List | Setting | Trades | PF | CAGR | Max DD | Sharpe | Net P&L |", "|---|---|---|---|---|---|---|---|---|"]
+    for (per, label, r_, n), m in res.items():
+        out.append(f"| {per} | {label} | {r_:.2%} x {n}{' (LIVE)' if (r_, n) == sp['live'] else ''} | {m.get('trades', 0)} | "
+                   f"{m.get('profit_factor') or 0:.2f} | {m.get('cagr') or 0:+.1%} | {m.get('max_drawdown') or 0:.1%} | {m.get('sharpe') or 0:.2f} | "
+                   f"${m.get('total_pnl') or 0:+,.0f} |")
+    live = sp["live"]
+
+    def ok(r_, n):
+        for per in periods:
+            for lb in universes:
+                m, b0 = res[(per, lb, r_, n)], res[(per, lb, *live)]
+                if (m.get("profit_factor") or 0) < (b0.get("profit_factor") or 0) - 1e-9:
+                    return False
+                if (m.get("max_drawdown") or -1) < sp["dd_mult"] * (b0.get("max_drawdown") or 0) - 1e-9:
+                    return False
+                if per == "unseen" and (m.get("total_pnl") or 0) <= (b0.get("total_pnl") or 0):
+                    return False
+        return True
+    passing = [k for k in combos if k != live and ok(*k)]
+    for k in combos:
+        if k != live:
+            out.append(f"- {k[0]:.2%} x {k[1]}: {'PASS' if k in passing else 'FAIL'} (PF >= live and max DD within {sp['dd_mult']}x live, both periods, both lists; more net P&L than live in the unseen years)")
+    if not passing:
+        return out + ["- PRE-REGISTERED VERDICT: no larger setting passes - keep 0.5% x 5"]
+    best = max(passing, key=lambda k: min(res[("select", lb, *k)].get("cagr") or -1 for lb in universes))
+    return out + [f"- PRE-REGISTERED VERDICT: PROPOSE {best[0]:.2%} risk x {best[1]} slots (best worst-list CAGR in the select years among passing "
+                  "settings); live stays 0.5% x 5 until the owner approves"]
