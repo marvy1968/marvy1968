@@ -1,3 +1,5 @@
 $ alpaca run-all --phase validate --months3 --families brain_exits
-started 2026-11-05 10:01:57 EST
-RUNNING...
+started 2026-11-05 10:01:57 EST, took 7201s, exit timeout
+
+b'daily data ready\n'
+TIMED OUT after 7200s
