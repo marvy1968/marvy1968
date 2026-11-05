@@ -1,3 +1,6 @@
 $ where-text MULTI-ASSET DAILY REPORT CARD
-started 2026-11-04 19:22:48 EST
-RUNNING...
+started 2026-11-04 19:22:48 EST, took 91s, exit 0
+
+/home/moonrider1968/scalp_bot/report_bot.py
+/home/moonrider1968/bots/tg_report.py
+/home/moonrider1968/bots/master_trade_bot.py
