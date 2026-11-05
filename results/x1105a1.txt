@@ -1,3 +1,27 @@
 $ alpaca equity-vs-spy
-started 2026-11-04 19:22:43 EST
-RUNNING...
+started 2026-11-04 19:22:43 EST, took 2s, exit 0
+
+## Account vs SPY, 2026-10-12 .. 2026-11-03 (17 trading days with account moves)
+- account DOWN days: 13; SPY was also down on 8 of them (62%)
+- account UP days: 4; SPY was also up on 3 of them (75%)
+- same direction on 11 of 17 days; correlation +0.47; beta +0.35 (account % per 1% SPY move)
+- account avg on SPY-down days -0.57% (9 days), on SPY-up days -0.11% (8 days)
+| Date | Account | SPY | Same way |
+|---|---|---|---|
+| 2026-10-12 | -1.64% | -0.06% | yes |
+| 2026-10-13 | -0.19% | -0.01% | yes |
+| 2026-10-14 | +0.04% | -1.08% | no |
+| 2026-10-15 | +0.09% | +0.28% | yes |
+| 2026-10-16 | -0.48% | -1.11% | yes |
+| 2026-10-19 | -0.59% | +0.42% | no |
+| 2026-10-20 | -0.51% | +0.34% | no |
+| 2026-10-21 | +0.26% | +0.53% | yes |
+| 2026-10-22 | -1.20% | -1.18% | yes |
+| 2026-10-23 | -0.19% | -0.52% | yes |
+| 2026-10-26 | +0.50% | +0.71% | yes |
+| 2026-10-27 | -0.19% | +0.56% | no |
+| 2026-10-28 | -0.18% | +0.34% | no |
+| 2026-10-29 | -0.02% | -0.38% | yes |
+| 2026-10-30 | -1.12% | -1.77% | yes |
+| 2026-11-02 | -0.35% | -0.48% | yes |
+| 2026-11-03 | -0.24% | +0.30% | no |
