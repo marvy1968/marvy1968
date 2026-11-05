@@ -147,6 +147,12 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
         except Exception as exc:
             log(f"{s}: {exc!r}")
     test_days = sorted({d for _, d in days_data})
+    spy_open = {}
+    if cfg.get("spy_vs_open"):      # owner 2026-11-05: SPY's last 5-minute close vs today's open picks the side (longs above, shorts below)
+        sb = bars5(vd.minute_frame(load("SPY", "1Min", start, end)))
+        for dd_, gg in sb.groupby("d"):
+            o0 = float(gg["o"].iloc[0])
+            spy_open[dd_] = {int(k): (1 if c > o0 else -1 if c < o0 else 0) for k, c in zip(gg["k"], gg["c"])}
     regime = {}
     if cfg.get("spy_regime"):        # owner 2026-11-05: SPY's previous close vs its rising / falling SMA20 picks the side (daily_flags rule)
         regime = daily_flags(load("SPY", "1Day", start - timedelta(days=90), end))
@@ -167,6 +173,10 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
                     side = 1 if g["long"].iat[i] else -1
                     if regime and not allowed(d, side):
                         continue
+                    if spy_open:
+                        sgn = spy_open.get(d, {}).get(int(g["k"].iat[i]), 0)     # SPY at the close of the signal bar
+                        if sgn and sgn != side:
+                            continue
                     cands.append((j, s, side, float(g["atr"].iat[i]), g))
             cands.sort(key=lambda x: (x[0], x[1]))
             open_, n_new, realized, busy = [], 0, 0.0, {}
@@ -209,7 +219,7 @@ def backtest(load, today: date, out_root, log=print, seeds: int = 20, months: in
         eq += t["R"]
         peak = max(peak, eq)
         dd = max(dd, peak - eq)
-    out = Path(out_root) / f"trendopt{'-spyregime' if regime else ''}-{today:%Y%m%d}"
+    out = Path(out_root) / f"trendopt{'-spyregime' if regime else ''}{'-spyopen' if spy_open else ''}-{today:%Y%m%d}"
     out.mkdir(parents=True, exist_ok=True)
     lines = [f"## Optimized Trend Stock bot - {months}-month backtest {test_days[0] if test_days else '-'}..{test_days[-1] if test_days else '-'} "
              f"({len(test_days)} sessions), 55 stocks, the uploaded settings unchanged (alpacabot/trendopt.py), 3 bps a side. "
@@ -244,6 +254,7 @@ from .vwaplive import VwapLive  # noqa: E402
 # owner 2026-11-04 ("switch the losing sleeves to log only"): 3-month backtest PF 0.40 (203 trades, lost to random entries 20/20).
 # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
 TRENDOPT_LIVE = {**CFG, "daily_limit_r": 1e9, "paused": False, "start_date": "2026-11-03", "log_only": True,
+                 "spy_vs_open": True,      # owner 2026-11-05: SPY vs today's open picks the side. UNDO: False
                  "spy_regime": False}      # 2026-11-05 OFF: trendopt_regime PF 0.40 -> 0.33          # owner 2026-11-05: SPY regime gate (also in its backtest: trendopt_regime). UNDO: False
 
 

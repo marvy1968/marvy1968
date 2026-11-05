@@ -171,7 +171,7 @@ class VwapLiveTests(unittest.TestCase):
             return pd.DataFrame({"open": c, "high": c + 1, "low": c - 1, "close": c, "volume": 1e6}, index=d)
         with tempfile.TemporaryDirectory() as d:
             b = FakeBroker()
-            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False, "spy_regime": True}, fetch=fetch, sleep=lambda *_: None)
+            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False, "spy_regime": True, "spy_vs_open": False}, fetch=fetch, sleep=lambda *_: None)
             now = datetime(2026, 11, 3, 10, 30, 10, tzinfo=ET)
             self.assertFalse(live.spy_side_ok(1, now))
             self.assertTrue(live.spy_side_ok(-1, now))
@@ -181,6 +181,19 @@ class VwapLiveTests(unittest.TestCase):
             with open(f"{d}/journal.jsonl") as fh:
                 j = [json.loads(x) for x in fh]
             self.assertEqual(j[-1]["skip_reason"], "spy_regime")
+
+    def test_spy_vs_open_gate(self):
+        with tempfile.TemporaryDirectory() as d:
+            b = FakeBroker()
+            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False}, fetch=fake_fetch, sleep=lambda *_: None)
+            now = datetime(2026, 11, 3, 11, 0, 10, tzinfo=ET)                 # test SPY rises all day -> above its open
+            self.assertEqual(live.spy_open_side(now), 1)
+            live.state = {**live.state, "open": {}, "traded": [], "n_new": 0}
+            b.now = pd.Timestamp(now) - pd.Timedelta(minutes=1)
+            live.enter("AAA", "reclaim", -1, {"entry": 100.0, "stop": 101.0}, now, 90)
+            self.assertEqual(b.orders, {})                                     # short blocked
+            with open(f"{d}/journal.jsonl") as fh:
+                self.assertEqual(json.loads(fh.readlines()[-1])["skip_reason"], "spy_vs_open")
 
 
 if __name__ == "__main__":

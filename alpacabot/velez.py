@@ -343,6 +343,7 @@ VELEZ_LIVE = {**CFG, "notional_cap": 0.25, "daily_limit_r": CFG["daily_cap_r"], 
               # owner 2026-11-04 ("switch the losing sleeves to log only"): 4-month backtest PF 0.59 (113 trades), no exit of 18 fixed it.
               # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
               "log_only": True,
+              "spy_vs_open": True,     # owner 2026-11-05: SPY vs today's open picks the side (VwapLive.spy_open_side). UNDO: False
               "spy_regime": False}      # 2026-11-05 OFF: failed its tests             # owner 2026-11-05: SPY regime gate (VwapLive.spy_side_ok); Velez is long only. UNDO: False
 
 

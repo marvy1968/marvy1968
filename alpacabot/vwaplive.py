@@ -39,6 +39,7 @@ VWAP_LIVE = {"risk_pct": 0.0005, "notional_cap": 0.25, "max_new": 4, "max_open":
              "log_only": True,
              # owner 2026-11-05 ("if the S&P 500 is down overall let it short only, if up look for longs"): SPY prev close vs its rising /
              # falling SMA20 picks the side (VwapLive.spy_side_ok). UNDO: "spy_regime": False.
+             "spy_vs_open": True,      # owner 2026-11-05: SPY above today's open -> longs only, below -> shorts only (log-only sleeve). UNDO: False
              "spy_regime": False,      # 2026-11-05 OFF: failed its tests (Top-Down PF 1.51 -> 1.46 OOS, Trend 0.40 -> 0.33)
              "start_date": "2026-11-03"}     # first session it may trade (after the owner sees the 2-week sample)
 
@@ -303,7 +304,31 @@ class VwapLive:
         reg = self.state.get("spy_regime", "both")
         return reg == "both" or (reg == "long" and side == 1) or (reg == "short" and side == -1)
 
+    def spy_open_side(self, now) -> int:
+        """Owner 2026-11-05: +1 when SPY's last closed minute is above today's open, -1 below, 0 equal / unreadable (then both sides)."""
+        key = now.strftime("%Y-%m-%d %H:%M")
+        if self.state.get("spy_open_key") != key:
+            v = 0
+            try:
+                start = pd.Timestamp(now.date(), tz=ET).replace(hour=9, minute=30).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+                df = self.fetch("SPY", "1Min", start, now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "iex")
+                idx = pd.DatetimeIndex(df.index)
+                df = df[(idx + pd.Timedelta(minutes=1)) <= pd.Timestamp(now)]
+                if len(df):
+                    o0, last = float(df["open"].iloc[0]), float(df["close"].iloc[-1])
+                    v = 1 if last > o0 else -1 if last < o0 else 0
+            except Exception as exc:
+                self.journal("error", now, where="spy_vs_open", error=str(exc)[:160])
+            self.state["spy_open_key"], self.state["spy_open_side"] = key, v
+        return int(self.state.get("spy_open_side", 0))
+
     def enter(self, sym, strat, side, sig, now, m):
+        if self.cfg.get("spy_vs_open"):
+            so = self.spy_open_side(now)
+            if so and so != side:
+                self.journal("signal", now, symbol=sym, strategy=strat, side=side, taken=False, skip_reason="spy_vs_open",
+                             spy_vs_open=so, entry=sig["entry"], stop=sig["stop"])
+                return
         if self.cfg.get("spy_regime") and not self.spy_side_ok(side, now):
             self.journal("signal", now, symbol=sym, strategy=strat, side=side, taken=False, skip_reason="spy_regime",
                          regime=self.state.get("spy_regime"), entry=sig["entry"], stop=sig["stop"])

@@ -508,6 +508,7 @@ def r_of(events, e, R0, side, mult):
     return num / R0
 
 
+SPY_VS_OPEN = False  # research switch (alpacabot.cli spy_open_filter): SPY's last close vs today's open picks the side
 RECLAIM_TP = 1.0     # reclaim: half off at this many R (spec 1R; alpacabot.tpearly patches it for the early-exit test)
 
 
@@ -739,6 +740,10 @@ def run(ctx: Ctx, strat: str, side: int, p: dict, mult: float = 1.0, universe: s
             if logs is not None:
                 for why, s in skips:
                     signals.append({"date": str(d), "symbol": sym, "strategy": strat, "side": side, "minute": s, "taken": False, "skip_reason": why})
+            if sig and SPY_VS_OPEN and sig["j"] >= 1:          # owner 2026-11-05: SPY above today's open -> longs only, below -> shorts only
+                sp_last, sp_open = float(spy["c"][sig["j"] - 1]), float(spy["o"][0])
+                if (sp_last > sp_open and side == -1) or (sp_last < sp_open and side == 1):
+                    sig = None
             if sig:
                 cands.append((sig["j"], rank, sym, sig, sd, dd))
         cands.sort(key=lambda x: (x[0], x[1]))

@@ -216,6 +216,31 @@ class RegimeTests(unittest.TestCase):
                 self.assertEqual(bool(len(tr) and (tr["side"] == 1).any()), expect)
 
 
+class SpyOpenTests(unittest.TestCase):
+    def test_spy_below_open_blocks_longs(self):
+        def load(s, tf, a, b):
+            if s == "SPY":
+                if tf == "1Day":
+                    return daily(MIN["BBB"])
+                m = MIN["BBB"].copy()                                      # BBB-shaped minutes, then pushed below each day's open
+                d = m.index.normalize()
+                first = m.groupby(d)["open"].transform("first")
+                for k in ("open", "high", "low", "close"):
+                    m[k] = first - 1.0 - 0.001 * (m[k] - m[k].min())
+                return m
+            m = MIN[s]
+            return daily(m)[lambda x: x.index.date <= b] if tf == "1Day" else m
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(universe, "STOCKS", ["AAA", "BBB"]):
+            to.backtest(load, (TODAY + pd.Timedelta(days=1)).date(), d, log=lambda *_: None, seeds=2, months=1,
+                        cfg={**to.CFG, "spy_vs_open": True})
+            f = f"{d}/trendopt-spyopen-{(TODAY + pd.Timedelta(days=1)):%Y%m%d}/trades.csv"
+            try:
+                tr = pd.read_csv(f)
+            except pd.errors.EmptyDataError:
+                tr = pd.DataFrame()
+            self.assertFalse("side" in tr and (tr["side"] == 1).any())
+
+
 class LiveTests(unittest.TestCase):
     def run_day(self, d, b, live, until=datetime(2026, 11, 3, 15, 50, 10, tzinfo=ET)):
         t = datetime(2026, 11, 3, 9, 40, 10, tzinfo=ET)

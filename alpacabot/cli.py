@@ -351,6 +351,38 @@ def run_all(a) -> int:
                                  log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "spy_open_filter":               # owner 2026-11-05: SPY above today's open -> longs only, below -> shorts only (with vs without)
+                import datetime as _dt
+                import pandas as _pd
+                from . import trendopt as _to
+                from . import vwapday as _vd
+                _ld = lambda s_, tf, a_, b_: load(s_, tf, a_, b_, cache)   # noqa: E731
+                today_ = _dt.date.today()
+                lines.append("## SPY vs today's open (pre-registered: keep only if PF is higher in BOTH halves for that system)")
+                for lab, cfg_ in (("WITHOUT", _to.CFG), ("WITH", {**_to.CFG, "spy_vs_open": True})):
+                    lines.append(f"### Optimized Trend {lab} the SPY-vs-open filter")
+                    lines += [l for l in _to.backtest(_ld, today_, Path("state/vwap_daytrade"), log=lambda m: None, cfg=cfg_)
+                              if l.startswith("| all") or l.startswith("- halves")]
+                keep = _vd.SPY_VS_OPEN
+                try:
+                    for flag in (False, True):
+                        _vd.SPY_VS_OPEN = flag
+                        nm = f"spyopen_{'on' if flag else 'off'}"
+                        _vd.quick(_ld, today_, Path("state/vwap_daytrade"), sessions=None, days_back=150, seeds=0, name=nm,
+                                  strats=("reclaim", "band"), log=lambda m: None)
+                        tr = _pd.read_csv(Path("state/vwap_daytrade") / f"{nm}-{today_:%Y%m%d}" / "trades.csv")
+                        days = sorted(set(tr["date"]))
+                        mid = days[len(days) // 2] if days else ""
+                        for st_ in ("reclaim", "band"):
+                            x = tr[tr["variant"].str.startswith(st_)]
+                            h1, h2 = x[x["date"] < mid]["R"], x[x["date"] >= mid]["R"]
+                            pf = lambda r: (r[r > 0].sum() / -r[r < 0].sum()) if (r < 0).any() else 99.0   # noqa: E731
+                            lines.append(f"- VWAP {st_} {'WITH' if flag else 'WITHOUT'} the filter: {len(x)} trades, PF {pf(x['R']):.2f}, "
+                                         f"net {x['R'].sum():+.1f}R | halves PF {pf(h1):.2f} ({len(h1)}) / {pf(h2):.2f} ({len(h2)})")
+                finally:
+                    _vd.SPY_VS_OPEN = keep
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "trendopt_regime":               # owner 2026-11-05: SPY regime filter (long-only / short-only / both) vs the same bot without it
                 import datetime as _dt
                 from . import trendopt as _to
