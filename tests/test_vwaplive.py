@@ -185,7 +185,8 @@ class VwapLiveTests(unittest.TestCase):
     def test_spy_vs_open_gate(self):
         with tempfile.TemporaryDirectory() as d:
             b = FakeBroker()
-            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False}, fetch=fake_fetch, sleep=lambda *_: None)
+            live = vl.VwapLive(b, state_dir=d, cfg={**vl.VWAP_LIVE, "log_only": False, "spy_vs_open": True}, fetch=fake_fetch,
+                               sleep=lambda *_: None)
             now = datetime(2026, 11, 3, 11, 0, 10, tzinfo=ET)                 # test SPY rises all day -> above its open
             self.assertEqual(live.spy_open_side(now), 1)
             live.state = {**live.state, "open": {}, "traded": [], "n_new": 0}

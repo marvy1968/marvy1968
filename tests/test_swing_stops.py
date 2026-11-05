@@ -153,6 +153,36 @@ class EnsureStopsTests(unittest.TestCase):
             self.assertEqual([e["symbol"] for e in r.spy_regime_filter(up, ents, NOW)], ["AAA"])
             self.assertEqual([e["symbol"] for e in r.spy_regime_filter(dn, ents, NOW)], ["BBB"])
 
+    def test_stock_news_filter(self):
+        ents = [{"symbol": "AAA", "side": 1}, {"symbol": "BBB", "side": 1}]
+        now = pd.Timestamp("2026-11-05 16:20", tz=sp.ET).to_pydatetime()
+        arts = [{"t": "2026-11-05T12:00:00Z", "symbols": ["AAA"], "s": -2}, {"t": "2026-11-05T13:00:00Z", "symbols": ["BBB"], "s": 1},
+                {"t": "2026-10-01T13:00:00Z", "symbols": ["BBB"], "s": -9}]                      # too old: ignored
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(Broker({}), state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            with unittest.mock.patch.object(r, "zone_config", return_value={"stock_news": {"live": True, "hours": 48}}):
+                kept = r.stock_news_filter(ents, now, fetch_news=lambda syms, a, b, c: arts)
+                self.assertEqual([e["symbol"] for e in kept], ["BBB"])
+                def boom(*a):
+                    raise RuntimeError("feed down")
+                self.assertEqual(r.stock_news_filter(ents, now, fetch_news=boom), ents)          # feed failure skips nothing
+
+    def test_seeking_alpha_log(self):
+        rss = (b"<rss><channel><item><title>XYZ downgraded on weak guidance</title><pubDate>Thu, 05 Nov 2026 14:00:00 +0000</pubDate>"
+               b"</item><item><title>XYZ old news</title><pubDate>Mon, 26 Oct 2026 14:00:00 +0000</pubDate></item></channel></rss>")
+
+        class R:
+            def __init__(self, code, content=b""):
+                self.status_code, self.content = code, content
+        now = pd.Timestamp("2026-11-05 16:20", tz=sp.ET).to_pydatetime()
+        with tempfile.TemporaryDirectory() as d:
+            r = sp.SwingRunner(Broker({}), state_dir=d, base_equity=50000.0, sleep=lambda *_: None)
+            r.seeking_alpha_log(["XYZ", "ERR"], now, get=lambda url: R(200, rss) if "XYZ" in url else R(403))
+            row = json.loads(open(f"{d}/seekingalpha.jsonl").read().splitlines()[-1])["rows"]
+            self.assertEqual((row[0]["items"], row[0]["items_48h"]), (2, 1))
+            self.assertLess(row[0]["score_48h"], 0)
+            self.assertEqual(row[1]["error"], "http 403")
+
 
 if __name__ == "__main__":
     import unittest.mock  # noqa: F401

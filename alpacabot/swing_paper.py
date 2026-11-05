@@ -290,11 +290,83 @@ class SwingRunner:
         exits, entries = self.trend_filters(held, exits, entries, now)
         if self.zone_config().get("spy_regime") and entries:     # owner 2026-11-05: S&P down overall -> no new longs (shorts only)
             entries = self.spy_regime_filter(spy, entries, now)
+        if (self.zone_config().get("stock_news") or {}).get("live") and entries:   # owner 2026-11-05: skip longs with bad recent headlines
+            entries = self.stock_news_filter(entries, now)
+        if (self.zone_config().get("seeking_alpha") or {}).get("log"):              # owner 2026-11-05: Seeking Alpha headlines, LOG ONLY
+            self.seeking_alpha_log(sorted({e["symbol"] for e in entries} | set(held)), now)
         self.stair_trail(held, exits, now)
         self.state["plan"] = {"made": today.isoformat(), "exits": exits, "entries": entries}
         self._save()
         self.journal("plan", now, exits=exits, entries=entries, equity=round(equity, 2))
         return self.state["plan"]
+
+    def stock_news_filter(self, entries: list, now: datetime, fetch_news=None) -> list:
+        """Owner 2026-11-05 (not backtested, by the owner's choice): a new LONG is skipped when that stock's Alpaca news (Benzinga headlines +
+        summaries, alpacabot.news word score) over the last `hours` sums below zero. If the feed fails, nothing is skipped."""
+        cfg = self.zone_config().get("stock_news") or {}
+        hours = float(cfg.get("hours", 48))
+        longs = sorted({e["symbol"] for e in entries if e.get("side", 1) == 1})
+        if not longs:
+            return entries
+        try:
+            from .news import fetch as _fetch_news
+            since = now.astimezone(timezone.utc) - timedelta(hours=hours)
+            arts = (fetch_news or _fetch_news)(longs, since.date(), now.astimezone(timezone.utc).date(), self.dir / "news_cache")
+        except Exception as exc:
+            self.journal("stock_news_error", now, error=str(exc)[:160])
+            return entries
+        tally = {}
+        for a in arts:
+            t = pd.Timestamp(a["t"])
+            if t.tzinfo is None:
+                t = t.tz_localize("UTC")
+            if t < pd.Timestamp(since):
+                continue
+            for sym in a.get("symbols") or []:
+                if sym in longs:
+                    n, sc = tally.get(sym, (0, 0))
+                    tally[sym] = (n + 1, sc + int(a.get("s") or 0))
+        bad = {sym: v for sym, v in tally.items() if v[1] < 0}
+        if bad:
+            self.journal("stock_news_skip", now, skipped={k: {"articles": v[0], "score": v[1]} for k, v in bad.items()}, hours=hours)
+        return [e for e in entries if not (e.get("side", 1) == 1 and e["symbol"] in bad)]
+
+    def seeking_alpha_log(self, symbols: list, now: datetime, get=None) -> None:
+        """Owner 2026-11-05: Seeking Alpha's free per-stock RSS (headlines only, ~20 latest, no history) for the swing candidates and holdings,
+        scored with the same word list and appended to seekingalpha.jsonl. LOG ONLY - it never changes a trade. A few requests a day."""
+        import xml.etree.ElementTree as ET
+        from email.utils import parsedate_to_datetime
+
+        from .news import score
+        if get is None:
+            import requests
+
+            def get(url):
+                return requests.get(url, headers={"User-Agent": "Mozilla/5.0 (paper-trading research)"}, timeout=10)
+        rows = []
+        for sym in symbols[:25]:
+            try:
+                r = get(f"https://seekingalpha.com/api/sa/combined/{sym}.xml")
+                if r.status_code != 200:
+                    rows.append({"symbol": sym, "error": f"http {r.status_code}"})
+                    continue
+                items = []
+                for it in ET.fromstring(r.content).iter("item"):
+                    title = (it.findtext("title") or "").strip()
+                    try:
+                        ts = parsedate_to_datetime(it.findtext("pubDate") or "")
+                    except Exception:
+                        ts = None
+                    items.append((ts, title))
+                since = now.astimezone(timezone.utc) - timedelta(hours=48)
+                recent = [t for ts, t in items if ts is not None and ts >= since]
+                rows.append({"symbol": sym, "items": len(items), "items_48h": len(recent), "score_48h": sum(score(t) for t in recent),
+                             "titles_48h": recent[:5]})
+            except Exception as exc:
+                rows.append({"symbol": sym, "error": str(exc)[:120]})
+        with open(self.dir / "seekingalpha.jsonl", "a") as f:
+            f.write(json.dumps({"t": now.isoformat(timespec="seconds"), "rows": rows}) + "\n")
+        self.journal("seeking_alpha", now, symbols=len(rows), negative=[r["symbol"] for r in rows if (r.get("score_48h") or 0) < 0])
 
     def spy_regime_filter(self, spy: pd.DataFrame, entries: list, now: datetime) -> list:
         """SPY's latest close over its rising SMA20 -> keep long entries only; under a falling SMA20 -> short entries only; else all."""

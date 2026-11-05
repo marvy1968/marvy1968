@@ -254,7 +254,7 @@ from .vwaplive import VwapLive  # noqa: E402
 # owner 2026-11-04 ("switch the losing sleeves to log only"): 3-month backtest PF 0.40 (203 trades, lost to random entries 20/20).
 # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
 TRENDOPT_LIVE = {**CFG, "daily_limit_r": 1e9, "paused": False, "start_date": "2026-11-03", "log_only": True,
-                 "spy_vs_open": True,      # owner 2026-11-05: SPY vs today's open picks the side. UNDO: False
+                 "spy_vs_open": False,     # OFF 2026-11-05: failed its test. owner 2026-11-05: SPY vs today's open picks the side. UNDO: False
                  "spy_regime": False}      # 2026-11-05 OFF: trendopt_regime PF 0.40 -> 0.33          # owner 2026-11-05: SPY regime gate (also in its backtest: trendopt_regime). UNDO: False
 
 
