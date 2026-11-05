@@ -1220,6 +1220,34 @@ def run_all(a) -> int:
                                      log=lambda m: print(m, flush=True))
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "topdown_spyreg":                # owner 2026-11-05: Top-Down (2R TP) with vs without the live SPY regime rule, pre-registered bar
+                import datetime as _dt
+                from . import exitlab as _xl
+                from .universe import STOCKS
+                today_ = _dt.date.today()
+                dd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in sorted(set(STOCKS) | {"SPY", "QQQ"})}
+                dd = {s: d for s, d in dd.items() if len(d) > 300}
+                spy_c = dd["SPY"]["close"]
+                cd = {s: load(s, "1Day", _dt.date(2015, 1, 1), today_, cache) for s in SECTOR_TD_CONTROL}
+                cd = {s: d for s, d in cd.items() if len(d) > 300}
+                picks = {"topdown": ["fixed_2r"], "topdown_spyreg": ["fixed_2r"]}
+                res = {}
+                for lab, bars in (("today's list", dd), ("the hindsight-free 2016 list", {**cd, "SPY": dd["SPY"]})):
+                    lg = _xl.long_test(bars, spy_c, today_, picks)
+                    res[lab] = {k: v["fixed_2r"] for k, v in lg.items()}
+                    lines.append(f"### {lab} (2x slippage, 2R take-profit; OOS = last 12 months to 3 months ago)")
+                    for k, r in res[lab].items():
+                        lines.append(f"- {k}: in-sample {_xl._fmt(r['in_sample'])} | OOS {_xl._fmt(r['oos'])} | years PF>1 {r['years_pf_gt_1']}/{r['years']} "
+                                     f"| random-entry OOS avg R {r['random_entry_oos_avg_r']}")
+                def _pf(x):
+                    return x["pf"] or 0
+                ok = all(_pf(res[l]["topdown_spyreg"][w]) > _pf(res[l]["topdown"][w]) for l in res for w in ("in_sample", "oos"))
+                t = res["today's list"]
+                ok = ok and t["topdown_spyreg"]["oos"]["trades"] >= 40 and t["topdown_spyreg"]["oos"]["total_r"] >= t["topdown"]["oos"]["total_r"]
+                lines.append("- PRE-REGISTERED VERDICT (PF higher in-sample AND OOS on both lists, 40+ OOS trades, OOS net R >= current on today's "
+                             f"list): {'PASS - keep the SPY rule on Top-Down' if ok else 'FAIL - the SPY rule should come off Top-Down'}")
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "swing_exits_muse_all":      # owner 2026-11-04 ("apply and run the same for alpaca"): all 14 old exits + Muse's 7, every swing strategy
                 import datetime as _dt
                 from . import exitlab as _xl

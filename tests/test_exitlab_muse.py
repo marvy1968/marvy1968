@@ -52,6 +52,17 @@ class StockMuseExitTests(unittest.TestCase):
     def test_registered(self):
         self.assertEqual(len(set(xl.EXITS + xl.MUSE_EXITS)), 21)
 
+    def test_topdown_spyreg_blocks_in_spy_downtrend(self):
+        idx = pd.bdate_range("2024-01-01", periods=400)
+        rng = np.random.default_rng(1)
+        c = 100 * np.exp(np.cumsum(rng.normal(0.0005, 0.01, 400)))
+        d = pd.DataFrame({"open": c, "high": c * 1.01, "low": c * 0.99, "close": c, "volume": 1e6}, index=idx)
+        spy = pd.Series(np.r_[np.linspace(400, 500, 200), np.linspace(500, 400, 200)], index=idx)
+        base, gated = xl.signals("topdown", d, spy)["entry"], xl.signals("topdown_spyreg", d, spy)["entry"]
+        self.assertTrue((gated <= base).all())                                     # only removes entries
+        self.assertEqual(int(gated.iloc[221:].sum()), 0)                           # none while SPY is under a falling SMA20
+        self.assertEqual(int(gated.iloc[:200].sum()), int(base.iloc[:200].sum()))  # untouched while SPY rises
+
 
 if __name__ == "__main__":
     unittest.main()

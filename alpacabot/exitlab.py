@@ -45,10 +45,20 @@ def signals(name: str, d: pd.DataFrame, spy_close: pd.Series | None = None) -> p
     """entry / stop (price) / tp (price, inf = none) / exit (own exit flag at the close) per bar."""
     c = d["close"].astype(float)
     out = pd.DataFrame(index=d.index)
-    if name == "topdown":
+    if name in ("topdown", "topdown_spyreg"):
         from .strategies import SectorTopDown
         f = SectorTopDown(spy_close).frame(d)
         out["entry"], out["stop"], out["tp"], out["exit"] = f["entry"], f["stop"], np.inf, f["exit"]
+        if name == "topdown_spyreg":                 # owner 2026-11-05: no new long when SPY's close is under its falling SMA20 (live rule)
+            sc = spy_close.astype(float)
+            ix = pd.DatetimeIndex(sc.index)
+            sc.index = (ix.tz_convert("America/New_York").tz_localize(None) if ix.tz is not None else ix).normalize()
+            sma = sc.rolling(20).mean()
+            short_only = ((sc < sma) & (sma < sma.shift(1))).fillna(False)
+            di = pd.DatetimeIndex(d.index)
+            key = (di.tz_convert("America/New_York").tz_localize(None) if di.tz is not None else di).normalize()
+            blocked = short_only.reindex(key).fillna(False).to_numpy(bool)
+            out["entry"] = out["entry"].fillna(False).astype(bool) & ~blocked
     elif name in ("funnel", "oversold"):
         from .funnel import frame
         f = frame(d, FUNNEL_RULES if name == "funnel" else OVERSOLD_RULES)
