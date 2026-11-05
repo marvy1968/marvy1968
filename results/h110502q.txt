@@ -1,3 +1,10 @@
 $ alpaca positions
-started 2026-11-04 21:36:01 EST
-RUNNING...
+started 2026-11-04 21:36:01 EST, took 6s, exit 0
+
+equity $51,511.41  cash $47,388.41  long mv $4,123.00  short mv $0.00
+2 open positions:
+  MA         long  qty            4  value $  2,692.00  unrealized $    85.25
+  LLY        long  qty            1  value $  1,431.00  unrealized $     3.10
+2 open orders:
+  MA         sell 4 limit new  id sw-o-MA-20261103
+  LLY        sell 1 limit new  id sw-o-LLY-20261103
