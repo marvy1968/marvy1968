@@ -2523,8 +2523,9 @@ BRAIN_EXIT_VARIANTS = {   # name -> (VelezHybrid stop_r, target_r in expert-risk
 
 
 def brain_exits_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6),
-                      ckpt=None, symbols=None) -> dict:
-    """Owner 2026-11-05 hedge-fund plan, Tests 1 (targets) and 2 (ATR stops) on the Brain (BRAIN_EXITS_RULE)."""
+                      ckpt=None, symbols=None, only_books=None) -> dict:
+    """Owner 2026-11-05 hedge-fund plan, Tests 1 (targets) and 2 (ATR stops) on the Brain (BRAIN_EXITS_RULE). only_books: run just these books
+    (the VM run uses ("long + short",) after the shorts-only book failed its own 2-week test)."""
     import json as _json
     from dataclasses import replace as _rep
     from pathlib import Path as _P
@@ -2536,6 +2537,8 @@ def brain_exits_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
     base_lad = live_intraday_ladder()
     sub = {s_: fr for s_, fr in days.items() if s_ in set(symbols or days)}
     books = {"long + short": (live["experts"], live["short_experts"]), "shorts only": ([], live["short_experts"])}
+    if only_books:
+        books = {k: v for k, v in books.items() if k in only_books}
 
     def strat(longs, shorts, var):
         stop_r, tgt_r, k, extra = BRAIN_EXIT_VARIANTS[var]

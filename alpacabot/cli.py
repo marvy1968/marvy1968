@@ -2045,7 +2045,8 @@ def run_all(a) -> int:
                                      + f" | random-timing avg R {res['placebo_avg_r']}")
                     elif fam == "brain_exits":
                         from .research import brain_exits_study
-                        res = brain_exits_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_bexits.json", symbols=_ent)
+                        res = brain_exits_study(days, train, test, costs, ckpt=out / f"ckpt_{a.phase}{qtag}_bexits.json", symbols=_ent,
+                                                only_books=("long + short",))   # shorts-only failed its own 2-week test (owner: short tests first)
                         lines.append(f"- rule: {res['rule']}")
                         for k_, ch_ in res["checks"].items():
                             lines.append(f"- {k_}: " + ", ".join(f"{c_} {'OK' if v_ else 'NO'}" for c_, v_ in ch_.items()))
