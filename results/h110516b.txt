@@ -1,3 +1,18 @@
 $ logs marv-edges 15
-started 2026-11-05 10:01:09 EST
-RUNNING...
+started 2026-11-05 10:01:09 EST, took 0s, exit 0
+
+Nov 05 09:19:22 instance-stockbot systemd[1]: Started marv-edges.service - Marv edge board - alerts and Telegram queries (/board /game /check /props /record).
+Nov 05 09:19:50 instance-stockbot python[2668568]: 2026-11-05 09:19:50,922 INFO Odds API americanfootball_nfl: 79994 credits left
+Nov 05 09:19:51 instance-stockbot python[2668568]: 2026-11-05 09:19:51,922 INFO Odds API americanfootball_ncaaf: 79991 credits left
+Nov 05 09:19:53 instance-stockbot python[2668568]: 2026-11-05 09:19:53,237 INFO Odds API basketball_nba: 79988 credits left
+Nov 05 09:19:53 instance-stockbot python[2668568]: 2026-11-05 09:19:53,789 INFO Odds API basketball_ncaab: 79985 credits left
+Nov 05 09:21:37 instance-stockbot python[2668568]: 2026-11-05 09:21:37,740 INFO upset alert sent: ncaab:401909501:2026-11-05
+Nov 05 09:21:39 instance-stockbot python[2668568]: 2026-11-05 09:21:39,462 INFO upset alert sent: ncaab:401921698:2026-11-05
+Nov 05 09:21:40 instance-stockbot python[2668568]: 2026-11-05 09:21:40,170 INFO Odds API nfl (bovada+pinnacle): 79983 credits left
+Nov 05 09:21:40 instance-stockbot python[2668568]: 2026-11-05 09:21:40,540 INFO Odds API cfb (bovada+pinnacle): 79981 credits left
+Nov 05 09:51:46 instance-stockbot python[2668568]: 2026-11-05 09:51:46,396 INFO Odds API americanfootball_nfl: 79978 credits left
+Nov 05 09:51:46 instance-stockbot python[2668568]: 2026-11-05 09:51:46,768 INFO Odds API americanfootball_ncaaf: 79975 credits left
+Nov 05 09:51:46 instance-stockbot python[2668568]: 2026-11-05 09:51:46,984 INFO Odds API basketball_nba: 79972 credits left
+Nov 05 09:51:47 instance-stockbot python[2668568]: 2026-11-05 09:51:47,212 INFO Odds API basketball_ncaab: 79969 credits left
+Nov 05 09:52:01 instance-stockbot python[2668568]: 2026-11-05 09:52:01,017 INFO Odds API nfl (bovada+pinnacle): 79967 credits left
+Nov 05 09:52:01 instance-stockbot python[2668568]: 2026-11-05 09:52:01,167 INFO Odds API cfb (bovada+pinnacle): 79965 credits left
