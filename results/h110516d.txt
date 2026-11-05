@@ -1,3 +1,29 @@
 $ show fx_paper/journal-20261105.jsonl
-started 2026-11-05 16:09:34 EST
-RUNNING...
+started 2026-11-05 16:09:34 EST, took 0s, exit 0
+
+{"t": "2026-11-05T01:02:50+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-05T00:00:00+00:00", "close": 0.7015199999999999, "stop_dist": 0.0013299999999999423, "result": "paused (signal logged)"}
+{"t": "2026-11-05T01:02:51+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-05T00:00:00+00:00", "close": 0.5635399999999999, "stop_dist": 0.0019499999999998963, "result": "paused (signal logged)"}
+{"t": "2026-11-05T02:01:03+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-11-05T01:00:00+00:00", "close": 1.34887, "stop_dist": 0.0019850000000001256, "result": "paused (signal logged)"}
+{"t": "2026-11-05T02:02:20+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-04T22:00:00+00:00", "close": 1.39543, "stop_dist": 0.002979118690209632, "result": "paused (signal logged)"}
+{"t": "2026-11-05T04:02:01+00:00", "kind": "signal", "strategy": "ttm_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-11-05T03:00:00+00:00", "close": 1.3494899999999999, "stop_dist": 0.0020039973303702294, "result": "paused (signal logged)"}
+{"t": "2026-11-05T04:02:02+00:00", "kind": "signal", "strategy": "ttm_h1", "instrument": "USD_CHF", "side": "short", "bar": "2026-11-05T03:00:00+00:00", "close": 0.813885, "stop_dist": 0.00198846502066889, "result": "paused (signal logged)"}
+{"t": "2026-11-05T04:02:09+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-05T03:00:00+00:00", "close": 1.126535, "stop_dist": 0.0020450000000000745, "result": "paused (signal logged)"}
+{"t": "2026-11-05T04:02:09+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-11-05T03:00:00+00:00", "close": 1.3494899999999999, "stop_dist": 0.0012550000000000061, "result": "paused (signal logged)"}
+{"t": "2026-11-05T06:01:01+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "NZD_USD", "side": "short", "bar": "2026-11-05T05:00:00+00:00", "close": 0.563965, "stop_dist": 0.0018449999999999855, "result": "paused (signal logged)"}
+{"t": "2026-11-05T07:01:38+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-05T06:00:00+00:00", "close": 1.3944800000000002, "stop_dist": 0.0009199999999998099, "result": "paused (signal logged)"}
+{"t": "2026-11-05T10:01:33+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "GBP_USD", "side": "short", "bar": "2026-11-05T06:00:00+00:00", "close": 1.34639, "stop_dist": 0.0039946624545130986, "result": "paused (signal logged)"}
+{"t": "2026-11-05T10:01:50+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-11-05T09:00:00+00:00", "close": 158.328, "stop_dist": 0.2951702429637052, "result": "paused (signal logged)"}
+{"t": "2026-11-05T11:00:25+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Monetary Policy Report at 07:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T12:33:47+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Monetary Policy Report at 07:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T12:34:06+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Monetary Policy Report at 07:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T12:55:49+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Monetary Policy Report at 07:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T12:56:09+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Monetary Policy Report at 07:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T13:00:24+00:00", "kind": "news_pause", "pairs": ["GBP_USD"], "why": ["news pause: GBP BOE Gov Bailey Speaks at 07:30 New York"], "source": "forexfactory"}
+{"t": "2026-11-05T14:20:13+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 504: <!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\"/>\n    <title>Internal Server Error</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n    <link rel=\"p"}
+{"t": "2026-11-05T15:03:11+00:00", "kind": "signal", "strategy": "ttm_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-05T14:00:00+00:00", "close": 0.697865, "stop_dist": 0.0016236914315972753, "result": "paused (signal logged)"}
+{"t": "2026-11-05T15:03:25+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-05T14:00:00+00:00", "close": 0.697865, "stop_dist": 0.0036800000000000166, "result": "paused (signal logged)"}
+{"t": "2026-11-05T15:03:28+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-05T14:00:00+00:00", "close": 158.10250000000002, "stop_dist": 0.4064999999999941, "result": "paused (signal logged)"}
+{"t": "2026-11-05T17:09:38+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-11-05T18:02:01+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "USD_CHF", "side": "short", "bar": "2026-11-05T14:00:00+00:00", "close": 0.81431, "stop_dist": 0.0045575931436385156, "result": "paused (signal logged)"}
+{"t": "2026-11-05T18:02:24+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-05T17:00:00+00:00", "close": 1.1239750000000002, "stop_dist": 0.00295000000000023, "result": "paused (signal logged)"}
+{"t": "2026-11-05T19:01:19+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-05T18:00:00+00:00", "close": 0.69451, "stop_dist": 0.0018599999999999728, "result": "paused (signal logged)"}
