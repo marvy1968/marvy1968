@@ -1,3 +1,24 @@
 $ alpaca run-all --phase validate --families swing_short_spy
-started 2026-11-04 22:13:30 EST
-RUNNING...
+started 2026-11-04 22:13:30 EST, took 1154s, exit 0
+
+daily data ready
+## swing_short_spy: FAIL: the short side on SPY-down days did not beat long-only Top-Down in every row - Top-Down stays long-only
+- chosen: None
+- test trades None, win None, avg R None, sharpe None, cagr None, max DD None, avg daily % None
+- placebo None
+- SPY None
+- target 0.75-1.0%/day met: False
+
+- 2016 large caps (control) [long + short on SPY-down days] | train: WITH 166t PF 0.75 exp -0.457% maxDD -8.7% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [(info) short on SPY-down days alone] | train: WITH 68t PF 0.49 exp -0.825% maxDD -4.0% | WITHOUT 167t PF 1.09 exp +0.049% maxDD -6.3%
+- 2016 large caps (control) [long + short on SPY-down days] | validate: WITH 158t PF 0.74 exp -0.451% maxDD -7.1% | WITHOUT 154t PF 0.91 exp -0.236% maxDD -5.1%
+- 2016 large caps (control) [(info) short on SPY-down days alone] | validate: WITH 61t PF 0.90 exp -0.463% maxDD -4.3% | WITHOUT 154t PF 0.91 exp -0.236% maxDD -5.1%
+- 2016 large caps (control) [long + short on SPY-down days] | recent: WITH 182t PF 1.14 exp +0.429% maxDD -6.3% | WITHOUT 188t PF 1.10 exp +0.784% maxDD -5.0%
+- 2016 large caps (control) [(info) short on SPY-down days alone] | recent: WITH 79t PF 0.58 exp -1.103% maxDD -3.6% | WITHOUT 188t PF 1.10 exp +0.784% maxDD -5.0%
+- top 5 per sector (2026-10-14 caps) [long + short on SPY-down days] | train: WITH 155t PF 1.51 exp +0.440% maxDD -2.9% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [(info) short on SPY-down days alone] | train: WITH 80t PF 0.25 exp -2.449% maxDD -8.7% | WITHOUT 164t PF 1.45 exp +0.497% maxDD -4.2%
+- top 5 per sector (2026-10-14 caps) [long + short on SPY-down days] | validate: WITH 137t PF 1.35 exp +0.613% maxDD -3.6% | WITHOUT 139t PF 1.49 exp +1.714% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [(info) short on SPY-down days alone] | validate: WITH 61t PF 1.14 exp -0.764% maxDD -5.3% | WITHOUT 139t PF 1.49 exp +1.714% maxDD -5.9%
+- top 5 per sector (2026-10-14 caps) [long + short on SPY-down days] | recent: WITH 168t PF 1.39 exp +1.262% maxDD -4.1% | WITHOUT 168t PF 1.56 exp +2.299% maxDD -5.8%
+- top 5 per sector (2026-10-14 caps) [(info) short on SPY-down days alone] | recent: WITH 91t PF 0.26 exp -3.984% maxDD -9.1% | WITHOUT 168t PF 1.56 exp +2.299% maxDD -5.8%
+ALL DONE
