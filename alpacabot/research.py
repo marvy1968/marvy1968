@@ -2395,3 +2395,77 @@ def trend_sleeve_lines(daily: dict) -> list[str]:
     w = w / max(1.0, float(w.sum()))
     out.append(f"- today's signal ({last.date()}): " + ", ".join(f"{a} {'ON' if on[a] else 'off'} {w[a]:.0%}" for a in assets) + f" | cash {1 - float(w.sum()):.0%}")
     return out
+
+
+BRAIN_SHORT_RULE = ("PRE-REGISTERED (owner 2026-11-05 'Yes do the 2 week shorts only test'): the Brain with NO long experts and the live short "
+                    "experts (brain_config.json), the live filters (direction first, stage, trend confirm, Velez hybrid 1.5R stop / 0.5R target, "
+                    "10-minute under-water exit), the live entry list (24 mid / small caps), last two weeks split into two one-week halves. "
+                    "PROPOSE resuming the Brain shorts-only on paper only if: 10+ trades over the two weeks, PF >= 1.1 in BOTH halves, "
+                    "PF >= 1.0 over both weeks with costs doubled, and avg R above the mean of 3 random-timing controls. Otherwise the kill switch stays.")
+
+
+def brain_shorts_study(days, train, validate, costs: Costs = Costs(), pf: Portfolio = Portfolio(risk_pct=0.005, max_positions=6),
+                       ckpt=None, symbols=None, placebo_runs: int = 3) -> dict:
+    """Owner 2026-11-05 two-week shorts-only Brain test (BRAIN_SHORT_RULE). Rows: live long + short (reference), shorts only, each short expert
+    alone, and the Velez systems' short side (vz_scalp / vz_day) for information. Whole-period rows: shorts only at 2x costs and the placebos."""
+    import json as _json
+    from dataclasses import replace as _rep
+    from pathlib import Path as _P
+    from .brain import DirectionFirst, StageFilter, TrendConfirm, VelezHybrid, VelezSignals, VZ_DAY, VZ_SCALP
+    from .engine import EXPERT_LADDERS, ZONE_PROFILES
+    keys = ("trades", "win_rate", "avg_r", "profit_factor", "sharpe", "max_drawdown", "daily_ret_pct_mean")
+    cp = Checkpoint(ckpt)
+    live = _json.loads((_P(__file__).with_name("brain_config.json")).read_text())["brain"]
+    one = {"cut_fracs": [], "cut_depth_r": [], "tp_fracs": [1.0], "tp_depth_atr": [0.0], "lock": []}
+    prof = {"chase_atr": 0.1, "lookback": 20, "min_r": 0.5, "default_r": 1.5, "exhaust_r": 99.0, "target": "extreme"}
+    syms = set(symbols or days)
+    sub = {s_: fr for s_, fr in days.items() if s_ in syms}
+
+    def strat(longs, shorts, vz=False):
+        br = Brain(experts=list(longs), short_experts=list(shorts), sector_filter=True, short_gate="red", cooldown=2)
+        names = set(longs) | set(shorts) | {"vz_scalp", "vz_day"}
+        br.zones = {"profiles": {**ZONE_PROFILES, "vz_scalp": prof, "vz_day": prof}, "levels": True, "trend_exit": True,
+                    "ladder": {**_OWNER_LADDER, "by_expert": {**EXPERT_LADDERS, **{n: one for n in names}}}}
+        inner = VelezHybrid(br, env=True, look_left=True, stop_r=1.5, target_r=0.5)
+        if vz:
+            inner = VelezSignals(VelezSignals(inner, **{**VZ_SCALP, "sides": (-1,)}), **{**VZ_DAY, "sides": (-1,)})
+        s = TrendConfirm(StageFilter(DirectionFirst(inner)))
+        s.neg_bars = 2                                            # the live 10-minute under-water exit on 5-minute bars
+        return s
+
+    def run(longs, shorts, a, b, vz=False, c=costs, seed=None):
+        if not sub:
+            return {"trades": 0}
+        r = run_intraday(strat(longs, shorts, vz), sub, c, pf, a, b, placebo_seed=seed)
+        return {k: r["metrics"].get(k) for k in keys}
+    L, S = live["experts"], live["short_experts"]
+    out = {"rule": BRAIN_SHORT_RULE, "symbols": sorted(sub), "periods": {}}
+    for per, (a, b) in (("first week", train), ("second week", validate)):
+        rows = {"live long + short (reference)": cp.get(f"bs-{per[:3]}-ls", lambda a=a, b=b: run(L, S, a, b)),
+                "SHORTS ONLY (live short experts)": cp.get(f"bs-{per[:3]}-s", lambda a=a, b=b: run([], S, a, b))}
+        for n in S:
+            rows[f"short {n} alone"] = cp.get(f"bs-{per[:3]}-{n}", lambda n=n, a=a, b=b: run([], [n], a, b))
+        rows["(info) shorts + vz_scalp / vz_day short side"] = cp.get(f"bs-{per[:3]}-vz", lambda a=a, b=b: run([], S, a, b, vz=True))
+        out["periods"][per] = rows
+    a0, b1 = train[0], validate[1]
+    c2 = _rep(costs, slip_bps=costs.slip_bps * 2, fee_bps_sell=costs.fee_bps_sell * 2)
+    whole = {"SHORTS ONLY": cp.get("bs-all-s", lambda: run([], S, a0, b1)),
+             "SHORTS ONLY at 2x costs": cp.get("bs-all-s2x", lambda: run([], S, a0, b1, c=c2))}
+    plc = [cp.get(f"bs-all-plc{sd}", lambda sd=sd: run([], S, a0, b1, seed=sd)) for sd in range(placebo_runs)]
+    for sd, m in enumerate(plc):
+        whole[f"random-timing control {sd + 1}"] = m
+    out["periods"]["both weeks"] = whole
+    s1, s2 = out["periods"]["first week"]["SHORTS ONLY (live short experts)"], out["periods"]["second week"]["SHORTS ONLY (live short experts)"]
+    w, w2 = whole["SHORTS ONLY"], whole["SHORTS ONLY at 2x costs"]
+    pr = [m.get("avg_r") for m in plc if m.get("trades")]
+    plc_r = float(np.mean(pr)) if pr else float("-inf")
+    checks = {"10+ trades": (w.get("trades") or 0) >= 10,
+              "PF >= 1.1 week 1": (s1.get("profit_factor") or 0) >= 1.1,
+              "PF >= 1.1 week 2": (s2.get("profit_factor") or 0) >= 1.1,
+              "PF >= 1.0 at 2x costs": (w2.get("profit_factor") or 0) >= 1.0,
+              "avg R beats random timing": (w.get("avg_r") if w.get("trades") else float("-inf")) > plc_r}
+    ok = all(checks.values())
+    out.update({"family": "brain_shorts", "checks": checks, "placebo_avg_r": plc_r if pr else None, "passes": ok,
+                "verdict": ("PASS: propose resuming the Brain SHORTS ONLY on paper (owner approval needed; kill switch stays on until then)" if ok else
+                            "FAIL: " + ", ".join(k for k, v in checks.items() if not v) + " - the Brain stays paused")})
+    return out
