@@ -1,3 +1,12 @@
 $ alpaca run-all --phase validate --families topdown_spyreg
-started 2026-11-04 21:57:18 EST
-RUNNING...
+started 2026-11-04 21:57:18 EST, took 668s, exit 0
+
+daily data ready
+### today's list (2x slippage, 2R take-profit; OOS = last 12 months to 3 months ago)
+- topdown: in-sample 1885 tr, PF 1.61, win 0.471, +625.15R (+312.58% at 0.5% risk) | OOS 206 tr, PF 1.51, win 0.456, +59.8R (+29.9% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.122
+- topdown_spyreg: in-sample 1760 tr, PF 1.66, win 0.48, +626.42R (+313.21% at 0.5% risk) | OOS 204 tr, PF 1.46, win 0.446, +54.19R (+27.09% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.123
+### the hindsight-free 2016 list (2x slippage, 2R take-profit; OOS = last 12 months to 3 months ago)
+- topdown: in-sample 697 tr, PF 1.35, win 0.429, +141.39R (+70.69% at 0.5% risk) | OOS 73 tr, PF 2.17, win 0.548, +39.53R (+19.77% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.234
+- topdown_spyreg: in-sample 637 tr, PF 1.38, win 0.438, +140.22R (+70.11% at 0.5% risk) | OOS 71 tr, PF 1.96, win 0.521, +33.48R (+16.74% at 0.5% risk) | years PF>1 9/11 | random-entry OOS avg R 0.193
+- PRE-REGISTERED VERDICT (PF higher in-sample AND OOS on both lists, 40+ OOS trades, OOS net R >= current on today's list): FAIL - the SPY rule should come off Top-Down
+ALL DONE
