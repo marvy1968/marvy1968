@@ -20,6 +20,7 @@ Accepted job lines:
   fx-experts-entries status|stop|resume|risk <0.05..0.25>  show / set only no_new_entries or risk_pct in the fx-experts bot's config
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
+  patch-report-card [undo]      apply packs/report_card/tg_report.patch to the owner's bots/tg_report.py (dry run, backup) / restore
   where-text <words>            the owner's bot files (py/sh/js under /home/moonrider1968) that contain those words: paths only
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
@@ -102,6 +103,20 @@ def parse(line: str) -> tuple[list[str] | None, str]:
                 (len(args) == 2 and args[0] == "risk" and re.fullmatch(r"0\.\d{1,4}", args[1]))):
             return None, "fx-experts-entries needs status, stop, resume or risk <0.05..0.25>"
         return ["python3", str(BOT / "deploy/fxexp_entries.py"), *args], ""
+    if cmd == "patch-report-card":  # owner 2026-11-04 ("yes fix the report card"): the patch Claude committed to packs/report_card/ applied to
+        # the owner's /home/moonrider1968/bots/tg_report.py ONLY if it applies cleanly (dry run first), with a dated backup; "undo" restores it
+        f, pf = "/home/moonrider1968/bots/tg_report.py", f"{LINK}/packs/report_card/tg_report.patch"
+        if args == ["undo"]:
+            script = (f"set -e; b=$(ls -1t {f}.bak-* | head -1); cp -p \"$b\" {f}; echo restored from $b")
+        elif not args:
+            script = (f"set -e; test -f {f}; test -f {pf}; patch --dry-run -N {f} < {pf}; cp -p {f} {f}.bak-$(date +%Y%m%d%H%M); "
+                      f"patch -N {f} < {pf}; chown --reference={f}.bak-* {f} 2>/dev/null || true; "
+                      f"python3 -m py_compile {f} && echo compiles; "
+                      f"sudo -u moonrider1968 test -r {BOT}/state/alpaca_velez/trades.jsonl && echo 'owner user can read the Marv ledgers' "
+                      f"|| echo 'WARNING: owner user cannot read {BOT}/state ledgers'")
+        else:
+            return None, "patch-report-card takes no argument, or undo"
+        return ["bash", "-c", script], ""
     if cmd == "pack":  # owner 2026-11-02: copy files Claude committed to packs/<name>/ on the vm-link branch into /opt/marv-bot/state/<name>/
         if len(args) != 1 or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", args[0]):
             return None, "pack needs <name> (files committed under packs/<name>/)"
