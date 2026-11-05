@@ -1212,7 +1212,7 @@ def run_all(a) -> int:
                 from .research import topdown_size2r_lines
                 from .universe import STOCKS
                 today_ = _dt.date.today()
-                ld = lambda syms: {s: d for s, d in ((s, load(s, "1Day", _dt.date(2015, 1, 2), today_, cache)) for s in syms) if len(d) > 300}   # noqa: E731
+                ld = lambda syms: {s: d for s, d in ((s, load(s, "1Day", today_ - _dt.timedelta(days=500), today_, cache)) for s in syms) if len(d) > 250}   # noqa: E731
                 unis = {"today's list": ld(STOCKS), "hindsight-free 2016 list": ld(SECTOR_TD_CONTROL)}
                 lines += ["## topdown_size2r: pre-declared (research.SIZE2R_SPEC)"] + topdown_size2r_lines(unis, ld(["SPY"])["SPY"], today_)
                 print("\n".join(lines[first:]), flush=True)

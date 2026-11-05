@@ -33,7 +33,7 @@ class TopDownSize2R(unittest.TestCase):
         import alpacabot.research as R
         keep = dict(R.SIZE2R_SPEC)
         try:
-            R.SIZE2R_SPEC.update(select=("2019-06-01", "2020-06-30"), confirm_from="2020-07-01")
+            R.SIZE2R_SPEC.update(days=400)
             out = topdown_size2r_lines({"a": data, "b": data}, spy, date(2022, 6, 1))
         finally:
             R.SIZE2R_SPEC.clear()

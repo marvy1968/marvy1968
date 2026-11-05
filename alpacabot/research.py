@@ -2592,12 +2592,12 @@ def brain_exits_study(days, train, validate, costs: Costs = Costs(), pf: Portfol
 
 # ------------------------------------------------------------------ Top-Down sizing with the live 2R target (owner 2026-11-05 "Yes run the Top-Down sizing test")
 # PRE-DECLARED before any run. Live Top-Down as it trades now (SPY 200-day gate, 2R take-profit, 0.5% risk x 5 slots, notional cap 1/3 of equity,
-# 10 bps a side) vs 0.5% x 8 slots, 0.75% x 5 and 0.75% x 8. Select years 2016-03..2022, unseen years 2023..today, on today's list and the
-# hindsight-free 2016 list. A setting PASSES when, in BOTH periods and on BOTH lists, its profit factor is >= live's and its max drawdown is no
+# 10 bps a side) vs 0.5% x 8 slots, 0.75% x 5 and 0.75% x 8. Owner 2026-11-05 "keep all tests short": the last 3 months in two halves
+# (first half = select, second half = unseen), on today's list and the hindsight-free 2016 list; a longer test only if this one passes. A setting PASSES when, in BOTH periods and on BOTH lists, its profit factor is >= live's and its max drawdown is no
 # worse than 1.5x live's, AND its net P&L in the UNSEEN years beats live's on both lists (a setting that changes nothing does not pass). Among passing settings the one with the best worst-list CAGR in the SELECT years is proposed; nothing changes live
 # until the owner approves.
 SIZE2R_SPEC = {"risks": (0.005, 0.0075), "slots": (5, 8), "live": (0.005, 5), "tp_r": 2.0, "dd_mult": 1.5, "slip_bps": 10.0,
-               "select": ("2016-03-01", "2022-12-31"), "confirm_from": "2023-01-01", "max_pos_frac": 0.333}
+               "days": 92, "max_pos_frac": 0.333}
 
 
 class _TopDown2R:
@@ -2628,7 +2628,9 @@ def topdown_size2r_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[
     gate = (c > c.rolling(200).mean()).where(c.rolling(200).mean().notna(), True)
     strat = _TopDown2R(GatedSectorTopDown(SectorTopDown(c), gate), sp["tp_r"])
     costs = Costs(slip_bps=sp["slip_bps"])
-    periods = {"select": tuple(date.fromisoformat(x) for x in sp["select"]), "unseen": (date.fromisoformat(sp["confirm_from"]), end)}
+    from datetime import timedelta as _td
+    half = sp["days"] // 2
+    periods = {"select": (end - _td(days=sp["days"]), end - _td(days=half + 1)), "unseen": (end - _td(days=half), end)}
     combos = [(r_, n) for r_ in sp["risks"] for n in sp["slots"]]
     res = {}
     for per, (a, b) in periods.items():
@@ -2636,8 +2638,8 @@ def topdown_size2r_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[
             for r_, n in combos:
                 res[(per, label, r_, n)] = run_swing(strat, data, costs, Portfolio(risk_pct=r_, max_positions=n, max_pos_frac=sp["max_pos_frac"]),
                                                      a, b)["metrics"]
-    out = [f"### Top-Down sizing with the live 2R target (SPY 200-day gate, 10 bps a side, $100k start): select {periods['select'][0]}.."
-           f"{periods['select'][1]}, unseen {periods['unseen'][0]}..{end}",
+    out = [f"### Top-Down sizing with the live 2R target (SPY 200-day gate, 10 bps a side, $100k start, short test - small samples): first half "
+           f"{periods['select'][0]}..{periods['select'][1]}, second half (unseen) {periods['unseen'][0]}..{end}",
            "| Period | List | Setting | Trades | PF | CAGR | Max DD | Sharpe | Net P&L |", "|---|---|---|---|---|---|---|---|---|"]
     for (per, label, r_, n), m in res.items():
         out.append(f"| {per} | {label} | {r_:.2%} x {n}{' (LIVE)' if (r_, n) == sp['live'] else ''} | {m.get('trades', 0)} | "
@@ -2663,5 +2665,5 @@ def topdown_size2r_lines(universes: dict, spy: pd.DataFrame, end: date) -> list[
     if not passing:
         return out + ["- PRE-REGISTERED VERDICT: no larger setting passes - keep 0.5% x 5"]
     best = max(passing, key=lambda k: min(res[("select", lb, *k)].get("cagr") or -1 for lb in universes))
-    return out + [f"- PRE-REGISTERED VERDICT: PROPOSE {best[0]:.2%} risk x {best[1]} slots (best worst-list CAGR in the select years among passing "
-                  "settings); live stays 0.5% x 5 until the owner approves"]
+    return out + [f"- PRE-REGISTERED VERDICT: PROPOSE {best[0]:.2%} risk x {best[1]} slots (best worst-list CAGR in the first half among passing "
+                  "settings; short test, so a longer check comes next); live stays 0.5% x 5 until the owner approves"]
