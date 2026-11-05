@@ -1,3 +1,13 @@
 $ alpaca swing close
-started 2026-11-05 12:24:42 EST
-RUNNING...
+started 2026-11-05 12:24:42 EST, took 4s, exit 0
+
+{
+ "LLY": "closed @ 1382.65",
+ "MA": "closed @ 662.30"
+}
+
+SWING (Sector Top-Down + Stock Funnel, daily, holds overnight)
+  closed trades 32, 11W/21L, P&L $-1,826
+  funnel: 4 trades, 1W, P&L $-417
+  oversold: 6 trades, 1W, P&L $-345
+  holding: nothing
