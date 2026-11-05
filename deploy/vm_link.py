@@ -20,6 +20,7 @@ Accepted job lines:
   fx-experts-entries status|stop|resume|risk <0.05..0.25>  show / set only no_new_entries or risk_pct in the fx-experts bot's config
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
+  where-text <words>            the owner's bot files (py/sh/js under /home/moonrider1968) that contain those words: paths only
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
   read-odds-bot /abs/folder     that bot's text files with secrets stripped (deploy/find_odds_bot.sh)
   marv <command> [args...]      python -m marv ... as the marvbot user; `run`/`props` need --dry-run,
@@ -130,6 +131,11 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if len(args) != 1 or not args[0].startswith("/") or ".." in args[0]:
             return None, "read-bot-reports needs one absolute folder path"
         return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--reports", args[0]], ""
+    if cmd == "where-text":  # owner 2026-11-04: which bot script sends a given message (file paths only, never the code)
+        words = " ".join(args).strip()
+        if not words or len(words) > 80 or not all(ch.isalnum() or ch in " -_|:." for ch in words):
+            return None, "where-text needs 1-80 characters of plain text (letters, digits, space - _ | : .)"
+        return ["grep", "-rIlnF", "--include=*.py", "--include=*.sh", "--include=*.js", "-e", words, "/home/moonrider1968"], ""
     if cmd == "find-trading-bot":  # where an Alpaca / broker bot lives on the VM (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--trading"], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
