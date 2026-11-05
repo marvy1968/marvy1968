@@ -344,7 +344,7 @@ VELEZ_LIVE = {**CFG, "notional_cap": 0.25, "daily_limit_r": CFG["daily_cap_r"], 
               # Signals still journalled; open trades keep their exits. UNDO: "log_only": False.
               "log_only": True,
               "spy_vs_open": False,    # OFF 2026-11-05: failed its test. owner 2026-11-05: SPY vs today's open picks the side (VwapLive.spy_open_side). UNDO: False
-              "spy_regime": False}      # 2026-11-05 OFF: failed its tests             # owner 2026-11-05: SPY regime gate (VwapLive.spy_side_ok); Velez is long only. UNDO: False
+              "spy_regime": True}       # 2026-11-05 ~10:00 ET ON by the owner, overriding its failed tests. UNDO: False. Earlier OFF: failed its tests             # owner 2026-11-05: SPY regime gate (VwapLive.spy_side_ok); Velez is long only. UNDO: False
 
 
 class VelezLive(VwapLive):
