@@ -200,6 +200,7 @@ def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, jour
                     news_snap,
                     news_failed,
                     owned,
+                    submitted,
                     account.equity,
                     now,
                     journal,
@@ -245,6 +246,7 @@ def _consider(
     news_snap,
     news_failed,
     owned,
+    pending,
     equity,
     now,
     journal,
@@ -317,7 +319,7 @@ def _consider(
         if sig.side == "short" and not (asset.shortable and asset.easy_to_borrow):
             return {"signal": sig.signal_id, "reason": "not_shortable"}
     send = flags.paper and not sig.log_only
-    if send and sig.mode == "day" and cfg.day.no_entry_before and before_hhmm(now, cfg.day.no_entry_before):
+    if send and cfg.day.no_entry_before and before_hhmm(now, cfg.day.no_entry_before):
         logger.info("NO_ENTRY_BEFORE %s symbol=%s mode=%s", cfg.day.no_entry_before, sig.symbol, sig.mode)
         return {"signal": sig.signal_id, "reason": "no_entry_before"}
     if not send:
@@ -369,10 +371,11 @@ def _consider(
     if duplicate_client_id(plan.client_order_id, open_ids):
         state.consumed_signals[sig.signal_id] = state.day_key
         return {"signal": sig.signal_id, "reason": "duplicate"}
-    current = _exposure_items(positions, state)
+    current = _exposure_items(positions, state, orders, pending)
     proposal = ExposureItem(sig.symbol, sig.side, qty, sig.entry, plan.stop, sector_of(sig.symbol))
     allowed, why_exp = exposure_ok(current, proposal, equity, cfg.risk)
     if not allowed:
+        logger.info("EXPOSURE symbol=%s sector=%s reason=%s", sig.symbol, proposal.sector, why_exp)
         return {"signal": sig.signal_id, "reason": why_exp}
     try:
         order = broker.submit_bracket(plan)
@@ -455,16 +458,54 @@ def _load_news(cfg, news_fetcher, now, logger):
         return None, True
 
 
-def _exposure_items(positions, state: State) -> list[ExposureItem]:
+def _entry_order(order) -> bool:
+    """Working cos1 entry, not a stop-replace or flatten leg."""
+    client_id = str(getattr(order, "client_order_id", "") or "")
+    if not client_id.startswith("cos1-"):
+        return False
+    return not (client_id.startswith("cos1-stp-") or client_id.startswith("cos1-flat-"))
+
+
+def _book_item(symbol: str, side: str, qty: float, price: float, stop: float | None) -> ExposureItem:
+    if side in ("buy", "long"):
+        side = "long"
+    else:
+        side = "short"
+    if price <= 0:
+        price = 1.0
+    if stop is None:
+        stop = price * (0.98 if side == "long" else 1.02)
+    return ExposureItem(symbol, side, abs(qty) or 1.0, price, stop, sector_of(symbol))
+
+
+def _exposure_items(positions, state: State, orders=(), pending=()) -> list[ExposureItem]:
+    """Positions, open cos1 entry orders, and orders submitted earlier in this run.
+
+    An entry that has not filled yet is still a position for the sector cap.
+    Stop and flatten orders do not add a second slot for a symbol already counted.
+    """
     items = []
+    seen = set()
     for pos in positions:
         owned = state.positions.get(pos.symbol) or {}
         price = pos.current_price or pos.avg_price
         stop = owned.get("stop")
         if stop is None and price:
-            # Foreign positions have no stop we manage. Count a 2% risk so the cap still binds.
             stop = price * (0.98 if pos.side == "long" else 1.02)
-        items.append(ExposureItem(pos.symbol, pos.side, abs(pos.qty), price, stop, sector_of(pos.symbol)))
+        items.append(_book_item(pos.symbol, pos.side, abs(pos.qty), price, stop))
+        seen.add(pos.symbol)
+    for order in orders:
+        if not _entry_order(order) or order.symbol in seen:
+            continue
+        owned = state.positions.get(order.symbol) or {}
+        price = float(owned.get("entry") or getattr(order, "limit_price", None) or getattr(order, "stop_price", None) or 0)
+        items.append(_book_item(order.symbol, order.side, order.qty, price, owned.get("stop")))
+        seen.add(order.symbol)
+    for plan in pending:
+        if plan.symbol in seen:
+            continue
+        items.append(_book_item(plan.symbol, plan.side, plan.qty, plan.entry_hint, plan.stop))
+        seen.add(plan.symbol)
     return items
 
 

@@ -996,10 +996,21 @@ def test_no_entry_before_blocks_day_orders_not_logs(tmp_path, monkeypatch, caplo
     assert len(opened.submitted) == 1
 
     swing = _sig(mode="swing", expert="swing_ema", target_r=2.0, signal_id="swing-early")
-    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [swing])
+    top = _sig(mode="swing", expert="topdown", target_r=2.0, signal_id="top-early", symbol="NEE", entry=80.0, stop=76.0)
+    bundle = _bundle(_bars(30))
+    bundle.daily["NEE"] = bundle.daily["AAPL"]
+    bundle.min5["NEE"] = bundle.min5["AAPL"]
+    bundle.quotes["NEE"] = Quote(80.0, 80.02)
+    data = FakeData(bundle)
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [swing, top])
     swing_broker = FakeBroker()
-    _run(tmp_path / "swing", swing_broker, data, Flags(paper=True), now=_now(9, 30), cfg=_cfg())
-    assert len(swing_broker.submitted) == 1
+    early_swing = _run(tmp_path / "swing", swing_broker, data, Flags(paper=True), now=_now(9, 30), cfg=_cfg())
+    assert swing_broker.submitted == []
+    assert {row["reason"] for row in early_swing.skipped} == {"no_entry_before"}
+    later = FakeBroker()
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [swing])
+    _run(tmp_path / "swing-ok", later, data, Flags(paper=True), now=_now(9, 45), cfg=_cfg())
+    assert len(later.submitted) == 1
 
     logged = _sig(log_only=True, signal_id="log-early")
     monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [logged])
@@ -1008,6 +1019,38 @@ def test_no_entry_before_blocks_day_orders_not_logs(tmp_path, monkeypatch, caplo
     assert log_broker.submitted == []
     assert any(row["reason"] == "log_only" for row in result.skipped)
     assert any(rec.message.startswith("SIGNAL ") and "AAPL" in rec.message for rec in caplog.records)
+
+
+def test_sector_cap_counts_unfilled_and_open_cos1_orders(tmp_path, monkeypatch):
+    """NEE then DUK in one run must not both go out before the first fill is a position."""
+    nee = _sig(symbol="NEE", mode="swing", expert="topdown", target_r=2.0, signal_id="nee", entry=80.0, stop=76.0)
+    duk = _sig(symbol="DUK", mode="swing", expert="topdown", target_r=2.0, signal_id="duk", entry=100.0, stop=95.0)
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [nee, duk])
+    bars = _bars(30)
+    bundle = _bundle(bars)
+    for symbol, mid in (("NEE", 80.0), ("DUK", 100.0)):
+        bundle.daily[symbol] = bars
+        bundle.min5[symbol] = bars
+        bundle.quotes[symbol] = Quote(mid, mid + 0.02)
+
+    class StaleBook(FakeBroker):
+        def get_positions(self):
+            return []
+
+        def get_open_orders(self):
+            return []
+
+    broker = StaleBook()
+    result = _run(tmp_path / "stale", broker, FakeData(bundle), Flags(paper=True), now=_now(10, 0), cfg=_cfg())
+    assert [plan.symbol for plan in broker.submitted] == ["NEE"]
+    assert any(row["signal"] == "duk" and row["reason"] == "sector" for row in result.skipped)
+
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [duk])
+    resting = FakeBroker()
+    resting.orders = [BrokerOrder("open-nee", "cos1-w-NEE-b-topdow-aaaa1111", "NEE", "buy", 10, "accepted", "market")]
+    result = _run(tmp_path / "resting", resting, FakeData(bundle), Flags(paper=True), now=_now(10, 0), cfg=_cfg())
+    assert resting.submitted == []
+    assert any(row["reason"] == "sector" for row in result.skipped)
 
 
 def test_news_log_only_does_not_block(tmp_path, monkeypatch, caplog):
