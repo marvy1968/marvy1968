@@ -6,3 +6,4 @@ state.json.tmp
 bot.lock
 __pycache__/
 *.pyc
+backtest_muse1_bars.csv

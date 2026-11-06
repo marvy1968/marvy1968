@@ -10,12 +10,18 @@ any Claude VM code. One runner (`bot.py`) with three sleeves — scalp,
 day-trade, swing — driven by 10 expert signal functions and a hedge-fund
 principles overlay.
 
-**Version 0.2.0 (2026-11-05) — Claude fix list applied.** See
-"v0.2.0 — what changed" below. Real bracket exits, `state.json` +
-lock file, fail-closed broker reads, `feed=iex` + completed bars only,
-market calendar, one expert log-only (`raschke_soup`), flatten 15:50 ET.
-The bot MUST run on its OWN Alpaca paper account, separate from Brain
-(see DEPLOY.md) — running it on Brain's account is not supported.
+**Version 0.3.0 (2026-11-05) — Claude fix list, round two, applied.**
+See "v0.3.0 — what changed" below. No-target signals submit entry+stop
+only (never a TP-at-entry bracket); swing uses its own 2R TP; Brooks /
+Dalton submit exactly the target they checked; a failed stop replace
+re-submits a standalone stop, verifies it, and blocks new trades while
+any position is unprotected; the duplicate check sees ALL broker
+positions and adopts unknown ones (the VM copy adopts the MSFT short
+from the broker); the VM schedule runs through 15:50 ET so the flatten
+happens; the pre-registered raschke_soup backtest is in this push
+(`backtest_muse1.py` + results — see below). The bot MUST run on its
+OWN Alpaca paper account, separate from Brain (see DEPLOY.md) —
+running it on Brain's account is not supported.
 
 ## How to run
 
@@ -43,6 +49,10 @@ separate from Brain's** — the VM `.env` must hold muse1-only paper keys
 | `bot.py` | Runner: argparse, live-block, Alpaca paper broker / stub broker, bracket orders, state + lock, calendar, one scan over all sleeves |
 | `state.json` | LOCAL ONLY, never committed: day P&L, trade count, Muse1 positions with order ids, swing signals seen. See `.gitignore`. |
 | `test_fixes.py` | Unit tests for the v0.2.0 fix list (37 checks, no keys, no network, no orders). Run: `python3 test_fixes.py` |
+| `test_round2.py` | Unit tests for the v0.3.0 round-two fix list (57 checks, no keys, no network, no orders). Run: `python3 test_round2.py` |
+| `backtest_muse1.py` | Pre-registered OOS backtest of raschke_soup (Train 2026-01-01–06-30, Test 2026-07-01–11-04, Alpaca IEX 5-min, realistic costs, 20-draw random control). Run: `python3 backtest_muse1.py` (fetches bars once, caches locally) |
+| `backtest_muse1_results.json` | Backtest results + full trade list (pre-registration, per-period PF/avg R, random-control medians, pass/fail) |
+| `backtest_muse1_trades.csv` | Same trade list as a CSV |
 | `DEPLOY.md` | VM install, schedule, MSFT handover, separate-account requirement |
 
 ## Expert-by-expert mapping
@@ -178,6 +188,101 @@ only — do not read any of it as "Renaissance trades this way on this bot."
    auto-flatten. TSLA's closed short is recorded too (realized
    −$81.67, −1.31R, 2026-11-05).
 
+## v0.3.0 — what changed (Claude fix list, round two, 2026-11-05)
+
+1. **No-target signals close at entry — fixed.** A signal with no valid
+   target used to be submitted as a bracket whose take-profit sat at the
+   entry price, closing the trade the moment it opened. Now the target
+   is resolved ONCE per signal (`bot.py:resolve_target()`): the expert's
+   explicit target price first (Brooks range midpoint, Dalton opposite
+   value edge — the exact price `_rr_ok()` checked), then the expert's
+   own `tp_r` (Lien 2.0R), then the SLEEVE's configured TP. A signal
+   with no valid target submits an entry+stop-only order (OTO,
+   `order_class="simple"`, no TP leg) instead of a TP-at-entry bracket.
+   `validate_target()` refuses any TP equal to the entry or on the wrong
+   side, in BOTH the signal path and `submit_bracket()` (which now
+   receives the entry price), so the two cannot disagree. A signal whose
+   target fails validation is skipped, never submitted.
+2. **Swing used the wrong target — fixed.** Swing trades were using the
+   2.5R day-trade target (`policy["tp_r"]`) instead of the 2R in their
+   config. The target now comes from the sleeve's own config: day/scalp
+   2.5R (`hedge_fund_overlay.take_profit_r_day`), swing 2.0R
+   (`sleeves.swing.take_profit_r`).
+3. **Brooks / Dalton target mismatch — fixed.** Brooks and Dalton now
+   carry their target price on the signal dict (`experts.py:_signal()`
+   takes `target=`), and `resolve_target()` submits that exact price —
+   the same number `_rr_ok()` checked. The checked target and the
+   submitted target can no longer differ.
+4. **Stop-replace failure left no stop — fixed (fail-safe, in order).**
+   If replacing a stop fails, the bot cancels the old leg and re-submits
+   a STANDALONE stop via `AlpacaBroker.submit_stop()` (retries included),
+   then VERIFIES a stop exists on the broker (`verify_stop_on_broker()`,
+   reads open stop orders). If no stop can be confirmed, the position is
+   recorded in `state["unprotected_positions"]`, reported loudly
+   (`UNPROTECTED: <sym> has NO stop order...`), and the run places NO
+   new trades until a stop is confirmed again (re-checked every run).
+   A replace that reports success is still verified the same way.
+5. **Duplicate check sees all broker positions.** Before any new order
+   the bot reconciles against ALL broker positions (`get_all_positions`),
+   not just `state.json`. Unknown broker positions are ADOPTED into state
+   with the broker's entry price (`adopt_broker_positions()`): muse1's
+   own positions are recovered from the entry order's legs (stop/target
+   ids and prices); any OTHER position (another bot's, or a pre-existing
+   one such as the MSFT short) is adopted as PROTECTED, monitor-only,
+   with `one_r` derived from an open stop order when one exists — so the
+   VM copy adopts the MSFT short from the broker on its first run, never
+   from a file. Adopted positions block new orders on their symbol.
+6. **Backtest with realistic costs — done (was still owed).**
+   `backtest_muse1.py` runs the pre-registered OOS backtest of the ONE
+   log-only strategy (`raschke_soup`) on the 33-stock watchlist, Alpaca
+   IEX 5-min bars, costs 3 bps/side + 0.1 bps fee + 0.05% slippage round
+   trip, frozen config (SPY filter, 0.5% risk, 1R stop, 2.5R day target,
+   virtual trail/breakeven as implemented). Train 2026-01-01–06-30,
+   Test 2026-07-01–11-04. Pass bar: PF ≥ 1.0 AND avg R > 0 on BOTH
+   train and test, beats a 20-draw random-entry control, ≥ 20 trades
+   total. Result: **FAIL — do not move raschke_soup to live on this
+   evidence.** `backtest_muse1.py`, Train 2026-01-01–06-30 / Test
+   2026-07-01–11-04, Alpaca IEX 5-min bars, realistic costs (3 bps/side
+   + 0.1 bps fee + 0.05% slippage round trip), frozen config (SPY
+   filter, 0.5% risk, 1R stop, 2.5R day target, BE after +1R, stair
+   trail, decay, flatten 15:50 ET, max 5 open / 5 new per day):
+   **1,062 trades, PF 0.216, avg R −0.501, net −$13,328 (start $50,000
+   → $36,672)**; Train 615 trades PF 0.227 avg R −0.498; Test 442 trades
+   PF 0.194 avg R −0.510. Random-entry control (20 draws, same
+   per-symbol-day counts): median PF 0.20 train / 0.194 test — soup
+   barely beats random. Win rate 26.5%; only 3 of 1,062 trades reached
+   the 2.5R target; 477 stopped out, 477 trailed out, 103 decayed.
+   Why it loses: on 5-min bars the soup's stops are tiny (~$0.50) while
+   the notional is large, so realistic costs alone eat ~0.5–0.7R per
+   trade, and the stair trail gives back most of any favourable move
+   (mean peak +0.59R, mean exit −0.50R). The 5-per-day cap binds every
+   day (91,715 signals, 74,248 in-window; the SPY filter blocks 43%
+   and flat days skip a further 25%). The backtest result changed NO
+   trading code — report only. `raschke_soup` stays log-only.
+7. **Deploy setup.** `DEPLOY.md`'s cron example now runs every 5 minutes
+   through 15:50 ET (`*/5 10-15 * * 1-5` — hour 15 covers 15:00–15:55,
+   so the 15:50 flatten run happens) with a verification step; the
+   flatten logic itself (day/scalp at 15:50 ET, half-days 13:00 ET) is
+   unchanged and is covered by a test (15:50 closes, 15:49 does not).
+   MSFT seeding is now broker-reconciliation on startup (item 5 above)
+   plus explicit first-run steps in DEPLOY.md — `state.json` is never
+   copied by hand and never committed.
+
+**Tests run 2026-11-05 (all passed, no real orders placed):**
+`python3 test_round2.py` — 57/57 checks (validate/resolve target incl.
+swing 2R vs day 2.5R long+short, Brooks/Dalton checked==submitted long+
+short, stop-replace failure paths incl. unprotected recording + new-trade
+block, adoption of unknown/muse1/no-stop broker positions, broker-position
+duplicate block, end-to-end OTO would-order in dry-run, flatten 15:50 vs
+15:49, config + DEPLOY.md schedule checks). `python3 test_fixes.py` —
+37/37 still pass. `py_compile` on all `.py` files. `bot.py --help` exit 0;
+no-flag exit 0 doing nothing; `--live` exit 2; `--dry-run` with real
+Alpaca bars (feed=iex, equity $51,412, 0 live signals, log-only
+raschke_soup signals, MSFT PROTECTED holding) places no orders and
+writes no state (state.json hash unchanged); two overlapping `--paper`
+runs — the second exited 0 with "Another run holds the lock".
+Open orders after all tests: only the parent-placed MSFT stop.
+
 **Bugs found by testing v0.2.0 and fixed in the same pass:**
 - `AlpacaBroker.get_calendar()` called `client.get_calendar(start, end)`,
   which alpaca-py 0.44.0 rejects (`TypeError: unexpected keyword
@@ -220,15 +325,15 @@ Open orders after all tests: only the parent-placed MSFT stop.
    D.E. Shaw and Citadel disclose philosophy and risk practice, not
    tradable signals. The overlay here is principles (sizing, limits,
    no tight TP, costs first) — it does not make this bot a fund.
-4. **This bot is UNVALIDATED.** No out-of-sample backtest has been run
-   on these experts on stocks, and no paper forward test has been run.
+4. **This bot is UNVALIDATED.** The pre-registered out-of-sample
+   backtest of its one log-only strategy has now been run — and it
+   FAILED (raschke_soup, PF 0.216, avg R −0.501, 1,062 trades; see
+   "v0.3.0 — what changed" item 6). No paper forward test has been run.
    The `--dry-run` uses real Alpaca bars when keys are present
    (synthetic demo bars only without keys) — it exercises the code, it
-   proves nothing about edge. It needs: (a) an out-of-sample backtest
-   on Alpaca bars with costs, pre-registered pass bar (PF ≥1 on both
-   validation and holdout, beats baseline and random, trade count does
-   not collapse); (b) a paper forward test on a *separate* paper
-   account; (c) only then any discussion of live use.
+   proves nothing about edge. It needs: (a) a strategy that passes a
+   pre-registered backtest (this one did not); (b) a paper forward test
+   on a *separate* paper account; (c) only then any discussion of live use.
 5. **SPY filter is ON by owner override 2026-11-05** in `config.yaml`
    (`spy_filter.enabled: true`, mode `vs_open`). Rule, implemented in
    `bot.py:spy_side()`: SPY up (last close > today's open) = longs only,

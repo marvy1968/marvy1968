@@ -5,9 +5,14 @@ name: muse1/alpaca
 # before any live use. This bot MUST run on its OWN Alpaca paper account,
 # separate from Brain — the VM .env must hold muse1-only paper keys
 # (see DEPLOY.md). Running it on Brain's account is not supported.
-# Version 0.2.0 (2026-11-05, Claude fix list): real bracket exits,
-# state.json + lock file, fail-closed reads, feed=iex + completed bars,
-# market calendar, one expert log-only (raschke_soup), flatten 15:50 ET.
+# Version 0.3.0 (2026-11-05, Claude fix list round two): no-target
+# signals submit entry+stop only (never a TP-at-entry bracket); swing
+# uses its own 2R TP (day 2.5R no longer leaks in); Brooks/Dalton submit
+# exactly the target they checked; a failed stop replace re-submits a
+# standalone stop, verifies it, and blocks new trades while any position
+# is unprotected; the duplicate check sees ALL broker positions and
+# adopts unknown ones (VM copy adopts the MSFT short from the broker);
+# VM schedule runs through 15:50 ET so the flatten happens.
 
 paper: true
 allow_live: false

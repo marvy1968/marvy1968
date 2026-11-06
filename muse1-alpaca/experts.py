@@ -74,9 +74,18 @@ def bollinger(bars, n=20, k=2.0):
     sd = math.sqrt(var)
     return m, m + k * sd, m - k * sd, sd
 
-def _signal(expert, side, entry, stop, tp_r, exit_logic, reason):
-    return {"expert": expert, "side": side, "entry": entry, "stop": stop,
-            "tp_r": tp_r, "exit": exit_logic, "reason": reason}
+def _signal(expert, side, entry, stop, tp_r, exit_logic, reason, target=None):
+    """A signal dict. `target` is an explicit take-profit PRICE when the
+    expert computes one (Brooks range midpoint, Dalton opposite value
+    edge). When present it is THE target: bot.py uses this exact price
+    for the submitted order — the same price _rr_ok() checked — so the
+    checked target and the submitted target can never disagree
+    (round-two fix, 2026-11-05)."""
+    d = {"expert": expert, "side": side, "entry": entry, "stop": stop,
+         "tp_r": tp_r, "exit": exit_logic, "reason": reason}
+    if target is not None:
+        d["target"] = target
+    return d
 
 def _need(bars, n):
     return len(bars) >= n
@@ -362,14 +371,19 @@ def brooks_range_fade(bars):
     h, l, c = _h(bars), _l(bars), _c(bars)
     hi20, lo20 = max(h[-21:-1]), min(l[-21:-1])
     mid = (hi20 + lo20) / 2.0
+    # The target carried on the signal IS the midpoint that _rr_ok()
+    # just checked (round-two fix): bot.py submits this price, it does
+    # not recompute a different one from tp_r.
     if h[-1] > hi20 and c[-1] < hi20 and _rr_ok(c[-1], h[-1] + a, mid):
         return _signal("brooks_range_fade", -1, c[-1], h[-1] + a, None,
                        "midpoint_tp_flat_close",
-                       "failed upside breakout, fade to range midpoint")
+                       "failed upside breakout, fade to range midpoint",
+                       target=mid)
     if l[-1] < lo20 and c[-1] > lo20 and _rr_ok(c[-1], l[-1] - a, mid):
         return _signal("brooks_range_fade", 1, c[-1], l[-1] - a, None,
                        "midpoint_tp_flat_close",
-                       "failed downside breakout, fade to range midpoint")
+                       "failed downside breakout, fade to range midpoint",
+                       target=mid)
     return None
 
 # ---------------------------------------------------------------- 10 Dalton Value
@@ -393,14 +407,18 @@ def dalton_value(bars):
     # FIX 2026-11-05 (reward:risk): same as Brooks — the old code never
     # checked the target against the actual stop distance. Refuse the
     # entry unless reward / actual-risk >= MIN_REWARD_RISK (1.5).
+    # The target carried on the signal IS the opposite value edge that
+    # _rr_ok() just checked (round-two fix): bot.py submits this price.
     if bars[-1]["h"] > up and last < up and _rr_ok(last, bars[-1]["h"] + a, lo):
         return _signal("dalton_value", -1, last, bars[-1]["h"] + a, None,
                        "opposite_value_edge_flat_close",
-                       "failed break above value area, trade to lower edge")
+                       "failed break above value area, trade to lower edge",
+                       target=lo)
     if bars[-1]["l"] < lo and last > lo and _rr_ok(last, bars[-1]["l"] - a, up):
         return _signal("dalton_value", 1, last, bars[-1]["l"] - a, None,
                        "opposite_value_edge_flat_close",
-                       "failed break below value area, trade to upper edge")
+                       "failed break below value area, trade to upper edge",
+                       target=up)
     return None
 
 EXPERTS = {

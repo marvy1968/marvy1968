@@ -42,6 +42,33 @@ Version 0.2.0 — Claude fix list, 2026-11-05 (all paper-only):
   from Brain. The user/Claude must create that paper account and put
   its keys in the VM .env — Muse cannot create it.
 
+Version 0.3.0 — Claude fix list, round two, 2026-11-05 (all paper-only):
+- NO-TARGET SIGNALS: a signal with no valid target now submits an
+  entry+stop-only order (OTO, no TP leg) instead of a bracket whose TP
+  sat at the entry price and closed the trade at once. validate_target()
+  refuses any TP equal to the entry or on the wrong side, in BOTH the
+  signal path (resolve_target) and submit_bracket(), so the two cannot
+  disagree. A signal's target is resolved ONCE, from one source:
+  the expert's explicit target price (Brooks midpoint, Dalton opposite
+  edge — the exact price _rr_ok() checked), else the expert's tp_r,
+  else the SLEEVE's own configured TP (day/scalp 2.5R, swing 2.0R —
+  the day target no longer leaks into the swing path).
+- STOP-REPLACE FAILURE: if replacing a stop fails, the bot re-submits
+  a standalone stop, verifies a stop exists on the broker afterwards,
+  and if none can be confirmed the position is recorded in
+  state["unprotected_positions"], reported loudly, and NO new trades
+  are placed until a stop is confirmed again.
+- DUPLICATE CHECK: before any new order the bot reconciles against ALL
+  broker positions (get_all_positions), not just state.json. Unknown
+  broker positions are adopted into state (broker entry price; one_r
+  derived from an open stop order when one exists) as protected,
+  monitor-only positions — so the VM copy adopts the pre-existing MSFT
+  short from the broker on first run, never from a file.
+- DEPLOY: DEPLOY.md's cron example now runs every 5 min THROUGH
+  15:50 ET so the end-of-day flatten actually happens; the flatten
+  itself (day/scalp at 15:50 ET, half-days 13:00 ET) is unchanged and
+  covered by a test.
+
 UNVALIDATED: no out-of-sample backtest yet. Do NOT run it on the same
 Alpaca paper account as the existing bots. Do NOT deploy it live.
 """
@@ -73,7 +100,7 @@ from hedge_fund_overlay import (  # noqa: E402
 from risk import RiskState  # noqa: E402
 
 BOT_NAME = "muse1/alpaca"
-VERSION = "0.2.0-claude-fixes (paper only, unvalidated)"
+VERSION = "0.3.0-claude-fixes-r2 (paper only, unvalidated)"
 STATE_FILE = HERE / "state.json"
 LOCK_FILE = HERE / "bot.lock"
 ET = ZoneInfo("America/New_York")
@@ -150,7 +177,12 @@ def market_status(broker, today):
 def default_state():
     return {"version": 1, "bot": BOT_NAME, "day": date.today().isoformat(),
             "trades_today": 0, "day_pnl_dollars": 0.0, "day_pnl_r": 0.0,
-            "positions": {}, "swing_signals_seen": {}, "notes": []}
+            "positions": {}, "swing_signals_seen": {}, "notes": [],
+            # Round-two item 4: symbols whose stop could not be confirmed
+            # on the broker after a failed stop move. New trades are
+            # blocked while this is non-empty. Survives day rollover —
+            # a missing stop is still missing tomorrow.
+            "unprotected_positions": {}}
 
 def load_state():
     """Returns (state, corrupt). A corrupt/unreadable state file is
@@ -166,6 +198,7 @@ def load_state():
         st.setdefault("day_pnl_dollars", 0.0)
         st.setdefault("day_pnl_r", 0.0)
         st.setdefault("notes", [])
+        st.setdefault("unprotected_positions", {})
         return st, False
     except Exception:
         return default_state(), True
@@ -269,6 +302,25 @@ class PaperBrokerStub:
     def open_orders(self, symbols=None):
         return []
 
+    def open_stop_orders(self, symbol=None):
+        """Open stop orders for a symbol (bracket stop legs and standalone
+        stops). The stub has no real orders, so always empty."""
+        return []
+
+    def submit_stop(self, symbol, order_side, qty, stop_price,
+                    tif="GTC", client_order_id=None):
+        """Standalone stop order (used when a stop replace fails — the
+        fail-safe re-submit, round-two item 4). order_side is the side of
+        the stop order itself (+1 BUY closes a short, -1 SELL closes a
+        long). The stub records what WOULD be submitted."""
+        cid = client_order_id or f"stub-stop-{symbol}-{uuid.uuid4().hex[:8]}"
+        order = {"symbol": symbol, "side": order_side, "qty": qty,
+                 "stop_price": stop_price, "sleeve": "stop",
+                 "client_order_id": cid,
+                 "status": "WOULD_PLACE_STOP (stub, no keys / dry-run)"}
+        self.would_orders.append(order)
+        return order
+
     def get_order(self, order_id):
         return None
 
@@ -284,13 +336,22 @@ class PaperBrokerStub:
     def get_calendar(self, start, end):
         return []
 
-    def submit_bracket(self, symbol, side, qty, stop_price, target_price,
-                       sleeve, expert, tif="DAY", client_order_id=None):
+    def submit_bracket(self, symbol, side, qty, entry_price, stop_price,
+                       target_price, sleeve, expert, tif="DAY",
+                       client_order_id=None):
+        # Round-two fix (item 1): same validation as the real broker —
+        # a TP equal to the entry or on the wrong side is refused here
+        # too. target_price=None means entry+stop only (no TP leg) —
+        # recorded as an OTO stop-only order, not as a bracket with
+        # TP == entry.
+        validate_target(float(entry_price), side, target_price)
         order = {"symbol": symbol, "side": side, "qty": qty,
                  "stop_price": stop_price, "target_price": target_price,
                  "sleeve": sleeve, "expert": expert,
                  "client_order_id": client_order_id or "stub",
-                 "status": "WOULD_PLACE_BRACKET (stub, no keys / dry-run)"}
+                 "status": ("WOULD_PLACE_BRACKET (stub, no keys / dry-run)"
+                            if target_price is not None else
+                            "WOULD_PLACE_OTOSTOP (stub, entry+stop only, no TP leg)")}
         self.would_orders.append(order)
         return order
 
@@ -330,6 +391,40 @@ class AlpacaBroker:
             GetOrdersRequest(status=QueryOrderStatus.OPEN)
         return _retry(lambda: self.client.get_orders(req), "get_orders(open)")
 
+    def open_stop_orders(self, symbol=None):
+        """Open stop orders for a symbol: bracket stop legs and standalone
+        stops (order_type contains 'stop'). Used by verify_stop_on_broker
+        (round-two item 4) to confirm a position really has a stop."""
+        orders = self.open_orders([symbol] if symbol else None)
+        out = []
+        for o in orders:
+            otype = str(getattr(o, "order_type", "") or "").lower()
+            if "stop" in otype:
+                out.append(o)
+        return out
+
+    def submit_stop(self, symbol, order_side, qty, stop_price,
+                    tif="GTC", client_order_id=None):
+        """Standalone stop order — the fail-safe re-submit when a stop
+        replace fails (round-two item 4). order_side is the side of the
+        stop order itself (+1 BUY closes a short, -1 SELL closes a long).
+        Returns the submitted order (with .id); raises on failure after
+        retries, and the caller verifies a stop exists afterwards."""
+        from alpaca.trading.requests import StopOrderRequest
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        cid = client_order_id or (
+            f"muse1-{date.today().isoformat()}-{symbol}-stop-"
+            f"{uuid.uuid4().hex[:8]}")
+        req = StopOrderRequest(
+            symbol=symbol, qty=int(qty),
+            side=OrderSide.BUY if order_side == 1 else OrderSide.SELL,
+            time_in_force=TimeInForce.GTC if tif == "GTC" else TimeInForce.DAY,
+            stop_price=round(float(stop_price), 2),
+            client_order_id=cid)
+        order = _retry(lambda: self.client.submit_order(req),
+                       "submit_order(standalone stop)", tries=2)
+        return order
+
     def closed_orders(self, limit=50):
         from alpaca.trading.requests import GetOrdersRequest
         from alpaca.trading.enums import QueryOrderStatus
@@ -363,26 +458,44 @@ class AlpacaBroker:
         return _retry(lambda: self.client.get_calendar(
             GetCalendarRequest(start=start, end=end)), "get_calendar")
 
-    def submit_bracket(self, symbol, side, qty, stop_price, target_price,
-                       sleeve, expert, tif="DAY", client_order_id=None):
+    def submit_bracket(self, symbol, side, qty, entry_price, stop_price,
+                       target_price, sleeve, expert, tif="DAY",
+                       client_order_id=None):
         """Entry + stop + target as ONE bracket order. If the submit call
         itself fails (e.g. timeout), the order status is verified by
         client_order_id before deciding what happened — never assume an
-        order did or did not go through."""
+        order did or did not go through.
+        Round-two fix (item 1): the TP is validated against the ENTRY
+        here as well as in the signal path (resolve_target), so a bracket
+        whose TP equals the entry or sits on the wrong side can never be
+        submitted — ValueError is raised before any API call. When
+        target_price is None the signal has no fixed TP: submit an OTO
+        order (entry + stop only, order_class SIMPLE, no TP leg) instead
+        of a bracket with TP == entry."""
+        validate_target(float(entry_price), side, target_price)
         from alpaca.trading.requests import (MarketOrderRequest,
                                             TakeProfitRequest, StopLossRequest)
         from alpaca.trading.enums import OrderSide, TimeInForce, OrderClass
         cid = client_order_id or (
             f"muse1-{date.today().isoformat()}-{symbol}-{sleeve}-"
             f"{uuid.uuid4().hex[:8]}")
-        req = MarketOrderRequest(
-            symbol=symbol, qty=int(qty),
-            side=OrderSide.BUY if side == 1 else OrderSide.SELL,
-            time_in_force=TimeInForce.DAY if tif == "DAY" else TimeInForce.GTC,
-            order_class=OrderClass.BRACKET,
-            take_profit=TakeProfitRequest(limit_price=round(float(target_price), 2)),
-            stop_loss=StopLossRequest(stop_price=round(float(stop_price), 2)),
-            client_order_id=cid)
+        if target_price is None:
+            req = MarketOrderRequest(
+                symbol=symbol, qty=int(qty),
+                side=OrderSide.BUY if side == 1 else OrderSide.SELL,
+                time_in_force=TimeInForce.DAY if tif == "DAY" else TimeInForce.GTC,
+                order_class=OrderClass.SIMPLE,
+                stop_loss=StopLossRequest(stop_price=round(float(stop_price), 2)),
+                client_order_id=cid)
+        else:
+            req = MarketOrderRequest(
+                symbol=symbol, qty=int(qty),
+                side=OrderSide.BUY if side == 1 else OrderSide.SELL,
+                time_in_force=TimeInForce.DAY if tif == "DAY" else TimeInForce.GTC,
+                order_class=OrderClass.BRACKET,
+                take_profit=TakeProfitRequest(limit_price=round(float(target_price), 2)),
+                stop_loss=StopLossRequest(stop_price=round(float(stop_price), 2)),
+                client_order_id=cid)
         try:
             order = _retry(lambda: self.client.submit_order(req),
                            "submit_order(bracket)", tries=2)
@@ -615,6 +728,91 @@ def virtual_exit_check(entry, one_r, side, current_price, peak_price=None):
             return True, f"virtual trail hit at ${trail:.2f}", hard, trail
     return False, "holding", hard, trail
 
+# ---------------------------------------------------------------- target resolution (round two, items 1-3)
+# A signal's take-profit is resolved ONCE, from one source, and the
+# same value is used for the cost check and the submitted order.
+# - validate_target() refuses any TP equal to the entry or on the wrong
+#   side, in BOTH the signal path and submit_bracket(), so a no-target
+#   signal can never become a bracket whose TP sits at the entry price
+#   (which would close the trade the moment it opened).
+
+def validate_target(entry, side, target_price):
+    """Raises ValueError if a take-profit is invalid: equal to the entry
+    or on the wrong side (long TP at/below entry, short TP at/above
+    entry). None (no fixed TP) is valid — the trade then runs on its
+    stop / trail / decay."""
+    if target_price is None:
+        return True
+    tp = float(target_price)
+    if side == 1 and tp <= entry:
+        raise ValueError(f"invalid take-profit ${tp:.2f} for LONG entry "
+                         f"${entry:.2f} (TP must be above entry)")
+    if side == -1 and tp >= entry:
+        raise ValueError(f"invalid take-profit ${tp:.2f} for SHORT entry "
+                         f"${entry:.2f} (TP must be below entry)")
+    return True
+
+
+def resolve_target(sig, sleeve, cfg):
+    """Single source of truth for a signal's take-profit. Priority:
+    1. An explicit target price carried on the signal by the expert
+       (Brooks range midpoint, Dalton opposite value edge) — the exact
+       price _rr_ok() checked, so the checked target and the submitted
+       target are the same number.
+    2. The expert's own tp_r (Lien fader / Lien zeros: 2.0R).
+    3. The SLEEVE's configured TP — day/scalp 2.5R
+       (hedge_fund_overlay.take_profit_r_day), swing 2.0R
+       (sleeves.swing.take_profit_r). The day target no longer leaks
+       into the swing path (item 2).
+    4. None — no fixed TP; the trade runs on stop / trail / decay.
+       Only reached when the sleeve has no configured TP.
+    Returns (target_price, tp_r); tp_r is None when there is no fixed TP.
+    Raises ValueError if the resolved target is invalid (item 1)."""
+    entry, stop, side = sig["entry"], sig["stop"], sig["side"]
+    stop_dist = abs(entry - stop)
+    if sig.get("target") is not None:
+        tp = float(sig["target"])
+        validate_target(entry, side, tp)
+        return tp, (abs(tp - entry) / stop_dist if stop_dist else None)
+    if sig.get("tp_r") is not None:
+        tp_r = float(sig["tp_r"])
+        tp = entry + side * tp_r * stop_dist
+        validate_target(entry, side, tp)
+        return tp, tp_r
+    if sleeve == "swing":
+        tp_r = ((cfg.get("sleeves", {}) or {}).get("swing", {}) or {}).get("take_profit_r")
+    else:
+        tp_r = ((cfg.get("hedge_fund_overlay", {}) or {}).get("take_profit_r_day"))
+    if tp_r is None:
+        # No fixed TP configured for this sleeve: the trade runs on
+        # stop / trail / decay (submit_bracket sends entry+stop only).
+        return None, None
+    tp_r = float(tp_r)
+    tp = entry + side * tp_r * stop_dist
+    validate_target(entry, side, tp)
+    return tp, tp_r
+
+
+def verify_stop_on_broker(broker, symbol):
+    """Round-two fix (item 4): confirm a stop order actually exists on
+    the broker for a symbol. Returns (exists, stop_order_id, stop_price).
+    Any failure to READ the broker's orders counts as 'not verified'
+    (False) — fail-closed, never assumed protected."""
+    try:
+        orders = broker.open_stop_orders(symbol)
+    except Exception:
+        return False, None, None
+    for o in orders:
+        if str(getattr(o, "symbol", "")) != symbol:
+            continue
+        price = getattr(o, "stop_price", None)
+        try:
+            price = float(price) if price is not None else None
+        except Exception:
+            price = None
+        return True, str(getattr(o, "id", "")), price
+    return False, None, None
+
 def swing_should_carry(bars, side):
     """Swing carryover: carry to the next day if warranted — price still
     on the right side of EMA20 and the trade has not hit stop/TP.
@@ -745,17 +943,56 @@ def reconcile_state(state, broker_positions, broker, notes):
                          f"counted in day P&L")
             del state["positions"][sym]
 
-def adopt_muse1_positions(state, broker_positions, broker, notes):
-    """Safety net: if the state file was lost, adopt broker positions
-    whose filled entry orders carry a muse1- client_order_id, so the bot
-    does not trade against its own positions as if they did not exist."""
+def adopt_broker_positions(state, broker_positions, broker, broker_open_orders, notes):
+    """Round-two fix (item 5) + deploy setup (item 7b): reconcile against
+    ALL broker positions, not just state.json. Any position the broker
+    shows that state does not know about is ADOPTED (never ignored), so
+    the bot cannot trade against a position it does not know exists.
+    Two paths:
+    1. Muse1 positions — a filled entry order carries a muse1-
+       client_order_id: adopt with the fill entry; recover the stop /
+       target leg ids (and prices) from the order's legs when present.
+    2. Any OTHER broker position (another bot's, or a pre-existing one
+       such as the parent-placed MSFT short): adopt as PROTECTED with
+       the broker's entry price (avg_entry_price) — monitor-only, never
+       managed, so the bot never cancels or replaces another bot's
+       orders. one_r is derived from an open stop order for the symbol
+       when one exists, so the position can actually be monitored
+       (without a discoverable stop one_r stays 0 and management is
+       skipped with a note, as before).
+    Adopted positions block new orders on their symbol (duplicate
+    check). The VM copy adopts the MSFT short from the broker on its
+    first run this way — never from a file (state.json is never pushed).
+    A failure to read closed orders aborts adoption for this run
+    (fail-closed); the duplicate check still sees broker_positions."""
+    open_stops = {}
+    for o in broker_open_orders or []:
+        sym = str(getattr(o, "symbol", "") or "")
+        otype = str(getattr(o, "order_type", "") or "").lower()
+        if sym and "stop" in otype:
+            sp = getattr(o, "stop_price", None)
+            try:
+                sp = float(sp) if sp is not None else None
+            except Exception:
+                sp = None
+            if sp is not None:
+                open_stops.setdefault(sym, (str(getattr(o, "id", "")), sp))
     for sym, bp in broker_positions.items():
         if sym in state["positions"]:
             continue
+        qty = int(abs(float(getattr(bp, "qty", 0) or 0)))
+        if qty <= 0:
+            continue
+        side = 1 if str(getattr(bp, "side", "long")).lower().startswith("l") else -1
+        # --- path 1: Muse1's own position (muse1- client_order_id).
+        adopted = None
         try:
             orders = broker.closed_orders(limit=20)
         except Exception:
-            return
+            notes.append(f"{sym}: could not read closed orders — adoption "
+                         f"skipped this run; broker position still blocks "
+                         f"new orders on {sym}")
+            continue
         for o in orders:
             cid = str(getattr(o, "client_order_id", "") or "")
             if not cid.startswith("muse1-"):
@@ -765,21 +1002,81 @@ def adopt_muse1_positions(state, broker_positions, broker, notes):
             fq, fa = _filled(o)
             if "FILLED" not in _order_status(o) or fq <= 0 or fa <= 0:
                 continue
-            qty = int(abs(float(getattr(bp, "qty", 0) or 0)))
-            if qty <= 0 or qty != int(fq):
+            if qty != int(fq):
                 continue
-            side = 1 if str(getattr(bp, "side", "long")).lower().startswith("l") else -1
-            state["positions"][sym] = {
+            stop_price = target_price = None
+            stop_id = target_id = None
+            for leg in getattr(o, "legs", None) or []:
+                lt = str(getattr(leg, "order_type", "") or "").lower()
+                if "stop" in lt:
+                    stop_id = str(getattr(leg, "id", ""))
+                    try:
+                        stop_price = float(getattr(leg, "stop_price", 0) or 0)
+                    except Exception:
+                        stop_price = None
+                elif "limit" in lt:
+                    target_id = str(getattr(leg, "id", ""))
+                    try:
+                        target_price = float(getattr(leg, "limit_price", 0) or 0)
+                    except Exception:
+                        target_price = None
+            # Fall back to the live open stop order if the legs are gone.
+            if stop_price is None and sym in open_stops:
+                stop_id, stop_price = open_stops[sym]
+            one_r = abs(fa - stop_price) if stop_price else 0.0
+            adopted = {
                 "symbol": sym, "side": side, "qty": qty, "entry": fa,
-                "one_r": 0.0, "stop_price": 0.0, "target_price": None,
+                "one_r": one_r, "stop_price": stop_price or 0.0,
+                "target_price": target_price,
                 "sleeve": "unknown", "expert": "adopted",
                 "entry_order_id": str(o.id), "entry_filled": True,
+                "stop_order_id": stop_id, "target_order_id": target_id,
                 "peak": fa, "bars_held": 0, "adopted": True,
                 "entry_time": datetime.now(ET).isoformat(),
             }
             notes.append(f"{sym}: adopted broker position into state "
-                         f"(muse1 order {cid}, entry ${fa:.2f})")
+                         f"(muse1 order {cid}, entry ${fa:.2f}"
+                         + (f", stop ${stop_price:.2f}, 1R ${one_r:.2f})"
+                            if stop_price else ", no stop found)"))
             break
+        if adopted is not None:
+            state["positions"][sym] = adopted
+            continue
+        # --- path 2: unknown broker position — adopt as PROTECTED,
+        # monitor-only, with the broker's own entry price.
+        try:
+            entry = float(getattr(bp, "avg_entry_price", 0) or 0)
+        except Exception:
+            entry = 0.0
+        if entry <= 0:
+            notes.append(f"{sym}: broker position with no usable entry "
+                         f"price — NOT adopted, but new orders on {sym} "
+                         f"are still blocked")
+            continue
+        stop_id, stop_price = open_stops.get(sym, (None, None))
+        one_r = abs(entry - stop_price) if stop_price else 0.0
+        state["positions"][sym] = {
+            "symbol": sym, "side": side, "qty": qty, "entry": entry,
+            "one_r": one_r, "stop_price": stop_price or 0.0,
+            "target_price": None,
+            "sleeve": "unknown", "expert": "adopted-unknown",
+            "entry_filled": True,
+            "stop_order_id": stop_id,
+            "peak": entry, "bars_held": 0, "adopted": True,
+            "protected": True, "adopted_unknown": True,
+            "entry_time": datetime.now(ET).isoformat(),
+        }
+        notes.append(f"{sym}: adopted UNKNOWN broker position into state "
+                     f"as PROTECTED (monitor-only, entry ${entry:.2f}"
+                     + (f", open stop ${stop_price:.2f}, 1R ${one_r:.2f})"
+                        if stop_price else ", no open stop found)"))
+
+
+def adopt_muse1_positions(state, broker_positions, broker, broker_open_orders=None, notes=None):
+    """Backwards-compatible alias for adopt_broker_positions (old name,
+    old call shape). Prefer adopt_broker_positions directly."""
+    return adopt_broker_positions(state, broker_positions, broker,
+                                  broker_open_orders or [], notes or [])
 
 # ---------------------------------------------------------------- position management
 # Runs BEFORE any new scan, every run. Enforces, for Muse1 positions:
@@ -839,8 +1136,17 @@ def manage_positions(cfg, broker, state, dry_run, now_et, flatten_et, notes):
         return True
 
     def _move_stop(sym, pos, new_stop, reason):
-        """Replace the stop leg. On replace failure, fall back to cancel +
-        a new standalone stop order. Dry-run reports only."""
+        """Replace the stop leg. Round-two fix (item 4) — fail-safe, in
+        order: (1) replace the leg; (2) if the replace fails, cancel it
+        and re-submit a STANDALONE stop via broker.submit_stop(); (3)
+        verify a stop exists on the broker afterwards; (4) if no stop
+        can be confirmed, record the position in
+        state["unprotected_positions"], say so loudly, and return False
+        (run_once blocks new trades while any position is unprotected).
+        A replace that reports success is still verified — a stop that
+        cannot be found afterwards is treated the same as a failure.
+        Dry-run reports only. Never touches a PROTECTED position's stop
+        (the caller never calls this for protected positions)."""
         if dry_run:
             actions.append(f"{sym}: WOULD move stop to ${new_stop:.2f} ({reason})")
             return True
@@ -850,32 +1156,63 @@ def manage_positions(cfg, broker, state, dry_run, now_et, flatten_et, notes):
             return False
         ok, info = broker.replace_stop(oid, new_stop)
         if ok:
-            pos["stop_price"] = round(float(new_stop), 2)
-            actions.append(f"{sym}: stop moved to ${new_stop:.2f} ({reason})")
-            return True
-        # Fallback: cancel the leg, then place a standalone stop.
+            exists, oid2, price2 = verify_stop_on_broker(broker, sym)
+            if exists:
+                pos["stop_price"] = round(float(new_stop), 2)
+                if oid2:
+                    pos["stop_order_id"] = oid2
+                state.get("unprotected_positions", {}).pop(sym, None)
+                actions.append(f"{sym}: stop moved to ${new_stop:.2f} ({reason})")
+                return True
+            actions.append(f"{sym}: stop replace reported success but no "
+                           f"stop found on the broker — re-submitting a "
+                           f"standalone stop")
+        else:
+            actions.append(f"{sym}: stop replace failed ({reason}): {info} — "
+                           f"falling back to cancel + standalone stop")
+        # Fallback: cancel the old leg (best effort), then submit a
+        # standalone stop through the broker (retries + verification).
         ok2, info2 = broker.cancel_order(oid)
         if not ok2:
+            # The old leg may still be live — check before declaring
+            # the position unprotected.
+            exists, oid2, price2 = verify_stop_on_broker(broker, sym)
+            if exists:
+                actions.append(f"{sym}: stop move FAILED ({reason}) — replace "
+                               f"failed and cancel failed ({info2}), but the "
+                               f"old stop leg is still live at "
+                               f"${price2:.2f} — position remains protected")
+                return False
             actions.append(f"{sym}: stop move FAILED ({reason}) — replace "
-                           f"failed ({info}) and cancel failed ({info2})")
-            return False
+                           f"failed and cancel failed ({info2}) and no stop "
+                           f"leg is visible; attempting a standalone stop")
         try:
-            from alpaca.trading.requests import StopOrderRequest
-            from alpaca.trading.enums import OrderSide, TimeInForce
-            req = StopOrderRequest(symbol=sym, qty=int(pos["qty"]),
-                                   side=OrderSide.BUY if pos["side"] == -1 else OrderSide.SELL,
-                                   time_in_force=TimeInForce.GTC,
-                                   stop_price=round(float(new_stop), 2))
-            order = broker.client.submit_order(req)
-            pos["stop_order_id"] = str(order.id)
-            pos["stop_price"] = round(float(new_stop), 2)
-            actions.append(f"{sym}: stop moved to ${new_stop:.2f} via cancel + "
-                           f"new stop order ({reason})")
+            order = broker.submit_stop(sym, -pos["side"], pos["qty"], new_stop)
+            new_id = str(getattr(order, "id", "") or
+                         (order.get("order_id") if isinstance(order, dict) else ""))
+            if new_id:
+                pos["stop_order_id"] = new_id
+        except Exception as e:  # noqa: BLE001 - verified below, then recorded
+            actions.append(f"{sym}: standalone stop submit failed ({reason}): {e}")
+        # Final verification: is there a stop on the broker NOW?
+        exists, oid2, price2 = verify_stop_on_broker(broker, sym)
+        if exists:
+            pos["stop_order_id"] = oid2
+            pos["stop_price"] = round(float(price2), 2)
+            state.get("unprotected_positions", {}).pop(sym, None)
+            actions.append(f"{sym}: stop re-established at ${price2:.2f} "
+                           f"({reason}) after failed replace")
             return True
-        except Exception as e:  # noqa: BLE001 - reported, position kept
-            actions.append(f"{sym}: stop move FAILED ({reason}) — new stop "
-                           f"order failed: {e}. Position is UNPROTECTED.")
-            return False
+        # No stop can be confirmed: mark unprotected, block new trades.
+        state.setdefault("unprotected_positions", {})[sym] = {
+            "reason": f"stop move failed ({reason})",
+            "since": now_et.isoformat(),
+            "last_stop_price": pos.get("stop_price"),
+        }
+        actions.append(f"UNPROTECTED: {sym} has NO stop order on the broker "
+                       f"after a failed stop move ({reason}) — new trades "
+                       f"are BLOCKED until a stop is confirmed")
+        return False
 
     for sym, pos in list(state["positions"].items()):
         bp = broker_pos.get(sym)
@@ -998,9 +1335,10 @@ def run_once(cfg, broker, dry_run, use_real, equity, state, now_et, flatten_et):
     equity = float(acct_equity)
     report["account_equity"] = round(equity, 2)
 
-    # --- 2. Reconcile state with the broker (fills, closes, realized P&L).
+    # --- 2. Reconcile state with the broker (fills, closes, realized P&L),
+    # then adopt EVERY broker position state does not know about.
     reconcile_state(state, broker_positions, broker, notes)
-    adopt_muse1_positions(state, broker_positions, broker, notes)
+    adopt_broker_positions(state, broker_positions, broker, broker_open_orders, notes)
     open_positions = []  # for sizing + portfolio-limit checks
     for sym, pos in broker_positions.items():
         mv = float(getattr(pos, "market_value", 0.0) or 0.0)
@@ -1037,12 +1375,37 @@ def run_once(cfg, broker, dry_run, use_real, equity, state, now_et, flatten_et):
     # --- 4. Manage existing positions (exits run even when the cap is hit).
     report["management"] = manage_positions(cfg, broker, state, dry_run, now_et, flatten_et, notes)
 
+    # --- 4b. Unprotected positions (round-two item 4): a stop that could
+    # not be confirmed after a failed stop move blocks ALL new trades
+    # until a stop is verified again. Re-check each one now (a stop may
+    # have appeared since — e.g. a manual fix), and drop entries for
+    # symbols no longer held.
+    unprotected = state.setdefault("unprotected_positions", {})
+    for sym in list(unprotected):
+        if sym not in state.get("positions", {}) and sym not in broker_positions:
+            del unprotected[sym]
+            notes.append(f"{sym}: no longer held — unprotected flag cleared")
+            continue
+        exists, oid2, price2 = verify_stop_on_broker(broker, sym)
+        if exists:
+            del unprotected[sym]
+            notes.append(f"{sym}: stop confirmed on the broker again "
+                         f"(${price2:.2f}) — unprotected flag cleared")
+    unprotected_block = bool(unprotected)
+    if unprotected_block:
+        notes.append("UNPROTECTED positions (no confirmed broker stop): "
+                     + ", ".join(sorted(unprotected))
+                     + " — NO new trades this run")
+
     # --- 5. New signals.
     spy_cfg = cfg.get("spy_filter", {})
     spy_enabled = bool(spy_cfg.get("enabled", False))
     spy_mode = spy_cfg.get("mode", "vs_open")
     if cap_hit:
         report["skipped"].append(("--", "all", "all", "daily loss cap hit — no new trades"))
+    elif unprotected_block:
+        report["skipped"].append(("--", "all", "all",
+                                  "unprotected position — no new trades until a stop is confirmed"))
     else:
         for sleeve in ("scalp", "day", "swing"):
             sleeve_cfg = cfg["sleeves"][sleeve]
@@ -1129,11 +1492,21 @@ def run_once(cfg, broker, dry_run, use_real, equity, state, now_et, flatten_et):
                              f"({spy_mode}), {'longs' if spy == 1 else 'shorts'} only"))
                         continue
                     # --- no duplicates: already holding this stock (Muse1),
-                    # or an open order pending for it.
+                    # or an open order pending for it. Round-two item 5:
+                    # the check also sees EVERY broker position, not just
+                    # state.json — a position the broker shows (whether or
+                    # not state knows about it) blocks repeat/opposite
+                    # orders on that symbol.
                     if symbol in state.get("positions", {}):
                         report["skipped"].append(
                             (symbol, sleeve, sig["expert"],
                              "already holds this stock (Muse1 position)"))
+                        continue
+                    if symbol in broker_positions:
+                        report["skipped"].append(
+                            (symbol, sleeve, sig["expert"],
+                             "broker already holds this stock (not in state) "
+                             "— no new order"))
                         continue
                     if any(str(getattr(o, "symbol", "")) == symbol for o in broker_open_orders):
                         report["skipped"].append(
@@ -1178,20 +1551,22 @@ def run_once(cfg, broker, dry_run, use_real, equity, state, now_et, flatten_et):
                             (symbol, sleeve, sig["expert"],
                              f"round-trip cost ${round_trip:.2f} >= actual 1R risk ${risk_dollars:.2f}"))
                         continue
-                    tp_r = sig["tp_r"] if sig["tp_r"] is not None else policy["tp_r"]
+                    # Target: resolved ONCE, from one source (round-two
+                    # items 1-3 — see resolve_target). An invalid target
+                    # (TP at/below entry for a long, at/above for a short)
+                    # skips the signal instead of ever reaching a broker.
+                    try:
+                        target_price, tp_r = resolve_target(sig, sleeve, cfg)
+                    except ValueError as e:
+                        report["skipped"].append(
+                            (symbol, sleeve, sig["expert"],
+                             f"invalid target — skipped, never submitted ({e})"))
+                        continue
                     if tp_r is not None and tp_r * risk_dollars - round_trip <= 0:
                         report["skipped"].append(
                             (symbol, sleeve, sig["expert"],
                              "no edge after costs at target"))
                         continue
-                    # Target price for the bracket leg (None = no fixed TP;
-                    # the position then runs on stop / trail / decay only).
-                    if tp_r is None:
-                        target_price = None
-                    elif sig["side"] == 1:
-                        target_price = entry + tp_r * stop_dist
-                    else:
-                        target_price = entry - tp_r * stop_dist
                     sector = sectors.get(symbol, "unknown")
                     ok, reason = check_portfolio_limits(
                         open_positions, symbol, sector, sig["side"], sectors,
@@ -1226,14 +1601,14 @@ def run_once(cfg, broker, dry_run, use_real, equity, state, now_et, flatten_et):
                                            "risk_dollars": round(risk_dollars, 2)})
                     if dry_run or not use_real:
                         placed = broker.submit_bracket(
-                            symbol, sig["side"], qty, sig["stop"],
-                            target_price if target_price is not None else entry,
+                            symbol, sig["side"], qty, entry, sig["stop"],
+                            target_price,
                             sleeve, sig["expert"])
                         report["would_orders"].append(placed)
                     else:
                         placed = broker.submit_bracket(
-                            symbol, sig["side"], qty, sig["stop"],
-                            target_price if target_price is not None else entry,
+                            symbol, sig["side"], qty, entry, sig["stop"],
+                            target_price,
                             sleeve, sig["expert"],
                             tif="GTC" if sleeve == "swing" else "DAY")
                         report["orders"].append(placed)
@@ -1378,18 +1753,21 @@ def main(argv=None):
           f"(log-only: {len(report['log_only_signals'])})")
     for s in report["signals"]:
         side = "LONG" if s["side"] == 1 else "SHORT"
+        tp_txt = f"tp {s['tp_r']}R" if s.get("tp_r") is not None else "tp none (stop/trail only)"
         print(f"  [{s['sleeve']}] {s['symbol']} {side} {s['expert']} "
               f"entry ${s['entry']:.2f} stop ${s['stop']:.2f} qty {s['qty']} "
-              f"notional ${s['notional']:,.0f} tp {s['tp_r']}R exit {s['exit']} "
+              f"notional ${s['notional']:,.0f} {tp_txt} exit {s['exit']} "
               f"risk ${s['risk_dollars']:.2f} ({s['reason']})")
     for s in report["log_only_signals"]:
         side = "LONG" if s["side"] == 1 else "SHORT"
         print(f"  LOG-ONLY [{s['sleeve']}] {s['symbol']} {side} {s['expert']} "
               f"entry ${s['entry']:.2f} stop ${s['stop']:.2f} ({s['reason']})")
     for o in report["would_orders"]:
+        tgt = (f"target ${o['target_price']:.2f}"
+               if o.get("target_price") is not None else "no TP leg (entry+stop only)")
         print(f"  WOULD PLACE BRACKET (no order): {o['sleeve']} {o['symbol']} "
               f"{'LONG' if o['side'] == 1 else 'SHORT'} x{o['qty']} "
-              f"stop ${o['stop_price']:.2f} target ${o['target_price']:.2f} "
+              f"stop ${o['stop_price']:.2f} {tgt} "
               f"via {o['expert']} — {o['status']}")
     for o in report["orders"]:
         print(f"  PAPER BRACKET ORDER: {o}")
