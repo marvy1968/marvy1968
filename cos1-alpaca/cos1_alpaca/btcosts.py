@@ -77,6 +77,20 @@ def apply_stop_exit(raw_px: float, side: int, costs: Costs) -> float:
     return raw_px * (1.0 - slip) if side == 1 else raw_px * (1.0 + slip)
 
 
+def scale_costs(costs: Costs, mult: float) -> Costs:
+    """Multiply per-trade costs. A mult of 2 is the x2 stress."""
+    mult = float(mult)
+    kwargs = {}
+    for name in ("slip_bps", "fee_bps_sell", "commission", "spread_bps", "entry", "limit_offset", "limit_wait", "feed"):
+        if not hasattr(costs, name):
+            continue
+        value = getattr(costs, name)
+        if name in ("slip_bps", "fee_bps_sell", "commission", "spread_bps"):
+            value = float(value) * mult
+        kwargs[name] = value
+    return costs.__class__(**kwargs)
+
+
 def feed_label(costs: Costs | None = None) -> str:
     feed = getattr(costs, "feed", FEED) if costs is not None else FEED
     if str(feed).lower() != "iex":

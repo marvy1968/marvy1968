@@ -2,13 +2,37 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from .bars import assert_iex, drop_incomplete, history_start
 from .clock import ET, as_et
 from .errors import BrokerReadError, FeedRefused
 from .http_retry import call_read, force_timeouts
 from .types import Bar, MarketBundle, Quote
+
+
+def make_iex_bars_request(symbols: list[str], kind: str, start: datetime, end: datetime):
+    """Historical request. ``feed`` is IEX. SIP is refused."""
+    from alpaca.data.enums import DataFeed
+    from alpaca.data.requests import StockBarsRequest
+    from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
+    if kind == "day":
+        timeframe = TimeFrame.Day
+    else:
+        timeframe = TimeFrame(int(kind), TimeFrameUnit.Minute)
+    request = StockBarsRequest(
+        symbol_or_symbols=list(symbols),
+        timeframe=timeframe,
+        start=start,
+        end=end,
+        feed=DataFeed.IEX,
+    )
+    feed = getattr(request, "feed", None)
+    feed_name = str(getattr(feed, "value", feed)).lower()
+    if feed_name != "iex":
+        raise FeedRefused(feed_name)
+    return request
 
 
 class AlpacaData:
@@ -30,6 +54,12 @@ class AlpacaData:
         self._client = client
         return client
 
+    def history(self, symbols: list[str], kind: str, start: datetime, end: datetime, now: datetime) -> dict[str, list[Bar]]:
+        """Completed IEX bars. ``kind`` is ``day`` or a minute size such as ``5``."""
+        minutes = 1440 if kind == "day" else int(kind)
+        raw = self._fetch(symbols, kind, start, end)
+        return {symbol: drop_incomplete(rows, now, minutes) for symbol, rows in raw.items()}
+
     def bundle(self, symbols: list[str], now: datetime, sessions: dict) -> MarketBundle:
         if self.feed != "iex":
             raise FeedRefused(self.feed)
@@ -50,26 +80,7 @@ class AlpacaData:
         backoff = tuple(self.cfg.timeouts.backoff_sec)
 
         def _go():
-            from alpaca.data.enums import DataFeed
-            from alpaca.data.requests import StockBarsRequest
-            from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-
-            if kind == "day":
-                timeframe = TimeFrame.Day
-            else:
-                timeframe = TimeFrame(int(kind), TimeFrameUnit.Minute)
-            # feed is set explicitly. The default must not be SIP.
-            request = StockBarsRequest(
-                symbol_or_symbols=symbols,
-                timeframe=timeframe,
-                start=start,
-                end=end,
-                feed=DataFeed.IEX,
-            )
-            feed = getattr(request, "feed", None)
-            feed_name = str(getattr(feed, "value", feed)).lower()
-            if feed_name != "iex":
-                raise FeedRefused(feed_name)
+            request = make_iex_bars_request(symbols, kind, start, end)
             return self.client().get_stock_bars(request)
 
         try:

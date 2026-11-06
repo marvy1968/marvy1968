@@ -21,16 +21,37 @@ def main(argv: list[str] | None = None) -> int:
     run_p.add_argument("--dry-run", action="store_true", help="log signals only")
     run_p.add_argument("--config", default=None)
 
-    bt = sub.add_parser("backtest", help="short synthetic walk-forward (3-6 months)")
-    bt.add_argument("--months", type=int, default=6)
+    bt = sub.add_parser("backtest", help="short walk-forward: synthetic, or IEX via --source alpaca")
+    bt.add_argument("--source", choices=("synthetic", "alpaca"), default="synthetic")
+    bt.add_argument("--months", type=int, default=0, help="0 uses 6 for synthetic and 3 for alpaca")
+    bt.add_argument("--cost-mult", type=float, default=2.0, help="also report this cost multiple; 2 means x1 and x2")
     bt.add_argument("--out", default="")
 
     args = parser.parse_args(argv)
     if args.cmd == "backtest":
         from .backtest import run_backtest, write_report
+        from .errors import MissingCredentials
 
-        months = min(6, max(3, args.months))
-        result = run_backtest(oos_days=months * 21, intraday_days=min(63, months * 21))
+        if args.source == "alpaca":
+            months = min(6, max(1, args.months or 3))
+        else:
+            months = min(6, max(3, args.months or 6))
+        try:
+            result = run_backtest(
+                source=args.source,
+                months=months,
+                oos_days=months * 21,
+                intraday_days=min(63, months * 21),
+                cost_mult=args.cost_mult,
+            )
+        except MissingCredentials:
+            print("credentials: MissingCredentials", file=sys.stderr)
+            return 2
+        except Exception as exc:
+            if args.source != "alpaca":
+                raise
+            print(f"backtest: {type(exc).__name__}", file=sys.stderr)
+            return 2
         text = _table(result)
         print(text)
         if args.out:
@@ -80,13 +101,14 @@ def _table(result: dict) -> str:
         f"universe={','.join(result['universe'])}",
         "cost slip_bps={slip_bps} fee_bps_sell={fee_bps_sell} commission={commission} "
         "max_pos_frac={max_pos_frac} max_positions={max_positions}".format(**result["cost_model"]),
-        f"{'mode':<8} {'expert':<16} {'trades':>6} {'pf':>8} {'roi':>8} {'maxDD':>8} {'avgCostR':>8} {'log':>5}",
+        f"{'mode':<8} {'expert':<16} {'x':>4} {'trades':>6} {'pf':>8} {'roi':>8} {'maxDD':>8} {'avgCostR':>8} {'log':>5}",
     ]
     for row in result["rows"]:
         pf = row["profit_factor"]
         pf_s = "n/a" if pf is None else ("inf" if pf == float("inf") else f"{pf:.2f}")
+        mult = row.get("cost_mult", 1)
         lines.append(
-            f"{row['mode']:<8} {row['expert']:<16} {row['trades']:>6} {pf_s:>8} {row['roi']:>8.2%} "
+            f"{row['mode']:<8} {row['expert']:<16} {mult:>4.1f} {row['trades']:>6} {pf_s:>8} {row['roi']:>8.2%} "
             f"{row['max_dd']:>8.2%} {row['avg_cost_r']:>8.3f} {str(bool(row['log_only'])): >5}"
         )
     return "\n".join(lines)

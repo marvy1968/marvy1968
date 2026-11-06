@@ -109,6 +109,8 @@ def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, jour
         _update_kills(state, cfg)
         _update_weights(state, cfg)
         sync_owned(state, positions)
+        if flags.dry_run:
+            _log_foreign(positions, orders, set(state.positions), cfg.account.exclusive, logger)
         flags_found = reconcile(state.intended, orders, positions, cfg_hash)
         for item in flags_found:
             journal.event(
@@ -379,16 +381,57 @@ def _exposure_items(positions, state: State) -> list[ExposureItem]:
     return items
 
 
-def _foreign(symbol, positions, orders, owned: set[str], exclusive: bool) -> bool:
+def list_foreign(positions, orders, owned: set[str], exclusive: bool) -> list[dict]:
+    """Symbols held or working at the broker that this bot does not own.
+
+    A position absent from our state, or an open order whose id does not start
+    with ``cos1-``, blocks new entries in that symbol unless the account is exclusive.
+    """
     if exclusive:
-        return False
+        return []
+    found: dict[str, dict] = {}
     for pos in positions:
-        if pos.symbol == symbol and symbol not in owned:
-            return True
+        if abs(getattr(pos, "qty", 0) or 0) <= 0 or pos.symbol in owned:
+            continue
+        found[pos.symbol] = {
+            "symbol": pos.symbol,
+            "source": "position",
+            "side": pos.side,
+            "qty": abs(pos.qty),
+            "client_order_id": "",
+        }
     for order in orders:
-        if order.symbol == symbol and not str(order.client_order_id or "").startswith("cos1-"):
-            return True
-    return False
+        client_id = str(order.client_order_id or "")
+        if client_id.startswith("cos1-"):
+            continue
+        row = found.get(order.symbol)
+        if row is None:
+            found[order.symbol] = {
+                "symbol": order.symbol,
+                "source": "open_order",
+                "side": order.side,
+                "qty": abs(order.qty or 0),
+                "client_order_id": client_id,
+            }
+        elif not row["client_order_id"]:
+            row["client_order_id"] = client_id
+    return list(found.values())
+
+
+def _log_foreign(positions, orders, owned: set[str], exclusive: bool, logger) -> None:
+    for row in list_foreign(positions, orders, owned, exclusive):
+        logger.info(
+            "EXCLUDED_FOREIGN symbol=%s source=%s side=%s qty=%s client_order_id=%s",
+            row["symbol"],
+            row["source"],
+            row.get("side") or "",
+            row.get("qty") or "",
+            row.get("client_order_id") or "",
+        )
+
+
+def _foreign(symbol, positions, orders, owned: set[str], exclusive: bool) -> bool:
+    return any(row["symbol"] == symbol for row in list_foreign(positions, orders, owned, exclusive))
 
 
 def _bars_for(sig, bundle):

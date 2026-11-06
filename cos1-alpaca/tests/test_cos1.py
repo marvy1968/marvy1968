@@ -829,16 +829,68 @@ def test_reconcile_on_run_and_no_telegram(tmp_path, monkeypatch):
 
 def test_backtest_is_short_and_labeled(tmp_path):
     from cos1_alpaca.backtest import run_backtest
+    from cos1_alpaca.btcosts import Costs, scale_costs
 
-    result = run_backtest(oos_days=20, daily_len=250, intraday_days=2, symbols=("SPY", "XLK", "AAPL"))
+    result = run_backtest(oos_days=20, daily_len=250, intraday_days=2, symbols=("SPY", "XLK", "AAPL"), cost_mult=2)
     assert result["feed"] == "iex"
     assert result["data_source"] == "synthetic"
     assert result["cost_model"]["slip_bps"] == 2.0
     assert result["cost_model"]["max_pos_frac"] == 0.25
     assert {row["expert"] for row in result["rows"]} >= {"swing_ema", "swing_donchian", "day_pullback", "mean_reversion", "range_box", "scalp"}
-    assert all(row["expert"] != "scalp" or row["log_only"] for row in result["rows"])
+    assert {row["cost_mult"] for row in result["rows"]} == {1.0, 2.0}
+    doubled = scale_costs(Costs(), 2)
+    assert doubled.slip_bps == 4.0 and doubled.fee_bps_sell == pytest.approx(0.8)
     for row in result["rows"]:
         assert "profit_factor" in row and "roi" in row and "max_dd" in row and "trades" in row
+
+
+def test_foreign_msft_short_blocks_that_symbol(tmp_path, monkeypatch, caplog):
+    """A short the bot does not own, or someone else's open order, blocks that symbol only."""
+    caplog.set_level("INFO", logger="cos1")
+    msft = _sig(symbol="MSFT", signal_id="msft-new", entry=400.0, stop=390.0)
+    jpm = _sig(symbol="JPM", signal_id="jpm-new", entry=200.0, stop=195.0)
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [msft, jpm])
+    bars = _bars(30)
+    bundle = _bundle(bars)
+    for symbol, quote in (("MSFT", Quote(400.0, 400.05)), ("JPM", Quote(200.0, 200.04))):
+        bundle.daily[symbol] = bars
+        bundle.min5[symbol] = bars
+        bundle.quotes[symbol] = quote
+
+    broker = FakeBroker()
+    broker.positions = [BrokerPosition("MSFT", 5, "short", 410.0, 400.0)]
+    broker.orders = [BrokerOrder("ord-msft", "other-strategy", "MSFT", "sell", 5, "new", "market")]
+    result = _run(tmp_path / "pos", broker, FakeData(bundle), Flags(paper=True))
+    assert [plan.symbol for plan in broker.submitted] == ["JPM"]
+    assert any(row["signal"] == "msft-new" and row["reason"] == "foreign" for row in result.skipped)
+
+    broker = FakeBroker()
+    broker.orders = [BrokerOrder("ord-only", "not-cos1", "MSFT", "sell", 3, "accepted", "market")]
+    result = _run(tmp_path / "ord", broker, FakeData(bundle), Flags(dry_run=True))
+    assert broker.submitted == []
+    assert any(row["signal"] == "msft-new" and row["reason"] == "foreign" for row in result.skipped)
+    assert "EXCLUDED_FOREIGN symbol=MSFT source=open_order side=sell" in caplog.text
+
+    caplog.clear()
+    broker = FakeBroker()
+    broker.positions = [BrokerPosition("MSFT", 5, "short", 410.0, 400.0)]
+    _run(tmp_path / "log", broker, FakeData(bundle), Flags(dry_run=True))
+    assert "EXCLUDED_FOREIGN symbol=MSFT source=position side=short qty=5" in caplog.text
+
+
+def test_alpaca_source_needs_env_and_requests_iex(monkeypatch):
+    from cos1_alpaca.cli import main
+
+    monkeypatch.delenv("COS1_ENV_FILE", raising=False)
+    assert main(["backtest", "--source", "alpaca", "--months", "3"]) == 2
+    pytest.importorskip("alpaca")
+    from datetime import datetime
+
+    from cos1_alpaca.datafeed import make_iex_bars_request
+
+    request = make_iex_bars_request(["SPY", "AAPL"], "5", datetime(2026, 8, 1, tzinfo=ET), datetime(2026, 11, 1, tzinfo=ET))
+    assert str(getattr(request.feed, "value", request.feed)).lower() == "iex"
+    assert "5" in str(request.timeframe)
 
 
 def test_cli_without_flags(capsys):

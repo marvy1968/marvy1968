@@ -18,7 +18,8 @@ Orders exist only with `--paper`, and only at `https://paper-api.alpaca.markets`
 python -m cos1_alpaca run                  # no orders
 python -m cos1_alpaca run --dry-run        # log signals
 python -m cos1_alpaca run --paper          # paper orders
-python -m cos1_alpaca backtest --months 6  # short synthetic walk-forward
+python -m cos1_alpaca backtest --source synthetic --months 6
+python -m cos1_alpaca backtest --source alpaca --months 3 --cost-mult 2
 python -m pytest
 ```
 
@@ -26,4 +27,6 @@ python -m pytest
 
 Install: see `DEPLOY.md`. The systemd timer is dry-run only.
 
-Cost model for the backtest is `btcosts.py` (`slip_bps`, `fee_bps_sell`, `commission`, `max_pos_frac`, feed `iex`), the same fields as the Alpaca research harness in this repo. Point `COS1_BTCOSTS` at another module that defines `Costs` and `Portfolio` to swap it in. The default run is synthetic and short (four names, last 3-6 months). It is not a claim of an edge.
+Cost model for the backtest is `btcosts.py` (`slip_bps`, `fee_bps_sell`, `commission`, `max_pos_frac`, feed `iex`), the same fields as the Alpaca research harness in this repo. Point `COS1_BTCOSTS` at another module that defines `Costs` and `Portfolio` to swap it in. `--source synthetic` is the default and needs no keys. `--source alpaca` reads `COS1_ENV_FILE` and pulls IEX daily bars (with 200-day warmup) plus 5-minute bars for the last N months (default 3) on SPY, AAPL, MSFT, and XLK. It scores `swing_ema`, `swing_donchian`, and `day_pullback` at cost x1 and `--cost-mult` (default x2). It is not a claim of an edge.
+
+A dry-run logs `EXCLUDED_FOREIGN` for every symbol the account holds, or has an open order for, that this bot does not own. Those symbols are not entered.
