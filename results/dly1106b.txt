@@ -1,3 +1,27 @@
 $ show fx_paper/journal-20261106.jsonl
-started 2026-11-06 16:48:46 EST
-RUNNING...
+started 2026-11-06 16:48:46 EST, took 0s, exit 0
+
+{"t": "2026-11-06T00:00:56+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-05T23:00:00+00:00", "close": 157.493, "stop_dist": 0.34550000000001546, "result": "paused (signal logged)"}
+{"t": "2026-11-06T02:01:37+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "NZD_USD", "side": "short", "bar": "2026-11-06T01:00:00+00:00", "close": 0.55871, "stop_dist": 0.0012099999999999334, "result": "paused (signal logged)"}
+{"t": "2026-11-06T02:01:38+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CAD", "side": "long", "bar": "2026-11-06T01:00:00+00:00", "close": 1.4022450000000002, "stop_dist": 0.001200000000000312, "result": "paused (signal logged)"}
+{"t": "2026-11-06T02:01:38+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CHF", "side": "long", "bar": "2026-11-06T01:00:00+00:00", "close": 0.8172349999999999, "stop_dist": 0.0024699999999999722, "result": "paused (signal logged)"}
+{"t": "2026-11-06T07:38:28+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-11-06T10:01:49+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-06T06:00:00+00:00", "close": 0.686965, "stop_dist": 0.0024508072327722196, "result": "paused (signal logged)"}
+{"t": "2026-11-06T10:01:49+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-06T06:00:00+00:00", "close": 0.554265, "stop_dist": 0.0021791281328087317, "result": "paused (signal logged)"}
+{"t": "2026-11-06T10:48:06+00:00", "kind": "error", "where": "scan", "strategy": "conf_d1", "instrument": "NZD_USD", "error": "OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-11-06T12:30:26+00:00", "kind": "news_pause", "pairs": ["AUD_USD", "EUR_USD", "GBP_USD", "NZD_USD", "USD_CAD", "USD_CHF", "USD_JPY"], "why": ["news pause: CAD Employment Change at 08:30 New York", "news pause: USD Average Hourly Earnings m/m at 08:30 New York"], "source": "forexfactory"}
+{"t": "2026-11-06T14:01:49+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-06T10:00:00+00:00", "close": 0.686375, "stop_dist": 0.0024518210018600207, "result": "paused (signal logged)"}
+{"t": "2026-11-06T14:01:49+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-06T10:00:00+00:00", "close": 1.4107150000000002, "stop_dist": 0.0029452206714798068, "result": "paused (signal logged)"}
+{"t": "2026-11-06T14:22:45+00:00", "kind": "error", "where": "step", "error": "OandaError: OANDA 401: {\"errorMessage\":\"Insufficient authorization to perform request.\"}"}
+{"t": "2026-11-06T15:00:16+00:00", "kind": "news_pause", "pairs": ["USD_JPY"], "why": ["news pause: JPY BOJ Gov Ueda Speaks at 11:00 New York"], "source": "forexfactory"}
+{"t": "2026-11-06T16:01:38+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-06T15:00:00+00:00", "close": 158.24450000000002, "stop_dist": 0.34449999999998226, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:00:38+00:00", "kind": "signal", "strategy": "box_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-06T17:00:00+00:00", "close": 1.1145100000000001, "stop_dist": 0.002084579553317756, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:32+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-06T14:00:00+00:00", "close": 0.68622, "stop_dist": 0.0025545480731556857, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:33+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-06T14:00:00+00:00", "close": 0.55427, "stop_dist": 0.0022273094614524568, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:33+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-06T14:00:00+00:00", "close": 1.4123999999999999, "stop_dist": 0.003005562052088362, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:41+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-06T17:00:00+00:00", "close": 0.68622, "stop_dist": 0.003114999999999979, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:56+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "GBP_USD", "side": "short", "bar": "2026-11-06T17:00:00+00:00", "close": 1.335035, "stop_dist": 0.002749999999999808, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:01:58+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "NZD_USD", "side": "short", "bar": "2026-11-06T17:00:00+00:00", "close": 0.55427, "stop_dist": 0.0013049999999998896, "result": "paused (signal logged)"}
+{"t": "2026-11-06T18:02:00+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CAD", "side": "long", "bar": "2026-11-06T17:00:00+00:00", "close": 1.4123999999999999, "stop_dist": 0.0033599999999998076, "result": "paused (signal logged)"}
+{"t": "2026-11-06T20:01:12+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-06T19:00:00+00:00", "close": 1.113975, "stop_dist": 0.0018050000000000566, "result": "paused (signal logged)"}
+{"t": "2026-11-06T20:45:01+00:00", "kind": "news_pause", "pairs": ["NZD_USD"], "why": ["news pause: NZD Parliamentary Elections at 16:45 New York"], "source": "forexfactory"}
