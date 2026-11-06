@@ -10,7 +10,7 @@ any Claude VM code. One runner (`bot.py`) with three sleeves — scalp,
 day-trade, swing — driven by 10 expert signal functions and a hedge-fund
 principles overlay.
 
-**Version 0.3.1 (2026-11-06) — SPY swing-filter fix, owner-approved.**
+**Version 0.3.2 (2026-11-06) — env base URL + APCA_ key aliases.**
 See "v0.3.1 — what changed" below. The swing sleeve's SPY filter
 compared the last daily close to the open ~90 days ago and read
 short_only while SPY was up; it now uses the last completed daily
@@ -44,7 +44,7 @@ separate from Brain's** — the VM `.env` must hold muse1-only paper keys
 | `bot.py` | Runner: argparse, live-block, Alpaca paper broker / stub broker, bracket orders, state + lock, calendar, one scan over all sleeves |
 | `state.json` | LOCAL ONLY, never committed: day P&L, trade count, Muse1 positions with order ids, swing signals seen. See `.gitignore`. |
 | `test_fixes.py` | Unit tests for the v0.2.0 fix list (37 checks, no keys, no network, no orders). Run: `python3 test_fixes.py` |
-| `test_round2.py` | Unit tests for the v0.3.0 round-two fix list plus the v0.3.1 SPY swing-filter fix (66 checks, no keys, no network, no orders). Run: `python3 test_round2.py` |
+| `test_round2.py` | Unit tests for the v0.3.0 round-two fix list plus the v0.3.1 SPY swing-filter fix and the v0.3.2 env base URL / key aliases (76 checks, no keys, no network, no orders). Run: `python3 test_round2.py` |
 | `backtest_muse1.py` | Pre-registered OOS backtest of raschke_soup (Train 2026-01-01–06-30, Test 2026-07-01–11-04, Alpaca IEX 5-min, realistic costs, 20-draw random control). Run: `python3 backtest_muse1.py` (fetches bars once, caches locally) |
 | `backtest_muse1_results.json` | Backtest results + full trade list (pre-registration, per-period PF/avg R, random-control medians, pass/fail) |
 | `backtest_muse1_trades.csv` | Same trade list as a CSV |
@@ -352,6 +352,31 @@ said.
 Caveat (unchanged): the SPY filter itself is still UNVALIDATED on this
 bot — it failed pre-registered tests on the other sleeves. This fix only
 makes it do what its own spec says; it does not prove the filter works.
+
+## v0.3.2 — env base URL + APCA_ key aliases (2026-11-06)
+
+Found while double-checking the Monday deploy note: the note stores
+`APCA_API_KEY_ID` / `APCA_API_SECRET_KEY` / `APCA_API_BASE_URL` on the
+VM, but **neither the code nor the alpaca-py SDK read any of those
+names**. Verified in alpaca-py 0.44.0 (`TradingClient.__init__`): the
+base URL is `url_override` if given, else the paper URL when
+`paper=True`, else the live URL — the SDK reads no `APCA_API_*` env var
+at all. So as written, the env base URL was silently ignored (the old
+code's only live protection was the hardcoded `paper=True`), and the
+`APCA_API_*` key names were silently ignored too (`bot.py` read only
+`ALPACA_API_KEY` / `ALPACA_API_SECRET` / `ALPACA_SECRET_KEY`).
+
+The fix: `bot.py` now reads `APCA_API_BASE_URL` via
+`paper_base_url_from_env()` and passes it as `url_override`; any value
+that is not the paper URL (`paper-api.alpaca.markets`) is refused
+outright (fail closed) before the client is built, so a wrong env file
+can never point this paper-only bot at live trading. Unset means the
+SDK's paper default. Keys are read via `alpaca_keys_from_env()`, which
+accepts both naming schemes (`ALPACA_API_*` wins when both are set).
+Tests: 10 new checks in `test_round2.py` (key aliases, unset/paper/
+live/other-host base URL, broker construction with and without the env
+override). Both suites green: `test_fixes.py` 37/37, `test_round2.py`
+76/76. The Monday deploy note is now accurate as written.
 
 ## HONEST CAVEATS — read before running this anywhere
 

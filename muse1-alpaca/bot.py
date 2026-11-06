@@ -100,7 +100,7 @@ from hedge_fund_overlay import (  # noqa: E402
 from risk import RiskState  # noqa: E402
 
 BOT_NAME = "muse1/alpaca"
-VERSION = "0.3.1-spy-swing-filter-fix (paper only, unvalidated)"
+VERSION = "0.3.2-env-base-url (paper only, unvalidated)"
 STATE_FILE = HERE / "state.json"
 LOCK_FILE = HERE / "bot.lock"
 ET = ZoneInfo("America/New_York")
@@ -365,13 +365,43 @@ class PaperBrokerStub:
         return {"symbol": symbol, "qty": qty, "side": order_side,
                 "status": "WOULD_CLOSE (stub)"}
 
+def alpaca_keys_from_env():
+    """Alpaca keys from the environment. Accepts both the ALPACA_API_*
+    names this bot has always used and the APCA_API_* names the Alpaca
+    dashboard/docs use, so a VM env file written either way works.
+    Returns (key, secret); either may be None when unset."""
+    key = os.environ.get("ALPACA_API_KEY") or os.environ.get("APCA_API_KEY_ID")
+    secret = (os.environ.get("ALPACA_API_SECRET")
+              or os.environ.get("ALPACA_SECRET_KEY")
+              or os.environ.get("APCA_API_SECRET_KEY"))
+    return key, secret
+
+
+def paper_base_url_from_env():
+    """The APCA_API_BASE_URL override when set. This bot is paper-only:
+    an env value that is not the Alpaca paper URL is refused outright
+    (SystemExit, fail closed) so the deployed copy can never be pointed
+    at live trading by a wrong env file. Returns None when unset, in
+    which case the SDK defaults to the paper URL (paper=True)."""
+    url = os.environ.get("APCA_API_BASE_URL")
+    if not url:
+        return None
+    if "paper-api.alpaca.markets" not in url:
+        raise SystemExit(
+            "APCA_API_BASE_URL must be the Alpaca paper URL "
+            "(https://paper-api.alpaca.markets); refusing to start: " + url)
+    return url
+
+
 class AlpacaBroker:
     """Real Alpaca paper broker, only constructed when keys are present
     and --paper was given (or --dry-run with keys). Live is blocked
     before this is ever built."""
     def __init__(self, key, secret):
         from alpaca.trading.client import TradingClient
-        self.client = TradingClient(key, secret, paper=True)
+        self.client = TradingClient(
+            key, secret, paper=True,
+            url_override=paper_base_url_from_env())
 
     def account(self):
         return _retry(lambda: self.client.get_account(), "get_account")
@@ -858,8 +888,7 @@ def fetch_bars(symbol, timeframe, broker, use_real, cfg=None):
     from alpaca.data.requests import StockBarsRequest
     from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
     from alpaca.data.enums import DataFeed
-    key = os.environ.get("ALPACA_API_KEY")
-    secret = os.environ.get("ALPACA_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY")
+    key, secret = alpaca_keys_from_env()
     client = StockHistoricalDataClient(key, secret)
     data_cfg = (cfg or {}).get("data", {}) or {}
     now = datetime.now(timezone.utc)
@@ -1685,12 +1714,12 @@ def main(argv=None):
         print("config allow_live must stay false", file=sys.stderr)
         return 2
 
-    key = os.environ.get("ALPACA_API_KEY")
-    secret = os.environ.get("ALPACA_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY")
+    key, secret = alpaca_keys_from_env()
     use_real = bool(key and secret)
     dry = args.dry_run
     if args.paper and not dry and not use_real:
-        print("No Alpaca keys found (ALPACA_API_KEY / ALPACA_API_SECRET). "
+        print("No Alpaca keys found (ALPACA_API_KEY / ALPACA_API_SECRET "
+              "or APCA_API_KEY_ID / APCA_API_SECRET_KEY). "
               "--paper cannot trade without keys. Use --dry-run to preview "
               "with synthetic demo bars.", file=sys.stderr)
         return 0

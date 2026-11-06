@@ -20,6 +20,7 @@ Covers items 1-5 and 7a of the round-two list:
     ago and read short_only while SPY was up.
 """
 import copy
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -33,7 +34,9 @@ from experts import brooks_range_fade, dalton_value, raschke_soup, atr
 import bot
 from bot import (validate_target, resolve_target, default_state,
                  run_once, manage_positions, adopt_broker_positions,
-                 PaperBrokerStub, spy_side, spy_flat_pct)
+                 PaperBrokerStub, spy_side, spy_flat_pct,
+                 alpaca_keys_from_env, paper_base_url_from_env,
+                 AlpacaBroker)
 from bot import ET
 
 PASS, FAIL = [], []
@@ -663,6 +666,89 @@ five_min_down = bars_ohlc([(740.0, 740.5, 739.0, 739.5),
 check("spy_side 5min: down day reads short_only (-1)",
       spy_side(five_min_down, "vs_open", "5min") == -1,
       f"got {spy_side(five_min_down, 'vs_open', '5min')}")
+
+# v0.3.2: env base URL + APCA_ key aliases.
+# The Monday deploy note stores APCA_API_KEY_ID / APCA_API_SECRET_KEY /
+# APCA_API_BASE_URL on the VM. The code must actually read them: the
+# alpaca-py SDK reads NONE of those env vars itself, and the old code
+# passed paper=True only, so the env base URL was silently ignored and
+# the APCA_ key names were silently ignored too.
+_KEY_VARS = ("ALPACA_API_KEY", "ALPACA_API_SECRET", "ALPACA_SECRET_KEY",
+             "APCA_API_KEY_ID", "APCA_API_SECRET_KEY", "APCA_API_BASE_URL")
+
+def _with_env(pairs, fn):
+    saved = {k: os.environ.get(k) for k in _KEY_VARS}
+    try:
+        for k in _KEY_VARS:
+            os.environ.pop(k, None)
+        os.environ.update(pairs)
+        return fn()
+    finally:
+        for k in _KEY_VARS:
+            os.environ.pop(k, None)
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
+
+check("keys: APCA_API_KEY_ID / APCA_API_SECRET_KEY are accepted",
+      _with_env({"APCA_API_KEY_ID": "AKID", "APCA_API_SECRET_KEY": "SEC"},
+                lambda: alpaca_keys_from_env() == ("AKID", "SEC")),
+      f"got {alpaca_keys_from_env()}")
+check("keys: ALPACA_API_* names take precedence over APCA_*",
+      _with_env({"ALPACA_API_KEY": "K1", "ALPACA_API_SECRET": "S1",
+                 "APCA_API_KEY_ID": "K2", "APCA_API_SECRET_KEY": "S2"},
+                lambda: alpaca_keys_from_env() == ("K1", "S1")),
+      f"got {alpaca_keys_from_env()}")
+check("keys: nothing set -> (None, None)",
+      _with_env({}, lambda: alpaca_keys_from_env() == (None, None)),
+      f"got {alpaca_keys_from_env()}")
+
+check("base URL: unset -> None (SDK defaults to paper)",
+      _with_env({}, lambda: paper_base_url_from_env() is None),
+      f"got {paper_base_url_from_env()}")
+check("base URL: paper URL is returned",
+      _with_env({"APCA_API_BASE_URL": "https://paper-api.alpaca.markets"},
+                lambda: paper_base_url_from_env() == "https://paper-api.alpaca.markets"),
+      f"got {paper_base_url_from_env()}")
+
+def _live_url_refused():
+    try:
+        paper_base_url_from_env()
+    except SystemExit:
+        return True
+    return False
+
+check("base URL: live URL https://api.alpaca.markets is refused",
+      _with_env({"APCA_API_BASE_URL": "https://api.alpaca.markets"},
+                _live_url_refused))
+check("base URL: any other host is refused",
+      _with_env({"APCA_API_BASE_URL": "https://evil.example.com"},
+                _live_url_refused))
+
+def _broker_base_url():
+    b = AlpacaBroker("DUMMYKEY", "DUMMYSECRET")
+    u = getattr(b.client, "_base_url", "")
+    # Unset env -> the SDK stores a BaseURL enum, not a plain string.
+    return getattr(u, "value", str(u))
+
+check("broker: paper URL env -> client points at paper",
+      _with_env({"APCA_API_BASE_URL": "https://paper-api.alpaca.markets"},
+                lambda: "paper-api.alpaca.markets" in _broker_base_url()),
+      f"got {_broker_base_url()}")
+check("broker: no env -> client still points at paper",
+      _with_env({}, lambda: "paper-api.alpaca.markets" in _broker_base_url()),
+      f"got {_broker_base_url()}")
+
+def _broker_live_refused():
+    try:
+        AlpacaBroker("DUMMYKEY", "DUMMYSECRET")
+    except SystemExit:
+        return True
+    return False
+
+check("broker: live URL env -> construction refused",
+      _with_env({"APCA_API_BASE_URL": "https://api.alpaca.markets"},
+                _broker_live_refused))
 
 print()
 print(f"{len(PASS)} passed, {len(FAIL)} failed")
