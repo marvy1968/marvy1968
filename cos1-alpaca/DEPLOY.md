@@ -41,6 +41,13 @@ sudo -u cos1 env COS1_ENV_FILE=/opt/cos1-alpaca/.env \
 
 Journal: `state/cos1.sqlite`. Report: `state/reports/daily-YYYY-MM-DD.txt`. Logs go to the journald unit `cos1-alpaca`.
 
+Do not change the unit to `--paper`. Top-down, the news filter, and the SPY-versus-open rule stay off until `validate` prints `pass=True` for that study. A failure stays off.
+
+```bash
+sudo -u cos1 env COS1_ENV_FILE=/opt/cos1-alpaca/.env \
+  /opt/cos1-alpaca/.venv/bin/python -m cos1_alpaca validate
+```
+
 Earnings dates are optional. A CSV at the path in `paths.earnings_csv` (`symbol,YYYY-MM-DD`) blocks the session before, of, and after each date. With no file the guard is a stub and does not block.
 
 To place paper orders, run once by hand with `--paper`. The timer stays on `--dry-run` until you edit the unit on purpose. There is no live switch.

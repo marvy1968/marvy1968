@@ -304,6 +304,16 @@ def swing_hold_exit(bars: list[Bar], side: str, expert: str, opened_day: date, c
     from .clock import bar_session_date
 
     held = _weekdays_between(opened_day, bar_session_date(bars[-1].ts))
+    if expert == "topdown":
+        closes = [b.close for b in bars]
+        line = ema_series(closes, cfg.topdown.ema)
+        if line[-1] is None:
+            return None
+        if side == "long" and bars[-1].close < line[-1]:
+            return "ema"
+        if side == "short" and bars[-1].close > line[-1]:
+            return "ema"
+        return None
     if held >= cfg.swing.max_hold_days:
         return "max_hold"
     if expert == "swing_donchian" and donchian_exit(bars, side, cfg.swing.donchian_exit):
@@ -334,13 +344,64 @@ def _weekdays_between(start: date, end: date) -> int:
     return days
 
 
+def topdown(symbol: str, bars: list[Bar], spy: list[Bar], cfg: Config) -> Signal | None:
+    """Daily long: close > EMA20 > SMA50, 20-day return beats SPY by >= 3 points, SPY above its 200-day average.
+
+    Stop is the 20-day EMA minus 1 ATR. The bracket target is 2R. The position
+    also exits on a later daily close below the 20-day EMA.
+    """
+    from .clock import bar_session_date
+
+    need = max(cfg.topdown.sma, cfg.topdown.ema, cfg.topdown.atr_period) + 21
+    if len(bars) < need or len(spy) < cfg.topdown.spy_sma + 1:
+        return None
+    closes = [b.close for b in bars]
+    ema = ema_series(closes, cfg.topdown.ema)
+    slow = sma(closes, cfg.topdown.sma)
+    width = atr(bars, cfg.topdown.atr_period)
+    if ema[-1] is None or slow is None or width is None or width <= 0:
+        return None
+    spy_by_day = {bar_session_date(b.ts): b.close for b in spy}
+    day = bar_session_date(bars[-1].ts)
+    day20 = bar_session_date(bars[-21].ts)
+    if day not in spy_by_day or day20 not in spy_by_day:
+        return None
+    spy_hist = [b for b in spy if bar_session_date(b.ts) <= day]
+    spy_ma = sma([b.close for b in spy_hist], cfg.topdown.spy_sma)
+    if spy_ma is None or spy_by_day[day] <= spy_ma:
+        return None
+    if not (closes[-1] > ema[-1] > slow):
+        return None
+    rs = (closes[-1] / closes[-21] - 1.0) - (spy_by_day[day] / spy_by_day[day20] - 1.0)
+    if rs < cfg.topdown.rs_margin:
+        return None
+    stop = ema[-1] - cfg.topdown.atr_mult * width
+    return _mk(
+        symbol,
+        "long",
+        "swing",
+        "topdown",
+        closes[-1],
+        stop,
+        None,
+        cfg.topdown.target_r,
+        not cfg.topdown.enabled,
+        "topdown",
+        bars[-1].ts,
+    )
+
+
 def generate_signals(bundle: MarketBundle, cfg: Config, regime: Regime, session_date: date) -> list[Signal]:
     out: list[Signal] = []
+    spy = bundle.daily.get("SPY") or []
     for symbol in cfg.universe:
         daily = bundle.daily.get(symbol) or []
         m5 = bundle.min5.get(symbol) or []
         m1 = bundle.min1.get(symbol) or []
         if daily:
+            td = topdown(symbol, daily, spy, cfg)
+            if td is not None:
+                out.append(td)
             for fn in (
                 lambda s=symbol, b=daily: swing_ema(s, b, regime, cfg),
                 lambda s=symbol, b=daily: donchian(s, b, regime, cfg),

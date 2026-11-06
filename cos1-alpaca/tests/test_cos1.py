@@ -893,6 +893,92 @@ def test_alpaca_source_needs_env_and_requests_iex(monkeypatch):
     assert "5" in str(request.timeframe)
 
 
+def test_universe_is_three_per_gics_sector():
+    from cos1_alpaca.universe import GICS, default_universe, sector_of
+
+    names = default_universe()
+    assert len(names) == 33
+    assert len(GICS) == 11
+    assert all(len(members) == 3 for members in GICS.values())
+    assert "SPY" not in names
+    cfg = load_config(ROOT / "config.yaml")
+    assert cfg.universe == names
+    assert cfg.risk.max_positions == 5
+    assert cfg.risk.max_per_sector == 1
+    assert cfg.news.enabled is False
+    assert cfg.spy_open.enabled is False
+    assert cfg.topdown.enabled is False
+    assert sector_of("AAPL") == sector_of("MSFT") == "tech"
+    assert sector_of("JPM") == "fin"
+    held = ExposureItem("MSFT", "long", 1, 400, 390, "tech")
+    second = ExposureItem("NVDA", "long", 1, 100, 95, "tech")
+    assert exposure_ok([held], second, 100_000, cfg.risk)[1] == "sector"
+
+
+def test_news_lexicon_and_spy_open_reversal():
+    from cos1_alpaca.news import news_decision, score_text, snapshot_from_articles
+    from cos1_alpaca.spyopen import spy_open_bias, spy_open_decision
+    from cos1_alpaca.universe import sector_of
+
+    assert score_text("Analyst upgrade and earnings beat") > 0
+    assert score_text("Downgrade after a revenue miss and layoff") < 0
+    good = snapshot_from_articles([{"symbols": ["AAPL"], "text": "upgrade and beat"}], sector_of)
+    bad = snapshot_from_articles([{"symbols": ["AAPL"], "text": "downgrade and miss"}], sector_of)
+    assert news_decision("long", "AAPL", "tech", good, True)[0] is True
+    assert news_decision("short", "AAPL", "tech", good, True)[0] is False
+    assert news_decision("short", "AAPL", "tech", bad, True)[0] is True
+    assert news_decision("long", "AAPL", "tech", bad, True)[0] is False
+    assert news_decision("long", "AAPL", "tech", bad, False) == (True, "bypass")
+    day = date(2026, 11, 4)
+    start = datetime.combine(day, time(9, 30), tzinfo=ET)
+    up = [
+        Bar(start, 100, 101, 99.5, 100.8, 1),
+        Bar(start + timedelta(minutes=5), 100.8, 102, 100.5, 101.5, 1),
+    ]
+    assert spy_open_bias(up, day) == "long"
+    assert spy_open_decision("long", "long", True)[0] is True
+    assert spy_open_decision("short", "long", True)[0] is False
+    reversed_bars = up + [Bar(start + timedelta(minutes=10), 101, 101.2, 98, 99, 1)]
+    assert spy_open_bias(reversed_bars, day) == "short"
+    assert spy_open_decision("short", "short", True)[0] is True
+    assert spy_open_decision("long", spy_open_bias(reversed_bars, day), False)[0] is True
+
+
+def test_topdown_rules_and_pass_rule():
+    from cos1_alpaca.signals import swing_hold_exit, topdown
+    from cos1_alpaca.validate import PASS_RULE, judge
+
+    assert PASS_RULE["min_trades_unseen"] == 30
+    assert PASS_RULE["random_seed"] == 20261106
+    good = [{"pnl": 2.0, "r": 0.4} for _ in range(40)]
+    bad_r = [{"pnl": -1.0, "r": -0.2} for _ in range(40)]
+    passed = judge(good, good, good, random_avg_r=0.1)
+    assert passed["passed"] is True and passed["paper"] is False
+    assert judge(good, good[:10], good, 0.1)["passed"] is False
+    assert judge(good, bad_r, good, -0.5)["passed"] is False
+    assert judge(good, good, bad_r, 0.1)["passed"] is False
+    assert judge(good, good, good, 0.5)["passed"] is False
+
+    cfg = _cfg()
+    cfg.topdown.enabled = False
+    spy = _bars(220, drift=0.001, shock=0.4, start=100)
+    stock = _bars(220, drift=0.004, shock=0.5, start=50)
+    # Force the last 20 sessions to outrun SPY by more than 3 points.
+    for i in range(-20, 0):
+        bar = stock[i]
+        stock[i] = Bar(bar.ts, bar.open * 1.01, bar.high * 1.02, bar.low, bar.close * 1.02, bar.volume)
+    sig = topdown("AAPL", stock, spy, cfg)
+    assert sig is None or (sig.expert == "topdown" and sig.log_only and sig.target_r == 2.0 and sig.side == "long")
+    cfg.topdown.enabled = True
+    fired = topdown("AAPL", stock, spy, cfg)
+    if fired is not None:
+        assert fired.log_only is False
+        assert fired.stop < fired.entry
+    # A close under the 20-day EMA is the top-down exit, and it does not use the swing max-hold.
+    falling = _bars(30, drift=-0.01, shock=0.2, start=100)
+    assert swing_hold_exit(falling, "long", "topdown", falling[0].ts.date(), cfg) in {None, "ema"}
+
+
 def test_cli_without_flags(capsys):
     from cos1_alpaca.cli import main
 

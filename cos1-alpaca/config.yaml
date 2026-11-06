@@ -59,6 +59,63 @@ modules:
   mean_reversion: false
   range_box: false
 
+# Off until `python -m cos1_alpaca validate` passes the frozen rule.
+# Do not pass --paper for a study that fails.
+news:
+  enabled: false
+  lookback_hours: 6
+
+spy_open:
+  enabled: false
+
+topdown:
+  enabled: false
+  risk_pct: 0.005
+  target_r: 2.0
+  rs_margin: 0.03
+  daily_loss_pct: 0.01
+  ema: 20
+  sma: 50
+  spy_sma: 200
+  atr_mult: 1.0
+  atr_period: 14
+
+# 3 liquid large caps from each of the 11 GICS sectors. SPY is loaded separately.
+universe:
+  - AAPL
+  - NVDA
+  - MSFT
+  - GOOGL
+  - META
+  - NFLX
+  - AMZN
+  - TSLA
+  - HD
+  - LLY
+  - JNJ
+  - ABBV
+  - BRK.B
+  - JPM
+  - V
+  - WMT
+  - COST
+  - KO
+  - XOM
+  - CVX
+  - COP
+  - GE
+  - CAT
+  - RTX
+  - LIN
+  - NEM
+  - FCX
+  - NEE
+  - SO
+  - DUK
+  - WELL
+  - PLD
+  - EQIX
+
 risk:
   daily_loss_pct: 0.02
   weekly_loss_pct: 0.04
@@ -68,7 +125,8 @@ risk:
   max_gross_frac: 0.50
   max_net_frac: 0.30
   max_symbol_frac: 0.10
-  max_positions: 3
+  max_positions: 5
+  max_per_sector: 1
   gross_open_risk_frac: 0.02
   risk_pct_day: 0.005
   risk_pct_swing: 0.005

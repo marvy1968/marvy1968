@@ -97,7 +97,8 @@ def exposure_ok(current: list[ExposureItem], new: ExposureItem, equity: float, c
     rows = list(current) + [new]
     if len(rows) > cfg.max_positions:
         return False, "count"
-    if sum(1 for row in rows if row.sector == new.sector) > 1:
+    per_sector = int(getattr(cfg, "max_per_sector", 1) or 1)
+    if sum(1 for row in rows if row.sector == new.sector) > per_sector:
         return False, "sector"
     if any(row.symbol == new.symbol for row in current):
         return False, "symbol_held"

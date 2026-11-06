@@ -16,6 +16,8 @@ from .clock import as_et, entry_cutoff, flatten_at
 from .config import Config, config_hash
 from .errors import AlreadyRunning, ConfigError
 from .filters import liquidity_ok, load_earnings
+from .news import news_decision
+from .spyopen import spy_open_bias, spy_open_decision
 from .journal import Journal, slippage
 from .lockfile import run_lock
 from .orders import build_bracket, duplicate_client_id, flatten_client_order_id, stop_client_order_id
@@ -57,7 +59,18 @@ class RunResult:
     reconcile_flags: list = field(default_factory=list)
 
 
-def run(cfg: Config, broker, data, flags: Flags, now: datetime, state_path, journal_path, report_dir, lock_path) -> RunResult:
+def run(
+    cfg: Config,
+    broker,
+    data,
+    flags: Flags,
+    now: datetime,
+    state_path,
+    journal_path,
+    report_dir,
+    lock_path,
+    news_fetcher=None,
+) -> RunResult:
     logger = _logger()
     if flags.paper and flags.dry_run:
         return RunResult(2, message="choose only one of --paper or --dry-run")
@@ -75,13 +88,13 @@ def run(cfg: Config, broker, data, flags: Flags, now: datetime, state_path, jour
         return RunResult(2, message=type(exc).__name__)
     try:
         with run_lock(lock_path):
-            return _run_locked(cfg, broker, data, flags, now, state_path, journal_path, report_dir, logger)
+            return _run_locked(cfg, broker, data, flags, now, state_path, journal_path, report_dir, logger, news_fetcher)
     except AlreadyRunning:
         logger.error("overlapping run refused")
         return RunResult(3, message="already running")
 
 
-def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, journal_path, report_dir, logger) -> RunResult:
+def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, journal_path, report_dir, logger, news_fetcher=None) -> RunResult:
     errors: list[str] = []
     journal = Journal(journal_path)
     cfg_hash = config_hash(cfg)
@@ -131,7 +144,8 @@ def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, jour
         bundle = None
         try:
             sessions = {item.day: item for item in calendar}
-            bundle = data.bundle(cfg.universe, now, sessions)
+            symbols = list(dict.fromkeys(["SPY", *cfg.universe]))
+            bundle = data.bundle(symbols, now, sessions)
         except Exception as exc:
             errors.append(type(exc).__name__)
             logger.error("fail closed: data %s", type(exc).__name__)
@@ -157,6 +171,10 @@ def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, jour
             day_entries = as_et(now) < cutoff
             blocked_daily = loss_stopped(day_pnl(state), state.day_start_equity, cfg.risk.daily_loss_pct)
             blocked_weekly = loss_stopped(week_pnl(state), state.week_start_equity, cfg.risk.weekly_loss_pct)
+            blocked_topdown = loss_stopped(day_pnl(state), state.day_start_equity, cfg.topdown.daily_loss_pct)
+            spy_bias = spy_open_bias(bundle.min5.get("SPY") or [], session.day)
+            logger.info("SPY_OPEN enabled=%s bias=%s", int(cfg.spy_open.enabled), spy_bias)
+            news_snap, news_failed = _load_news(cfg, news_fetcher, now, logger)
             earnings = load_earnings(cfg.paths.earnings_csv)
             session_days = [item.day for item in calendar]
             signals = generate_signals(bundle, cfg, regime, session.day)
@@ -177,6 +195,10 @@ def _run_locked(cfg, broker, data, flags: Flags, now: datetime, state_path, jour
                     day_entries,
                     blocked_daily,
                     blocked_weekly,
+                    blocked_topdown,
+                    spy_bias,
+                    news_snap,
+                    news_failed,
                     owned,
                     account.equity,
                     now,
@@ -218,6 +240,10 @@ def _consider(
     day_entries,
     blocked_daily,
     blocked_weekly,
+    blocked_topdown,
+    spy_bias,
+    news_snap,
+    news_failed,
     owned,
     equity,
     now,
@@ -234,6 +260,32 @@ def _consider(
         return {"signal": sig.signal_id, "reason": "cutoff"}
     if sig.signal_id in state.consumed_signals and not sig.log_only:
         return {"signal": sig.signal_id, "reason": "once"}
+    if sig.expert == "topdown" and blocked_topdown:
+        logger.info("TOPDOWN_DAILY symbol=%s decision=block", sig.symbol)
+        return {"signal": sig.signal_id, "reason": "topdown_daily"}
+    if sig.mode in ("day", "scalp"):
+        allowed, why_spy = spy_open_decision(sig.side, spy_bias, cfg.spy_open.enabled)
+        logger.info(
+            "SPY_OPEN enabled=%s symbol=%s side=%s decision=%s",
+            int(cfg.spy_open.enabled),
+            sig.symbol,
+            sig.side,
+            why_spy,
+        )
+        if not allowed:
+            return {"signal": sig.signal_id, "reason": "spy_open"}
+    allowed_news, why_news = news_decision(sig.side, sig.symbol, sector_of(sig.symbol), news_snap, cfg.news.enabled and not news_failed)
+    if news_failed and cfg.news.enabled:
+        allowed_news, why_news = False, "unread"
+    logger.info(
+        "NEWS enabled=%s symbol=%s side=%s decision=%s",
+        int(cfg.news.enabled),
+        sig.symbol,
+        sig.side,
+        why_news,
+    )
+    if not allowed_news:
+        return {"signal": sig.signal_id, "reason": "news"}
     blocked, why = earnings.status(sig.symbol, session_day, session_days)
     if blocked:
         return {"signal": sig.signal_id, "reason": why}
@@ -283,9 +335,14 @@ def _consider(
             )
         return {"signal": sig.signal_id, "reason": "log_only" if sig.log_only or not flags.paper else "logged"}
     weight = recorded_weight(state.weights, sig.expert, cfg.weights)
-    risk_pct = cfg.swing.donchian_risk_pct if sig.expert == "swing_donchian" else (
-        cfg.risk.risk_pct_day if sig.mode == "day" else cfg.risk.risk_pct_swing
-    )
+    if sig.expert == "topdown":
+        risk_pct = cfg.topdown.risk_pct
+    elif sig.expert == "swing_donchian":
+        risk_pct = cfg.swing.donchian_risk_pct
+    elif sig.mode == "day":
+        risk_pct = cfg.risk.risk_pct_day
+    else:
+        risk_pct = cfg.risk.risk_pct_swing
     dollars = risk_dollars(equity, risk_pct, weight, state.exposure_mult)
     if sig.mode == "day":
         distance = abs(sig.entry - sig.stop)
@@ -366,6 +423,27 @@ def _consider(
     )
     logger.info("ORDER %s %s qty=%s stop=%s tp=%s", plan.client_order_id, sig.symbol, qty, plan.stop, plan.take_profit)
     return {"signal": sig.signal_id, "reason": "submitted", "submitted": True, "plan": plan}
+
+
+def _load_news(cfg, news_fetcher, now, logger):
+    if not cfg.news.enabled:
+        logger.info("NEWS enabled=0 decision=bypass")
+        return None, False
+    if news_fetcher is None:
+        logger.error("NEWS_READ_FAILED reason=no_fetcher")
+        return None, True
+    try:
+        symbols = list(dict.fromkeys(["SPY", *cfg.universe]))
+        snap = news_fetcher(symbols, now, sector_of)
+        logger.info(
+            "NEWS enabled=1 articles=%s market=%s",
+            getattr(snap, "articles", 0),
+            getattr(snap, "market", 0),
+        )
+        return snap, False
+    except Exception as exc:
+        logger.error("NEWS_READ_FAILED %s", type(exc).__name__)
+        return None, True
 
 
 def _exposure_items(positions, state: State) -> list[ExposureItem]:

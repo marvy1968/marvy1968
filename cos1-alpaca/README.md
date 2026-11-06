@@ -25,6 +25,8 @@ python -m pytest
 
 `COS1_ENV_FILE` points at a file with `ALPACA_API_KEY` and `ALPACA_SECRET_KEY`. The process does not print those values.
 
+The tradable universe is 33 names: three liquid large caps in each of the 11 GICS sectors. At most one position per sector, and at most `risk.max_positions` names at once (default 5). News headlines and the SPY-versus-open intraday rule are config switches and default off. Top-down is off until `python -m cos1_alpaca validate` passes the rule frozen in `cos1_alpaca/validate.py`. That command does not turn on `--paper`.
+
 Install: see `DEPLOY.md`. The systemd timer is dry-run only.
 
 Cost model for the backtest is `btcosts.py` (`slip_bps`, `fee_bps_sell`, `commission`, `max_pos_frac`, feed `iex`), the same fields as the Alpaca research harness in this repo. Point `COS1_BTCOSTS` at another module that defines `Costs` and `Portfolio` to swap it in. `--source synthetic` is the default and needs no keys. `--source alpaca` reads `COS1_ENV_FILE` and pulls IEX daily bars (with 200-day warmup) plus 5-minute bars for the last N months (default 3) on SPY, AAPL, MSFT, and XLK. It scores `swing_ema`, `swing_donchian`, and `day_pullback` at cost x1 and `--cost-mult` (default x2). It is not a claim of an edge.

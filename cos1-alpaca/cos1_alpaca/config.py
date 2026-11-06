@@ -102,12 +102,42 @@ class RiskCfg:
     max_gross_frac: float = 0.50
     max_net_frac: float = 0.30
     max_symbol_frac: float = 0.10
-    max_positions: int = 3
+    max_positions: int = 5
+    max_per_sector: int = 1
     gross_open_risk_frac: float = 0.02
     risk_pct_day: float = 0.005
     risk_pct_swing: float = 0.005
     staircase_step_r: float = 0.5
     breakeven_r: float = 1.0
+
+
+@dataclass
+class NewsCfg:
+    enabled: bool = False
+    lookback_hours: float = 6.0
+
+
+@dataclass
+class SpyOpenCfg:
+    """Intraday SPY-versus-open bias. Off: Muse's tests found it hurt every system."""
+
+    enabled: bool = False
+
+
+@dataclass
+class TopDownCfg:
+    """Daily swing. Off until the pre-registered IEX validation passes. Do not paper-trade a failure."""
+
+    enabled: bool = False
+    risk_pct: float = 0.005
+    target_r: float = 2.0
+    rs_margin: float = 0.03
+    daily_loss_pct: float = 0.01
+    ema: int = 20
+    sma: int = 50
+    spy_sma: int = 200
+    atr_mult: float = 1.0
+    atr_period: int = 14
 
 
 @dataclass
@@ -142,6 +172,9 @@ class Config:
     swing: SwingCfg = field(default_factory=SwingCfg)
     scalp: ScalpCfg = field(default_factory=ScalpCfg)
     modules: ModulesCfg = field(default_factory=ModulesCfg)
+    news: NewsCfg = field(default_factory=NewsCfg)
+    spy_open: SpyOpenCfg = field(default_factory=SpyOpenCfg)
+    topdown: TopDownCfg = field(default_factory=TopDownCfg)
     risk: RiskCfg = field(default_factory=RiskCfg)
     liquidity: LiquidityCfg = field(default_factory=LiquidityCfg)
     weights: WeightsCfg = field(default_factory=WeightsCfg)
@@ -192,6 +225,8 @@ def validate(cfg: Config) -> Config:
         raise ConfigError("swing.target_r must be at least 2")
     if int(cfg.risk.max_positions) < 1:
         raise ConfigError("max_positions")
+    if int(cfg.risk.max_per_sector) < 1:
+        raise ConfigError("max_per_sector")
     if float(cfg.risk.daily_loss_pct) <= 0 or float(cfg.risk.weekly_loss_pct) <= 0:
         raise ConfigError("loss stops must be positive")
     return cfg

@@ -27,6 +27,9 @@ def main(argv: list[str] | None = None) -> int:
     bt.add_argument("--cost-mult", type=float, default=2.0, help="also report this cost multiple; 2 means x1 and x2")
     bt.add_argument("--out", default="")
 
+    val = sub.add_parser("validate", help="pre-registered IEX pass/fail; does not enable --paper")
+    val.add_argument("--out", default="")
+
     args = parser.parse_args(argv)
     if args.cmd == "backtest":
         from .backtest import run_backtest, write_report
@@ -58,6 +61,17 @@ def main(argv: list[str] | None = None) -> int:
             write_report(result, Path(args.out))
         return 0
 
+    if args.cmd == "validate":
+        from .validate import format_table, run_validation
+
+        result = run_validation()
+        print(format_table(result["rows"]))
+        print("paper=no  switches are not changed by this command")
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps({"pass_rule": result["pass_rule"], "rows": result["rows"]}, indent=2, default=str))
+        return 0
+
     if args.paper and getattr(args, "dry_run", False):
         print("choose only one of --paper or --dry-run", file=sys.stderr)
         return 2
@@ -68,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     from .broker import AlpacaBroker
     from .datafeed import AlpacaData
     from .envfile import load_keys
+    from .news import AlpacaNews
     from .runner import Flags, run
 
     try:
@@ -89,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         root / "cos1.sqlite",
         root / "reports",
         root / "cos1.lock",
+        news_fetcher=AlpacaNews(api_key, secret, cfg).snapshot,
     )
     if result.message:
         print(result.message)
