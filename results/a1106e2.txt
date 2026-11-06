@@ -1,0 +1,3 @@
+$ where-text muse
+started 2026-11-05 22:40:58 EST
+RUNNING...
