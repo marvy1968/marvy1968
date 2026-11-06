@@ -1,3 +1,14 @@
 $ where-text MUSE
-started 2026-11-05 22:41:35 EST
-RUNNING...
+started 2026-11-05 22:41:35 EST, took 4s, exit 0
+
+/home/moonrider1968/.local/lib/python3.11/site-packages/matplotlib/tests/test_dates.py
+/home/moonrider1968/.local/lib/python3.11/site-packages/matplotlib/dates.py
+/home/moonrider1968/pandaenv/lib/python3.11/site-packages/pygments/lexers/apdlexer.py
+/home/moonrider1968/aj-bet-bot/.venv/lib/python3.11/site-packages/pygments/lexers/apdlexer.py
+/home/moonrider1968/cfb-h2h/.venv/lib/python3.11/site-packages/pygments/lexers/apdlexer.py
+/home/moonrider1968/venv/lib/python3.11/site-packages/matplotlib/tests/test_dates.py
+/home/moonrider1968/venv/lib/python3.11/site-packages/matplotlib/dates.py
+/home/moonrider1968/MarchEdgePro/.venv/lib/python3.11/site-packages/pygments/lexers/apdlexer.py
+/home/moonrider1968/bots/alpaca_microedge/venv/lib/python3.11/site-packages/matplotlib/tests/test_dates.py
+/home/moonrider1968/bots/alpaca_microedge/venv/lib/python3.11/site-packages/matplotlib/dates.py
+/home/moonrider1968/bots/alpaca_microedge/venv/lib/python3.11/site-packages/pygments/lexers/apdlexer.py
