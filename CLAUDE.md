@@ -126,3 +126,17 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     `python -m marv.propgrade_shadow` logs every March_edge pregame NFL prop to `state/propgrade/shadow.jsonl` + `summary.json`.
     Not proven (unseen 2025 real lines: 👍 49.3%, ROI −5.3%, n=288; March_edge picks 31-12 +23.8% but n=43), so the Kalshi demo
     prop filter is unchanged. `MARV_PROPGRADE_LIVE` stays off until 100+ graded 👍 beat both the game read and no filter on ROI.
+
+16. Live in-game prop engine (Nov 6 2026, `marv/live_prop_engine.py`, PAPER): at every quarter/half break `marv-live` prices
+    Bovada's live player props (NFL/CFB pass/rush/rec yds + receptions; NBA/WNBA/NCAAB/NCAAW pts/reb/ast/threes) from
+    the box score: per-team-play production (pregame anchor = Marv's `props_priced_<sport>.json` projection, else the
+    pregame Bovada line captured 45 min before start, blended with in-game per-play output) x remaining plays at this game's
+    pace (shrunk to league) x script (trailing passes more / runs less, rout rests starters, blowout + foul trouble cut
+    minutes) -> compound Poisson-gamma Monte Carlo -> P(over) vs Bovada no-vig. Sends only when edge >= 7%, EV >= 4%,
+    projection clears the line by a minimum gap, price -200..+180, line updated < 180 s ago, player still getting usage,
+    max 3 per game per break, never the same prop twice. Every priced prop -> `state/live_props/shadow.jsonl`, recs ->
+    `recs.json`, graded at the final (W-L sent). `python -m marv live-props scan --sport nfl --dry-run` / `report`.
+    Env: LIVE_PROPS_ENGINE, LIVE_PROPS_SEND (on), LIVE_PROP_MIN_EDGE, LIVE_PROP_MIN_EV, LIVE_PROP_MAX_AGE,
+    LIVE_PROP_MAX_PER_GAME, LIVE_PROPS_MAX_CREDITS (600/day). No backtest exists: keep "PAPER", no hit-rate %, until 100+
+    graded recs beat 52.4% with positive ROI. Check on the first live game that Bovada live props come through the Odds
+    API and that ESPN team stats include `totalOffensivePlays` / basketball FGA-FTA-OREB-TO.

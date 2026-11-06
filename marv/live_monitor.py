@@ -361,6 +361,13 @@ class LiveMonitor:
                 log.warning("live odds %s: %s", key, exc)
         return oddsapi.attach(games, events, book=self.s.odds_book) > 0
 
+    def _prop_engine(self, sport: str):
+        """The live prop engine for this sport, or None (no Odds API key, LIVE_PROPS_ENGINE=off, or unsupported)."""
+        from .live_prop_engine import Runner
+        if not hasattr(self, "_lpe"):
+            self._lpe = Runner(self.s, self.client)
+        return self._lpe if self._lpe.enabled(sport) else None
+
     def tick(self, send) -> int:
         """One pass over all live games; returns the number of updates sent."""
         self._refresh_models()
@@ -383,13 +390,25 @@ class LiveMonitor:
                 log.warning("live scoreboard %s: %s", sport, exc)
                 continue
             active = [g for g in games if g.info.get("state") in ("in", "post")]
+            engine = self._prop_engine(sport)
+            if engine:  # pregame Bovada prop lines = the anchor for players Marv's daily props run didn't price
+                for g in games:
+                    pk = f"{sport}:{g.id}"
+                    try:
+                        if g.info.get("state") == "pre" and g.start and 0 <= (g.start - now).total_seconds() <= 2700 \
+                                and not state.get(pk, {}).get("prop_pregame"):
+                            state.setdefault(pk, {"reported": 0, "final": False})["prop_pregame"] = True
+                            engine.capture_pregame(sport, g.home, g.away)
+                    except Exception as exc:
+                        log.warning("live props pregame %s: %s", g.id, exc)
             due = []
             for g in active:
                 key = f"{sport}:{g.id}"
                 rec_state = state.setdefault(key, {"reported": 0, "final": False})
                 rec_state["seen"] = now.isoformat()
                 if g.info.get("state") == "post" or g.completed:
-                    if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state["reported"] > 0) \
+                    if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state.get("prop_recs")
+                            or rec_state["reported"] > 0) \
                             and not rec_state["final"]:
                         due.append((g, rec_state["reported"], True))
                     continue
@@ -415,6 +434,23 @@ class LiveMonitor:
                             live_props.record_period(self.s, g, ended, self.client)
                     except Exception as exc:
                         log.warning("live props record %s: %s", g.id, exc)
+            if engine:  # in-game props: price Bovada's live prop lines from pace + usage at every break
+                from . import live_prop_engine as LPE
+                for g, ended, final in due:
+                    mem = state[f"{sport}:{g.id}"]
+                    tag = "final" if final else ended
+                    if tag in mem.setdefault("prop_scanned", []):
+                        continue
+                    mem["prop_scanned"].append(tag)
+                    try:
+                        if final:
+                            sent += engine.on_final(sport, g, send, LPE.summary_path(sport))
+                        else:
+                            sent += engine.on_period(sport, g, LPE.elapsed_minutes(sport, ended),
+                                                     f"end of {period_name(sport, ended)}", mem, send,
+                                                     LPE.summary_path(sport))
+                    except Exception as exc:
+                        log.warning("live prop engine %s %s: %s", sport, g.id, exc)
             live_prices = self._live_odds(sport, [g for g, _, _ in due])
             # Proven-logic gate: live ML/O/U edges are untested against live prices, so in a gated sport they are
             # logged and graded silently unless PROVEN_GATE_LIVE_SEND=on (then sent without a %).

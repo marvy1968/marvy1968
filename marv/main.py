@@ -694,6 +694,58 @@ def cmd_live_props_probe(s: Settings, args) -> int:
     return 0
 
 
+def cmd_live_props(s: Settings, args) -> int:
+    """In-game Bovada prop engine. `scan`: price every live game's Bovada props right now (pace + usage) and send
+    the recommendations (paper); `report`: the graded live-prop record."""
+    from . import live_prop_engine as LPE
+    from .data.espn import ESPNClient, parse_event
+    from .live_monitor import STRUCTURE, minutes_left, period_name
+    if args.action == "report":
+        print(LPE.report(Path(s.state_dir)))
+        return 0
+    if not s.odds_api_key:
+        print("Set ODDS_API_KEY first.")
+        return 1
+    client, now = ESPNClient(), datetime.now(timezone.utc)
+    run = LPE.Runner(s, client)
+    sports = list(LPE.ODDS_KEYS) if args.sport == "all" else [args.sport]
+    for sport in sports:
+        path = STRUCTURE[sport][3]
+        games = [g for g in (parse_event(e, sport) for e in client.scoreboard(path, now - timedelta(hours=12), now))
+                 if g and g.info.get("state") == "in"]
+        if not games:
+            print(f"{sport}: no live games")
+            continue
+        for g in games:
+            period = int(g.info.get("period") or 1)
+            left = minutes_left(sport, period, g.info.get("clock"), False)
+            elapsed = max(STRUCTURE[sport][0] * STRUCTURE[sport][1] - left, 0.0)
+            ev = run._event(sport, g.home, g.away)
+            if not ev:
+                print(f"{g.away} @ {g.home}: no Odds API event")
+                continue
+            summary = client.summary(path, str(g.id))
+            odds = run._odds(sport, ev["id"])
+            hs, as_ = float(g.info.get("live_home") or 0), float(g.info.get("live_away") or 0)
+            priced, recs = LPE.scan_game(sport, summary, odds, LPE.anchors(Path(s.state_dir), sport, ev["id"]), elapsed,
+                                         g.home, g.away, hs, as_)
+            plabel = f"{period_name(sport, period)} {g.info.get('clock') or ''}".strip()
+            print(f"{g.away} {as_:.0f} @ {g.home} {hs:.0f} · {plabel} · {elapsed:.1f} min played · "
+                  f"{len(priced)} Bovada props priced, {len(recs)} recommended")
+            for r in sorted(priced, key=lambda r: -r["ev"])[: args.top]:
+                print(f"  {'*' if r['recommended'] else ' '} {r['player']:24s} {r['label']:15s} {r['side']:5s} {r['line']:>6g} "
+                      f"({r['price']:+.0f}) has {r['so_far']:g} proj {r['proj']:.1f} fair {r['p']:.0%} mkt {r['market_p']:.0%} "
+                      f"edge {r['edge']:+.1%} pace x{r['pace']:.2f}  {r['reason']}")
+            if recs and not args.dry_run:
+                label = f"{g.away} @ {g.home}"
+                new = LPE.record_recs(Path(s.state_dir), sport, str(g.id), label, plabel, recs)
+                if new:
+                    send_message(s.telegram_bot_token, s.telegram_chat_id,
+                                 LPE.alert_text(sport, label, plabel, f"{g.away} {as_:.0f} – {hs:.0f} {g.home}", new))
+                    print(f"  sent {len(new)} new")
+    return 0
+
+
 def cmd_grade_prop(s: Settings, args) -> int:
     """Marv's probability and grade for one NFL player prop (form-only second opinion)."""
     from . import propgrade
@@ -1008,6 +1060,11 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
+    lpe = sub.add_parser("live-props", help="in-game Bovada prop engine: scan live games now, or the graded record")
+    lpe.add_argument("action", choices=["scan", "report"])
+    lpe.add_argument("--sport", default="nfl", choices=["all", "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"])
+    lpe.add_argument("--top", type=int, default=15, help="priced props to print per game")
+    lpe.add_argument("--dry-run", action="store_true", help="print only: no Telegram, no ledger")
     gp2 = sub.add_parser("grade-prop", help="Marv's probability + grade for one NFL player prop")
     gp2.add_argument("--player", required=True)
     gp2.add_argument("--market", required=True, help="pass, rush, rec or receptions")
@@ -1050,7 +1107,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "live-props": cmd_live_props, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
     try:
         return handler[args.command](s, args)
     except Exception:
