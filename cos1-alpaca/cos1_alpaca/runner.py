@@ -21,7 +21,7 @@ from .spyopen import spy_open_bias, spy_open_decision
 from .journal import Journal, slippage
 from .lockfile import run_lock
 from .orders import build_bracket, duplicate_client_id, flatten_client_order_id, stop_client_order_id
-from .protect import desired_lock_r, desired_stop, ensure_protected, favorable_r, is_tighter, replace_stop
+from .protect import desired_lock_r, desired_stop, ensure_protected, favorable_r, is_stop_order, is_tighter, replace_stop
 from .reconcile import reconcile
 from .regime import classify_regime
 from .report import write_daily_report
@@ -528,9 +528,19 @@ def list_foreign(positions, orders, owned: set[str], exclusive: bool) -> list[di
             "qty": abs(pos.qty),
             "client_order_id": "",
         }
+    ours = set(owned)
     for order in orders:
         client_id = str(order.client_order_id or "")
-        if client_id.startswith("cos1-"):
+        parent_id = str(getattr(order, "parent_client_order_id", "") or "")
+        if client_id.startswith("cos1-") or parent_id.startswith("cos1-"):
+            ours.add(order.symbol)
+    for order in orders:
+        client_id = str(order.client_order_id or "")
+        parent_id = str(getattr(order, "parent_client_order_id", "") or "")
+        if order.symbol in ours or client_id.startswith("cos1-") or parent_id.startswith("cos1-"):
+            continue
+        # Alpaca child stop legs often have an empty client id. They are not another strategy.
+        if not client_id and is_stop_order(order):
             continue
         row = found.get(order.symbol)
         if row is None:

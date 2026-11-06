@@ -1093,6 +1093,70 @@ def test_cli_without_flags(capsys):
     assert main(["run", "--paper", "--dry-run"]) == 2
 
 
+def test_held_bracket_stop_is_protection_and_not_replaced():
+    from cos1_alpaca.broker import AlpacaBroker
+    from cos1_alpaca.runner import list_foreign
+
+    class Raw:
+        def __init__(self, **kw):
+            self.__dict__.update({"legs": [], "limit_price": None, "stop_price": None, "filled_avg_price": None, "order_class": "", "client_order_id": ""})
+            self.__dict__.update(kw)
+
+    held = Raw(id="stop-held", symbol="NEE", side="sell", qty=10, status="held", type="stop_limit", stop_price=70, order_class="oco")
+    parent = Raw(
+        id="parent",
+        client_order_id="cos1-w-NEE-b-topdow-aaaa1111",
+        symbol="NEE",
+        side="buy",
+        qty=10,
+        status="filled",
+        type="market",
+        order_class="bracket",
+        legs=[held],
+        filled_avg_price=80,
+    )
+    take_profit = Raw(id="tp", symbol="NEE", side="sell", qty=10, status="new", type="limit", limit_price=90, order_class="oco")
+
+    class Client:
+        def get_orders(self, filter=None):
+            assert filter.nested is True
+            status = str(getattr(filter.status, "value", filter.status)).lower()
+            if status == "open":
+                return [take_profit]
+            assert status == "all"
+            return [parent]
+
+    broker = AlpacaBroker("k", "s", Config())
+    broker._client = Client()
+    orders = broker.get_open_orders()
+    ids = {order.id for order in orders}
+    assert "stop-held" in ids
+    assert "tp" in ids
+    assert "parent" not in ids
+    held_order = next(order for order in orders if order.id == "stop-held")
+    assert held_order.type == "stop_limit" and held_order.status == "held"
+    assert held_order.parent_client_order_id.startswith("cos1-")
+
+    pos = {"symbol": "NEE", "side": "long", "qty": 10, "stop": 70.0, "stop_order_id": "", "mode": "swing"}
+
+    class NoStop:
+        def submit_stop(self, **kw):
+            raise AssertionError("standalone stop")
+
+    assert ensure_protected(NoStop(), pos, orders, lambda *a: None, "nee1") == "ok"
+    assert list_foreign([], orders, {"NEE"}, False) == []
+
+    # The stop id lives only on the nested HELD leg. Reconcile must walk it.
+    nested = broker._order(parent)
+    flags = reconcile(
+        [{"role": "stop", "symbol": "NEE", "order_id": "stop-held", "client_order_id": ""}],
+        [nested],
+        [BrokerPosition("NEE", 10, "long", 80, 81)],
+        "hash",
+    )
+    assert not any(item["kind"] == "missing" for item in flags)
+
+
 def test_unprotected_ensure_flattens():
     pos = {"symbol": "AAPL", "side": "long", "qty": 3, "stop": 90.0, "stop_order_id": "", "mode": "day"}
 

@@ -103,6 +103,8 @@ class BrokerOrder:
     stop_price: float | None = None
     filled_avg_price: float | None = None
     legs: list = field(default_factory=list)
+    order_class: str = ""
+    parent_client_order_id: str = ""
 
 
 @dataclass

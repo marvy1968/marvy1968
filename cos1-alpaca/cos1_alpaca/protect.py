@@ -9,7 +9,20 @@ from __future__ import annotations
 
 import math
 
-CONFIRMED = {"new", "accepted", "pending_new", "held", "open"}
+CONFIRMED = {"new", "accepted", "pending_new", "held", "open", "partially_filled", "accepted_for_bidding"}
+STOP_TYPES = {"stop", "stop_limit"}
+
+
+def iter_orders(orders):
+    """Yield each order and every nested bracket/OCO leg."""
+    for order in orders or []:
+        yield order
+        yield from iter_orders(getattr(order, "legs", None) or [])
+
+
+def is_stop_order(order) -> bool:
+    kind = str(getattr(order, "type", "") or "").lower().replace("-", "_").replace(" ", "_")
+    return kind in STOP_TYPES
 
 
 def desired_lock_r(favorable_r: float, breakeven_r: float = 1.0, step_r: float = 0.5) -> float | None:
@@ -103,16 +116,29 @@ def ensure_protected(broker, position: dict, open_orders, journal, nonce: str) -
 
 
 def _working(position: dict, open_orders) -> bool:
-    wanted = position.get("stop_order_id") or ""
-    for order in open_orders:
-        if not status_confirmed(order.status):
+    """A working or HELD stop, including a nested bracket/OCO leg, already reserves the shares.
+
+    Child legs often have no ``cos1-`` client id and type ``stop_limit``. Submitting
+    another stop then fails with Alpaca 40310000 (insufficient qty).
+    """
+    wanted = str(position.get("stop_order_id") or "")
+    for order in iter_orders(open_orders):
+        if not status_confirmed(getattr(order, "status", "")):
             continue
-        if wanted and order.id == wanted:
+        if wanted and str(getattr(order, "id", "")) == wanted:
             return True
+        if getattr(order, "symbol", None) != position["symbol"]:
+            continue
+        if not is_stop_order(order):
+            continue
+        client_id = str(getattr(order, "client_order_id", "") or "")
+        parent_id = str(getattr(order, "parent_client_order_id", "") or "")
+        klass = str(getattr(order, "order_class", "") or "").lower()
         if (
-            order.symbol == position["symbol"]
-            and order.type == "stop"
-            and str(order.client_order_id or "").startswith("cos1-")
+            client_id.startswith("cos1-")
+            or parent_id.startswith("cos1-")
+            or klass in {"bracket", "oco"}
+            or client_id == ""
         ):
             return True
     return False

@@ -81,16 +81,30 @@ class AlpacaBroker:
         return out
 
     def get_open_orders(self) -> list[BrokerOrder]:
+        """Open orders plus nested bracket/OCO legs, including legs Alpaca marks HELD.
+
+        ``status=open`` omits HELD stop legs. ``nested=True`` hangs those legs off
+        the parent, and a second ``status=all`` read picks up a HELD stop whose
+        parent has already filled. Closed orders are dropped.
+        """
         retries, backoff, sleep = self._timeouts()
 
         def _go():
             from alpaca.trading.enums import QueryOrderStatus
             from alpaca.trading.requests import GetOrdersRequest
 
-            return self.client().get_orders(filter=GetOrdersRequest(status=QueryOrderStatus.OPEN, limit=500))
+            client = self.client()
+            open_rows = client.get_orders(
+                filter=GetOrdersRequest(status=QueryOrderStatus.OPEN, nested=True, limit=500)
+            )
+            all_rows = client.get_orders(
+                filter=GetOrdersRequest(status=QueryOrderStatus.ALL, nested=True, limit=500)
+            )
+            return list(open_rows or []), list(all_rows or [])
 
-        rows = call_read(_go, retries, backoff, sleep)
-        return [self._order(row) for row in rows]
+        open_rows, all_rows = call_read(_go, retries, backoff, sleep)
+        parsed = [self._order(row) for row in list(open_rows) + list(all_rows)]
+        return working_orders(parsed)
 
     def get_calendar(self, start: date, end: date) -> list[Session]:
         retries, backoff, sleep = self._timeouts()
@@ -261,7 +275,33 @@ class AlpacaBroker:
             stop_price=float(stop_price) if stop_price is not None else None,
             filled_avg_price=float(filled) if filled is not None else None,
             legs=legs,
+            order_class=_enum_name(getattr(row, "order_class", "") or ""),
         )
+
+
+WORKING_ORDER_STATUSES = {"new", "accepted", "pending_new", "accepted_for_bidding", "held", "partially_filled", "open"}
+
+
+def working_orders(orders: list[BrokerOrder]) -> list[BrokerOrder]:
+    """Flatten nested legs and keep working orders, including HELD stop legs."""
+    found: list[BrokerOrder] = []
+    seen: set[str] = set()
+
+    def walk(order: BrokerOrder, parent: BrokerOrder | None = None) -> None:
+        if parent is not None:
+            if not order.order_class:
+                order.order_class = parent.order_class
+            if not order.parent_client_order_id:
+                order.parent_client_order_id = parent.client_order_id
+        if order.id and order.id not in seen and str(order.status or "").lower() in WORKING_ORDER_STATUSES:
+            seen.add(order.id)
+            found.append(order)
+        for leg in order.legs or []:
+            walk(leg, order)
+
+    for order in orders:
+        walk(order)
+    return found
 
     def _fill(self, row) -> Fill:
         def field(name, default=None):
