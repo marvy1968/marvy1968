@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from .bars import age_seconds
 from .broker_guard import assert_paper_url
-from .clock import as_et, entry_cutoff, flatten_at
+from .clock import as_et, before_hhmm, entry_cutoff, flatten_at
 from .config import Config, config_hash
 from .errors import AlreadyRunning, ConfigError
 from .filters import liquidity_ok, load_earnings
@@ -274,17 +274,23 @@ def _consider(
         )
         if not allowed:
             return {"signal": sig.signal_id, "reason": "spy_open"}
-    allowed_news, why_news = news_decision(sig.side, sig.symbol, sector_of(sig.symbol), news_snap, cfg.news.enabled and not news_failed)
-    if news_failed and cfg.news.enabled:
+    news_on = bool(cfg.news.enabled or cfg.news.log_only)
+    if news_failed and news_on:
         allowed_news, why_news = False, "unread"
+    elif news_on:
+        allowed_news, why_news = news_decision(sig.side, sig.symbol, sector_of(sig.symbol), news_snap, True)
+    else:
+        allowed_news, why_news = True, "bypass"
     logger.info(
-        "NEWS enabled=%s symbol=%s side=%s decision=%s",
+        "NEWS enabled=%s log_only=%s symbol=%s side=%s decision=%s",
         int(cfg.news.enabled),
+        int(cfg.news.log_only),
         sig.symbol,
         sig.side,
         why_news,
     )
-    if not allowed_news:
+    # log_only records the would-be decision and does not block or change the order.
+    if cfg.news.enabled and not cfg.news.log_only and not allowed_news:
         return {"signal": sig.signal_id, "reason": "news"}
     blocked, why = earnings.status(sig.symbol, session_day, session_days)
     if blocked:
@@ -311,6 +317,9 @@ def _consider(
         if sig.side == "short" and not (asset.shortable and asset.easy_to_borrow):
             return {"signal": sig.signal_id, "reason": "not_shortable"}
     send = flags.paper and not sig.log_only
+    if send and sig.mode == "day" and cfg.day.no_entry_before and before_hhmm(now, cfg.day.no_entry_before):
+        logger.info("NO_ENTRY_BEFORE %s symbol=%s mode=%s", cfg.day.no_entry_before, sig.symbol, sig.mode)
+        return {"signal": sig.signal_id, "reason": "no_entry_before"}
     if not send:
         if log_key not in state.logged_signals:
             state.logged_signals[log_key] = sig.expert
@@ -426,8 +435,8 @@ def _consider(
 
 
 def _load_news(cfg, news_fetcher, now, logger):
-    if not cfg.news.enabled:
-        logger.info("NEWS enabled=0 decision=bypass")
+    if not (cfg.news.enabled or cfg.news.log_only):
+        logger.info("NEWS enabled=0 log_only=0 decision=bypass")
         return None, False
     if news_fetcher is None:
         logger.error("NEWS_READ_FAILED reason=no_fetcher")

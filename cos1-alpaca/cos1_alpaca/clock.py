@@ -38,6 +38,13 @@ def parse_hhmm(value: str) -> time:
     return time(int(hour), int(minute))
 
 
+def before_hhmm(now: datetime, hhmm: str) -> bool:
+    """True when ``now`` in ET is strictly before HH:MM."""
+    local = as_et(now)
+    gate = parse_hhmm(hhmm)
+    return (local.hour, local.minute, local.second, local.microsecond) < (gate.hour, gate.minute, 0, 0)
+
+
 def combine_day_time(day: date, clock: time | datetime) -> datetime:
     if isinstance(clock, datetime):
         return as_et(clock).replace(year=day.year, month=day.month, day=day.day) if clock.tzinfo else datetime.combine(day, clock.time(), tzinfo=ET)

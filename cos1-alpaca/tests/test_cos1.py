@@ -201,13 +201,13 @@ def _bundle(bars):
     )
 
 
-def _run(tmp, broker, data, flags, now=None, cfg=None, state=None):
+def _run(tmp, broker, data, flags, now=None, cfg=None, state=None, news_fetcher=None):
     cfg = cfg or _cfg()
     state_path, journal, reports, lock = _paths(tmp)
     if state is not None:
         save_state(state_path, state)
     broker.sessions = [_session()]
-    return run(cfg, broker, data, flags, now or _now(), state_path, journal, reports, lock)
+    return run(cfg, broker, data, flags, now or _now(), state_path, journal, reports, lock, news_fetcher=news_fetcher)
 
 
 def test_no_flag_places_nothing(tmp_path):
@@ -977,6 +977,69 @@ def test_topdown_rules_and_pass_rule():
     # A close under the 20-day EMA is the top-down exit, and it does not use the swing max-hold.
     falling = _bars(30, drift=-0.01, shock=0.2, start=100)
     assert swing_hold_exit(falling, "long", "topdown", falling[0].ts.date(), cfg) in {None, "ema"}
+
+
+def test_no_entry_before_blocks_day_orders_not_logs(tmp_path, monkeypatch, caplog):
+    caplog.set_level("INFO", logger="cos1")
+    cfg = load_config(ROOT / "config.yaml")
+    assert cfg.day.no_entry_before == "09:45"
+    hand = _sig()
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [hand])
+    data = FakeData(_bundle(_bars(30)))
+    early = FakeBroker()
+    blocked = _run(tmp_path / "early", early, data, Flags(paper=True), now=_now(9, 30), cfg=_cfg())
+    assert early.submitted == []
+    assert any(row["reason"] == "no_entry_before" for row in blocked.skipped)
+
+    opened = FakeBroker()
+    _run(tmp_path / "open", opened, data, Flags(paper=True), now=_now(9, 45), cfg=_cfg())
+    assert len(opened.submitted) == 1
+
+    swing = _sig(mode="swing", expert="swing_ema", target_r=2.0, signal_id="swing-early")
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [swing])
+    swing_broker = FakeBroker()
+    _run(tmp_path / "swing", swing_broker, data, Flags(paper=True), now=_now(9, 30), cfg=_cfg())
+    assert len(swing_broker.submitted) == 1
+
+    logged = _sig(log_only=True, signal_id="log-early")
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [logged])
+    log_broker = FakeBroker()
+    result = _run(tmp_path / "log", log_broker, data, Flags(paper=True), now=_now(9, 30), cfg=_cfg())
+    assert log_broker.submitted == []
+    assert any(row["reason"] == "log_only" for row in result.skipped)
+    assert any(rec.message.startswith("SIGNAL ") and "AAPL" in rec.message for rec in caplog.records)
+
+
+def test_news_log_only_does_not_block(tmp_path, monkeypatch, caplog):
+    from cos1_alpaca.news import snapshot_from_articles
+    from cos1_alpaca.universe import sector_of
+
+    caplog.set_level("INFO", logger="cos1")
+    hand = _sig(signal_id="news-long")
+    monkeypatch.setattr("cos1_alpaca.runner.generate_signals", lambda *a, **k: [hand])
+    data = FakeData(_bundle(_bars(30)))
+
+    def fetcher(symbols, now, sector_fn):
+        return snapshot_from_articles([{"symbols": ["AAPL"], "text": "downgrade and miss and layoff"}], sector_fn)
+
+    cfg = _cfg()
+    cfg.news.log_only = True
+    cfg.news.enabled = False
+    broker = FakeBroker()
+    result = _run(tmp_path / "watch", broker, data, Flags(paper=True), cfg=cfg, news_fetcher=fetcher)
+    assert result.exit_code == 0
+    assert len(broker.submitted) == 1
+    news_lines = [rec.message for rec in caplog.records if rec.message.startswith("NEWS ")]
+    assert any("log_only=1" in line and "decision=block" in line and "symbol=AAPL" in line for line in news_lines)
+
+    caplog.clear()
+    cfg.news.log_only = False
+    cfg.news.enabled = True
+    blocked = FakeBroker()
+    result = _run(tmp_path / "live", blocked, data, Flags(paper=True), cfg=cfg, news_fetcher=fetcher)
+    assert blocked.submitted == []
+    assert any(row["reason"] == "news" for row in result.skipped)
+    assert sector_of("AAPL") == "tech"
 
 
 def test_cli_without_flags(capsys):

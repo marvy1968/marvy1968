@@ -34,6 +34,7 @@ day:
   vol_target_pct: 0.01
   ema: 20
   vwap_ext_std: 2.0
+  no_entry_before: "09:45"
 
 swing:
   enabled: true
@@ -63,6 +64,7 @@ modules:
 # Do not pass --paper for a study that fails.
 news:
   enabled: false
+  log_only: false
   lookback_hours: 6
 
 spy_open:

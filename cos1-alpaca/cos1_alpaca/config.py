@@ -58,6 +58,7 @@ class DayCfg:
     vol_target_pct: float = 0.01
     ema: int = 20
     vwap_ext_std: float = 2.0
+    no_entry_before: str = "09:45"
 
 
 @dataclass
@@ -114,6 +115,7 @@ class RiskCfg:
 @dataclass
 class NewsCfg:
     enabled: bool = False
+    log_only: bool = False
     lookback_hours: float = 6.0
 
 
