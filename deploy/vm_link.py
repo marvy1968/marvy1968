@@ -20,6 +20,8 @@ Accepted job lines:
   fx-experts-entries status|stop|resume|risk <0.05..0.25>  show / set only no_new_entries or risk_pct in the fx-experts bot's config
   gemini [question words]       send consult/gemini_brief.md to Gemini (GEMINI_API_KEY in .env), print its reply
   find-trading-bot              same, for Alpaca / broker bots (paths only)
+  muse-env [/abs/folder]        owner 2026-11-06: write <muse1 folder>/.env with ONLY the ALPACA_* lines of Marv's .env (chmod 600,
+                                owned like the folder; values never printed). No folder given: the one directory named muse1
   patch-report-card [undo]      apply packs/report_card/tg_report.patch to the owner's bots/tg_report.py (dry run, backup) / restore
   where-text <words>            the owner's bot files (py/sh/js under /home/moonrider1968) that contain those words: paths only
   alpaca download|backtest ...  python -m alpacabot (market-data download, walk-forward backtests; no order placement)
@@ -151,6 +153,21 @@ def parse(line: str) -> tuple[list[str] | None, str]:
         if not words or len(words) > 80 or not all(ch.isalnum() or ch in " -_|:." for ch in words):
             return None, "where-text needs 1-80 characters of plain text (letters, digits, space - _ | : .)"
         return ["grep", "-rIlnF", "--include=*.py", "--include=*.sh", "--include=*.js", "-e", words, "/home/moonrider1968"], ""
+    if cmd == "muse-env":  # owner 2026-11-06 ("Add env file to muse1", "Muse1 is on my vm"): Muse's bot gets the Alpaca keys only
+        if len(args) > 1 or (args and (not args[0].startswith("/") or ".." in args[0])):
+            return None, "muse-env takes no argument or one absolute folder path"
+        find = (f"d={args[0]}; " if args else
+                "m=$(find /home /opt /srv /root -maxdepth 4 -type d -iname muse1 2>/dev/null); n=$(printf '%s' \"$m\" | grep -c . || true); "
+                "if [ \"$n\" != 1 ]; then echo \"found $n folders named muse1:\"; printf '%s\\n' \"$m\"; "
+                "echo 'run: muse-env /abs/folder'; exit 3; fi; d=$m; ")
+        script = (f"set -e; {find}test -d \"$d\" || {{ echo \"no such folder: $d\"; exit 2; }}; "
+                  f"f=\"$d/.env\"; test -e \"$f\" && cp -p \"$f\" \"$f.bak-$(date +%Y%m%d%H%M)\" && echo \"backed up the old $f\"; "
+                  f"umask 077; grep -E '^ALPACA_[A-Z_]*=' {BOT}/.env > \"$f.new\"; "
+                  f"test -s \"$f.new\" || {{ rm -f \"$f.new\"; echo 'no ALPACA_ lines in the Marv .env'; exit 4; }}; "
+                  f"if test -e \"$f\"; then grep -vE '^ALPACA_[A-Z_]*=' \"$f\" >> \"$f.new\" || true; echo 'kept the other lines of the old .env'; fi; "
+                  f"mv \"$f.new\" \"$f\"; chmod 600 \"$f\"; chown --reference=\"$d\" \"$f\"; "
+                  f"echo \"wrote $f (mode 600, owner $(stat -c %U \"$f\")) with these names (values not shown):\"; cut -d= -f1 \"$f\"")
+        return ["bash", "-c", script], ""
     if cmd == "find-trading-bot":  # where an Alpaca / broker bot lives on the VM (paths only, no code)
         return ["bash", str(BOT / "deploy/find_odds_bot.sh"), "--trading"], ""
     if cmd == "read-odds-bot":  # the bot's code with secrets stripped (find_odds_bot.sh redaction), as text
