@@ -1,3 +1,6 @@
 $ muse-env
-started 2026-11-05 23:05:41 EST
-RUNNING...
+started 2026-11-05 23:05:41 EST, took 1s, exit 3
+
+found 0 folders named muse1:
+
+run: muse-env /abs/folder
