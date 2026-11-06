@@ -1060,7 +1060,7 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
-    lpe = sub.add_parser("live-props", help="in-game Bovada prop engine: scan live games now, or the graded record")
+    lpe = sub.add_parser("live-props", help="Claude Prop 1, in-game Bovada prop engine: scan live games now, or the graded record")
     lpe.add_argument("action", choices=["scan", "report"])
     lpe.add_argument("--sport", default="nfl", choices=["all", "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"])
     lpe.add_argument("--top", type=int, default=15, help="priced props to print per game")

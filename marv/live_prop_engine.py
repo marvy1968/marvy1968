@@ -1,4 +1,4 @@
-"""Live (in-game) player-prop engine: price Bovada's live prop lines from the game's pace and the player's usage.
+"""Claude Prop 1 — live (in-game) player-prop engine: price Bovada's live prop lines from the game's pace and the player's usage.
 
 At every quarter / half break (the live monitor calls `on_period`), and on demand (`python -m marv live-props scan`):
 
@@ -46,6 +46,7 @@ import numpy as np
 from .markets import american_to_prob, no_vig
 
 log = logging.getLogger(__name__)
+NAME = "Claude Prop 1"
 
 ODDS_KEYS = {"nfl": "americanfootball_nfl", "cfb": "americanfootball_ncaaf", "nba": "basketball_nba",
              "wnba": "basketball_wnba", "ncaab": "basketball_ncaab", "ncaaw": "basketball_wncaab"}
@@ -459,7 +460,7 @@ def _price(p: float) -> str:
 
 
 def alert_text(sport: str, game_label: str, period_label: str, score: str, recs: list[dict]) -> str:
-    lines = [f"🎯 <b>LIVE PROPS · Bovada</b> · {sport.upper()} · PAPER",
+    lines = [f"🎯 <b>{NAME.upper()} · live props · Bovada</b> · {sport.upper()} · PAPER",
              f"{game_label} · {period_label} · {score}"]
     for r in recs:
         lines.append(f"• <b>{r['player']}</b> {r['side']} {r['line']:g} {r['label'].lower()} ({_price(r['price'])})"
@@ -559,19 +560,19 @@ def record(state_dir: Path, sport: str | None = None) -> dict:
 
 
 def final_text(game_label: str, graded: list[dict], rec: dict) -> str:
-    lines = [f"🎯 <b>LIVE PROPS · final</b> · {game_label}"]
+    lines = [f"🎯 <b>{NAME.upper()} · final</b> · {game_label}"]
     icon = {"win": "✅", "loss": "❌", "push": "➖", "void": "⚪"}
     for b in graded:
         lines.append(f"{icon.get(b['result'], '?')} {b['player']} {b['side']} {b['line']:g} {b['label'].lower()}"
                      + (f" · final {b['final']:g}" if b.get("final") is not None else " · void"))
     if rec["n"]:
-        lines.append(f"Live-prop record (paper): {rec['wins']}-{rec['losses']}" + (f"-{rec['pushes']}" if rec["pushes"] else "")
+        lines.append(f"{NAME} record (paper): {rec['wins']}-{rec['losses']}" + (f"-{rec['pushes']}" if rec["pushes"] else "")
                      + f" · {rec['units']:+.2f}u")
     return "\n".join(lines)
 
 
 def report(state_dir: Path) -> str:
-    out = ["Live props (paper) record"]
+    out = [f"{NAME} (live props, paper) record"]
     for sport in (None, "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"):
         r = record(state_dir, sport)
         if sport and not r["n"]:

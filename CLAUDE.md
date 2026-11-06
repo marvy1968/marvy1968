@@ -127,7 +127,7 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     Not proven (unseen 2025 real lines: 👍 49.3%, ROI −5.3%, n=288; March_edge picks 31-12 +23.8% but n=43), so the Kalshi demo
     prop filter is unchanged. `MARV_PROPGRADE_LIVE` stays off until 100+ graded 👍 beat both the game read and no filter on ROI.
 
-16. Live in-game prop engine (Nov 6 2026, `marv/live_prop_engine.py`, PAPER): at every quarter/half break `marv-live` prices
+16. Claude Prop 1, the live in-game prop engine (Nov 6 2026, `marv/live_prop_engine.py`, PAPER): at every quarter/half break `marv-live` prices
     Bovada's live player props (NFL/CFB pass/rush/rec yds + receptions; NBA/WNBA/NCAAB/NCAAW pts/reb/ast/threes) from
     the box score: per-team-play production (pregame anchor = Marv's `props_priced_<sport>.json` projection, else the
     pregame Bovada line captured 45 min before start, blended with in-game per-play output) x remaining plays at this game's

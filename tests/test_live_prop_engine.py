@@ -163,6 +163,7 @@ class LedgerTests(unittest.TestCase):
              "so_far": 40.0, "proj": 75.0, "p": 0.66, "market_p": 0.5, "edge": 0.16, "pace": 1.05, "script": 1.0}
         t = E.alert_text("nfl", "NYG @ DAL", "end of Q2", "NYG 10 – 14 DAL", [r])
         self.assertIn("PAPER", t)
+        self.assertIn("CLAUDE PROP 1", t)
         self.assertIn("Over 55.5", t)
 
 
