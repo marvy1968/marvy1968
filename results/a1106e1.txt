@@ -1,3 +1,16 @@
 $ where-text Muse
-started 2026-11-05 22:38:40 EST
-RUNNING...
+started 2026-11-05 22:38:40 EST, took 134s, exit 0
+
+/home/moonrider1968/MasterBot_Center/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/.local/lib/python3.11/site-packages/statsmodels/sandbox/stats/runs.py
+/home/moonrider1968/.local/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/pandaenv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/parked_projects/sector_trend_bot/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/parked_projects/sector_trend_bot_v2/.pwd/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/parked_projects/oanda_fifo_practice/MarchEdge/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/MarchEdgePro/backups/phase5_2_legacy_path_20260718T233806Z/previous_compatibility_path/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/bots/alpaca_microedge/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/bots/alpaca_crypto_roi_bot/.venv/lib/python3.11/site-packages/statsmodels/sandbox/stats/runs.py
+/home/moonrider1968/bots/venv/lib/python3.11/site-packages/soupsieve/__init__.py
+/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/sympy/crypto/crypto.py
+/home/moonrider1968/bots/oanda_active/venv/lib/python3.11/site-packages/soupsieve/__init__.py
