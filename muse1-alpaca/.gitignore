@@ -1,0 +1,9 @@
+# muse1/alpaca — never commit these. state.json holds live positions and
+# order ids; .env holds Alpaca paper keys; bot.lock is the run lock.
+state.json
+state.json.tmp
+.env
+bot.lock
+__pycache__/
+*.pyc
+backtest_muse1_bars.csv
