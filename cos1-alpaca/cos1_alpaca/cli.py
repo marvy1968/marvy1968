@@ -1,0 +1,96 @@
+"""Command line. Orders are sent only with --paper, and only to the paper host."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+from .clock import ET
+from .config import load_config
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="cos1_alpaca")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    run_p = sub.add_parser("run", help="one pass over the book")
+    run_p.add_argument("--paper", action="store_true", help="place paper orders")
+    run_p.add_argument("--dry-run", action="store_true", help="log signals only")
+    run_p.add_argument("--config", default=None)
+
+    bt = sub.add_parser("backtest", help="short synthetic walk-forward (3-6 months)")
+    bt.add_argument("--months", type=int, default=6)
+    bt.add_argument("--out", default="")
+
+    args = parser.parse_args(argv)
+    if args.cmd == "backtest":
+        from .backtest import run_backtest, write_report
+
+        months = min(6, max(3, args.months))
+        result = run_backtest(oos_days=months * 21, intraday_days=min(63, months * 21))
+        text = _table(result)
+        print(text)
+        if args.out:
+            write_report(result, Path(args.out))
+        return 0
+
+    if args.paper and getattr(args, "dry_run", False):
+        print("choose only one of --paper or --dry-run", file=sys.stderr)
+        return 2
+    if not args.paper and not args.dry_run:
+        print("orders disabled: pass --paper to place paper orders or --dry-run to log signals")
+        return 0
+
+    from .broker import AlpacaBroker
+    from .datafeed import AlpacaData
+    from .envfile import load_keys
+    from .runner import Flags, run
+
+    try:
+        api_key, secret = load_keys()
+    except Exception as exc:
+        print(f"credentials: {type(exc).__name__}", file=sys.stderr)
+        return 2
+    cfg = load_config(args.config)
+    root = Path(cfg.paths.state_dir)
+    broker = AlpacaBroker(api_key, secret, cfg)
+    data = AlpacaData(api_key, secret, cfg)
+    result = run(
+        cfg,
+        broker,
+        data,
+        Flags(paper=args.paper, dry_run=args.dry_run),
+        datetime.now(ET),
+        root / "cos1_state.json",
+        root / "cos1.sqlite",
+        root / "reports",
+        root / "cos1.lock",
+    )
+    if result.message:
+        print(result.message)
+    return result.exit_code
+
+
+def _table(result: dict) -> str:
+    lines = [
+        f"feed={result['feed']} source={result['data_source']} oos_days={result['oos_days']} "
+        f"universe={','.join(result['universe'])}",
+        "cost slip_bps={slip_bps} fee_bps_sell={fee_bps_sell} commission={commission} "
+        "max_pos_frac={max_pos_frac} max_positions={max_positions}".format(**result["cost_model"]),
+        f"{'mode':<8} {'expert':<16} {'trades':>6} {'pf':>8} {'roi':>8} {'maxDD':>8} {'avgCostR':>8} {'log':>5}",
+    ]
+    for row in result["rows"]:
+        pf = row["profit_factor"]
+        pf_s = "n/a" if pf is None else ("inf" if pf == float("inf") else f"{pf:.2f}")
+        lines.append(
+            f"{row['mode']:<8} {row['expert']:<16} {row['trades']:>6} {pf_s:>8} {row['roi']:>8.2%} "
+            f"{row['max_dd']:>8.2%} {row['avg_cost_r']:>8.3f} {str(bool(row['log_only'])): >5}"
+        )
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,92 @@
+# COS1 Alpaca paper bot. rollout.live stays empty. The live host is refused.
+rollout:
+  live: []
+
+account:
+  exclusive: false
+  base_url: https://paper-api.alpaca.markets
+
+feed: iex
+
+timeouts:
+  connect_sec: 3
+  read_sec: 20
+  retries: 3
+  backoff_sec: [0.5, 1.0, 2.0]
+
+regime:
+  sma_fast: 50
+  sma_slow: 200
+  slope_days: 20
+  min_slope: 0.01
+  min_atr_pct: 0.004
+  max_atr_pct: 0.035
+  atr_period: 14
+
+day:
+  enabled: true
+  timeframe_minutes: 5
+  atr_period: 14
+  atr_mult: 1.5
+  target_r: 2.75
+  entry_cutoff_min_before_close: 60
+  flatten_min_before_close: 10
+  vol_target_pct: 0.01
+  ema: 20
+  vwap_ext_std: 2.0
+
+swing:
+  enabled: true
+  target_r: 2.0
+  ema_exit: 20
+  ema_trend: 50
+  atr_mult: 2.0
+  max_hold_days: 15
+  donchian_entry: 55
+  donchian_exit: 20
+  donchian_atr_mult: 1.5
+  donchian_risk_pct: 0.005
+
+scalp:
+  enabled: false
+  timeframe_minutes: 1
+  target_r: 2.0
+
+modules:
+  vwap_orb: false
+  vwap_reclaim: false
+  velez: false
+  mean_reversion: false
+  range_box: false
+
+risk:
+  daily_loss_pct: 0.02
+  weekly_loss_pct: 0.04
+  day_kill_dd_pct: 0.06
+  swing_kill_dd_pct: 0.08
+  scalp_kill_dd_pct: 0.04
+  max_gross_frac: 0.50
+  max_net_frac: 0.30
+  max_symbol_frac: 0.10
+  max_positions: 3
+  gross_open_risk_frac: 0.02
+  risk_pct_day: 0.005
+  risk_pct_swing: 0.005
+  staircase_step_r: 0.5
+  breakeven_r: 1.0
+
+liquidity:
+  max_spread_bps: 15
+  min_rvol: 0.5
+  min_price: 5
+  min_dollar_volume: 20000000
+
+weights:
+  alpha: 0.2
+  min_sample: 8
+  lo: 0.5
+  hi: 1.5
+
+paths:
+  state_dir: state
+  earnings_csv: ""
