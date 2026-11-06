@@ -1,3 +1,4 @@
 $ show fx_paper/journal-20261106.jsonl
-started 2026-11-05 20:13:26 EST
-RUNNING...
+started 2026-11-05 20:13:26 EST, took 0s, exit 0
+
+{"t": "2026-11-06T00:00:56+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-05T23:00:00+00:00", "close": 157.493, "stop_dist": 0.34550000000001546, "result": "paused (signal logged)"}
