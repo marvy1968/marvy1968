@@ -200,11 +200,14 @@ st2 = rollover_state(st2)
 check("state: rollover keeps positions, resets day counters",
       "MSFT" in st2["positions"] and st2["day_pnl_dollars"] == 0.0
       and st2["trades_today"] == 0)
-# Restore the real state file byte-for-byte.
+# Restore the real state file byte-for-byte. (The old check asserted the
+# MSFT position was still open, which was true on 2026-11-05 but stale
+# after the short was closed 2026-11-06 — the point of this check is the
+# byte-for-byte restore, so compare the file text itself.)
 if _state_backup is not None:
     bot.STATE_FILE.write_text(_state_backup)
     check("state: real state.json restored",
-          load_state()[0]["positions"].get("MSFT", {}).get("qty") == 17)
+          bot.STATE_FILE.read_text() == _state_backup)
 else:
     save_state(default_state())
     check("state: no real state existed, clean default restored",

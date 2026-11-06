@@ -10,18 +10,13 @@ any Claude VM code. One runner (`bot.py`) with three sleeves — scalp,
 day-trade, swing — driven by 10 expert signal functions and a hedge-fund
 principles overlay.
 
-**Version 0.3.0 (2026-11-05) — Claude fix list, round two, applied.**
-See "v0.3.0 — what changed" below. No-target signals submit entry+stop
-only (never a TP-at-entry bracket); swing uses its own 2R TP; Brooks /
-Dalton submit exactly the target they checked; a failed stop replace
-re-submits a standalone stop, verifies it, and blocks new trades while
-any position is unprotected; the duplicate check sees ALL broker
-positions and adopts unknown ones (the VM copy adopts the MSFT short
-from the broker); the VM schedule runs through 15:50 ET so the flatten
-happens; the pre-registered raschke_soup backtest is in this push
-(`backtest_muse1.py` + results — see below). The bot MUST run on its
-OWN Alpaca paper account, separate from Brain (see DEPLOY.md) —
-running it on Brain's account is not supported.
+**Version 0.3.1 (2026-11-06) — SPY swing-filter fix, owner-approved.**
+See "v0.3.1 — what changed" below. The swing sleeve's SPY filter
+compared the last daily close to the open ~90 days ago and read
+short_only while SPY was up; it now uses the last completed daily
+bar's own open vs close, as the spec says. Nothing else changed.
+The bot MUST run on its OWN Alpaca paper account, separate from Brain
+(see DEPLOY.md) — running it on Brain's account is not supported.
 
 ## How to run
 
@@ -49,7 +44,7 @@ separate from Brain's** — the VM `.env` must hold muse1-only paper keys
 | `bot.py` | Runner: argparse, live-block, Alpaca paper broker / stub broker, bracket orders, state + lock, calendar, one scan over all sleeves |
 | `state.json` | LOCAL ONLY, never committed: day P&L, trade count, Muse1 positions with order ids, swing signals seen. See `.gitignore`. |
 | `test_fixes.py` | Unit tests for the v0.2.0 fix list (37 checks, no keys, no network, no orders). Run: `python3 test_fixes.py` |
-| `test_round2.py` | Unit tests for the v0.3.0 round-two fix list (57 checks, no keys, no network, no orders). Run: `python3 test_round2.py` |
+| `test_round2.py` | Unit tests for the v0.3.0 round-two fix list plus the v0.3.1 SPY swing-filter fix (66 checks, no keys, no network, no orders). Run: `python3 test_round2.py` |
 | `backtest_muse1.py` | Pre-registered OOS backtest of raschke_soup (Train 2026-01-01–06-30, Test 2026-07-01–11-04, Alpaca IEX 5-min, realistic costs, 20-draw random control). Run: `python3 backtest_muse1.py` (fetches bars once, caches locally) |
 | `backtest_muse1_results.json` | Backtest results + full trade list (pre-registration, per-period PF/avg R, random-control medians, pass/fail) |
 | `backtest_muse1_trades.csv` | Same trade list as a CSV |
@@ -308,6 +303,55 @@ identical, no state write; two overlapping `--paper` runs — the
 second exited 0 with "Another run holds the lock"; a second dry run
 saw the first run's state (MSFT tracked once, trades_today still 2).
 Open orders after all tests: only the parent-placed MSFT stop.
+
+## v0.3.1 — SPY swing-filter fix (2026-11-06, owner-approved)
+
+Found by the 10:13 ET monitor check: the swing sleeve's SPY filter read
+**short_only while SPY was up** (+0.80% vs today's open). Root cause: the
+swing sleeve uses daily bars and `fetch_bars` pulls 90 days, but
+`spy_side()` and `spy_flat_pct()` compared `bars[0]["o"]` — the open
+~90 days ago — to the last completed daily close, because `_today_bars()`
+only trims 5-min bars. Both the code comment and the config comment say
+daily should use the last completed bar's own open vs close; the code
+contradicted its own spec. The fix (in `bot.py`, both functions branch
+on timeframe): **daily** uses the last completed bar's own open vs close
+(`bars[-1]["o"]` vs `bars[-1]["c"]`); **5-min** still uses today's open
+(`bars[0]["o"]` — `_today_bars` cuts to today) vs the latest close.
+
+The first version of the fix got this wrong: it used `bars[-1]["o"]` for
+5-min too, measuring only the last 5 minutes. The 10:42 ET monitor check
+caught it reporting FLAT 0.096% / range_only while SPY was +0.48% on the
+day. It was corrected before any push, and the regression tests pin both
+paths so it cannot come back silently.
+
+Tests: 9 new checks in `test_round2.py` (synthetic bars only — daily
+last-bar UP 730.00 → 732.78 reads +1 with flat_pct ~0.381% instead of
+2.296%; daily last-bar DOWN reads −1; 5-min up day reads +1 with
+flat_pct ~0.381% the day's move; 5-min regression case — day up ~0.48%
+with the last 5-min bar nearly flat — reads +1 with flat_pct ~0.48%,
+not ~0.01%; 5-min down day reads −1). Both suites green after the fix:
+`test_fixes.py` 37/37, `test_round2.py` 66/66. Two pre-existing test
+assumptions were also fixed in the same pass (they failed on the current
+state, not on this change): `test_fixes.py` no longer asserts the MSFT
+short is still open in `state.json` (it was closed 2026-11-06 — the check
+now verifies the byte-for-byte restore itself), and the flatten tests in
+`test_round2.py` anchor the test position's entry time to the simulated
+run time (a real-now entry made them time-of-day dependent — signal
+decay fired before the flatten check on morning runs).
+
+Dry-run verification (real IEX bars, 2026-11-06 ~11:20 ET, corrected
+code): scalp and day read **long_only** (SPY up ~0.67% on the day per the
+bot's own bars); swing reads **short_only** — which is CORRECT per the
+spec, because the last completed daily bar (Nov 5) was a down day (open
+~$765.5 → close ~$733.4). The fix does not make swing read long_only
+today; it makes the side follow the last completed day's direction
+instead of a 90-day-old open. On a day after an up day, swing would now
+read long_only, where the old code read whatever the 90-day comparison
+said.
+
+Caveat (unchanged): the SPY filter itself is still UNVALIDATED on this
+bot — it failed pre-registered tests on the other sleeves. This fix only
+makes it do what its own spec says; it does not prove the filter works.
 
 ## HONEST CAVEATS — read before running this anywhere
 

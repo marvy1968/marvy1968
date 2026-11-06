@@ -100,7 +100,7 @@ from hedge_fund_overlay import (  # noqa: E402
 from risk import RiskState  # noqa: E402
 
 BOT_NAME = "muse1/alpaca"
-VERSION = "0.3.0-claude-fixes-r2 (paper only, unvalidated)"
+VERSION = "0.3.1-spy-swing-filter-fix (paper only, unvalidated)"
 STATE_FILE = HERE / "state.json"
 LOCK_FILE = HERE / "bot.lock"
 ET = ZoneInfo("America/New_York")
@@ -626,7 +626,19 @@ def spy_side(spy_bars, mode="vs_open", timeframe="5min"):
     bars = _today_bars(spy_bars, timeframe)
     if len(bars) < 2:
         return 0
-    o = float(bars[0]["o"])
+    if timeframe == "daily":
+        # Daily bars: the last COMPLETED bar's own open vs close
+        # (yesterday's day direction). bars[0] is the open ~90 days
+        # ago — using it here made swing read short_only while SPY
+        # was up (fixed 2026-11-06).
+        o = float(bars[-1]["o"])
+    else:
+        # 5-min bars: _today_bars already cut to today, so bars[0]
+        # is today's open and bars[-1] is the latest bar. (The first
+        # version of this fix wrongly used bars[-1]["o"] here too,
+        # measuring only the last 5 minutes — caught by the monitor
+        # 2026-11-06 before any push.)
+        o = float(bars[0]["o"])
     c = float(bars[-1]["c"])
     if c > o:
         return 1
@@ -641,7 +653,14 @@ def spy_flat_pct(spy_bars, timeframe="5min"):
     bars = _today_bars(spy_bars, timeframe)
     if len(bars) < 2:
         return None
-    o = float(bars[0]["o"])
+    if timeframe == "daily":
+        # Same fix as spy_side: daily uses the last bar's own open,
+        # not the open ~90 days ago (which inflated flat_pct and
+        # mis-set the side).
+        o = float(bars[-1]["o"])
+    else:
+        # 5-min bars: today's open is bars[0]["o"] (see spy_side).
+        o = float(bars[0]["o"])
     c = float(bars[-1]["c"])
     return abs(c - o) / o * 100.0 if o else None
 

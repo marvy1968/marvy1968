@@ -15,6 +15,9 @@ Covers items 1-5 and 7a of the round-two list:
   5. The duplicate check sees ALL broker positions; unknown broker
      positions are adopted into state (broker entry price, stop-derived 1R).
   7a. The VM schedule runs through 15:50 ET and a 15:50 run flattens day/scalp.
+  + SPY swing filter fix (v0.3.1): daily bars use the last bar's own open
+    vs close — the old code compared the last close to the open ~90 days
+    ago and read short_only while SPY was up.
 """
 import copy
 import sys
@@ -30,7 +33,7 @@ from experts import brooks_range_fade, dalton_value, raschke_soup, atr
 import bot
 from bot import (validate_target, resolve_target, default_state,
                  run_once, manage_positions, adopt_broker_positions,
-                 PaperBrokerStub)
+                 PaperBrokerStub, spy_side, spy_flat_pct)
 from bot import ET
 
 PASS, FAIL = [], []
@@ -557,8 +560,12 @@ br = FakeBroker(
                                        current_price=100.5, market_value=1005.0)},
     open_orders=[])
 state = default_state()
-state["positions"]["TEST"] = _pos("TEST", 1, 10, 100.0, 2.0, 98.0, minutes_ago=5)
 t1550 = datetime.now(ET).replace(hour=15, minute=50, second=0, microsecond=0)
+# Anchor the entry to the SIMULATED run time, not real now: entry_time is
+# used for bars_held / signal decay, and a real-now entry makes the test
+# time-of-day dependent (it failed in the morning, when 15:50 is hours
+# after a real-now entry and decay fires before the flatten check).
+state["positions"]["TEST"] = _pos("TEST", 1, 10, 100.0, 2.0, 98.0, minutes_ago=5, now_et=t1550)
 actions = manage_positions(_mgmt_cfg(), br, state, False, t1550, "15:50", [])
 check("flatten 15:50: day position closed at the 15:50 run",
       len(br.closed) == 1 and br.closed[0][0] == "TEST",
@@ -571,11 +578,91 @@ br = FakeBroker(
                                        current_price=100.5, market_value=1005.0)},
     open_orders=[])
 state = default_state()
-state["positions"]["TEST"] = _pos("TEST", 1, 10, 100.0, 2.0, 98.0, minutes_ago=5)
 t1549 = datetime.now(ET).replace(hour=15, minute=49, second=0, microsecond=0)
+# Same anchoring as the 15:50 test above: without it, a morning run
+# computes ~300 min held and signal decay closes the position before
+# the flatten check ever runs.
+state["positions"]["TEST"] = _pos("TEST", 1, 10, 100.0, 2.0, 98.0, minutes_ago=5, now_et=t1549)
 actions = manage_positions(_mgmt_cfg(), br, state, False, t1549, "15:50", [])
 check("flatten 15:49: day position NOT closed before 15:50",
       len(br.closed) == 0, f"closed={br.closed}")
+
+# ------------------------------------------------ SPY swing filter (v0.3.1)
+# Bug 2026-11-06: swing uses daily bars (90 days fetched) and spy_side /
+# spy_flat_pct compared bars[0]["o"] — the open ~90 days ago — to the last
+# close, so swing read short_only while SPY was up. The fix: DAILY uses
+# the last bar's own open vs close; 5-MIN still uses today's open
+# (bars[0]["o"], _today_bars cuts to today) vs the latest close. The
+# first version of the fix wrongly used bars[-1]["o"] for 5-min too and
+# measured only the last 5 minutes — caught by the monitor 2026-11-06
+# before any push; the regression tests below pin both paths.
+# Synthetic bars only, no live data.
+def _daily_bars(first_open, last_open, last_close):
+    now = datetime.now(timezone.utc)
+    rows = []
+    for i in range(90):
+        if i == 0:
+            o = c = first_open
+        elif i == 89:
+            o, c = last_open, last_close
+        else:
+            o = c = 735.0
+        rows.append({"t": now - timedelta(days=90 - i),
+                     "o": o, "h": max(o, c) + 0.5, "l": min(o, c) - 0.5,
+                     "c": c, "v": 1000.0})
+    return rows
+
+up = _daily_bars(750.00, 730.00, 732.78)
+check("swing spy_side daily: last bar UP reads long_only (+1)",
+      spy_side(up, "vs_open", "daily") == 1,
+      f"got {spy_side(up, 'vs_open', 'daily')}")
+fpct_up = spy_flat_pct(up, "daily")
+check("swing spy_flat_pct daily: uses last bar's open (~0.381%, not 2.296%)",
+      fpct_up is not None and abs(fpct_up - 0.381) < 0.01,
+      f"got {fpct_up}")
+down = _daily_bars(750.00, 740.00, 732.78)
+check("swing spy_side daily: last bar DOWN reads short_only (-1)",
+      spy_side(down, "vs_open", "daily") == -1,
+      f"got {spy_side(down, 'vs_open', 'daily')}")
+check("swing spy_side daily: down day is not flat",
+      (spy_flat_pct(down, "daily") or 0) > 0.15,
+      f"got {spy_flat_pct(down, 'daily')}")
+
+five_min_up = bars_ohlc([(730.0, 731.0, 729.0, 730.5),
+                         (730.5, 732.0, 730.0, 731.5),
+                         (731.5, 733.0, 731.0, 732.78)])
+check("spy_side 5min: up day still reads long_only (+1) after the fix",
+      spy_side(five_min_up, "vs_open", "5min") == 1,
+      f"got {spy_side(five_min_up, 'vs_open', '5min')}")
+fpct_5 = spy_flat_pct(five_min_up, "5min")
+check("spy_flat_pct 5min: ~0.381% day move",
+      fpct_5 is not None and abs(fpct_5 - 0.381) < 0.01,
+      f"got {fpct_5}")
+# Regression (caught by the 10:42 ET monitor check 2026-11-06): the
+# FIRST version of the v0.3.1 fix used bars[-1]["o"] for 5-min too,
+# measuring only the last 5 minutes — it reported FLAT 0.096% /
+# range_only while SPY was +0.48% on the day. Day up ~0.48%
+# (730.00 -> 733.50) with the last 5-min bar nearly flat
+# (733.40 -> 733.50) must still read +1 with flat_pct ~0.48% (the
+# DAY's move), not ~0.01% (the last bar's move).
+five_min_regr = bars_ohlc([(730.0, 731.0, 729.0, 730.5),
+                           (730.5, 732.0, 730.0, 731.5),
+                           (731.5, 733.0, 731.0, 732.0),
+                           (732.0, 733.6, 731.8, 733.4),
+                           (733.4, 733.6, 733.3, 733.5)])
+check("spy_side 5min regression: up day reads +1 even when the last bar is flat",
+      spy_side(five_min_regr, "vs_open", "5min") == 1,
+      f"got {spy_side(five_min_regr, 'vs_open', '5min')}")
+fpct_regr = spy_flat_pct(five_min_regr, "5min")
+check("spy_flat_pct 5min regression: ~0.48% day move, not ~0.01% last-bar move",
+      fpct_regr is not None and abs(fpct_regr - 0.479) < 0.01,
+      f"got {fpct_regr}")
+five_min_down = bars_ohlc([(740.0, 740.5, 739.0, 739.5),
+                           (739.5, 740.0, 738.5, 739.0),
+                           (739.0, 739.5, 738.0, 738.5)])
+check("spy_side 5min: down day reads short_only (-1)",
+      spy_side(five_min_down, "vs_open", "5min") == -1,
+      f"got {spy_side(five_min_down, 'vs_open', '5min')}")
 
 print()
 print(f"{len(PASS)} passed, {len(FAIL)} failed")
