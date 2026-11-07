@@ -1,0 +1,78 @@
+{
+  "synthetic": true,
+  "purpose": "Schema-equivalent review examples only; not real history, native emitted decisions or executable tests.",
+  "pause_boundary": {
+    "configured_lanes": [
+      "cfb:total"
+    ],
+    "candidate_sources": [
+      "model",
+      "tag",
+      "gap"
+    ],
+    "bets": [
+      {
+        "sport": "cfb",
+        "game": "Example Away @ Example Home",
+        "start": "2030-01-01T23:00:00Z",
+        "home": "Example Home",
+        "away": "Example Away",
+        "market": "total",
+        "side": "Over",
+        "line": 50.5,
+        "price": -110,
+        "tier": "SIGNAL",
+        "score": 54.4,
+        "units": 0.5,
+        "why": "synthetic signal"
+      }
+    ],
+    "expectation": "Every candidate source excluded from actionable bet-card, daily-card and parlay pools; separately tracked with explicit status."
+  },
+  "exposure_boundary": {
+    "sport": "ncaab",
+    "night": "2030-01-01",
+    "bankroll_fraction_cap": 0.15,
+    "per_play_fraction_cap": 0.03,
+    "prior_emitted": [
+      {
+        "decision_id": "synthetic-d1",
+        "game_id": "synthetic-game-1",
+        "units": 3.0,
+        "bankroll_fraction": 0.03
+      }
+    ],
+    "fresh_candidates": [
+      {
+        "game_id": "synthetic-game-1",
+        "market": "spread",
+        "side": "Example Away",
+        "edge": 0.08,
+        "ev": 0.15
+      },
+      {
+        "game_id": "synthetic-game-2",
+        "market": "spread",
+        "side": "Example Away 2",
+        "edge": 0.07,
+        "ev": 0.13
+      }
+    ],
+    "expectation": "Rerun must not silently relabel the emitted allocation as never-played overflow or double-count it; preserve prior immutable decision and new evaluation separately."
+  },
+  "health_integer_boundary": {
+    "uptime_seconds_examples": [
+      "1997030.12",
+      "1998830.99"
+    ],
+    "observed_scientific_microseconds": "1.99703e+12",
+    "last_timestamp_microseconds": "1900000000000",
+    "expectation": "Integer-safe arithmetic, explicit malformed/missing handling, no alert sends in tests."
+  },
+  "display_boundary": {
+    "tier": "HIGH",
+    "score": 0.07619047619047621,
+    "units": 3.0,
+    "expectation": "Internal HIGH remains independent of estimated-edge presentation; not calibrated confidence."
+  }
+}

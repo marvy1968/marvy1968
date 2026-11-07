@@ -101,13 +101,28 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not dry_run and not fresh and not s.send_empty_cards:
         log.info("%s: no new qualified plays, nothing sent", sport.key)
     elif not dry_run:
-        send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-        store.log_picks(sport.key, card_preds)
-        if sport.key in s.pdf_sports and card_preds:
-            from .reports import weekly_chart
-            pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
-            send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
-        log.info("%s: sent %d predictions", sport.key, len(preds))
+        from . import decision_audit as audit
+        def _send_card():
+            return send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+        def _reserve(intent_id, run_id):
+            return audit.reserve_card_stakes(Path(s.state_dir), sport.key, card_preds, intent_id, run_id)
+        status = audit.deliver(
+            Path(s.state_dir), run_id=audit.new_run_id(), channel=f"card:{sport.key}",
+            when=now.astimezone(ET), decision_ids=audit.qualified_decision_ids(sport.key, card_preds),
+            payload=text, send_fn=_send_card, reserve_fn=_reserve)
+        # sent=False: a previous process already has a durable intent. Do not send again.
+        if status.raised:
+            _alert_failure(s, f"{sport.name} card")
+        if not status.sent:
+            log.info("%s: not sending; %s reservation stands and is not a provider receipt", sport.key, status.code)
+        elif status.code != "failed":
+            audit.commit_emitted_card(Path(s.state_dir), sport.key, card_preds)
+            store.log_picks(sport.key, card_preds)
+            if not status.raised and sport.key in s.pdf_sports and card_preds:
+                from .reports import weekly_chart
+                pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
+                send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
+            log.info("%s: card send status %s for %d predictions", sport.key, status.code, len(preds))
     return preds, projections, slate
 
 
@@ -165,14 +180,33 @@ def cmd_run(s: Settings, args) -> int:
             bets = betcard.select(card_cands)
             text = betcard.text(bets, now.astimezone(ET))
             print(text + "\n")
+            when = now.astimezone(ET)
+            state = Path(s.state_dir)
+            from . import decision_audit, lane_pause
+            try:
+                lane_pause.persist_tracking(state, when.date().isoformat())
+            except Exception:
+                log.exception("lane-pause tracking log failed")
             if not args.dry_run:
-                prev = betcard.already_sent(Path(s.state_dir), now.astimezone(ET))
-                if prev and os.environ.get("BETCARD_RESEND", "").lower() not in ("1", "true", "yes", "on"):
-                    log.info("bet card already sent today at %s; not resending", prev.get("sent_at"))
-                else:
-                    betcard.mark_sent(Path(s.state_dir), bets, now.astimezone(ET))
-                    send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-                    betcard.log(Path(s.state_dir), bets, now.astimezone(ET))
+                def _send():
+                    # None today: send_message does not return the Bot API body.
+                    return send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+
+                def _mark(status):
+                    betcard.mark_sent(state, bets, when, status=status.code,
+                                      delivery_proof=status.code == "acknowledged",
+                                      intent_id=status.intent_id)
+
+                outcome = decision_audit.apply_betcard_send(
+                    state, when, bets, text, _send,
+                    lambda: betcard.log(state, bets, when),
+                    lambda: _alert_failure(s, "daily bet card"),
+                    _mark,
+                    force=os.environ.get("BETCARD_RESEND", "").lower() in ("1", "true", "yes", "on"),
+                )
+                if outcome == "blocked":
+                    log.info("bet card already has a send attempt for %s; not resending. "
+                             "A marker or intent is not a provider receipt.", when.date())
         except Exception:
             log.exception("bet card failed")
             if not args.dry_run:

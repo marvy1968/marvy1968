@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime, timezone
 from unittest import mock
@@ -40,7 +41,8 @@ class CFBDResilience(unittest.TestCase):
             return Game(gid, "cfb", datetime(2026, 10, 10, tzinfo=timezone.utc), "Marist", "Columbia",
                         odds=Odds(total=43.5, over_price=-110, under_price=-110), info={"home_fbs": fbs, "away_fbs": fbs})
         tags = {"a": [("UNDER-FADE", "Over")], "b": [("UNDER-FADE", "Over")]}
-        got = tag_candidates("cfb", [game("a", False), game("b", True)], tags)
+        with mock.patch.dict(os.environ, {"MARV_LANE_PAUSE": "off"}):
+            got = tag_candidates("cfb", [game("a", False), game("b", True)], tags)
         self.assertEqual(len(got), 1)
 
 

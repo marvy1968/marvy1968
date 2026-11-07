@@ -330,8 +330,10 @@ def all_legs(state_dir: Path, sports=SPORTS, prices: dict | None = None, now: da
     state_dir = Path(state_dir)
     prices = prices or {}
     games = _games(state_dir, sports, prices, now, days)
+    from .lane_pause import paused
     legs = upset_legs(state_dir, sports, prices, now, days) + h2h_legs(state_dir, games) + \
         ou_legs(state_dir, sports, games, prices, now, days)
+    legs = [leg for leg in legs if not paused(leg)]
     # one leg per game: keep the strongest (an upset dog and an H2H pick on the same game can't both be right)
     best: dict[str, dict] = {}
     for leg in legs:
