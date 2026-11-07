@@ -38,6 +38,10 @@ def fit_mu(need: np.ndarray, mid: np.ndarray, disp) -> float:
 
 def main(rows_path: str, snap: str, params_path: str, *rest: str) -> None:
     d = pd.read_parquet(rows_path)
+    if "--part" in rest:
+        part = rest[rest.index("--part") + 1]
+        d = d[d["date"] < "2026-04-01"] if part == "dev" else d[d["date"] >= "2026-04-01"]
+        print(f"part: {part}")
     params = json.loads(Path(params_path).read_text())
     df = M.usable(pd.read_parquet(snap))
     train = df[df["season"] <= 2025]

@@ -161,6 +161,7 @@ def main(snap: str, dev_path: str, *rest: str) -> None:
         return
     print(f"dev {len(dev):,} contracts / {dev.game_id.nunique()} games, val {len(val):,} / {val.game_id.nunique()} games;"
           f" market anchor found for {d['mkt_mu'].notna().mean():.0%}")
+    d.to_parquet(out_dir / "all_rows.parquet")  # dev + validation rows (never the holdout) for the ladder test
     from sklearn.linear_model import LogisticRegression
     fit_rows = dev[dev["tight"]]
     lr = LogisticRegression(C=1.0).fit(fit_rows[FEATS], fit_rows["y"])
