@@ -140,6 +140,7 @@ def game_rows(g: pd.DataFrame, league: str = "nba") -> list[dict]:
             "season": int(g["season"].iloc[0]), "season_type": int(g["season_type"].iloc[0]),
             "home": g["home_team_name"].iloc[0], "away": g["away_team_name"].iloc[0],
             "home_abbr": g["home_team_abbrev"].iloc[0], "away_abbr": g["away_team_abbrev"].iloc[0],
+            "tip": g["wallclock"].dropna().iloc[0] if g["wallclock"].notna().any() else None,
             "periods": int(g["period_number"].max()), "league": league, "game_min": n_reg * plen / 60,
             "foul_out": foul_out,
             "final_home": float(ends["hs"].iloc[-1]), "final_away": float(ends["as_"].iloc[-1])}

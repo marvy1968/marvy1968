@@ -1,13 +1,18 @@
-"""Real in-game Kalshi prices for NBA player props at each quarter break (public API, no account).
+"""Real Kalshi prices for NBA player props: the PREGAME quote and the quote at each quarter break (public API).
 
-For a seeded random sample of games in the snapshot file: list the game's settled KXNBAPTS / KXNBAREB / KXNBAAST /
-KXNBA3PT markets (historical endpoint), then pull each market's 1-minute candlesticks over the game and keep, for
-every break (end of Q1, Q2, Q3), the LAST candle before play resumes: yes bid / yes ask close, volume during the
-break. The quote kept is the one standing when play resumes (last candle at or before the break's end) with its age, so
-quotes that were not refreshed after the period ended can be filtered out in the evaluation.
+For each game (seeded random sample of the snapshot file's games, or all of them): list the game's KXNBAPTS /
+KXNBAREB / KXNBAAST / KXNBA3PT markets (every ladder rung), then read each market's 1-minute candlesticks from 3 hours
+before tip-off to the end of the last break and keep
+  pre_*    the quote standing at tip-off (last candle before the first play): the market's pregame view
+  k=1,2,3  the quote standing when play resumes after each break (last candle at or before the break's end), with its
+           age, so quotes that were not refreshed after the period ended can be filtered out.
+Kalshi emits a candle only when something changes, so "last candle at or before t" is the quote at t.
 
-usage: python research/prop_pacer/fetch_kalshi.py SNAP.parquet OUT.jsonl [n_games] [seed]
-Resumable: games already in OUT are skipped.
+Settled markets before Kalshi's historical cutoff live under /historical (one request per market). Newer markets use
+the batch endpoint (50 markets per request).
+
+usage: python research/prop_pacer/fetch_kalshi.py SNAP.parquet OUT.jsonl [n_games|all] [seed] [season]
+Resumable: games already in OUT (or OUT.empty) are skipped.
 """
 
 import json
@@ -26,18 +31,19 @@ ABBR = {"GS": "GSW", "NO": "NOP", "NY": "NYK", "SA": "SAS", "UTAH": "UTA", "WSH"
 MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
 session = requests.Session()
 _last = [0.0]
+_cutoff = [None]
 
 
-def get(path: str, params: dict, tries: int = 6) -> dict:
-    for i in range(tries):
-        wait = 0.3 - (time.time() - _last[0])  # ~3 requests a second: the historical endpoints rate-limit above that
+def get(path: str, params: dict, tries: int = 8) -> dict:
+    for _ in range(tries):
+        wait = 0.36 - (time.time() - _last[0])  # under 3 requests a second: Kalshi rate-limits above that
         if wait > 0:
             time.sleep(wait)
         _last[0] = time.time()
         try:
-            r = session.get(API + path, params=params, timeout=20)
+            r = session.get(API + path, params=params, timeout=30)
         except requests.RequestException:
-            time.sleep(2 ** i)
+            time.sleep(3)
             continue
         if r.status_code == 429:
             time.sleep(1.5)
@@ -53,6 +59,12 @@ def ts(s: str) -> int:
     return int(datetime.fromisoformat(str(s).replace("Z", "+00:00")).timestamp())
 
 
+def historical_cutoff() -> int:
+    if _cutoff[0] is None:
+        _cutoff[0] = ts(get("/historical/cutoff", {}).get("market_settled_ts", "2026-09-08T00:00:00Z"))
+    return _cutoff[0]
+
+
 def event_suffix(row) -> list[str]:
     d = datetime.fromisoformat(str(row["date"])[:10])
     day = f"{d:%y}{MON[d.month - 1]}{d:%d}"
@@ -60,74 +72,80 @@ def event_suffix(row) -> list[str]:
     return [f"{day}{a}{h}", f"{day}{h}{a}"]
 
 
-def _norm(n: str) -> str:
-    return " ".join(str(n).lower().replace(".", "").replace("'", "").replace("-", " ").split())
+def quote_at(candles: list[dict], t: int) -> dict | None:
+    before = [x for x in candles if x["end_period_ts"] <= t]
+    if not before:
+        return None
+    c = before[-1]
+    yb, ya = (c.get("yes_bid") or {}).get("close"), (c.get("yes_ask") or {}).get("close")
+    return {"bid": None if yb is None else float(yb), "ask": None if ya is None else float(ya), "ts": c["end_period_ts"]}
 
 
-def game_prices(g: pd.DataFrame, q1: dict | None = None) -> list[dict]:
-    """q1: {(normalised name, stat): value at the end of Q1}; rungs already reached by then are never bets, skipped."""
+def game_prices(g: pd.DataFrame) -> list[dict]:
     row = g.iloc[0]
     breaks = g.groupby("k")[["break_start", "break_end"]].first()
-    out = []
+    tip = ts(row["tip"])
+    historical = tip < historical_cutoff() - 86400
+    markets = []
     for suffix in event_suffix(row):
-        markets = []
         for series in SERIES:
-            markets += [(series, m) for m in get("/historical/markets", {"event_ticker": f"{series}-{suffix}",
-                                                                          "limit": 1000}).get("markets", [])]
+            path = "/historical/markets" if historical else "/markets"
+            markets += [(series, m) for m in get(path, {"event_ticker": f"{series}-{suffix}", "limit": 1000}).get("markets", [])]
         if markets:
             break
     if not markets:
         return []
-    t0 = ts(breaks["break_start"].min()) - 120
-    t1 = ts(breaks["break_end"].max()) + 120
+    t0, t1 = tip - 3 * 3600, ts(breaks["break_end"].max()) + 120
+    candles: dict[str, list] = {}
+    if historical:
+        for _, m in markets:
+            candles[m["ticker"]] = get(f"/historical/markets/{m['ticker']}/candlesticks",
+                                       {"start_ts": t0, "end_ts": t1, "period_interval": 1}).get("candlesticks", [])
+    else:
+        tickers = [m["ticker"] for _, m in markets]
+        for i in range(0, len(tickers), 50):
+            d = get("/markets/candlesticks", {"market_tickers": ",".join(tickers[i:i + 50]), "start_ts": t0,
+                                              "end_ts": t1, "period_interval": 1})
+            for x in d.get("markets", []):
+                candles[x.get("market_ticker") or x.get("ticker")] = x.get("candlesticks", [])
+    out = []
     for series, m in markets:
-        have = (q1 or {}).get((_norm(m["title"].split(":")[0]), SERIES[series]))
-        if have is not None and m.get("floor_strike") is not None and have > m["floor_strike"]:
-            continue
-        c = get(f"/historical/markets/{m['ticker']}/candlesticks",
-                {"start_ts": t0, "end_ts": t1, "period_interval": 1}).get("candlesticks", [])
+        c = candles.get(m["ticker"]) or []
         if not c:
             continue
+        pre = quote_at(c, tip)
+        base = {"game_id": int(row["game_id"]), "series": series, "stat": SERIES[series], "ticker": m["ticker"],
+                "title": m["title"], "player_name": m["title"].split(":")[0].strip(), "strike": m.get("floor_strike"),
+                "result": m.get("result"), "pre_bid": pre and pre["bid"], "pre_ask": pre and pre["ask"],
+                "pre_age_s": None if not pre else tip - pre["ts"]}
         for k, b in breaks.iterrows():
             bs, be = ts(b["break_start"]), ts(b["break_end"])
-            # Kalshi emits a candle only when something changes, so the quote standing when play resumes is the last
-            # candle at or before the end of the break. Its age is kept so stale quotes can be filtered.
-            before = [x for x in c if x["end_period_ts"] <= be]
-            if not before:
+            q = quote_at(c, be)
+            if not q:
                 continue
-            last = before[-1]
-            inside = [x for x in before if x["end_period_ts"] >= bs]
-            yb, ya = (last.get("yes_bid") or {}).get("close"), (last.get("yes_ask") or {}).get("close")
-            vol = sum(float(x.get("volume") or x.get("volume_fp") or 0) for x in inside)
-            out.append({"game_id": int(row["game_id"]), "k": int(k), "series": series, "stat": SERIES[series],
-                        "ticker": m["ticker"], "title": m["title"], "player_name": m["title"].split(":")[0].strip(),
-                        "strike": m.get("floor_strike"), "result": m.get("result"),
-                        "yes_bid": None if yb is None else float(yb), "yes_ask": None if ya is None else float(ya),
-                        "break_volume": vol, "price_ts": last["end_period_ts"], "age_s": be - last["end_period_ts"],
-                        "since_period_end_s": last["end_period_ts"] - bs})
+            out.append({**base, "k": int(k), "yes_bid": q["bid"], "yes_ask": q["ask"], "price_ts": q["ts"],
+                        "age_s": be - q["ts"], "since_period_end_s": q["ts"] - bs})
     return out
 
 
-def main(snap: str, out: str, n: int = 300, seed: int = 7) -> None:
+def main(snap: str, out: str, n="all", seed: int = 7, season: int | None = None) -> None:
     df = pd.read_parquet(snap, columns=["game_id", "date", "season", "k", "home_abbr", "away_abbr", "break_start",
-                                        "break_end", "name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"])
-    df = df[df["season"] == df["season"].max()]
+                                        "break_end", "tip"])
+    df = df[df["season"] == (int(season) if season else df["season"].max())]
     games = sorted(df["game_id"].unique())
-    random.Random(seed).shuffle(games)
+    random.Random(int(seed)).shuffle(games)
+    if n != "all":
+        games = games[:int(n)]
     done = set()
     if Path(out).exists():
         done |= {json.loads(line)["game_id"] for line in open(out)}
     if Path(out + ".empty").exists():
         done |= {int(line.split()[1]) for line in open(out + ".empty") if line.startswith("empty")}
-    todo = [g for g in games[:n] if g not in done]
+    todo = [g for g in games if g not in done]
     print(f"{len(todo)} games to fetch", flush=True)
     by = df.drop_duplicates(["game_id", "k"]).groupby("game_id")
-    q1all = df[df["k"] == 1].groupby("game_id")
     for i, gid in enumerate(todo):
-        q = q1all.get_group(gid)
-        q1 = {(_norm(n), s): v for n, *vals in q[["name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"]].itertuples(index=False)
-              for s, v in zip(("pts", "reb", "ast", "fg3"), vals)}
-        rows = game_prices(by.get_group(gid), q1)
+        rows = game_prices(by.get_group(gid))
         with open(out, "a") as fh:
             for r in rows:
                 fh.write(json.dumps(r) + "\n")
@@ -138,4 +156,4 @@ def main(snap: str, out: str, n: int = 300, seed: int = 7) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], *(int(x) for x in sys.argv[3:]))
+    main(*sys.argv[1:])
