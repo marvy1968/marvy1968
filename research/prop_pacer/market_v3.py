@@ -46,8 +46,10 @@ def ladder_mean(rungs: np.ndarray, probs: np.ndarray, phi: float) -> float | Non
     if len(rungs) == 0:
         return None
     f = lambda mu: np.sum((nb_sf(mu, rungs, phi) - probs) ** 2)
-    res = optimize.minimize_scalar(f, bounds=(0.05, 80), method="bounded")
-    return float(res.x)
+    grid = np.geomspace(0.05, 80, 160)  # grid first: a plain bounded search can walk into the flat tail
+    i = int(np.argmin([f(m) for m in grid]))
+    lo, hi = grid[max(i - 1, 0)], grid[min(i + 1, len(grid) - 1)]
+    return float(optimize.minimize_scalar(f, bounds=(lo, hi), method="bounded").x)
 
 
 def load_prices(path: str) -> pd.DataFrame:

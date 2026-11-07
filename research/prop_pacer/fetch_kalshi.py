@@ -135,6 +135,9 @@ def main(snap: str, out: str, n="all", seed: int = 7, season: int | None = None)
     df = pd.read_parquet(snap, columns=["game_id", "date", "season", "k", "home_abbr", "away_abbr", "break_start",
                                         "break_end", "tip"])
     df = df[df["season"] == (int(season) if season else df["season"].max())]
+    import os
+    if os.environ.get("MIN_DATE"):  # Kalshi NBA prop markets start mid-January 2026; skip games before
+        df = df[df["date"].astype(str) >= os.environ["MIN_DATE"]]
     games = sorted(df["game_id"].unique())
     random.Random(int(seed)).shuffle(games)
     if n != "all":
