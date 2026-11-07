@@ -1,0 +1,1010 @@
+# Claude Prop 1 - live in-game Bovada prop engine
+# Branch: ccr-4a1c5d6b-xd3ygu (github.com/marvy1968/marvy1968)
+
+=================== marv/live_prop_engine.py ===================
+"""Claude Prop 1 — live (in-game) player-prop engine: price Bovada's live prop lines from the game's pace and the player's usage.
+
+At every quarter / half break (the live monitor calls `on_period`), and on demand (`python -m marv live-props scan`):
+
+  1. Box score (ESPN summary): each player's stat so far and usage (targets, carries, pass attempts, minutes,
+     fouls), each team's plays (NFL / CFB) or possessions (basketball) so far, and the score.
+  2. Anchor: Marv's pregame projection for the player (state/props_priced_<sport>.json, written by the daily props
+     run), else the pregame Bovada line captured before kickoff (state/live_props/pregame_lines.json).
+  3. Projection for the rest of the game:
+       production per team play  = blend(pregame per-play rate, in-game per-play rate), weighted by plays seen
+       remaining team plays      = minutes left x team pace (this game's pace shrunk towards the league norm)
+       script                    = trailing teams pass more / run less (football); blowouts and foul trouble cut
+                                   minutes (basketball); starters sit in a late rout
+       remaining mean            = per-play rate x remaining plays x script
+  4. Distribution: compound Poisson-gamma Monte Carlo (seeded): number of events (catches, carries, completions,
+     baskets, rebounds...) is overdispersed Poisson, each event's size is gamma (yards) or 1 (counts).
+     P(final > line) = P(remaining > line - so far).
+  5. Price: Bovada's two-sided live price -> no-vig probability. A prop is RECOMMENDED only if
+        edge (Marv - no-vig) >= LIVE_PROP_MIN_EDGE, EV at the real price >= LIVE_PROP_MIN_EV,
+        the projection clears the line by a minimum gap, the price is between -200 and +180,
+        the Bovada market was updated in the last LIVE_PROP_MAX_AGE seconds (stale line = phantom edge),
+        enough game is left, the player is still being used (no usage in a full period = possibly hurt),
+        and it was not already sent for this game.
+     At most LIVE_PROP_MAX_PER_GAME picks per break, one per player.
+  6. Every priced prop goes to state/live_props/shadow.jsonl (the dataset to tune thresholds), every recommendation
+     to state/live_props/recs.json; at the final whistle they are graded against the box score and the game's
+     W-L is sent.
+
+Honesty: there is no live-prop history to backtest yet (pregame props lost money vs real lines), so alerts are
+labelled PAPER, show no hit-rate %, and stay paper until 100+ graded recs beat 52.4% and positive ROI.
+`LIVE_PROPS_SEND=off` keeps everything silent (logged and graded only).
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import math
+import os
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+
+import numpy as np
+
+from .markets import american_to_prob, no_vig
+
+log = logging.getLogger(__name__)
+NAME = "Claude Prop 1"
+
+ODDS_KEYS = {"nfl": "americanfootball_nfl", "cfb": "americanfootball_ncaaf", "nba": "basketball_nba",
+             "wnba": "basketball_wnba", "ncaab": "basketball_ncaab", "ncaaw": "basketball_wncaab"}
+FOOTBALL = ("nfl", "cfb")
+
+
+@dataclass(frozen=True)
+class Spec:
+    key: str           # Odds API market key
+    label: str
+    group: str         # ESPN box-score group ("" for basketball)
+    stat: str          # ESPN label for the stat
+    usage: str         # ESPN label for the usage (opportunity) stat
+    unit: float        # average size of one event (yards per catch, points per basket, 1 for counts)
+    cv: float          # coefficient of variation of one event's size (0 = every event counts 1)
+    disp: float        # gamma-Poisson shape for the event count (lower = more overdispersed)
+    min_gap: float     # projection must clear the line by this much
+    script: float      # football: change in production per point of deficit (+ = trailing helps)
+
+
+FOOTBALL_SPECS = {
+    "player_pass_yds": Spec("player_pass_yds", "Passing yards", "passing", "YDS", "ATT", 11.5, 0.85, 8, 12.0, 0.010),
+    "player_rush_yds": Spec("player_rush_yds", "Rushing yards", "rushing", "YDS", "CAR", 4.3, 1.4, 8, 6.0, -0.012),
+    "player_reception_yds": Spec("player_reception_yds", "Receiving yards", "receiving", "YDS", "TGTS", 11.0, 0.9, 8, 7.0, 0.008),
+    "player_receptions": Spec("player_receptions", "Receptions", "receiving", "REC", "TGTS", 1.0, 0.0, 10, 1.0, 0.008),
+}
+BASKETBALL_SPECS = {
+    "player_points": Spec("player_points", "Points", "", "PTS", "MIN", 2.1, 0.35, 15, 2.0, 0.0),
+    "player_rebounds": Spec("player_rebounds", "Rebounds", "", "REB", "MIN", 1.0, 0.0, 15, 1.0, 0.0),
+    "player_assists": Spec("player_assists", "Assists", "", "AST", "MIN", 1.0, 0.0, 12, 1.0, 0.0),
+    "player_threes": Spec("player_threes", "Made threes", "", "3PT", "MIN", 1.0, 0.0, 10, 0.7, 0.0),
+}
+
+# minutes in regulation, league team plays (football) / possessions (basketball) per game, foul-out count
+GAME = {"nfl": (60, 62.0, None), "cfb": (60, 70.0, None), "nba": (48, 99.0, 6), "wnba": (40, 80.0, 6),
+        "ncaab": (40, 68.0, 5), "ncaaw": (40, 70.0, 5)}
+PRIOR_PLAYS = {"nfl": 30.0, "cfb": 30.0, "nba": 40.0, "wnba": 35.0, "ncaab": 30.0, "ncaaw": 30.0}  # weight of the pregame rate
+PACE_PRIOR = {"nfl": 40.0, "cfb": 40.0, "nba": 60.0, "wnba": 50.0, "ncaab": 40.0, "ncaaw": 40.0}  # weight of the league pace
+
+
+def specs(sport: str) -> dict[str, Spec]:
+    return FOOTBALL_SPECS if sport in FOOTBALL else BASKETBALL_SPECS
+
+
+def _env(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
+# ---------------------------------------------------------------- box score
+
+
+def _num(raw, part: int = 0) -> float | None:
+    """'12/17' -> 12 (part 0) or 17 (part 1); '2-5' the same; '35' -> 35."""
+    s = str(raw).strip()
+    for sep in ("/", "-"):
+        if sep in s[1:]:
+            bits = s.split(sep)
+            s = bits[part] if part < len(bits) else bits[0]
+            break
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def parse_box(summary: dict) -> dict:
+    """{'players': {name: {'team': str, 'stats': {group: {label: value}}}}, 'teams': {team: {...}}}.
+    Made-attempt cells ('12/17', '2-5') give the made count under the label and attempts under '<label>_ATT';
+    passing C/ATT also gives 'ATT'."""
+    players: dict[str, dict] = {}
+    box = summary.get("boxscore") or {}
+    for team in box.get("players", []):
+        tname = (team.get("team") or {}).get("displayName", "")
+        for grp in team.get("statistics", []):
+            gname = str(grp.get("name") or "").lower()
+            labels = [str(x).upper() for x in grp.get("labels", [])]
+            for a in grp.get("athletes", []):
+                who = (a.get("athlete") or {}).get("displayName")
+                if not who or a.get("didNotPlay"):
+                    continue
+                vals: dict[str, float] = {}
+                for label, raw in zip(labels, a.get("stats", [])):
+                    made, att = _num(raw, 0), _num(raw, 1)
+                    if made is None:
+                        continue
+                    vals[label] = made
+                    if ("/" in str(raw) or "-" in str(raw)[1:]) and att is not None:
+                        vals[f"{label}_ATT"] = att
+                if "C/ATT" in vals:
+                    vals["ATT"] = vals.get("C/ATT_ATT", 0.0)
+                rec = players.setdefault(who, {"team": tname, "stats": {}})
+                rec["stats"].setdefault(gname, {}).update(vals)
+    teams: dict[str, dict[str, float]] = {}
+    for t in box.get("teams", []):
+        tname = (t.get("team") or {}).get("displayName", "")
+        vals = {}
+        for s in t.get("statistics", []):
+            name, raw = s.get("name", ""), s.get("displayValue", "")
+            if "-" in name:  # 'fieldGoalsMade-fieldGoalsAttempted'
+                a, b = name.split("-", 1)
+                if _num(raw, 0) is not None:
+                    vals[a], vals[b] = _num(raw, 0), _num(raw, 1)
+            elif name == "completionAttempts":
+                vals["completions"], vals["passAttempts"] = _num(raw, 0), _num(raw, 1)
+            elif name == "sacksYardsLost":
+                vals["sacks"] = _num(raw, 0)
+            elif _num(raw) is not None:
+                vals[name] = _num(raw)
+        teams[tname] = vals
+    return {"players": players, "teams": teams}
+
+
+def team_plays(sport: str, t: dict) -> float:
+    """Offensive plays (football) or possessions (basketball) so far for one team."""
+    if sport in FOOTBALL:
+        if t.get("totalOffensivePlays"):
+            return float(t["totalOffensivePlays"])
+        return float((t.get("rushingAttempts") or 0) + (t.get("passAttempts") or 0) + (t.get("sacks") or 0))
+    fga, fta = t.get("fieldGoalsAttempted") or 0, t.get("freeThrowsAttempted") or 0
+    orb = t.get("offensiveRebounds") or 0
+    tov = t.get("totalTurnovers") or t.get("turnovers") or 0
+    return float(max(fga + 0.44 * fta - orb + tov, 0))
+
+
+def stat_value(sport: str, spec: Spec, player: dict) -> tuple[float | None, float]:
+    """(stat so far, usage so far) for one player from parse_box output."""
+    st = player.get("stats", {})
+    if sport in FOOTBALL:
+        g = st.get(spec.group, {})
+        return g.get(spec.stat), float(g.get(spec.usage) or 0)
+    g = next(iter(st.values()), {}) if st else {}
+    return g.get(spec.stat), float(g.get("MIN") or 0)
+
+
+# ---------------------------------------------------------------- projection
+
+
+@dataclass
+class PropState:
+    sport: str
+    market: str
+    player: str
+    so_far: float
+    anchor: float          # pregame full-game expectation (Marv projection or pregame line)
+    elapsed: float         # game minutes played
+    team_plays: float      # player's team plays / possessions so far
+    margin: float = 0.0    # player's team score minus opponent's
+    fouls: float = 0.0
+    minutes: float = 0.0   # basketball: player minutes so far
+    usage: float = 0.0
+    extra: dict = field(default_factory=dict)
+
+
+def project(st: PropState) -> dict:
+    """Mean of the stat over the rest of the game and the pieces that went into it."""
+    spec = specs(st.sport)[st.market]
+    total_min, league_plays, foul_out = GAME[st.sport]
+    left = max(total_min - st.elapsed, 0.0)
+    if left <= 0:
+        return {"rem_mean": 0.0, "final_mean": st.so_far, "pace": 1.0, "script": 1.0, "left": 0.0}
+    league_rate = league_plays / total_min  # plays per minute
+    # This game's pace for the player's team, shrunk towards the league norm by how many plays we've seen.
+    obs_rate = st.team_plays / st.elapsed if st.elapsed > 0 else league_rate
+    k = PACE_PRIOR[st.sport]
+    pace_rate = (k * league_rate + st.team_plays * obs_rate) / (k + st.team_plays) if st.team_plays > 0 else league_rate
+    pace = min(max(pace_rate / league_rate, 0.75), 1.3)
+    # Production per team play: pregame anchor (per league play) blended with what he's done per play so far.
+    pre_pp = st.anchor / league_plays
+    live_pp = st.so_far / st.team_plays if st.team_plays > 0 else pre_pp
+    w = PRIOR_PLAYS[st.sport]
+    per_play = (w * pre_pp + st.team_plays * live_pp) / (w + st.team_plays) if st.team_plays > 0 else pre_pp
+    rem_plays = left * pace_rate
+    script = 1.0
+    frac_left = left / total_min
+    if st.sport in FOOTBALL:
+        deficit = max(min(-st.margin, 21), -21)
+        script = 1 + spec.script * deficit * (1.5 - frac_left)  # script matters more late
+        if st.margin >= 24 and frac_left <= 0.25:
+            script *= 0.55  # rout: starters rest
+    else:
+        if abs(st.margin) >= 15 and frac_left <= 0.5:
+            script *= max(0.55, 1 - 0.03 * (abs(st.margin) - 12) * (1.2 - frac_left))  # blowout minutes
+        if foul_out and st.fouls >= foul_out:
+            script = 0.0
+        elif foul_out and st.fouls == foul_out - 1:
+            script *= 0.7
+        elif foul_out and st.fouls == foul_out - 2 and frac_left > 0.4:
+            script *= 0.88
+    script = max(script, 0.0)
+    rem = max(per_play * rem_plays * script, 0.0)
+    return {"rem_mean": rem, "final_mean": st.so_far + rem, "pace": round(pace, 3), "script": round(script, 3),
+            "left": left, "per_play": per_play}
+
+
+def p_over(sport: str, market: str, so_far: float, rem_mean: float, line: float, n: int = 20000,
+           seed: int = 7) -> tuple[float, float]:
+    """(P(final > line), P(push)) from a compound Poisson-gamma Monte Carlo of the remaining production."""
+    spec = specs(sport)[market]
+    need = line - so_far
+    if need < 0:
+        return 1.0, 0.0
+    if rem_mean <= 1e-9:
+        return 0.0, float(need == 0)
+    rng = np.random.default_rng(seed)
+    lam = rng.gamma(spec.disp, rem_mean / spec.unit / spec.disp, n)
+    events = rng.poisson(lam)
+    if spec.cv > 0:
+        shape = 1 / spec.cv ** 2
+        tot = np.where(events > 0, rng.gamma(np.maximum(events, 1) * shape, spec.unit / shape), 0.0)
+        if sport not in FOOTBALL:  # points come in whole numbers
+            tot = np.round(tot)
+    else:
+        tot = events.astype(float)
+    over = float((tot > need).mean())
+    push = float((tot == need).mean()) if float(need).is_integer() else 0.0
+    return over, push
+
+
+def payout(price: float) -> float:
+    return price / 100 if price > 0 else 100 / -price
+
+
+def evaluate(st: PropState, line: float, over_price: float | None, under_price: float | None) -> dict | None:
+    """Fair probability, no-vig market probability, edge and EV for both sides; picks the better side."""
+    if over_price is None or under_price is None:
+        return None
+    pr = project(st)
+    po, push = p_over(st.sport, st.market, st.so_far, pr["rem_mean"], line)
+    pu = max(1 - po - push, 0.0)
+    m_over, m_under = no_vig(over_price, under_price)
+    rows = []
+    for side, p, mkt, price in (("Over", po, m_over, over_price), ("Under", pu, m_under, under_price)):
+        ev = p * payout(price) - (1 - p - push)
+        rows.append({"side": side, "p": p, "market_p": mkt, "edge": p - mkt, "ev": ev, "price": price})
+    best = max(rows, key=lambda r: r["ev"])
+    return {**best, "line": line, "proj": pr["final_mean"], "rem": pr["rem_mean"], "pace": pr["pace"],
+            "script": pr["script"], "left": pr["left"], "p_over": po, "push": push, "so_far": st.so_far,
+            "anchor": st.anchor}
+
+
+def qualifies(ev: dict, sport: str, market: str) -> tuple[bool, str]:
+    """The recommendation gate. Returns (ok, reason when not)."""
+    spec = specs(sport)[market]
+    min_edge, min_ev = _env("LIVE_PROP_MIN_EDGE", 0.07), _env("LIVE_PROP_MIN_EV", 0.04)
+    gap = ev["proj"] - ev["line"] if ev["side"] == "Over" else ev["line"] - ev["proj"]
+    total_min = GAME[sport][0]
+    if ev["left"] < (6 if sport in FOOTBALL else 4) or ev["left"] > total_min * 0.8:
+        return False, "too early/late"
+    if ev["so_far"] > ev["line"] and ev["side"] == "Over":
+        return False, "already over"
+    if not -200 <= ev["price"] <= 180:
+        return False, "price out of range"
+    if ev["edge"] < min_edge:
+        return False, "edge"
+    if ev["ev"] < min_ev:
+        return False, "ev"
+    if gap < spec.min_gap:
+        return False, "gap"
+    if ev["p"] < 0.55:
+        return False, "probability"
+    return True, ""
+
+
+# ---------------------------------------------------------------- odds + anchors
+
+
+def bovada_lines(event_odds: dict, book: str = "bovada", max_age: float | None = None,
+                 now: datetime | None = None) -> list[dict]:
+    """One row per player/market from the book's live props (two-sided only, fresh only)."""
+    max_age = _env("LIVE_PROP_MAX_AGE", 180) if max_age is None else max_age
+    now = now or datetime.now(timezone.utc)
+    out = []
+    for b in event_odds.get("bookmakers", []):
+        if b.get("key") != book:
+            continue
+        for m in b.get("markets", []):
+            upd = m.get("last_update")
+            age = None
+            if upd:
+                try:
+                    age = (now - datetime.fromisoformat(upd.replace("Z", "+00:00"))).total_seconds()
+                except ValueError:
+                    age = None
+            if max_age and age is not None and age > max_age:
+                continue
+            by: dict[tuple, dict] = {}
+            for o in m.get("outcomes", []):
+                if o.get("name") in ("Over", "Under") and o.get("description") and o.get("point") is not None:
+                    r = by.setdefault((o["description"], float(o["point"])), {})
+                    r[o["name"].lower()] = o.get("price")
+            for (player, line), r in by.items():
+                if "over" in r and "under" in r:
+                    out.append({"player": player, "market": m["key"], "line": line, "over": r["over"],
+                                "under": r["under"], "age": age})
+    return out
+
+
+def _norm(name: str) -> str:
+    from .props.odds import norm_name
+    return norm_name(name)
+
+
+def anchors(state_dir: Path, sport: str, event_id: str | None = None) -> dict[tuple[str, str], float]:
+    """{(normalised player, market): pregame expectation}: pregame Bovada line captured before kickoff,
+    overridden by Marv's own pregame projection when the daily props run priced the player."""
+    out: dict[tuple[str, str], float] = {}
+    pre = state_dir / "live_props" / "pregame_lines.json"
+    if pre.exists():
+        try:
+            data = json.loads(pre.read_text())
+        except json.JSONDecodeError:
+            data = {}
+        for ev_id, rows in data.items():
+            if event_id and ev_id != event_id:
+                continue
+            for r in rows.get("lines", []):
+                out[(_norm(r["player"]), r["market"])] = float(r["line"])
+    f = state_dir / f"props_priced_{sport}.json"
+    if f.exists():
+        try:
+            for r in json.loads(f.read_text()):
+                if r.get("proj") is not None and r.get("market"):
+                    out[(_norm(r["player"]), r["market"])] = float(r["proj"])
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+            pass
+    return out
+
+
+def save_pregame(state_dir: Path, event: dict, lines: list[dict]) -> None:
+    path = state_dir / "live_props" / "pregame_lines.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = json.loads(path.read_text()) if path.exists() else {}
+    data[event["id"]] = {"game": f"{event.get('away_team')} @ {event.get('home_team')}",
+                         "commence": event.get("commence_time"), "lines": lines}
+    keep = sorted(data.items(), key=lambda kv: kv[1].get("commence") or "")[-300:]
+    path.write_text(json.dumps(dict(keep)))
+
+
+# ---------------------------------------------------------------- scan one game
+
+
+def scan_game(sport: str, summary: dict, event_odds: dict, anchor: dict, game_minutes_elapsed: float,
+              home: str, away: str, home_score: float, away_score: float, prev_usage: dict | None = None,
+              now: datetime | None = None) -> tuple[list[dict], list[dict]]:
+    """(every priced prop, recommendations) for one live game."""
+    from .data.teams import similarity
+    box = parse_box(summary)
+    teams = box["teams"]
+    sp = specs(sport)
+    priced, recs = [], []
+    by_player = {_norm(n): (n, p) for n, p in box["players"].items()}
+    for row in bovada_lines(event_odds, now=now):
+        if row["market"] not in sp:
+            continue
+        hit = by_player.get(_norm(row["player"]))
+        a = anchor.get((_norm(row["player"]), row["market"]))
+        if not hit or a is None:
+            continue
+        name, pl = hit
+        so_far, usage = stat_value(sport, sp[row["market"]], pl)
+        if so_far is None:
+            so_far = 0.0
+        is_home = similarity(pl["team"], home) >= similarity(pl["team"], away)
+        margin = (home_score - away_score) * (1 if is_home else -1)
+        tstats = next((v for k, v in teams.items() if similarity(k, pl["team"]) >= 0.75), {})
+        plays = team_plays(sport, tstats) or GAME[sport][1] * game_minutes_elapsed / GAME[sport][0]
+        bstats = next(iter(pl["stats"].values()), {}) if sport not in FOOTBALL else {}
+        st = PropState(sport, row["market"], row["player"], float(so_far), a, game_minutes_elapsed, plays, margin,
+                       fouls=float(bstats.get("PF") or 0), minutes=float(bstats.get("MIN") or 0), usage=usage)
+        ev = evaluate(st, row["line"], row["over"], row["under"])
+        if not ev:
+            continue
+        ok, why = qualifies(ev, sport, row["market"])
+        # No usage since the last break while his team kept playing = possibly hurt / benched: never recommend.
+        key = f"{_norm(row['player'])}|{row['market']}"
+        if ok and prev_usage is not None and key in prev_usage and usage <= prev_usage[key] \
+                and game_minutes_elapsed - prev_usage.get("_elapsed", 0) >= GAME[sport][0] / 8:
+            ok, why = False, "no usage since last break"
+        if ok and usage <= 0:
+            ok, why = False, "no usage yet"
+        if prev_usage is not None:
+            prev_usage[key] = usage
+        out = {"player": row["player"], "team": pl["team"], "market": row["market"],
+               "label": sp[row["market"]].label, "age": row["age"], "usage": usage, **ev,
+               "recommended": ok, "reason": why}
+        priced.append(out)
+        if ok:
+            recs.append(out)
+    if prev_usage is not None:
+        prev_usage["_elapsed"] = game_minutes_elapsed
+    recs.sort(key=lambda r: -r["ev"])
+    picked, seen = [], set()
+    for r in recs:
+        if r["player"] in seen:
+            continue
+        seen.add(r["player"])
+        picked.append(r)
+        if len(picked) >= int(_env("LIVE_PROP_MAX_PER_GAME", 3)):
+            break
+    return priced, picked
+
+
+# ---------------------------------------------------------------- messages
+
+
+def _price(p: float) -> str:
+    return f"{p:+.0f}"
+
+
+def alert_text(sport: str, game_label: str, period_label: str, score: str, recs: list[dict]) -> str:
+    lines = [f"🎯 <b>{NAME.upper()} · live props · Bovada</b> · {sport.upper()} · PAPER",
+             f"{game_label} · {period_label} · {score}"]
+    for r in recs:
+        lines.append(f"• <b>{r['player']}</b> {r['side']} {r['line']:g} {r['label'].lower()} ({_price(r['price'])})"
+                     f"\n   has {r['so_far']:g} · Marv proj {r['proj']:.1f} · fair {r['p']:.0%} vs Bovada "
+                     f"{r['market_p']:.0%} · edge {r['edge']:+.0%} · pace x{r['pace']:.2f}"
+                     + (f" · script x{r['script']:.2f}" if abs(r['script'] - 1) >= 0.03 else ""))
+    lines.append("<i>Paper: live props are untested vs real results. Line may move; only bet the number shown or better.</i>")
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------- ledger + grading
+
+
+def _dir(state_dir: Path) -> Path:
+    d = Path(state_dir) / "live_props"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def log_shadow(state_dir: Path, sport: str, game_id: str, period: str, priced: list[dict]) -> None:
+    at = datetime.now(timezone.utc).isoformat()
+    with (_dir(state_dir) / "shadow.jsonl").open("a") as fh:
+        for r in priced:
+            fh.write(json.dumps({"at": at, "sport": sport, "game_id": game_id, "period": period,
+                                 **{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items()}}) + "\n")
+
+
+def _recs_path(state_dir: Path) -> Path:
+    return _dir(state_dir) / "recs.json"
+
+
+def load_recs(state_dir: Path) -> list[dict]:
+    p = _recs_path(state_dir)
+    return json.loads(p.read_text()) if p.exists() else []
+
+
+def save_recs(state_dir: Path, book: list[dict]) -> None:
+    _recs_path(state_dir).write_text(json.dumps(book[-5000:], indent=1))
+
+
+def record_recs(state_dir: Path, sport: str, game_id: str, game_label: str, period: str, recs: list[dict]) -> list[dict]:
+    """Adds recs not already sent for this game (same player/market/side); returns the new ones."""
+    book = load_recs(state_dir)
+    seen = {(b["game_id"], _norm(b["player"]), b["market"], b["side"]) for b in book}
+    new = [r for r in recs if (str(game_id), _norm(r["player"]), r["market"], r["side"]) not in seen]
+    at = datetime.now(timezone.utc).isoformat()
+    for r in new:
+        book.append({"at": at, "sport": sport, "game_id": str(game_id), "game": game_label, "period": period,
+                     "player": r["player"], "market": r["market"], "label": r["label"], "side": r["side"],
+                     "line": r["line"], "price": r["price"], "p": round(r["p"], 4), "market_p": round(r["market_p"], 4),
+                     "edge": round(r["edge"], 4), "so_far": r["so_far"], "proj": round(r["proj"], 2),
+                     "result": None})
+    if new:
+        save_recs(state_dir, book)
+    return new
+
+
+def grade_result(side: str, line: float, final: float) -> str:
+    if final == line:
+        return "push"
+    return "win" if (final > line) == (side == "Over") else "loss"
+
+
+def grade_game(state_dir: Path, sport: str, game_id: str, summary: dict) -> list[dict]:
+    """Grades this game's open recs against the final box score; returns the graded rows."""
+    book = load_recs(state_dir)
+    box = parse_box(summary)["players"]
+    by = {_norm(n): p for n, p in box.items()}
+    done = []
+    for b in book:
+        if b["game_id"] != str(game_id) or b.get("result"):
+            continue
+        pl = by.get(_norm(b["player"]))
+        if not pl:
+            b["result"] = "void"  # didn't play / not in the box: Bovada voids or grades by its own rule
+            done.append(b)
+            continue
+        val, _ = stat_value(sport, specs(sport)[b["market"]], pl)
+        b["final"] = float(val or 0)
+        b["result"] = grade_result(b["side"], b["line"], b["final"])
+        b["units"] = round(payout(b["price"]), 4) if b["result"] == "win" else (-1.0 if b["result"] == "loss" else 0.0)
+        done.append(b)
+    if done:
+        save_recs(state_dir, book)
+    return done
+
+
+def record(state_dir: Path, sport: str | None = None) -> dict:
+    rows = [b for b in load_recs(state_dir) if b.get("result") in ("win", "loss", "push") and (not sport or b["sport"] == sport)]
+    w = sum(b["result"] == "win" for b in rows)
+    l = sum(b["result"] == "loss" for b in rows)
+    units = sum(b.get("units", 0) for b in rows)
+    staked = w + l
+    return {"n": len(rows), "wins": w, "losses": l, "pushes": len(rows) - w - l,
+            "win_rate": w / staked if staked else None, "units": round(units, 2), "roi": units / staked if staked else None,
+            "proven": staked >= 100 and w / staked > 0.524 and units > 0}
+
+
+def final_text(game_label: str, graded: list[dict], rec: dict) -> str:
+    lines = [f"🎯 <b>{NAME.upper()} · final</b> · {game_label}"]
+    icon = {"win": "✅", "loss": "❌", "push": "➖", "void": "⚪"}
+    for b in graded:
+        lines.append(f"{icon.get(b['result'], '?')} {b['player']} {b['side']} {b['line']:g} {b['label'].lower()}"
+                     + (f" · final {b['final']:g}" if b.get("final") is not None else " · void"))
+    if rec["n"]:
+        lines.append(f"{NAME} record (paper): {rec['wins']}-{rec['losses']}" + (f"-{rec['pushes']}" if rec["pushes"] else "")
+                     + f" · {rec['units']:+.2f}u")
+    return "\n".join(lines)
+
+
+def report(state_dir: Path) -> str:
+    out = [f"{NAME} (live props, paper) record"]
+    for sport in (None, "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"):
+        r = record(state_dir, sport)
+        if sport and not r["n"]:
+            continue
+        wr = f"{r['win_rate']:.1%}" if r["win_rate"] is not None else "-"
+        roi = f"{r['roi']:+.1%}" if r["roi"] is not None else "-"
+        out.append(f"  {(sport or 'all'):6s} {r['wins']}-{r['losses']}-{r['pushes']}  win {wr}  {r['units']:+.2f}u  ROI {roi}"
+                   + ("  PROVEN BAR MET" if r["proven"] else ""))
+    out.append("Bar before this is more than paper: 100+ graded, win rate > 52.4%, positive ROI.")
+    return "\n".join(out)
+
+
+# ---------------------------------------------------------------- live-monitor hook
+
+
+class Runner:
+    """Fetches Bovada live props for a game at a break, scans, logs, sends. Keeps a daily Odds API credit cap."""
+
+    def __init__(self, settings, client):
+        self.s, self.client = settings, client
+        self.dir = _dir(Path(settings.state_dir))
+
+    def enabled(self, sport: str) -> bool:
+        on = os.environ.get("LIVE_PROPS_ENGINE", "on").lower() not in ("0", "off", "false", "no")
+        return on and bool(self.s.odds_api_key) and sport in ODDS_KEYS
+
+    def _budget_ok(self, cost: int) -> bool:
+        p = self.dir / "credits.json"
+        today = datetime.now(timezone.utc).date().isoformat()
+        data = json.loads(p.read_text()) if p.exists() else {}
+        used = data.get(today, 0)
+        if used + cost > int(_env("LIVE_PROPS_MAX_CREDITS", 600)):
+            return False
+        p.write_text(json.dumps({today: used + cost}))
+        return True
+
+    def _event(self, sport: str, home: str, away: str) -> dict | None:
+        from .live_props import _event_for
+        from .props import odds as O
+        return _event_for(O.events(self.s.odds_api_key, ODDS_KEYS[sport]), home, away)
+
+    def _odds(self, sport: str, event_id: str) -> dict:
+        from .props import odds as O
+        return O.event_props(self.s.odds_api_key, ODDS_KEYS[sport], event_id, list(specs(sport)), "bovada")
+
+    def capture_pregame(self, sport: str, home: str, away: str) -> int:
+        """Before kickoff: save Bovada's pregame lines as the anchor for players Marv didn't project."""
+        if not self._budget_ok(len(specs(sport))):
+            return 0
+        ev = self._event(sport, home, away)
+        if not ev:
+            return 0
+        rows = bovada_lines(self._odds(sport, ev["id"]), max_age=0)
+        lines = [{"player": r["player"], "market": r["market"], "line": r["line"]} for r in rows]
+        if lines:
+            save_pregame(Path(self.s.state_dir), ev, lines)
+        return len(lines)
+
+    def on_period(self, sport: str, game, elapsed: float, period_label: str, mem: dict, send, summary_path: str) -> int:
+        """Called at a break. `mem` is this game's live-monitor state dict (persists usage between breaks)."""
+        if not self._budget_ok(len(specs(sport))):
+            log.info("live props: daily credit cap reached")
+            return 0
+        ev = self._event(sport, game.home, game.away)
+        if not ev:
+            return 0
+        state_dir = Path(self.s.state_dir)
+        summary = self.client.summary(summary_path, str(game.id))
+        odds = self._odds(sport, ev["id"])
+        hs, as_ = float(game.info.get("live_home") or 0), float(game.info.get("live_away") or 0)
+        usage = mem.setdefault("prop_usage", {})
+        priced, recs = scan_game(sport, summary, odds, anchors(state_dir, sport, ev["id"]), elapsed,
+                                 game.home, game.away, hs, as_, usage)
+        log_shadow(state_dir, sport, str(game.id), period_label, priced)
+        label = f"{game.away} @ {game.home}"
+        new = record_recs(state_dir, sport, str(game.id), label, period_label, recs)
+        mem["prop_recs"] = mem.get("prop_recs", 0) + len(new)
+        if new and os.environ.get("LIVE_PROPS_SEND", "on").lower() not in ("0", "off", "false", "no"):
+            send(alert_text(sport, label, period_label, f"{game.away} {as_:.0f} – {hs:.0f} {game.home}", new))
+            return 1
+        return 0
+
+    def on_final(self, sport: str, game, send, summary_path: str) -> int:
+        state_dir = Path(self.s.state_dir)
+        if not any(b["game_id"] == str(game.id) and not b.get("result") for b in load_recs(state_dir)):
+            return 0
+        graded = grade_game(state_dir, sport, str(game.id), self.client.summary(summary_path, str(game.id)))
+        if graded and os.environ.get("LIVE_PROPS_SEND", "on").lower() not in ("0", "off", "false", "no"):
+            send(final_text(f"{game.away} {float(game.away_score):.0f} – {float(game.home_score):.0f} {game.home}",
+                            graded, record(state_dir)))
+            return 1
+        return 0
+
+
+def elapsed_minutes(sport: str, ended_period: int) -> float:
+    from .live_monitor import STRUCTURE
+    n, length, _, _ = STRUCTURE[sport]
+    return float(min(ended_period, n) * length)
+
+
+def summary_path(sport: str) -> str:
+    from .live_monitor import STRUCTURE
+    return STRUCTURE[sport][3]
+
+=================== tests/test_live_prop_engine.py ===================
+import os
+import tempfile
+import unittest
+from datetime import datetime, timezone
+from pathlib import Path
+from unittest import mock
+
+from marv import live_prop_engine as E
+
+NOW = datetime(2026, 11, 8, 19, 0, tzinfo=timezone.utc)
+FRESH = "2026-11-08T18:59:00Z"
+
+
+def nfl_summary(rec_yds="40", rec="3", tgts="5", plays="30"):
+    return {"boxscore": {
+        "players": [{"team": {"displayName": "Dallas Cowboys"}, "statistics": [
+            {"name": "passing", "labels": ["C/ATT", "YDS", "AVG", "TD", "INT"], "athletes": [
+                {"athlete": {"displayName": "Dak Prescott"}, "stats": ["12/17", "151", "8.9", "1", "0"]}]},
+            {"name": "receiving", "labels": ["REC", "YDS", "AVG", "TD", "LONG", "TGTS"], "athletes": [
+                {"athlete": {"displayName": "CeeDee Lamb"}, "stats": [rec, rec_yds, "12.4", "0", "28", tgts]}]}]}],
+        "teams": [{"team": {"displayName": "Dallas Cowboys"}, "statistics": [
+            {"name": "totalOffensivePlays", "displayValue": plays},
+            {"name": "completionAttempts", "displayValue": "12-17"}]},
+            {"team": {"displayName": "New York Giants"}, "statistics": [
+                {"name": "totalOffensivePlays", "displayValue": "28"}]}]}}
+
+
+def odds(line=60.5, over=-115, under=-115, upd=FRESH, player="CeeDee Lamb", market="player_reception_yds"):
+    return {"bookmakers": [{"key": "bovada", "markets": [{"key": market, "last_update": upd, "outcomes": [
+        {"name": "Over", "description": player, "point": line, "price": over},
+        {"name": "Under", "description": player, "point": line, "price": under}]}]}]}
+
+
+class ParseTests(unittest.TestCase):
+    def test_box_made_attempts_and_team_plays(self):
+        box = E.parse_box(nfl_summary())
+        dak = box["players"]["Dak Prescott"]["stats"]["passing"]
+        self.assertEqual((dak["C/ATT"], dak["ATT"], dak["YDS"]), (12.0, 17.0, 151.0))
+        self.assertEqual(E.team_plays("nfl", box["teams"]["Dallas Cowboys"]), 30.0)
+
+    def test_basketball_possessions(self):
+        t = {"fieldGoalsAttempted": 40, "freeThrowsAttempted": 10, "offensiveRebounds": 5, "totalTurnovers": 7}
+        self.assertAlmostEqual(E.team_plays("nba", t), 46.4)
+
+    def test_stale_and_one_sided_lines_dropped(self):
+        self.assertEqual(len(E.bovada_lines(odds(), now=NOW)), 1)
+        self.assertEqual(E.bovada_lines(odds(upd="2026-11-08T18:40:00Z"), now=NOW), [])
+        one = odds()
+        one["bookmakers"][0]["markets"][0]["outcomes"].pop()
+        self.assertEqual(E.bovada_lines(one, now=NOW), [])
+        self.assertEqual(E.bovada_lines({"bookmakers": [{**odds()["bookmakers"][0], "key": "fanduel"}]}, now=NOW), [])
+
+
+class ProjectionTests(unittest.TestCase):
+    def st(self, **kw):
+        base = dict(sport="nfl", market="player_reception_yds", player="X", so_far=40.0, anchor=70.0,
+                    elapsed=30.0, team_plays=31.0)
+        base.update(kw)
+        return E.PropState(**base)
+
+    def test_faster_pace_projects_more(self):
+        # same production per play; the faster game has more plays left to produce in
+        slow, fast = E.project(self.st(team_plays=24, so_far=24.0)), E.project(self.st(team_plays=40, so_far=40.0))
+        self.assertGreater(fast["rem_mean"], slow["rem_mean"])
+        self.assertGreater(fast["pace"], 1.0)
+
+    def test_trailing_team_passes_more_and_rout_rests_starters(self):
+        trail = E.project(self.st(margin=-14))["rem_mean"]
+        lead = E.project(self.st(margin=14))["rem_mean"]
+        self.assertGreater(trail, lead)
+        rush_trail = E.project(self.st(market="player_rush_yds", margin=-14))["rem_mean"]
+        rush_lead = E.project(self.st(market="player_rush_yds", margin=14))["rem_mean"]
+        self.assertLess(rush_trail, rush_lead)
+        rout = E.project(self.st(margin=28, elapsed=48))
+        self.assertLess(rout["script"], 0.7)
+
+    def test_basketball_foul_out_and_blowout(self):
+        b = dict(sport="nba", market="player_points", so_far=14, anchor=24, elapsed=36, team_plays=75)
+        self.assertEqual(E.project(self.st(**b, fouls=6))["rem_mean"], 0.0)
+        self.assertLess(E.project(self.st(**b, fouls=5))["rem_mean"], E.project(self.st(**b))["rem_mean"])
+        self.assertLess(E.project(self.st(**b, margin=25))["rem_mean"], E.project(self.st(**b, margin=3))["rem_mean"])
+
+    def test_p_over_monotone_and_bounded(self):
+        hi = E.p_over("nfl", "player_reception_yds", 40, 30, 55.5)[0]
+        lo = E.p_over("nfl", "player_reception_yds", 40, 30, 85.5)[0]
+        self.assertGreater(hi, lo)
+        self.assertEqual(E.p_over("nfl", "player_reception_yds", 60, 0, 55.5)[0], 1.0)
+        self.assertEqual(E.p_over("nfl", "player_reception_yds", 40, 0, 55.5)[0], 0.0)
+        # receptions: integer line has a push mass
+        _, push = E.p_over("nfl", "player_receptions", 3, 2.5, 5)
+        self.assertGreater(push, 0.1)
+
+    def test_mean_of_simulation_matches_projection(self):
+        import numpy as np
+        rng = np.random.default_rng(1)
+        spec = E.specs("nfl")["player_reception_yds"]
+        lam = rng.gamma(spec.disp, 30 / spec.unit / spec.disp, 50000)
+        n = rng.poisson(lam)
+        shape = 1 / spec.cv ** 2
+        tot = np.where(n > 0, rng.gamma(np.maximum(n, 1) * shape, spec.unit / shape), 0)
+        self.assertAlmostEqual(float(tot.mean()), 30, delta=1.0)
+
+
+class ScanTests(unittest.TestCase):
+    def test_soft_line_recommended_fair_line_not(self):
+        # Lamb: 40 yds on 5 targets at the half, pregame 70; Bovada hangs 55.5 -> clear Over
+        priced, recs = E.scan_game("nfl", nfl_summary(), odds(line=55.5), {("ceedee lamb", "player_reception_yds"): 70.0},
+                                   30.0, "Dallas Cowboys", "New York Giants", 14, 10, now=NOW)
+        self.assertEqual(len(recs), 1)
+        r = recs[0]
+        self.assertEqual(r["side"], "Over")
+        self.assertGreater(r["edge"], 0.07)
+        # a line at Marv's projection: no recommendation
+        pr = priced[0]["proj"]
+        _, recs2 = E.scan_game("nfl", nfl_summary(), odds(line=round(pr) + 0.5), {("ceedee lamb", "player_reception_yds"): 70.0},
+                               30.0, "Dallas Cowboys", "New York Giants", 14, 10, now=NOW)
+        self.assertEqual(recs2, [])
+
+    def test_no_anchor_no_price_and_no_usage_blocked(self):
+        priced, _ = E.scan_game("nfl", nfl_summary(), odds(line=55.5), {}, 30.0, "Dallas Cowboys", "New York Giants", 14, 10, now=NOW)
+        self.assertEqual(priced, [])
+        mem = {"_elapsed": 15.0, "ceedee lamb|player_reception_yds": 5.0}  # no new targets since the end of Q1
+        _, recs = E.scan_game("nfl", nfl_summary(), odds(line=55.5), {("ceedee lamb", "player_reception_yds"): 70.0},
+                              30.0, "Dallas Cowboys", "New York Giants", 14, 10, prev_usage=mem, now=NOW)
+        self.assertEqual(recs, [])
+
+    def test_gate_rejects_bad_prices_and_late(self):
+        ev = {"side": "Over", "p": 0.7, "market_p": 0.5, "edge": 0.2, "ev": 0.3, "price": -250, "line": 50.5,
+              "proj": 70, "left": 30, "so_far": 30}
+        self.assertEqual(E.qualifies(ev, "nfl", "player_reception_yds"), (False, "price out of range"))
+        self.assertEqual(E.qualifies({**ev, "price": -110, "left": 3}, "nfl", "player_reception_yds")[1], "too early/late")
+        self.assertTrue(E.qualifies({**ev, "price": -110}, "nfl", "player_reception_yds")[0])
+        with mock.patch.dict(os.environ, {"LIVE_PROP_MIN_EDGE": "0.25"}):
+            self.assertEqual(E.qualifies({**ev, "price": -110}, "nfl", "player_reception_yds")[1], "edge")
+
+
+class LedgerTests(unittest.TestCase):
+    def test_record_dedupe_grade_and_record(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            rec = {"player": "CeeDee Lamb", "market": "player_reception_yds", "label": "Receiving yards", "side": "Over",
+                   "line": 55.5, "price": -115, "p": 0.66, "market_p": 0.5, "edge": 0.16, "so_far": 40.0, "proj": 75.0}
+            self.assertEqual(len(E.record_recs(d, "nfl", "g1", "NYG @ DAL", "end of Q2", [rec])), 1)
+            self.assertEqual(E.record_recs(d, "nfl", "g1", "NYG @ DAL", "end of Q3", [rec]), [])  # never twice
+            graded = E.grade_game(d, "nfl", "g1", nfl_summary(rec_yds="81"))
+            self.assertEqual(graded[0]["result"], "win")
+            r = E.record(d)
+            self.assertEqual((r["wins"], r["losses"], r["proven"]), (1, 0, False))
+            self.assertIn("1-0", E.final_text("NYG 10 – 24 DAL", graded, r))
+            self.assertIn("all", E.report(d))
+
+    def test_anchor_prefers_marv_projection(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            E.save_pregame(d, {"id": "ev1", "commence_time": "2026-11-08T18:00:00Z"},
+                           [{"player": "CeeDee Lamb", "market": "player_reception_yds", "line": 72.5}])
+            self.assertEqual(E.anchors(d, "nfl", "ev1")[("ceedee lamb", "player_reception_yds")], 72.5)
+            (d / "props_priced_nfl.json").write_text('[{"player": "CeeDee Lamb", "market": "player_reception_yds", "proj": 66.0}]')
+            self.assertEqual(E.anchors(d, "nfl", "ev1")[("ceedee lamb", "player_reception_yds")], 66.0)
+
+    def test_alert_text_is_labelled_paper(self):
+        r = {"player": "CeeDee Lamb", "side": "Over", "line": 55.5, "label": "Receiving yards", "price": -115,
+             "so_far": 40.0, "proj": 75.0, "p": 0.66, "market_p": 0.5, "edge": 0.16, "pace": 1.05, "script": 1.0}
+        t = E.alert_text("nfl", "NYG @ DAL", "end of Q2", "NYG 10 – 14 DAL", [r])
+        self.assertIn("PAPER", t)
+        self.assertIn("CLAUDE PROP 1", t)
+        self.assertIn("Over 55.5", t)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+=================== marv/live_monitor.py (wiring diff) ===================
+diff --git a/marv/live_monitor.py b/marv/live_monitor.py
+index a62452e..07f6512 100644
+--- a/marv/live_monitor.py
++++ b/marv/live_monitor.py
+@@ -361,6 +361,13 @@ class LiveMonitor:
+                 log.warning("live odds %s: %s", key, exc)
+         return oddsapi.attach(games, events, book=self.s.odds_book) > 0
+ 
++    def _prop_engine(self, sport: str):
++        """The live prop engine for this sport, or None (no Odds API key, LIVE_PROPS_ENGINE=off, or unsupported)."""
++        from .live_prop_engine import Runner
++        if not hasattr(self, "_lpe"):
++            self._lpe = Runner(self.s, self.client)
++        return self._lpe if self._lpe.enabled(sport) else None
++
+     def tick(self, send) -> int:
+         """One pass over all live games; returns the number of updates sent."""
+         self._refresh_models()
+@@ -383,13 +390,25 @@ class LiveMonitor:
+                 log.warning("live scoreboard %s: %s", sport, exc)
+                 continue
+             active = [g for g in games if g.info.get("state") in ("in", "post")]
++            engine = self._prop_engine(sport)
++            if engine:  # pregame Bovada prop lines = the anchor for players Marv's daily props run didn't price
++                for g in games:
++                    pk = f"{sport}:{g.id}"
++                    try:
++                        if g.info.get("state") == "pre" and g.start and 0 <= (g.start - now).total_seconds() <= 2700 \
++                                and not state.get(pk, {}).get("prop_pregame"):
++                            state.setdefault(pk, {"reported": 0, "final": False})["prop_pregame"] = True
++                            engine.capture_pregame(sport, g.home, g.away)
++                    except Exception as exc:
++                        log.warning("live props pregame %s: %s", g.id, exc)
+             due = []
+             for g in active:
+                 key = f"{sport}:{g.id}"
+                 rec_state = state.setdefault(key, {"reported": 0, "final": False})
+                 rec_state["seen"] = now.isoformat()
+                 if g.info.get("state") == "post" or g.completed:
+-                    if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state["reported"] > 0) \
++                    if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state.get("prop_recs")
++                            or rec_state["reported"] > 0) \
+                             and not rec_state["final"]:
+                         due.append((g, rec_state["reported"], True))
+                     continue
+@@ -415,6 +434,23 @@ class LiveMonitor:
+                             live_props.record_period(self.s, g, ended, self.client)
+                     except Exception as exc:
+                         log.warning("live props record %s: %s", g.id, exc)
++            if engine:  # in-game props: price Bovada's live prop lines from pace + usage at every break
++                from . import live_prop_engine as LPE
++                for g, ended, final in due:
++                    mem = state[f"{sport}:{g.id}"]
++                    tag = "final" if final else ended
++                    if tag in mem.setdefault("prop_scanned", []):
++                        continue
++                    mem["prop_scanned"].append(tag)
++                    try:
++                        if final:
++                            sent += engine.on_final(sport, g, send, LPE.summary_path(sport))
++                        else:
++                            sent += engine.on_period(sport, g, LPE.elapsed_minutes(sport, ended),
++                                                     f"end of {period_name(sport, ended)}", mem, send,
++                                                     LPE.summary_path(sport))
++                    except Exception as exc:
++                        log.warning("live prop engine %s %s: %s", sport, g.id, exc)
+             live_prices = self._live_odds(sport, [g for g, _, _ in due])
+             # Proven-logic gate: live ML/O/U edges are untested against live prices, so in a gated sport they are
+             # logged and graded silently unless PROVEN_GATE_LIVE_SEND=on (then sent without a %).
+diff --git a/marv/main.py b/marv/main.py
+index 9960d5f..9b33ad1 100644
+--- a/marv/main.py
++++ b/marv/main.py
+@@ -694,6 +694,58 @@ def cmd_live_props_probe(s: Settings, args) -> int:
+     return 0
+ 
+ 
++def cmd_live_props(s: Settings, args) -> int:
++    """In-game Bovada prop engine. `scan`: price every live game's Bovada props right now (pace + usage) and send
++    the recommendations (paper); `report`: the graded live-prop record."""
++    from . import live_prop_engine as LPE
++    from .data.espn import ESPNClient, parse_event
++    from .live_monitor import STRUCTURE, minutes_left, period_name
++    if args.action == "report":
++        print(LPE.report(Path(s.state_dir)))
++        return 0
++    if not s.odds_api_key:
++        print("Set ODDS_API_KEY first.")
++        return 1
++    client, now = ESPNClient(), datetime.now(timezone.utc)
++    run = LPE.Runner(s, client)
++    sports = list(LPE.ODDS_KEYS) if args.sport == "all" else [args.sport]
++    for sport in sports:
++        path = STRUCTURE[sport][3]
++        games = [g for g in (parse_event(e, sport) for e in client.scoreboard(path, now - timedelta(hours=12), now))
++                 if g and g.info.get("state") == "in"]
++        if not games:
++            print(f"{sport}: no live games")
++            continue
++        for g in games:
++            period = int(g.info.get("period") or 1)
++            left = minutes_left(sport, period, g.info.get("clock"), False)
++            elapsed = max(STRUCTURE[sport][0] * STRUCTURE[sport][1] - left, 0.0)
++            ev = run._event(sport, g.home, g.away)
++            if not ev:
++                print(f"{g.away} @ {g.home}: no Odds API event")
++                continue
++            summary = client.summary(path, str(g.id))
++            odds = run._odds(sport, ev["id"])
++            hs, as_ = float(g.info.get("live_home") or 0), float(g.info.get("live_away") or 0)
++            priced, recs = LPE.scan_game(sport, summary, odds, LPE.anchors(Path(s.state_dir), sport, ev["id"]), elapsed,
++                                         g.home, g.away, hs, as_)
++            plabel = f"{period_name(sport, period)} {g.info.get('clock') or ''}".strip()
++            print(f"{g.away} {as_:.0f} @ {g.home} {hs:.0f} · {plabel} · {elapsed:.1f} min played · "
++                  f"{len(priced)} Bovada props priced, {len(recs)} recommended")
++            for r in sorted(priced, key=lambda r: -r["ev"])[: args.top]:
++                print(f"  {'*' if r['recommended'] else ' '} {r['player']:24s} {r['label']:15s} {r['side']:5s} {r['line']:>6g} "
++                      f"({r['price']:+.0f}) has {r['so_far']:g} proj {r['proj']:.1f} fair {r['p']:.0%} mkt {r['market_p']:.0%} "
++                      f"edge {r['edge']:+.1%} pace x{r['pace']:.2f}  {r['reason']}")
++            if recs and not args.dry_run:
++                label = f"{g.away} @ {g.home}"
++                new = LPE.record_recs(Path(s.state_dir), sport, str(g.id), label, plabel, recs)
++                if new:
++                    send_message(s.telegram_bot_token, s.telegram_chat_id,
++                                 LPE.alert_text(sport, label, plabel, f"{g.away} {as_:.0f} – {hs:.0f} {g.home}", new))
++                    print(f"  sent {len(new)} new")
++    return 0
++
++
+ def cmd_grade_prop(s: Settings, args) -> int:
+     """Marv's probability and grade for one NFL player prop (form-only second opinion)."""
+     from . import propgrade
+@@ -1008,6 +1060,11 @@ def main(argv: list[str] | None = None) -> int:
+     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
+     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
+     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
++    lpe = sub.add_parser("live-props", help="Claude Prop 1, in-game Bovada prop engine: scan live games now, or the graded record")
++    lpe.add_argument("action", choices=["scan", "report"])
++    lpe.add_argument("--sport", default="nfl", choices=["all", "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"])
++    lpe.add_argument("--top", type=int, default=15, help="priced props to print per game")
++    lpe.add_argument("--dry-run", action="store_true", help="print only: no Telegram, no ledger")
+     gp2 = sub.add_parser("grade-prop", help="Marv's probability + grade for one NFL player prop")
+     gp2.add_argument("--player", required=True)
+     gp2.add_argument("--market", required=True, help="pass, rush, rec or receptions")
+@@ -1050,7 +1107,7 @@ def main(argv: list[str] | None = None) -> int:
+     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+     s = Settings.from_env()
+     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
+-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
++               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "live-props": cmd_live_props, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
+     try:
+         return handler[args.command](s, args)
+     except Exception:
