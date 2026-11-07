@@ -1,0 +1,35 @@
+10,758 contracts, 68 games, 2026-01-17 to 2026-05-25 (whole sample)
+naive  edge>=0.04: 1322 bets (39% YES) ROI -7.9% 90% range -13.2% .. -3.1%  P(ROI>0) 0%
+naive  edge>=0.06: 1176 bets (39% YES) ROI -8.2% 90% range -14.0% .. -2.7%  P(ROI>0) 1%
+naive  edge>=0.08: 1047 bets (38% YES) ROI -8.1% 90% range -14.4% .. -2.2%  P(ROI>0) 1%
+prop1  edge>=0.04: 1010 bets (33% YES) ROI -5.4% 90% range -13.2% .. +1.8%  P(ROI>0) 12%
+prop1  edge>=0.06:  856 bets (32% YES) ROI -6.7% 90% range -14.5% .. +0.7%  P(ROI>0) 7%
+prop1  edge>=0.08:  701 bets (31% YES) ROI -6.4% 90% range -15.6% .. +1.8%  P(ROI>0) 11%
+v2     edge>=0.04:  653 bets (29% YES) ROI +7.1% 90% range -2.1% .. +14.7%  P(ROI>0) 90%
+v2     edge>=0.06:  469 bets (25% YES) ROI +8.8% 90% range -1.8% .. +17.8%  P(ROI>0) 92%
+v2     edge>=0.08:  339 bets (26% YES) ROI +8.1% 90% range -4.4% .. +18.8%  P(ROI>0) 87%
+ml     edge>=0.04:  766 bets (29% YES) ROI +7.3% 90% range -1.0% .. +14.3%  P(ROI>0) 93%
+ml     edge>=0.06:  592 bets (26% YES) ROI +6.3% 90% range -3.3% .. +14.2%  P(ROI>0) 87%
+ml     edge>=0.08:  443 bets (22% YES) ROI +7.0% 90% range -3.9% .. +17.1%  P(ROI>0) 84%
+
+minutes model, edge >= 6c, by slice (whole sample):
+     n     pnl     cost    roi
+k                             
+1  231   8.518  111.482  0.076
+2  167  10.875   83.125  0.131
+3   71   0.833   36.167  0.023 
+
+        n     pnl     cost    roi
+stat                             
+ast    98  -4.420   51.420 -0.086
+fg3    61   8.472   32.528  0.260
+pts   227   3.659  106.341  0.034
+reb    83  12.515   40.485  0.309 
+
+        n     pnl     cost    roi
+side                             
+no    350  23.246  178.754  0.130
+yes   119  -3.020   52.020 -0.058 
+
+
+[exited with code 0]

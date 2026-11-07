@@ -1,0 +1,1158 @@
+# Claude in-game prop pacer (minutes model) - design, code and walk-forward backtest
+# Branch ccr-4a1c5d6b-xd3ygu, folder research/prop_pacer/ (github.com/marvy1968/marvy1968)
+
+=================== research/prop_pacer/README.md ===================
+# In-game basketball prop pacer: design + walk-forward backtest (for Grok)
+
+Nov 7 2026. NBA, NCAA men's, NCAA women's. All results below come from a season that no model saw in training
+(train 2023-25, test 2025-26), and for the NBA from real Kalshi prices at the quarter breaks.
+
+## TL;DR
+
+1. **A straight-line pacer loses money and should be retired.** "Stat so far × game length ÷ minutes played" is the
+   worst model in every league, and against Kalshi prices it lost **−8.2%** after fees on 1,176 bets. Its
+   90% range was −14% to −3%, so this is not bad luck. When it says 73% the outcome happens 53% of the time: it
+   overrates hot starts.
+2. **The fix is to project minutes, not the rate.** A hot or cold first half barely predicts the rest of the game.
+   The fitted weight on tonight's per-minute rate after 24 minutes on the floor is only about 15% for points (NBA).
+   What actually moves a player's final line is **remaining minutes**: blowouts, foul trouble, whether he is on the
+   floor, and his normal rotation share.
+3. **The minutes model** (8 fitted numbers) and a gradient-boosted version of it are the best in all three leagues,
+   with near-perfect calibration on the unseen season.
+4. **Against Kalshi (NBA, 68 games, Jan-May 2026):** the minutes model made **+8.8%** after fees on 469 bets at
+   an edge of 6c or more. The 90% range was −1.8% to +17.8% and the chance of truly positive ROI is 92%. **That is a
+   lead, not proof**: on the earlier half of that sample, used to choose settings, it was about break-even.
+   The profit is in **NO / Under bets (+13%)**; YES bets lost (−6%).
+5. Most Kalshi in-game prop quotes are untradeable: only 22% had a bid/ask gap of 10c or less at the breaks.
+
+## The minutes model (`models.py: v2_minutes, v2_mean`; called "v2" in code)
+
+At a break, for one player and one stat:
+
+```
+share       = (1 - w) * pregame_minutes/game_length + w * minutes_so_far/elapsed,   w = elapsed / (elapsed + tau)
+rem_minutes = share * minutes_left * foul_factor * blowout_factor * (bench if not on the floor at the break)
+rate        = (1 - v) * pregame_per_minute + v * tonight_per_minute,                v = minutes_played / (minutes_played + kappa[stat])
+rem_mean    = rate * rem_minutes * (tonight's team pace / usual pace) ^ pace_beta
+P(final >= line) = negative binomial with variance = phi(mean) * mean, phi fitted on train residuals
+```
+
+`foul_factor = exp(-foul * fouls above (foul_out - 1) * fraction_played + 0.5)`, and 0 when fouled out.
+`blowout_factor = exp(-blow * max(|margin| - 12, 0)/10 * fraction_played/0.75 * pregame_share)`.
+Pregame anchors are each player's exponentially weighted averages (half-life 10 games) from **earlier games only**.
+
+Fitted parameters (Poisson deviance, train seasons):
+
+| | tau | kappa pts | kappa reb | kappa ast | kappa 3PM | foul | blow | pace_beta |
+|---|---|---|---|---|---|---|---|---|
+| NBA | 32.8 | 144 | 186 | 41 | 244 | 0.13 | 0.42 | 0.17 |
+| NCAA men's | 34.1 | 93 | 97 | 142 | 168 | 0.18 | 0.00 | 0.32 |
+| NCAA women's | 36.9 | 93 | 101 | 145 | 165 | 0.31 | 0.08 | 0.31 |
+
+A large kappa means "trust the pregame rate". For points, rebounds and threes the model gives tonight's rate little weight.
+Assists (NBA) are the exception: they follow tonight's role faster.
+
+## Results (test season 2025-26; full tables in `results/`)
+
+Average miss on the player's **remaining** points:
+
+| | naive pacer | Claude Prop 1 (live now) | minutes model | ML |
+|---|---|---|---|---|
+| NBA after Q1 | 7.30 | 4.71 | 4.21 | 4.20 |
+| NBA after Q3 | 2.58 | 2.37 | 2.33 | 2.29 |
+| NCAA men's at half | 3.38 | 2.95 | 2.86 | 2.83 |
+| NCAA women's after Q1 | 5.38 | 3.60 | 3.34 | 3.43 |
+
+Calibration, NBA points (predicted → actual): naive 0.55→0.42, 0.73→0.53, 0.84→0.64; minutes model 0.55→0.57,
+0.75→0.75, 0.85→0.83.
+
+Kalshi NBA (`results/nba.md`, `results/nba_kalshi_bootstrap.txt`; game-level bootstrap, whole sample):
+
+| model | bets (edge ≥ 6c) | ROI after fee | 90% range | P(ROI > 0) |
+|---|---|---|---|---|
+| naive pacer | 1,176 | −8.2% | −14.0% .. −2.7% | 1% |
+| Claude Prop 1 | 856 | −6.7% | −14.5% .. +0.7% | 7% |
+| minutes model | 469 | +8.8% | −1.8% .. +17.8% | 92% |
+| ML | 592 | +6.3% | −3.3% .. +14.2% | 87% |
+
+Probability score (Brier) on the evaluation part: Kalshi mid 0.164, naive 0.171, minutes 0.132, ML 0.130,
+ML + market blend 0.129. Slices of the minutes model at 6c (small, post hoc, treat as leads): NO +13% (350 bets),
+YES −6% (119); rebounds +31%, threes +26%, points +3%, assists −9%; Q1 +8%, Q2 +13%, Q3 +2%.
+
+## Hand-set rules in `pacer_v2/` vs what happened
+
+Starters' remaining minutes at the last break, relative to a close game with few fouls:
+
+| situation | pacer_v2 | NBA | NCAA men's | NCAA women's |
+|---|---|---|---|---|
+| one foul under the limit | ×0.50 | ×0.82 | ×0.75 (n=17) | ×0.81 |
+| two fouls under | ×0.80 | ×0.97 | ×0.91 | ×1.04 |
+| margin 18-25, late | ×0.65 | ×0.62 | ×0.94 | ×0.87 |
+| margin 25+, late | ×0.40 | ×0.28 | ×0.88 | ×0.74 |
+
+Suggested change: replace these constants with the measured ones, per league. College blowouts barely cost minutes.
+
+## Recommendation
+
+- Use the minutes model (or ML) to produce `p_model_raw` for `pacer_v2/`, instead of the straight-line pacer.
+- Paper only, NO side first, edge of 6c or more after fee, bid/ask gap of 10c or less, and only quotes refreshed after the period ended.
+- Promote only after 100+ graded live paper bets beat break-even with positive closing value.
+  The +8.8% has a 90% range that includes zero.
+- Before using it on Bovada: Bovada's live lines are a different market. Run the same test on Bovada lines from
+  `state/live_props/shadow.jsonl` once enough are logged.
+
+## Reproduce
+
+```bash
+# data (public): sportsdataverse ESPN play-by-play
+#   espn_nba_pbp/play_by_play_{2024,2025,2026}.parquet
+#   espn_mens_college_basketball_pbp / espn_womens_college_basketball_pbp play_by_play_{2025,2026}.parquet
+python research/prop_pacer/build.py nba_snap.parquet nba PBP_2024 PBP_2025 PBP_2026       # ~7 min
+python research/prop_pacer/fetch_kalshi.py nba_snap_2026.parquet kalshi_breaks.jsonl 120 7  # ~2.5 h, ~3 req/s
+PACER_SAVE_MARKET=market_rows.parquet python research/prop_pacer/evaluate.py nba_snap.parquet kalshi_breaks.jsonl out/
+python research/prop_pacer/bootstrap.py market_rows.parquet
+```
+
+Checks done: rebuilt points equal the final score in every sampled game, and minutes sum to 240 per NBA team and 200 per
+college team (OT included). Kalshi settlement agrees with the play-by-play box score on 100% of matched contracts.
+
+Limits: one test season; Kalshi covers 68 games after quote filters; quotes are 1-minute candle closes, not a
+fill simulation (no queue, size or slippage); college has no exchange props, so college results are accuracy only.
+
+=================== research/prop_pacer/results/nba.md ===================
+# In-game NBA prop pacer backtest (test season 2026, never seen in training)
+train rows 137,604 · test rows 73,443
+
+## 1. Remaining-stat accuracy (MAE, lower is better)
+
+| stat | break | n | naive pacer | Claude Prop 1 | minutes model | ML |
+|---|---|---|---|---|---|---|
+| pts | Q1 | 23,367 | 7.30 | 4.71 | 4.21 | 4.20 |
+| pts | Q2 | 24,896 | 4.13 | 3.50 | 3.28 | 3.28 |
+| pts | Q3 | 25,180 | 2.58 | 2.37 | 2.33 | 2.29 |
+| reb | Q1 | 23,367 | 2.99 | 1.91 | 1.70 | 1.70 |
+| reb | Q2 | 24,896 | 1.67 | 1.41 | 1.31 | 1.32 |
+| reb | Q3 | 25,180 | 1.04 | 0.96 | 0.94 | 0.92 |
+| ast | Q1 | 23,367 | 2.16 | 1.39 | 1.23 | 1.22 |
+| ast | Q2 | 24,896 | 1.17 | 1.01 | 0.95 | 0.93 |
+| ast | Q3 | 25,180 | 0.71 | 0.66 | 0.65 | 0.63 |
+| fg3 | Q1 | 23,367 | 1.40 | 0.92 | 0.80 | 0.80 |
+| fg3 | Q2 | 24,896 | 0.76 | 0.67 | 0.63 | 0.63 |
+| fg3 | Q3 | 25,180 | 0.44 | 0.41 | 0.42 | 0.41 |
+
+## 2. Ladder probabilities (Brier, lower is better)
+
+| stat | naive pacer | Claude Prop 1 | minutes model | ML |
+|---|---|---|---|---|
+| pts | 0.0716 | 0.0576 | 0.0536 | 0.0533 |
+| reb | 0.0829 | 0.0672 | 0.0624 | 0.0625 |
+| ast | 0.0762 | 0.0578 | 0.0533 | 0.0530 |
+| fg3 | 0.1074 | 0.0780 | 0.0696 | 0.0696 |
+
+## 3. Real Kalshi prices at the breaks (68 games, 10,758 contracts; evaluation part 6,455 rows, 2026-03-05 to 2026-05-25)
+Kalshi settlement agrees with the play-by-play box score on 100.0% of contracts.
+
+Brier on the evaluation part (lower is better; the market's own mid price is the bar):
+
+- Kalshi mid price: 0.1638
+- naive pacer: 0.1712
+- naive pacer + market blend: 0.1461
+- Claude Prop 1: 0.1419
+- Claude Prop 1 + market blend: 0.1347
+- minutes model: 0.1318
+- minutes model + market blend: 0.1304
+- ML: 0.1302
+- ML + market blend: 0.1285
+
+Paper bets on the evaluation part (YES at ask / NO at 1 - bid, after Kalshi fee):
+
+| model | edge >= | bets | win rate | staked $ | P&L $ | ROI | (calibration part ROI) |
+|---|---|---|---|---|---|---|---|
+| naive pacer | 0.04 | 1005 | 51.5% | 551 | -32.7 | -5.9% | -13.9% |
+| naive pacer | 0.06 | 890 | 50.4% | 475 | -26.1 | -5.5% | -16.2% |
+| naive pacer | 0.08 | 791 | 49.4% | 414 | -23.2 | -5.6% | -15.1% |
+| naive pacer | 0.1 | 705 | 47.2% | 359 | -26.2 | -7.3% | -13.5% |
+| Claude Prop 1 | 0.04 | 760 | 50.1% | 399 | -17.9 | -4.5% | -8.1% |
+| Claude Prop 1 | 0.06 | 644 | 48.4% | 334 | -21.8 | -6.5% | -7.0% |
+| Claude Prop 1 | 0.08 | 527 | 47.4% | 266 | -16.3 | -6.1% | -7.0% |
+| Claude Prop 1 | 0.1 | 432 | 45.6% | 211 | -14.2 | -6.7% | -6.5% |
+| minutes model | 0.04 | 505 | 54.1% | 249 | +24.4 | +9.8% | -1.7% |
+| minutes model | 0.06 | 359 | 53.5% | 173 | +19.1 | +11.0% | +2.0% |
+| minutes model | 0.08 | 257 | 50.2% | 115 | +14.4 | +12.6% | -4.1% |
+| minutes model | 0.1 | 181 | 45.9% | 77 | +5.7 | +7.3% | -4.0% |
+| ML | 0.04 | 573 | 58.5% | 304 | +31.3 | +10.3% | -1.4% |
+| ML | 0.06 | 430 | 56.0% | 219 | +22.0 | +10.1% | -3.1% |
+| ML | 0.08 | 315 | 55.2% | 158 | +15.7 | +9.9% | +0.3% |
+| ML | 0.1 | 236 | 55.9% | 118 | +13.8 | +11.6% | +3.1% |
+| naive pacer + market blend | 0.04 | 569 | 64.0% | 355 | +9.2 | +2.6% | -9.5% |
+| naive pacer + market blend | 0.06 | 407 | 62.9% | 249 | +6.7 | +2.7% | -11.7% |
+| naive pacer + market blend | 0.08 | 304 | 61.5% | 183 | +3.7 | +2.0% | -9.4% |
+| naive pacer + market blend | 0.1 | 241 | 62.2% | 142 | +7.6 | +5.3% | -10.1% |
+| Claude Prop 1 + market blend | 0.04 | 634 | 59.8% | 382 | -2.8 | -0.7% | -4.7% |
+| Claude Prop 1 + market blend | 0.06 | 504 | 57.3% | 295 | -6.0 | -2.0% | -4.5% |
+| Claude Prop 1 + market blend | 0.08 | 397 | 54.9% | 224 | -6.0 | -2.7% | -1.8% |
+| Claude Prop 1 + market blend | 0.1 | 303 | 54.8% | 168 | -1.8 | -1.1% | -8.2% |
+| minutes model + market blend | 0.04 | 546 | 64.1% | 321 | +29.1 | +9.1% | -0.8% |
+| minutes model + market blend | 0.06 | 403 | 62.5% | 230 | +21.9 | +9.5% | +5.0% |
+| minutes model + market blend | 0.08 | 299 | 60.2% | 166 | +13.6 | +8.2% | +1.4% |
+| minutes model + market blend | 0.1 | 205 | 60.5% | 110 | +14.0 | +12.8% | -2.5% |
+| ML + market blend | 0.04 | 517 | 65.2% | 307 | +29.7 | +9.7% | -0.7% |
+| ML + market blend | 0.06 | 369 | 64.2% | 211 | +26.0 | +12.3% | +0.9% |
+| ML + market blend | 0.08 | 265 | 60.4% | 148 | +12.2 | +8.3% | +0.8% |
+| ML + market blend | 0.1 | 198 | 62.6% | 109 | +15.3 | +14.0% | +1.4% |
+
+Only quotes refreshed after the period ended (4,377 rows of the evaluation part):
+
+- Brier Kalshi mid price: 0.1673
+- Brier naive pacer: 0.2004
+- Brier Claude Prop 1: 0.1682
+- Brier minutes model: 0.1555
+- Brier ML: 0.1541
+
+| model | edge >= | bets | win rate | P&L $ | ROI |
+|---|---|---|---|---|---|
+| naive pacer | 0.04 | 887 | 50.7% | -39.8 | -8.1% |
+| naive pacer | 0.06 | 783 | 49.4% | -33.9 | -8.0% |
+| naive pacer | 0.08 | 695 | 48.5% | -29.1 | -7.9% |
+| naive pacer | 0.1 | 621 | 46.2% | -32.3 | -10.1% |
+| Claude Prop 1 | 0.04 | 680 | 48.1% | -29.6 | -8.3% |
+| Claude Prop 1 | 0.06 | 577 | 47.0% | -28.7 | -9.6% |
+| Claude Prop 1 | 0.08 | 470 | 46.0% | -22.7 | -9.5% |
+| Claude Prop 1 | 0.1 | 390 | 44.6% | -18.4 | -9.6% |
+| minutes model | 0.04 | 458 | 52.6% | +16.7 | +7.5% |
+| minutes model | 0.06 | 332 | 52.4% | +14.3 | +9.0% |
+| minutes model | 0.08 | 234 | 48.3% | +9.4 | +9.1% |
+| minutes model | 0.1 | 163 | 43.6% | +2.4 | +3.6% |
+| ML | 0.04 | 510 | 57.3% | +22.9 | +8.5% |
+| ML | 0.06 | 384 | 54.9% | +16.2 | +8.3% |
+| ML | 0.08 | 281 | 53.7% | +9.3 | +6.6% |
+| ML | 0.1 | 211 | 54.5% | +8.0 | +7.5% |
+
+=================== research/prop_pacer/results/nba_kalshi_bootstrap.txt ===================
+10,758 contracts, 68 games, 2026-01-17 to 2026-05-25 (whole sample)
+naive  edge>=0.04: 1322 bets (39% YES) ROI -7.9% 90% range -13.2% .. -3.1%  P(ROI>0) 0%
+naive  edge>=0.06: 1176 bets (39% YES) ROI -8.2% 90% range -14.0% .. -2.7%  P(ROI>0) 1%
+naive  edge>=0.08: 1047 bets (38% YES) ROI -8.1% 90% range -14.4% .. -2.2%  P(ROI>0) 1%
+prop1  edge>=0.04: 1010 bets (33% YES) ROI -5.4% 90% range -13.2% .. +1.8%  P(ROI>0) 12%
+prop1  edge>=0.06:  856 bets (32% YES) ROI -6.7% 90% range -14.5% .. +0.7%  P(ROI>0) 7%
+prop1  edge>=0.08:  701 bets (31% YES) ROI -6.4% 90% range -15.6% .. +1.8%  P(ROI>0) 11%
+v2     edge>=0.04:  653 bets (29% YES) ROI +7.1% 90% range -2.1% .. +14.7%  P(ROI>0) 90%
+v2     edge>=0.06:  469 bets (25% YES) ROI +8.8% 90% range -1.8% .. +17.8%  P(ROI>0) 92%
+v2     edge>=0.08:  339 bets (26% YES) ROI +8.1% 90% range -4.4% .. +18.8%  P(ROI>0) 87%
+ml     edge>=0.04:  766 bets (29% YES) ROI +7.3% 90% range -1.0% .. +14.3%  P(ROI>0) 93%
+ml     edge>=0.06:  592 bets (26% YES) ROI +6.3% 90% range -3.3% .. +14.2%  P(ROI>0) 87%
+ml     edge>=0.08:  443 bets (22% YES) ROI +7.0% 90% range -3.9% .. +17.1%  P(ROI>0) 84%
+
+minutes model, edge >= 6c, by slice (whole sample):
+     n     pnl     cost    roi
+k                             
+1  231   8.518  111.482  0.076
+2  167  10.875   83.125  0.131
+3   71   0.833   36.167  0.023 
+
+        n     pnl     cost    roi
+stat                             
+ast    98  -4.420   51.420 -0.086
+fg3    61   8.472   32.528  0.260
+pts   227   3.659  106.341  0.034
+reb    83  12.515   40.485  0.309 
+
+        n     pnl     cost    roi
+side                             
+no    350  23.246  178.754  0.130
+yes   119  -3.020   52.020 -0.058 
+
+
+[exited with code 0]
+
+=================== research/prop_pacer/results/ncaab.md ===================
+# In-game NCAAB prop pacer backtest (test season 2026, never seen in training)
+train rows 86,787 · test rows 101,034
+
+## 1. Remaining-stat accuracy (MAE, lower is better)
+
+| stat | break | n | naive | prop1 | v2 | ml |
+|---|---|---|---|---|---|---|
+| pts | half | 101,034 | 3.38 | 2.95 | 2.86 | 2.83 |
+| reb | half | 101,034 | 1.44 | 1.25 | 1.19 | 1.18 |
+| ast | half | 101,034 | 0.80 | 0.71 | 0.69 | 0.67 |
+| fg3 | half | 101,034 | 0.54 | 0.49 | 0.47 | 0.47 |
+
+## 2. Ladder probabilities (Brier, lower is better)
+
+| stat | naive | prop1 | v2 | ml |
+|---|---|---|---|---|
+| pts | 0.0462 | 0.0406 | 0.0395 | 0.0383 |
+| reb | 0.0608 | 0.0525 | 0.0502 | 0.0497 |
+| ast | 0.0428 | 0.0355 | 0.0331 | 0.0328 |
+| fg3 | 0.0696 | 0.0559 | 0.0496 | 0.0494 |
+
+=================== research/prop_pacer/results/ncaaw.md ===================
+# In-game NCAAW prop pacer backtest (test season 2026, never seen in training)
+train rows 224,269 · test rows 286,659
+
+## 1. Remaining-stat accuracy (MAE, lower is better)
+
+| stat | break | n | naive | prop1 | v2 | ml |
+|---|---|---|---|---|---|---|
+| pts | Q1 | 90,882 | 5.38 | 3.60 | 3.34 | 3.43 |
+| pts | Q2 | 97,192 | 3.07 | 2.67 | 2.58 | 2.60 |
+| pts | Q3 | 98,585 | 1.80 | 1.69 | 1.71 | 1.70 |
+| reb | Q1 | 90,882 | 2.62 | 1.70 | 1.55 | 1.54 |
+| reb | Q2 | 97,192 | 1.46 | 1.26 | 1.19 | 1.18 |
+| reb | Q3 | 98,585 | 0.86 | 0.81 | 0.80 | 0.79 |
+| ast | Q1 | 90,882 | 1.42 | 0.97 | 0.87 | 0.87 |
+| ast | Q2 | 97,192 | 0.77 | 0.69 | 0.67 | 0.66 |
+| ast | Q3 | 98,585 | 0.44 | 0.42 | 0.42 | 0.42 |
+| fg3 | Q1 | 90,882 | 0.80 | 0.58 | 0.53 | 0.52 |
+| fg3 | Q2 | 97,192 | 0.44 | 0.40 | 0.39 | 0.39 |
+| fg3 | Q3 | 98,585 | 0.25 | 0.23 | 0.24 | 0.23 |
+
+## 2. Ladder probabilities (Brier, lower is better)
+
+| stat | naive | prop1 | v2 | ml |
+|---|---|---|---|---|
+| pts | 0.0413 | 0.0332 | 0.0318 | 0.0327 |
+| reb | 0.0656 | 0.0534 | 0.0503 | 0.0501 |
+| ast | 0.0451 | 0.0340 | 0.0312 | 0.0314 |
+| fg3 | 0.0602 | 0.0447 | 0.0402 | 0.0405 |
+
+=================== research/prop_pacer/models.py ===================
+"""In-game NBA prop models. Each predicts the MEAN of a player's remaining stat at a break; a shared, fitted
+overdispersed count distribution turns the mean into P(final >= threshold).
+
+  naive    straight-line pacer: so_far x 48 / minutes of game played
+  prop1    Claude Prop 1 (marv/live_prop_engine.project): per-possession production x pace x script
+  v2       minutes-first structural model (fitted on train seasons):
+             remaining minutes = floor-time share x minutes left x foul / blowout / bench adjustments
+                 share = blend(pregame minutes share, tonight's share), weight = elapsed / (elapsed + tau)
+             per-minute rate  = blend(pregame per-minute rate, tonight's rate), weight = min_sf / (min_sf + kappa[stat])
+             remaining mean   = rate x remaining minutes x (tonight's team pace / usual pace) ^ pace_beta
+  ml       gradient-boosted Poisson regression of the remaining stat on the same inputs
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+from scipy import optimize, stats as sst
+
+STATS = ["pts", "reb", "ast", "fg3"]
+LEAGUE_DEFAULTS = {"nba": (48.0, 6), "ncaab": (40.0, 5), "ncaaw": (40.0, 5)}  # regulation minutes, foul-out count
+
+
+def usable(df: pd.DataFrame) -> pd.DataFrame:
+    """Rows with a pregame anchor (5+ earlier games) for players who have played tonight."""
+    d = df[(df["pre_n"] >= 5) & (df["pre_min"] >= 8) & (df["min_sf"] > 0)].copy()
+    if "league" not in d:
+        d["league"] = "nba"
+    for col, i in (("game_min", 0), ("foul_out", 1)):
+        if col not in d:
+            d[col] = d["league"].map(lambda lg: LEAGUE_DEFAULTS[lg][i])
+    if "frac" not in d:
+        d["frac"] = d["elapsed"] / d["game_min"]
+    for s in STATS:
+        d[f"{s}_rem"] = d[f"{s}_final"] - d[f"{s}_sf"]
+    d["left"] = d["game_min"] - d["elapsed"]
+    d["pace_ratio"] = ((d["tposs_sf"] / d["elapsed"] * 36) / d["pre_pace36"]).clip(0.75, 1.3).fillna(1.0)
+    return d
+
+
+# ---------------------------------------------------------------- naive + prop1
+
+
+def naive(d: pd.DataFrame, s: str) -> np.ndarray:
+    return (d[f"{s}_sf"] * d["game_min"] / d["elapsed"] - d[f"{s}_sf"]).to_numpy()
+
+
+def prop1(d: pd.DataFrame, s: str) -> np.ndarray:
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from marv import live_prop_engine as E
+    market = {"pts": "player_points", "reb": "player_rebounds", "ast": "player_assists", "fg3": "player_threes"}[s]
+    out = []
+    for r in d[[f"{s}_sf", f"pre_{s}", "elapsed", "tposs_sf", "margin", "pf_sf", "min_sf", "league"]].itertuples(index=False):
+        st = E.PropState(r[7], market, "", float(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]),
+                         fouls=float(r[5]), minutes=float(r[6]))
+        out.append(E.project(st)["rem_mean"])
+    return np.asarray(out)
+
+
+# ---------------------------------------------------------------- v2 structural
+
+
+def v2_minutes(d: pd.DataFrame, p: dict) -> np.ndarray:
+    pre_share = (d["pre_min"] / d["game_min"]).clip(0, 0.95)
+    live_share = (d["min_sf"] / d["elapsed"]).clip(0, 1)
+    w = d["elapsed"] / (d["elapsed"] + p["tau"])
+    share = (1 - w) * pre_share + w * live_share
+    # foul trouble: fouls above the "safe" count for this point of the game cost minutes
+    safe = (d["foul_out"] - 1) * d["frac"] + 0.5
+    excess = (d["pf_sf"] - safe).clip(lower=0)
+    foul = np.exp(-p["foul"] * excess) * np.where(d["pf_sf"] >= d["foul_out"], 0, 1)
+    # blowout: starters sit when the margin is large late
+    late = d["frac"] / 0.75
+    blow = np.exp(-p["blow"] * ((d["margin"].abs() - 12).clip(lower=0) / 10) * late * pre_share)
+    bench = np.where(d["on_court"], 1.0, p["bench"])
+    return (share * d["left"] * foul * blow * bench).to_numpy()
+
+
+def v2_mean(d: pd.DataFrame, s: str, p: dict) -> np.ndarray:
+    pre_rate = (d[f"pre_{s}"] / d["pre_min"]).clip(lower=0)
+    live_rate = (d[f"{s}_sf"] / d["min_sf"].clip(lower=1)).clip(lower=0)
+    w = d["min_sf"] / (d["min_sf"] + p[f"kappa_{s}"])
+    rate = (1 - w) * pre_rate + w * live_rate
+    return np.maximum(rate.to_numpy() * v2_minutes(d, p) * d["pace_ratio"].to_numpy() ** p["pace_beta"], 1e-4)
+
+
+V2_START = {"tau": 24.0, "foul": 0.3, "blow": 0.4, "bench": 0.95, "pace_beta": 0.5,
+            "kappa_pts": 40.0, "kappa_reb": 40.0, "kappa_ast": 40.0, "kappa_fg3": 60.0}
+
+
+def fit_v2(train: pd.DataFrame) -> dict:
+    """Minimise total Poisson deviance of the remaining stat over all four stats (shared minutes model)."""
+    keys = list(V2_START)
+
+    def loss(x):
+        p = dict(zip(keys, np.exp(x)))
+        p["bench"] = min(p["bench"], 1.2)
+        tot = 0.0
+        for s in STATS:
+            mu, y = v2_mean(train, s, p), train[f"{s}_rem"].to_numpy()
+            tot += np.mean(mu - y * np.log(mu)) * (1.0 / max(y.mean(), 1e-3))  # scale-free per stat
+        return tot
+
+    x0 = np.log(list(V2_START.values()))
+    res = optimize.minimize(loss, x0, method="Nelder-Mead", options={"maxiter": 3000, "xatol": 1e-3, "fatol": 1e-7})
+    p = dict(zip(keys, np.exp(res.x)))
+    p["bench"] = min(p["bench"], 1.2)
+    return p
+
+
+# ---------------------------------------------------------------- ml
+
+
+ML_FEATS = ["frac", "elapsed", "min_sf", "on_court", "pf_sf", "margin", "pace_ratio", "pre_min", "pre_min_l5", "pre_n",
+            "pre_pts", "pre_reb", "pre_ast", "pre_fg3", "pre_fga", "pre_fta", "pts_sf", "reb_sf", "ast_sf", "fg3_sf",
+            "fga_sf", "fta_sf", "tov_sf"]
+
+
+def fit_ml(train: pd.DataFrame, s: str):
+    from sklearn.ensemble import HistGradientBoostingRegressor
+    X = train[ML_FEATS].astype(float).to_numpy()
+    m = HistGradientBoostingRegressor(loss="poisson", max_iter=400, learning_rate=0.05, min_samples_leaf=100,
+                                      l2_regularization=1.0, random_state=0)
+    m.fit(X, train[f"{s}_rem"].clip(lower=0).to_numpy())
+    return m
+
+
+def ml_mean(m, d: pd.DataFrame) -> np.ndarray:
+    return np.maximum(m.predict(d[ML_FEATS].astype(float).to_numpy()), 1e-4)
+
+
+# ---------------------------------------------------------------- distribution
+
+
+def fit_dispersion(mu: np.ndarray, y: np.ndarray, bins: int = 12) -> tuple[np.ndarray, np.ndarray]:
+    """Variance-to-mean ratio phi as a function of the predicted mean (binned on train). var = phi x mu."""
+    edges = np.unique(np.quantile(mu, np.linspace(0, 1, bins + 1)))
+    idx = np.clip(np.digitize(mu, edges[1:-1]), 0, len(edges) - 2)
+    centers, phis = [], []
+    for b in range(len(edges) - 1):
+        m = idx == b
+        if m.sum() < 50:
+            continue
+        centers.append(mu[m].mean())
+        resid_var = np.mean((y[m] - mu[m]) ** 2)
+        phis.append(max(resid_var / max(mu[m].mean(), 1e-6), 1.02))
+    return np.asarray(centers), np.asarray(phis)
+
+
+def p_at_least(mu: np.ndarray, need: np.ndarray, disp: tuple[np.ndarray, np.ndarray]) -> np.ndarray:
+    """P(remaining >= need) under a negative binomial with var = phi(mu) x mu (need <= 0 -> 1)."""
+    phi = np.interp(mu, disp[0], disp[1])
+    r = mu / np.maximum(phi - 1, 1e-3)
+    pnb = r / (r + mu)
+    need = np.asarray(need, float)
+    out = np.where(need <= 0, 1.0, sst.nbinom.sf(np.ceil(need) - 1, r, pnb))
+    return np.clip(out, 1e-4, 1 - 1e-4)
+
+=================== research/prop_pacer/build.py ===================
+"""Build the in-game prop dataset from ESPN NBA play-by-play (sportsdataverse espn_nba_pbp parquet).
+
+One row per player per game per break (end of Q1, Q2, Q3):
+  so-far stats (pts, reb, ast, fg3, fga, fta, tov, pf), minutes played so far (rebuilt from substitutions),
+  on court at the break, team / opponent possessions so far, score margin, break wallclock window,
+  and the player's FINAL stats (overtime included, as Kalshi and sportsbooks settle).
+Plus leakage-free pregame anchors: each player's exponentially weighted averages from his EARLIER games only.
+
+usage: python research/prop_pacer/build.py OUT.parquet [nba|ncaab|ncaaw] PBP_season1.parquet PBP_season2.parquet ...
+(NBA: espn_nba_pbp; men's college: espn_mens_college_basketball_pbp; women's: espn_womens_college_basketball_pbp)
+"""
+
+import sys
+
+import numpy as np
+import pandas as pd
+
+STATS = ["pts", "reb", "ast", "fg3", "fga", "fta", "tov", "pf"]
+# regulation periods, seconds per period, overtime seconds, fouls to foul out
+LEAGUES = {"nba": (4, 720, 300, 6), "ncaab": (2, 1200, 300, 5), "ncaaw": (4, 600, 300, 5)}
+
+
+def _events(g: pd.DataFrame) -> pd.DataFrame:
+    """Per play: which player gets which stat (one row per player-stat credit)."""
+    tt = g["type_text"].fillna("")
+    a1, a2 = g["athlete_id_1"], g["athlete_id_2"]
+    pa = g["points_attempted"].fillna(0)
+    shoot = g["shooting_play"].fillna(False).astype(bool)
+    made = g["scoring_play"].fillna(False).astype(bool)
+    rows = []
+
+    def add(mask, who, stat, val):
+        m = mask & who.notna()
+        if m.any():
+            rows.append(pd.DataFrame({"i": g.index[m], "player": who[m].astype("int64"), "stat": stat,
+                                      "val": np.asarray(val[m] if hasattr(val, "__getitem__") and not np.isscalar(val) else val)}))
+
+    add(made & shoot, a1, "pts", g["score_value"].astype(float))
+    add(made & shoot & (g["score_value"] == 3), a1, "fg3", pd.Series(1.0, index=g.index))
+    add(made & shoot & pa.isin([2, 3]), a2, "ast", pd.Series(1.0, index=g.index))
+    add(shoot & pa.isin([2, 3]), a1, "fga", pd.Series(1.0, index=g.index))
+    add(shoot & (pa == 1), a1, "fta", pd.Series(1.0, index=g.index))
+    add(tt.str.contains("Rebound") & ~g["text"].fillna("").str.contains("team rebound"), a1, "reb",
+        pd.Series(1.0, index=g.index))
+    add(tt.str.contains("Turnover"), a1, "tov", pd.Series(1.0, index=g.index))
+    add(tt.str.contains("Foul") & ~tt.str.contains("Turnover|Technical"), a1, "pf", pd.Series(1.0, index=g.index))
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["i", "player", "stat", "val"])
+
+
+def _minutes(g: pd.DataFrame, team_of: dict, league: str = "nba") -> pd.DataFrame:
+    """Seconds on court per player per period from substitutions (players with an event in a period before entering
+    it are on the floor at its start). Returns rows (player, period, sec_on, on_at_end)."""
+    out = []
+    # who comes in / goes out on each substitution: NBA "A enters the game for B" (A = id 1, B = id 2);
+    # college has one event per player: "A subbing in" / "A subbing out"
+    g = g.copy()
+    txt = g["text"].fillna("")
+    sub = g["type_text"] == "Substitution"
+    college_in, college_out = sub & txt.str.contains("subbing in"), sub & txt.str.contains("subbing out")
+    g["sub_in"] = np.where(college_in, g["athlete_id_1"], np.where(sub & ~college_out, g["athlete_id_1"], np.nan))
+    g["sub_out"] = np.where(college_out, g["athlete_id_1"], np.where(sub & ~college_in, g["athlete_id_2"], np.nan))
+    for per, pg in g.groupby("period_number", sort=True):
+        n_reg, plen, ot, _ = LEAGUES[league]
+        length = plen if per <= n_reg else ot
+        start_rem = pg["clock_minutes"].astype(float) * 60 + pg["clock_seconds"].astype(float)  # seconds left in period
+        first: dict[int, str] = {}
+        for _, r in pg.iterrows():
+            if r["type_text"] == "Substitution":
+                for who, kind in ((r["sub_in"], "in"), (r["sub_out"], "out")):
+                    if pd.notna(who) and int(who) not in first:
+                        first[int(who)] = kind
+            else:
+                for who in (r["athlete_id_1"], r["athlete_id_2"], r["athlete_id_3"]):
+                    if pd.notna(who) and int(who) not in first and int(who) in team_of:
+                        first[int(who)] = "on"
+        on = {p: length for p, k in first.items() if k in ("on", "out")}  # on court since t=length (seconds left)
+        secs = {p: 0.0 for p in first}
+        for (_, r), rem in zip(pg.iterrows(), start_rem):
+            if r["type_text"] != "Substitution":
+                continue
+            rem = float(rem) if pd.notna(rem) else 0.0
+            p_in, p_out = r["sub_in"], r["sub_out"]
+            if pd.notna(p_out) and int(p_out) in on:
+                secs[int(p_out)] += on.pop(int(p_out)) - rem
+            if pd.notna(p_in) and int(p_in) not in on:
+                on[int(p_in)] = rem
+        for p, since in on.items():
+            secs[p] = secs.get(p, 0.0) + since
+        for p, s in secs.items():
+            out.append((p, per, min(max(s, 0.0), length), p in on))
+    return pd.DataFrame(out, columns=["player", "period", "sec", "on_end"])
+
+
+def game_rows(g: pd.DataFrame, league: str = "nba") -> list[dict]:
+    n_reg, plen, _, foul_out = LEAGUES[league]
+    g = g.sort_values("game_play_number").reset_index(drop=True)
+    for c in ("athlete_id_3", "athlete_name_2"):
+        if c not in g:
+            g[c] = np.nan
+    if "points_attempted" not in g:  # older college files: shot value from the play text
+        t = g["text"].fillna("")
+        g["points_attempted"] = np.where(~g["shooting_play"].fillna(False).astype(bool), 0,
+                                         np.where(t.str.contains("Free Throw"), 1,
+                                                  np.where(t.str.contains("Three Point"), 3, 2)))
+    if g["period_number"].max() < n_reg:
+        return []
+    home, away = g["home_team_id"].iloc[0], g["away_team_id"].iloc[0]
+    ev = _events(g)
+    if ev.empty:
+        return []
+    ev["period"] = g.loc[ev["i"], "period_number"].to_numpy()
+    team_of = {}
+    for _, r in g[g["athlete_id_1"].notna() & g["team_id"].notna() & (g["type_text"] != "Substitution")].iterrows():
+        team_of.setdefault(int(r["athlete_id_1"]), r["team_id"])
+    for _, r in g[(g["type_text"] == "Substitution") & g["team_id"].notna()].iterrows():
+        for who in (r["athlete_id_1"], r["athlete_id_2"]):
+            if pd.notna(who):
+                team_of.setdefault(int(who), r["team_id"])
+    mins = _minutes(g, team_of, league)
+    names = {}
+    for c_id, c_name in (("athlete_id_1", "athlete_name_1"), ("athlete_id_2", "athlete_name_2")):
+        for pid, nm in zip(g[c_id], g[c_name]):
+            if pd.notna(pid) and isinstance(nm, str):
+                names.setdefault(int(pid), nm)
+    # team possessions by period: FGA + 0.44 FTA - OREB + TOV
+    tt = g["type_text"].fillna("")
+    pa = g["points_attempted"].fillna(0)
+    shoot = g["shooting_play"].fillna(False).astype(bool)
+    poss = (shoot & pa.isin([2, 3])).astype(float) + 0.44 * (shoot & (pa == 1)).astype(float) \
+        - (tt == "Offensive Rebound").astype(float) + tt.str.contains("Turnover").astype(float)
+    tposs = pd.DataFrame({"team": g["team_id"], "period": g["period_number"], "poss": poss}).dropna()
+    tposs = tposs.groupby(["team", "period"])["poss"].sum()
+    ends = g.groupby("period_number").agg(last_wall=("wallclock", "last"), first_wall=("wallclock", "first"),
+                                          hs=("home_score", "last"), as_=("away_score", "last"))
+    players = sorted(set(ev["player"]) | set(mins["player"]))
+    final = ev.pivot_table(index="player", columns="stat", values="val", aggfunc="sum").reindex(players).fillna(0)
+    fmin = mins.groupby("player")["sec"].sum().reindex(players).fillna(0) / 60
+    out = []
+    meta = {"game_id": int(g["game_id"].iloc[0]), "date": str(g["game_date"].iloc[0]),
+            "season": int(g["season"].iloc[0]), "season_type": int(g["season_type"].iloc[0]),
+            "home": g["home_team_name"].iloc[0], "away": g["away_team_name"].iloc[0],
+            "home_abbr": g["home_team_abbrev"].iloc[0], "away_abbr": g["away_team_abbrev"].iloc[0],
+            "periods": int(g["period_number"].max()), "league": league, "game_min": n_reg * plen / 60,
+            "foul_out": foul_out,
+            "final_home": float(ends["hs"].iloc[-1]), "final_away": float(ends["as_"].iloc[-1])}
+    for k in range(1, n_reg):
+        if k + 1 not in ends.index:
+            continue
+        so = ev[ev["period"] <= k].pivot_table(index="player", columns="stat", values="val", aggfunc="sum")
+        so = so.reindex(players).fillna(0)
+        mk = mins[mins["period"] <= k].groupby("player")["sec"].sum().reindex(players).fillna(0) / 60
+        on_end = mins[mins["period"] == k].set_index("player")["on_end"].reindex(players).fillna(False)
+        hs, as_ = float(ends.loc[k, "hs"]), float(ends.loc[k, "as_"])
+        for p in players:
+            t = team_of.get(p)
+            if t is None or fmin.get(p, 0) <= 0 and final.loc[p].sum() == 0:
+                continue
+            is_home = t == home
+            opp = away if is_home else home
+            row = {**meta, "player": int(p), "name": names.get(p, ""), "team_id": t, "is_home": is_home, "k": k,
+                   "elapsed": plen / 60 * k, "frac": k / n_reg, "min_sf": float(mk[p]), "on_court": bool(on_end[p]),
+                   "min_final": float(fmin[p]),
+                   "tposs_sf": float(sum(tposs.get((t, q), 0) for q in range(1, k + 1))),
+                   "oposs_sf": float(sum(tposs.get((opp, q), 0) for q in range(1, k + 1))),
+                   "margin": (hs - as_) * (1 if is_home else -1),
+                   "break_start": ends.loc[k, "last_wall"], "break_end": ends.loc[k + 1, "first_wall"]}
+            for s in STATS:
+                row[f"{s}_sf"] = float(so.loc[p].get(s, 0.0))
+                row[f"{s}_final"] = float(final.loc[p].get(s, 0.0))
+            out.append(row)
+    return out
+
+
+def anchors(df: pd.DataFrame) -> pd.DataFrame:
+    """Leakage-free pregame expectations from each player's earlier games (EWM, half-life 10 games)."""
+    games = df[df["k"] == 1][["player", "game_id", "date", "team_id", "min_final",
+                              *[f"{s}_final" for s in STATS]]].drop_duplicates(["player", "game_id"])
+    games = games.sort_values(["player", "date", "game_id"])
+    g = games.groupby("player", sort=False)
+    for c in ["min_final", "pts_final", "reb_final", "ast_final", "fg3_final", "fga_final", "fta_final", "pf_final"]:
+        games[f"pre_{c[:-6]}"] = g[c].transform(lambda s: s.shift().ewm(halflife=10, min_periods=1).mean())
+    games["pre_n"] = g.cumcount()
+    games["pre_min_l5"] = g["min_final"].transform(lambda s: s.shift().rolling(5, min_periods=1).mean())
+    # team pace prior: possessions per 48 from earlier games
+    last = df.groupby("game_id")["k"].transform("max")
+    tg = df[df["k"] == last].groupby(["game_id", "team_id", "date"], as_index=False)[["tposs_sf", "elapsed"]].first()
+    tg["pace36"] = tg["tposs_sf"] / tg["elapsed"] * 36  # possessions per 36 minutes
+    tg = tg.sort_values(["team_id", "date"])
+    tg["pre_pace36"] = tg.groupby("team_id")["pace36"].transform(lambda s: s.shift().ewm(halflife=10, min_periods=1).mean())
+    keep = ["player", "game_id"] + [c for c in games.columns if c.startswith("pre_")]
+    df = df.merge(games[keep], on=["player", "game_id"], how="left")
+    df = df.merge(tg[["game_id", "team_id", "pre_pace36"]], on=["game_id", "team_id"], how="left")
+    return df
+
+
+def main(out: str, *paths: str) -> None:
+    league = "nba"
+    if paths and paths[0] in LEAGUES:
+        league, paths = paths[0], paths[1:]
+    rows = []
+    for path in paths:
+        import pyarrow.parquet as pq
+        have = set(pq.read_schema(path).names)
+        p = pd.read_parquet(path, columns=[c for c in ["game_id", "game_play_number", "type_text", "text", "athlete_id_1",
+                                           "athlete_id_2", "athlete_id_3", "athlete_name_1", "athlete_name_2",
+                                           "team_id", "scoring_play", "score_value", "shooting_play",
+                                           "points_attempted", "period_number", "clock_minutes", "clock_seconds",
+                                           "home_score", "away_score", "wallclock", "game_date", "season",
+                                           "season_type", "home_team_id", "away_team_id", "home_team_name",
+                                           "away_team_name", "home_team_abbrev", "away_team_abbrev"] if c in have])
+        p = p[p["season_type"].isin([2, 3])]
+        for gid, g in p.groupby("game_id", sort=False):
+            try:
+                rows += game_rows(g, league)
+            except Exception as exc:  # a malformed game never stops the build
+                print("skip", gid, exc, file=sys.stderr)
+        print(path, len(rows), file=sys.stderr)
+    df = anchors(pd.DataFrame(rows))
+    df.to_parquet(out)
+    print(out, df.shape)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], *sys.argv[2:])
+
+=================== research/prop_pacer/evaluate.py ===================
+"""Walk-forward test of the in-game prop models. Train = earlier seasons, test = the latest season (never seen).
+
+  1. remaining-stat accuracy (MAE, Poisson deviance) per model, stat, break
+  2. probability quality at Kalshi-style ladders (Brier, calibration table)
+  3. real-market test vs Kalshi prices at the breaks (if the price file exists):
+       Brier of each model vs the market's own mid price on the same contracts,
+       and paper bets (YES at the ask / NO at 1 - bid, Kalshi taker fee 0.07 p (1-p)) when edge >= threshold.
+       Thresholds / the model-market blend are chosen on the first 40% of the price sample (by date) and reported
+       on the last 60% only.
+
+usage: python research/prop_pacer/evaluate.py SNAP.parquet [KALSHI.jsonl] OUT_DIR
+"""
+
+import json
+import os
+import sys
+import unicodedata
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import models as M  # noqa: E402
+
+LADDER = {"pts": [10, 15, 20, 25, 30, 35, 40], "reb": [4, 6, 8, 10, 12, 14], "ast": [2, 4, 6, 8, 10, 12],
+          "fg3": [1, 2, 3, 4, 5, 6]}
+MODELS = ["naive", "prop1", "v2", "ml"]
+
+
+def norm(name: str) -> str:
+    n = unicodedata.normalize("NFKD", str(name)).encode("ascii", "ignore").decode().lower()
+    for x in (".", "'", "-", ",", " jr", " sr", " iii", " ii", " iv"):
+        n = n.replace(x, " " if x == "-" else "")
+    return " ".join(n.split())
+
+
+def fee(p):
+    return 0.07 * p * (1 - p)
+
+
+def means(d: pd.DataFrame, fitted: dict) -> dict:
+    out = {}
+    for s in M.STATS:
+        out[("naive", s)] = np.maximum(M.naive(d, s), 1e-4)
+        out[("prop1", s)] = np.maximum(M.prop1(d, s), 1e-4)
+        out[("v2", s)] = M.v2_mean(d, s, fitted["v2"])
+        out[("ml", s)] = M.ml_mean(fitted["ml"][s], d)
+    return out
+
+
+def logit(p):
+    p = np.clip(p, 1e-4, 1 - 1e-4)
+    return np.log(p / (1 - p))
+
+
+def main(snap: str, *rest: str) -> None:
+    out_dir = Path(rest[-1])
+    kalshi = rest[0] if len(rest) == 2 else None
+    out_dir.mkdir(parents=True, exist_ok=True)
+    df = M.usable(pd.read_parquet(snap))
+    test_season = df["season"].max()
+    train, test = df[df["season"] < test_season], df[df["season"] == test_season]
+    print(f"train {len(train):,} rows (seasons {sorted(train.season.unique())}), test {len(test):,} rows ({test_season})")
+    fitted = {"v2": M.fit_v2(train.sample(min(len(train), 120000), random_state=0))}
+    print("v2 parameters:", {k: round(v, 3) for k, v in fitted["v2"].items()})
+    fitted["ml"] = {s: M.fit_ml(train, s) for s in M.STATS}
+    mtr, mte = means(train, fitted), means(test, fitted)
+    disp = {key: M.fit_dispersion(mtr[key], train[f"{key[1]}_rem"].to_numpy()) for key in mtr}
+
+    report = {"league": str(df["league"].iloc[0]), "train_rows": len(train), "test_rows": len(test), "test_season": int(test_season),
+              "v2_params": fitted["v2"], "accuracy": [], "brier": [], "calibration": {}, "market": {}}
+    # 1. accuracy
+    for s in M.STATS:
+        y = test[f"{s}_rem"].to_numpy()
+        for k in sorted(test["k"].unique()):
+            m = (test["k"] == k).to_numpy()
+            row = {"stat": s, "k": int(k), "n": int(m.sum())}
+            for name in MODELS:
+                mu = mte[(name, s)][m]
+                row[f"{name}_mae"] = float(np.mean(np.abs(mu - y[m])))
+                row[f"{name}_dev"] = float(np.mean(2 * (np.where(y[m] > 0, y[m] * np.log(np.maximum(y[m], 1e-9) / mu), 0) - (y[m] - mu))))
+            report["accuracy"].append(row)
+    # 2. ladder Brier + calibration
+    for s in M.STATS:
+        for name in MODELS:
+            ps, ys = [], []
+            for T in LADDER[s]:
+                need = T - test[f"{s}_sf"].to_numpy()
+                keep = need > 0
+                p = M.p_at_least(mte[(name, s)][keep], need[keep], disp[(name, s)])
+                ps.append(p)
+                ys.append((test[f"{s}_final"].to_numpy()[keep] >= T).astype(float))
+            p, y = np.concatenate(ps), np.concatenate(ys)
+            report["brier"].append({"stat": s, "model": name, "n": int(len(p)), "brier": float(np.mean((p - y) ** 2)),
+                                    "logloss": float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))})
+            bins = np.linspace(0, 1, 11)
+            idx = np.clip(np.digitize(p, bins) - 1, 0, 9)
+            report["calibration"][f"{name}:{s}"] = [
+                {"bin": f"{bins[b]:.1f}-{bins[b + 1]:.1f}", "n": int((idx == b).sum()),
+                 "pred": float(p[idx == b].mean()) if (idx == b).any() else None,
+                 "actual": float(y[idx == b].mean()) if (idx == b).any() else None} for b in range(10)]
+    # 3. Kalshi
+    if kalshi and Path(kalshi).exists():
+        report["market"] = market_test(test, mte, disp, kalshi)
+    (out_dir / "prop_pacer_backtest.json").write_text(json.dumps(report, indent=1, default=float))
+    write_md(report, out_dir / "prop_pacer_backtest.md")
+    print((out_dir / "prop_pacer_backtest.md").read_text())
+
+
+def market_test(test: pd.DataFrame, mte: dict, disp: dict, kalshi: str) -> dict:
+    k = pd.DataFrame([json.loads(l) for l in open(kalshi)])
+    k = k[k["yes_bid"].notna() & k["yes_ask"].notna() & k["result"].isin(["yes", "no"])]
+    k["key"] = k["player_name"].map(norm)
+    t = test.reset_index(drop=True).copy()
+    t["key"] = t["name"].map(norm)
+    t["_row"] = np.arange(len(t))
+    j = k.merge(t[["game_id", "k", "key", "_row", "date", "pts_sf", "reb_sf", "ast_sf", "fg3_sf", "pts_final",
+                   "reb_final", "ast_final", "fg3_final"]], on=["game_id", "k", "key"], how="inner")
+    if j.empty:
+        return {"matched": 0}
+    j["so_far"] = [r[f"{s}_sf"] for r, s in zip(j.to_dict("records"), j["stat"])]
+    j["final"] = [r[f"{s}_final"] for r, s in zip(j.to_dict("records"), j["stat"])]
+    j["need"] = j["strike"] + 0.5 - j["so_far"]
+    j["y"] = (j["result"] == "yes").astype(float)
+    # sanity: settlement agrees with the play-by-play box score
+    agree = float(((j["final"] > j["strike"]).astype(float) == j["y"]).mean())
+    j = j[j["need"] > 0]  # already-cashed rungs are not bets
+    j["mid"] = (j["yes_bid"] + j["yes_ask"]) / 2
+    for name in MODELS:
+        p = np.empty(len(j))
+        for s in M.STATS:
+            m = (j["stat"] == s).to_numpy()
+            if m.any():
+                rows = j.loc[m, "_row"].to_numpy()
+                p[m] = M.p_at_least(mte[(name, s)][rows], j.loc[m, "need"].to_numpy(), disp[(name, s)])
+        j[f"p_{name}"] = p
+    j = j.sort_values("date")
+    if os.environ.get("PACER_SAVE_MARKET"):
+        j.to_parquet(os.environ["PACER_SAVE_MARKET"])  # per-contract table for bootstrap / slicing
+    cut = int(len(j) * 0.4)
+    cal, ev = j.iloc[:cut].copy(), j.iloc[cut:].copy()
+    res = {"matched": int(len(j)), "settle_agree": agree, "games": int(j["game_id"].nunique()),
+           "calib_rows": int(len(cal)), "eval_rows": int(len(ev)),
+           "eval_dates": [str(ev["date"].min()), str(ev["date"].max())], "brier": {}, "bets": {}}
+    res["brier"]["market_mid"] = float(np.mean((ev["mid"] - ev["y"]) ** 2))
+    for name in MODELS:
+        res["brier"][name] = float(np.mean((ev[f"p_{name}"] - ev["y"]) ** 2))
+        # blend with the market: logistic fit on the calibration part only
+        from sklearn.linear_model import LogisticRegression
+        X = np.c_[logit(cal[f"p_{name}"]), logit(cal["mid"])]
+        lr = LogisticRegression(C=10).fit(X, cal["y"])
+        ev[f"p_{name}_blend"] = lr.predict_proba(np.c_[logit(ev[f"p_{name}"]), logit(ev["mid"])])[:, 1]
+        cal[f"p_{name}_blend"] = lr.predict_proba(X)[:, 1]  # in-sample on the calibration part (optimistic by design)
+        res["brier"][f"{name}_blend"] = float(np.mean((ev[f"p_{name}_blend"] - ev["y"]) ** 2))
+        res["brier"][f"{name}_blend_weights"] = [float(x) for x in lr.coef_[0]]
+    for col in [f"p_{n}" for n in MODELS] + [f"p_{n}_blend" for n in MODELS]:
+        res["bets"][col] = {}
+        for thr in (0.02, 0.04, 0.06, 0.08, 0.10, 0.15):
+            res["bets"][col][str(thr)] = bet(ev, col, thr)
+            res["bets"][col][f"calib_{thr}"] = bet(cal, col, thr)
+    # Stale-quote check: only quotes Kalshi refreshed after the period ended (a stale quote fakes an edge)
+    if "since_period_end_s" in ev:
+        fresh = ev[ev["since_period_end_s"] >= 0]
+        res["fresh_rows"] = int(len(fresh))
+        res["brier_fresh"] = {"market_mid": float(np.mean((fresh["mid"] - fresh["y"]) ** 2))} if len(fresh) else {}
+        res["bets_fresh"] = {}
+        for name in MODELS:
+            if len(fresh):
+                res["brier_fresh"][name] = float(np.mean((fresh[f"p_{name}"] - fresh["y"]) ** 2))
+            res["bets_fresh"][f"p_{name}"] = {str(t): bet(fresh, f"p_{name}", t) for t in (0.04, 0.06, 0.08, 0.10)}
+    return res
+
+
+def bet(d: pd.DataFrame, col: str, thr: float) -> dict:
+    p = d[col].to_numpy()
+    ya, yb, y = d["yes_ask"].to_numpy(), d["yes_bid"].to_numpy(), d["y"].to_numpy()
+    na = 1 - yb
+    ok = (ya - yb <= 0.10) & (yb >= 0.02) & (ya <= 0.98)
+    e_yes = p - ya - fee(ya)
+    e_no = (1 - p) - na - fee(na)
+    buy_yes = ok & (e_yes >= thr) & (e_yes >= e_no) & (ya >= 0.05)
+    buy_no = ok & (e_no >= thr) & (e_no > e_yes) & (na >= 0.05)
+    cost = np.where(buy_yes, ya + fee(ya), np.where(buy_no, na + fee(na), 0))
+    win = np.where(buy_yes, y, np.where(buy_no, 1 - y, 0))
+    n = int((buy_yes | buy_no).sum())
+    staked = float(cost.sum())
+    pnl = float((win * (buy_yes | buy_no)).sum() - staked)
+    return {"n": n, "yes": int(buy_yes.sum()), "no": int(buy_no.sum()),
+            "win_rate": float(win[buy_yes | buy_no].mean()) if n else None,
+            "staked": round(staked, 2), "pnl": round(pnl, 2), "roi": pnl / staked if staked else None}
+
+
+LABEL = {"naive": "naive pacer", "prop1": "Claude Prop 1", "v2": "minutes model", "ml": "ML"}
+
+
+def _label(col: str) -> str:
+    base = col[2:] if col.startswith("p_") else col
+    blend = base.endswith("_blend")
+    base = base.replace("_blend", "")
+    return LABEL.get(base, base) + (" + market blend" if blend else "")
+
+
+def write_md(r: dict, path: Path) -> None:
+    L = [f"# In-game {r.get('league', 'nba').upper()} prop pacer backtest (test season {r['test_season']}, never seen in training)",
+         f"train rows {r['train_rows']:,} · test rows {r['test_rows']:,}", "",
+         "## 1. Remaining-stat accuracy (MAE, lower is better)", "",
+         "| stat | break | n | naive pacer | Claude Prop 1 | minutes model | ML |", "|---|---|---|---|---|---|---|"]
+    for a in r["accuracy"]:
+        L.append(f"| {a['stat']} | {'half' if r.get('league') == 'ncaab' else 'Q' + str(a['k'])} | {a['n']:,} | {a['naive_mae']:.2f} | {a['prop1_mae']:.2f} | "
+                 f"{a['v2_mae']:.2f} | {a['ml_mae']:.2f} |")
+    L += ["", "## 2. Ladder probabilities (Brier, lower is better)", "", "| stat | naive pacer | Claude Prop 1 | minutes model | ML |",
+          "|---|---|---|---|---|"]
+    for s in M.STATS:
+        b = {x["model"]: x["brier"] for x in r["brier"] if x["stat"] == s}
+        L.append(f"| {s} | " + " | ".join(f"{b[m]:.4f}" for m in MODELS) + " |")
+    m = r.get("market") or {}
+    if m.get("matched"):
+        L += ["", f"## 3. Real Kalshi prices at the breaks ({m['games']} games, {m['matched']:,} contracts; "
+                  f"evaluation part {m['eval_rows']:,} rows, {m['eval_dates'][0]} to {m['eval_dates'][1]})",
+              f"Kalshi settlement agrees with the play-by-play box score on {m['settle_agree']:.1%} of contracts.", "",
+              "Brier on the evaluation part (lower is better; the market's own mid price is the bar):", ""]
+        for k2, v in m["brier"].items():
+            if not k2.endswith("weights"):
+                L.append(f"- {_label('p_' + k2) if k2 != 'market_mid' else 'Kalshi mid price'}: {v:.4f}")
+        L += ["", "Paper bets on the evaluation part (YES at ask / NO at 1 - bid, after Kalshi fee):", "",
+              "| model | edge >= | bets | win rate | staked $ | P&L $ | ROI | (calibration part ROI) |",
+              "|---|---|---|---|---|---|---|---|"]
+        for col, by in m["bets"].items():
+            for thr in ("0.04", "0.06", "0.08", "0.1"):
+                b, c = by.get(thr), by.get(f"calib_{thr}")
+                if not b or not b["n"]:
+                    continue
+                croi = f"{c['roi']:+.1%}" if c and c["roi"] is not None else "-"
+                L.append(f"| {_label(col)} | {thr} | {b['n']} | {b['win_rate']:.1%} | {b['staked']:.0f} | {b['pnl']:+.1f} | "
+                         f"{b['roi']:+.1%} | {croi} |")
+    if m.get("fresh_rows"):
+        L += ["", f"Only quotes refreshed after the period ended ({m['fresh_rows']:,} rows of the evaluation part):", ""]
+        L += [f"- Brier {('Kalshi mid price' if k2 == 'market_mid' else LABEL[k2])}: {v:.4f}" for k2, v in m["brier_fresh"].items()]
+        L += ["", "| model | edge >= | bets | win rate | P&L $ | ROI |", "|---|---|---|---|---|---|"]
+        for col, by in m["bets_fresh"].items():
+            for thr, b in by.items():
+                if b["n"]:
+                    L.append(f"| {_label(col)} | {thr} | {b['n']} | {b['win_rate']:.1%} | {b['pnl']:+.1f} | {b['roi']:+.1%} |")
+    path.write_text("\n".join(L) + "\n")
+
+
+if __name__ == "__main__":
+    main(*sys.argv[1:])
+
+=================== research/prop_pacer/fetch_kalshi.py ===================
+"""Real in-game Kalshi prices for NBA player props at each quarter break (public API, no account).
+
+For a seeded random sample of games in the snapshot file: list the game's settled KXNBAPTS / KXNBAREB / KXNBAAST /
+KXNBA3PT markets (historical endpoint), then pull each market's 1-minute candlesticks over the game and keep, for
+every break (end of Q1, Q2, Q3), the LAST candle before play resumes: yes bid / yes ask close, volume during the
+break. The quote kept is the one standing when play resumes (last candle at or before the break's end) with its age, so
+quotes that were not refreshed after the period ended can be filtered out in the evaluation.
+
+usage: python research/prop_pacer/fetch_kalshi.py SNAP.parquet OUT.jsonl [n_games] [seed]
+Resumable: games already in OUT are skipped.
+"""
+
+import json
+import random
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import requests
+
+API = "https://api.elections.kalshi.com/trade-api/v2"
+SERIES = {"KXNBAPTS": "pts", "KXNBAREB": "reb", "KXNBAAST": "ast", "KXNBA3PT": "fg3"}
+ABBR = {"GS": "GSW", "NO": "NOP", "NY": "NYK", "SA": "SAS", "UTAH": "UTA", "WSH": "WAS"}
+MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+session = requests.Session()
+_last = [0.0]
+
+
+def get(path: str, params: dict, tries: int = 6) -> dict:
+    for i in range(tries):
+        wait = 0.3 - (time.time() - _last[0])  # ~3 requests a second: the historical endpoints rate-limit above that
+        if wait > 0:
+            time.sleep(wait)
+        _last[0] = time.time()
+        try:
+            r = session.get(API + path, params=params, timeout=20)
+        except requests.RequestException:
+            time.sleep(2 ** i)
+            continue
+        if r.status_code == 429:
+            time.sleep(1.5)
+            continue
+        if r.status_code == 404:
+            return {}
+        r.raise_for_status()
+        return r.json()
+    return {}
+
+
+def ts(s: str) -> int:
+    return int(datetime.fromisoformat(str(s).replace("Z", "+00:00")).timestamp())
+
+
+def event_suffix(row) -> list[str]:
+    d = datetime.fromisoformat(str(row["date"])[:10])
+    day = f"{d:%y}{MON[d.month - 1]}{d:%d}"
+    a, h = ABBR.get(row["away_abbr"], row["away_abbr"]), ABBR.get(row["home_abbr"], row["home_abbr"])
+    return [f"{day}{a}{h}", f"{day}{h}{a}"]
+
+
+def _norm(n: str) -> str:
+    return " ".join(str(n).lower().replace(".", "").replace("'", "").replace("-", " ").split())
+
+
+def game_prices(g: pd.DataFrame, q1: dict | None = None) -> list[dict]:
+    """q1: {(normalised name, stat): value at the end of Q1}; rungs already reached by then are never bets, skipped."""
+    row = g.iloc[0]
+    breaks = g.groupby("k")[["break_start", "break_end"]].first()
+    out = []
+    for suffix in event_suffix(row):
+        markets = []
+        for series in SERIES:
+            markets += [(series, m) for m in get("/historical/markets", {"event_ticker": f"{series}-{suffix}",
+                                                                          "limit": 1000}).get("markets", [])]
+        if markets:
+            break
+    if not markets:
+        return []
+    t0 = ts(breaks["break_start"].min()) - 120
+    t1 = ts(breaks["break_end"].max()) + 120
+    for series, m in markets:
+        have = (q1 or {}).get((_norm(m["title"].split(":")[0]), SERIES[series]))
+        if have is not None and m.get("floor_strike") is not None and have > m["floor_strike"]:
+            continue
+        c = get(f"/historical/markets/{m['ticker']}/candlesticks",
+                {"start_ts": t0, "end_ts": t1, "period_interval": 1}).get("candlesticks", [])
+        if not c:
+            continue
+        for k, b in breaks.iterrows():
+            bs, be = ts(b["break_start"]), ts(b["break_end"])
+            # Kalshi emits a candle only when something changes, so the quote standing when play resumes is the last
+            # candle at or before the end of the break. Its age is kept so stale quotes can be filtered.
+            before = [x for x in c if x["end_period_ts"] <= be]
+            if not before:
+                continue
+            last = before[-1]
+            inside = [x for x in before if x["end_period_ts"] >= bs]
+            yb, ya = (last.get("yes_bid") or {}).get("close"), (last.get("yes_ask") or {}).get("close")
+            vol = sum(float(x.get("volume") or x.get("volume_fp") or 0) for x in inside)
+            out.append({"game_id": int(row["game_id"]), "k": int(k), "series": series, "stat": SERIES[series],
+                        "ticker": m["ticker"], "title": m["title"], "player_name": m["title"].split(":")[0].strip(),
+                        "strike": m.get("floor_strike"), "result": m.get("result"),
+                        "yes_bid": None if yb is None else float(yb), "yes_ask": None if ya is None else float(ya),
+                        "break_volume": vol, "price_ts": last["end_period_ts"], "age_s": be - last["end_period_ts"],
+                        "since_period_end_s": last["end_period_ts"] - bs})
+    return out
+
+
+def main(snap: str, out: str, n: int = 300, seed: int = 7) -> None:
+    df = pd.read_parquet(snap, columns=["game_id", "date", "season", "k", "home_abbr", "away_abbr", "break_start",
+                                        "break_end", "name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"])
+    df = df[df["season"] == df["season"].max()]
+    games = sorted(df["game_id"].unique())
+    random.Random(seed).shuffle(games)
+    done = set()
+    if Path(out).exists():
+        done |= {json.loads(line)["game_id"] for line in open(out)}
+    if Path(out + ".empty").exists():
+        done |= {int(line.split()[1]) for line in open(out + ".empty") if line.startswith("empty")}
+    todo = [g for g in games[:n] if g not in done]
+    print(f"{len(todo)} games to fetch", flush=True)
+    by = df.drop_duplicates(["game_id", "k"]).groupby("game_id")
+    q1all = df[df["k"] == 1].groupby("game_id")
+    for i, gid in enumerate(todo):
+        q = q1all.get_group(gid)
+        q1 = {(_norm(n), s): v for n, *vals in q[["name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"]].itertuples(index=False)
+              for s, v in zip(("pts", "reb", "ast", "fg3"), vals)}
+        rows = game_prices(by.get_group(gid), q1)
+        with open(out, "a") as fh:
+            for r in rows:
+                fh.write(json.dumps(r) + "\n")
+        if not rows:
+            with open(out + ".empty", "a") as fh:
+                fh.write(f"empty {gid}\n")
+        print(f"{i + 1}/{len(todo)} game {gid}: {len(rows)} prices", flush=True)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2], *(int(x) for x in sys.argv[3:]))
+
+=================== research/prop_pacer/bootstrap.py ===================
+"""Uncertainty of the Kalshi paper-bet ROI: resample whole GAMES (bets in one game are not independent).
+
+usage: python research/prop_pacer/bootstrap.py MARKET_ROWS.parquet
+MARKET_ROWS is the per-contract table evaluate.py writes when PACER_SAVE_MARKET=path is set.
+"""
+import sys
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, __import__("os").path.dirname(__file__))
+from evaluate import fee  # noqa: E402
+
+
+def bets(d: pd.DataFrame, col: str, thr: float) -> pd.DataFrame:
+    p, ya, yb, y = d[col].to_numpy(), d["yes_ask"].to_numpy(), d["yes_bid"].to_numpy(), d["y"].to_numpy()
+    na = 1 - yb
+    ok = (ya - yb <= 0.10) & (yb >= 0.02) & (ya <= 0.98)
+    e_yes, e_no = p - ya - fee(ya), (1 - p) - na - fee(na)
+    by = ok & (e_yes >= thr) & (e_yes >= e_no) & (ya >= 0.05)
+    bn = ok & (e_no >= thr) & (e_no > e_yes) & (na >= 0.05)
+    cost = np.where(by, ya + fee(ya), na + fee(na))
+    win = np.where(by, y, 1 - y)
+    out = d[by | bn].copy()
+    out["cost"], out["pnl"], out["side"] = cost[by | bn], (win - cost)[by | bn], np.where(by, "yes", "no")[by | bn]
+    return out
+
+
+def main(path: str) -> None:
+    d = pd.read_parquet(path)
+    rng = np.random.default_rng(0)
+    games = d["game_id"].unique()
+    print(f"{len(d):,} contracts, {len(games)} games, {d['date'].min()} to {d['date'].max()} (whole sample)")
+    for col in ("p_naive", "p_prop1", "p_v2", "p_ml"):
+        for thr in (0.04, 0.06, 0.08):
+            b = bets(d, col, thr)
+            if b.empty:
+                continue
+            g = b.groupby("game_id")[["pnl", "cost"]].sum().reindex(games, fill_value=0)
+            rois = []
+            for _ in range(2000):
+                s = g.iloc[rng.integers(0, len(g), len(g))].sum()
+                rois.append(s["pnl"] / s["cost"] if s["cost"] else 0)
+            lo, hi = np.percentile(rois, [5, 95])
+            roi = b["pnl"].sum() / b["cost"].sum()
+            print(f"{col[2:]:6s} edge>={thr:.2f}: {len(b):4d} bets ({(b.side == 'yes').mean():.0%} YES) ROI {roi:+.1%} "
+                  f"90% range {lo:+.1%} .. {hi:+.1%}  P(ROI>0) {np.mean(np.array(rois) > 0):.0%}")
+    b = bets(d, "p_v2", 0.06)
+    print("\nminutes model, edge >= 6c, by slice (whole sample):")
+    for key in ("k", "stat", "side"):
+        t = b.groupby(key).agg(n=("pnl", "size"), pnl=("pnl", "sum"), cost=("cost", "sum"))
+        t["roi"] = t["pnl"] / t["cost"]
+        print(t.round(3).to_string(), "\n")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
