@@ -1,0 +1,70 @@
+# Muse Prop1 — config v1.1 (4-sport)
+name: muse-prop1
+# Change any threshold = new test. Do not silently tweak mid-test.
+sports:
+  - nfl
+  - ncaaf_top30
+  - ncaab
+  - ncaaw
+book: bovada
+odds_provider: propline  # propline | theoddsapi | oddsapi_io
+
+poll_seconds: 30
+basketball_poll_seconds: 45  # stagger to save PropLine quota (see DESIGN §8)
+max_stale_stats_seconds: 90
+
+# Edge gates — ALL must pass, all sports to start
+min_edge_pp: 0.07
+min_ev: 0.05
+line_stable_polls: 2
+max_price_move_cents_against: 5
+
+# Dedupe / limits — per sport
+max_picks_per_game: 3
+max_picks_per_slate_per_sport: 6
+
+# Sizing
+stake_mode: flat
+flat_units: 0.5
+kelly_fraction: 0.25
+max_units: 1.0
+bankroll_units: 100
+
+# Per-sport settings
+nfl:
+  total_min: 60
+  min_elapsed_minutes: 12
+  no_pick_final_minutes: 2
+  sd_inflation: 1.15
+  season_plays_per_min: 1.05
+  markets: [player_pass_yds, player_pass_tds, player_rush_yds, player_reception_yds, player_receptions, player_anytime_td]
+
+ncaaf:
+  total_min: 60
+  min_elapsed_minutes: 10
+  no_pick_final_minutes: 2
+  sd_inflation: 1.35
+  season_plays_per_min: 1.25  # college tempo is faster
+  blowout_lead_skip: 28
+  top30_file: top30_ncaaf.yaml
+  markets: [player_pass_yds, player_pass_tds, player_rush_yds, player_reception_yds, player_receptions, player_anytime_td]
+
+ncaab:
+  total_min: 40
+  min_elapsed_minutes: 8
+  no_pick_final_minutes: 2
+  sd_inflation: 1.25
+  season_poss_per_min: 1.75  # ~70 poss / 40 min
+  markets: [player_points, player_rebounds, player_assists, player_threes, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists]
+
+ncaaw:
+  total_min: 40
+  min_elapsed_minutes: 8
+  no_pick_final_minutes: 2
+  sd_inflation: 1.35
+  season_poss_per_min: 1.70
+  verify_propline_key_first: true  # do not assume basketball_ncaaw exists
+  markets: [player_points, player_rebounds, player_assists, player_threes, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists]
+
+mode: log_only  # log_only | alert — never auto-bet
+telegram_enabled: false
