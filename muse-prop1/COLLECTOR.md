@@ -160,53 +160,93 @@ any probability cap, as an empirical calibration.
 Remaining requirement: grade real shared snapshots, split by `scheduled_start`,
 and only then is there anything to fit.
 
-## Collector that is not built
+## Collector
 
-There is no shared collector. Building one here would open ESPN and a paid
-odds API from this branch, which replay is not allowed to do, and a second
-poller would double the Odds API bill. Individual credit caps do not add up
-to one shared cap.
+`collector.py` is the only Odds API caller in this experiment. It writes one
+`marv.prop_snapshot.v1` file and gives that same path to Muse replay and to
+Claude replay. It does not write `recs.json` or anything under `/opt/marv-bot`.
+Game-price caches of moneylines and totals are not inputs.
 
-Existing game-price caches are not this file. `state/cache/bovada_nfl_hist`
-and the other line caches are pregame moneylines, spreads, and totals. They
-do not contain a live player-prop `quoted_odds` blob, an ESPN `boxscore`, or
-`elapsed_minutes` frozen at the same `observed_at`.
+Coverage is NFL and NBA only:
 
-A bounded collector, one process, one odds budget, would write
-`marv.prop_snapshot.v1` and nothing else the engines need:
+| Sport | Odds API sport key | Markets |
+|---|---|---|
+| nfl | `americanfootball_nfl` | `player_pass_yds`, `player_rush_yds`, `player_reception_yds`, `player_receptions` |
+| nba | `basketball_nba` | `player_points`, `player_rebounds`, `player_assists`, `player_threes` |
 
-| Field | Source |
-|---|---|
-| `boxscore` | ESPN summary `boxscore` object, unmodified |
-| `quoted_odds` | Odds API event-odds object, unmodified, Bovada included |
-| `observed_at` | Clock when those two blobs were frozen, timezone-aware |
-| `elapsed_minutes` | Measured once at that clock. Replay will not recompute it |
-| `period_label` | Label copied through, such as `end of Q2` |
-| `score` | `{home, away}` numbers at that clock |
-| `scheduled_start` | Kickoff or tip, timezone-aware |
-| `away`, `home` | Display names |
-| `aliases` | `espn_event_id`, `odds_api_event_id`, optional `muse_game_id` |
-| `anchors` | See below |
-| `observation_id` | Optional caller id. Not hashed |
+ESPN scoreboard and summary use `site.api.espn.com` and no key. Odds calls are
+`GET /v4/sports/{sport}/events` (documented free in `marv/props/odds.py`) and
+`GET /v4/sports/{sport}/events/{id}/odds?bookmakers=bovada`. Current event odds
+cost 1 credit per market per region. This collector uses one region, so each
+props call reserves 4 credits before the request. Historical odds are not
+called. The events list reserves 0 and still requires `x-requests-last`. A
+missing header, auth failure, or quota failure keeps the reservation, fails
+the ledger closed, and does not retry.
 
-Anchors:
+The cap is 100 credits per UTC day in `{state}/usage.json`, not 100 requests.
+`used` never decreases. A larger `x-requests-last` or remaining-credit drop
+increases `used`. A smaller header does not refund. A held reservation left by
+a crash fails the next run closed. Default bounds are 4 games and 4 billable
+calls per one-shot.
 
-- `quoted_pregame` only when a Bovada player line was stored from a capture whose `observed_at` is at or before `scheduled_start`.
-- `model_projection` only when a separate model file already has a number for that player and market. It is not a quote.
-- `inferred` only when the collector explicitly marks a non-quote fallback. Engines must not upgrade it.
-- The kind `pregame` is invalid. A live line must not be stored under a pregame label.
+Games pair on normalized home, away, and start within 120 seconds. A shared
+provider id does not pair different names or a start further away than that.
+The cohort key uses the Odds API commence time. Aliases are stored only after
+the pair.
 
-Until that collector exists, Muse and Claude logs are comparable only where
-someone has already produced this snapshot and both replays were run on it.
-An AJ-selected shadow sample is not that file.
+`quoted_pregame` is stored only when `observed_at` is strictly before
+`scheduled_start`. The later live response stays in `quoted_odds` and is not
+copied into anchors. This collector does not read a projection file and does
+not write `model_projection` or `inferred`. Without a stored pregame quote,
+both engines abstain `no_anchor` instead of using a generic rate. If the raw
+box has no team plays or possessions, Muse abstains `missing_real_pace`.
+`elapsed_minutes` is measured once from the ESPN clock at capture.
+
+`mode` must be `log_only`, `telegram_enabled` false, and `live_props_send`
+the string `off`. The process env `LIVE_PROPS_SEND` must also be off.
+`ODDS_API_KEY` is read from the environment and is not printed. The Claude
+subprocess does not receive that key, a PropLine key, or a Telegram token.
+`claude_code_dir` and `claude_python` are required before any credit is spent.
+Paths containing `install.sh` or `vm_link` are refused. NCAAW and PropLine are
+not called.
+
+```bash
+export LIVE_PROPS_SEND=off
+python3 collector.py --once \
+  --state-dir /var/lib/prop1-collector \
+  --archive /var/lib/prop1-archive
+python3 collector.py --daily-summary \
+  --state-dir /var/lib/prop1-collector \
+  --archive /var/lib/prop1-archive \
+  --date 2026-11-08
+python3 collector.py --grade \
+  --state-dir /var/lib/prop1-collector \
+  --archive /var/lib/prop1-archive \
+  --snapshot /var/lib/prop1-archive/snapshots/<file>.json \
+  --muse-shadow /var/lib/prop1-archive/by-hash/<digest>/muse/shadow.jsonl \
+  --claude-shadow /var/lib/prop1-archive/by-hash/<digest>/claude/shadow.jsonl
+python3 collector.py --regrade \
+  --state-dir /var/lib/prop1-collector \
+  --archive /var/lib/prop1-archive \
+  --snapshot /var/lib/prop1-archive/snapshots/<file>.json \
+  --final /var/lib/prop1-archive/finals/<hash>.json \
+  --muse-shadow /var/lib/prop1-archive/by-hash/<digest>/muse/shadow.jsonl \
+  --claude-shadow /var/lib/prop1-archive/by-hash/<digest>/claude/shadow.jsonl
+```
+
+`--once` holds `collector.lock` and does not rewrite an archived snapshot.
+`--grade` calls ESPN only and saves the raw final box. `--regrade` and
+`--daily-summary` do not open a socket. Settlements are `final`, `pending`,
+or `void`. Comparison uses recorded prices and a hypothetical 1.0 unit. No
+calibration is fit. The daily summary at
+`/var/lib/prop1-archive/daily/<date>/summary.json` has `live_ready: false`.
+
+A run that never captured a pre-start quote still archives the live box and
+the live quote, and both engines abstain. That is not a ready betting run.
 
 ## Keys
 
-Replay needs no key. A collector would need one odds source, not two:
-
-- Claude live uses `ODDS_API_KEY` (The Odds API). Not required to replay a file.
-- Muse's old poller used `PROPLINE_API_KEY`. This CLI does not call PropLine.
-- PropLine sport key `basketball_ncaaw` was never confirmed. Do not guess it.
-- Telegram tokens are unused while `LIVE_PROPS_SEND=off`.
-
-Do not paste any of those into chat.
+`ODDS_API_KEY` is the only secret the collector reads, and only from the
+environment. Replay of an existing file does not need it. PropLine and
+`basketball_ncaaw` are not used. Telegram tokens are not used while
+`LIVE_PROPS_SEND=off`. Do not paste keys into chat.

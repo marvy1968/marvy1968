@@ -18,7 +18,7 @@ python3 test_calibration.py
 python3 test_replay.py
 python3 runner.py --dry-run --state-dir /tmp/muse-prop1-replay
 ```
-See `COLLECTOR.md` for the shared snapshot, the Claude replay command, and the collector that does not exist yet.
+See `COLLECTOR.md` for the shared collector, the 100-credit cap, and the compare commands.
 
 ## Status
 - Replay reads `marv.prop_snapshot.v1` and writes `marv.prop_shadow.v1`. The hash matches Claude Prop 1 at `0155dbca`.

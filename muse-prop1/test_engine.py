@@ -80,9 +80,11 @@ def test_basketball_foul_trouble_shrinks():
     assert foul < base
 
 def test_sport_registry_has_all_four():
-    assert set(SPORTS) == {"nfl", "ncaaf", "ncaab", "ncaaw"}
+    assert {"nfl", "ncaaf", "ncaab", "ncaaw"} <= set(SPORTS)
     assert SPORTS["ncaaf"]["sd_inflation"] > SPORTS["nfl"]["sd_inflation"]
     assert SPORTS["ncaab"]["total_min"] == 40
+    assert SPORTS["nba"]["total_min"] == 48
+    assert SPORTS["nba"]["propline_key"] is None
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):

@@ -37,7 +37,7 @@ EXPLICIT_OFF = frozenset({"0", "off", "false", "no"})
 ANCHOR_KINDS = frozenset({"quoted_pregame", "model_projection", "inferred"})
 _ANCHOR_RANK = {"inferred": 1, "quoted_pregame": 2, "model_projection": 3}
 PROP_SPORTS = frozenset({"nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"})
-ENGINE_SPORT = {"nfl": "nfl", "cfb": "ncaaf", "ncaab": "ncaab", "ncaaw": "ncaaw"}
+ENGINE_SPORT = {"nfl": "nfl", "cfb": "ncaaf", "ncaab": "ncaab", "ncaaw": "ncaaw", "nba": "nba"}
 COUNT_MARKETS = frozenset({"player_anytime_td", "player_pass_tds", "player_threes"})
 QUOTE_MAX_AGE = 180.0
 ROOT = Path(__file__).parent
@@ -52,6 +52,8 @@ MARKETS = {
     "ncaaw": ["player_points", "player_rebounds", "player_assists", "player_threes",
               "player_points_rebounds", "player_points_assists",
               "player_rebounds_assists", "player_points_rebounds_assists"],
+    # Same public keys Claude Prop 1 prices for NBA. Not a PropLine key.
+    "nba": ["player_points", "player_rebounds", "player_assists", "player_threes"],
 }
 STAT_KEY = {
     "player_pass_yds": "pass_yds", "player_pass_tds": "pass_tds",
@@ -305,7 +307,11 @@ def _project(sport: str, market: str, player: dict, anchor_value: float, anchor_
     total = SPORTS[engine]["total_min"]
     sd = float(MARKET_SD.get(market, 5.0))
     opportunities = None
-    if engine in ("nfl", "ncaaf"):
+    possession = sport == "nba"
+    if possession:
+        # Claude GAME nba league possessions. Shrink target only, not observed pace.
+        opportunities = float(scfg.get("league_possessions", 99))
+    elif engine in ("nfl", "ncaaf"):
         opportunities = float(scfg.get("season_plays_per_min", 1.05)) * total
     minutes = None
     entry_minutes = None
@@ -347,20 +353,27 @@ def _project(sport: str, market: str, player: dict, anchor_value: float, anchor_
     if prior["mean"] is None or prior["rate"] is None:
         return None, prior["reason"] or "missing_player_rate"
     current = _stat(player, market)
-    if engine in ("nfl", "ncaaf"):
-        plays = player.get("team_plays")
+    if engine in ("nfl", "ncaaf") or possession:
+        if possession:
+            plays = player.get("team_possessions")
+            pace_source = "observed_team_possessions"
+            season_ppm = opportunities / total if total else 0.0
+        else:
+            plays = player.get("team_plays")
+            pace_source = "observed_team_plays"
+            season_ppm = scfg.get("season_plays_per_min", 1.05)
         if plays is None or float(plays) <= 0:
             return None, "missing_real_pace"
         proj, live_sd = project_final(PaceInput(
             current=current, elapsed_min=elapsed, total_min=total,
             pregame_mean=prior["mean"], pregame_sd=sd,
             pregame_per_play=prior["rate"], plays_so_far=int(float(plays)),
-            season_plays_per_min=scfg.get("season_plays_per_min", 1.05),
+            season_plays_per_min=season_ppm,
             sd_inflation=scfg.get("sd_inflation", SPORTS[engine]["sd_inflation"])))
         return {
             "proj": proj, "sd": live_sd, "current": current, "rate": prior["rate"],
             "rate_source": prior["rate_source"], "mean_source": prior["mean_source"],
-            "pace_source": "observed_team_plays", "pace_value": float(plays),
+            "pace_source": pace_source, "pace_value": float(plays),
         }, ""
     poss = player.get("team_possessions")
     if poss is None or float(poss) <= 0:

@@ -27,9 +27,10 @@ ESPN_PATHS = {
     "ncaaf": "football/college-football",
     "ncaab": "basketball/mens-college-basketball",
     "ncaaw": "basketball/womens-college-basketball",
+    "nba": "basketball/nba",
 }
 
-PERIOD_MIN = {"nfl": 15, "ncaaf": 15, "ncaab": 20, "ncaaw": 10}
+PERIOD_MIN = {"nfl": 15, "ncaaf": 15, "ncaab": 20, "ncaaw": 10, "nba": 12}
 
 def fetch_live_games(sport: str, timeout: int = 10) -> dict:
     if sport not in ESPN_PATHS:

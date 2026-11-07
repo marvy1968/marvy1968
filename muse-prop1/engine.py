@@ -155,8 +155,10 @@ SPORTS = {
     "nfl":   {"total_min": 60, "min_elapsed": 12, "sd_inflation": 1.15, "propline_key": "football_nfl", "espn_path": "football/nfl"},
     "ncaaf": {"total_min": 60, "min_elapsed": 10, "sd_inflation": 1.35, "propline_key": "football_ncaaf", "espn_path": "football/college-football"},
     "ncaab": {"total_min": 40, "min_elapsed": 8,  "sd_inflation": 1.25, "propline_key": "basketball_ncaab", "espn_path": "basketball/mens-college-basketball"},
-    # NCAAW: PropLine key NOT confirmed — verify via /v1/sports before use
+    # NCAAW: PropLine key NOT confirmed — the collector does not call it.
     "ncaaw": {"total_min": 40, "min_elapsed": 8,  "sd_inflation": 1.35, "propline_key": "basketball_ncaaw", "espn_path": "basketball/womens-college-basketball"},
+    # NBA clock is 48 minutes. No PropLine key. League possessions below are the shrink target only.
+    "nba":   {"total_min": 48, "min_elapsed": 10, "sd_inflation": 1.25, "propline_key": None, "espn_path": "basketball/nba"},
 }
 
 
