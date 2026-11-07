@@ -88,10 +88,21 @@ def cv_dev(dev: pd.DataFrame, feats: list[str], folds: int = 5) -> np.ndarray:
     return out
 
 
+def unseen_test(snap: str, dev_path: str, new_path: str, seen_path: str, out_dir: str) -> None:
+    """Score ONLY the pre-registered rule (v3, both sides, edge >= 8c) on games not in seen_path."""
+    seen = set(json.load(open(seen_path)))
+    rows = [line for line in open(new_path) if json.loads(line)["game_id"] not in seen]
+    tmp = Path(out_dir) / "unseen_prices.jsonl"
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    tmp.write_text("".join(rows))
+    main(snap, dev_path, str(tmp), "--holdout", "--only-rule", out_dir)
+
+
 def main(snap: str, dev_path: str, *rest: str) -> None:
     holdout = "--holdout" in rest
     cv_only = "--cv" in rest
-    rest = [r for r in rest if r not in ("--holdout", "--cv")]
+    only_rule = "--only-rule" in rest
+    rest = [r for r in rest if r not in ("--holdout", "--cv", "--only-rule")]
     out_dir = Path(rest[-1])
     hold_path = rest[0] if len(rest) == 2 else None
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -113,7 +124,7 @@ def main(snap: str, dev_path: str, *rest: str) -> None:
     def build(path: str, season: int) -> pd.DataFrame:
         k = load_prices(path)
         anc = anchors_from_ladder(k, phi_pre)
-        snap_s = df[df["season"] == season].copy()
+        snap_s = df[df["game_id"].isin(k["game_id"].unique())].copy()  # the games in this price file
         snap_s["key"] = snap_s["name"].map(norm)
         j = k.merge(snap_s, on=["game_id", "k", "key"], how="inner", suffixes=("", "_snap"))
         j = j.merge(anc, on=["game_id", "key", "stat"], how="left")
@@ -177,6 +188,15 @@ def main(snap: str, dev_path: str, *rest: str) -> None:
     if holdout and hold_path:
         h = build(hold_path, 2027)
         h["p_corr"] = lr.predict_proba(h[FEATS])[:, 1]
+        if only_rule:  # the pre-registered rule and nothing else
+            q = h[h["tight"] & h["fresh"]]
+            b = boot(q, "p_v3", 0.08, "both", n_boot=2000)
+            msg = (f"UNSEEN GAMES: {q.game_id.nunique()} games, {len(q):,} tradeable fresh quotes. Rule v3 both edge>=8c: "
+                   f"{b.get('n', 0)} bets, ROI {b.get('roi', float('nan')):+.1%}, 90% range {b.get('lo', float('nan')):+.1%}"
+                   f" .. {b.get('hi', float('nan')):+.1%}, P(ROI>0) {b.get('p_pos', float('nan')):.0%}")
+            print(msg)
+            (out_dir / "unseen_rule.txt").write_text(msg + "\n")
+            return
         parts.append(("HOLDOUT 2026-27", h))
     for name, part in parts:
         q = part[part["tight"] & part["fresh"]]
@@ -224,4 +244,7 @@ def boot(q: pd.DataFrame, col: str, thr: float, side: str, n_boot: int = 1000) -
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    if sys.argv[1] == "unseen":
+        unseen_test(*sys.argv[2:])
+    else:
+        main(*sys.argv[1:])
