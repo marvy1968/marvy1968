@@ -574,6 +574,15 @@ def run_all(a) -> int:
                 lines += _stg.stock_report({s: d for s, d in dd.items() if len(d) > 300}, dd["SPY"]["close"], today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_refine_6":               # queue item 6: at most 2 open trades sharing a currency (fxbot.refine.cap_both)
+                import datetime as _dt
+                from fxbot import refine as _rf
+                from fxbot.data import MAJORS, load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today - _dt.timedelta(days=200), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += _rf.cap_both(h1, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_refine_5":               # queue item 5: spread > 10% of the stop -> no entry, lien_h1 and retest_h1 (fxbot.refine.spread_both)
                 import datetime as _dt
                 from fxbot import refine as _rf

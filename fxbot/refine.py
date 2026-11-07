@@ -251,3 +251,58 @@ def spread_both(data_h1: dict, today: date) -> list[str]:
     out += retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0}, "Queue 5b: retest_h1 skips entries when spread > 10% of the risk",
                         var_filter=spread_ok)
     return out
+
+
+def _ccy(inst: str) -> tuple[str, str]:
+    a, b = inst.split("_")
+    return a, b
+
+
+def currency_cap(trades: list[dict], cap: int = 2) -> list[dict]:
+    """Portfolio rule: skip a new trade when `cap` already-open trades share one of its currencies (both strategies together)."""
+    kept, open_ = [], []
+    for t in sorted(trades, key=lambda x: pd.Timestamp(x["entry"])):
+        e = pd.Timestamp(t["entry"])
+        open_ = [o for o in open_ if pd.Timestamp(o["exit"]) > e]
+        mine = set(_ccy(t["inst"]))
+        if any(sum(1 for o in open_ if c in _ccy(o["inst"])) >= cap for c in mine):
+            continue
+        kept.append(t)
+        open_.append(t)
+    return kept
+
+
+def cap_both(data_h1: dict, today: date, days: int = 92, cap: int = 2, seeds: int = 20) -> list[str]:
+    """Queue item 6: at most `cap` open trades sharing a currency, lien_h1 + retest_h1 together (their own exits, fxbot.newsfilter's
+    trade lists). Control: the same number of trades dropped at RANDOM from the uncapped book (does the cap pick better than chance?)."""
+    from .newsfilter import lien_trades, retest_trades
+    a = today - timedelta(days=days)
+    mid_ = a + (today - a) / 2
+    h2a = mid_ + timedelta(days=1)
+
+    def book(mult=1.0):
+        out = []
+        for inst, df in data_h1.items():
+            d = xl._spread(df, mult)
+            out += lien_trades(inst, d, a, today) + retest_trades(inst, d, a, today)
+        return out
+    sel = lambda tr, x, y: [t["r"] for t in tr if x <= pd.Timestamp(t["entry"]).date() <= y]  # noqa: E731
+    base, base2 = book(), book(2.0)
+    capped, capped2 = currency_cap(base, cap), currency_cap(base2, cap)
+    res = {}
+    for name, tr, tr2 in (("live", base, base2), ("variant", capped, capped2)):
+        res[name] = {"all": stats(sel(tr, a, today)), "half1": stats(sel(tr, a, mid_)), "half2": stats(sel(tr, h2a, today)),
+                     "all_2x": stats(sel(tr2, a, today))}
+    rng = np.random.default_rng(0)
+    k = len(capped)
+    plc = [float(np.mean([base[i]["r"] for i in rng.choice(len(base), size=k, replace=False)])) for _ in range(seeds)] if 0 < k <= len(base) else []
+    v, b = res["variant"], res["live"]
+    g = lambda d, kk: (d.get(kk) if d.get(kk) is not None else float("-inf"))  # noqa: E731
+    checks = {"30+ trades": (v["all"]["trades"] or 0) >= 30,
+              "half 1 not worse": g(v["half1"], "avg_r") >= g(b["half1"], "avg_r"),
+              "half 2 better": g(v["half2"], "avg_r") > g(b["half2"], "avg_r"),
+              "PF >= 1.0 at 2x spread": (v["all_2x"]["pf"] or 0) >= 1.0,
+              "beats random timing": g(v["all"], "avg_r") > (float(np.mean(plc)) if plc else float("inf"))}
+    res.update({"checks": checks, "random_avg_r": float(np.mean(plc)) if plc else None, "passes": all(checks.values()),
+                "window": (a, mid_, h2a, today), "exits": "each strategy's own exits; control = random drop of the same number of trades"})
+    return lines(f"Queue 6: at most {cap} open trades sharing a currency (lien_h1 + retest_h1)", res)

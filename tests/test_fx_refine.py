@@ -104,3 +104,16 @@ class SpreadGateTests(unittest.TestCase):
         data = {"P": bidask(1.10 + np.cumsum(rng.normal(0, 0.0008, 24 * 100)), start="2026-05-20")}
         res = rf.check(EveryBarLong, lambda df: rf.SpreadGate(EveryBarLong(), df, 0.10), data, date(2026, 9, 1), seeds=1)
         self.assertIn("checks", res)
+
+
+class CurrencyCapTests(unittest.TestCase):
+    def test_cap(self):
+        import pandas as pd
+        T = lambda inst, h0, h1: {"inst": inst, "entry": pd.Timestamp(f"2026-06-01 {h0:02d}:00", tz="UTC"),  # noqa: E731
+                                  "exit": pd.Timestamp(f"2026-06-01 {h1:02d}:00", tz="UTC"), "r": 1.0}
+        tr = [T("EUR_USD", 1, 10), T("GBP_USD", 2, 10), T("AUD_USD", 3, 10), T("EUR_GBP", 4, 10), T("NZD_USD", 11, 12)]
+        kept = rf.currency_cap(tr, 2)
+        names = [t["inst"] for t in kept]
+        self.assertNotIn("AUD_USD", names)            # third open USD trade
+        self.assertIn("EUR_GBP", names)               # EUR 1, GBP 1 open: allowed
+        self.assertIn("NZD_USD", names)               # earlier ones closed by then

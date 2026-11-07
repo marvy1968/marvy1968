@@ -20,5 +20,5 @@ Rules for every item (fixed before any result is seen):
 | 3 | retest_h1 | Minimum reward 2.5R vs the current 2R | built (fxbot.refine.retest_rr, family fx_refine_3); waiting for a deploy |
 | 4 | retest_h1 | 4-hour trend agreement (H4 SMA50 slope) on the retest entry | built (fxbot.refine.retest_h4, family fx_refine_4); waiting for a deploy |
 | 5 | both | Skip entries when the spread is > 10% of the stop distance | built (fxbot.refine.spread_both, family fx_refine_5); waiting for a deploy |
-| 6 | both | Cap open trades sharing one currency (e.g. at most 2 USD-side trades) | queued |
-| 7 | both | Skip entries 60 min either side of high-impact news for that currency (all pairs) | queued |
+| 6 | both | Cap open trades sharing one currency (e.g. at most 2 USD-side trades) | built (fxbot.refine.cap_both, family fx_refine_6); waiting for a deploy |
+| 7 | both | Skip entries 60 min either side of high-impact news for that currency (all pairs) | already live: the runner's news pause (forexfactory, 60 min either side; tested Oct 28, family fx_news). Nothing to add |
