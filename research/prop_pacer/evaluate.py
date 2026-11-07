@@ -155,6 +155,16 @@ def market_test(test: pd.DataFrame, mte: dict, disp: dict, kalshi: str) -> dict:
         for thr in (0.02, 0.04, 0.06, 0.08, 0.10, 0.15):
             res["bets"][col][str(thr)] = bet(ev, col, thr)
             res["bets"][col][f"calib_{thr}"] = bet(cal, col, thr)
+    # Stale-quote check: only quotes Kalshi refreshed after the period ended (a stale quote fakes an edge)
+    if "since_period_end_s" in ev:
+        fresh = ev[ev["since_period_end_s"] >= 0]
+        res["fresh_rows"] = int(len(fresh))
+        res["brier_fresh"] = {"market_mid": float(np.mean((fresh["mid"] - fresh["y"]) ** 2))} if len(fresh) else {}
+        res["bets_fresh"] = {}
+        for name in MODELS:
+            if len(fresh):
+                res["brier_fresh"][name] = float(np.mean((fresh[f"p_{name}"] - fresh["y"]) ** 2))
+            res["bets_fresh"][f"p_{name}"] = {str(t): bet(fresh, f"p_{name}", t) for t in (0.04, 0.06, 0.08, 0.10)}
     return res
 
 
@@ -177,15 +187,25 @@ def bet(d: pd.DataFrame, col: str, thr: float) -> dict:
             "staked": round(staked, 2), "pnl": round(pnl, 2), "roi": pnl / staked if staked else None}
 
 
+LABEL = {"naive": "naive pacer", "prop1": "Claude Prop 1", "v2": "minutes model", "ml": "ML"}
+
+
+def _label(col: str) -> str:
+    base = col[2:] if col.startswith("p_") else col
+    blend = base.endswith("_blend")
+    base = base.replace("_blend", "")
+    return LABEL.get(base, base) + (" + market blend" if blend else "")
+
+
 def write_md(r: dict, path: Path) -> None:
     L = [f"# In-game {r.get('league', 'nba').upper()} prop pacer backtest (test season {r['test_season']}, never seen in training)",
          f"train rows {r['train_rows']:,} · test rows {r['test_rows']:,}", "",
          "## 1. Remaining-stat accuracy (MAE, lower is better)", "",
-         "| stat | break | n | naive | prop1 | v2 | ml |", "|---|---|---|---|---|---|---|"]
+         "| stat | break | n | naive pacer | Claude Prop 1 | minutes model | ML |", "|---|---|---|---|---|---|---|"]
     for a in r["accuracy"]:
         L.append(f"| {a['stat']} | {'half' if r.get('league') == 'ncaab' else 'Q' + str(a['k'])} | {a['n']:,} | {a['naive_mae']:.2f} | {a['prop1_mae']:.2f} | "
                  f"{a['v2_mae']:.2f} | {a['ml_mae']:.2f} |")
-    L += ["", "## 2. Ladder probabilities (Brier, lower is better)", "", "| stat | naive | prop1 | v2 | ml |",
+    L += ["", "## 2. Ladder probabilities (Brier, lower is better)", "", "| stat | naive pacer | Claude Prop 1 | minutes model | ML |",
           "|---|---|---|---|---|"]
     for s in M.STATS:
         b = {x["model"]: x["brier"] for x in r["brier"] if x["stat"] == s}
@@ -198,7 +218,7 @@ def write_md(r: dict, path: Path) -> None:
               "Brier on the evaluation part (lower is better; the market's own mid price is the bar):", ""]
         for k2, v in m["brier"].items():
             if not k2.endswith("weights"):
-                L.append(f"- {k2}: {v:.4f}")
+                L.append(f"- {_label('p_' + k2) if k2 != 'market_mid' else 'Kalshi mid price'}: {v:.4f}")
         L += ["", "Paper bets on the evaluation part (YES at ask / NO at 1 - bid, after Kalshi fee):", "",
               "| model | edge >= | bets | win rate | staked $ | P&L $ | ROI | (calibration part ROI) |",
               "|---|---|---|---|---|---|---|---|"]
@@ -208,8 +228,16 @@ def write_md(r: dict, path: Path) -> None:
                 if not b or not b["n"]:
                     continue
                 croi = f"{c['roi']:+.1%}" if c and c["roi"] is not None else "-"
-                L.append(f"| {col[2:]} | {thr} | {b['n']} | {b['win_rate']:.1%} | {b['staked']:.0f} | {b['pnl']:+.1f} | "
+                L.append(f"| {_label(col)} | {thr} | {b['n']} | {b['win_rate']:.1%} | {b['staked']:.0f} | {b['pnl']:+.1f} | "
                          f"{b['roi']:+.1%} | {croi} |")
+    if m.get("fresh_rows"):
+        L += ["", f"Only quotes refreshed after the period ended ({m['fresh_rows']:,} rows of the evaluation part):", ""]
+        L += [f"- Brier {('Kalshi mid price' if k2 == 'market_mid' else LABEL[k2])}: {v:.4f}" for k2, v in m["brier_fresh"].items()]
+        L += ["", "| model | edge >= | bets | win rate | P&L $ | ROI |", "|---|---|---|---|---|---|"]
+        for col, by in m["bets_fresh"].items():
+            for thr, b in by.items():
+                if b["n"]:
+                    L.append(f"| {_label(col)} | {thr} | {b['n']} | {b['win_rate']:.1%} | {b['pnl']:+.1f} | {b['roi']:+.1%} |")
     path.write_text("\n".join(L) + "\n")
 
 
