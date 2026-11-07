@@ -192,13 +192,14 @@ closed before any request. Default bounds are 4 games and 4 billable calls
 per one-shot. Replay children do not inherit the collector environment. They
 receive PATH, locale, and Python runtime names plus `LIVE_PROPS_SEND=off`.
 
-Games pair on a canonical team name and start within 120 seconds. The
-canonical name is an explicit NFL or NBA abbreviation or a listed public
-alternate (`team_alias.py`). It is not a fuzzy match. A shared provider id
-does not pair different teams or a start further than 120 seconds away.
-Names that are not in the table stay unmatched and are logged. Each free
-scoreboard and events response also appends home, away, and start for both
-feeds to `{state}/name_time_diagnostics.jsonl`, with no key and no URL.
+Games pair on the same canonical home, away, and sport when the two listed
+starts are within 30 minutes. That window is the maximum. A shared provider
+id does not pair different teams. Two candidates in the window, or a listing
+more than 30 minutes away, stay unmatched. The cohort clock written on the
+snapshot is ESPN's scheduled start. The Odds start, the offset in seconds,
+and `providers_agree_on_start` are stored beside it. A non-zero offset is not
+described as agreement. A pregame quote is kept only when ESPN status is
+`pre` and the capture is before the earlier of the two starts.
 
 Billable props calls are chosen only after those free lists. Live games that
 already have a pre-start quote come first, alternating NFL and NBA. A new

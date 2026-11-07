@@ -39,7 +39,10 @@ from prop_snapshot import SCHEMA_IN, ReplayError, assert_replay_state, hash_payl
 
 ODDS_BASE = "https://api.the-odds-api.com/v4"
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports"
-PAIR_SKEW_SECONDS = 120
+# NFL and NBA listings often disagree by 10–25 minutes. 30 minutes is the
+# maximum window. It is not widened by config. Other sports stay at 2 minutes.
+MATCH_WINDOW_SECONDS = {"nfl": 30 * 60, "nba": 30 * 60}
+MAX_MATCH_WINDOW_SECONDS = 30 * 60
 FORBIDDEN = ("install.sh", "vm_link.py", "vm-link.sh", "vm_link")
 # Public keys both engines already model. Not PropLine. Not NCAAW.
 COVERED = {
@@ -81,6 +84,9 @@ def assert_tracking_config(cfg: dict, env: dict | None = None) -> dict:
     cap = int(block.get("daily_credit_cap", DEFAULT_DAILY_CAP))
     if cap != DEFAULT_DAILY_CAP and cap > DEFAULT_DAILY_CAP:
         raise CollectorError(f"daily credit cap cannot exceed the shared hard cap of {DEFAULT_DAILY_CAP}")
+    match_window = float(block.get("match_window_minutes", 30))
+    if match_window > 30:
+        raise CollectorError("match window cannot exceed 30 minutes")
     return block
 
 
@@ -107,6 +113,23 @@ def _when(value: str) -> datetime:
 
 def before_start(observed_at: str, scheduled_start: str) -> bool:
     return _when(observed_at) < _when(scheduled_start)
+
+
+def earliest_start(espn_start: str, odds_start: str | None) -> str:
+    if not odds_start:
+        return espn_start
+    return espn_start if _when(espn_start) <= _when(odds_start) else odds_start
+
+
+def pregame_quote_allowed(observed_at: str, espn_start: str, odds_start: str | None, state: str) -> bool:
+    """A pregame label requires status pre and a time before every listed start.
+
+    Odds sometimes posts a later commence_time after ESPN has already tipped.
+    That later clock must not turn an in-game quote into a pregame anchor.
+    """
+    if state != "pre":
+        return False
+    return before_start(observed_at, earliest_start(espn_start, odds_start))
 
 
 def espn_games(scoreboard: dict, sport: str) -> list[dict]:
@@ -146,8 +169,24 @@ def odds_games(events: list) -> list[dict]:
     } for event in events or []]
 
 
-def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int = PAIR_SKEW_SECONDS) -> list[dict]:
-    """Pair on normalized teams and start. Provider ids cannot force a pair."""
+def _match_window(sport: str, skew_seconds: int | None) -> int:
+    if sport not in MATCH_WINDOW_SECONDS:
+        return 120 if skew_seconds is None else min(skew_seconds, 120)
+    if skew_seconds is None:
+        return MATCH_WINDOW_SECONDS[sport]
+    if skew_seconds > MAX_MATCH_WINDOW_SECONDS:
+        raise CollectorError("match window cannot exceed 30 minutes")
+    return skew_seconds
+
+
+def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int | None = None) -> list[dict]:
+    """Pair identical canonical home and away inside a bounded start window.
+
+    Provider ids never create a match. The cohort clock is ESPN's scheduled
+    start. The Odds start is kept beside it and is not described as the same
+    time unless the offset is zero.
+    """
+    window = _match_window(sport, skew_seconds)
     used = set()
     paired = []
     for game in espn:
@@ -173,15 +212,18 @@ def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int
                 continue
             if canonical_team(sport, event.get("away")) != away:
                 continue
-            if abs((left - right).total_seconds()) > skew_seconds:
+            if abs((left - right).total_seconds()) > window:
                 continue
-            hits.append(index)
+            hits.append((index, right))
         if len(hits) != 1:
             paired.append({**game, "ok": False, "reason": "ambiguous_game" if len(hits) > 1 else "unmatched_names"})
             continue
-        used.add(hits[0])
-        event = odds[hits[0]]
-        start = _stamp(event["scheduled_start"], "scheduled_start")
+        index, right = hits[0]
+        used.add(index)
+        event = odds[index]
+        espn_start = _stamp(game["scheduled_start"], "scheduled_start")
+        odds_start = _stamp(event["scheduled_start"], "scheduled_start")
+        offset = int((right - left).total_seconds())
         full_home = display_team(sport, game.get("home"))
         full_away = display_team(sport, game.get("away"))
         paired.append({
@@ -191,8 +233,13 @@ def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int
             "ok": True,
             "reason": "",
             "odds_event_id": event["odds_event_id"],
-            "scheduled_start": start,
-            "cohort_key": cohort_key(sport, full_away, full_home, start),
+            "scheduled_start": espn_start,
+            "espn_scheduled_start": espn_start,
+            "odds_scheduled_start": odds_start,
+            "time_offset_seconds": offset,
+            "match_confidence": "exact" if offset == 0 else "within_30m",
+            "providers_agree_on_start": offset == 0,
+            "cohort_key": cohort_key(sport, full_away, full_home, espn_start),
         })
     return paired
 
@@ -356,7 +403,7 @@ def _name_time(provider: str, home, away, start, state: str | None = None) -> di
 
 def write_name_time_diagnostic(path: Path, observed_at: str, sport: str,
                                espn_rows: list[dict], odds_rows: list[dict],
-                               unmatched: list[dict]) -> None:
+                               unmatched: list[dict], matched: list[dict] | None = None) -> None:
     record = {
         "at": observed_at,
         "sport": sport,
@@ -370,6 +417,18 @@ def write_name_time_diagnostic(path: Path, observed_at: str, sport: str,
              "espn": _name_time("espn", row.get("home"), row.get("away"), row.get("scheduled_start"), row.get("state"))}
             for row in unmatched
         ],
+        "matched": [
+            {
+                "home": row.get("home"),
+                "away": row.get("away"),
+                "espn_scheduled_start": row.get("espn_scheduled_start"),
+                "odds_scheduled_start": row.get("odds_scheduled_start"),
+                "time_offset_seconds": row.get("time_offset_seconds"),
+                "match_confidence": row.get("match_confidence"),
+                "providers_agree_on_start": row.get("providers_agree_on_start"),
+            }
+            for row in (matched or [])
+        ],
     }
     _append_jsonl(path, record)
 
@@ -382,7 +441,7 @@ def anchor_record_valid(record: dict | None, scheduled_start: str) -> bool:
         return False
     observed = record.get("observed_at")
     start = record.get("scheduled_start") or scheduled_start
-    if not observed or not before_start(observed, start):
+    if not observed or not before_start(observed, record.get("earliest_start") or start):
         return False
     return any(row.get("kind") == "quoted_pregame" for row in record.get("anchors") or [])
 
@@ -396,10 +455,12 @@ def classify_game(game: dict, anchors: dict, captured: dict, now: datetime,
     """
     if not game.get("ok"):
         return "skip", game.get("reason") or "unmatched_names"
-    start = _when(game["scheduled_start"])
-    minutes = (start - now).total_seconds() / 60.0
+    espn_start = game.get("espn_scheduled_start") or game["scheduled_start"]
+    odds_start = game.get("odds_scheduled_start") or game["scheduled_start"]
+    tip = earliest_start(espn_start, odds_start)
+    minutes = (_when(tip) - now).total_seconds() / 60.0
     record = anchors.get(game["cohort_key"])
-    valid = anchor_record_valid(record, game["scheduled_start"])
+    valid = anchor_record_valid(record, tip)
     if game.get("state") == "in":
         if not valid:
             return "skip", "no_pregame_anchor"
@@ -409,7 +470,8 @@ def classify_game(game: dict, anchors: dict, captured: dict, now: datetime,
         if captured.get(f"{game['cohort_key']}|P{period}"):
             return "skip", "duplicate_break"
         return "live", ""
-    if game.get("state") == "pre" and minutes >= 0:
+    observed = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if game.get("state") == "pre" and pregame_quote_allowed(observed, espn_start, odds_start, "pre"):
         if minutes > window_minutes:
             return "skip", "outside_prestart_window"
         if valid or (isinstance(record, dict) and record.get("attempted")):
@@ -529,7 +591,9 @@ def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, obse
             listed_odds = odds_games(events)
             pairs = pair_games(listed_espn, listed_odds, sport)
             unmatched = [row for row in pairs if not row.get("ok")]
-            write_name_time_diagnostic(diag_path, observed_at, sport, listed_espn, listed_odds, unmatched)
+            write_name_time_diagnostic(
+                diag_path, observed_at, sport, listed_espn, listed_odds, unmatched,
+                [row for row in pairs if row.get("ok")])
             for skipped in unmatched:
                 _append_jsonl(abstain_path, {
                     "at": observed_at, "sport": sport, "reason": skipped.get("reason"),
@@ -594,6 +658,11 @@ def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, obse
                 anchors[game["cohort_key"]] = {
                     "observed_at": observed_at,
                     "scheduled_start": game["scheduled_start"],
+                    "earliest_start": earliest_start(
+                        game.get("espn_scheduled_start") or game["scheduled_start"],
+                        game.get("odds_scheduled_start")),
+                    "espn_scheduled_start": game.get("espn_scheduled_start"),
+                    "odds_scheduled_start": game.get("odds_scheduled_start"),
                     "source": "quoted_pregame",
                     "attempted": True,
                     "complete": bool(rows),
@@ -615,6 +684,11 @@ def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, obse
                 "observed_at": observed_at,
                 "sport": sport,
                 "scheduled_start": game["scheduled_start"],
+                "espn_scheduled_start": game.get("espn_scheduled_start"),
+                "odds_scheduled_start": game.get("odds_scheduled_start"),
+                "time_offset_seconds": game.get("time_offset_seconds"),
+                "match_confidence": game.get("match_confidence"),
+                "providers_agree_on_start": game.get("providers_agree_on_start"),
                 "away": game["away"],
                 "home": game["home"],
                 "aliases": {

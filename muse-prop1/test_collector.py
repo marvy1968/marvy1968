@@ -399,7 +399,7 @@ def test_same_ids_do_not_pair_different_teams_or_distant_starts():
     assert paired[0]["ok"] is False
     assert paired[0]["reason"] == "unmatched_names"
     odds = C.odds_games(_events())
-    odds[0]["scheduled_start"] = "2026-11-08T18:02:01Z"
+    odds[0]["scheduled_start"] = "2026-11-08T18:31:00Z"
     paired = C.pair_games(espn, odds, "nfl")
     assert paired[0]["ok"] is False
 
@@ -560,7 +560,7 @@ def test_explicit_aliases_match_and_different_teams_do_not():
         "nba")
     assert wizards[0]["ok"] is False and wizards[0]["reason"] == "unmatched_names"
     late = dict(odds[0])
-    late["scheduled_start"] = "2026-11-08T18:02:01Z"
+    late["scheduled_start"] = "2026-11-08T18:31:00Z"
     assert C.pair_games(espn, [late], "nfl")[0]["ok"] is False
 
 
@@ -760,6 +760,109 @@ def test_in_progress_final_is_refreshed_then_immutable():
         third = C.grade_saved(td / "archive", snap, boom, shadow, claude)
         assert json.loads((td / "archive" / "grade" / "settlement.json").read_text())["results"][0]["status"] == "final"
         assert json.loads(third.read_text())["final_corrections"] == []
+
+
+def _listing(sport, away, home, start, state="pre"):
+    return {
+        "sport": sport, "espn_event_id": "e", "home": home, "away": away,
+        "scheduled_start": start, "state": state,
+        "status": {"period": 2, "displayClock": "5:00"},
+        "home_score": "10", "away_score": "8",
+    }
+
+
+def test_real_start_offsets_match_within_30_minutes_only():
+    cases = [
+        ("nba", "Portland Trail Blazers", "Los Angeles Lakers",
+         "2026-11-07T03:00:00Z", "2026-11-07T03:14:00Z", 14 * 60),
+        ("nba", "San Antonio Spurs", "Sacramento Kings",
+         "2026-11-07T03:00:00Z", "2026-11-07T03:24:12Z", 24 * 60 + 12),
+        ("nfl", "Las Vegas Raiders", "San Francisco 49ers",
+         "2026-11-08T21:25:00Z", "2026-11-08T21:05:00Z", -20 * 60),
+    ]
+    for sport, away, home, espn_start, odds_start, offset in cases:
+        paired = C.pair_games(
+            [_listing(sport, away, home, espn_start, "in")],
+            [{"odds_event_id": "o", "home": home, "away": away, "scheduled_start": odds_start}],
+            sport)
+        assert paired[0]["ok"] is True
+        assert paired[0]["time_offset_seconds"] == offset
+        assert paired[0]["scheduled_start"] == espn_start
+        assert paired[0]["odds_scheduled_start"] == odds_start
+        assert paired[0]["providers_agree_on_start"] is False
+        assert paired[0]["match_confidence"] == "within_30m"
+        assert espn_start in paired[0]["cohort_key"]
+        assert odds_start not in paired[0]["cohort_key"]
+    too_far = C.pair_games(
+        [_listing("nba", "Portland Trail Blazers", "Los Angeles Lakers", "2026-11-07T03:00:00Z")],
+        [{"odds_event_id": "o", "home": "Los Angeles Lakers", "away": "Portland Trail Blazers",
+          "scheduled_start": "2026-11-07T03:31:00Z"}],
+        "nba")
+    assert too_far[0]["ok"] is False
+    doubled = C.pair_games(
+        [_listing("nba", "Portland Trail Blazers", "Los Angeles Lakers", "2026-11-07T03:00:00Z")],
+        [
+            {"odds_event_id": "a", "home": "Los Angeles Lakers", "away": "Portland Trail Blazers",
+             "scheduled_start": "2026-11-07T03:10:00Z"},
+            {"odds_event_id": "b", "home": "Los Angeles Lakers", "away": "Portland Trail Blazers",
+             "scheduled_start": "2026-11-07T03:20:00Z"},
+        ],
+        "nba")
+    assert doubled[0]["ok"] is False and doubled[0]["reason"] == "ambiguous_game"
+    wrong = C.pair_games(
+        [_listing("nfl", "Las Vegas Raiders", "San Francisco 49ers", "2026-11-08T21:25:00Z")],
+        [{"odds_event_id": "same", "home": "Seattle Seahawks", "away": "Arizona Cardinals",
+          "scheduled_start": "2026-11-08T21:25:00Z"}],
+        "nfl")
+    assert wrong[0]["ok"] is False
+    try:
+        C.pair_games(
+            [_listing("nfl", "Las Vegas Raiders", "San Francisco 49ers", "2026-11-08T21:25:00Z")],
+            [{"odds_event_id": "o", "home": "San Francisco 49ers", "away": "Las Vegas Raiders",
+              "scheduled_start": "2026-11-08T21:25:00Z"}],
+            "nfl", skew_seconds=31 * 60)
+    except C.CollectorError as exc:
+        assert "30" in str(exc)
+    else:
+        raise AssertionError("a window past 30 minutes must be refused")
+    assert C.pregame_quote_allowed(
+        "2026-11-07T03:05:00Z", "2026-11-07T03:00:00Z", "2026-11-07T03:14:00Z", "pre") is False
+    assert C.pregame_quote_allowed(
+        "2026-11-07T02:50:00Z", "2026-11-07T03:00:00Z", "2026-11-07T03:14:00Z", "in") is False
+    assert C.pregame_quote_allowed(
+        "2026-11-07T02:50:00Z", "2026-11-07T03:00:00Z", "2026-11-07T03:14:00Z", "pre") is True
+
+
+def test_in_game_quote_is_not_saved_as_pregame_when_odds_start_is_later():
+    """ESPN has tipped at 03:00. Odds still says 03:14. Status in. Do not buy a pregame label."""
+    class FeedLate(Feed):
+        def __call__(self, url):
+            parsed = urlparse(url)
+            if parsed.path.endswith("/scoreboard"):
+                board = _board("in")
+                board["events"][0]["date"] = "2026-11-07T03:00:00Z"
+                board["events"][0]["competitions"][0]["competitors"] = [
+                    {"homeAway": "home", "team": {"displayName": "Los Angeles Lakers"}, "score": "20"},
+                    {"homeAway": "away", "team": {"displayName": "Portland Trail Blazers"}, "score": "18"},
+                ]
+                return 200, {}, json.dumps(board).encode()
+            if parsed.path.endswith("/events"):
+                return 200, {"x-requests-last": "0", "x-requests-remaining": "100"}, json.dumps([{
+                    "id": "late-odds", "home_team": "Los Angeles Lakers", "away_team": "Portland Trail Blazers",
+                    "commence_time": "2026-11-07T03:14:00Z",
+                }]).encode()
+            self.props_calls += 1
+            raise AssertionError("in-game listing must not buy a pregame quote")
+    feed = FeedLate()
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        C.collect_once(_cfg(td, sports=["nba"]), td / "state", td / "archive", feed, _runner([]),
+                       datetime(2026, 11, 7, 3, 5, tzinfo=timezone.utc), _env())
+        assert feed.props_calls == 0
+        assert not (td / "state" / "anchors.json").exists()
+        text = (td / "state" / "abstentions.jsonl").read_text()
+        assert "no_pregame_anchor" in text
+        assert _usage(td) == 0
 
 
 def test_hash_of_collected_snapshot_matches_the_schema():
