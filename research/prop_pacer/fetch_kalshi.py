@@ -3,7 +3,8 @@
 For a seeded random sample of games in the snapshot file: list the game's settled KXNBAPTS / KXNBAREB / KXNBAAST /
 KXNBA3PT markets (historical endpoint), then pull each market's 1-minute candlesticks over the game and keep, for
 every break (end of Q1, Q2, Q3), the LAST candle before play resumes: yes bid / yes ask close, volume during the
-break. Using the late-break price is conservative: the market has had the whole break to react to the box score.
+break. The quote kept is the one standing when play resumes (last candle at or before the break's end) with its age, so
+quotes that were not refreshed after the period ended can be filtered out in the evaluation.
 
 usage: python research/prop_pacer/fetch_kalshi.py SNAP.parquet OUT.jsonl [n_games] [seed]
 Resumable: games already in OUT are skipped.
@@ -81,17 +82,21 @@ def game_prices(g: pd.DataFrame) -> list[dict]:
             continue
         for k, b in breaks.iterrows():
             bs, be = ts(b["break_start"]), ts(b["break_end"])
-            inside = [x for x in c if bs + 60 <= x["end_period_ts"] <= be]
-            if not inside:
+            # Kalshi emits a candle only when something changes, so the quote standing when play resumes is the last
+            # candle at or before the end of the break. Its age is kept so stale quotes can be filtered.
+            before = [x for x in c if x["end_period_ts"] <= be]
+            if not before:
                 continue
-            last = inside[-1]
+            last = before[-1]
+            inside = [x for x in before if x["end_period_ts"] >= bs]
             yb, ya = (last.get("yes_bid") or {}).get("close"), (last.get("yes_ask") or {}).get("close")
             vol = sum(float(x.get("volume") or x.get("volume_fp") or 0) for x in inside)
             out.append({"game_id": int(row["game_id"]), "k": int(k), "series": series, "stat": SERIES[series],
                         "ticker": m["ticker"], "title": m["title"], "player_name": m["title"].split(":")[0].strip(),
                         "strike": m.get("floor_strike"), "result": m.get("result"),
                         "yes_bid": None if yb is None else float(yb), "yes_ask": None if ya is None else float(ya),
-                        "break_volume": vol, "price_ts": last["end_period_ts"]})
+                        "break_volume": vol, "price_ts": last["end_period_ts"], "age_s": be - last["end_period_ts"],
+                        "since_period_end_s": last["end_period_ts"] - bs})
     return out
 
 
