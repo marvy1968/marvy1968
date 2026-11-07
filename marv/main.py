@@ -701,7 +701,12 @@ def cmd_live_props(s: Settings, args) -> int:
     Without `--dry-run`, every priced prop is appended to shadow.jsonl. Telegram and recs.json
     run only when LIVE_PROPS_SEND is explicitly on (unset defaults to on; any other value fails
     closed). `report` prints the graded ledger and never sends.
+    `replay` prices a marv.prop_snapshot.v1 file with no network. It requires LIVE_PROPS_SEND off
+    and --state-dir outside /opt/marv-bot, and it only writes that directory's shadow.jsonl.
     """
+    if args.action == "replay":
+        from .prop_snapshot import replay_cli
+        return replay_cli(args)
     from . import live_prop_engine as LPE
     from .data.espn import ESPNClient, parse_event
     from .live_monitor import STRUCTURE, minutes_left, period_name
@@ -1072,7 +1077,9 @@ def main(argv: list[str] | None = None) -> int:
     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
     lpe = sub.add_parser("live-props", help="Claude Prop 1, in-game Bovada prop engine: scan live games now, or the graded record")
-    lpe.add_argument("action", choices=["scan", "report"])
+    lpe.add_argument("action", choices=["scan", "report", "replay"])
+    lpe.add_argument("--snapshot", help="replay only: marv.prop_snapshot.v1 JSON file (no network)")
+    lpe.add_argument("--state-dir", help="replay only: writable state root, required, must not overlap /opt/marv-bot")
     lpe.add_argument("--sport", default="nfl", choices=["all", "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"])
     lpe.add_argument("--top", type=int, default=15, help="priced props to print per game")
     lpe.add_argument("--dry-run", action="store_true",

@@ -141,6 +141,9 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     live_props_log.json, and no prop_* keys on live_state.json. Dedup, usage, and pregame anchors stay in
     process memory. `credits.json` is still updated on the service path so the daily Odds API cap survives a
     restart. `live-props scan --dry-run` stays print-only (no shadow file either). `report` never sends.
+    Snapshot replay (no Odds API, no Telegram): `LIVE_PROPS_SEND=off python -m marv live-props replay --snapshot <file> --state-dir <dir>`.
+    Schema `marv.prop_snapshot.v1` / output `marv.prop_shadow.v1`: `docs/prop_snapshot_v1.md`. `--state-dir` is required and
+    refuses `/opt/marv-bot`. The live collector's `credits.json` cap is unchanged. Replay does not grade.
     Env: LIVE_PROPS_ENGINE (on, independent of the send flag), LIVE_PROPS_SEND, LIVE_PROP_MIN_EDGE, LIVE_PROP_MIN_EV,
     LIVE_PROP_MAX_AGE, LIVE_PROP_MAX_PER_GAME, LIVE_PROPS_MAX_CREDITS (600/day). No backtest exists: keep "PAPER", no hit-rate %, until 100+
     graded recs beat 52.4% with positive ROI. Check on the first live game that Bovada live props come through the Odds

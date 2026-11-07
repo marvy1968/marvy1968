@@ -1,0 +1,83 @@
+{
+  "schema": "marv.prop_snapshot.v1",
+  "observations": [
+    {
+      "observation_id": "sample-nfl-q2",
+      "observed_at": "2026-11-08T19:00:00Z",
+      "sport": "nfl",
+      "scheduled_start": "2026-11-08T18:00:00Z",
+      "away": "New York Giants",
+      "home": "Dallas Cowboys",
+      "aliases": {
+        "espn_event_id": "401772969",
+        "odds_api_event_id": "ev-sample-1"
+      },
+      "elapsed_minutes": 30,
+      "period_label": "end of Q2",
+      "score": {"away": 10, "home": 14},
+      "boxscore": {
+        "players": [
+          {
+            "team": {"displayName": "Dallas Cowboys"},
+            "statistics": [
+              {
+                "name": "receiving",
+                "labels": ["REC", "YDS", "AVG", "TD", "LONG", "TGTS"],
+                "athletes": [
+                  {"athlete": {"displayName": "CeeDee Lamb"}, "stats": ["3", "40", "12.4", "0", "28", "5"]}
+                ]
+              }
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "team": {"displayName": "Dallas Cowboys"},
+            "statistics": [
+              {"name": "totalOffensivePlays", "displayValue": "30"}
+            ]
+          },
+          {
+            "team": {"displayName": "New York Giants"},
+            "statistics": [
+              {"name": "totalOffensivePlays", "displayValue": "28"}
+            ]
+          }
+        ]
+      },
+      "quoted_odds": {
+        "bookmakers": [
+          {
+            "key": "bovada",
+            "markets": [
+              {
+                "key": "player_reception_yds",
+                "last_update": "2026-11-08T18:59:00Z",
+                "outcomes": [
+                  {"name": "Over", "description": "CeeDee Lamb", "point": 55.5, "price": -115},
+                  {"name": "Under", "description": "CeeDee Lamb", "point": 55.5, "price": -115}
+                ]
+              },
+              {
+                "key": "player_reception_yds",
+                "last_update": "2026-11-08T18:59:00Z",
+                "outcomes": [
+                  {"name": "Over", "description": "Missing Player", "point": 40.5, "price": -110},
+                  {"name": "Under", "description": "Missing Player", "point": 40.5, "price": -110}
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anchors": [
+        {
+          "player": "CeeDee Lamb",
+          "market": "player_reception_yds",
+          "value": 70.0,
+          "kind": "model_projection"
+        }
+      ]
+    }
+  ]
+}
