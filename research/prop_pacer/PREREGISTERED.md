@@ -33,3 +33,17 @@ Rule: v3 (market pregame anchor + minutes model, parameters fit on 2023-25), bot
 fresh quotes (gap <= 10c, bid >= 2c, ask <= 98c, refreshed after the period ended), one contract each.
 Success: ROI > 0 with a game-bootstrap 90% range whose low end is above -5%, on at least 150 unseen games.
 The forward test (NBA games from 2026-11-07 on, same rule, 60+ games) stays as written above.
+
+### Result of the second test (scored once, 2026-11-07)
+
+153 unseen 2025-26 games, 4,442 tradeable fresh quotes. **v3, both sides, edge >= 8c: 456 bets, ROI +10.2%, game
+bootstrap 90% range +1.2% .. +19.4%, P(ROI > 0) 97%. PASSED** (ROI > 0, low end above -5%, 150+ games).
+
+Robustness (descriptive, same games): Kalshi fee doubled +11.4% (342 bets); 1c worse fill on every bet +11.6% (367);
+edge >= 6c +6.4% (676), >= 10c +16.5% (311), >= 12c +14.6% (208). NO side +18.5% (262 bets), YES -1.7% (194).
+Points +14.8%, threes +18.3%, rebounds +6.5%, assists -4.6%. Q1 +11.4%, Q2 +13.5%, Q3 +1.9%. 109 games had bets,
+Jan 18 - May 24 2026.
+
+Together with the holdout (v3 both sides >= 8c: +6.1% on 2,939 bets, 132 games), this rule is positive on two samples
+it was not tuned on. Still open: fill size (each bet is one contract at the displayed price; book depth is unknown) and
+the live forward test from 2026-11-07.

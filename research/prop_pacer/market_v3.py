@@ -196,6 +196,7 @@ def main(snap: str, dev_path: str, *rest: str) -> None:
                    f" .. {b.get('hi', float('nan')):+.1%}, P(ROI>0) {b.get('p_pos', float('nan')):.0%}")
             print(msg)
             (out_dir / "unseen_rule.txt").write_text(msg + "\n")
+            q.to_parquet(out_dir / "unseen_rows.parquet")  # for robustness checks (descriptive, not new tests)
             return
         parts.append(("HOLDOUT 2026-27", h))
     for name, part in parts:

@@ -15,8 +15,14 @@ breaks. Built and tested November 6-7, 2026. Code and full tables: `research/pro
 
 ## Bottom line
 
-**No positive expectancy has been proven.** The rule committed before the holdout broke even. One lead (large
-disagreements, ≥ 8¢) is being forward-tested on games after Nov 6, 2026.
+**One rule has positive expectancy on two samples it was not tuned on**: **v3 (Kalshi pregame ladder anchor + minutes
+model), both sides, buy when the edge is at least 8¢ after fee, tradeable fresh quotes only.**
+- Pre-registered test on 153 unseen 2025-26 games: **456 bets, +10.2%, 90% range +1.2% .. +19.4%, P(ROI>0) 97%**
+- 2026-27 holdout (where the 8¢ cutoff was first seen): 2,939 bets, +6.1%, range +1.3% .. +10.8%
+- Survives double fees (+11.4%) and a 1¢ worse fill on every bet (+11.6%). The profit is mostly NO bets (+18.5%).
+
+The first pre-registered rule (minutes model, NO only, ≥ 6¢) broke even on the holdout. Not yet tested: order-book depth
+(results assume one contract at the displayed price) and the live forward test from Nov 7, 2026.
 
 ---
 
@@ -77,6 +83,9 @@ more than assumed.
 
 ROI rises with the size of the disagreement for every model. That pattern is what real information looks like: the
 market is right on small disagreements and possibly wrong on big ones. It was found on data that is now used up.
+
+**Confirmed on unseen data:** pre-registered before download, 153 never-touched 2025-26 games: 456 bets, **+10.2%**,
+range +1.2% .. +19.4% (`research/prop_pacer/PREREGISTERED.md`).
 
 **Forward test, written down before the data exists:** v3, both sides, edge ≥ 8¢, the same quote filters, NBA games
 from 2026-11-07 on. Promote only if it is positive with a 90% range above −5% after 60+ games (about a week).
