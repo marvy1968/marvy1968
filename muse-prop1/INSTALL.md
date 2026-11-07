@@ -44,17 +44,17 @@ curl "https://api.prop-line.com/v1/sports?apiKey=$PROPLINE_API_KEY"
 If a live shape differs from the fixture, fix the parser, add a fixture for
 that shape, re-run all tests, and do NOT go live until tests pass again.
 
-## 6. Run log-only (first live run)
+## 6. Run log-only replay (no poll)
+Do not cron `runner.py` against PropLine, and do not run it beside Claude's
+live Odds API poll. Both would pay for odds, and the captures would not match.
+Replay a `marv.prop_snapshot.v1` file. Commands, state dirs, and the missing
+collector are in `COLLECTOR.md`.
 ```bash
-python3 runner.py --once --sport nfl
-# mode is log_only in config.yaml — picks go to state/picks.jsonl only, no Telegram
-# Check state/skips.jsonl for why lines were rejected
+export LIVE_PROPS_SEND=off
+python3 runner.py --snapshot path/to/snapshot.json --state-dir /var/lib/muse-prop1
 ```
-Schedule with cron (one cycle per minute, runner has a lock file so overlaps exit):
-```
-* * * * * cd /path/to/muse-prop1 && .venv/bin/python runner.py --once >> logs/runner.log 2>&1
-```
-Do NOT run a loop + cron at the same time.
+That replaces `live_props/shadow.jsonl` in the state dir. It does not append.
+Archive with `orchestrate.py` before the next snapshot.
 
 ## 7. What NOT to do
 - Do NOT flip `mode` to `alert` until a sport passes DESIGN §7 (replay + 2-week shadow).

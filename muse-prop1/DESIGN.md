@@ -100,7 +100,8 @@ projected_final = current + projected_minutes_remaining * per_min_rate
 ### 3.3 From projection to probability (all sports)
 - Yards / points / rebounds / assists (roughly normal at these volumes): `Normal(mean=projected_final, sd=sd_live)` where `sd_live = pregame_sd * sqrt(remaining_frac) * sd_inflation`
 - TDs / threes / steals: Poisson with mean = projected count. Do NOT use Normal for low-count props.
-- `P(Over line) = 1 - CDF(line + 0.5)` (continuity correction), `P(Under) = 1 - P(Over)`.
+- Half-point lines are already the continuity boundary: `P(Over 245.5) = 1 - CDF(245.5)`. Adding another 0.5 was wrong. An integer line still uses `CDF(line + 0.5)` so Over N is not credited for a push at N.
+- `P(Under) = 1 - P(Over)` on a half-point line. There is no separate push mass in the normal approximation.
 - Calibrate `sd` per sport first: if the model says 65% and it only hits 55% over 100+ bets, the SD is too small. Calibration is part of the test, not an afterthought — and it is per sport.
 
 ## 4. Edge vs Bovada — the only decision that matters (same for all 4 sports)

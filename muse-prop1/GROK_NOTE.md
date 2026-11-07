@@ -45,7 +45,7 @@ Follow `INSTALL.md` §3–§6 exactly:
 - Any parser fixes you made, with the new fixture + test run
 
 ## Known limits (Muse's own words, don't gloss over them)
-- Prior mean = first-seen Bovada line, frozen. That is a market prior, not a nflverse/Torvik model. It is honest, but it is not a full projection system.
+- A pregame anchor is only the snapshot kind `quoted_pregame`. A live line is not relabeled. `inferred` stays inferred. There is no shipped calibration.
 - The Nov 1–2 replay (+6u, 29-21) does NOT prove an edge — 83% of profit was 8 bets, and the old code had a lookahead bug. This engine must re-run that period with the lookahead fix before anyone trusts it.
 - NCAAW is the thinnest, highest-risk sport in the set. It goes last.
 - If test ROI is ~0 after vig, the correct answer is "no edge — don't bet it", not a lower threshold.

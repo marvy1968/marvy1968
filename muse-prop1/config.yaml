@@ -66,5 +66,29 @@ ncaaw:
   verify_propline_key_first: true  # do not assume basketball_ncaaw exists
   markets: [player_points, player_rebounds, player_assists, player_threes, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists]
 
-mode: log_only  # log_only | alert — never auto-bet
+mode: log_only  # log_only | alert — never auto-bet. Replay CLI accepts only log_only.
 telegram_enabled: false
+# Required literal. The collector also requires the process env LIVE_PROPS_SEND=off.
+live_props_send: "off"
+
+# One shared collector. Not PropLine. Not NCAAW. Cap is Odds API credits, not requests.
+collector:
+  sports: [nfl, nba]
+  max_games_per_run: 4
+  max_billable_calls_per_run: 4
+  max_live_calls_per_run: 4
+  max_anchor_calls_per_run: 2
+  prestart_window_minutes: 60
+  match_window_minutes: 30  # hard maximum; larger values are refused
+  daily_credit_cap: 100
+  regions: 1
+  # Set these to the detached Claude worktree. The collector refuses to run without them.
+  claude_code_dir: ""
+  claude_python: ""
+
+nba:
+  total_min: 48
+  min_elapsed_minutes: 10
+  no_pick_final_minutes: 2
+  sd_inflation: 1.25
+  league_possessions: 99  # Claude GAME shrink target only. Observed possessions still required.
