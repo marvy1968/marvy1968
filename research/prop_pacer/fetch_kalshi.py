@@ -30,7 +30,7 @@ _last = [0.0]
 
 def get(path: str, params: dict, tries: int = 6) -> dict:
     for i in range(tries):
-        wait = 0.11 - (time.time() - _last[0])  # ~9 requests a second, under Kalshi's public limit
+        wait = 0.3 - (time.time() - _last[0])  # ~3 requests a second: the historical endpoints rate-limit above that
         if wait > 0:
             time.sleep(wait)
         _last[0] = time.time()
@@ -40,7 +40,7 @@ def get(path: str, params: dict, tries: int = 6) -> dict:
             time.sleep(2 ** i)
             continue
         if r.status_code == 429:
-            time.sleep(2 ** i)
+            time.sleep(1.5)
             continue
         if r.status_code == 404:
             return {}
@@ -60,7 +60,12 @@ def event_suffix(row) -> list[str]:
     return [f"{day}{a}{h}", f"{day}{h}{a}"]
 
 
-def game_prices(g: pd.DataFrame) -> list[dict]:
+def _norm(n: str) -> str:
+    return " ".join(str(n).lower().replace(".", "").replace("'", "").replace("-", " ").split())
+
+
+def game_prices(g: pd.DataFrame, q1: dict | None = None) -> list[dict]:
+    """q1: {(normalised name, stat): value at the end of Q1}; rungs already reached by then are never bets, skipped."""
     row = g.iloc[0]
     breaks = g.groupby("k")[["break_start", "break_end"]].first()
     out = []
@@ -76,6 +81,9 @@ def game_prices(g: pd.DataFrame) -> list[dict]:
     t0 = ts(breaks["break_start"].min()) - 120
     t1 = ts(breaks["break_end"].max()) + 120
     for series, m in markets:
+        have = (q1 or {}).get((_norm(m["title"].split(":")[0]), SERIES[series]))
+        if have is not None and m.get("floor_strike") is not None and have > m["floor_strike"]:
+            continue
         c = get(f"/historical/markets/{m['ticker']}/candlesticks",
                 {"start_ts": t0, "end_ts": t1, "period_interval": 1}).get("candlesticks", [])
         if not c:
@@ -102,7 +110,7 @@ def game_prices(g: pd.DataFrame) -> list[dict]:
 
 def main(snap: str, out: str, n: int = 300, seed: int = 7) -> None:
     df = pd.read_parquet(snap, columns=["game_id", "date", "season", "k", "home_abbr", "away_abbr", "break_start",
-                                        "break_end"])
+                                        "break_end", "name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"])
     df = df[df["season"] == df["season"].max()]
     games = sorted(df["game_id"].unique())
     random.Random(seed).shuffle(games)
@@ -114,8 +122,12 @@ def main(snap: str, out: str, n: int = 300, seed: int = 7) -> None:
     todo = [g for g in games[:n] if g not in done]
     print(f"{len(todo)} games to fetch", flush=True)
     by = df.drop_duplicates(["game_id", "k"]).groupby("game_id")
+    q1all = df[df["k"] == 1].groupby("game_id")
     for i, gid in enumerate(todo):
-        rows = game_prices(by.get_group(gid))
+        q = q1all.get_group(gid)
+        q1 = {(_norm(n), s): v for n, *vals in q[["name", "pts_sf", "reb_sf", "ast_sf", "fg3_sf"]].itertuples(index=False)
+              for s, v in zip(("pts", "reb", "ast", "fg3"), vals)}
+        rows = game_prices(by.get_group(gid), q1)
         with open(out, "a") as fh:
             for r in rows:
                 fh.write(json.dumps(r) + "\n")
