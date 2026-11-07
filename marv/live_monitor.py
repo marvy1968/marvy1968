@@ -326,6 +326,10 @@ class LiveMonitor:
         self.state_path = Path(settings.state_dir) / "live_state.json"
         self.client = ESPNClient()
         self.models, self._models_at = {}, 0.0
+        # LIVE_PROPS_SEND off: prop dedup and pregame-capture marks stay in this process.
+        # They are not stored on live_state.json (that file remains the ML / total book).
+        self._shadow_seen: dict[str, set] = {}
+        self._shadow_pregame: set[str] = set()
         self._refresh_models()
 
     def _refresh_models(self) -> None:
@@ -391,14 +395,23 @@ class LiveMonitor:
                 continue
             active = [g for g in games if g.info.get("state") in ("in", "post")]
             engine = self._prop_engine(sport)
+            from .live_prop_engine import live_props_send_enabled
+            prop_send_on = live_props_send_enabled()
             if engine:  # pregame Bovada prop lines = the anchor for players Marv's daily props run didn't price
                 for g in games:
                     pk = f"{sport}:{g.id}"
                     try:
-                        if g.info.get("state") == "pre" and g.start and 0 <= (g.start - now).total_seconds() <= 2700 \
-                                and not state.get(pk, {}).get("prop_pregame"):
+                        if not (g.info.get("state") == "pre" and g.start and 0 <= (g.start - now).total_seconds() <= 2700):
+                            continue
+                        if prop_send_on:
+                            if state.get(pk, {}).get("prop_pregame"):
+                                continue
                             state.setdefault(pk, {"reported": 0, "final": False})["prop_pregame"] = True
-                            engine.capture_pregame(sport, g.home, g.away)
+                        elif pk in self._shadow_pregame:
+                            continue
+                        else:
+                            self._shadow_pregame.add(pk)
+                        engine.capture_pregame(sport, g.home, g.away)
                     except Exception as exc:
                         log.warning("live props pregame %s: %s", g.id, exc)
             due = []
@@ -419,7 +432,10 @@ class LiveMonitor:
                     due.append((g, ended, False))
             if not due:
                 continue
-            if sport == "nfl" and self.s.odds_api_key and os.environ.get("LIVE_PROPS_LOG", "on").lower() != "off":
+            # Stage-1 live_props_log.json is a prop file. Off mode does not write it, even when
+            # LIVE_PROPS_LOG is on. On mode (the default) keeps the previous logger.
+            if sport == "nfl" and self.s.odds_api_key and prop_send_on \
+                    and os.environ.get("LIVE_PROPS_LOG", "on").lower() != "off":
                 from . import live_props  # record live prop lines + box scores (no alerts: nothing is proven yet)
                 for g, ended, final in due:
                     done = state[f"{sport}:{g.id}"].setdefault("props_recorded", [])
@@ -441,9 +457,15 @@ class LiveMonitor:
                 for g, ended, final in due:
                     mem = state[f"{sport}:{g.id}"]
                     tag = "final" if final else ended
-                    if tag in mem.setdefault("prop_scanned", []):
-                        continue
-                    mem["prop_scanned"].append(tag)
+                    if prop_send_on:
+                        if tag in mem.setdefault("prop_scanned", []):
+                            continue
+                        mem["prop_scanned"].append(tag)
+                    else:
+                        seen = self._shadow_seen.setdefault(f"{sport}:{g.id}", set())
+                        if tag in seen:
+                            continue
+                        seen.add(tag)
                     try:
                         if final:
                             sent += engine.on_final(sport, g, prop_send, LPE.summary_path(sport))

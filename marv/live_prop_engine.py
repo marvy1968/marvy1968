@@ -32,12 +32,16 @@ labelled PAPER, show no hit-rate %, and stay paper until 100+ graded recs beat 5
 LIVE_PROPS_SEND
   Unset defaults to on (historical). After strip and lower-case, only 1 / on / true / yes enable
   Telegram and the recommendation ledger. off / 0 / false / no, blank, and any other value fail
-  closed: the engine still prices (LIVE_PROPS_ENGINE stays independent and defaults to on) and
-  still appends shadow.jsonl, but it does not send, does not write or grade recs.json, and does
-  not bump recommendation state. Odds-API budget (credits.json) and pregame anchors
-  (pregame_lines.json) still update, because those are inputs to the shadow computation, not bets.
+  closed. The engine still prices (LIVE_PROPS_ENGINE stays independent and defaults to on).
+  In that off mode the prop workflow appends shadow.jsonl and does not send, does not write or
+  grade recs.json, does not write pregame_lines.json, and does not store prop dedup or usage on
+  the live-monitor state. Pregame anchors, per-break dedup, and usage sit in process memory.
   `live-props scan --dry-run` stays print-only (no shadow file, no ledger, no Telegram) whether
   the flag is on or off.
+
+  Unresolved: credits.json is still updated on the service path. That file is the daily Odds API
+  cap (LIVE_PROPS_MAX_CREDITS). Keeping the counter only in memory would reset it whenever
+  marv-live restarts and could spend past the cap. It is not a recommendation ledger.
 """
 
 from __future__ import annotations
@@ -60,6 +64,14 @@ NAME = "Claude Prop 1"
 # Explicit on tokens only. Anything else, including typos and blank, is off (fail closed).
 _SEND_ON = frozenset({"1", "on", "true", "yes"})
 _SEND_OFF = frozenset({"0", "off", "false", "no"})
+
+
+# Prop-workflow files that off mode still modifies. shadow.jsonl is the priced dataset.
+# credits.json is the unresolved budget file: see the module docstring.
+SEND_OFF_DISK_FILES = frozenset({
+    "live_props/shadow.jsonl",
+    "live_props/credits.json",
+})
 
 
 def live_props_send_enabled() -> bool:
@@ -661,6 +673,9 @@ class Runner:
     def __init__(self, settings, client):
         self.s, self.client = settings, client
         self.dir = _dir(Path(settings.state_dir))
+        # Off mode only. Not written into live_state.json or pregame_lines.json.
+        self._shadow_usage: dict[str, dict] = {}
+        self._shadow_anchors: dict[str, list] = {}
 
     def enabled(self, sport: str) -> bool:
         on = os.environ.get("LIVE_PROPS_ENGINE", "on").lower() not in ("0", "off", "false", "no")
@@ -694,8 +709,13 @@ class Runner:
             return 0
         rows = bovada_lines(self._odds(sport, ev["id"]), max_age=0)
         lines = [{"player": r["player"], "market": r["market"], "line": r["line"]} for r in rows]
-        if lines:
+        if not lines:
+            return 0
+        if live_props_send_enabled():
             save_pregame(Path(self.s.state_dir), ev, lines)
+        else:
+            # Process memory only. A restart drops these anchors; Marv's props_priced file still applies.
+            self._shadow_anchors[ev["id"]] = lines
         return len(lines)
 
     def on_period(self, sport: str, game, elapsed: float, period_label: str, mem: dict, send, summary_path: str) -> int:
@@ -710,8 +730,14 @@ class Runner:
         summary = self.client.summary(summary_path, str(game.id))
         odds = self._odds(sport, ev["id"])
         hs, as_ = float(game.info.get("live_home") or 0), float(game.info.get("live_away") or 0)
-        usage = mem.setdefault("prop_usage", {})
-        priced, recs = scan_game(sport, summary, odds, anchors(state_dir, sport, ev["id"]), elapsed,
+        anchor = anchors(state_dir, sport, ev["id"])
+        for line in self._shadow_anchors.get(ev["id"], []):
+            anchor.setdefault((_norm(line["player"]), line["market"]), float(line["line"]))
+        if live_props_send_enabled():
+            usage = mem.setdefault("prop_usage", {})
+        else:
+            usage = self._shadow_usage.setdefault(str(game.id), {})
+        priced, recs = scan_game(sport, summary, odds, anchor, elapsed,
                                  game.home, game.away, hs, as_, usage)
         log_shadow(state_dir, sport, str(game.id), period_label, priced)
         if not live_props_send_enabled():

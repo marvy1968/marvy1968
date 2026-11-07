@@ -282,31 +282,56 @@ class SendGateTests(unittest.TestCase):
             self.assertEqual(self._period(runner, mem, boom), 0)
             self.assertEqual(self._period(runner, mem, boom), 0)  # refresh / second break: still no ledger
             self.assertEqual(sent, [])
-            self.assertNotIn("prop_recs", mem)
+            self.assertEqual(mem, {})  # usage and dedup stay on the runner, not on caller state
             changed = _changed(before, _files(d))
-            self.assertEqual(changed, {"live_props/shadow.jsonl", "live_props/credits.json"})
+            self.assertEqual(changed, set(E.SEND_OFF_DISK_FILES))
+            self.assertFalse((d / "live_props" / "pregame_lines.json").exists())
             shadow = (d / "live_props" / "shadow.jsonl").read_text().splitlines()
             self.assertEqual(len(shadow), 2)
             self.assertIn("CeeDee Lamb", shadow[0])
             self.assertEqual((d / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
 
-    def test_off_final_and_pregame_refresh_do_not_touch_ledger(self):
-        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off"}):
+    def test_off_final_grade_report_and_pregame_anchor_stay_off_disk(self):
+        flags = {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on", "LIVE_PROPS_LOG": "on"}
+        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, flags):
             d = Path(d)
             runner = self._runner(d)
             self._seed(d)
+            (d / "props_priced_nfl.json").unlink()  # the scan has to use the in-memory anchor
             runner.client.summary.side_effect = AssertionError("summary fetched while send is off")
             bare = SimpleNamespace(id="g1")  # no scores: grading would throw if it ran
             before = _files(d)
             self.assertEqual(runner.on_final("nfl", bare, lambda text: (_ for _ in ()).throw(AssertionError("sender")), "football/nfl"), 0)
+            self.assertEqual(E.grade_game(d, "nfl", "g1", nfl_summary()), [])
             self.assertEqual(_changed(before, _files(d)), set())
-            with mock.patch.object(runner, "_event", return_value={"id": "ev1", "away_team": "NYG", "home_team": "DAL",
+            with mock.patch.object(runner, "_event", return_value={"id": "ev1", "away_team": "New York Giants",
+                                                                   "home_team": "Dallas Cowboys",
                                                                    "commence_time": "2026-11-08T18:00:00Z"}), \
                     mock.patch.object(runner, "_odds", return_value=_live_odds(line=55.5)):
                 self.assertEqual(runner.capture_pregame("nfl", "Dallas Cowboys", "New York Giants"), 1)
+                self.assertEqual(_changed(before, _files(d)), {"live_props/credits.json"})
+                self.assertFalse((d / "live_props" / "pregame_lines.json").exists())
+                runner.client.summary.side_effect = None
+                mem = {}
+                self.assertEqual(self._period(runner, mem, lambda text: (_ for _ in ()).throw(AssertionError("sender"))), 0)
+            self.assertEqual(mem, {})
             changed = _changed(before, _files(d))
-            self.assertEqual(changed, {"live_props/credits.json", "live_props/pregame_lines.json"})
+            self.assertEqual(changed, set(E.SEND_OFF_DISK_FILES))
+            self.assertIn("CeeDee Lamb", (d / "live_props" / "shadow.jsonl").read_text())
+            self.assertFalse((d / "live_props_log.json").exists())
             self.assertEqual((d / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
+
+    def test_off_report_reads_without_writing(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_LOG": "on"}):
+            d = Path(d)
+            (d / "live_props").mkdir()
+            (d / "live_props" / "recs.json").write_text("[]")
+            (d / "picks.json").write_bytes(b"NOT-JSON-PICKS\n")
+            before = _files(d)
+            text = E.report(d)
+            self.assertIn("Claude Prop 1", text)
+            self.assertEqual(E.grade_game(d, "nfl", "g1", nfl_summary()), [])
+            self.assertEqual(_changed(before, _files(d)), set())
 
     def test_off_error_before_shadow_writes_no_ledger_and_does_not_send(self):
         with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off"}):
@@ -327,6 +352,8 @@ class SendGateTests(unittest.TestCase):
             changed = _changed(before, _files(d))
             self.assertEqual(changed, {"live_props/credits.json"})
             self.assertFalse((d / "live_props" / "shadow.jsonl").exists())
+            self.assertFalse((d / "live_props" / "pregame_lines.json").exists())
+            self.assertFalse((d / "live_props_log.json").exists())
             self.assertEqual((d / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
 
     def test_on_period_sends_once_via_mock_and_dedupes_without_http(self):
@@ -411,7 +438,8 @@ class CliSendGateTests(unittest.TestCase):
             del started
 
     def test_cli_off_scan_refresh_writes_only_shadow_and_cannot_send(self):
-        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off"}):
+        flags = {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on", "LIVE_PROPS_LOG": "on"}
+        with tempfile.TemporaryDirectory() as d, mock.patch.dict(os.environ, flags):
             d = Path(d)
             s = self._settings(d)
             live = d / "live_props"
@@ -425,6 +453,9 @@ class CliSendGateTests(unittest.TestCase):
             self.assertEqual(sender.call_count, 0)
             changed = _changed(before, _files(d))
             self.assertEqual(changed, {"live_props/shadow.jsonl"})
+            self.assertFalse((d / "live_props" / "credits.json").exists())
+            self.assertFalse((d / "live_props" / "pregame_lines.json").exists())
+            self.assertFalse((d / "live_props_log.json").exists())
             self.assertEqual(len((d / "live_props" / "shadow.jsonl").read_text().splitlines()), 2)
             self.assertEqual((d / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
             self.assertEqual((d / "picks.json").read_bytes(), b"NOT-JSON-PICKS\n")

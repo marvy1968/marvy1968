@@ -16,19 +16,6 @@ REPO="${REPO:-https://github.com/marvy1968/marvy1968.git}"
 BRANCH="${BRANCH:-claude/analysis-ak180w}"
 DIR=/opt/marv-bot
 
-# A pinned deploy must survive `marv-vmlink` `update`, which runs this script. The script
-# force-checkouts origin/$BRANCH (default claude/analysis-ak180w) and restarts shared services.
-# MARV_DEPLOY_PIN, or a file at MARV_DEPLOY_PIN_FILE (default /etc/marv-deploy-pin), stops that
-# before apt, fetch, checkout, or any restart. Unset and with no pin file, behavior is unchanged.
-# Any non-empty pin or any existing pin file refuses; the value is not printed. See
-# docs/prop1_send_off_rollout.md. Clear the pin only for a reviewed intentional update.
-PIN_FILE="${MARV_DEPLOY_PIN_FILE:-/etc/marv-deploy-pin}"
-if [ -n "${MARV_DEPLOY_PIN:-}" ] || [ -f "$PIN_FILE" ]; then
-  echo "install.sh refused: a deploy pin is set (MARV_DEPLOY_PIN or $PIN_FILE)." >&2
-  echo "Not fetching, not force-checking out ${BRANCH}, not reinstalling packages, not restarting services." >&2
-  exit 3
-fi
-
 apt-get update -y
 apt-get install -y git python3 python3-venv tzdata
 

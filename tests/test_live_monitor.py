@@ -146,7 +146,7 @@ class PropSendGateMonitorTest(unittest.TestCase):
             self.assertFalse((Path(d) / "picks.json").exists())
 
     def test_real_engine_off_tick_writes_shadow_not_recs_and_ml_still_sends_when_send_off(self):
-        from tests.test_live_prop_engine import _live_odds
+        from tests.test_live_prop_engine import _changed, _files, _live_odds
         with tempfile.TemporaryDirectory() as d:
             # ncaab halftime still announces a live edge; prop send is off and must not add prop text.
             (Path(d) / "predictions.json").write_text(json.dumps({"ncaab:1": {
@@ -182,45 +182,128 @@ class PropSendGateMonitorTest(unittest.TestCase):
                 mock.patch("marv.live_prop_engine.Runner._event", return_value={"id": "ev1"}),
                 mock.patch("marv.live_prop_engine.Runner._odds", return_value=_live_odds(line=55.5)),
             ]
-            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}):
+            log_calls = []
+
+            def refuse_log(*a, **k):
+                log_calls.append(a)
+                raise AssertionError("stage-1 prop log reached while LIVE_PROPS_SEND is off")
+
+            patches = [
+                mock.patch("marv.live_props.record_period", refuse_log),
+                mock.patch("marv.live_props.record_final", refuse_log),
+                mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")),
+                mock.patch("marv.live_prop_engine.Runner._event", return_value={"id": "ev1"}),
+                mock.patch("marv.live_prop_engine.Runner._odds", return_value=_live_odds(line=55.5)),
+            ]
+            flags = {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on", "LIVE_PROPS_LOG": "on"}
+            before = _files(Path(d))
+            with mock.patch.dict(os.environ, flags):
                 for p in patches:
                     p.start()
                 try:
                     mon.tick(sent.append)
-                    mon.tick(sent.append)
+                    mon.tick(sent.append)  # in-memory dedup: second tick does not scan again
                 finally:
                     for p in patches:
                         p.stop()
             self.assertEqual(sent, [])
+            self.assertEqual(log_calls, [])
+            changed = _changed(before, _files(Path(d)))
+            # live_state.json is the ML/total book. It is rewritten every tick and must not gain prop keys.
+            self.assertEqual(changed, {"live_props/shadow.jsonl", "live_props/credits.json", "live_state.json"})
             shadow = (Path(d) / "live_props" / "shadow.jsonl").read_text().strip()
             self.assertIn("CeeDee Lamb", shadow)
+            self.assertFalse((Path(d) / "live_props" / "pregame_lines.json").exists())
+            self.assertFalse((Path(d) / "live_props_log.json").exists())
             self.assertEqual((Path(d) / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
             self.assertEqual((Path(d) / "picks.json").read_bytes(), b"NOT-JSON-PICKS\n")
             state = json.loads((Path(d) / "live_state.json").read_text())
             blob = json.dumps(state)
-            self.assertNotIn("prop_recs", blob)
+            for banned in ("prop_recs", "prop_scanned", "prop_usage", "prop_pregame", "props_recorded"):
+                self.assertNotIn(banned, blob)
+            self.assertIn("reported", blob)
 
     def test_engine_error_does_not_send_or_mutate_ledger(self):
+        from tests.test_live_prop_engine import _changed, _files
         with tempfile.TemporaryDirectory() as d:
             mon = self._nfl(d)
             (Path(d) / "live_props").mkdir(parents=True)
             (Path(d) / "live_props" / "recs.json").write_bytes(b"NOT-JSON-SENTINEL\n")
-            sent = []
-            patches = self._quiet_log() + [
-                mock.patch("marv.live_prop_engine.Runner._event", side_effect=RuntimeError("odds down")),
+            sent, log_calls = [], []
+
+            def refuse_log(*a, **k):
+                log_calls.append(a)
+                raise AssertionError("stage-1 prop log reached while LIVE_PROPS_SEND is off")
+
+            event = mock.Mock(side_effect=RuntimeError("odds down"))
+            patches = [
+                mock.patch("marv.live_props.record_period", refuse_log),
+                mock.patch("marv.live_props.record_final", refuse_log),
+                mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")),
+                mock.patch("marv.live_prop_engine.Runner._event", event),
             ]
-            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}):
+            before = _files(Path(d))
+            flags = {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on", "LIVE_PROPS_LOG": "on"}
+            with mock.patch.dict(os.environ, flags):
                 for p in patches:
                     p.start()
                 try:
                     mon.tick(sent.append)
-                    mon.tick(sent.append)  # dedup marker was set before the error; still no send
+                    mon.tick(sent.append)  # in-memory dedup: the failed break is not fetched again
                 finally:
                     for p in patches:
                         p.stop()
             self.assertEqual(sent, [])
+            self.assertEqual(log_calls, [])
+            self.assertEqual(event.call_count, 1)
+            changed = _changed(before, _files(Path(d)))
+            self.assertEqual(changed, {"live_props/credits.json", "live_state.json"})
             self.assertEqual((Path(d) / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
             self.assertFalse((Path(d) / "live_props" / "shadow.jsonl").exists())
+            self.assertFalse((Path(d) / "live_props_log.json").exists())
+            blob = (Path(d) / "live_state.json").read_text()
+            for banned in ("prop_recs", "prop_scanned", "prop_usage", "prop_pregame", "props_recorded"):
+                self.assertNotIn(banned, blob)
+
+    def test_off_pregame_capture_does_not_persist_anchors_or_prop_state(self):
+        from datetime import timedelta
+        from tests.test_live_prop_engine import _changed, _files, _live_odds
+        with tempfile.TemporaryDirectory() as d:
+            mon = LiveMonitor(Settings(state_dir=d, odds_api_key="x"), ["nfl"])
+            mon.client = FakeClient()
+            mon._live_odds = lambda sport, games: False
+            start = (datetime.now(timezone.utc) + timedelta(minutes=20)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            pre = event("pre", "STATUS_SCHEDULED", 1, "15:00", 0, 0)
+            pre["date"] = start
+            mon.client.events = [pre]
+            log_calls = []
+
+            def refuse_log(*a, **k):
+                log_calls.append(1)
+                raise AssertionError("stage-1 prop log reached")
+
+            flags = {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on", "LIVE_PROPS_LOG": "on"}
+            before = _files(Path(d))
+            with mock.patch.dict(os.environ, flags), \
+                    mock.patch("marv.live_props.record_period", refuse_log), \
+                    mock.patch("marv.live_props.record_final", refuse_log), \
+                    mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")), \
+                    mock.patch("marv.live_prop_engine.Runner._event", return_value={
+                        "id": "ev1", "away_team": "North Carolina Tar Heels", "home_team": "Duke Blue Devils",
+                        "commence_time": start}), \
+                    mock.patch("marv.live_prop_engine.Runner._odds", return_value=_live_odds(line=55.5)):
+                mon.tick(lambda text: (_ for _ in ()).throw(AssertionError("sender")))
+                mon.tick(lambda text: (_ for _ in ()).throw(AssertionError("sender")))
+            self.assertEqual(log_calls, [])
+            changed = _changed(before, _files(Path(d)))
+            self.assertEqual(changed, {"live_props/credits.json", "live_state.json"})
+            self.assertFalse((Path(d) / "live_props" / "pregame_lines.json").exists())
+            self.assertFalse((Path(d) / "live_props" / "shadow.jsonl").exists())
+            self.assertFalse((Path(d) / "live_props_log.json").exists())
+            blob = (Path(d) / "live_state.json").read_text()
+            for banned in ("prop_pregame", "prop_recs", "prop_scanned", "prop_usage", "props_recorded"):
+                self.assertNotIn(banned, blob)
+            self.assertEqual(len(mon._shadow_pregame), 1)
 
 
 if __name__ == "__main__":
