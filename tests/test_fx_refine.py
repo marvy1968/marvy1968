@@ -43,3 +43,15 @@ class RefineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DailyTrendTests(unittest.TestCase):
+    def test_trend_gate(self):
+        from fxbot.data import mid
+        up = bidask(1.0 + np.arange(24 * 30) * 0.0001, start="2026-05-01")
+        f = rf.DailyTrend(EveryBarLong(), 5).frame(mid(up))
+        self.assertFalse(f["long"].iloc[: 24 * 5].any())          # not enough completed days yet
+        self.assertTrue(f["long"].iloc[24 * 10:].any())             # rising market: longs allowed
+        dn = bidask(1.3 - np.arange(24 * 30) * 0.0001, start="2026-05-01")
+        g = rf.DailyTrend(EveryBarLong(), 5).frame(mid(dn))
+        self.assertFalse(g["long"].iloc[24 * 10:].any())            # falling market: no longs

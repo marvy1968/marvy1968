@@ -82,3 +82,34 @@ def session_lien(data_h1: dict, today: date) -> list[str]:
     live = lambda: LienFader(break_pips=20)  # noqa: E731
     var = lambda: SessionWindow(LienFader(break_pips=20), 7, 17)  # noqa: E731
     return lines("Queue 1: lien_h1 London + New York hours only", check(live, var, data_h1, today))
+
+
+class DailyTrend:
+    """Wrap a strategy: longs only while the last COMPLETED day's close is above its daily SMA(n), shorts only below. Exits unchanged."""
+
+    def __init__(self, strat, n: int = 200):
+        self.s, self.n = strat, n
+        self.max_bars = getattr(strat, "max_bars", 72)
+
+    def __getattr__(self, name):
+        return getattr(self.s, name)
+
+    def frame(self, m):
+        f = self.s.frame(m).copy()
+        dc = m["close"].resample("1D").last().dropna()
+        sma = dc.rolling(self.n).mean()
+        up = (dc > sma).where(sma.notna())
+        up = up.shift(1)                                         # yesterday's completed day decides today's bars (no look-ahead)
+        day = m.index.floor("1D")
+        u = up.reindex(day).to_numpy()
+        f["long"] = f["long"].astype(bool) & (u == True)          # noqa: E712  (NaN = not enough history = no trade)
+        f["short"] = f["short"].astype(bool) & (u == False)        # noqa: E712
+        return f
+
+
+def trend_lien(data_h1: dict, today: date) -> list[str]:
+    """Queue item 2: lien_h1 skips a fade against the daily trend (last completed close vs the daily SMA200)."""
+    from .strategies import LienFader
+    live = lambda: LienFader(break_pips=20)  # noqa: E731
+    var = lambda: DailyTrend(LienFader(break_pips=20), 200)  # noqa: E731
+    return lines("Queue 2: lien_h1 only with the daily trend (D1 SMA200)", check(live, var, data_h1, today))

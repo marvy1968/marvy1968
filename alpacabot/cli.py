@@ -574,6 +574,15 @@ def run_all(a) -> int:
                 lines += _stg.stock_report({s: d for s, d in dd.items() if len(d) > 300}, dd["SPY"]["close"], today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_refine_2":               # queue item 2 (fxbot/RESEARCH_QUEUE.md): lien_h1 with the daily trend; 420 days so the D1 SMA200 is warm
+                import datetime as _dt
+                from fxbot import refine as _rf
+                from fxbot.data import MAJORS, load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today - _dt.timedelta(days=420), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += _rf.trend_lien(h1, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_refine_1":               # owner 2026-11-07 "keep testing and refining": queue item 1 (fxbot/RESEARCH_QUEUE.md, fxbot.refine)
                 import datetime as _dt
                 from fxbot import refine as _rf
