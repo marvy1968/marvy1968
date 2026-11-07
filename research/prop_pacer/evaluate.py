@@ -148,6 +148,7 @@ def market_test(test: pd.DataFrame, mte: dict, disp: dict, kalshi: str) -> dict:
         X = np.c_[logit(cal[f"p_{name}"]), logit(cal["mid"])]
         lr = LogisticRegression(C=10).fit(X, cal["y"])
         ev[f"p_{name}_blend"] = lr.predict_proba(np.c_[logit(ev[f"p_{name}"]), logit(ev["mid"])])[:, 1]
+        cal[f"p_{name}_blend"] = lr.predict_proba(X)[:, 1]  # in-sample on the calibration part (optimistic by design)
         res["brier"][f"{name}_blend"] = float(np.mean((ev[f"p_{name}_blend"] - ev["y"]) ** 2))
         res["brier"][f"{name}_blend_weights"] = [float(x) for x in lr.coef_[0]]
     for col in [f"p_{n}" for n in MODELS] + [f"p_{n}_blend" for n in MODELS]:
