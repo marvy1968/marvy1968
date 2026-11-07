@@ -384,13 +384,15 @@ def build(legs: list[dict], uf: list, sports_checked: list, now: datetime) -> di
     for leg in legs:
         by_sport.setdefault(leg["sport"], []).append(leg)
     order = list(SPORTS) + ["soccer"]
-    return {"date": now.astimezone(CT).date().isoformat(), "built": now.isoformat(), "sports_checked": sports_checked,
+    card = {"date": now.astimezone(CT).date().isoformat(), "built": now.isoformat(), "sports_checked": sports_checked,
             "sports_with_legs": [s for s in order if s in by_sport],
             "parlays": {s: p for s in order if s in by_sport and (p := parlays(by_sport[s]))},
             "ml": [x for x in legs if x["market"] == "ml"][:STRAIGHT_MAX],
             "ou": [x for x in legs if x["market"] == "total"][:STRAIGHT_MAX],
             "spread": [x for x in legs if x["market"] == "spread"][:STRAIGHT_MAX],
             "uf_removed": uf, "n_legs": len(legs)}
+    from .lane_pause import split_card
+    return split_card(card)
 
 
 def _when(start: str) -> str:
@@ -500,6 +502,8 @@ def log_card(state: Path, card: dict) -> int:
             add("parlay2", s, p["legs"], p["price"])
     for x in card["ml"] + card["ou"] + card.get("spread", []):
         add("straight", x["sport"], [x], x["price"])
+    from .lane_pause import append_daily_tracking
+    n += append_daily_tracking(book, have, card)
     _jsave(path, book)
     return n
 
@@ -1082,7 +1086,11 @@ ATS_LABEL = "TOP30-ATS"
 
 
 def _pool_ok(leg: dict) -> bool:
-    """CFB parlay legs: gated OVER-FADE unders, top-30 ATS, Master Extreme overs only. Other sports unchanged."""
+    """CFB parlay legs: gated OVER-FADE unders, top-30 ATS, Master Extreme overs only. Other sports unchanged.
+    Paused lanes are out of every sport's parlay pool."""
+    from .lane_pause import paused
+    if paused(leg):
+        return False
     if leg.get("sport") != "cfb":
         return True
     why = str(leg.get("why", ""))

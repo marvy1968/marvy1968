@@ -165,14 +165,33 @@ def cmd_run(s: Settings, args) -> int:
             bets = betcard.select(card_cands)
             text = betcard.text(bets, now.astimezone(ET))
             print(text + "\n")
+            when = now.astimezone(ET)
+            state = Path(s.state_dir)
+            from . import decision_audit, lane_pause
+            try:
+                lane_pause.persist_tracking(state, when.date().isoformat())
+            except Exception:
+                log.exception("lane-pause tracking log failed")
             if not args.dry_run:
-                prev = betcard.already_sent(Path(s.state_dir), now.astimezone(ET))
-                if prev and os.environ.get("BETCARD_RESEND", "").lower() not in ("1", "true", "yes", "on"):
-                    log.info("bet card already sent today at %s; not resending", prev.get("sent_at"))
-                else:
-                    betcard.mark_sent(Path(s.state_dir), bets, now.astimezone(ET))
-                    send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-                    betcard.log(Path(s.state_dir), bets, now.astimezone(ET))
+                def _send():
+                    # None today: send_message does not return the Bot API body.
+                    return send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+
+                def _mark(status):
+                    betcard.mark_sent(state, bets, when, status=status.code,
+                                      delivery_proof=status.code == "acknowledged",
+                                      intent_id=status.intent_id)
+
+                outcome = decision_audit.apply_betcard_send(
+                    state, when, bets, text, _send,
+                    lambda: betcard.log(state, bets, when),
+                    lambda: _alert_failure(s, "daily bet card"),
+                    _mark,
+                    force=os.environ.get("BETCARD_RESEND", "").lower() in ("1", "true", "yes", "on"),
+                )
+                if outcome == "blocked":
+                    log.info("bet card already has a send attempt for %s; not resending. "
+                             "A marker or intent is not a provider receipt.", when.date())
         except Exception:
             log.exception("bet card failed")
             if not args.dry_run:
