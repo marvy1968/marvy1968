@@ -13,3 +13,13 @@ The one rule judged on the holdout:
   (with ~130 games the range will be wide; a positive point estimate alone is not enough to promote anything).
 
 Everything else printed by market_v3.py --holdout (other models, sides, thresholds) is exploratory and is not the test.
+
+## Result (scored once, 2026-11-07, after the commit above)
+
+Pre-registered rule (minutes model, NO only, edge >= 6c): 2,910 bets, ROI -0.0%, game bootstrap 90% range -4.5% .. +4.5%.
+**FAILED.** It breaks even on the holdout. Full table: results/v3_dev_val_holdout.md.
+
+Exploratory (chosen after looking, so not a test): ROI rises with the edge threshold for every model. Both sides,
+edge >= 8c: minutes model +4.8% (4,130 bets, +0.6% .. +9.0%), v3 +6.1% (2,939 bets, +1.3% .. +10.8%).
+Next test, written down now: v3, both sides, edge >= 8c, the same quote filters, on NBA games from 2026-11-07 onward
+(forward data that does not exist yet). Promote only if it is positive with a 90% range above -5% after 60+ games.
