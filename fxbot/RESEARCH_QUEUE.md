@@ -17,7 +17,7 @@ Rules for every item (fixed before any result is seen):
 |---|---|---|---|
 | 1 | lien_h1 | Trade only London + New York hours (07:00-17:00 UTC) vs all hours | built (fxbot.refine.session_lien, family fx_refine_1); waiting for a deploy |
 | 2 | lien_h1 | Skip a fade against the daily trend (close vs D1 SMA200) | built (fxbot.refine.trend_lien, family fx_refine_2); waiting for a deploy |
-| 3 | retest_h1 | Minimum reward 2.5R vs the current 2R | queued |
+| 3 | retest_h1 | Minimum reward 2.5R vs the current 2R | built (fxbot.refine.retest_rr, family fx_refine_3); waiting for a deploy |
 | 4 | retest_h1 | 4-hour trend agreement (H4 SMA50 slope) on the retest entry | queued |
 | 5 | both | Skip entries when the spread is > 10% of the stop distance | queued |
 | 6 | both | Cap open trades sharing one currency (e.g. at most 2 USD-side trades) | queued |

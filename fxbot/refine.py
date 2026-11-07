@@ -66,7 +66,7 @@ def check(make_live, make_variant, data: dict, today: date, days: int = 92, seed
 def lines(title: str, res: dict) -> list[str]:
     a, m, h2a, t = res["window"]
     f = lambda s: f"{s['trades']} t, PF {(s['pf'] or 0):.2f}, avg R {(s['avg_r'] or 0):+.3f}, net {(s['total_r'] or 0):+.1f}R"  # noqa: E731
-    out = [f"### {title} (halves {a}..{m} / {h2a}..{t}, bid/ask, live exits 0.5R cut / 1.25R target)"]
+    out = [f"### {title} (halves {a}..{m} / {h2a}..{t}, bid/ask, {res.get('exits', 'live exits 0.5R cut / 1.25R target')})"]
     for k in ("live", "variant"):
         r = res[k]
         out.append(f"- {k}: all {f(r['all'])} | half 1 {f(r['half1'])} | half 2 {f(r['half2'])} | 2x spread {f(r['all_2x'])}")
@@ -113,3 +113,71 @@ def trend_lien(data_h1: dict, today: date) -> list[str]:
     live = lambda: LienFader(break_pips=20)  # noqa: E731
     var = lambda: DailyTrend(LienFader(break_pips=20), 200)  # noqa: E731
     return lines("Queue 2: lien_h1 only with the daily trend (D1 SMA200)", check(live, var, data_h1, today))
+
+
+def _random_twin(df, t: dict, rng, a: date, b: date, max_bars: int = 120):
+    """A random-timing twin of one playbook trade: same pair, side, risk and reward distance, entered at a random bar in [a, b]."""
+    idx = df.index
+    ok = np.flatnonzero((idx.date >= a) & (idx.date <= b))
+    if len(ok) < max_bars + 2:
+        return None
+    j = int(rng.choice(ok[:-max_bars - 1]))
+    side = 1 if t["side"] == "long" else -1
+    risk, rr = float(t["risk"]), float(t.get("rr_target") or 2.0)
+    fill = float(df["ao"].iloc[j]) if side == 1 else float(df["bo"].iloc[j])
+    stop, tgt = fill - side * risk, fill + side * rr * risk
+    lo = (df["bl"] if side == 1 else df["al"]).to_numpy(float)
+    hi = (df["bh"] if side == 1 else df["ah"]).to_numpy(float)
+    cl = (df["bc"] if side == 1 else df["ac"]).to_numpy(float)
+    for k in range(j, min(j + max_bars, len(df))):
+        adverse, favour = (lo[k], hi[k]) if side == 1 else (hi[k], lo[k])
+        if side * (adverse - stop) <= 0:
+            return -1.0
+        if side * (favour - tgt) >= 0:
+            return rr
+    return side * (cl[min(j + max_bars, len(df)) - 1] - fill) / risk
+
+
+def retest_check(data_h1: dict, today: date, base_kw: dict, var_kw: dict, title: str, days: int = 92, seeds: int = 5) -> list[str]:
+    """retest_h1 (the playbook's own exits) live rules vs one changed rule, same pre-registered checks as check()."""
+    from .playbook import PlaybookRules, simulate_playbook
+    a = today - timedelta(days=days)
+    mid_ = a + (today - a) / 2
+    h2a = mid_ + timedelta(days=1)
+
+    def run(kw, mult=1.0):
+        out = []
+        for inst, df in data_h1.items():
+            d = xl._spread(df, mult)
+            out += [{**t, "inst": inst} for t in simulate_playbook(inst, d, PlaybookRules(**kw), a, today)]
+        return out
+    sel = lambda tr, x, y: [t["r"] for t in tr if x <= t["entry"].date() <= y]  # noqa: E731
+    res = {}
+    for name, kw in (("live", base_kw), ("variant", var_kw)):
+        tr, tr2 = run(kw), run(kw, 2.0)
+        res[name] = {"all": stats(sel(tr, a, today)), "half1": stats(sel(tr, a, mid_)), "half2": stats(sel(tr, h2a, today)),
+                     "all_2x": stats(sel(tr2, a, today)), "_tr": tr}
+    rng = np.random.default_rng(0)
+    plc = []
+    for s in range(seeds):
+        tw = [_random_twin(data_h1[t["inst"]], t, rng, a, today) for t in res["variant"]["_tr"]]
+        tw = [x for x in tw if x is not None]
+        if tw:
+            plc.append(float(np.mean(tw)))
+    for k in ("live", "variant"):
+        res[k].pop("_tr")
+    v, b = res["variant"], res["live"]
+    g = lambda d, k: (d.get(k) if d.get(k) is not None else float("-inf"))  # noqa: E731
+    checks = {"30+ trades": (v["all"]["trades"] or 0) >= 30,
+              "half 1 not worse": g(v["half1"], "avg_r") >= g(b["half1"], "avg_r"),
+              "half 2 better": g(v["half2"], "avg_r") > g(b["half2"], "avg_r"),
+              "PF >= 1.0 at 2x spread": (v["all_2x"]["pf"] or 0) >= 1.0,
+              "beats random timing": g(v["all"], "avg_r") > (float(np.mean(plc)) if plc else float("inf"))}
+    res.update({"checks": checks, "random_avg_r": float(np.mean(plc)) if plc else None, "passes": all(checks.values()),
+                "window": (a, mid_, h2a, today), "exits": "the playbook's own exits (structure stop, swing target, close-back)"})
+    return lines(title, res)
+
+
+def retest_rr(data_h1: dict, today: date) -> list[str]:
+    """Queue item 3: retest_h1 needs 2.5R to the next opposing swing level instead of 2R."""
+    return retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0, "min_rr": 2.5}, "Queue 3: retest_h1 minimum reward 2.5R vs 2R")

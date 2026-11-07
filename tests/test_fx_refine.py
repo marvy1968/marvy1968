@@ -55,3 +55,18 @@ class DailyTrendTests(unittest.TestCase):
         dn = bidask(1.3 - np.arange(24 * 30) * 0.0001, start="2026-05-01")
         g = rf.DailyTrend(EveryBarLong(), 5).frame(mid(dn))
         self.assertFalse(g["long"].iloc[24 * 10:].any())            # falling market: no longs
+
+
+class RetestCheckTests(unittest.TestCase):
+    def test_retest_check_runs(self):
+        rng = np.random.default_rng(5)
+        today = date(2026, 9, 1)
+        data = {f"P{k}": bidask(1.10 + np.cumsum(rng.normal(0, 0.0009, 24 * 110)), start="2026-05-10") for k in range(2)}
+        out = rf.retest_check(data, today, {"be_at_r": 0.0}, {"be_at_r": 0.0, "min_rr": 2.5}, "t", seeds=2)
+        self.assertTrue(out[-1].startswith("- PRE-REGISTERED VERDICT"))
+        self.assertIn("playbook's own exits", out[0])
+
+    def test_random_twin_hits_stop_or_target(self):
+        df = bidask(np.r_[np.full(20, 1.10), np.linspace(1.10, 1.13, 200)], start="2026-06-01")
+        r = rf._random_twin(df, {"side": "long", "risk": 0.002, "rr_target": 2.0}, np.random.default_rng(1), date(2026, 6, 1), date(2026, 6, 30))
+        self.assertIn(r, (-1.0, 2.0))
