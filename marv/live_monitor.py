@@ -21,7 +21,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import bridge, proven
+from . import bridge, exchange_paper, proven
 from .data.espn import ESPNClient
 from .data.teams import similarity
 from .markets import american_to_prob, prob_to_american
@@ -408,6 +408,7 @@ class LiveMonitor:
                 rec_state["seen"] = now.isoformat()
                 if g.info.get("state") == "post" or g.completed:
                     if (rec_state.get("alerted") or rec_state.get("props_recorded") or rec_state.get("prop_recs")
+                            or rec_state.get("exchange")
                             or rec_state["reported"] > 0) \
                             and not rec_state["final"]:
                         due.append((g, rec_state["reported"], True))
@@ -434,6 +435,15 @@ class LiveMonitor:
                             live_props.record_period(self.s, g, ended, self.client)
                     except Exception as exc:
                         log.warning("live props record %s: %s", g.id, exc)
+            if exchange_paper.enabled(sport):  # grade Kalshi / Polymarket paper trades at the final
+                for g, ended, final in due:
+                    mem = state[f"{sport}:{g.id}"]
+                    if final and mem.get("exchange") and not mem.get("exchange_graded"):
+                        mem["exchange_graded"] = True
+                        try:
+                            sent += exchange_paper.on_final(self.s, self.client, sport, g, send)
+                        except Exception as exc:
+                            log.warning("exchange paper final %s: %s", g.id, exc)
             if engine:  # in-game props: price Bovada's live prop lines from pace + usage at every break
                 from . import live_prop_engine as LPE
                 for g, ended, final in due:
@@ -499,6 +509,18 @@ class LiveMonitor:
                         tt_shadow_log(Path(self.s.state_dir), sport, g, ended, _st)
                     except Exception as exc:
                         log.warning("tt shadow %s: %s", g.id, exc)
+                if exchange_paper.enabled(sport):  # Kalshi / Polymarket paper trades from Marv's in-game prices
+                    try:
+                        _left = minutes_left(sport, ended, g.info.get("clock"), True)
+                        _st = bridge.live_state(rec, sport, g.info.get("live_home"), g.info.get("live_away"), _left)
+                        if ingame:
+                            _st = {**_st, "p_home": ingame["p_home"], "exp_total": ingame["exp_total"],
+                                   "exp_margin": ingame["exp_margin"]}
+                        state[key]["exchange"] = True
+                        sent += exchange_paper.on_break(self.s, self.client, sport, g, ended,
+                                                        f"end of {period_name(sport, ended)}", _st, send)
+                    except Exception as exc:
+                        log.warning("exchange paper %s: %s", g.id, exc)
                 if not live_prices:
                     continue  # no live prices = no measurable edge, stay quiet
                 left = minutes_left(sport, ended, g.info.get("clock"), True)

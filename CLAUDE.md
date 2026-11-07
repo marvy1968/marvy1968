@@ -140,3 +140,14 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     LIVE_PROP_MAX_PER_GAME, LIVE_PROPS_MAX_CREDITS (600/day). No backtest exists: keep "PAPER", no hit-rate %, until 100+
     graded recs beat 52.4% with positive ROI. Check on the first live game that Bovada live props come through the Odds
     API and that ESPN team stats include `totalOffensivePlays` / basketball FGA-FTA-OREB-TO.
+
+17. Exchange paper trader (Nov 7 2026, `marv/exchange_paper.py`, PAPER ONLY - no orders, no exchange keys): at every break of an
+    NBA / NCAAB / NCAAW game `marv-live` prices Kalshi (KX<NBA|NCAAMB|NCAAWB>GAME/SPREAD/TOTAL + NBA PTS/REB/AST/3PT) and Polymarket
+    (gamma series 10345 NBA, 10470 men's college; no women's series) contracts from Marv's in-game state (bridge.live_state /
+    ingame model; props from Claude Prop 1) vs ask + taker fee (Kalshi 0.07p(1-p), Polymarket market feeSchedule). Trades when
+    edge >= EX_MIN_EDGE 5c (props EX_MIN_EDGE_PROPS 7c), ask 0.08-0.92, bid/ask gap <= EX_MAX_GAP 8c, 3-6 min windows excluded,
+    Bovada no-vig (Odds API live ML/total) not saying it's overpriced, max EX_MAX_PER_GAME 3/break, flat EX_STAKE $10.
+    Logs every price (state/exchange_paper/snapshots.jsonl), trades + P&L + closing value (trades.json), graded at the final.
+    `python -m marv exchange report | prices --sport nba --home X --away Y | scan --dry-run`. EXCHANGE_PAPER=off disables,
+    EXCHANGE_PAPER_SEND=off keeps it silent. Real orders are a separate, owner-approved step (Kalshi demo first) and only after
+    100+ graded paper trades with positive ROI after fees AND positive closing value. Polymarket international = not for US users.

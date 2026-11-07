@@ -746,6 +746,57 @@ def cmd_live_props(s: Settings, args) -> int:
     return 0
 
 
+def cmd_exchange(s: Settings, args) -> int:
+    """Kalshi / Polymarket paper trader for in-game basketball: `report` (graded record), `prices` (what the exchanges
+    list for one game, no model), `scan` (price every live game now; --dry-run prints only)."""
+    from . import bridge, exchange_paper as X
+    from .data.espn import ESPNClient, parse_event
+    from .live_monitor import STRUCTURE, _find_rec, minutes_left, period_name
+    state = Path(s.state_dir)
+    if args.action == "report":
+        print(X.report(state))
+        return 0
+    if args.action == "prices":
+        start = datetime.now(timezone.utc) if not args.date else datetime.fromisoformat(args.date).replace(
+            hour=23, tzinfo=timezone.utc)
+        cs = X.kalshi_game(args.sport, args.home, args.away, start) + X.pm_game(args.sport, args.home, args.away, start)
+        for c in sorted(cs, key=lambda c: (c["venue"], c["kind"], str(c.get("player")), c.get("line") or 0)):
+            bid = f"{c['bid'] * 100:.0f}" if c["bid"] is not None else "-"
+            print(f"{c['venue']:10s} {c['kind']:6s} ask {c['ask'] * 100:5.1f}¢ bid {bid:>3s}¢ fee {c['fee'] * 100:.2f}¢  {c['title']}")
+        print(f"{len(cs)} contracts")
+        return 0
+    client, now = ESPNClient(), datetime.now(timezone.utc)
+    preds_path = state / "predictions.json"
+    preds = json.loads(preds_path.read_text()) if preds_path.exists() else {}
+    sports = list(X.SPORTS) if args.sport == "all" else [args.sport]
+    out = (lambda t: print(t + "\n")) if args.dry_run else (lambda t: (print(t), send_message(s.telegram_bot_token, s.telegram_chat_id, t)))
+    for sport in sports:
+        path = STRUCTURE[sport][3]
+        games = [g for g in (parse_event(e, sport) for e in client.scoreboard(path, now - timedelta(hours=12), now))
+                 if g and g.info.get("state") == "in"]
+        for g in games:
+            rec = _find_rec(preds, sport, g.home, g.away)
+            if rec is None:
+                print(f"{g.away} @ {g.home}: no Marv projection")
+                continue
+            period = int(g.info.get("period") or 1)
+            left = minutes_left(sport, period, g.info.get("clock"), False)
+            st = bridge.live_state(rec, sport, g.info.get("live_home"), g.info.get("live_away"), left)
+            cs = X.kalshi_game(sport, g.home, g.away, g.start) + X.pm_game(sport, g.home, g.away, g.start)
+            priced, picks = X.decide(cs, st, g.home, g.away, {}, g.odds, left, sport)
+            print(f"{g.away} @ {g.home} · {period_name(sport, period)} {g.info.get('clock')} · {len(cs)} contracts, "
+                  f"{len(picks)} paper trades")
+            for r in sorted(priced, key=lambda r: -r["edge"])[: args.top]:
+                print(f"  {'*' if not r['reason'] else ' '} {r['venue']:10s} {r['title'][:60]:60s} ask {r['ask'] * 100:4.0f}¢ "
+                      f"Marv {r['fair']:.0%} edge {r['edge'] * 100:+5.1f}¢  {r['reason']}")
+            if picks and not args.dry_run:
+                new = X.record(state, sport, str(g.id), f"{g.away} @ {g.home}", period_name(sport, period), picks, priced)
+                if new:
+                    out(X.trade_text(sport, f"{g.away} @ {g.home}", period_name(sport, period),
+                                     f"{g.info.get('live_away')} – {g.info.get('live_home')}", new))
+    return 0
+
+
 def cmd_grade_prop(s: Settings, args) -> int:
     """Marv's probability and grade for one NFL player prop (form-only second opinion)."""
     from . import propgrade
@@ -1060,6 +1111,14 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--mirror", action="store_true", help="also send to the mirror chat (MIRROR_BOT_TOKEN)")
     lpp = sub.add_parser("live-props-probe", help="check live in-game prop lines + ESPN box score during an NFL game")
     lpp.add_argument("--books", default="bovada,draftkings,fanduel,betmgm")
+    exa = sub.add_parser("exchange", help="Kalshi / Polymarket in-game basketball paper trader")
+    exa.add_argument("action", choices=["report", "prices", "scan"])
+    exa.add_argument("--sport", default="nba", choices=["all", "nba", "ncaab", "ncaaw"])
+    exa.add_argument("--home", help="prices: home team")
+    exa.add_argument("--away", help="prices: away team")
+    exa.add_argument("--date", help="prices: game date YYYY-MM-DD (default today)")
+    exa.add_argument("--top", type=int, default=12)
+    exa.add_argument("--dry-run", action="store_true")
     lpe = sub.add_parser("live-props", help="Claude Prop 1, in-game Bovada prop engine: scan live games now, or the graded record")
     lpe.add_argument("action", choices=["scan", "report"])
     lpe.add_argument("--sport", default="nfl", choices=["all", "nfl", "cfb", "nba", "wnba", "ncaab", "ncaaw"])
@@ -1107,7 +1166,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings.from_env()
     handler = {"run": cmd_run, "backtest": cmd_backtest, "results": cmd_results,
-               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "live-props": cmd_live_props, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
+               "stats-backtest": cmd_stats_backtest, "h2h-backtest": cmd_h2h_backtest, "props": cmd_props, "props-backtest": cmd_props_backtest, "ingame": cmd_ingame, "edges": cmd_edges, "gaps": cmd_gaps, "talent-dump": cmd_talent_dump, "situational": cmd_situational, "check": cmd_check, "overlay": cmd_overlay, "report": cmd_report, "live": cmd_live, "probe-ewl": cmd_probe_ewl, "live-probe": cmd_live_probe, "injuries": cmd_injuries, "mirror-status": cmd_mirror_status, "grade-prop": cmd_grade_prop, "live-props-probe": cmd_live_props_probe, "live-props": cmd_live_props, "exchange": cmd_exchange, "notify": cmd_notify, "serve": cmd_serve, "test-telegram": cmd_test_telegram, "get-chat-id": cmd_get_chat_id, "sports": cmd_sports, "soccer": cmd_soccer}
     try:
         return handler[args.command](s, args)
     except Exception:
