@@ -574,6 +574,15 @@ def run_all(a) -> int:
                 lines += _stg.stock_report({s: d for s, d in dd.items() if len(d) > 300}, dd["SPY"]["close"], today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_refine_1":               # owner 2026-11-07 "keep testing and refining": queue item 1 (fxbot/RESEARCH_QUEUE.md, fxbot.refine)
+                import datetime as _dt
+                from fxbot import refine as _rf
+                from fxbot.data import MAJORS, load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today - _dt.timedelta(days=160), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += _rf.session_lien(h1, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_news":                   # owner 2026-10-28: news filter on the live forex setups (fxbot.newsfilter, pre-declared)
                 import datetime as _dt
                 import requests as _rq
