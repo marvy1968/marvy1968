@@ -23,7 +23,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import yaml
 
-from cohort import cohort_key, team_key, utc_stamp
+from cohort import cohort_key, utc_stamp
+from team_alias import canonical_team, display_team
 from compare_shadow import compare, load_shadow, write_report
 from credits import (
     EVENTS_LIST_CREDITS,
@@ -155,7 +156,9 @@ def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int
         except Exception:
             paired.append({**game, "ok": False, "reason": "missing_start"})
             continue
-        if not team_key(game.get("home") or "") or not team_key(game.get("away") or ""):
+        home = canonical_team(sport, game.get("home"))
+        away = canonical_team(sport, game.get("away"))
+        if not home or not away:
             paired.append({**game, "ok": False, "reason": "missing_teams"})
             continue
         hits = []
@@ -166,9 +169,9 @@ def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int
                 right = _when(event.get("scheduled_start"))
             except Exception:
                 continue
-            if team_key(event.get("home") or "") != team_key(game.get("home") or ""):
+            if canonical_team(sport, event.get("home")) != home:
                 continue
-            if team_key(event.get("away") or "") != team_key(game.get("away") or ""):
+            if canonical_team(sport, event.get("away")) != away:
                 continue
             if abs((left - right).total_seconds()) > skew_seconds:
                 continue
@@ -179,13 +182,17 @@ def pair_games(espn: list[dict], odds: list[dict], sport: str, skew_seconds: int
         used.add(hits[0])
         event = odds[hits[0]]
         start = _stamp(event["scheduled_start"], "scheduled_start")
+        full_home = display_team(sport, game.get("home"))
+        full_away = display_team(sport, game.get("away"))
         paired.append({
             **game,
+            "home": full_home,
+            "away": full_away,
             "ok": True,
             "reason": "",
             "odds_event_id": event["odds_event_id"],
             "scheduled_start": start,
-            "cohort_key": cohort_key(sport, game["away"], game["home"], start),
+            "cohort_key": cohort_key(sport, full_away, full_home, start),
         })
     return paired
 
@@ -332,16 +339,121 @@ def invoke_muse(snapshot: Path, state_dir: Path, runner, env: dict) -> None:
     invoke_replay(cmd, Path(__file__).resolve().parent, runner, env)
 
 
-def _select(pairs: list[dict], max_games: int) -> list[dict]:
-    live = [row for row in pairs if row.get("ok") and row.get("state") == "in"]
-    pre = [row for row in pairs if row.get("ok") and row.get("state") == "pre"]
+PRESTART_WINDOW_MINUTES = 60
+
+
+def _name_time(provider: str, home, away, start, state: str | None = None) -> dict:
+    """Names and start only. No ids, keys, or URLs."""
+    row = {"provider": provider, "home": home, "away": away, "scheduled_start_raw": start}
+    try:
+        row["scheduled_start"] = _stamp(start, "scheduled_start")
+    except Exception:
+        row["scheduled_start"] = None
+    if state:
+        row["state"] = state
+    return row
+
+
+def write_name_time_diagnostic(path: Path, observed_at: str, sport: str,
+                               espn_rows: list[dict], odds_rows: list[dict],
+                               unmatched: list[dict]) -> None:
+    record = {
+        "at": observed_at,
+        "sport": sport,
+        "kind": "free_name_time",
+        "espn": [_name_time("espn", row.get("home"), row.get("away"), row.get("scheduled_start"), row.get("state"))
+                 for row in espn_rows],
+        "odds": [_name_time("odds", row.get("home"), row.get("away"), row.get("scheduled_start"))
+                 for row in odds_rows],
+        "unmatched": [
+            {"reason": row.get("reason"),
+             "espn": _name_time("espn", row.get("home"), row.get("away"), row.get("scheduled_start"), row.get("state"))}
+            for row in unmatched
+        ],
+    }
+    _append_jsonl(path, record)
+
+
+def anchor_record_valid(record: dict | None, scheduled_start: str) -> bool:
+    """A stored pregame quote is usable only when it was captured before start."""
+    if not isinstance(record, dict) or record.get("source") != "quoted_pregame":
+        return False
+    if not record.get("complete"):
+        return False
+    observed = record.get("observed_at")
+    start = record.get("scheduled_start") or scheduled_start
+    if not observed or not before_start(observed, start):
+        return False
+    return any(row.get("kind") == "quoted_pregame" for row in record.get("anchors") or [])
+
+
+def classify_game(game: dict, anchors: dict, captured: dict, now: datetime,
+                  window_minutes: float) -> tuple[str, str]:
+    """Return (action, reason). action is live, anchor, or skip.
+
+    Already-cached pregame anchors are skipped. That skip already existed;
+    distant games and repeat breaks are skipped here before any props call.
+    """
+    if not game.get("ok"):
+        return "skip", game.get("reason") or "unmatched_names"
+    start = _when(game["scheduled_start"])
+    minutes = (start - now).total_seconds() / 60.0
+    record = anchors.get(game["cohort_key"])
+    valid = anchor_record_valid(record, game["scheduled_start"])
+    if game.get("state") == "in":
+        if not valid:
+            return "skip", "no_pregame_anchor"
+        period = int((game.get("status") or {}).get("period") or 0)
+        if period < 1 or measured_elapsed(game["sport"], game.get("status") or {}) is None:
+            return "skip", "missing_elapsed"
+        if captured.get(f"{game['cohort_key']}|P{period}"):
+            return "skip", "duplicate_break"
+        return "live", ""
+    if game.get("state") == "pre" and minutes >= 0:
+        if minutes > window_minutes:
+            return "skip", "outside_prestart_window"
+        if valid or (isinstance(record, dict) and record.get("attempted")):
+            return "skip", "anchors_cached"
+        return "anchor", ""
+    return "skip", "not_pre_or_live"
+
+
+def _round_robin(rows: list[dict], limit: int) -> list[dict]:
+    if limit < 1 or not rows:
+        return []
+    buckets: dict[str, list[dict]] = {}
+    order = []
+    for row in rows:
+        sport = row.get("sport") or ""
+        if sport not in buckets:
+            order.append(sport)
+            buckets[sport] = []
+        buckets[sport].append(row)
     chosen = []
-    for group in (pre, live):
-        for row in group:
-            if len(chosen) >= max_games:
-                return chosen
-            chosen.append(row)
+    while len(chosen) < limit and any(buckets.values()):
+        for sport in order:
+            if buckets[sport] and len(chosen) < limit:
+                chosen.append(buckets[sport].pop(0))
     return chosen
+
+
+def choose_billable(games: list[dict], anchors: dict, captured: dict, now: datetime,
+                    window_minutes: float, max_live: int, max_anchor: int,
+                    max_calls: int) -> tuple[list[dict], list[dict]]:
+    """Live games with a real pregame anchor first, then near-term anchor capture."""
+    live, needed, skipped = [], [], []
+    for game in games:
+        action, reason = classify_game(game, anchors, captured, now, window_minutes)
+        if action == "live":
+            live.append(game)
+        elif action == "anchor":
+            needed.append(game)
+        elif reason not in ("unmatched_names", "ambiguous_game", "missing_teams", "missing_start"):
+            skipped.append({**game, "skip_reason": reason})
+    chosen = _round_robin(live, min(max_live, max_calls))
+    room = max_calls - len(chosen)
+    chosen.extend(_round_robin(needed, min(max_anchor, room)))
+    return chosen, skipped
 
 
 def collect_once(cfg: dict, state_dir: Path, archive: Path, transport, runner,
@@ -362,10 +474,12 @@ def collect_once(cfg: dict, state_dir: Path, archive: Path, transport, runner,
     observed_at = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     regions = 1
     cap = int(block.get("daily_credit_cap", DEFAULT_DAILY_CAP))
-    max_games = int(block.get("max_games_per_run", 4))
     max_calls = int(block.get("max_billable_calls_per_run", 4))
-    if max_games < 1 or max_calls < 1:
-        raise CollectorError("max games and max billable calls must be positive")
+    max_live = int(block.get("max_live_calls_per_run", max_calls))
+    max_anchor = int(block.get("max_anchor_calls_per_run", 2))
+    window = float(block.get("prestart_window_minutes", PRESTART_WINDOW_MINUTES))
+    if max_calls < 1 or window < 0:
+        raise CollectorError("max billable calls must be positive")
     lock_fh = (state_dir / "collector.lock").open("a+")
     try:
         import fcntl
@@ -378,7 +492,7 @@ def collect_once(cfg: dict, state_dir: Path, archive: Path, transport, runner,
         try:
             return _collect_locked(
                 cfg, block, state_dir, archive, transport, runner, now, observed_at,
-                api_key, code_dir, python, env, regions, cap, max_games, max_calls)
+                api_key, code_dir, python, env, regions, cap, max_calls, max_live, max_anchor, window)
         except CreditError as exc:
             raise CollectorError(str(exc)) from exc
     finally:
@@ -388,7 +502,8 @@ def collect_once(cfg: dict, state_dir: Path, archive: Path, transport, runner,
 
 
 def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, observed_at,
-                    api_key, code_dir, python, env, regions, cap, max_games, max_calls) -> dict:
+                    api_key, code_dir, python, env, regions, cap, max_calls, max_live,
+                    max_anchor, window) -> dict:
     ledger = Ledger(state_dir / "usage.json", cap=cap, now=now)
     unfinished = ledger.fail_unfinished()
     if unfinished.get("fail_closed"):
@@ -399,117 +514,122 @@ def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, obse
     abstain_path = state_dir / "abstentions.jsonl"
     observations = []
     calls = 0
-    stop = False
+    diag_path = state_dir / "name_time_diagnostics.jsonl"
     try:
+        listed = []
         for sport in block["sports"]:
-            if stop:
-                break
             spec = COVERED[sport]
             board = _public_get(transport, f"{ESPN_BASE}/{spec['espn_path']}/scoreboard")
+            listed_espn = espn_games(board, sport)
             events = _odds_request(
                 ledger, transport, api_key, f"/sports/{spec['odds_sport']}/events", {},
                 "events", EVENTS_LIST_CREDITS, sport)
             if not isinstance(events, list):
                 raise CollectorError("odds events response was not a list")
-            pairs = pair_games(espn_games(board, sport), odds_games(events), sport)
-            for skipped in pairs:
-                if not skipped.get("ok"):
-                    _append_jsonl(abstain_path, {
-                        "at": observed_at, "sport": sport, "reason": skipped.get("reason"),
-                        "home": skipped.get("home"), "away": skipped.get("away"),
-                    })
-            for game in _select(pairs, max_games):
-                if calls >= max_calls or stop:
-                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "max_billable_calls", "cohort_key": game["cohort_key"]})
-                    stop = True
-                    break
-                worst = event_odds_worst_case(len(spec["markets"]), regions)
-                pregame = game["state"] == "pre" and before_start(observed_at, game["scheduled_start"])
-                if pregame and game["cohort_key"] in anchors:
-                    continue
-                if not pregame and game["state"] != "in":
-                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "not_pre_or_live", "cohort_key": game["cohort_key"]})
-                    continue
-                if not pregame:
-                    label = period_label(game["status"])
-                    elapsed = measured_elapsed(sport, game["status"])
-                    if label is None or elapsed is None:
-                        _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_elapsed", "cohort_key": game["cohort_key"]})
-                        continue
-                    try:
-                        summary = _public_get(
-                            transport, f"{ESPN_BASE}/{spec['espn_path']}/summary?event={game['espn_event_id']}")
-                    except CollectorError:
-                        _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_boxscore", "cohort_key": game["cohort_key"]})
-                        continue
-                    box = summary.get("boxscore") if isinstance(summary, dict) else None
-                    if not isinstance(box, dict) or not box:
-                        _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_boxscore", "cohort_key": game["cohort_key"]})
-                        continue
-                slot = game["cohort_key"] + "|" + ("pregame" if pregame else label)
-                if captured.get(slot):
-                    continue
-                captured[slot] = "reserved"
-                _atomic(state_dir / "captured.json", json.dumps(captured, sort_keys=True))
+            listed_odds = odds_games(events)
+            pairs = pair_games(listed_espn, listed_odds, sport)
+            unmatched = [row for row in pairs if not row.get("ok")]
+            write_name_time_diagnostic(diag_path, observed_at, sport, listed_espn, listed_odds, unmatched)
+            for skipped in unmatched:
+                _append_jsonl(abstain_path, {
+                    "at": observed_at, "sport": sport, "reason": skipped.get("reason"),
+                    "home": skipped.get("home"), "away": skipped.get("away"),
+                    "scheduled_start_raw": skipped.get("scheduled_start"),
+                })
+            listed.extend(pairs)
+        chosen, skipped = choose_billable(
+            listed, anchors, captured, now, window, max_live, max_anchor, max_calls)
+        for row in skipped:
+            _append_jsonl(abstain_path, {
+                "at": observed_at, "sport": row.get("sport"), "reason": row.get("skip_reason"),
+                "cohort_key": row.get("cohort_key"), "home": row.get("home"), "away": row.get("away"),
+                "scheduled_start": row.get("scheduled_start"),
+            })
+        for game in chosen:
+            if calls >= max_calls:
+                _append_jsonl(abstain_path, {
+                    "at": observed_at, "reason": "max_billable_calls", "cohort_key": game.get("cohort_key")})
+                break
+            sport = game["sport"]
+            spec = COVERED[sport]
+            action, _reason = classify_game(game, anchors, captured, now, window)
+            if action == "skip":
+                continue
+            worst = event_odds_worst_case(len(spec["markets"]), regions)
+            period = int((game.get("status") or {}).get("period") or 0)
+            slot = f"{game['cohort_key']}|{'pregame' if action == 'anchor' else 'P' + str(period)}"
+            label = period_label(game.get("status") or {})
+            elapsed = measured_elapsed(sport, game.get("status") or {}) if action == "live" else None
+            box = None
+            if action == "live":
                 try:
-                    raw_odds = _odds_request(
-                        ledger, transport, api_key,
-                        f"/sports/{spec['odds_sport']}/events/{game['odds_event_id']}/odds",
-                        {"markets": ",".join(spec["markets"]), "bookmakers": "bovada", "oddsFormat": "american"},
-                        "event_odds", worst, game["cohort_key"])
-                except CreditError:
-                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "credit_cap", "cohort_key": game["cohort_key"]})
-                    stop = True
-                    break
+                    summary = _public_get(
+                        transport, f"{ESPN_BASE}/{spec['espn_path']}/summary?event={game['espn_event_id']}")
                 except CollectorError:
-                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "odds_failed", "cohort_key": game["cohort_key"]})
-                    stop = True
-                    break
-                calls += 1
-                if not isinstance(raw_odds, dict):
-                    raise CollectorError("odds props response was not an object")
-                if pregame:
-                    anchors[game["cohort_key"]] = {
-                        "observed_at": observed_at,
-                        "scheduled_start": game["scheduled_start"],
-                        "anchors": quoted_pregame_anchors(raw_odds, spec["markets"]),
-                        "raw_odds": raw_odds,
-                    }
-                    _atomic(state_dir / "anchors.json", json.dumps(anchors, sort_keys=True))
+                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_boxscore", "cohort_key": game["cohort_key"]})
                     continue
-                stored = anchors.get(game["cohort_key"]) or {}
-                kept = []
-                if stored.get("observed_at") and stored.get("scheduled_start") and before_start(stored["observed_at"], stored["scheduled_start"]):
-                    kept = [row for row in stored.get("anchors") or [] if row.get("kind") == "quoted_pregame"]
-                else:
-                    _append_jsonl(abstain_path, {
-                        "at": observed_at, "reason": "no_pregame_anchor", "cohort_key": game["cohort_key"],
-                    })
-                try:
-                    score = {"away": float(game["away_score"]), "home": float(game["home_score"])}
-                except (TypeError, ValueError):
-                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_score", "cohort_key": game["cohort_key"]})
+                box = summary.get("boxscore") if isinstance(summary, dict) else None
+                if not isinstance(box, dict) or not box or label is None or elapsed is None:
+                    _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_boxscore", "cohort_key": game["cohort_key"]})
                     continue
-                observation = {
-                    "observation_id": f"{sport}-{game['cohort_key']}-{label}",
+            captured[slot] = "reserved"
+            _atomic(state_dir / "captured.json", json.dumps(captured, sort_keys=True))
+            try:
+                raw_odds = _odds_request(
+                    ledger, transport, api_key,
+                    f"/sports/{spec['odds_sport']}/events/{game['odds_event_id']}/odds",
+                    {"markets": ",".join(spec["markets"]), "bookmakers": "bovada", "oddsFormat": "american"},
+                    "event_odds", worst, game["cohort_key"])
+            except CreditError:
+                _append_jsonl(abstain_path, {"at": observed_at, "reason": "credit_cap", "cohort_key": game["cohort_key"]})
+                break
+            except CollectorError:
+                _append_jsonl(abstain_path, {"at": observed_at, "reason": "odds_failed", "cohort_key": game["cohort_key"]})
+                break
+            calls += 1
+            if not isinstance(raw_odds, dict):
+                raise CollectorError("odds props response was not an object")
+            if action == "anchor":
+                rows = quoted_pregame_anchors(raw_odds, spec["markets"])
+                anchors[game["cohort_key"]] = {
                     "observed_at": observed_at,
-                    "sport": sport,
                     "scheduled_start": game["scheduled_start"],
-                    "away": game["away"],
-                    "home": game["home"],
-                    "aliases": {
-                        "espn_event_id": game["espn_event_id"],
-                        "odds_api_event_id": game["odds_event_id"],
-                    },
-                    "elapsed_minutes": elapsed,
-                    "period_label": label,
-                    "score": score,
-                    "boxscore": box,
-                    "quoted_odds": raw_odds,
-                    "anchors": kept,
+                    "source": "quoted_pregame",
+                    "attempted": True,
+                    "complete": bool(rows),
+                    "market_count": len({row["market"] for row in rows}),
+                    "anchors": rows,
+                    "raw_odds": raw_odds,
                 }
-                hash_payload(observation, "observation")
-                observations.append(observation)
+                _atomic(state_dir / "anchors.json", json.dumps(anchors, sort_keys=True))
+                continue
+            stored = anchors.get(game["cohort_key"]) or {}
+            kept = [row for row in stored.get("anchors") or [] if row.get("kind") == "quoted_pregame"]
+            try:
+                score = {"away": float(game["away_score"]), "home": float(game["home_score"])}
+            except (TypeError, ValueError):
+                _append_jsonl(abstain_path, {"at": observed_at, "reason": "missing_score", "cohort_key": game["cohort_key"]})
+                continue
+            observation = {
+                "observation_id": f"{sport}-{game['cohort_key']}-{label}",
+                "observed_at": observed_at,
+                "sport": sport,
+                "scheduled_start": game["scheduled_start"],
+                "away": game["away"],
+                "home": game["home"],
+                "aliases": {
+                    "espn_event_id": game["espn_event_id"],
+                    "odds_api_event_id": game["odds_event_id"],
+                },
+                "elapsed_minutes": elapsed,
+                "period_label": label,
+                "score": score,
+                "boxscore": box,
+                "quoted_odds": raw_odds,
+                "anchors": kept,
+            }
+            hash_payload(observation, "observation")
+            observations.append(observation)
     finally:
         ledger.close()
     if not observations and not any(isinstance(value, dict) and value.get("anchors") for value in anchors.values()):
@@ -609,10 +729,27 @@ def regrade(archive: Path, snapshot: Path, final_path: Path, muse_shadow: Path, 
     return dest
 
 
+def _final_from_summary(summary: dict) -> dict:
+    header = summary.get("header") or {}
+    comp = (header.get("competitions") or [{}])[0]
+    state = (((comp.get("status") or {}).get("type") or {}).get("state") or "in")
+    if state not in ("pre", "in", "post"):
+        state = "in"
+    box = summary.get("boxscore") if isinstance(summary.get("boxscore"), dict) else {}
+    return {
+        "schema": FINAL_SCHEMA,
+        "state": state,
+        "confirmed": state == "post",
+        "boxscore": box,
+        "synthetic": False,
+    }
+
+
 def grade_saved(archive: Path, snapshot: Path, final_fetch, muse_shadow: Path, claude_shadow: Path) -> Path:
-    """Fetch each observation's ESPN summary once and save the raw box. No odds call."""
+    """Grade from ESPN finals. A non-final box is refreshed. A confirmed final is not fetched again."""
     doc = load_snapshot(snapshot)
     merged = []
+    corrections = []
     for index, obs in enumerate(doc["observations"]):
         payload = hash_payload(obs, f"observations[{index}]")
         digest = input_hash(payload).removeprefix("sha256:")
@@ -620,22 +757,21 @@ def grade_saved(archive: Path, snapshot: Path, final_fetch, muse_shadow: Path, c
         aliases = obs.get("aliases") or {}
         espn_id = aliases.get("espn_event_id")
         sport = payload["sport"]
+        cached = load_final(dest) if dest.exists() else None
         if sport not in COVERED or not espn_id:
-            final = {"schema": FINAL_SCHEMA, "state": "in", "boxscore": {}, "synthetic": False}
-        elif dest.exists():
-            final = load_final(dest)
+            final = {"schema": FINAL_SCHEMA, "state": "in", "confirmed": False, "boxscore": {}, "synthetic": False}
+        elif cached and cached.get("confirmed") is True and cached.get("state") == "post":
+            final = cached
         else:
             spec = COVERED[sport]
             summary = final_fetch(f"{ESPN_BASE}/{spec['espn_path']}/summary?event={espn_id}")
-            header = (summary.get("header") or {})
-            comp = ((header.get("competitions") or [{}])[0])
-            state = (((comp.get("status") or {}).get("type") or {}).get("state") or "in")
-            final = {
-                "schema": FINAL_SCHEMA,
-                "state": state if state in ("pre", "in", "post") else "in",
-                "boxscore": summary.get("boxscore") if isinstance(summary.get("boxscore"), dict) else {},
-                "synthetic": False,
-            }
+            final = _final_from_summary(summary)
+            if cached and cached.get("state") != "post" and final.get("state") == "post":
+                corrections.append({
+                    "input_hash": input_hash(payload),
+                    "from_state": cached.get("state"),
+                    "to_state": "post",
+                })
             _atomic(dest, json.dumps(final, sort_keys=True))
         merged.extend(settlements_for_observation(obs, final))
     out = archive / "grade" / "settlement.json"
@@ -643,6 +779,7 @@ def grade_saved(archive: Path, snapshot: Path, final_fetch, muse_shadow: Path, c
     report = compare(load_shadow(muse_shadow), load_shadow(claude_shadow), {"results": merged}, unit=1.0)
     report["live_ready"] = False
     report["calibration_fit"] = False
+    report["final_corrections"] = corrections
     write_report(archive / "grade" / "report.json", report)
     return archive / "grade" / "report.json"
 

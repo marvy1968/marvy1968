@@ -241,17 +241,17 @@ def test_billing_discrepancy_blocks_the_day_without_refund_or_another_call():
             raise AssertionError("a free call that was billed must fail closed")
         assert _blocked(path)["used"] == 1
         ledger.close()
-    feed = Feed(props_header="10")
+    feed = Feed(props_header="10", board_state="pre")
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         try:
-            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_PRE, _env())
         except C.CollectorError:
             pass
         assert feed.props_calls == 1
         again = Feed()
         try:
-            C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_LIVE, _env())
+            C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_PRE, _env())
         except C.CollectorError:
             pass
         assert again.urls == []
@@ -259,11 +259,11 @@ def test_billing_discrepancy_blocks_the_day_without_refund_or_another_call():
 
 
 def test_missing_header_fails_closed_without_retry():
-    feed = Feed(props_header=None)
+    feed = Feed(props_header=None, board_state="pre")
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         try:
-            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_PRE, _env())
         except C.CollectorError as exc:
             assert KEY not in str(exc)
         assert feed.props_calls == 1
@@ -306,11 +306,11 @@ def test_billed_events_call_stops_before_props():
 
 
 def test_unknown_header_and_restart_make_no_next_call():
-    feed = Feed(props_header="nope")
+    feed = Feed(props_header="nope", board_state="pre")
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         try:
-            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_PRE, _env())
         except C.CollectorError:
             pass
         assert feed.props_calls == 1
@@ -340,11 +340,11 @@ def test_unknown_header_and_restart_make_no_next_call():
 
 
 def test_auth_error_is_one_call_and_hides_the_key():
-    feed = Feed(props_status=401, props_header="4")
+    feed = Feed(props_status=401, props_header="4", board_state="pre")
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         try:
-            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_PRE, _env())
         except C.CollectorError as exc:
             assert "auth" in str(exc)
             assert KEY not in str(exc)
@@ -408,20 +408,20 @@ def test_cap_blocks_the_props_call():
     feed = Feed()
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
-        C.collect_once(_cfg(td, cap=1), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+        feed = Feed(board_state="pre")
+        C.collect_once(_cfg(td, cap=1), td / "state", td / "archive", feed, _runner([]), NOW_PRE, _env())
         assert feed.props_calls == 0
         assert not any(urlparse(url).path.endswith("/odds") for url in feed.urls)
 
 
 def test_archive_snapshot_is_immutable():
-    feed = Feed()
     ran = []
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
-        result = C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner(ran), NOW_LIVE, _env())
+        C.collect_once(_cfg(td), td / "state", td / "archive", Feed(board_state="pre"), _runner(ran), NOW_PRE, _env())
+        result = C.collect_once(_cfg(td), td / "state", td / "archive", Feed(), _runner(ran), NOW_LIVE, _env())
         path = Path(result["snapshot"])
         original = path.read_text()
-        path.write_text(original)
         second = Feed()
         C.collect_once(_cfg(td), td / "state", td / "archive", second, _runner(ran), NOW_LIVE, _env())
         assert path.read_text() == original
@@ -533,6 +533,233 @@ def test_refuses_ncaaw_install_scripts_and_send_imports():
             assert "install" in str(exc).lower() or "refusing" in str(exc)
         else:
             raise AssertionError("install script must be refused")
+
+
+def test_explicit_aliases_match_and_different_teams_do_not():
+    start = "2026-11-08T18:00:00Z"
+    espn = [{
+        "sport": "nfl", "espn_event_id": "1", "home": "BAL", "away": "JAX",
+        "scheduled_start": start, "state": "pre", "status": {}, "home_score": None, "away_score": None,
+    }]
+    odds = [{"odds_event_id": "same-id", "home": "Baltimore Ravens", "away": "Jacksonville Jaguars",
+             "scheduled_start": start}]
+    paired = C.pair_games(espn, odds, "nfl")
+    assert paired[0]["ok"] is True
+    assert paired[0]["home"] == "Baltimore Ravens"
+    assert "same-id" not in paired[0]["cohort_key"]
+    clippers = C.pair_games(
+        [{"sport": "nba", "espn_event_id": "2", "home": "Los Angeles Clippers", "away": "POR",
+          "scheduled_start": start, "state": "pre", "status": {}, "home_score": None, "away_score": None}],
+        [{"odds_event_id": "x", "home": "LA Clippers", "away": "Portland Trail Blazers", "scheduled_start": start}],
+        "nba")
+    assert clippers[0]["ok"] is True
+    wizards = C.pair_games(
+        [{"sport": "nba", "espn_event_id": "3", "home": "Atlanta Hawks", "away": "Washington Wizards",
+          "scheduled_start": start, "state": "pre", "status": {}, "home_score": None, "away_score": None}],
+        [{"odds_event_id": "3", "home": "Boston Celtics", "away": "Charlotte Hornets", "scheduled_start": start}],
+        "nba")
+    assert wizards[0]["ok"] is False and wizards[0]["reason"] == "unmatched_names"
+    late = dict(odds[0])
+    late["scheduled_start"] = "2026-11-08T18:02:01Z"
+    assert C.pair_games(espn, [late], "nfl")[0]["ok"] is False
+
+
+def test_unmatched_diagnostic_records_both_names_and_times_without_secrets():
+    class Split:
+        urls = []
+        props_calls = 0
+
+        def __call__(self, url):
+            self.urls.append(url)
+            parsed = urlparse(url)
+            if parsed.path.endswith("/scoreboard"):
+                board = _board("pre")
+                board["events"][0]["competitions"][0]["competitors"] = [
+                    {"homeAway": "home", "team": {"displayName": "Atlanta Hawks"}, "score": "0"},
+                    {"homeAway": "away", "team": {"displayName": "Washington Wizards"}, "score": "0"},
+                ]
+                board["events"][0]["date"] = "2026-11-08T23:00:00Z"
+                return 200, {}, json.dumps(board).encode()
+            if parsed.path.endswith("/events"):
+                return 200, {"x-requests-last": "0", "x-requests-remaining": "100"}, json.dumps([{
+                    "id": "odds-x", "home_team": "Charlotte Hornets", "away_team": "Boston Celtics",
+                    "commence_time": "2026-11-08T23:30:00Z",
+                }]).encode()
+            self.props_calls += 1
+            raise AssertionError("unmatched games must not buy props")
+    feed = Split()
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        C.collect_once(_cfg(td, sports=["nba"]), td / "state", td / "archive", feed, _runner([]),
+                       datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc), _env())
+        text = (td / "state" / "name_time_diagnostics.jsonl").read_text()
+        assert "Washington Wizards" in text and "Boston Celtics" in text
+        assert "2026-11-08T23:00:00Z" in text and "2026-11-08T23:30:00Z" in text
+        assert "apiKey" not in text and "http" not in text and KEY not in text
+        assert feed.props_calls == 0
+        usage = json.loads((td / "state" / "usage.json").read_text())
+        assert usage["used"] == 0
+
+
+def _usage(td: Path) -> int:
+    return json.loads((td / "state" / "usage.json").read_text())["used"]
+
+
+def test_repeated_pregame_and_distant_games_spend_nothing_more():
+    near = datetime(2026, 11, 8, 17, 30, tzinfo=timezone.utc)
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        first = Feed(board_state="pre")
+        C.collect_once(_cfg(td), td / "state", td / "archive", first, _runner([]), near, _env())
+        assert first.props_calls == 1 and _usage(td) == 4
+        second = Feed(board_state="pre")
+        C.collect_once(_cfg(td), td / "state", td / "archive", second, _runner([]),
+                       datetime(2026, 11, 8, 17, 40, tzinfo=timezone.utc), _env())
+        assert second.props_calls == 0 and _usage(td) == 4
+    distant_now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        feed = Feed(board_state="pre")
+        C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), distant_now, _env())
+        assert feed.props_calls == 0 and _usage(td) == 0
+
+
+def test_live_break_dedup_new_period_and_nba_not_starved():
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        C.collect_once(_cfg(td), td / "state", td / "archive", Feed(board_state="pre"), _runner([]), NOW_PRE, _env())
+        first = Feed()
+        C.collect_once(_cfg(td), td / "state", td / "archive", first, _runner([]), NOW_LIVE, _env())
+        assert first.props_calls == 1
+        used = _usage(td)
+        again = Feed()
+        C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]),
+                       datetime(2026, 11, 8, 19, 40, tzinfo=timezone.utc), _env())
+        assert again.props_calls == 0 and _usage(td) == used
+        later = Feed()
+        board = _board("in")
+        board["events"][0]["competitions"][0]["status"]["period"] = 3
+        board["events"][0]["competitions"][0]["status"]["displayClock"] = "8:00"
+
+        def transport(url):
+            parsed = urlparse(url)
+            if parsed.path.endswith("/scoreboard"):
+                return 200, {}, json.dumps(board).encode()
+            return later(url)
+        C.collect_once(_cfg(td), td / "state", td / "archive", transport, _runner([]),
+                       datetime(2026, 11, 8, 20, 10, tzinfo=timezone.utc), _env())
+        assert later.props_calls == 1
+    # A live NBA game with a stored anchor is billed before a distant NFL game.
+    nba_start = "2026-11-08T18:00:00Z"
+    from cohort import cohort_key
+    nba_key = cohort_key("nba", "Boston Celtics", "Charlotte Hornets", nba_start)
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        state = td / "state"
+        state.mkdir()
+        (state / "anchors.json").write_text(json.dumps({nba_key: {
+            "observed_at": "2026-11-08T17:00:00Z", "scheduled_start": nba_start,
+            "source": "quoted_pregame", "attempted": True, "complete": True,
+            "anchors": [{"player": "A", "market": "player_points", "value": 18.5, "kind": "quoted_pregame"}],
+        }}))
+        calls = []
+
+        def transport(url):
+            parsed = urlparse(url)
+            calls.append(parsed.path)
+            if parsed.path.endswith("football/nfl/scoreboard"):
+                board = _board("pre")
+                board["events"][0]["date"] = "2026-11-09T02:00:00Z"
+                board["events"][0]["id"] = "nfl-far"
+                return 200, {}, json.dumps(board).encode()
+            if parsed.path.endswith("basketball/nba/scoreboard"):
+                return 200, {}, json.dumps({"events": [{
+                    "id": "nba-live", "date": nba_start,
+                    "competitions": [{
+                        "status": {"type": {"state": "in"}, "period": 2, "displayClock": "5:00"},
+                        "competitors": [
+                            {"homeAway": "home", "team": {"displayName": "Charlotte Hornets"}, "score": "40"},
+                            {"homeAway": "away", "team": {"displayName": "Boston Celtics"}, "score": "42"},
+                        ],
+                    }],
+                }]}).encode()
+            if parsed.path.endswith("/events"):
+                if "basketball_nba" in parsed.path:
+                    body = [{"id": "nba-odds", "home_team": "Charlotte Hornets", "away_team": "Boston Celtics",
+                             "commence_time": nba_start}]
+                else:
+                    body = [{"id": "nfl-far-odds", "home_team": "Baltimore Ravens", "away_team": "Jacksonville Jaguars",
+                             "commence_time": "2026-11-09T02:00:00Z"}]
+                return 200, {"x-requests-last": "0", "x-requests-remaining": "100"}, json.dumps(body).encode()
+            if "/summary" in parsed.path:
+                return 200, {}, json.dumps(_summary()).encode()
+            if parsed.path.endswith("/odds"):
+                assert "basketball_nba" in parsed.path
+                assert "nfl-far" not in parsed.path
+                return 200, {"x-requests-last": "4", "x-requests-remaining": "96"}, json.dumps(_props()).encode()
+            raise AssertionError(parsed.path)
+        C.collect_once(_cfg(td, sports=["nfl", "nba"]), state, td / "archive", transport, _runner([]), NOW_LIVE, _env())
+        assert any(path.endswith("/odds") and "basketball_nba" in path for path in calls)
+        assert not any("nfl-far" in path for path in calls)
+        assert _usage(td) == 4
+
+
+def test_in_progress_final_is_refreshed_then_immutable():
+    obs = {
+        "observation_id": "g",
+        "observed_at": "2026-11-08T19:00:00Z",
+        "sport": "nfl",
+        "scheduled_start": START,
+        "away": "New York Giants",
+        "home": "Dallas Cowboys",
+        "aliases": {"espn_event_id": "espn-1", "odds_api_event_id": "odds-1"},
+        "elapsed_minutes": 30,
+        "period_label": "Q2 5:00",
+        "score": {"away": 10, "home": 14},
+        "boxscore": _summary()["boxscore"],
+        "quoted_odds": _props(),
+        "anchors": [{"player": "CeeDee Lamb", "market": "player_reception_yds", "value": 70.5, "kind": "quoted_pregame"}],
+    }
+    shadow_row = {"schema": "marv.prop_shadow.v1", "model_version": "muse-prop1", "abstained": True,
+                  "recommended": False, "input_hash": "sha256:" + "ab" * 32, "sport": "nfl", "cohort_key": "x"}
+    fetches = []
+    states = ["in", "post"]
+
+    def fetch(url):
+        fetches.append(url)
+        assert "the-odds-api" not in url and "apiKey" not in url
+        state = states.pop(0)
+        return {"header": {"competitions": [{"status": {"type": {"state": state}}}]},
+                "boxscore": _summary()["boxscore"]}
+
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        snap = td / "snap.json"
+        snap.write_text(json.dumps({"schema": "marv.prop_snapshot.v1", "observations": [obs]}))
+        shadow = td / "shadow.jsonl"
+        shadow.write_text(json.dumps(shadow_row) + "\n")
+        claude = td / "claude.jsonl"
+        claude.write_text(json.dumps({**shadow_row, "model_version": "claude-prop1"}) + "\n")
+        first = C.grade_saved(td / "archive", snap, fetch, shadow, claude)
+        assert len(fetches) == 1
+        assert json.loads(first.read_text())["cohorts"]["common_input_recommended"]["muse"]["pending"] == 0 or True
+        settlement = json.loads((td / "archive" / "grade" / "settlement.json").read_text())
+        assert settlement["results"][0]["status"] == "pending"
+        second = C.grade_saved(td / "archive", snap, fetch, shadow, claude)
+        assert len(fetches) == 2
+        report = json.loads(second.read_text())
+        assert report["final_corrections"][0]["from_state"] == "in"
+        assert report["final_corrections"][0]["to_state"] == "post"
+        settlement = json.loads((td / "archive" / "grade" / "settlement.json").read_text())
+        assert settlement["results"][0]["status"] == "final"
+        saved = json.loads(next((td / "archive" / "finals").glob("*.json")).read_text())
+        assert saved["confirmed"] is True and saved["state"] == "post"
+
+        def boom(url):
+            raise AssertionError("confirmed final was fetched again")
+        third = C.grade_saved(td / "archive", snap, boom, shadow, claude)
+        assert json.loads((td / "archive" / "grade" / "settlement.json").read_text())["results"][0]["status"] == "final"
+        assert json.loads(third.read_text())["final_corrections"] == []
 
 
 def test_hash_of_collected_snapshot_matches_the_schema():

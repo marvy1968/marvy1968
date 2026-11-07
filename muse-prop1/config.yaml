@@ -76,6 +76,9 @@ collector:
   sports: [nfl, nba]
   max_games_per_run: 4
   max_billable_calls_per_run: 4
+  max_live_calls_per_run: 4
+  max_anchor_calls_per_run: 2
+  prestart_window_minutes: 60
   daily_credit_cap: 100
   regions: 1
   # Set these to the detached Claude worktree. The collector refuses to run without them.

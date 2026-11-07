@@ -192,10 +192,20 @@ closed before any request. Default bounds are 4 games and 4 billable calls
 per one-shot. Replay children do not inherit the collector environment. They
 receive PATH, locale, and Python runtime names plus `LIVE_PROPS_SEND=off`.
 
-Games pair on normalized home, away, and start within 120 seconds. A shared
-provider id does not pair different names or a start further away than that.
-The cohort key uses the Odds API commence time. Aliases are stored only after
-the pair.
+Games pair on a canonical team name and start within 120 seconds. The
+canonical name is an explicit NFL or NBA abbreviation or a listed public
+alternate (`team_alias.py`). It is not a fuzzy match. A shared provider id
+does not pair different teams or a start further than 120 seconds away.
+Names that are not in the table stay unmatched and are logged. Each free
+scoreboard and events response also appends home, away, and start for both
+feeds to `{state}/name_time_diagnostics.jsonl`, with no key and no URL.
+
+Billable props calls are chosen only after those free lists. Live games that
+already have a pre-start quote come first, alternating NFL and NBA. A new
+pregame quote is bought once, and only when the game starts within 60 minutes.
+A game further out is logged `outside_prestart_window` and is not billed.
+The same quarter is not billed again; the next quarter is a new observation.
+A run with nothing eligible spends no props credits.
 
 `quoted_pregame` is stored only when `observed_at` is strictly before
 `scheduled_start`. The later live response stays in `quoted_odds` and is not
