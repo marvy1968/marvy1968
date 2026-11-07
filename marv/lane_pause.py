@@ -42,8 +42,8 @@ def lanes():
         token = raw.strip().lower()
         if ":" not in token:
             continue
-        sport, market = token.split(":", 1)
-        if not (root / f"MARV_LANE_PAUSE_OFF_{sport}_{market}").exists():
+        sport, market = (part.strip() for part in token.split(":", 1))
+        if sport and market and not (root / f"MARV_LANE_PAUSE_OFF_{sport}_{market}").exists():
             out.add((sport, market))
     return out
 
@@ -58,7 +58,7 @@ def _pair(item):
         if getattr(item, "master_extreme", False):
             return None
         sport, market = getattr(item, "sport", ""), getattr(item, "market", "")
-    return (str(sport).lower(), str(market).lower())
+    return (str(sport).strip().lower(), str(market).strip().lower())
 
 
 def paused(item, lane_set=None) -> bool:

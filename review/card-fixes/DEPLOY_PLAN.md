@@ -1,79 +1,82 @@
-# Deploy plan (do not run as part of this review)
+# Deploy plan
 
-This branch is a review diff. Do not merge it from here, do not copy it onto the running host, and do not restart anything while reviewing it.
+**Deployment is BLOCKED.** Do not copy these files onto `/opt/marv-bot` or `/opt/marv-feed`, do not restart units, and do not run `deploy/install.sh`.
 
-The steps below are the later, separately approved rollout. They copy specific files. They do not run `deploy/install.sh`, do not `git fetch` / `checkout -f` / `reset` / `clean` / `stash`, do not use the root deploy key, and do not start or stop units.
+A safe rollout has to make this commit the source of truth on the branch the host actually runs (`claude/analysis-ak180w` at `e7d1f50c` today) without discarding unrelated dirty work and without leaving the feed overlays as an untracked patch. This plan does not have that step.
 
-## What the updater actually resets
+## Why a file copy is not safe
 
-`deploy/vm_link.py` `git()` always runs with `-C /opt/marv-link`. The `fetch` and `reset --hard origin/$VM_LINK_BRANCH` (default branch name `vm-link`) replace that link checkout only. They do not replace `/opt/marv-bot`.
+`deploy/vm_link.py` `git()` uses `-C /opt/marv-link`. Its `fetch` and `reset --hard origin/$VM_LINK_BRANCH` (default name `vm-link`) replace that link checkout only.
 
-`/opt/marv-bot` is replaced only when `install.sh` runs. `vm_link.py` runs that script for an `update` job. `install.sh` does `git checkout -f -B "$BRANCH" "origin/$BRANCH"` with `BRANCH` defaulting to `claude/analysis-ak180w`. That would discard tracked dirty work, including `alpacabot/data.py` and `alpacabot/paper.py`, and it would `systemctl enable --now` and restart services. Leave `marv-vmlink.timer` running. Do not delete or edit its jobs. If any pending job's command line is `update`, stop this rollout before copying bot files. Do not clear the job.
+`/opt/marv-bot` changes when `install.sh` runs. An `update` job on the link runner runs that script. `install.sh` does `git checkout -f -B "$BRANCH" "origin/$BRANCH"` (`BRANCH` defaults to `claude/analysis-ak180w`). That discards tracked dirty files, including `alpacabot/data.py` and `alpacabot/paper.py`, and it enables and restarts services.
 
-`/opt/marv-feed` is not a remote and is not checked out by either command. Feed files survive `install.sh`. They still have to be copied by hand or the bot-tree patch never reaches the service entrypoints, which are `/opt/marv-feed/run_marv.py` and `/opt/marv-feed/run_dailypicks.py`.
+Leaving the timer running does not remove that job. If an `update` job is already queued, or anyone enqueues one later, a hand copy of bot-tree files is reverted and the dirty alpaca edits are dropped. Do not delete the job and do not stop the timer from this review.
 
-If a later `update` job runs before this commit is what `origin/claude/analysis-ak180w` points at, the bot-tree files revert and the feed copies remain. Pause still applies through the feed fallback. The append-only audit is imported from `marv.decision_audit`; if that module is gone, the feed logs the failure and keeps the previous prior-stake reader. Copy both trees together, and do not use `install.sh` to deliver them.
+`/opt/marv-feed` has no remote. `install.sh` does not update it. The live card processes are started from feed wrappers (`run_marv.py`, `run_dailypicks.py`; `run_marv_svc.py` is the edges/bridge wrapper). Those files are not what a merge of this branch installs. Copying them by hand would be an untracked production patch, which this plan does not authorize.
 
-## Backup
+Merging this PR into `claude/analysis-ak180w` is the durable source of truth for the files that live in the git tree (`marv/lane_pause.py`, `marv/decision_audit.py`, `marv/betcard.py`, `marv/dailypicks.py`, `marv/parlay.py`, `marv/main.py`, `deploy/marv-health.sh`). It does not, by itself, update a running interpreter or the feed directory. There is still no approved way to check that merge out on the host without `checkout -f` or a manual overlay copy. Until that exists, production deployment stays blocked.
 
-Code files only. Do not copy `.env`, `state/`, pick ledgers, track files, or bet-card logs into the backup, and do not `chown -R` either tree.
+## What would have to be true before a later approval
 
-```bash
-STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-BK=/var/backups/marv-card-fixes-$STAMP
-mkdir -m 700 "$BK"
-for f in marv_lane_pause.py marv_ncaab_card.py run_marv.py run_marv_svc.py; do
-  cp -a "/opt/marv-feed/$f" "$BK/feed-$f"
-done
-for f in marv/betcard.py marv/dailypicks.py marv/main.py deploy/marv-health.sh; do
-  cp -a "/opt/marv-bot/$f" "$BK/bot-$(printf '%s' "$f" | tr / _)"
-done
-for f in marv/lane_pause.py marv/decision_audit.py; do
-  if [ -e "/opt/marv-bot/$f" ]; then cp -a "/opt/marv-bot/$f" "$BK/bot-$(printf '%s' "$f" | tr / _)"
-  else printf 'absent\n' > "$BK/bot-$(printf '%s' "$f" | tr / _).absent"; fi
-done
-sha256sum "$BK"/* > "$BK/SHA256SUMS"
-```
+1. This PR is reviewed and merged into `claude/analysis-ak180w` (or whatever `install.sh`'s `BRANCH` actually is on that host). A merge here is not authorized by this review.
+2. The dirty tracked files (`alpacabot/data.py`, `alpacabot/paper.py`) are preserved by something other than `checkout -f`, `reset`, `clean`, or `stash`. This plan does not invent that mechanism.
+3. Feed wrappers are updated only as part of that same approved change, not as a side copy onto `/opt/marv-feed` while the bot tree can still be reset underneath them.
+4. No `install.sh`, no root deploy key, no `git fetch` on the host as part of making the tree match.
 
-## Copy
+Until those are true, do not treat any copy list below as a production procedure.
 
-`SRC` is a checkout of this commit made somewhere other than `/opt/marv-bot`. For each existing destination, keep that file's user and group. New files take the user and group of their directory. Modes: `0644`, except `run_marv_svc.py` which stays `0755`.
+## Entrypoints and freshness
 
-Feed (same filenames the services already import; this is not a new import path):
+Repo units (this commit) and the export's live drop-ins are not the same.
 
-- `review/card-fixes/overlays/feed/marv_lane_pause.py` → `/opt/marv-feed/marv_lane_pause.py`
-- `review/card-fixes/overlays/feed/marv_ncaab_card.py` → `/opt/marv-feed/marv_ncaab_card.py`
-- `review/card-fixes/overlays/feed/run_marv.py` → `/opt/marv-feed/run_marv.py`
-- `review/card-fixes/overlays/feed/run_marv_svc.py` → `/opt/marv-feed/run_marv_svc.py`
+| Process | Repo `ExecStart` | Export drop-in (where recorded) | Lifetime | When new code is loaded |
+|---|---|---|---|---|
+| `marv-bot.service` | `python -m marv run --sport all` | `/opt/marv-feed/run_marv.py run --sport all` | oneshot | next process start |
+| `marv-bot-late.service` | `python -m marv run --sport all --hours 6 --label "Late update"` | `run_marv.py` with the late args | oneshot | next process start |
+| `marv-dailypicks.service` | `python -m marv.dailypicks` | `/opt/marv-feed/run_dailypicks.py` | oneshot | next process start |
+| `marv-health.service` | `bash /opt/marv-bot/deploy/marv-health.sh` | same path | oneshot, timer already active | next timer exec reads the script |
+| `marv-edges.service` | `python -m marv edges --watch` | not in the export metadata; `run_marv_svc.py` is the feed wrapper for edges/bridge | long-running, `Restart=always` | the process keeps imported modules |
+| `marv-bridge.service` | `python -m marv serve --port 8787` | not in the export metadata; same wrapper comment | long-running | first import of `dailypicks` sticks for the process |
+| `marv-live.service` | `python -m marv live --interval 120` | not recorded | long-running | imported modules stick |
 
-Bot tree:
+Card selection runs in the oneshots (`cmd_run` calls `betcard.candidates`, `tag_candidates`, `gap_candidates`, and `select`; `dailypicks.collect` calls `engine_legs` then `build`; `parlay.all_legs` is the fallback board). A oneshot that has already started does not reload. Do not kill an in-flight oneshot.
 
-- `marv/lane_pause.py`
-- `marv/decision_audit.py`
-- `marv/betcard.py`
-- `marv/dailypicks.py`
-- `marv/main.py`
-- `deploy/marv-health.sh`
-- `tests/test_lane_pause.py`
-- `tests/test_decision_audit.py`
+**APPROVAL REQUIRED, not part of this review:** replacing `marv-edges`, `marv-bridge`, or `marv-live` if a long-running process must observe the new modules. The bridge answers `/card` from `dailypicks` imported at first use. Edges and live do not build the pregame card. Restarting them does not activate the oneshot path, and this review does not restart them.
 
-Do not copy `alpacabot/`, `fxbot/`, `.env`, or anything under `state/`. Do not touch the prop-shadow dayblock.
+**APPROVAL REQUIRED:** letting the next `marv-health.timer` tick run a replaced `marv-health.sh`. The timer is already active. A healthy run sends nothing. A bad timestamp exits 1 and does not send. Do not `systemctl start marv-health`.
 
-`marv-health.timer` is already active. The next timer tick will execute whatever `deploy/marv-health.sh` is on disk. Copy that script only when that tick is an accepted smoke. Do not `systemctl start marv-health`. A healthy check sends no message. A non-integer uptime or timestamp exits 1 and does not send. Do not restart `marv-bot`, `marv-dailypicks`, `marv-edges`, `marv-live`, or `marv-bridge` in this rollout; those processes keep the old code until a separately approved restart.
+Direct `python -m marv` and `python -m marv.dailypicks` use the shared modules (`betcard.*` and `dailypicks.build` / `_pool_ok` are marked and call `lane_pause`). They do not load the feed overlay unless the feed directory is on `sys.path` and something calls `apply()`. The feed wrappers do that for the service entrypoints. Both layers use the same predicate when `marv.lane_pause` imports.
 
-## Smoke
+## Staged tests (not the production tree)
 
-No provider calls, no Telegram, no `python -m marv run`.
+Run this from a clean directory that is not `/opt/marv-bot` and not `/opt/marv-feed`. Do not put either production path on `PYTHONPATH`. Do not copy `state/`, `.env`, `alpacabot/`, or `fxbot/`.
+
+From a checkout of this commit (`SRC`):
 
 ```bash
-bash -n /opt/marv-bot/deploy/marv-health.sh
-cd /opt/marv-bot && sudo -u marvbot .venv/bin/python -m unittest tests.test_lane_pause tests.test_decision_audit
+STAGE=$(mktemp -d)
+mkdir -p "$STAGE/empty-feed" "$STAGE/tmp"
+cp -a "$SRC/marv" "$STAGE/marv"
+mkdir -p "$STAGE/deploy" "$STAGE/review/card-fixes" "$STAGE/tests"
+cp -a "$SRC/deploy/marv-health.sh" "$STAGE/deploy/marv-health.sh"
+cp -a "$SRC/review/card-fixes/." "$STAGE/review/card-fixes/"
+cp -a "$SRC/tests/test_lane_pause.py" "$SRC/tests/test_decision_audit.py" "$SRC/tests/test_parlay.py" "$STAGE/tests/"
+export PYTHONPATH="$STAGE"
+export MARV_FEED_ROOT="$STAGE/empty-feed"
+export MARV_HEALTH_DIR="$STAGE/tmp/health"
+export TMPDIR="$STAGE/tmp"
+export PYTHONDONTWRITEBYTECODE=1
+cd "$STAGE" && python3 -m unittest tests.test_lane_pause tests.test_decision_audit tests.test_parlay
 ```
 
-Do not run `unittest discover` on the host. Other tests write pause flags that a live process would honor. The two modules above use temporary directories only.
+`test_lane_pause` and `test_decision_audit` import `marv.betcard`, `marv.dailypicks`, `marv.parlay`, `marv.lane_pause`, `marv.decision_audit`, `marv.models`, and `marv.state`. Those pull the rest of the `marv` package (including `marv.data`, `marv.engine`, and their imports). Copy the whole `marv/` directory from this commit so none of those imports resolve to `/opt/marv-bot`. The tests also load `review/card-fixes/overlays/feed/marv_lane_pause.py` and `marv_ncaab_card.py` by path, and the synthetic fixture under `review/card-fixes/fixtures/`.
 
-Optional mocked health run, still not the real unit: point `PATH` at stand-ins for `systemctl`, `journalctl`, `df`, and `runuser`, set `MARV_HEALTH_DIR` and `MARV_HEALTH_UPTIME_FILE` to temporary files, and run `bash deploy/marv-health.sh`. The real timer is the first live execution.
+The health cases shell out to `bash` and to `awk` on `PATH`. Point `PATH` at the test's own stand-ins first; the tests do that. They set `MARV_HEALTH_DIR` and `MARV_HEALTH_UPTIME_FILE` themselves. They do not call `runuser` on the real host, do not open `/opt/marv-bot/state`, and do not send.
+
+`/proc/uptime` is decimal seconds (`93599.50` is accepted and converted with `printf "%d"`). `systemctl show -p ExecMainExitTimestampMonotonic --value` is an integer microsecond count, or empty / `0` / `n/a` when the unit has not exited. The export did not include a captured `show` line. `printf "%.6g"` of a ~23-day uptime in microseconds is `1.99703e+12`. Current mawk and gawk `print int(...)` did not emit that token, and the old script with `set -u` exited non-zero on it rather than 0. Those two facts stay in the review; they are not papered over.
+
+Do not run `python -m unittest discover` against the production tree. Other tests write flags a live process would read.
 
 ## Rollback
 
-Copy the backup files back to the same paths, with the saved owner and mode. If a `*.absent` marker exists, remove the new file instead of restoring one. Do not `git reset`. Do not delete ledgers. Do not restart units unless a restart was already performed; another restart is its own approval.
+There is nothing to roll back on the host if this plan is followed, because nothing is copied there. If a later approval does change files, roll back by restoring the backed-up bytes of only those paths, or by checking out the merged commit with a method that still preserves dirty tracked files. Do not `git reset --hard`, do not `checkout -f`, and do not delete ledgers.

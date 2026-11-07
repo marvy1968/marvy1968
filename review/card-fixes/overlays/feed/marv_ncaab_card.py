@@ -20,13 +20,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-FEED = Path("/opt/marv-feed"); ET = ZoneInfo("America/New_York"); log = logging.getLogger("marv_ncaab_card")
+ET = ZoneInfo("America/New_York"); log = logging.getLogger("marv_ncaab_card")
 TAG = "track-only: "
+
+
+def feed_root():
+    """Switch files. Unset env keeps the feed directory the service already uses."""
+    return Path(os.environ.get("MARV_FEED_ROOT", "/opt/marv-feed"))
 
 
 def on(name, sport="ncaab"):
     name = name.replace("NCAAB", sport.upper()); main = f"MARV_{sport.upper()}_CARD_FIX"
-    f = lambda n: os.environ.get(n, "on").strip().lower() not in ("off", "0", "false", "no") and not (FEED / f"{n}_OFF").exists()
+    root = feed_root()
+    f = lambda n: os.environ.get(n, "on").strip().lower() not in ("off", "0", "false", "no") and not (root / f"{n}_OFF").exists()
     return f(main) and (name == main or f(name))
 
 
@@ -172,15 +178,43 @@ def _exposure(preds, sport, state_dir):
         __import__("types").SimpleNamespace(price=row["price"], prob=row["prob"])), audit.events(path), et_of)
 
 
-def _commit(state_dir, sport, preds):
+def _audit():
+    from marv import decision_audit as audit
+    return audit
+
+
+def _record_stages(state_dir, sport):
+    """Gate snapshots only. They do not reserve stake and do not block a later first send."""
     if "--dry-run" in sys.argv:
         return
-    from marv import decision_audit as audit
+    audit = _audit()
     state = Path(state_dir)
     run_id = _RUN.setdefault(sport, audit.new_run_id())
     for stage in getattr(gate, "last_stages", []) or []:
         if stage.get("sport") == sport:
             audit.record_stage(state, run_id=run_id, sport=sport, stage=stage["stage"], rows=stage["rows"])
+
+
+def _emitted_keys(state_dir, sport):
+    keys = set()
+    for row in _audit().events(state_dir):
+        if row.get("kind") != "allocation" or row.get("exposure") is False or row.get("sport") != sport:
+            continue
+        keys.add((str(row.get("game_id")), row.get("market"), str(row.get("side", "")).lower()))
+    return keys
+
+
+def _commit(state_dir, sport, preds):
+    """Record the qualified stake after a send that was not a pre-request failure.
+
+    The first allocation row is kept. A repeat appends a reevaluation and does not add stake.
+    """
+    if "--dry-run" in sys.argv:
+        return
+    audit = _audit()
+    state = Path(state_dir)
+    run_id = _RUN.setdefault(sport, audit.new_run_id())
+    _record_stages(state, sport)
     for p in preds:
         for pk in p.picks:
             if pk.market not in ("ml", "spread", "total"):
@@ -284,7 +318,7 @@ _SPORT = [None]
 def paper_on(now=None, sport="ncaab"):
     if not on("MARV_NCAAB_PAPER", sport): return False
     until = os.environ.get(f"MARV_{sport.upper()}_PAPER_UNTIL", "2026-11-17")
-    return (now or datetime.now(ET)).astimezone(ET).date().isoformat() < until or (FEED / f"MARV_{sport.upper()}_PAPER_KEEP").exists()
+    return (now or datetime.now(ET)).astimezone(ET).date().isoformat() < until or (feed_root() / f"MARV_{sport.upper()}_PAPER_KEEP").exists()
 
 
 def apply():
@@ -343,12 +377,31 @@ def apply():
     np0 = Store.new_picks
 
     def new_picks(self, sport, preds):  # called on every card run; log track-only picks unless --dry-run
+        n = np0(self, sport, preds)
         if sport in SPORTS and on("MARV_NCAAB_CARD_FIX", sport) and "--dry-run" not in sys.argv:
             try: _log_tracked(_sd(self), preds, sport)
             except Exception: log.exception("track-only log failed")
-            try: _commit(_sd(self), sport, preds)
-            except Exception: log.exception("decision audit failed")
-        return np0(self, sport, preds)
+            try: _record_stages(_sd(self), sport)
+            except Exception: log.exception("gate snapshot failed")
+            try:
+                emitted = _emitted_keys(_sd(self), sport)
+                ledger = json.loads((_sd(self) / "picks.json").read_text()) if (_sd(self) / "picks.json").exists() else []
+            except Exception:
+                log.exception("emitted-key read failed")
+                emitted, ledger = set(), None
+            if emitted and ledger is not None:
+                logged = {(str(e.get("game_id")), e.get("market"), str(e.get("side", "")).lower())
+                          for e in ledger if e.get("sport") == sport}
+                n = 0
+                for p in preds:
+                    for pk in p.picks:
+                        if not pk.active or getattr(pk, "_ncaab_track", None) or pk.market not in ("ml", "spread", "total"):
+                            continue
+                        key = (str(p.game.id), pk.market, str(pk.side).lower())
+                        if key in emitted or key in logged:
+                            continue
+                        n += 1
+        return n
 
     def resolve(self, sport, finished):
         r = rs0(self, sport, finished)
@@ -357,6 +410,13 @@ def apply():
             except Exception: log.exception("ncaab track-only grade failed")
         return r
 
+    def _emit(state, sport, preds):
+        if str(sport).lower() in SPORTS and "--dry-run" not in sys.argv:
+            try: _commit(state, str(sport).lower(), preds)
+            except Exception: log.exception("emitted allocation failed")
+
+    import marv.decision_audit as _audit_mod
+    _audit_mod.commit_emitted_card = _emit
     format_card._ncaab = True
     BR.export = export; T.stake = stake; M.format_card = format_card
     Store.log_picks = log_picks; Store.new_picks = new_picks; Store.resolve = resolve

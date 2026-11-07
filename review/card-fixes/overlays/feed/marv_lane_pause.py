@@ -41,10 +41,10 @@ def _pair(x):
     if isinstance(x, dict):
         if x.get("master_extreme"):
             return None
-        return (str(x.get("sport", "")).lower(), str(x.get("market", "")).lower())
+        return (str(x.get("sport", "")).strip().lower(), str(x.get("market", "")).strip().lower())
     if x is None or getattr(x, "master_extreme", False):
         return None
-    return (str(getattr(x, "sport", "") or "").lower(), str(getattr(x, "market", "") or "").lower())
+    return (str(getattr(x, "sport", "") or "").strip().lower(), str(getattr(x, "market", "") or "").strip().lower())
 
 
 def paused(x, L=None, _lanes=lanes):

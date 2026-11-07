@@ -289,6 +289,44 @@ class DecisionAuditTests(unittest.TestCase):
             legacy, NIGHT, [], "card", lambda: (_ for _ in ()).throw(AssertionError("sent")),
             lambda: None, lambda: None, lambda status: None), "blocked")
 
+    def test_evaluation_does_not_reserve_exposure_and_emitted_stake_stays(self):
+        play = _play("eval", 0.2)
+        self.card.gate([play])
+        self.assertTrue(play.picks[0].active)
+        self.card._record_stages(self.state, "ncaab")
+        self.assertEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.0)
+        self.assertFalse(any(row.get("kind") == "allocation" for row in audit.events(self.state)))
+        other = _play("other", 0.2)
+        self.card.gate([play, other])
+        self.assertTrue(play.picks[0].active)
+        self.assertTrue(other.picks[0].active)
+        first_stage = next(row for row in audit.events(self.state) if row["kind"] == "gate_snapshot")
+        raw = json.dumps(first_stage, sort_keys=True)
+        self.card._commit(self.state, "ncaab", [play])
+        rows = audit.events(self.state)
+        first = next(row for row in rows if row["kind"] == "allocation")
+        self.assertEqual(first["stake_fraction"], 0.03)
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), rows), 0.03)
+        self.card._commit(self.state, "ncaab", [play])
+        stored = audit.events(self.state)
+        again = next(row for row in stored if row["idempotency_key"] == first["idempotency_key"])
+        self.assertEqual(again["stake_fraction"], 0.03)
+        self.assertEqual(json.dumps(next(row for row in stored if row["idempotency_key"] == first_stage["idempotency_key"]),
+                                    sort_keys=True), raw)
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), stored), 0.03)
+        # A pre-request failure must not be what reserved the stake: failed delivery adds no allocation.
+        bare = self.state / "bare"
+        bare.mkdir()
+
+        def missing():
+            raise ValueError(audit._PREWIRE)
+
+        self.assertEqual(audit.deliver(
+            bare, run_id="run-f", channel="card:ncaab", when=NIGHT, decision_ids=["dec_x"],
+            payload="card", send_fn=missing).code, "failed")
+        self.assertEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(bare)), 0.0)
+        self.assertFalse(audit.resend_blocked(bare, NIGHT.date(), "card:ncaab"))
+
     def test_internal_high_label_is_unchanged(self):
         saved = (betcard.candidates, betcard.select, betcard.text, betcard.HARD)
         try:

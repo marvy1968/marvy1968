@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -21,6 +22,17 @@ def _event(home, away, ml=None, total=None, book="bovada", start="2026-10-10T23:
 
 
 class ParlayTest(unittest.TestCase):
+    def setUp(self):
+        # This file checks parlay pricing. Lane pause is covered in test_lane_pause.
+        self._pause = os.environ.get("MARV_LANE_PAUSE")
+        os.environ["MARV_LANE_PAUSE"] = "off"
+
+    def tearDown(self):
+        if self._pause is None:
+            os.environ.pop("MARV_LANE_PAUSE", None)
+        else:
+            os.environ["MARV_LANE_PAUSE"] = self._pause
+
     def test_combined_american(self):
         self.assertEqual(parlay.combined_american([-110, -110]), 264)
         self.assertEqual(parlay.combined_american([+150, -200]), 275)

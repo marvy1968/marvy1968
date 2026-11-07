@@ -347,6 +347,14 @@ def note_log_failure(state, *, channel: str, intent_id: str, detail: str) -> dic
     })
 
 
+def commit_emitted_card(state, sport, preds) -> None:
+    """Hook for a feed overlay. The shared package records no stake by itself.
+
+    Called only after a card send that was not a pre-request failure. Dry runs never call it.
+    """
+    return None
+
+
 def bet_decision_ids(bets, when) -> list:
     day = when.date() if isinstance(when, datetime) else when
     out = []

@@ -129,6 +129,39 @@ class LanePauseTests(unittest.TestCase):
         leg = {"sport": "cfb", "market": "total", "side": "Over", "master_extreme": True, "game": "A @ B"}
         self.assertFalse(lane_pause.paused(leg))
 
+    def test_normalization_and_switch_precedence(self):
+        self.assertTrue(betcard.candidates._lane_pause and betcard.tag_candidates._lane_pause)
+        self.assertTrue(betcard.gap_candidates._lane_pause and betcard.select._lane_pause)
+        self.assertTrue(lane_pause.paused({"sport": " CFB ", "market": " Total "}))
+        self.assertTrue(lane_pause.paused(betcard.Bet(
+            "cfb", "A @ B", "2030-01-01T23:00:00+00:00", "B", "A", "total", "Over", 50.5, -110, "SIGNAL", 1, 0.5, "s")))
+        os.environ["MARV_LANE_PAUSE_LANES"] = "nba:ml"
+        self.assertEqual(lane_pause.lanes(), {("nba", "ml")})
+        self.assertFalse(lane_pause.paused({"sport": "cfb", "market": "total"}))
+        os.environ["MARV_LANE_PAUSE"] = "off"
+        os.environ["MARV_LANE_PAUSE_LANES"] = "cfb:total"
+        self.assertEqual(lane_pause.lanes(), set())
+        os.environ["MARV_LANE_PAUSE"] = "on"
+        Path(self.feed.name, "MARV_LANE_PAUSE_OFF").write_text("")
+        self.assertEqual(lane_pause.lanes(), set())
+        Path(self.feed.name, "MARV_LANE_PAUSE_OFF").unlink()
+        self.assertIn(("cfb", "total"), lane_pause.lanes())
+
+    def test_fallback_parlay_board_drops_paused_totals(self):
+        from marv import parlay
+        with tempfile.TemporaryDirectory() as d:
+            st = Path(d)
+            tags = {"a": {"sport": "cfb", "game_id": "1", "tag": "OVER-FADE", "side": "Under", "home": "Example Home",
+                          "away": "Example Away", "start": "2030-01-02T23:30:00+00:00", "line": 54.5, "result": None}}
+            (st / "ou_tags_log.json").write_text(json.dumps(tags))
+            now = datetime(2030, 1, 1, 18, tzinfo=timezone.utc)
+            os.environ["MARV_LANE_PAUSE"] = "off"
+            shown = parlay.all_legs(st, ["cfb"], {}, now)
+            os.environ["MARV_LANE_PAUSE"] = "on"
+            hidden = parlay.all_legs(st, ["cfb"], {}, now)
+        self.assertTrue(any(leg.get("sport") == "cfb" and leg.get("market") == "total" for leg in shown))
+        self.assertFalse(any(leg.get("sport") == "cfb" and leg.get("market") == "total" for leg in hidden))
+
     def test_daily_betcard_and_parlay_parity(self):
         legs = [
             _leg("nfl", "Alpha @ Beta", "ml", "Beta", 3.0),
@@ -330,6 +363,20 @@ exit 0
         second, _trace, _bot = self._run(3600, bot=bot, keep_log=True, MOCK_INACTIVE="1")
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual(self.log.read_text().count("notify"), 1)
+
+    def test_decimal_uptime_and_plain_integer_timestamp(self):
+        # /proc/uptime is decimal seconds. systemctl's monotonic timestamp is an integer
+        # microsecond count. The export did not include a captured show line.
+        proc, trace, _bot = self._run("93599.50", MOCK_LAST="123456789")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        now, up_hours, since = trace.split()
+        self.assertEqual(now, str(int(93599.50 * 1000000)))
+        self.assertNotIn("e", trace.lower())
+        self.assertEqual(up_hours, "25")
+        self.assertFalse(self.log.exists())
+        spaced, trace2, _bot = self._run("3600.0", MOCK_LAST=" 42 ")
+        self.assertEqual(spaced.returncode, 0, spaced.stderr)
+        self.assertTrue(trace2.split()[0].isdigit())
 
     def test_ofmt_token_matches_the_audit_example(self):
         import shutil

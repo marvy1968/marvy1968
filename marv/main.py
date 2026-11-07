@@ -101,13 +101,25 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
     if not dry_run and not fresh and not s.send_empty_cards:
         log.info("%s: no new qualified plays, nothing sent", sport.key)
     elif not dry_run:
-        send_message(s.telegram_bot_token, s.telegram_chat_id, text)
-        store.log_picks(sport.key, card_preds)
-        if sport.key in s.pdf_sports and card_preds:
-            from .reports import weekly_chart
-            pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
-            send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
-        log.info("%s: sent %d predictions", sport.key, len(preds))
+        from . import decision_audit as audit
+        def _send_card():
+            return send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+        status = audit.deliver(
+            Path(s.state_dir), run_id=audit.new_run_id(), channel=f"card:{sport.key}",
+            when=now.astimezone(ET), decision_ids=[], payload=text, send_fn=_send_card)
+        # Pre-request failure: nothing was emitted, so no stake is reserved and a later run may send.
+        # A return with no receipt, or an exception after the call began, is unknown: reserve the
+        # qualified stake and do not call send_message again from this run.
+        if status.raised:
+            _alert_failure(s, f"{sport.name} card")
+        if status.code != "failed":
+            audit.commit_emitted_card(Path(s.state_dir), sport.key, card_preds)
+            store.log_picks(sport.key, card_preds)
+            if not status.raised and sport.key in s.pdf_sports and card_preds:
+                from .reports import weekly_chart
+                pdf = weekly_chart(sport, card_preds, Path(s.state_dir) / f"{sport.key}_weekly_chart.pdf", now, s.paper_mode)
+                send_document(s.telegram_bot_token, s.telegram_chat_id, pdf, f"Marv {sport.name} weekly ML / O-U chart")
+            log.info("%s: card send status %s for %d predictions", sport.key, status.code, len(preds))
     return preds, projections, slate
 
 
