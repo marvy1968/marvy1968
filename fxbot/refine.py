@@ -12,6 +12,7 @@ A candidate then needs a 3-year check before going live. Research only: nothing 
 from datetime import date, timedelta
 
 import numpy as np
+import pandas as pd
 
 from alpacabot.exitlab import stats
 
@@ -138,23 +139,27 @@ def _random_twin(df, t: dict, rng, a: date, b: date, max_bars: int = 120):
     return side * (cl[min(j + max_bars, len(df)) - 1] - fill) / risk
 
 
-def retest_check(data_h1: dict, today: date, base_kw: dict, var_kw: dict, title: str, days: int = 92, seeds: int = 5) -> list[str]:
-    """retest_h1 (the playbook's own exits) live rules vs one changed rule, same pre-registered checks as check()."""
+def retest_check(data_h1: dict, today: date, base_kw: dict, var_kw: dict, title: str, days: int = 92, seeds: int = 5,
+                 var_filter=None) -> list[str]:
+    """retest_h1 (the playbook's own exits) live rules vs one changed rule, same pre-registered checks as check().
+    var_filter(inst, df, trade) -> bool: an entry filter for the variant, using only data before the entry. (Approximation: a filtered-out
+    trade still blocked overlapping setups on that pair, as in the live simulation's one-position-per-pair rule.)"""
     from .playbook import PlaybookRules, simulate_playbook
     a = today - timedelta(days=days)
     mid_ = a + (today - a) / 2
     h2a = mid_ + timedelta(days=1)
 
-    def run(kw, mult=1.0):
+    def run(kw, mult=1.0, flt=None):
         out = []
         for inst, df in data_h1.items():
             d = xl._spread(df, mult)
-            out += [{**t, "inst": inst} for t in simulate_playbook(inst, d, PlaybookRules(**kw), a, today)]
+            out += [{**t, "inst": inst} for t in simulate_playbook(inst, d, PlaybookRules(**kw), a, today) if flt is None or flt(inst, df, t)]
         return out
     sel = lambda tr, x, y: [t["r"] for t in tr if x <= t["entry"].date() <= y]  # noqa: E731
     res = {}
     for name, kw in (("live", base_kw), ("variant", var_kw)):
-        tr, tr2 = run(kw), run(kw, 2.0)
+        flt = var_filter if name == "variant" else None
+        tr, tr2 = run(kw, 1.0, flt), run(kw, 2.0, flt)
         res[name] = {"all": stats(sel(tr, a, today)), "half1": stats(sel(tr, a, mid_)), "half2": stats(sel(tr, h2a, today)),
                      "all_2x": stats(sel(tr2, a, today)), "_tr": tr}
     rng = np.random.default_rng(0)
@@ -181,3 +186,22 @@ def retest_check(data_h1: dict, today: date, base_kw: dict, var_kw: dict, title:
 def retest_rr(data_h1: dict, today: date) -> list[str]:
     """Queue item 3: retest_h1 needs 2.5R to the next opposing swing level instead of 2R."""
     return retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0, "min_rr": 2.5}, "Queue 3: retest_h1 minimum reward 2.5R vs 2R")
+
+
+def h4_trend_ok(inst, df, t, n: int = 50, slope_bars: int = 5) -> bool:
+    """The last COMPLETED 4-hour bar before the entry: SMA(n) of 4-hour closes rising over slope_bars bars for a long, falling for a short."""
+    from .data import mid
+    c = mid(df)["close"].resample("4h", label="left", closed="left").last().dropna()
+    sma = c.rolling(n).mean()
+    e = pd.Timestamp(t["entry"])
+    done = sma[sma.index + pd.Timedelta(hours=4) <= e].dropna()
+    if len(done) <= slope_bars:
+        return False
+    up = float(done.iloc[-1]) > float(done.iloc[-1 - slope_bars])
+    return up if t["side"] == "long" else not up
+
+
+def retest_h4(data_h1: dict, today: date) -> list[str]:
+    """Queue item 4: retest_h1 entries only when the 4-hour SMA50 slopes the trade's way."""
+    return retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0}, "Queue 4: retest_h1 with the 4-hour SMA50 slope",
+                        var_filter=h4_trend_ok)

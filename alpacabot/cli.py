@@ -574,6 +574,15 @@ def run_all(a) -> int:
                 lines += _stg.stock_report({s: d for s, d in dd.items() if len(d) > 300}, dd["SPY"]["close"], today_)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_refine_4":               # queue item 4: retest_h1 with the 4-hour SMA50 slope (fxbot.refine.retest_h4)
+                import datetime as _dt
+                from fxbot import refine as _rf
+                from fxbot.data import MAJORS, load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today - _dt.timedelta(days=200), today, Path("state/fx/cache")) for i in MAJORS}
+                lines += _rf.retest_h4(h1, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_refine_3":               # queue item 3: retest_h1 minimum reward 2.5R vs 2R (fxbot.refine.retest_rr)
                 import datetime as _dt
                 from fxbot import refine as _rf

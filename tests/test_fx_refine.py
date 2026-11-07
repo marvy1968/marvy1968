@@ -70,3 +70,15 @@ class RetestCheckTests(unittest.TestCase):
         df = bidask(np.r_[np.full(20, 1.10), np.linspace(1.10, 1.13, 200)], start="2026-06-01")
         r = rf._random_twin(df, {"side": "long", "risk": 0.002, "rr_target": 2.0}, np.random.default_rng(1), date(2026, 6, 1), date(2026, 6, 30))
         self.assertIn(r, (-1.0, 2.0))
+
+
+class H4TrendTests(unittest.TestCase):
+    def test_slope_gate_uses_completed_bars(self):
+        import pandas as pd
+        df = bidask(1.0 + np.arange(24 * 40) * 0.0001, start="2026-05-01")
+        t_long = {"side": "long", "entry": pd.Timestamp("2026-06-05 10:00", tz="UTC")}
+        t_short = {"side": "short", "entry": pd.Timestamp("2026-06-05 10:00", tz="UTC")}
+        self.assertTrue(rf.h4_trend_ok("X", df, t_long))
+        self.assertFalse(rf.h4_trend_ok("X", df, t_short))
+        early = {"side": "long", "entry": pd.Timestamp("2026-05-03 10:00", tz="UTC")}
+        self.assertFalse(rf.h4_trend_ok("X", df, early))          # SMA50 not warm yet
