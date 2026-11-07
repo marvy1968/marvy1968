@@ -23,3 +23,13 @@ Exploratory (chosen after looking, so not a test): ROI rises with the edge thres
 edge >= 8c: minutes model +4.8% (4,130 bets, +0.6% .. +9.0%), v3 +6.1% (2,939 bets, +1.3% .. +10.8%).
 Next test, written down now: v3, both sides, edge >= 8c, the same quote filters, on NBA games from 2026-11-07 onward
 (forward data that does not exist yet). Promote only if it is positive with a 90% range above -5% after 60+ games.
+
+## Second test of the lead, on 2025-26 games not yet downloaded (written 2026-11-07, before those games were fetched)
+
+`seen_games_2025_26.json` lists every 2025-26 game whose Kalshi prices had been used by the time of the holdout result.
+All other 2025-26 games from 2026-01-17 on (still downloading) have never been looked at.
+
+Rule: v3 (market pregame anchor + minutes model, parameters fit on 2023-25), both sides, edge >= 8c after fee, tradeable
+fresh quotes (gap <= 10c, bid >= 2c, ask <= 98c, refreshed after the period ended), one contract each.
+Success: ROI > 0 with a game-bootstrap 90% range whose low end is above -5%, on at least 150 unseen games.
+The forward test (NBA games from 2026-11-07 on, same rule, 60+ games) stays as written above.
