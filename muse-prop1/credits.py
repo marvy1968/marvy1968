@@ -152,39 +152,38 @@ class Ledger:
                 self._write(data)
                 raise CreditError(data["fail_reason"])
             parsed = _header_cost(headers)
+            expected = int(row["worst_case"])
             if error or parsed is None:
-                row["status"] = "unknown"
-                data["fail_closed"] = True
-                data["fail_reason"] = error or "odds usage header missing or unparseable"
-                self._write(data)
-                return data
+                self._block(data, row, "unknown", error or "odds usage header missing or unparseable")
             actual, remaining = parsed
-            drop = None
-            if data.get("last_remaining") is not None and remaining is not None:
-                drop = int(data["last_remaining"]) - int(remaining)
-                if drop > actual:
-                    actual = drop
             if actual < 0:
-                row["status"] = "unknown"
-                data["fail_closed"] = True
-                data["fail_reason"] = "negative usage header"
-                self._write(data)
-                return data
-            row["header_last"] = parsed[0]
+                self._block(data, row, "unknown", "negative usage header")
+            row["header_last"] = actual
             row["header_remaining"] = remaining
             if remaining is not None:
                 data["last_remaining"] = remaining
-            counted = max(int(row["worst_case"]), actual)
-            extra = counted - int(row["counted"])
-            if extra > 0:
-                data["used"] += extra
-            row["counted"] = counted
+            if actual != expected:
+                # Count the larger figure. Never refund a smaller report.
+                if actual > expected:
+                    data["used"] += actual - expected
+                    row["counted"] = actual
+                else:
+                    row["counted"] = expected
+                self._block(
+                    data, row, "discrepancy",
+                    f"billing discrepancy expected {expected} reported {actual}")
+            row["counted"] = expected
             row["status"] = "reconciled"
-            if data["used"] > data["cap"]:
-                data["fail_closed"] = True
-                data["fail_reason"] = "reconciled usage passed the shared cap"
             self._write(data)
             return data
+
+    def _block(self, data: dict, row: dict, status: str, reason: str) -> None:
+        """Persist the day block, then raise. Callers must not continue to the network."""
+        row["status"] = status
+        data["fail_closed"] = True
+        data["fail_reason"] = reason
+        self._write(data)
+        raise CreditError(reason)
 
 
 def _header_cost(headers: dict | None) -> tuple[int, int | None] | None:

@@ -45,7 +45,19 @@ def _cfg(tmp: Path, cap: int = 100, sports=None, calls: int = 4) -> dict:
 
 
 def _env():
-    return {"LIVE_PROPS_SEND": "off", "ODDS_API_KEY": KEY, "PATH": "/usr/bin"}
+    return {
+        "LIVE_PROPS_SEND": "off",
+        "ODDS_API_KEY": KEY,
+        "ODDS_API_KEY_PAID": "paid-secret",
+        "PROPLINE_API_KEY": "prop-secret",
+        "TELEGRAM_BOT_TOKEN": "tg-secret",
+        "TELEGRAM_CHAT_ID": "chat-secret",
+        "CONFIG_TOKEN": "config-secret",
+        "SECRET_FROM_PROVISIONER_9f3a": "random-secret",
+        "PATH": "/usr/bin",
+        "LANG": "C.UTF-8",
+        "HOME": "/home/should-not-pass",
+    }
 
 
 def _board(state: str):
@@ -135,9 +147,16 @@ def _runner(record):
         dest = state / "live_props"
         dest.mkdir(parents=True, exist_ok=True)
         (dest / "shadow.jsonl").write_text("")
+        allowed = set(C.REPLAY_ENV_ALLOW) | {"LIVE_PROPS_SEND", "LIVE_PROPS_ENGINE"}
+        assert set(env) <= allowed
         assert env.get("LIVE_PROPS_SEND") == "off"
-        assert "ODDS_API_KEY" not in env
-        assert "TELEGRAM_BOT_TOKEN" not in env
+        assert env.get("PATH") == "/usr/bin"
+        assert env.get("LANG") == "C.UTF-8"
+        assert "HOME" not in env
+        for secret in ("ODDS_API_KEY", "ODDS_API_KEY_PAID", "PROPLINE_API_KEY",
+                       "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "CONFIG_TOKEN",
+                       "SECRET_FROM_PROVISIONER_9f3a"):
+            assert secret not in env
         return 0
     return run
 
@@ -173,17 +192,70 @@ def test_reservation_is_persisted_before_the_call_and_caps_credits():
         ledger.close()
 
 
-def test_header_can_raise_the_cost_and_cannot_lower_it():
+def _blocked(path: Path):
+    data = json.loads(path.read_text())
+    assert data["fail_closed"] is True
+    return data
+
+
+def test_billing_discrepancy_blocks_the_day_without_refund_or_another_call():
     with __import__("tempfile").TemporaryDirectory() as td:
         path = Path(td) / "usage.json"
         ledger = Ledger(path, cap=100, now=NOW_LIVE)
         high = ledger.reserve("event_odds", 4, "high")
-        state = ledger.reconcile(high, {"x-requests-last": "10", "x-requests-remaining": "80"})
-        assert state["used"] == 10
-        low = ledger.reserve("event_odds", 4, "low")
-        state = ledger.reconcile(low, {"x-requests-last": "1", "x-requests-remaining": "79"})
-        assert state["used"] == 14
+        try:
+            ledger.reconcile(high, {"x-requests-last": "10", "x-requests-remaining": "80"})
+        except CreditError as exc:
+            assert "expected 4 reported 10" in str(exc)
+        else:
+            raise AssertionError("a higher bill must fail closed")
+        assert _blocked(path)["used"] == 10
+        try:
+            ledger.reserve("event_odds", 4, "next")
+        except CreditError:
+            pass
+        else:
+            raise AssertionError("the day block must stop the next reservation")
         ledger.close()
+    with __import__("tempfile").TemporaryDirectory() as td:
+        path = Path(td) / "usage.json"
+        ledger = Ledger(path, cap=100, now=NOW_LIVE)
+        low = ledger.reserve("event_odds", 4, "low")
+        try:
+            ledger.reconcile(low, {"x-requests-last": "1"})
+        except CreditError as exc:
+            assert "expected 4 reported 1" in str(exc)
+        else:
+            raise AssertionError("a lower bill must fail closed")
+        assert _blocked(path)["used"] == 4
+        ledger.close()
+    with __import__("tempfile").TemporaryDirectory() as td:
+        path = Path(td) / "usage.json"
+        ledger = Ledger(path, cap=100, now=NOW_LIVE)
+        free = ledger.reserve("events", 0, "events")
+        try:
+            ledger.reconcile(free, {"x-requests-last": "1"})
+        except CreditError as exc:
+            assert "expected 0 reported 1" in str(exc)
+        else:
+            raise AssertionError("a free call that was billed must fail closed")
+        assert _blocked(path)["used"] == 1
+        ledger.close()
+    feed = Feed(props_header="10")
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError:
+            pass
+        assert feed.props_calls == 1
+        again = Feed()
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError:
+            pass
+        assert again.urls == []
+        assert again.props_calls == 0
 
 
 def test_missing_header_fails_closed_without_retry():
@@ -203,7 +275,68 @@ def test_missing_header_fails_closed_without_retry():
             C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_LIVE, _env())
         except C.CollectorError:
             pass
+        assert again.urls == []
         assert again.props_calls == 0
+
+
+def test_billed_events_call_stops_before_props():
+    feed = Feed()
+
+    def transport(url):
+        parsed = urlparse(url)
+        if parsed.path.endswith("/events"):
+            return 200, {"x-requests-last": "1", "x-requests-remaining": "500"}, json.dumps(_events()).encode()
+        return feed(url)
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", transport, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError as exc:
+            assert "expected 0 reported 1" in str(exc)
+        else:
+            raise AssertionError("a billed events call must stop the run")
+        assert feed.props_calls == 0
+        assert _blocked(td / "state" / "usage.json")["used"] == 1
+        again = Feed()
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError:
+            pass
+        assert again.urls == []
+
+
+def test_unknown_header_and_restart_make_no_next_call():
+    feed = Feed(props_header="nope")
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", feed, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError:
+            pass
+        assert feed.props_calls == 1
+        assert _blocked(td / "state" / "usage.json")["used"] >= 4
+        again = Feed()
+        try:
+            C.collect_once(_cfg(td), td / "state", td / "archive", again, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError:
+            pass
+        assert again.urls == []
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        state = td / "state"
+        state.mkdir()
+        ledger = Ledger(state / "usage.json", cap=100, now=NOW_LIVE)
+        ledger.reserve("event_odds", 4, "crashed")
+        ledger.close()
+        feed = Feed()
+        try:
+            C.collect_once(_cfg(td), state, td / "archive", feed, _runner([]), NOW_LIVE, _env())
+        except C.CollectorError as exc:
+            assert "unfinished" in str(exc)
+        else:
+            raise AssertionError("a restarted held reservation must fail closed")
+        assert feed.urls == []
+        assert _blocked(state / "usage.json")["used"] == 4
 
 
 def test_auth_error_is_one_call_and_hides_the_key():
@@ -363,6 +496,19 @@ def test_regrade_is_idempotent_and_does_not_fetch():
         C.grade_saved(td / "archive", snap, fetch, shadow, claude)
         assert fetches and all("summary" in url for url in fetches)
         C.grade_saved(td / "archive", snap, boom, shadow, claude)
+
+
+def test_replay_child_drops_arbitrary_secrets():
+    dirty = _env()
+    dirty["LIVE_PROPS_SEND"] = "on"
+    child = C.replay_child_env(dirty)
+    assert child["LIVE_PROPS_SEND"] == "off"
+    assert child["LIVE_PROPS_ENGINE"] == "on"
+    assert child["PATH"] == "/usr/bin"
+    assert "ODDS_API_KEY_PAID" not in child
+    assert "SECRET_FROM_PROVISIONER_9f3a" not in child
+    assert "CONFIG_TOKEN" not in child
+    assert set(child) <= set(C.REPLAY_ENV_ALLOW) | {"LIVE_PROPS_SEND", "LIVE_PROPS_ENGINE"}
 
 
 def test_refuses_ncaaw_install_scripts_and_send_imports():

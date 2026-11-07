@@ -34,7 +34,7 @@ from credits import (
 )
 from grade_results import FINAL_SCHEMA, load_final, settlements_for_observation, write_settlement
 from live_feed import _clock_to_elapsed
-from prop_snapshot import SCHEMA_IN, ReplayError, assert_replay_state, hash_payload, input_hash, load_snapshot, replay_file
+from prop_snapshot import SCHEMA_IN, ReplayError, assert_replay_state, hash_payload, input_hash, load_snapshot
 
 ODDS_BASE = "https://api.the-odds-api.com/v4"
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports"
@@ -268,9 +268,7 @@ def _odds_request(ledger: Ledger, transport, api_key: str, path: str, params: di
     if status != 200:
         ledger.reconcile(reservation, headers, error=_safe_odds_error(status))
         raise CollectorError(_safe_odds_error(status))
-    state = ledger.reconcile(reservation, headers)
-    if state.get("fail_closed"):
-        raise CollectorError(state.get("fail_reason") or "credit ledger fail-closed")
+    ledger.reconcile(reservation, headers)
     try:
         return json.loads(body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -290,20 +288,48 @@ def _public_get(transport, url: str):
         raise CollectorError("public feed was not json") from exc
 
 
-def _replay_env(base: dict) -> dict:
-    skipped = {"ODDS_API_KEY", "PROPLINE_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"}
-    env = {key: value for key, value in base.items() if key not in skipped}
+# Inherited process environment is not a safe base. Replay does not need a
+# provider key or a chat token. Only these names may be copied, and the send
+# flag is set here rather than taken from the parent.
+REPLAY_ENV_ALLOW = (
+    "PATH",
+    "LANG", "LC_ALL", "LC_CTYPE", "LANGUAGE",
+    "PYTHONPATH", "PYTHONHOME", "PYTHONNOUSERSITE", "PYTHONSAFEPATH",
+    "PYTHONIOENCODING", "PYTHONUTF8", "PYTHONDONTWRITEBYTECODE", "PYTHONHASHSEED",
+    "PYTHONUNBUFFERED", "VIRTUAL_ENV", "LD_LIBRARY_PATH", "TMPDIR", "TZ",
+)
+
+
+def replay_child_env(parent: dict | None = None) -> dict:
+    """Allowlisted runtime env for a Muse or Claude replay child."""
+    parent = os.environ if parent is None else parent
+    env = {}
+    for key in REPLAY_ENV_ALLOW:
+        value = parent.get(key)
+        if value:
+            env[key] = value
     env["LIVE_PROPS_SEND"] = "off"
+    env["LIVE_PROPS_ENGINE"] = "on"
     return env
+
+
+def invoke_replay(cmd: list[str], cwd: Path, runner, parent_env: dict) -> None:
+    if any(token in " ".join(cmd) for token in FORBIDDEN):
+        raise CollectorError("refusing updater or install script")
+    code = runner(cmd, cwd=str(cwd), env=replay_child_env(parent_env))
+    if code != 0:
+        raise CollectorError(f"replay exited {code}")
 
 
 def invoke_claude(code_dir: Path, python: Path, snapshot: Path, state_dir: Path, runner, env: dict) -> None:
     cmd = [str(python), "-m", "marv", "live-props", "replay", "--snapshot", str(snapshot), "--state-dir", str(state_dir)]
-    if any(token in " ".join(cmd) for token in FORBIDDEN):
-        raise CollectorError("refusing updater or install script")
-    code = runner(cmd, cwd=str(code_dir), env=_replay_env(env))
-    if code != 0:
-        raise CollectorError(f"claude replay exited {code}")
+    invoke_replay(cmd, code_dir, runner, env)
+
+
+def invoke_muse(snapshot: Path, state_dir: Path, runner, env: dict) -> None:
+    cmd = [sys.executable, str(Path(__file__).resolve().parent / "runner.py"),
+           "--snapshot", str(snapshot), "--state-dir", str(state_dir)]
+    invoke_replay(cmd, Path(__file__).resolve().parent, runner, env)
 
 
 def _select(pairs: list[dict], max_games: int) -> list[dict]:
@@ -506,7 +532,7 @@ def _collect_locked(cfg, block, state_dir, archive, transport, runner, now, obse
         _atomic(state_dir / "captured.json", json.dumps(captured, sort_keys=True))
         muse_state = archive / "runs" / digest / "muse-state"
         claude_state = archive / "runs" / digest / "claude-state"
-        replay_file(snapshot_path, muse_state)
+        invoke_muse(snapshot_path, muse_state, runner, env)
         invoke_claude(code_dir, python, snapshot_path, claude_state, runner, env)
         muse_rows = load_shadow(muse_state / "live_props" / "shadow.jsonl")
         claude_rows = load_shadow(claude_state / "live_props" / "shadow.jsonl")

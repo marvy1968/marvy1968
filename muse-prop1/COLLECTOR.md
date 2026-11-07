@@ -180,14 +180,17 @@ ESPN scoreboard and summary use `site.api.espn.com` and no key. Odds calls are
 cost 1 credit per market per region. This collector uses one region, so each
 props call reserves 4 credits before the request. Historical odds are not
 called. The events list reserves 0 and still requires `x-requests-last`. A
-missing header, auth failure, or quota failure keeps the reservation, fails
-the ledger closed, and does not retry.
+missing header, auth failure, quota failure, or any difference between the
+reserved cost and `x-requests-last` (including an events call reserved at 0)
+keeps the reservation, writes the day block, and does not make another call.
+A larger header is added to `used` before that block. A smaller header does
+not refund.
 
 The cap is 100 credits per UTC day in `{state}/usage.json`, not 100 requests.
-`used` never decreases. A larger `x-requests-last` or remaining-credit drop
-increases `used`. A smaller header does not refund. A held reservation left by
-a crash fails the next run closed. Default bounds are 4 games and 4 billable
-calls per one-shot.
+`used` never decreases. A held reservation left by a crash fails the next run
+closed before any request. Default bounds are 4 games and 4 billable calls
+per one-shot. Replay children do not inherit the collector environment. They
+receive PATH, locale, and Python runtime names plus `LIVE_PROPS_SEND=off`.
 
 Games pair on normalized home, away, and start within 120 seconds. A shared
 provider id does not pair different names or a start further away than that.
