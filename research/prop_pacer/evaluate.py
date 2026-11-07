@@ -67,14 +67,14 @@ def main(snap: str, *rest: str) -> None:
     mtr, mte = means(train, fitted), means(test, fitted)
     disp = {key: M.fit_dispersion(mtr[key], train[f"{key[1]}_rem"].to_numpy()) for key in mtr}
 
-    report = {"train_rows": len(train), "test_rows": len(test), "test_season": int(test_season),
+    report = {"league": str(df["league"].iloc[0]), "train_rows": len(train), "test_rows": len(test), "test_season": int(test_season),
               "v2_params": fitted["v2"], "accuracy": [], "brier": [], "calibration": {}, "market": {}}
     # 1. accuracy
     for s in M.STATS:
         y = test[f"{s}_rem"].to_numpy()
-        for k in (1, 2, 3):
+        for k in sorted(test["k"].unique()):
             m = (test["k"] == k).to_numpy()
-            row = {"stat": s, "k": k, "n": int(m.sum())}
+            row = {"stat": s, "k": int(k), "n": int(m.sum())}
             for name in MODELS:
                 mu = mte[(name, s)][m]
                 row[f"{name}_mae"] = float(np.mean(np.abs(mu - y[m])))
@@ -178,12 +178,12 @@ def bet(d: pd.DataFrame, col: str, thr: float) -> dict:
 
 
 def write_md(r: dict, path: Path) -> None:
-    L = [f"# In-game NBA prop pacer backtest (test season {r['test_season']}, never seen in training)",
+    L = [f"# In-game {r.get('league', 'nba').upper()} prop pacer backtest (test season {r['test_season']}, never seen in training)",
          f"train rows {r['train_rows']:,} · test rows {r['test_rows']:,}", "",
          "## 1. Remaining-stat accuracy (MAE, lower is better)", "",
          "| stat | break | n | naive | prop1 | v2 | ml |", "|---|---|---|---|---|---|---|"]
     for a in r["accuracy"]:
-        L.append(f"| {a['stat']} | Q{a['k']} | {a['n']:,} | {a['naive_mae']:.2f} | {a['prop1_mae']:.2f} | "
+        L.append(f"| {a['stat']} | {'half' if r.get('league') == 'ncaab' else 'Q' + str(a['k'])} | {a['n']:,} | {a['naive_mae']:.2f} | {a['prop1_mae']:.2f} | "
                  f"{a['v2_mae']:.2f} | {a['ml_mae']:.2f} |")
     L += ["", "## 2. Ladder probabilities (Brier, lower is better)", "", "| stat | naive | prop1 | v2 | ml |",
           "|---|---|---|---|---|"]

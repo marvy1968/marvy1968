@@ -6,7 +6,8 @@ One row per player per game per break (end of Q1, Q2, Q3):
   and the player's FINAL stats (overtime included, as Kalshi and sportsbooks settle).
 Plus leakage-free pregame anchors: each player's exponentially weighted averages from his EARLIER games only.
 
-usage: python research/prop_pacer/build.py OUT.parquet PBP_2024.parquet PBP_2025.parquet PBP_2026.parquet
+usage: python research/prop_pacer/build.py OUT.parquet [nba|ncaab|ncaaw] PBP_season1.parquet PBP_season2.parquet ...
+(NBA: espn_nba_pbp; men's college: espn_mens_college_basketball_pbp; women's: espn_womens_college_basketball_pbp)
 """
 
 import sys
@@ -15,7 +16,8 @@ import numpy as np
 import pandas as pd
 
 STATS = ["pts", "reb", "ast", "fg3", "fga", "fta", "tov", "pf"]
-REG_SECONDS = 2880
+# regulation periods, seconds per period, overtime seconds, fouls to foul out
+LEAGUES = {"nba": (4, 720, 300, 6), "ncaab": (2, 1200, 300, 5), "ncaaw": (4, 600, 300, 5)}
 
 
 def _events(g: pd.DataFrame) -> pd.DataFrame:
@@ -45,17 +47,26 @@ def _events(g: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["i", "player", "stat", "val"])
 
 
-def _minutes(g: pd.DataFrame, team_of: dict) -> pd.DataFrame:
+def _minutes(g: pd.DataFrame, team_of: dict, league: str = "nba") -> pd.DataFrame:
     """Seconds on court per player per period from substitutions (players with an event in a period before entering
     it are on the floor at its start). Returns rows (player, period, sec_on, on_at_end)."""
     out = []
+    # who comes in / goes out on each substitution: NBA "A enters the game for B" (A = id 1, B = id 2);
+    # college has one event per player: "A subbing in" / "A subbing out"
+    g = g.copy()
+    txt = g["text"].fillna("")
+    sub = g["type_text"] == "Substitution"
+    college_in, college_out = sub & txt.str.contains("subbing in"), sub & txt.str.contains("subbing out")
+    g["sub_in"] = np.where(college_in, g["athlete_id_1"], np.where(sub & ~college_out, g["athlete_id_1"], np.nan))
+    g["sub_out"] = np.where(college_out, g["athlete_id_1"], np.where(sub & ~college_in, g["athlete_id_2"], np.nan))
     for per, pg in g.groupby("period_number", sort=True):
-        length = 720 if per <= 4 else 300
-        start_rem = pg["end_quarter_seconds_remaining"]  # seconds left in the period after this play
+        n_reg, plen, ot, _ = LEAGUES[league]
+        length = plen if per <= n_reg else ot
+        start_rem = pg["clock_minutes"].astype(float) * 60 + pg["clock_seconds"].astype(float)  # seconds left in period
         first: dict[int, str] = {}
         for _, r in pg.iterrows():
             if r["type_text"] == "Substitution":
-                for who, kind in ((r["athlete_id_1"], "in"), (r["athlete_id_2"], "out")):
+                for who, kind in ((r["sub_in"], "in"), (r["sub_out"], "out")):
                     if pd.notna(who) and int(who) not in first:
                         first[int(who)] = kind
             else:
@@ -68,10 +79,10 @@ def _minutes(g: pd.DataFrame, team_of: dict) -> pd.DataFrame:
             if r["type_text"] != "Substitution":
                 continue
             rem = float(rem) if pd.notna(rem) else 0.0
-            p_in, p_out = r["athlete_id_1"], r["athlete_id_2"]
+            p_in, p_out = r["sub_in"], r["sub_out"]
             if pd.notna(p_out) and int(p_out) in on:
                 secs[int(p_out)] += on.pop(int(p_out)) - rem
-            if pd.notna(p_in):
+            if pd.notna(p_in) and int(p_in) not in on:
                 on[int(p_in)] = rem
         for p, since in on.items():
             secs[p] = secs.get(p, 0.0) + since
@@ -80,9 +91,13 @@ def _minutes(g: pd.DataFrame, team_of: dict) -> pd.DataFrame:
     return pd.DataFrame(out, columns=["player", "period", "sec", "on_end"])
 
 
-def game_rows(g: pd.DataFrame) -> list[dict]:
+def game_rows(g: pd.DataFrame, league: str = "nba") -> list[dict]:
+    n_reg, plen, _, foul_out = LEAGUES[league]
     g = g.sort_values("game_play_number").reset_index(drop=True)
-    if g["period_number"].max() < 4:
+    for c in ("athlete_id_3", "athlete_name_2"):
+        if c not in g:
+            g[c] = np.nan
+    if g["period_number"].max() < n_reg:
         return []
     home, away = g["home_team_id"].iloc[0], g["away_team_id"].iloc[0]
     ev = _events(g)
@@ -96,7 +111,7 @@ def game_rows(g: pd.DataFrame) -> list[dict]:
         for who in (r["athlete_id_1"], r["athlete_id_2"]):
             if pd.notna(who):
                 team_of.setdefault(int(who), r["team_id"])
-    mins = _minutes(g, team_of)
+    mins = _minutes(g, team_of, league)
     names = {}
     for c_id, c_name in (("athlete_id_1", "athlete_name_1"), ("athlete_id_2", "athlete_name_2")):
         for pid, nm in zip(g[c_id], g[c_name]):
@@ -120,9 +135,10 @@ def game_rows(g: pd.DataFrame) -> list[dict]:
             "season": int(g["season"].iloc[0]), "season_type": int(g["season_type"].iloc[0]),
             "home": g["home_team_name"].iloc[0], "away": g["away_team_name"].iloc[0],
             "home_abbr": g["home_team_abbrev"].iloc[0], "away_abbr": g["away_team_abbrev"].iloc[0],
-            "periods": int(g["period_number"].max()),
+            "periods": int(g["period_number"].max()), "league": league, "game_min": n_reg * plen / 60,
+            "foul_out": foul_out,
             "final_home": float(ends["hs"].iloc[-1]), "final_away": float(ends["as_"].iloc[-1])}
-    for k in (1, 2, 3):
+    for k in range(1, n_reg):
         if k + 1 not in ends.index:
             continue
         so = ev[ev["period"] <= k].pivot_table(index="player", columns="stat", values="val", aggfunc="sum")
@@ -137,7 +153,7 @@ def game_rows(g: pd.DataFrame) -> list[dict]:
             is_home = t == home
             opp = away if is_home else home
             row = {**meta, "player": int(p), "name": names.get(p, ""), "team_id": t, "is_home": is_home, "k": k,
-                   "elapsed": 12.0 * k, "min_sf": float(mk[p]), "on_court": bool(on_end[p]),
+                   "elapsed": plen / 60 * k, "frac": k / n_reg, "min_sf": float(mk[p]), "on_court": bool(on_end[p]),
                    "min_final": float(fmin[p]),
                    "tposs_sf": float(sum(tposs.get((t, q), 0) for q in range(1, k + 1))),
                    "oposs_sf": float(sum(tposs.get((opp, q), 0) for q in range(1, k + 1))),
@@ -161,8 +177,9 @@ def anchors(df: pd.DataFrame) -> pd.DataFrame:
     games["pre_n"] = g.cumcount()
     games["pre_min_l5"] = g["min_final"].transform(lambda s: s.shift().rolling(5, min_periods=1).mean())
     # team pace prior: possessions per 48 from earlier games
-    tg = df[df["k"] == 3].groupby(["game_id", "team_id", "date"], as_index=False)["tposs_sf"].first()
-    tg["pace36"] = tg["tposs_sf"]
+    last = df.groupby("game_id")["k"].transform("max")
+    tg = df[df["k"] == last].groupby(["game_id", "team_id", "date"], as_index=False)[["tposs_sf", "elapsed"]].first()
+    tg["pace36"] = tg["tposs_sf"] / tg["elapsed"] * 36  # possessions per 36 minutes
     tg = tg.sort_values(["team_id", "date"])
     tg["pre_pace36"] = tg.groupby("team_id")["pace36"].transform(lambda s: s.shift().ewm(halflife=10, min_periods=1).mean())
     keep = ["player", "game_id"] + [c for c in games.columns if c.startswith("pre_")]
@@ -172,19 +189,24 @@ def anchors(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main(out: str, *paths: str) -> None:
+    league = "nba"
+    if paths and paths[0] in LEAGUES:
+        league, paths = paths[0], paths[1:]
     rows = []
     for path in paths:
-        p = pd.read_parquet(path, columns=["game_id", "game_play_number", "type_text", "text", "athlete_id_1",
+        import pyarrow.parquet as pq
+        have = set(pq.read_schema(path).names)
+        p = pd.read_parquet(path, columns=[c for c in ["game_id", "game_play_number", "type_text", "text", "athlete_id_1",
                                            "athlete_id_2", "athlete_id_3", "athlete_name_1", "athlete_name_2",
                                            "team_id", "scoring_play", "score_value", "shooting_play",
-                                           "points_attempted", "period_number", "end_quarter_seconds_remaining",
+                                           "points_attempted", "period_number", "clock_minutes", "clock_seconds",
                                            "home_score", "away_score", "wallclock", "game_date", "season",
                                            "season_type", "home_team_id", "away_team_id", "home_team_name",
-                                           "away_team_name", "home_team_abbrev", "away_team_abbrev"])
+                                           "away_team_name", "home_team_abbrev", "away_team_abbrev"] if c in have])
         p = p[p["season_type"].isin([2, 3])]
         for gid, g in p.groupby("game_id", sort=False):
             try:
-                rows += game_rows(g)
+                rows += game_rows(g, league)
             except Exception as exc:  # a malformed game never stops the build
                 print("skip", gid, exc, file=sys.stderr)
         print(path, len(rows), file=sys.stderr)

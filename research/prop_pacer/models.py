@@ -18,15 +18,22 @@ import pandas as pd
 from scipy import optimize, stats as sst
 
 STATS = ["pts", "reb", "ast", "fg3"]
-GAME_MIN = 48.0
+LEAGUE_DEFAULTS = {"nba": (48.0, 6), "ncaab": (40.0, 5), "ncaaw": (40.0, 5)}  # regulation minutes, foul-out count
 
 
 def usable(df: pd.DataFrame) -> pd.DataFrame:
     """Rows with a pregame anchor (5+ earlier games) for players who have played tonight."""
     d = df[(df["pre_n"] >= 5) & (df["pre_min"] >= 8) & (df["min_sf"] > 0)].copy()
+    if "league" not in d:
+        d["league"] = "nba"
+    for col, i in (("game_min", 0), ("foul_out", 1)):
+        if col not in d:
+            d[col] = d["league"].map(lambda lg: LEAGUE_DEFAULTS[lg][i])
+    if "frac" not in d:
+        d["frac"] = d["elapsed"] / d["game_min"]
     for s in STATS:
         d[f"{s}_rem"] = d[f"{s}_final"] - d[f"{s}_sf"]
-    d["left"] = GAME_MIN - d["elapsed"]
+    d["left"] = d["game_min"] - d["elapsed"]
     d["pace_ratio"] = ((d["tposs_sf"] / d["elapsed"] * 36) / d["pre_pace36"]).clip(0.75, 1.3).fillna(1.0)
     return d
 
@@ -35,7 +42,7 @@ def usable(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def naive(d: pd.DataFrame, s: str) -> np.ndarray:
-    return (d[f"{s}_sf"] * GAME_MIN / d["elapsed"] - d[f"{s}_sf"]).to_numpy()
+    return (d[f"{s}_sf"] * d["game_min"] / d["elapsed"] - d[f"{s}_sf"]).to_numpy()
 
 
 def prop1(d: pd.DataFrame, s: str) -> np.ndarray:
@@ -45,8 +52,8 @@ def prop1(d: pd.DataFrame, s: str) -> np.ndarray:
     from marv import live_prop_engine as E
     market = {"pts": "player_points", "reb": "player_rebounds", "ast": "player_assists", "fg3": "player_threes"}[s]
     out = []
-    for r in d[[f"{s}_sf", f"pre_{s}", "elapsed", "tposs_sf", "margin", "pf_sf", "min_sf"]].itertuples(index=False):
-        st = E.PropState("nba", market, "", float(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]),
+    for r in d[[f"{s}_sf", f"pre_{s}", "elapsed", "tposs_sf", "margin", "pf_sf", "min_sf", "league"]].itertuples(index=False):
+        st = E.PropState(r[7], market, "", float(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]),
                          fouls=float(r[5]), minutes=float(r[6]))
         out.append(E.project(st)["rem_mean"])
     return np.asarray(out)
@@ -56,16 +63,16 @@ def prop1(d: pd.DataFrame, s: str) -> np.ndarray:
 
 
 def v2_minutes(d: pd.DataFrame, p: dict) -> np.ndarray:
-    pre_share = (d["pre_min"] / GAME_MIN).clip(0, 0.95)
+    pre_share = (d["pre_min"] / d["game_min"]).clip(0, 0.95)
     live_share = (d["min_sf"] / d["elapsed"]).clip(0, 1)
     w = d["elapsed"] / (d["elapsed"] + p["tau"])
     share = (1 - w) * pre_share + w * live_share
     # foul trouble: fouls above the "safe" count for this point of the game cost minutes
-    safe = d["k"].map({1: 1.5, 2: 2.5, 3: 3.5})
+    safe = (d["foul_out"] - 1) * d["frac"] + 0.5
     excess = (d["pf_sf"] - safe).clip(lower=0)
-    foul = np.exp(-p["foul"] * excess) * np.where(d["pf_sf"] >= 6, 0, 1)
+    foul = np.exp(-p["foul"] * excess) * np.where(d["pf_sf"] >= d["foul_out"], 0, 1)
     # blowout: starters sit when the margin is large late
-    late = d["k"] / 3.0
+    late = d["frac"] / 0.75
     blow = np.exp(-p["blow"] * ((d["margin"].abs() - 12).clip(lower=0) / 10) * late * pre_share)
     bench = np.where(d["on_court"], 1.0, p["bench"])
     return (share * d["left"] * foul * blow * bench).to_numpy()
@@ -106,7 +113,7 @@ def fit_v2(train: pd.DataFrame) -> dict:
 # ---------------------------------------------------------------- ml
 
 
-ML_FEATS = ["k", "elapsed", "min_sf", "on_court", "pf_sf", "margin", "pace_ratio", "pre_min", "pre_min_l5", "pre_n",
+ML_FEATS = ["frac", "elapsed", "min_sf", "on_court", "pf_sf", "margin", "pace_ratio", "pre_min", "pre_min_l5", "pre_n",
             "pre_pts", "pre_reb", "pre_ast", "pre_fg3", "pre_fga", "pre_fta", "pts_sf", "reb_sf", "ast_sf", "fg3_sf",
             "fga_sf", "fta_sf", "tov_sf"]
 
