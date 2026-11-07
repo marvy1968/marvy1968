@@ -70,15 +70,37 @@ def anchors_from_ladder(k: pd.DataFrame, phi_pre: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def cv_dev(dev: pd.DataFrame, feats: list[str], folds: int = 5) -> np.ndarray:
+    """Out-of-fold correction probabilities on dev, folds by game (no game is in its own training fold)."""
+    from sklearn.linear_model import LogisticRegression
+    games = np.array(sorted(dev["game_id"].unique()))
+    rng = np.random.default_rng(1)
+    rng.shuffle(games)
+    fold_of = {g: i % folds for i, g in enumerate(games)}
+    f = dev["game_id"].map(fold_of).to_numpy()
+    out = np.full(len(dev), np.nan)
+    for i in range(folds):
+        tr = (f != i) & dev["tight"].to_numpy()
+        lr = LogisticRegression(C=1.0).fit(dev.loc[tr, feats], dev.loc[tr, "y"])
+        out[f == i] = lr.predict_proba(dev.loc[f == i, feats])[:, 1]
+    return out
+
+
 def main(snap: str, dev_path: str, *rest: str) -> None:
     holdout = "--holdout" in rest
-    rest = [r for r in rest if r != "--holdout"]
+    cv_only = "--cv" in rest
+    rest = [r for r in rest if r not in ("--holdout", "--cv")]
     out_dir = Path(rest[-1])
     hold_path = rest[0] if len(rest) == 2 else None
     out_dir.mkdir(parents=True, exist_ok=True)
     df = M.usable(pd.read_parquet(snap))
     train = df[df["season"] <= 2025]
-    params = M.fit_v2(train.sample(min(len(train), 120000), random_state=0))
+    cache = out_dir / "v2_params_train_2024_2025.json"  # fit on train seasons only; cached because it takes minutes
+    if cache.exists():
+        params = json.loads(cache.read_text())
+    else:
+        params = M.fit_v2(train.sample(min(len(train), 120000), random_state=0))
+        cache.write_text(json.dumps(params))
     disp = {s: M.fit_dispersion(M.v2_mean(train, s, params), train[f"{s}_rem"].to_numpy()) for s in M.STATS}
     # pregame dispersion of the full-game stat around a pregame mean (for reading the ladder)
     t1 = train[train["k"] == 1]
@@ -120,7 +142,21 @@ def main(snap: str, dev_path: str, *rest: str) -> None:
         return j
 
     d = build(dev_path, 2026)
-    dev, val = d[d["date"] < VAL_START], d[d["date"] >= VAL_START]
+    dev, val = d[d["date"] < VAL_START].copy(), d[d["date"] >= VAL_START].copy()
+    if cv_only:  # development only: nothing from validation or holdout is computed or printed
+        dev["p_corr"] = cv_dev(dev, FEATS)
+        q = dev[dev["tight"] & dev["fresh"]]
+        print(f"DEV ONLY (out-of-fold by game): {len(q):,} tradeable fresh quotes, {q.game_id.nunique()} games")
+        print("Brier: " + ", ".join(f"{c} {np.mean((q[c] - q['y']) ** 2):.4f}" for c in ("mid", "p_minutes", "p_v3", "p_corr")))
+        for col in ("p_minutes", "p_v3", "p_corr"):
+            for side in ("both", "no"):
+                for thr in (0.02, 0.04, 0.06, 0.08):
+                    b = boot(q, col, thr, side)
+                    if b["n"]:
+                        print(f"  {col:9s} {side:4s} edge>={thr:.2f}: {b['n']:4d} bets ROI {b['roi']:+.1%} "
+                              f"[{b['lo']:+.1%} .. {b['hi']:+.1%}] P>0 {b['p_pos']:.0%}")
+        dev.to_parquet(out_dir / "dev_rows.parquet")
+        return
     print(f"dev {len(dev):,} contracts / {dev.game_id.nunique()} games, val {len(val):,} / {val.game_id.nunique()} games;"
           f" market anchor found for {d['mkt_mu'].notna().mean():.0%}")
     from sklearn.linear_model import LogisticRegression
