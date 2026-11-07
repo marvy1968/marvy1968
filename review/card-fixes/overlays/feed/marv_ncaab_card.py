@@ -197,8 +197,9 @@ def _record_stages(state_dir, sport):
 
 def _emitted_keys(state_dir, sport):
     keys = set()
-    for row in _audit().events(state_dir):
-        if row.get("kind") != "allocation" or row.get("exposure") is False or row.get("sport") != sport:
+    audit = _audit()
+    for row in audit.counting_exposure(audit.events(state_dir)):
+        if row.get("sport") != sport:
             continue
         keys.add((str(row.get("game_id")), row.get("market"), str(row.get("side", "")).lower()))
     return keys
@@ -415,8 +416,35 @@ def apply():
             try: _commit(state, str(sport).lower(), preds)
             except Exception: log.exception("emitted allocation failed")
 
+    def _reserve_rows(state, sport, preds, intent_id, run_id):
+        """Stake rows for the intent. No audit writes: deliver() stores them with the intent."""
+        sport = str(sport).lower()
+        if sport not in SPORTS or "--dry-run" in sys.argv:
+            return []
+        rows = []
+        audit = _audit()
+        for p in preds or []:
+            for pk in getattr(p, "picks", []) or []:
+                if pk.market not in ("ml", "spread", "total"):
+                    continue
+                preserved = bool(getattr(pk, "_allocation_preserved", False))
+                if not preserved and (not pk.active or getattr(pk, "_ncaab_track", None)):
+                    continue
+                stake = getattr(pk, "_ncaab_stake", None)
+                if stake is None:
+                    stake = stake_frac(pk)
+                et = p.game.start.astimezone(ET).date()
+                rows.append({
+                    "decision_id": audit.decision_id(ledger="qualified", sport=sport, game_id=p.game.id,
+                                                    market=pk.market, side=pk.side, et_date=et),
+                    "sport": sport, "game_id": p.game.id, "market": pk.market, "side": pk.side,
+                    "et_date": et.isoformat(), "stake_fraction": float(stake), "ledger": "qualified",
+                })
+        return rows
+
     import marv.decision_audit as _audit_mod
     _audit_mod.commit_emitted_card = _emit
+    _audit_mod.reserve_card_stakes = _reserve_rows
     format_card._ncaab = True
     BR.export = export; T.stake = stake; M.format_card = format_card
     Store.log_picks = log_picks; Store.new_picks = new_picks; Store.resolve = resolve

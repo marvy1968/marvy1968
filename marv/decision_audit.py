@@ -16,9 +16,15 @@ Delivery status:
                  message_id, or a non-empty receipt string). This module never
                  invents one.
 
-Unknown outcomes are not retried here. A second deliver() with the same intent
-does not call the sender again. apply_betcard_send also refuses a new attempt
-when an unknown or acknowledged intent already exists for that card date.
+Unknown outcomes are not retried here, including by a later process. The send
+intent and its stake reservation are one durable record, fsynced before
+send_fn runs. If the process dies after that record and before a delivery row,
+the reservation stays and the next run does not send. That gap is unresolved:
+the socket may or may not have been used. It is not an acknowledgement, and it
+is not retried. A person can reconcile it. A definite pre-request failure
+releases only that attempt's reservation.
+
+A dry run never calls deliver() and never writes an intent.
 """
 from __future__ import annotations
 
@@ -40,6 +46,7 @@ class SendStatus:
     code: str
     intent_id: str
     raised: bool = False
+    sent: bool = False
 
 
 def new_run_id() -> str:
@@ -74,25 +81,37 @@ def events(state) -> list:
     return list(_iter_lines(path.read_text()))
 
 
+def _mutate(state, fn):
+    """fn(rows) -> (result, new_event or None). The new event is fsynced under the lock."""
+    path = _path(state)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        handle.seek(0)
+        rows = list(_iter_lines(handle.read()))
+        result, new_event = fn(rows)
+        if new_event is not None:
+            if "idempotency_key" not in new_event:
+                raise ValueError("idempotency_key is required")
+            handle.seek(0, os.SEEK_END)
+            handle.write(json.dumps(new_event, sort_keys=True, default=str) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        return result
+
+
 def append_event(state, event: dict) -> dict:
     """Append one JSON object. The same idempotency_key returns the existing row."""
     if "idempotency_key" not in event:
         raise ValueError("idempotency_key is required")
-    path = _path(state)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(event, sort_keys=True, default=str) + "\n"
-    with path.open("a+") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
-        handle.seek(0)
-        current = handle.read()
-        for old in _iter_lines(current):
+
+    def fn(rows):
+        for old in rows:
             if old.get("idempotency_key") == event["idempotency_key"]:
-                return old
-        handle.seek(0, os.SEEK_END)
-        handle.write(payload)
-        handle.flush()
-        os.fsync(handle.fileno())
-    return event
+                return old, None
+        return event, event
+
+    return _mutate(state, fn)
 
 
 def record_stage(state, *, run_id: str, sport: str, stage: str, rows: list) -> dict:
@@ -107,14 +126,62 @@ def record_stage(state, *, run_id: str, sport: str, stage: str, rows: list) -> d
     })
 
 
+def _delivery_for(rows, intent_id: str):
+    found = [row for row in rows if row.get("kind") == "delivery" and row.get("intent_id") == intent_id]
+    return found[-1] if found else None
+
+
+def _intent_holds(intent: dict, rows: list) -> bool:
+    """True when this attempt must not be sent again and its reservation still counts.
+
+    Missing delivery is unresolved: the intent is already durable and the socket
+    may or may not have been used. Failed is the only status that lets the stake go.
+    """
+    if any(row.get("kind") == "reservation_release" and row.get("intent_id") == intent.get("intent_id") for row in rows):
+        return False
+    delivery = _delivery_for(rows, intent.get("intent_id"))
+    if delivery is None:
+        return True
+    return delivery.get("status") in ("unknown", "acknowledged", "unresolved")
+
+
+def counting_exposure(audit_rows: list) -> list:
+    """Exposure rows in ledger order. The first row for a decision_id wins. Nothing is rewritten."""
+    seen = set()
+    out = []
+
+    def take(row):
+        ident = row.get("decision_id")
+        if not ident or ident in seen:
+            return
+        seen.add(ident)
+        out.append(row)
+
+    for row in audit_rows:
+        if row.get("kind") != "send_intent" or not _intent_holds(row, audit_rows):
+            continue
+        for res in row.get("reservations") or []:
+            take({**res, "kind": "allocation", "exposure": True, "ledger": res.get("ledger") or "qualified",
+                  "reservation_intent_id": row.get("intent_id")})
+    for row in audit_rows:
+        if row.get("kind") != "allocation" or row.get("exposure") is False:
+            continue
+        iid = row.get("reservation_intent_id")
+        if iid:
+            intent = next((item for item in audit_rows if item.get("kind") == "send_intent" and item.get("intent_id") == iid), None)
+            if intent is not None and not _intent_holds(intent, audit_rows):
+                continue
+        take(row)
+    return out
+
+
 def record_allocation(state, *, run_id: str, sport: str, game_id, market: str, side: str, et_date,
                       stake_fraction: float, game: str = "", home: str = "", away: str = "",
-                      line=None, price=None, preserved: bool = False) -> dict:
-    """First write is the exposure. A repeat links back to it and does not add stake."""
+                      line=None, price=None, preserved: bool = False, reservation_intent_id: str | None = None) -> dict:
+    """First counted stake for this decision is kept. A repeat appends a reevaluation."""
     day = et_date.isoformat() if hasattr(et_date, "isoformat") else str(et_date)
     ident = decision_id(ledger="qualified", sport=sport, game_id=game_id, market=market, side=side, et_date=day)
-    existing = next((row for row in events(state)
-                     if row.get("kind") == "allocation" and row.get("decision_id") == ident), None)
+    existing = next((row for row in counting_exposure(events(state)) if row.get("decision_id") == ident), None)
     if existing:
         return append_event(state, {
             "kind": "reevaluation",
@@ -149,7 +216,8 @@ def record_allocation(state, *, run_id: str, sport: str, game_id, market: str, s
         "price": price,
         "preserved": preserved,
         "exposure": True,
-        "idempotency_key": f"alloc:{ident}",
+        "reservation_intent_id": reservation_intent_id,
+        "idempotency_key": f"alloc:{ident}" if not reservation_intent_id else f"alloc:{ident}:{reservation_intent_id}",
     })
 
 
@@ -171,10 +239,8 @@ def exposure_context(sport: str, pred_ids: set, legacy_rows: list, stake_of, aud
     preserved = {}
     prior = {}
     seen = set()
-    for row in audit_rows:
-        if row.get("kind") != "allocation" or row.get("exposure") is False or row.get("sport") != sport:
-            continue
-        if row.get("ledger") not in (None, "qualified"):
+    for row in counting_exposure(audit_rows):
+        if row.get("sport") != sport or row.get("ledger") not in (None, "qualified"):
             continue
         night = et_of(row.get("et_date"))
         side = str(row.get("side", "")).lower()
@@ -216,13 +282,9 @@ def exposure_context(sport: str, pred_ids: set, legacy_rows: list, stake_of, aud
 def qualified_exposure(sport: str, et_date, audit_rows: list) -> float:
     day = et_date.isoformat() if hasattr(et_date, "isoformat") else str(et_date)
     total = 0.0
-    seen = set()
-    for row in audit_rows:
-        if row.get("kind") != "allocation" or row.get("exposure") is False or row.get("sport") != sport:
+    for row in counting_exposure(audit_rows):
+        if row.get("sport") != sport or str(row.get("et_date")) != day:
             continue
-        if str(row.get("et_date")) != day or row.get("decision_id") in seen:
-            continue
-        seen.add(row.get("decision_id"))
         total += float(row.get("stake_fraction") or 0.0)
     return total
 
@@ -246,11 +308,6 @@ def _intents(rows, channel, day: str):
     for row in rows:
         if row.get("kind") == "send_intent" and row.get("channel") == channel and row.get("et_date") == day:
             yield row
-
-
-def _delivery_for(rows, intent_id: str):
-    found = [row for row in rows if row.get("kind") == "delivery" and row.get("intent_id") == intent_id]
-    return found[-1] if found else None
 
 
 def resend_blocked(state, when, channel: str) -> bool:
@@ -277,28 +334,103 @@ def resend_blocked(state, when, channel: str) -> bool:
     return False
 
 
-def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, payload: str, send_fn) -> SendStatus:
-    """Record intent, call send_fn once, record the outcome. Does not retry."""
+def qualified_decision_ids(sport, preds) -> list:
+    """Stable ids for active qualified plays. Track-only picks are not a send."""
+    from zoneinfo import ZoneInfo
+    et = ZoneInfo("America/New_York")
+    ids = []
+    for pred in preds or []:
+        game = getattr(pred, "game", None)
+        if game is None or getattr(game, "start", None) is None:
+            continue
+        day = game.start.astimezone(et).date()
+        for pk in getattr(pred, "picks", []) or []:
+            if not getattr(pk, "active", False):
+                continue
+            if getattr(pk, "_ncaab_track", None) and not getattr(pk, "_allocation_preserved", False):
+                continue
+            if getattr(pk, "market", None) not in ("ml", "spread", "total"):
+                continue
+            ids.append(decision_id(ledger="qualified", sport=sport, game_id=game.id,
+                                   market=pk.market, side=pk.side, et_date=day))
+    return ids
+
+
+def reserve_card_stakes(state, sport, preds, intent_id: str, run_id: str) -> list:
+    """Overlay hook. Return reservation dicts. Do not write the audit log from here.
+
+    Default is no stake. A dry run must not call deliver(), so this is not a dry-run path.
+    """
+    return []
+
+
+def _claim_sig(decision_ids: list, payload: str) -> str:
+    if decision_ids:
+        body = "|".join(sorted(str(item) for item in decision_ids))
+    else:
+        body = hashlib.sha256(payload.encode()).hexdigest()
+    return hashlib.sha256(body.encode()).hexdigest()[:20]
+
+
+def _hold_status(rows, intent: dict) -> SendStatus:
+    delivery = _delivery_for(rows, intent.get("intent_id"))
+    if delivery is None:
+        # Durable intent, no delivery row. The socket may or may not have been used.
+        return SendStatus("unresolved", intent.get("intent_id"), raised=False, sent=False)
+    return SendStatus(delivery.get("status") or "unresolved", intent.get("intent_id"),
+                      raised=bool(delivery.get("raised")), sent=False)
+
+
+def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, payload: str, send_fn,
+            reserve_fn=None, fault_at: str | None = None) -> SendStatus:
+    """Persist intent and reservations, then call send_fn at most once.
+
+    A later process that presents the same decision ids does not call send_fn when
+    the earlier attempt is unresolved, unknown, or acknowledged. fault_at is a test
+    seam: "before_send" or "after_send".
+    """
     day = when.date().isoformat() if isinstance(when, datetime) else (
         when.isoformat() if isinstance(when, date) else str(when))
     digest = hashlib.sha256(payload.encode()).hexdigest()
-    intent_id = "intent_" + hashlib.sha256(f"{channel}|{day}|{digest}|{run_id}".encode()).hexdigest()[:20]
-    existing = next((row for row in events(state) if row.get("idempotency_key") == f"intent:{intent_id}"), None)
-    if existing:
-        delivery = _delivery_for(events(state), intent_id)
-        code = delivery.get("status") if delivery else "unknown"
-        return SendStatus(code, intent_id, raised=bool(delivery and delivery.get("raised")))
-    append_event(state, {
-        "kind": "send_intent",
-        "intent_id": intent_id,
-        "run_id": run_id,
-        "channel": channel,
-        "et_date": day,
-        "decision_ids": list(decision_ids),
-        "payload_sha256": digest,
-        "exposure": False,
-        "idempotency_key": f"intent:{intent_id}",
-    })
+    wanted = set(str(item) for item in decision_ids)
+    sig = _claim_sig(list(wanted), payload)
+
+    def claim(rows):
+        for intent in rows:
+            if intent.get("kind") != "send_intent" or not _intent_holds(intent, rows):
+                continue
+            if intent.get("channel") != channel:
+                continue
+            covered = set(str(item) for item in intent.get("decision_ids") or [])
+            same_message = (not wanted and intent.get("claim_sig") == sig and intent.get("et_date") == day)
+            if (wanted and wanted & covered) or same_message:
+                return ("hold", intent), None
+        intent_id = "intent_" + hashlib.sha256(f"{channel}|{day}|{sig}|{run_id}".encode()).hexdigest()[:20]
+        reservations = []
+        if reserve_fn is not None:
+            reservations = list(reserve_fn(intent_id, run_id) or [])
+        n = sum(1 for row in rows if row.get("kind") == "send_intent" and row.get("claim_sig") == sig
+                and row.get("channel") == channel and row.get("et_date") == day)
+        event = {
+            "kind": "send_intent",
+            "intent_id": intent_id,
+            "run_id": run_id,
+            "channel": channel,
+            "et_date": day,
+            "decision_ids": list(wanted),
+            "claim_sig": sig,
+            "payload_sha256": digest,
+            "reservations": reservations,
+            "exposure": bool(reservations),
+            "idempotency_key": f"intent:{channel}:{day}:{sig}:{n}",
+        }
+        return ("created", event), event
+
+    action, intent = _mutate(state, claim)
+    if action == "hold":
+        return _hold_status(events(state), intent)
+    if fault_at == "before_send":
+        raise RuntimeError("fault before send")
     raised = False
     try:
         result = send_fn()
@@ -306,7 +438,8 @@ def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, paylo
         code = "failed" if str(exc) == _PREWIRE else "unknown"
         raised = True
         receipt = None
-        note = "pre-request token check" if code == "failed" else "exception during send; outcome unknown"
+        note = "pre-request token check; this attempt's reservation is released" if code == "failed" else (
+            "exception during send; outcome unknown; not retried")
     except Exception:
         result = None
         code = "unknown"
@@ -314,6 +447,8 @@ def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, paylo
         receipt = None
         note = "exception during send; outcome unknown; not retried"
     else:
+        if fault_at == "after_send":
+            raise RuntimeError("fault after send")
         receipt = receipt_from(result)
         if receipt:
             code = "acknowledged"
@@ -324,7 +459,7 @@ def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, paylo
                     "a blocked chat also returns without a message id. Not an acknowledgement. Not retried.")
     append_event(state, {
         "kind": "delivery",
-        "intent_id": intent_id,
+        "intent_id": intent["intent_id"],
         "run_id": run_id,
         "channel": channel,
         "et_date": day,
@@ -332,9 +467,20 @@ def deliver(state, *, run_id: str, channel: str, when, decision_ids: list, paylo
         "receipt": receipt,
         "raised": raised,
         "note": note,
-        "idempotency_key": f"delivery:{intent_id}",
+        "idempotency_key": f"delivery:{intent['intent_id']}",
     })
-    return SendStatus(code, intent_id, raised=raised)
+    if code == "failed":
+        append_event(state, {
+            "kind": "reservation_release",
+            "intent_id": intent["intent_id"],
+            "run_id": run_id,
+            "channel": channel,
+            "et_date": day,
+            "decision_ids": list(wanted),
+            "note": "pre-request failure; only this attempt is released",
+            "idempotency_key": f"release:{intent['intent_id']}",
+        })
+    return SendStatus(code, intent["intent_id"], raised=raised, sent=True)
 
 
 def note_log_failure(state, *, channel: str, intent_id: str, detail: str) -> dict:

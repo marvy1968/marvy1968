@@ -104,15 +104,18 @@ def run_sport(sport: Sport, s: Settings, store: Store, now: datetime, hours: int
         from . import decision_audit as audit
         def _send_card():
             return send_message(s.telegram_bot_token, s.telegram_chat_id, text)
+        def _reserve(intent_id, run_id):
+            return audit.reserve_card_stakes(Path(s.state_dir), sport.key, card_preds, intent_id, run_id)
         status = audit.deliver(
             Path(s.state_dir), run_id=audit.new_run_id(), channel=f"card:{sport.key}",
-            when=now.astimezone(ET), decision_ids=[], payload=text, send_fn=_send_card)
-        # Pre-request failure: nothing was emitted, so no stake is reserved and a later run may send.
-        # A return with no receipt, or an exception after the call began, is unknown: reserve the
-        # qualified stake and do not call send_message again from this run.
+            when=now.astimezone(ET), decision_ids=audit.qualified_decision_ids(sport.key, card_preds),
+            payload=text, send_fn=_send_card, reserve_fn=_reserve)
+        # sent=False: a previous process already has a durable intent. Do not send again.
         if status.raised:
             _alert_failure(s, f"{sport.name} card")
-        if status.code != "failed":
+        if not status.sent:
+            log.info("%s: not sending; %s reservation stands and is not a provider receipt", sport.key, status.code)
+        elif status.code != "failed":
             audit.commit_emitted_card(Path(s.state_dir), sport.key, card_preds)
             store.log_picks(sport.key, card_preds)
             if not status.raised and sport.key in s.pdf_sports and card_preds:

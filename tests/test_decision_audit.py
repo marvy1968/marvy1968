@@ -295,7 +295,7 @@ class DecisionAuditTests(unittest.TestCase):
         self.assertTrue(play.picks[0].active)
         self.card._record_stages(self.state, "ncaab")
         self.assertEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.0)
-        self.assertFalse(any(row.get("kind") == "allocation" for row in audit.events(self.state)))
+        self.assertFalse(any(row.get("kind") in ("allocation", "send_intent") for row in audit.events(self.state)))
         other = _play("other", 0.2)
         self.card.gate([play, other])
         self.assertTrue(play.picks[0].active)
@@ -326,6 +326,109 @@ class DecisionAuditTests(unittest.TestCase):
             payload="card", send_fn=missing).code, "failed")
         self.assertEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(bare)), 0.0)
         self.assertFalse(audit.resend_blocked(bare, NIGHT.date(), "card:ncaab"))
+
+    def _row(self, decision_id, stake=0.03):
+        def rows(intent_id, run_id):
+            return [{"decision_id": decision_id, "sport": "ncaab", "game_id": decision_id, "market": "spread",
+                     "side": "Example Away", "et_date": NIGHT.date().isoformat(), "stake_fraction": stake,
+                     "ledger": "qualified"}]
+        return rows
+
+    def test_crash_before_send_holds_across_restart(self):
+        calls = []
+
+        def send():
+            calls.append("send")
+            return None
+
+        with self.assertRaises(RuntimeError):
+            audit.deliver(self.state, run_id="run-1", channel="card:ncaab", when=NIGHT, decision_ids=["dec_a"],
+                          payload="card", send_fn=send, reserve_fn=self._row("dec_a"), fault_at="before_send")
+        self.assertEqual(calls, [])
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+        status = audit.deliver(self.state, run_id="run-2", channel="card:ncaab", when=NIGHT, decision_ids=["dec_a"],
+                               payload="card", send_fn=send, reserve_fn=self._row("dec_a"))
+        self.assertEqual(status.code, "unresolved")
+        self.assertFalse(status.sent)
+        self.assertEqual(calls, [])
+        self.assertFalse(any(row.get("kind") == "delivery" for row in audit.events(self.state)))
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+
+    def test_unknown_response_loss_is_not_acked_or_retried(self):
+        calls = []
+
+        def send():
+            calls.append("socket")
+            return None
+
+        with self.assertRaises(RuntimeError):
+            audit.deliver(self.state, run_id="run-1", channel="card:ncaab", when=NIGHT, decision_ids=["dec_b"],
+                          payload="card", send_fn=send, reserve_fn=self._row("dec_b"), fault_at="after_send")
+        self.assertEqual(calls, ["socket"])
+        status = audit.deliver(self.state, run_id="run-9", channel="card:ncaab", when=NIGHT, decision_ids=["dec_b"],
+                               payload="card", send_fn=lambda: (_ for _ in ()).throw(AssertionError("resent")),
+                               reserve_fn=self._row("dec_b"))
+        self.assertEqual(status.code, "unresolved")
+        self.assertFalse(status.sent)
+        self.assertFalse(any(row.get("receipt") for row in audit.events(self.state)))
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+
+    def test_death_after_unknown_send_before_commit_does_not_reallocate(self):
+        status = audit.deliver(self.state, run_id="run-1", channel="card:ncaab", when=NIGHT, decision_ids=["dec_c"],
+                               payload="card", send_fn=lambda: None, reserve_fn=self._row("dec_c"))
+        self.assertEqual(status.code, "unknown")
+        self.assertTrue(status.sent)
+        self.assertFalse(any(row.get("kind") == "allocation" for row in audit.events(self.state)))
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+        again = audit.deliver(self.state, run_id="run-later", channel="card:ncaab", when=NIGHT,
+                              decision_ids=["dec_c"], payload="card",
+                              send_fn=lambda: (_ for _ in ()).throw(AssertionError("resent")),
+                              reserve_fn=self._row("dec_c", 0.01))
+        self.assertFalse(again.sent)
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+        intent = next(row for row in audit.events(self.state) if row.get("kind") == "send_intent")
+        self.assertEqual(intent["reservations"][0]["stake_fraction"], 0.03)
+
+    def test_prewire_releases_only_that_attempt(self):
+        audit.deliver(self.state, run_id="keep", channel="card:ncaab", when=NIGHT, decision_ids=["keep"],
+                      payload="keep", send_fn=lambda: None, reserve_fn=self._row("keep", 0.03))
+
+        def missing():
+            raise ValueError(audit._PREWIRE)
+
+        failed = audit.deliver(self.state, run_id="drop-1", channel="card:ncaab", when=NIGHT, decision_ids=["drop"],
+                               payload="drop", send_fn=missing, reserve_fn=self._row("drop", 0.02))
+        self.assertEqual(failed.code, "failed")
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
+        calls = []
+        retried = audit.deliver(self.state, run_id="drop-2", channel="card:ncaab", when=NIGHT, decision_ids=["drop"],
+                                payload="drop", send_fn=lambda: calls.append(1) or None, reserve_fn=self._row("drop", 0.02))
+        self.assertEqual(calls, [1])
+        self.assertTrue(retried.sent)
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.05)
+        kept = next(row for row in audit.events(self.state) if row.get("decision_ids") == ["keep"])
+        self.assertEqual(kept["reservations"][0]["stake_fraction"], 0.03)
+
+    def test_concurrent_callers_reserve_once(self):
+        calls = []
+        barrier = threading.Barrier(8)
+
+        def send():
+            calls.append(1)
+            return None
+
+        def work():
+            barrier.wait()
+            audit.deliver(self.state, run_id=audit.new_run_id(), channel="card:ncaab", when=NIGHT,
+                          decision_ids=["same"], payload="same", send_fn=send, reserve_fn=self._row("same"))
+
+        threads = [threading.Thread(target=work) for _ in range(8)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual(calls, [1])
+        self.assertAlmostEqual(audit.qualified_exposure("ncaab", NIGHT.date(), audit.events(self.state)), 0.03)
 
     def test_internal_high_label_is_unchanged(self):
         saved = (betcard.candidates, betcard.select, betcard.text, betcard.HARD)

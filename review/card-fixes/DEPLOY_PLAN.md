@@ -16,14 +16,26 @@ Leaving the timer running does not remove that job. If an `update` job is alread
 
 Merging this PR into `claude/analysis-ak180w` is the durable source of truth for the files that live in the git tree (`marv/lane_pause.py`, `marv/decision_audit.py`, `marv/betcard.py`, `marv/dailypicks.py`, `marv/parlay.py`, `marv/main.py`, `deploy/marv-health.sh`). It does not, by itself, update a running interpreter or the feed directory. There is still no approved way to check that merge out on the host without `checkout -f` or a manual overlay copy. Until that exists, production deployment stays blocked.
 
-## What would have to be true before a later approval
+## Further approval required
 
-1. This PR is reviewed and merged into `claude/analysis-ak180w` (or whatever `install.sh`'s `BRANCH` actually is on that host). A merge here is not authorized by this review.
-2. The dirty tracked files (`alpacabot/data.py`, `alpacabot/paper.py`) are preserved by something other than `checkout -f`, `reset`, `clean`, or `stash`. This plan does not invent that mechanism.
-3. Feed wrappers are updated only as part of that same approved change, not as a side copy onto `/opt/marv-feed` while the bot tree can still be reset underneath them.
-4. No `install.sh`, no root deploy key, no `git fetch` on the host as part of making the tree match.
+This review's approval is the code review and the scoped overlay fix only. It does not include merge, installers, updater changes, or restarts. No safe host deployment is available from this branch alone.
 
-Until those are true, do not treat any copy list below as a production procedure.
+A later rollout needs separate human approval for each of these:
+
+1. Merge this PR into `claude/analysis-ak180w` (the branch `install.sh` defaults to). This review does not merge.
+2. A host update that keeps dirty tracked files. `install.sh` / `checkout -f` does not. Do not run it under the current approval.
+3. How the feed entrypoints pick up the overlay that already lives in git at `review/card-fixes/overlays/feed/`. A hand copy onto `/opt/marv-feed` is an untracked patch and is not approved.
+4. Restart or replacement of any long-running process (`marv-edges`, `marv-bridge`, `marv-live`), and the next `marv-health.timer` tick if `marv-health.sh` on disk has changed.
+
+## Proposed options (not a procedure to run)
+
+These are the smallest source-controlled choices. Neither is authorized now, and neither is safe to improvise on the host.
+
+**Dirty files.** Before any future checkout of the merged branch, copy only `alpacabot/data.py` and `alpacabot/paper.py` to a directory outside the repo, then restore those two paths afterward if that checkout would replace them. Do not `reset`, `clean`, or `stash` the rest of the tree as a substitute. This still requires a separately approved checkout; it is not permission to run `install.sh`.
+
+**Overlay durability.** The feed modules are already in this branch under `review/card-fixes/overlays/feed/`. After a merge, a future approved unit change can point the existing card drop-ins at those paths inside `/opt/marv-bot` (the deployed checkout) instead of a second untracked tree. The alternative is a later commit that moves the same modules under `marv/` so `python -m marv` is enough and the feed drop-in can be retired. Both change how a process is started, so both need their own approval and a restart decision. This PR does not add that unit change.
+
+Until those approvals exist, do not treat the staged-test copy list as a production procedure.
 
 ## Entrypoints and freshness
 
