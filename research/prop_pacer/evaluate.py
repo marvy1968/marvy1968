@@ -12,6 +12,7 @@ usage: python research/prop_pacer/evaluate.py SNAP.parquet [KALSHI.jsonl] OUT_DI
 """
 
 import json
+import os
 import sys
 import unicodedata
 from pathlib import Path
@@ -135,6 +136,8 @@ def market_test(test: pd.DataFrame, mte: dict, disp: dict, kalshi: str) -> dict:
                 p[m] = M.p_at_least(mte[(name, s)][rows], j.loc[m, "need"].to_numpy(), disp[(name, s)])
         j[f"p_{name}"] = p
     j = j.sort_values("date")
+    if os.environ.get("PACER_SAVE_MARKET"):
+        j.to_parquet(os.environ["PACER_SAVE_MARKET"])  # per-contract table for bootstrap / slicing
     cut = int(len(j) * 0.4)
     cal, ev = j.iloc[:cut].copy(), j.iloc[cut:].copy()
     res = {"matched": int(len(j)), "settle_agree": agree, "games": int(j["game_id"].nunique()),
