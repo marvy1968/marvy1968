@@ -66,5 +66,8 @@ ncaaw:
   verify_propline_key_first: true  # do not assume basketball_ncaaw exists
   markets: [player_points, player_rebounds, player_assists, player_threes, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists]
 
-mode: log_only  # log_only | alert — never auto-bet
+mode: log_only  # log_only | alert — never auto-bet. Replay CLI accepts only log_only.
 telegram_enabled: false
+# Sends require all three: mode alert, telegram_enabled true, and LIVE_PROPS_SEND
+# explicitly on (1/on/true/yes). Unset, off, blank, and anything else do not send.
+# Snapshot replay additionally refuses unless LIVE_PROPS_SEND is explicitly off.

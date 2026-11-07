@@ -1,15 +1,22 @@
 """Telegram alerts via existing MarvsT_bot. Reads token/chat from env only.
 Never prints token. One message per pick, rate-limited by caller.
+
+LIVE_PROPS_SEND must be explicitly on or this function returns False and does
+not open a socket. Unset, off, blank, and unrecognized values are all off.
 """
 from __future__ import annotations
 import os
-import requests
+
+from sendgate import live_props_send_enabled
 
 def send_telegram(text: str) -> bool:
+    if not live_props_send_enabled():
+        return False
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
         raise RuntimeError("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set in env")
+    import requests
     r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
                       json={"chat_id": chat_id, "text": text}, timeout=10)
     r.raise_for_status()

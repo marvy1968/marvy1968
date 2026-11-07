@@ -160,11 +160,39 @@ SPORTS = {
 }
 
 
+def over_continuity_point(line: float) -> float:
+    """Boundary for P(integer-valued stat > line) under a normal approximation.
+
+    A half-point line (245.5) is already the boundary between 245 and 246.
+    Adding another 0.5 shifts Over toward Under. An integer line needs the
+    +0.5 correction so Over N is P(X >= N+1) and the push at N is not a win.
+    """
+    doubled = line * 2.0
+    if abs(doubled - round(doubled)) > 1e-6:
+        return line
+    if abs(line - round(line)) < 1e-6:
+        return line + 0.5
+    return line
+
+
 def prob_over_yards(projected_final: float, sd: float, line: float) -> float:
-    # continuity correction: line is x.5, need > line
     if sd <= 0:
         return 1.0 if projected_final > line else 0.0
-    return 1.0 - norm_cdf((line + 0.5 - projected_final) / sd)
+    boundary = over_continuity_point(line)
+    return 1.0 - norm_cdf((boundary - projected_final) / sd)
+
+
+def prob_over_count(lam: float, line: float) -> float:
+    """P(X > line) for a Poisson count.
+
+    Over 0.5 is P(X >= 1). Over 1.5 is P(X >= 2). floor(line) is the last
+    integer that still loses. Do not add another 0.5 on top of a half-point.
+    """
+    lam = max(0.0, lam)
+    last = math.floor(line + 1e-9)
+    if last < 0:
+        return 1.0
+    return 1.0 - sum(poisson_pmf(i, lam) for i in range(last + 1))
 
 
 def prob_over_td(projected_tds: float, line: float = 0.5) -> float:

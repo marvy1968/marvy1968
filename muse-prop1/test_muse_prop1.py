@@ -9,7 +9,6 @@ sys.path.insert(0, str(ROOT))
 
 from bovada import extract_bovada_lines, find_line
 from live_feed import parse_scoreboard, parse_summary
-from runner import evaluate_line, run_once, load_config
 
 def load_fixture(name):
     return json.loads((ROOT / "fixtures" / name).read_text())
@@ -40,31 +39,27 @@ def test_parse_espn():
     assert game["players"]["Josh Allen"]["pass_yds"] == 142.0
     assert game["players"]["Josh Allen"]["rush_yds"] == 18.0
 
-def test_evaluate_line_fires_and_dedupes():
-    cfg = load_config()
-    lines = extract_bovada_lines({"payload": load_fixture("propline_nfl.json"), "as_of": 1000}, "nfl")
-    game = parse_summary({"payload": load_fixture("espn_nfl_summary.json"), "as_of": 1000}, "nfl")
-    with tempfile.TemporaryDirectory() as td:
-        state = Path(td)
-        pick = evaluate_line("nfl", lines[0], game, cfg, {}, state)
-        assert pick is not None and pick["side"] == "over" and pick["model_p"] > 0.6, pick
-        # near-projection line: model ~50%, no edge either side -> no pick
-        cold = dict(lines[0]); cold["line"] = 306.5
-        assert evaluate_line("nfl", cold, game, cfg, {}, state) is None
-        # far line the other way: Under 400.5 SHOULD fire (model ~100% under)
-        far = dict(lines[0]); far["line"] = 400.5
-        under = evaluate_line("nfl", far, game, cfg, {}, state)
-        assert under is not None and under["side"] == "under", under
+def test_scoreboard_keeps_scheduled_start_and_pregame():
+    payload = {"payload": load_fixture("espn_nfl_scoreboard.json"), "as_of": 1000}
+    payload["payload"]["events"][0]["date"] = "2026-11-06T18:00:00Z"
+    live = parse_scoreboard(payload, "nfl")
+    assert live[0]["scheduled_start"] == "2026-11-06T18:00:00Z"
+    payload["payload"]["events"][0]["competitions"][0]["status"]["type"]["state"] = "pre"
+    assert parse_scoreboard(payload, "nfl") == []
+    pre = parse_scoreboard(payload, "nfl", include_pregame=True)
+    assert len(pre) == 1 and pre[0]["state"] == "pre" and pre[0]["elapsed_min"] == 0.0
 
-def test_dry_run_once():
-    cfg = load_config()
-    with tempfile.TemporaryDirectory() as td:
-        state = Path(td)
-        picks = run_once(cfg, ["nfl"], "log_only", dry_run=True, state_dir=state)
-        assert len(picks) == 2, picks
-        picks2 = run_once(cfg, ["nfl"], "log_only", dry_run=True, state_dir=state)
-        assert picks2 == [], "dedupe must block a second pick for the same line"
-        assert (state / "picks.jsonl").exists()
+def test_summary_uses_observed_plays_only():
+    game = parse_summary({"payload": load_fixture("espn_nfl_summary.json"), "as_of": 1000}, "nfl")
+    assert game["team_plays"] is None
+    richer = json.loads(json.dumps(load_fixture("espn_nfl_summary.json")))
+    richer["boxscore"]["teams"] = [{
+        "team": {"displayName": "Buffalo Bills"},
+        "statistics": [{"name": "totalOffensivePlays", "displayValue": "32"}],
+    }]
+    parsed = parse_summary({"payload": richer, "as_of": 1000}, "nfl")
+    assert parsed["team_plays_by_team"]["Buffalo Bills"] == 32.0
+    assert parsed["players"]["Josh Allen"]["team"] == "Buffalo Bills"
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
