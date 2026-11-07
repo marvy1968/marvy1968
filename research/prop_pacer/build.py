@@ -97,6 +97,11 @@ def game_rows(g: pd.DataFrame, league: str = "nba") -> list[dict]:
     for c in ("athlete_id_3", "athlete_name_2"):
         if c not in g:
             g[c] = np.nan
+    if "points_attempted" not in g:  # older college files: shot value from the play text
+        t = g["text"].fillna("")
+        g["points_attempted"] = np.where(~g["shooting_play"].fillna(False).astype(bool), 0,
+                                         np.where(t.str.contains("Free Throw"), 1,
+                                                  np.where(t.str.contains("Three Point"), 3, 2)))
     if g["period_number"].max() < n_reg:
         return []
     home, away = g["home_team_id"].iloc[0], g["away_team_id"].iloc[0]
