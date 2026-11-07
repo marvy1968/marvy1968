@@ -1,8 +1,10 @@
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest import mock
 
 from marv.config import Settings
 from marv.live_monitor import LiveMonitor, minutes_left, period_name
@@ -75,14 +77,16 @@ class LiveMonitorTest(unittest.TestCase):
 
 class LivePropsRecordingTest(unittest.TestCase):
     def test_each_period_and_the_final_are_recorded_once(self):
-        from unittest import mock
         with tempfile.TemporaryDirectory() as d:
             mon = LiveMonitor(Settings(state_dir=d, odds_api_key="x"), ["nfl"])
             mon.client = FakeClient()
             mon._live_odds = lambda sport, games: False
             calls = []
+            # The prop engine is on whenever an odds key is set. Keep this test off the network.
             with mock.patch("marv.live_props.record_period", lambda s, g, ended, c: calls.append(("p", ended))), \
-                    mock.patch("marv.live_props.record_final", lambda s, g, c: calls.append(("final",))):
+                    mock.patch("marv.live_props.record_final", lambda s, g, c: calls.append(("final",))), \
+                    mock.patch("marv.live_prop_engine.Runner._event", return_value=None), \
+                    mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")):
                 mon.client.events = [event("in", "STATUS_END_PERIOD", 1, "0:00", 7, 0)]
                 mon.tick(lambda m: None)
                 mon.tick(lambda m: None)  # same quarter again: no second record
@@ -92,6 +96,131 @@ class LivePropsRecordingTest(unittest.TestCase):
                 mon.tick(lambda m: None)
                 mon.tick(lambda m: None)
             self.assertEqual(calls, [("p", 1), ("p", 2), ("final",)])
+
+
+class PropSendGateMonitorTest(unittest.TestCase):
+    """The live-monitor entrypoint cannot deliver prop text while LIVE_PROPS_SEND is off.
+
+    Moneyline / total alerts are a different callback and still send. On-mode prop delivery
+    is asserted only against an in-memory sender; Telegram HTTP is patched to fail.
+    """
+
+    def _nfl(self, d):
+        from tests.test_live_prop_engine import nfl_summary
+        mon = LiveMonitor(Settings(state_dir=d, odds_api_key="x"), ["nfl"])
+        mon.client = FakeClient()
+        mon.client.summary = lambda *a, **k: nfl_summary()
+        mon._live_odds = lambda sport, games: False
+        mon.client.events = [event("in", "STATUS_END_PERIOD", 1, "0:00", 7, 0)]
+        return mon
+
+    def _quiet_log(self):
+        return [
+            mock.patch("marv.live_props.record_period", lambda *a, **k: None),
+            mock.patch("marv.live_props.record_final", lambda *a, **k: None),
+            mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")),
+        ]
+
+    def test_buggy_engine_cannot_reach_sender_and_dedup_does_not_retry(self):
+        with tempfile.TemporaryDirectory() as d:
+            mon, sent, calls = self._nfl(d), [], []
+
+            def leak(self, sport, game, elapsed, label, mem, send, path):
+                calls.append(label)
+                send("PROP LEAK")
+                return 1
+
+            patches = self._quiet_log() + [mock.patch("marv.live_prop_engine.Runner.on_period", leak)]
+            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}):
+                for p in patches:
+                    p.start()
+                try:
+                    mon.tick(sent.append)
+                    mon.tick(sent.append)  # same break: deduped, engine not called again
+                finally:
+                    for p in patches:
+                        p.stop()
+            self.assertEqual(calls, ["end of Q1"])
+            self.assertFalse(any("PROP LEAK" in m for m in sent))
+            self.assertFalse((Path(d) / "live_props" / "recs.json").exists())
+            self.assertFalse((Path(d) / "picks.json").exists())
+
+    def test_real_engine_off_tick_writes_shadow_not_recs_and_ml_still_sends_when_send_off(self):
+        from tests.test_live_prop_engine import _live_odds
+        with tempfile.TemporaryDirectory() as d:
+            # ncaab halftime still announces a live edge; prop send is off and must not add prop text.
+            (Path(d) / "predictions.json").write_text(json.dumps({"ncaab:1": {
+                "sport": "ncaab", "game_id": "1", "start": datetime.now(timezone.utc).isoformat(),
+                "home": "Duke Blue Devils", "away": "North Carolina Tar Heels", "home_exp": 78, "away_exp": 72,
+                "model_total": 150.0, "model_margin": 6.0, "home_win": 0.68, "qualified": [], "notes": []}}))
+            mon = LiveMonitor(Settings(state_dir=d, odds_api_key="x"), ["ncaab"])
+            mon.client = FakeClient()
+            mon._live_odds = lambda sport, games: True
+            mon.client.events = [event("in", "STATUS_HALFTIME", 1, "0:00", 41, 30)]
+            sent = []
+
+            def leak(self, sport, game, elapsed, label, mem, send, path):
+                send("PROP LEAK")
+                return 1
+
+            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}), \
+                    mock.patch("marv.live_prop_engine.Runner.on_period", leak), \
+                    mock.patch("marv.telegram.requests.post", side_effect=AssertionError("telegram HTTP reachable")):
+                self.assertGreaterEqual(mon.tick(sent.append), 1)
+            self.assertTrue(any("EDGE" in m for m in sent))
+            self.assertFalse(any("PROP LEAK" in m for m in sent))
+
+            # A real (mocked-network) NFL break appends shadow.jsonl and does not touch the ledger.
+            mon = self._nfl(d)
+            (Path(d) / "props_priced_nfl.json").write_text(
+                '[{"player": "CeeDee Lamb", "market": "player_reception_yds", "proj": 70.0}]')
+            (Path(d) / "picks.json").write_bytes(b"NOT-JSON-PICKS\n")
+            (Path(d) / "live_props").mkdir(exist_ok=True)
+            (Path(d) / "live_props" / "recs.json").write_bytes(b"NOT-JSON-SENTINEL\n")
+            sent = []
+            patches = self._quiet_log() + [
+                mock.patch("marv.live_prop_engine.Runner._event", return_value={"id": "ev1"}),
+                mock.patch("marv.live_prop_engine.Runner._odds", return_value=_live_odds(line=55.5)),
+            ]
+            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}):
+                for p in patches:
+                    p.start()
+                try:
+                    mon.tick(sent.append)
+                    mon.tick(sent.append)
+                finally:
+                    for p in patches:
+                        p.stop()
+            self.assertEqual(sent, [])
+            shadow = (Path(d) / "live_props" / "shadow.jsonl").read_text().strip()
+            self.assertIn("CeeDee Lamb", shadow)
+            self.assertEqual((Path(d) / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
+            self.assertEqual((Path(d) / "picks.json").read_bytes(), b"NOT-JSON-PICKS\n")
+            state = json.loads((Path(d) / "live_state.json").read_text())
+            blob = json.dumps(state)
+            self.assertNotIn("prop_recs", blob)
+
+    def test_engine_error_does_not_send_or_mutate_ledger(self):
+        with tempfile.TemporaryDirectory() as d:
+            mon = self._nfl(d)
+            (Path(d) / "live_props").mkdir(parents=True)
+            (Path(d) / "live_props" / "recs.json").write_bytes(b"NOT-JSON-SENTINEL\n")
+            sent = []
+            patches = self._quiet_log() + [
+                mock.patch("marv.live_prop_engine.Runner._event", side_effect=RuntimeError("odds down")),
+            ]
+            with mock.patch.dict(os.environ, {"LIVE_PROPS_SEND": "off", "LIVE_PROPS_ENGINE": "on"}):
+                for p in patches:
+                    p.start()
+                try:
+                    mon.tick(sent.append)
+                    mon.tick(sent.append)  # dedup marker was set before the error; still no send
+                finally:
+                    for p in patches:
+                        p.stop()
+            self.assertEqual(sent, [])
+            self.assertEqual((Path(d) / "live_props" / "recs.json").read_bytes(), b"NOT-JSON-SENTINEL\n")
+            self.assertFalse((Path(d) / "live_props" / "shadow.jsonl").exists())
 
 
 if __name__ == "__main__":

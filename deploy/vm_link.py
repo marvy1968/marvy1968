@@ -8,7 +8,10 @@ secret value from /opt/marv-bot/.env is blanked out of the output before it's pu
 
 Accepted job lines:
   tests                         run the unit tests
-  update                        pull the bot branch, reinstall deps, restart services (deploy/install.sh)
+  update                        pull the bot branch, reinstall deps, restart services (deploy/install.sh).
+                                Refused while MARV_DEPLOY_PIN is set or MARV_DEPLOY_PIN_FILE exists
+                                (default /etc/marv-deploy-pin): install.sh would force-checkout the
+                                default branch and restart shared services. Other jobs are unchanged.
   status                        service status, timers, bot version, disk
   logs <unit> [lines]           journalctl for a marv-* unit (default 200 lines)
   show <path>                   print a file under /opt/marv-bot/state (not .env), up to 200 KB
@@ -73,6 +76,21 @@ def redact(text: str) -> str:
     return text
 
 
+def deploy_pin_active() -> str | None:
+    """Why `update` must not run install.sh, or None when no pin is set.
+
+    Any non-empty MARV_DEPLOY_PIN, or any existing pin file, blocks the update. The file body is
+    not read into the refusal text (vm-link results are pushed to GitHub). Other jobs ignore this.
+    """
+    env_pin = os.environ.get("MARV_DEPLOY_PIN", "").strip()
+    if env_pin:
+        return "MARV_DEPLOY_PIN is set"
+    pin_file = Path(os.environ.get("MARV_DEPLOY_PIN_FILE", "/etc/marv-deploy-pin"))
+    if pin_file.exists():
+        return f"pin file {pin_file} exists"
+    return None
+
+
 def parse(line: str) -> tuple[list[str] | None, str]:
     """Job line -> (argv, error). argv runs without a shell."""
     words = line.split()
@@ -87,6 +105,10 @@ def parse(line: str) -> tuple[list[str] | None, str]:
     if cmd == "tests":
         return as_bot + [py, "-m", "unittest", "discover", "-s", "tests"], ""
     if cmd == "update":  # the installer fetches over SSH with the deploy key, so it works with a private repo
+        why = deploy_pin_active()
+        if why:
+            return None, (f"update refused ({why}): install.sh force-checkouts the default branch "
+                          "and restarts shared services")
         return ["bash", f"{BOT}/deploy/install.sh"], ""
     if cmd == "telegram":  # send a card committed to the vm-link branch (cards/<name>.txt) to the owner's chat
         if not args or len(args) > 2 or not re.fullmatch(r"cards/[A-Za-z0-9_.-]+\.txt", args[0]) \

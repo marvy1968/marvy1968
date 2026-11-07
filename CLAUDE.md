@@ -134,9 +134,12 @@ High accuracy = heavy favorites; ROI after vig is ~break-even where measured. Ne
     pace (shrunk to league) x script (trailing passes more / runs less, rout rests starters, blowout + foul trouble cut
     minutes) -> compound Poisson-gamma Monte Carlo -> P(over) vs Bovada no-vig. Sends only when edge >= 7%, EV >= 4%,
     projection clears the line by a minimum gap, price -200..+180, line updated < 180 s ago, player still getting usage,
-    max 3 per game per break, never the same prop twice. Every priced prop -> `state/live_props/shadow.jsonl`, recs ->
-    `recs.json`, graded at the final (W-L sent). `python -m marv live-props scan --sport nfl --dry-run` / `report`.
-    Env: LIVE_PROPS_ENGINE, LIVE_PROPS_SEND (on), LIVE_PROP_MIN_EDGE, LIVE_PROP_MIN_EV, LIVE_PROP_MAX_AGE,
-    LIVE_PROP_MAX_PER_GAME, LIVE_PROPS_MAX_CREDITS (600/day). No backtest exists: keep "PAPER", no hit-rate %, until 100+
+    max 3 per game per break, never the same prop twice. Every priced prop -> `state/live_props/shadow.jsonl`.
+    `recs.json` and Telegram (including `python -m marv live-props` without `--dry-run`, the break hook, and the
+    final W-L) run only when `LIVE_PROPS_SEND` is explicitly on. Unset defaults to on. `off` / `0` / `false` / `no`,
+    blank, and any other value fail closed: no prop Telegram, no recs.json create/update/grade, engine still prices.
+    `live-props scan --dry-run` stays print-only (no shadow file either). `report` never sends.
+    Env: LIVE_PROPS_ENGINE (on, independent of the send flag), LIVE_PROPS_SEND, LIVE_PROP_MIN_EDGE, LIVE_PROP_MIN_EV,
+    LIVE_PROP_MAX_AGE, LIVE_PROP_MAX_PER_GAME, LIVE_PROPS_MAX_CREDITS (600/day). No backtest exists: keep "PAPER", no hit-rate %, until 100+
     graded recs beat 52.4% with positive ROI. Check on the first live game that Bovada live props come through the Odds
     API and that ESPN team stats include `totalOffensivePlays` / basketball FGA-FTA-OREB-TO.

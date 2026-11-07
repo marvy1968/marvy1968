@@ -436,6 +436,8 @@ class LiveMonitor:
                         log.warning("live props record %s: %s", g.id, exc)
             if engine:  # in-game props: price Bovada's live prop lines from pace + usage at every break
                 from . import live_prop_engine as LPE
+                # Prop Telegram only. The `send` below this block is still the ML / total alerter.
+                prop_send = LPE.bind_prop_send(send)
                 for g, ended, final in due:
                     mem = state[f"{sport}:{g.id}"]
                     tag = "final" if final else ended
@@ -444,10 +446,10 @@ class LiveMonitor:
                     mem["prop_scanned"].append(tag)
                     try:
                         if final:
-                            sent += engine.on_final(sport, g, send, LPE.summary_path(sport))
+                            sent += engine.on_final(sport, g, prop_send, LPE.summary_path(sport))
                         else:
                             sent += engine.on_period(sport, g, LPE.elapsed_minutes(sport, ended),
-                                                     f"end of {period_name(sport, ended)}", mem, send,
+                                                     f"end of {period_name(sport, ended)}", mem, prop_send,
                                                      LPE.summary_path(sport))
                     except Exception as exc:
                         log.warning("live prop engine %s %s: %s", sport, g.id, exc)

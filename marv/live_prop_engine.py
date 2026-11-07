@@ -22,13 +22,22 @@ At every quarter / half break (the live monitor calls `on_period`), and on deman
         enough game is left, the player is still being used (no usage in a full period = possibly hurt),
         and it was not already sent for this game.
      At most LIVE_PROP_MAX_PER_GAME picks per break, one per player.
-  6. Every priced prop goes to state/live_props/shadow.jsonl (the dataset to tune thresholds), every recommendation
-     to state/live_props/recs.json; at the final whistle they are graded against the box score and the game's
-     W-L is sent.
+  6. Every priced prop goes to state/live_props/shadow.jsonl (the dataset to tune thresholds).
+     state/live_props/recs.json and Telegram are written only when LIVE_PROPS_SEND is explicitly on.
+     At the final whistle, open recs are graded and the W-L is sent only in that same on mode.
 
 Honesty: there is no live-prop history to backtest yet (pregame props lost money vs real lines), so alerts are
 labelled PAPER, show no hit-rate %, and stay paper until 100+ graded recs beat 52.4% and positive ROI.
-`LIVE_PROPS_SEND=off` keeps everything silent (logged and graded only).
+
+LIVE_PROPS_SEND
+  Unset defaults to on (historical). After strip and lower-case, only 1 / on / true / yes enable
+  Telegram and the recommendation ledger. off / 0 / false / no, blank, and any other value fail
+  closed: the engine still prices (LIVE_PROPS_ENGINE stays independent and defaults to on) and
+  still appends shadow.jsonl, but it does not send, does not write or grade recs.json, and does
+  not bump recommendation state. Odds-API budget (credits.json) and pregame anchors
+  (pregame_lines.json) still update, because those are inputs to the shadow computation, not bets.
+  `live-props scan --dry-run` stays print-only (no shadow file, no ledger, no Telegram) whether
+  the flag is on or off.
 """
 
 from __future__ import annotations
@@ -47,6 +56,49 @@ from .markets import american_to_prob, no_vig
 
 log = logging.getLogger(__name__)
 NAME = "Claude Prop 1"
+
+# Explicit on tokens only. Anything else, including typos and blank, is off (fail closed).
+_SEND_ON = frozenset({"1", "on", "true", "yes"})
+_SEND_OFF = frozenset({"0", "off", "false", "no"})
+
+
+def live_props_send_enabled() -> bool:
+    """True only when prop Telegram sends and recommendation-ledger writes are allowed.
+
+    Unset LIVE_PROPS_SEND defaults to on. Explicit off tokens, blank, and unrecognized
+    values return False so a typo cannot send or record a bet.
+    """
+    raw = os.environ.get("LIVE_PROPS_SEND")
+    if raw is None:
+        return True
+    val = raw.strip().lower()
+    if val in _SEND_ON:
+        return True
+    if val not in _SEND_OFF:
+        log.warning("LIVE_PROPS_SEND=%r is not an explicit on/off value; prop sends and the recommendation ledger stay off", raw)
+    return False
+
+
+def bind_prop_send(send):
+    """Wrap a Telegram callback so prop text cannot leave while LIVE_PROPS_SEND is off.
+
+    The live monitor passes this into the prop engine only. Moneyline and total alerts
+    keep their own callback and are not affected.
+    """
+    def _send(text: str) -> None:
+        if not live_props_send_enabled():
+            log.info("live props: Telegram suppressed (LIVE_PROPS_SEND off)")
+            return
+        send(text)
+    return _send
+
+
+def deliver_prop_message(send, text: str) -> bool:
+    """Call `send` with one prop message. Returns False, without calling it, when the flag is off."""
+    if send is None or not live_props_send_enabled():
+        return False
+    send(text)
+    return True
 
 ODDS_KEYS = {"nfl": "americanfootball_nfl", "cfb": "americanfootball_ncaaf", "nba": "basketball_nba",
              "wnba": "basketball_wnba", "ncaab": "basketball_ncaab", "ncaaw": "basketball_wncaab"}
@@ -498,11 +550,21 @@ def load_recs(state_dir: Path) -> list[dict]:
 
 
 def save_recs(state_dir: Path, book: list[dict]) -> None:
+    """Persist the recommendation ledger. Refuses while LIVE_PROPS_SEND is off (fail closed)."""
+    if not live_props_send_enabled():
+        log.info("live props: refusing recs.json write (LIVE_PROPS_SEND off)")
+        return
     _recs_path(state_dir).write_text(json.dumps(book[-5000:], indent=1))
 
 
 def record_recs(state_dir: Path, sport: str, game_id: str, game_label: str, period: str, recs: list[dict]) -> list[dict]:
-    """Adds recs not already sent for this game (same player/market/side); returns the new ones."""
+    """Adds recs not already sent for this game (same player/market/side); returns the new ones.
+
+    While LIVE_PROPS_SEND is off this returns [] without reading or writing the ledger, so a
+    caller that forgets the flag still cannot create or dedupe recommendation state.
+    """
+    if not live_props_send_enabled():
+        return []
     book = load_recs(state_dir)
     seen = {(b["game_id"], _norm(b["player"]), b["market"], b["side"]) for b in book}
     new = [r for r in recs if (str(game_id), _norm(r["player"]), r["market"], r["side"]) not in seen]
@@ -525,7 +587,12 @@ def grade_result(side: str, line: float, final: float) -> str:
 
 
 def grade_game(state_dir: Path, sport: str, game_id: str, summary: dict) -> list[dict]:
-    """Grades this game's open recs against the final box score; returns the graded rows."""
+    """Grades this game's open recs against the final box score; returns the graded rows.
+
+    No-op (no read, no write) while LIVE_PROPS_SEND is off.
+    """
+    if not live_props_send_enabled():
+        return []
     book = load_recs(state_dir)
     box = parse_box(summary)["players"]
     by = {_norm(n): p for n, p in box.items()}
@@ -647,22 +714,28 @@ class Runner:
         priced, recs = scan_game(sport, summary, odds, anchors(state_dir, sport, ev["id"]), elapsed,
                                  game.home, game.away, hs, as_, usage)
         log_shadow(state_dir, sport, str(game.id), period_label, priced)
+        if not live_props_send_enabled():
+            return 0
         label = f"{game.away} @ {game.home}"
         new = record_recs(state_dir, sport, str(game.id), label, period_label, recs)
+        if not new:
+            return 0
         mem["prop_recs"] = mem.get("prop_recs", 0) + len(new)
-        if new and os.environ.get("LIVE_PROPS_SEND", "on").lower() not in ("0", "off", "false", "no"):
-            send(alert_text(sport, label, period_label, f"{game.away} {as_:.0f} – {hs:.0f} {game.home}", new))
+        text = alert_text(sport, label, period_label, f"{game.away} {as_:.0f} – {hs:.0f} {game.home}", new)
+        if deliver_prop_message(send, text):
             return 1
         return 0
 
     def on_final(self, sport: str, game, send, summary_path: str) -> int:
+        if not live_props_send_enabled():
+            return 0
         state_dir = Path(self.s.state_dir)
         if not any(b["game_id"] == str(game.id) and not b.get("result") for b in load_recs(state_dir)):
             return 0
         graded = grade_game(state_dir, sport, str(game.id), self.client.summary(summary_path, str(game.id)))
-        if graded and os.environ.get("LIVE_PROPS_SEND", "on").lower() not in ("0", "off", "false", "no"):
-            send(final_text(f"{game.away} {float(game.away_score):.0f} – {float(game.home_score):.0f} {game.home}",
-                            graded, record(state_dir)))
+        if graded and deliver_prop_message(
+                send, final_text(f"{game.away} {float(game.away_score):.0f} – {float(game.home_score):.0f} {game.home}",
+                                 graded, record(state_dir))):
             return 1
         return 0
 
