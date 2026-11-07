@@ -1,0 +1,12 @@
+# Top 30 NCAAF — template, refreshed weekly from AP / ESPN rankings.
+# A game qualifies if EITHER team is in this list that week.
+# Do NOT hard-code rankings from memory. Refresh via ESPN rankings endpoint
+# or AP poll each Monday, and log the refresh date + source in the file.
+# Format: list of team names exactly as ESPN / PropLine spell them.
+updated: null
+source: null
+teams: []
+# Example (NOT current — replace on first refresh):
+# - Ohio State
+# - Georgia
+# - Texas
