@@ -9,7 +9,7 @@ before tip-off to the end of the last break and keep
 Kalshi emits a candle only when something changes, so "last candle at or before t" is the quote at t.
 
 Settled markets before Kalshi's historical cutoff live under /historical (one request per market). Newer markets use
-the batch endpoint (50 markets per request).
+the batch endpoint (as many markets per request as fit Kalshi's 10,000-candle cap).
 
 usage: python research/prop_pacer/fetch_kalshi.py SNAP.parquet OUT.jsonl [n_games|all] [seed] [season]
 Resumable: games already in OUT (or OUT.empty) are skipped.
@@ -77,7 +77,9 @@ def quote_at(candles: list[dict], t: int) -> dict | None:
     if not before:
         return None
     c = before[-1]
-    yb, ya = (c.get("yes_bid") or {}).get("close"), (c.get("yes_ask") or {}).get("close")
+    # historical candles use "close", newer ones "close_dollars"
+    yb = (c.get("yes_bid") or {}).get("close", (c.get("yes_bid") or {}).get("close_dollars"))
+    ya = (c.get("yes_ask") or {}).get("close", (c.get("yes_ask") or {}).get("close_dollars"))
     return {"bid": None if yb is None else float(yb), "ask": None if ya is None else float(ya), "ts": c["end_period_ts"]}
 
 
@@ -103,8 +105,9 @@ def game_prices(g: pd.DataFrame) -> list[dict]:
                                        {"start_ts": t0, "end_ts": t1, "period_interval": 1}).get("candlesticks", [])
     else:
         tickers = [m["ticker"] for _, m in markets]
-        for i in range(0, len(tickers), 50):
-            d = get("/markets/candlesticks", {"market_tickers": ",".join(tickers[i:i + 50]), "start_ts": t0,
+        per = max(1, 9500 // max((t1 - t0) // 60, 1))  # Kalshi caps one batch at 10,000 candles
+        for i in range(0, len(tickers), per):
+            d = get("/markets/candlesticks", {"market_tickers": ",".join(tickers[i:i + per]), "start_ts": t0,
                                               "end_ts": t1, "period_interval": 1})
             for x in d.get("markets", []):
                 candles[x.get("market_ticker") or x.get("ticker")] = x.get("candlesticks", [])
