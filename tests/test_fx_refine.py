@@ -82,3 +82,25 @@ class H4TrendTests(unittest.TestCase):
         self.assertFalse(rf.h4_trend_ok("X", df, t_short))
         early = {"side": "long", "entry": pd.Timestamp("2026-05-03 10:00", tz="UTC")}
         self.assertFalse(rf.h4_trend_ok("X", df, early))          # SMA50 not warm yet
+
+
+class SpreadGateTests(unittest.TestCase):
+    def test_wide_spread_blocks(self):
+        from fxbot.data import mid
+        tight = bidask(np.full(60, 1.10), spread=0.0002)
+        wide = bidask(np.full(60, 1.10), spread=0.0010)
+        self.assertTrue(rf.SpreadGate(EveryBarLong(), tight, 0.10).frame(mid(tight))["long"].any())    # 0.0002 <= 10% of 0.0040
+        self.assertFalse(rf.SpreadGate(EveryBarLong(), wide, 0.10).frame(mid(wide))["long"].any())     # 0.0010 > 0.0004
+
+    def test_spread_ok(self):
+        import pandas as pd
+        df = bidask(np.full(30, 1.10), spread=0.0010)
+        t = {"entry": df.index[5], "risk": 0.0040}
+        self.assertFalse(rf.spread_ok("X", df, t))
+        self.assertTrue(rf.spread_ok("X", df, {**t, "risk": 0.02}))
+
+    def test_check_with_df_maker(self):
+        rng = np.random.default_rng(4)
+        data = {"P": bidask(1.10 + np.cumsum(rng.normal(0, 0.0008, 24 * 100)), start="2026-05-20")}
+        res = rf.check(EveryBarLong, lambda df: rf.SpreadGate(EveryBarLong(), df, 0.10), data, date(2026, 9, 1), seeds=1)
+        self.assertIn("checks", res)

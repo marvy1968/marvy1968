@@ -39,6 +39,12 @@ class SessionWindow:
         return f
 
 
+def _run(mk, data: dict, exit_: str, a, b, spread_mult: float = 1.0, seed=None) -> list[dict]:
+    """exitlab.run, but a maker taking one argument gets that instrument's bid/ask frame (for filters that need the spread)."""
+    takes_df = getattr(getattr(mk, "__code__", None), "co_argcount", 0) == 1
+    return [t for df in data.values() for t in xl.simulate(df, mk(df) if takes_df else mk(), exit_, a, b, spread_mult, seed)]
+
+
 def check(make_live, make_variant, data: dict, today: date, days: int = 92, seeds: int = 5) -> dict:
     a = today - timedelta(days=days)
     mid_ = a + (today - a) / 2
@@ -46,11 +52,11 @@ def check(make_live, make_variant, data: dict, today: date, days: int = 92, seed
     sel = lambda tr, x, y: [t["r"] for t in tr if x <= t["entry"] <= y]  # noqa: E731
     out = {}
     for name, mk in (("live", make_live), ("variant", make_variant)):
-        tr = xl.run(mk, data, "live", a, today)
-        tr2 = xl.run(mk, data, "live", a, today, spread_mult=2.0)
+        tr = _run(mk, data, "live", a, today)
+        tr2 = _run(mk, data, "live", a, today, spread_mult=2.0)
         out[name] = {"all": stats(sel(tr, a, today)), "half1": stats(sel(tr, a, mid_)), "half2": stats(sel(tr, h2a, today)),
                      "all_2x": stats(sel(tr2, a, today))}
-    plc = [stats(sel(xl.run(make_variant, data, "live", a, today, seed=s), a, today))["avg_r"] for s in range(seeds)]
+    plc = [stats(sel(_run(make_variant, data, "live", a, today, seed=s), a, today))["avg_r"] for s in range(seeds)]
     plc = [p for p in plc if p is not None]
     v, b = out["variant"], out["live"]
     g = lambda d, k: (d.get(k) if d.get(k) is not None else float("-inf"))  # noqa: E731
@@ -205,3 +211,43 @@ def retest_h4(data_h1: dict, today: date) -> list[str]:
     """Queue item 4: retest_h1 entries only when the 4-hour SMA50 slopes the trade's way."""
     return retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0}, "Queue 4: retest_h1 with the 4-hour SMA50 slope",
                         var_filter=h4_trend_ok)
+
+
+class SpreadGate:
+    """Wrap a strategy: no entry when the signal bar's bid/ask spread (close) is more than max_frac x the trade's stop distance."""
+
+    def __init__(self, strat, df, max_frac: float = 0.10):
+        self.s, self.max_frac = strat, max_frac
+        self.spread = (df["ac"] - df["bc"]).astype(float)
+        self.max_bars = getattr(strat, "max_bars", 72)
+
+    def __getattr__(self, name):
+        return getattr(self.s, name)
+
+    def frame(self, m):
+        f = self.s.frame(m).copy()
+        sp = self.spread.reindex(m.index).to_numpy(float)
+        stop = f["stop"].to_numpy(float)
+        ok = np.isfinite(sp) & np.isfinite(stop) & (stop > 0) & (sp <= self.max_frac * stop)
+        f["long"] = f["long"].astype(bool) & ok
+        f["short"] = f["short"].astype(bool) & ok
+        return f
+
+
+def spread_ok(inst, df, t, max_frac: float = 0.10) -> bool:
+    """retest_h1 entry filter: the spread at the fill bar's open is at most max_frac x the trade's risk."""
+    e = pd.Timestamp(t["entry"])
+    if e not in df.index:
+        return True
+    sp = float(df.at[e, "ao"] - df.at[e, "bo"])
+    return sp <= max_frac * abs(float(t["risk"]))
+
+
+def spread_both(data_h1: dict, today: date) -> list[str]:
+    """Queue item 5: skip entries when the spread is more than 10% of the stop distance (lien_h1 and retest_h1 separately)."""
+    from .strategies import LienFader
+    out = lines("Queue 5a: lien_h1 skips entries when spread > 10% of the stop",
+                check(lambda: LienFader(break_pips=20), lambda df: SpreadGate(LienFader(break_pips=20), df, 0.10), data_h1, today))
+    out += retest_check(data_h1, today, {"be_at_r": 0.0}, {"be_at_r": 0.0}, "Queue 5b: retest_h1 skips entries when spread > 10% of the risk",
+                        var_filter=spread_ok)
+    return out
