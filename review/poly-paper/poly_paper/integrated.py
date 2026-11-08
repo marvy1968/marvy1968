@@ -36,17 +36,17 @@ _PAPER = _BASE / "polymarket-paper"
 _LIVE = _BASE / "marv-feed" / "live_props" / "live_props.py"
 _SUMS = Path(__file__).resolve().parents[1] / "provenance" / "SHA256SUMS"
 
-# pm_nba_live and live_props reach pm_fill.fill. They can pass only when the
-# bodies those callers already fetch contain display names, a scheduled start,
-# and a Polymarket US event with an explicit league. The November 7
-# nba_prop_live rows do not include that US payload. A Gamma 404 is not a
-# wrong-game finding and is not an observed success.
+# pm_nba_live and live_props reach pm_fill.fill. They can pass when the bodies
+# those callers already fetch contain display names, a scheduled start, and a
+# Polymarket US event whose teams carry the league. The three November 7
+# nba_prop_live rows now have a current /v1/events reconstruction. That is not
+# an at-fill payload and not a tipoff. A Gamma 404 is not a wrong-game finding.
 ADAPTER_GAPS = {
     "pm_nba_live.main": (
-        "Accepts only from already-fetched ESPN display names, a scheduled date, "
-        "a player on a team display name, and a Polymarket US event with explicit "
-        "league, team names, and startTime. The November 7 rows lack that US "
-        "payload. Gamma HTTP 404 is not a wrong-game finding."
+        "The three November 7 identities match current Polymarket US /v1/events "
+        "reconstructions (185087 and 185088) plus ESPN scheduled starts. Teams "
+        "are unordered, the prop is the question, and no token id is present. "
+        "This is not an at-fill payload, not tipoff, and not every historical fill."
     ),
     "live_props.poly_fill": (
         "Same evidence rule. A body that only has abbreviations and a slug date "

@@ -250,12 +250,36 @@ def parse_market(market: dict) -> ParsedMarket | None:
     )
 
 
+def _team_league_values(event: dict) -> list[str]:
+    """League on every named team. A partial set is not a league."""
+    teams = event.get("teams")
+    if not isinstance(teams, list):
+        return []
+    found = []
+    named = 0
+    for team in teams:
+        if not isinstance(team, dict):
+            continue
+        name = team.get("name") or team.get("displayName") or team.get("alias") or team.get("safeName")
+        if not isinstance(name, str) or not name.strip():
+            continue
+        named += 1
+        value = team.get("league")
+        if isinstance(value, str) and value.strip():
+            found.append(value.strip().lower())
+    if named and len(found) == named:
+        return found
+    return []
+
+
 def _league(event: dict) -> tuple[str | None, str]:
     fields = []
     for key in ("league", "sport"):
         value = event.get(key)
         if isinstance(value, str) and value.strip():
             fields.append(value.strip().lower())
+    # Documented US events put league on teams[], not on the event, and omit ordering.
+    fields.extend(_team_league_values(event))
     slug = event.get("slug") if isinstance(event.get("slug"), str) else ""
     slug_codes = [tok for tok in slug.lower().split("-") if tok in LEAGUE_CODES]
     slug_unique = set(slug_codes)

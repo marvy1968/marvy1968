@@ -1,9 +1,7 @@
-"""Synthetic US-schema live identity, plus the partial observed claims.
+"""Synthetic US-schema live identity, plus the earlier Gamma 404 supplement.
 
-The three November 7 paper rows are not validated successes. ESPN pages identify
-the keyed games and player teams. Gamma slug lookups returned 404 and are not
-treated as proof of a wrong game. No Polymarket US payload for those slugs is
-in the export, so those fills stay unverified.
+Gamma slug lookups returned 404 and are not a wrong game. The later Polymarket
+US /v1/events reconstruction is a separate archive and is tested there.
 """
 import json
 from datetime import datetime, timedelta, timezone
@@ -69,7 +67,8 @@ def test_synthetic_us_schema_accepts_matching_scheduled_starts_only():
     market = {
         "slug": "synthetic-us-prop-pts",
         "sportsMarketType": "basketball_player_points",
-        "question": "Will Synthetic Player record at least 8",
+        "question": "Will Synthetic Player record at least 8 points",
+        "line": 8,
         "closed": False,
         "marketSides": [
             {"long": True, "description": "Over"},
@@ -156,7 +155,8 @@ def _synthetic_runtime():
         "markets": [{
             "slug": "synthetic-us-prop-pts",
             "sportsMarketType": "basketball_player_points",
-            "question": "Will Synthetic Player record at least 8",
+            "question": "Will Synthetic Player record at least 8 points",
+            "line": 8,
             "closed": False,
             "bestBidQuote": 0.43,
             "bestAskQuote": 0.45,

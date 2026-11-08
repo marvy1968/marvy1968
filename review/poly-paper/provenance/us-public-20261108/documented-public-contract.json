@@ -1,0 +1,44 @@
+{
+  "official_documentation": "https://docs.polymarket.us/api-reference/events/get-events",
+  "verified_contract": {
+    "server": "https://gateway.polymarket.us",
+    "path": "GET /v1/events",
+    "authentication": "OpenAPI security: []",
+    "query": "slug: array of strings, explode:true; limit integer",
+    "event_fields": [
+      "id",
+      "slug",
+      "title",
+      "startTime",
+      "teams",
+      "markets"
+    ],
+    "team_fields": [
+      "id",
+      "name",
+      "abbreviation",
+      "league",
+      "ordering"
+    ],
+    "market_fields": [
+      "id",
+      "slug",
+      "question",
+      "sportsMarketType",
+      "line",
+      "marketSides",
+      "subject"
+    ],
+    "side_fields": [
+      "id",
+      "marketSideType",
+      "identifier",
+      "description",
+      "long",
+      "tradable"
+    ]
+  },
+  "documentation_read_method": "WebFetch official documentation; extracted verified contract only, not full documentation copy",
+  "no_v2_league_route_claim": "/v2/leagues/nba/events not needed or tested; this export relies only on documented /v1/events",
+  "candidate_lookup_explanation": "Two event-slug candidates derived from runtime market strings were lookup filters only. Identity assertions come from returned independent event teams/startTime and exact market membership, not inferred slug components."
+}

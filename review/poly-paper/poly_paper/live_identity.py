@@ -92,8 +92,7 @@ class LiveEvidence:
         key = (event.get("id"), event.get("slug"))
         for index, old in enumerate(self.pm_events):
             if (old.get("id"), old.get("slug")) == key:
-                if len(event.get("markets") or []) >= len(old.get("markets") or []):
-                    self.pm_events[index] = event
+                self.pm_events[index] = _merge_event(old, event)
                 return
         self.pm_events.append(event)
 
@@ -144,6 +143,7 @@ class LiveEvidence:
             "live": True,
             "source_game_id": espn_id,
             "prop": prop,
+            "identity_notes": _schema_notes(explicit),
         }
         snapshot = {"events": [_enrich_prop_market(event, prop) for event in explicit]}
         return {"entry": entry, "snapshot": snapshot, "slug": slug}
@@ -216,12 +216,58 @@ def _box_players(payload):
     return found
 
 
+def _merge_event(old, new):
+    """Keep every market slug. A later copy of the same slug replaces a thinner one."""
+    merged = dict(old)
+    for key, value in new.items():
+        if key == "markets":
+            continue
+        if value not in (None, "", []):
+            merged[key] = value
+    by_slug = {}
+    order = []
+    for market in list(old.get("markets") or []) + list(new.get("markets") or []):
+        if not isinstance(market, dict):
+            continue
+        slug = market.get("slug")
+        if slug not in by_slug:
+            order.append(slug)
+            by_slug[slug] = market
+        elif len(market) >= len(by_slug[slug]):
+            by_slug[slug] = market
+    merged["markets"] = [by_slug[slug] for slug in order]
+    return merged
+
+
 def _explicit_league(event):
     for field in ("league", "sport"):
         value = event.get(field)
         if isinstance(value, str) and value.strip():
             return value.strip().lower()
+    # US events carry league on each team. The slug is not league evidence.
+    found = []
+    named = 0
+    for team in event.get("teams") or []:
+        if not isinstance(team, dict) or not _team_label(team):
+            continue
+        named += 1
+        value = team.get("league")
+        if isinstance(value, str) and value.strip():
+            found.append(value.strip().lower())
+    if named and len(found) == named and len(set(found)) == 1:
+        return found[0]
     return None
+
+
+def _schema_notes(events):
+    notes = ["scheduled_start_not_tipoff"]
+    teams = [team for event in events for team in (event.get("teams") or []) if isinstance(team, dict)]
+    if teams and all(team.get("ordering") in (None, "") for team in teams):
+        notes.append("provider_home_away_not_in_payload")
+    markets = [market for event in events for market in (event.get("markets") or []) if isinstance(market, dict)]
+    if markets and all(market.get("subject") in (None, "") for market in markets):
+        notes.append("provider_player_id_absent")
+    return notes
 
 
 def _espn_id(key):
@@ -234,12 +280,38 @@ def _espn_id(key):
 def _player_line(pick):
     match = _QUESTION.search(str(pick or ""))
     if not match:
-        # The caller stores the parsed name in the pick: "Name 8+ PTS" or "Name NOT 8+ PTS".
-        loose = re.match(r"(.+?)(?:\s+NOT)?\s+(\d+)\+", str(pick or ""))
+        # The caller stores "Name 8+ PTS" or "Name NOT 8+ PTS". NOT is not part of the name.
+        loose = re.match(r"(.+?)\s+(?:NOT\s+)?(\d+)\+", str(pick or ""), re.I)
         if not loose:
             return None, None
         return loose.group(1).strip(), loose.group(2)
     return match.group(1).strip(), match.group(2)
+
+
+def _stat_from_question(question):
+    text = str(question or "").lower()
+    if "combined" in text and all(word in text for word in ("points", "rebounds", "assists")):
+        return "PRA"
+    if "steals" in text:
+        return "STL"
+    if "blocks" in text:
+        return "BLK"
+    if "three" in text:
+        return "3PM"
+    if "assists" in text and "points" not in text:
+        return "AST"
+    if "rebounds" in text and "points" not in text:
+        return "REB"
+    if "points" in text and "rebounds" not in text and "assists" not in text:
+        return "PTS"
+    return None
+
+
+def _same_line(left, right):
+    try:
+        return float(left) == float(right)
+    except (TypeError, ValueError):
+        return False
 
 
 def _stat_from_key(key):
@@ -258,10 +330,26 @@ def _enrich_prop_market(event, prop):
         item = dict(market)
         if not item.get("player"):
             parsed = _QUESTION.search(str(item.get("question") or ""))
-            if parsed and parsed.group(1).strip().casefold() == prop["player"].casefold():
+            type_stat = _STAT.get(item.get("sportsMarketType") or "")
+            question_stat = _stat_from_question(item.get("question"))
+            subject = item.get("subject")
+            subject_ok = subject in (None, "") or (
+                isinstance(subject, dict)
+                and str(subject.get("name") or subject.get("displayName") or "").casefold() == prop["player"].casefold()
+            )
+            if (
+                parsed
+                and subject_ok
+                and type_stat
+                and type_stat == question_stat
+                and type_stat == prop["stat"]
+                and parsed.group(1).strip().casefold() == prop["player"].casefold()
+                and _same_line(parsed.group(2), prop["line"])
+                and _same_line(item.get("line"), prop["line"])
+            ):
                 item["player"] = parsed.group(1).strip()
-                item["line"] = parsed.group(2)
-                item["stat"] = _STAT.get(item.get("sportsMarketType") or "", prop["stat"])
+                item["stat"] = type_stat
+                item["line"] = str(int(float(item["line"]))) if float(item["line"]).is_integer() else str(item["line"])
         markets.append(item)
     copy["markets"] = markets
     return copy

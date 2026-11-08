@@ -139,6 +139,26 @@ def _which_teams_from_parsed(team: ParsedTeam, teams: list[ParsedTeam]) -> list[
     return [roster for roster in teams if team.alias_signatures & roster.alias_signatures]
 
 
+def _prop_side(market: ParsedMarket, direction: str):
+    """Yes/Over is the long side. No/Under is the short side. A flag that disagrees abstains."""
+    if direction in ("over", "long"):
+        by_desc = [side for side in market.sides if side.description_norm in ("over", "yes")]
+        by_flag = [side for side in market.sides if side.long is True]
+    elif direction in ("under", "short"):
+        by_desc = [side for side in market.sides if side.description_norm in ("under", "no")]
+        by_flag = [side for side in market.sides if side.long is False]
+    else:
+        return None
+    if by_desc and by_flag and {id(side) for side in by_desc} != {id(side) for side in by_flag}:
+        return "contradiction"
+    chosen = by_desc or by_flag
+    if len(chosen) == 1:
+        return chosen[0]
+    if len(chosen) > 1:
+        return "ambiguous"
+    return None
+
+
 def _direction_side(market: ParsedMarket, direction: str) -> ParsedSide | None | str:
     hits = [side for side in market.sides if side.description_norm == direction]
     if len(hits) == 1:
@@ -432,14 +452,11 @@ def _finish_prop(entry, event, claimed, claimed_side, claimed_token, located):
         if str(market.stat).strip().upper() != want_stat or str(market.line) != want_line:
             continue
         direction = _pick_total(str(entry.get("pick") or "")) or str(prop.get("side") or "").lower()
-        found = _direction_side(market, direction) if direction in ("over", "under") else None
+        found = _prop_side(market, direction)
+        if found == "contradiction" or found == "ambiguous":
+            return _fail(["ambiguous_outcome"], **located)
         if not isinstance(found, ParsedSide):
-            # A prop side may be the player over, carried as long/short only.
-            longs = [s for s in market.sides if s.long is True]
-            if direction in ("over", "long") and len(longs) == 1:
-                found = longs[0]
-            else:
-                continue
+            continue
         matches.append((market, found))
     if len(matches) != 1:
         return _fail(["identity_unknown" if not matches else "ambiguous_outcome"], **located)
@@ -464,6 +481,9 @@ def _bind(entry, event, market, side, pick_team, claimed, claimed_side, claimed_
         notes.append("token_omitted_by_provider")
     if not token_verified:
         notes.append("token_not_verified")
+    for note in entry.get("identity_notes") or []:
+        if isinstance(note, str) and note not in notes:
+            notes.append(note)
     outcome = {
         "kind": kind,
         "pick": entry.get("pick"),

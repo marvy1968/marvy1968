@@ -1,0 +1,23 @@
+{
+  "connector_check": "SearchPlugins: no matching Polymarket US connector found; no installation",
+  "requests": [
+    {
+      "url": "https://gateway.polymarket.us/v1/events?slug=nba-den-ind-2026-11-07&slug=nba-bkn-atl-2026-11-07&limit=2",
+      "fetched_CT": "2026-11-08T11:03:05.600280-06:00",
+      "http_status": "200",
+      "curl_exit": 0,
+      "response_sha256": "b3d8e41b4a5a6b0e555048757c7b69fa888465a9b7d642b9f56dd237739cf41d",
+      "bytes": 5884473
+    }
+  ],
+  "gateway_data_read_count": 1,
+  "official_docs_read_count": 1,
+  "search_count": 1,
+  "original_http_body_sha256": "b3d8e41b4a5a6b0e555048757c7b69fa888465a9b7d642b9f56dd237739cf41d",
+  "raw_bundle_exclusion": "5.9 MB public response was reduced to three selected market records and parent event identity facts. No raw HTTP bundle included.",
+  "upstream_archive_hashes": {
+    "partial": "7f8f182dad5468e95d8a06249bf74c3988f6d021cdb4512e00ada33dc5f516b0",
+    "ESPN_enrichment": "49efa9ce309d4f81dfecdf7e2f55b4f6781f5ba0b3b915eab491a9ddaf7cc9f6"
+  },
+  "hash_definition": "Canonical original JSON hashes use sorted keys and separators=(comma,colon). HTTP hash covers exact original response bytes. SHA256SUMS hashes sanitized output file bytes."
+}

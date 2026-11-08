@@ -1,0 +1,512 @@
+[
+  {
+    "classification": "OBSERVED_RUNTIME_FILL_PLUS_CURRENT_PUBLIC_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+    "synthetic_row_id": "synthetic-fill-01",
+    "observed_fill": {
+      "ts": "2026-11-07T16:18:07.949365-06:00",
+      "key": "nbalive:401909938:nikola jokic:STL:3:long",
+      "pick": "Nikola Jokic 3+ STL",
+      "slug": "astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+      "side": "long",
+      "contracts": 190.0,
+      "price": 0.25,
+      "fee": 2.4759,
+      "cost": 49.9759,
+      "lane": "nba_prop_live"
+    },
+    "tracker_stake": 50.0,
+    "independent_source": {
+      "classification": "PUBLIC_CURRENT_HISTORICAL_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+      "canonical_event_id": "401909938",
+      "sport": "basketball",
+      "league": "nba",
+      "league_id": "46",
+      "scheduled_start_CT": "2026-11-07T16:00:00-06:00",
+      "timezone_label": "CST",
+      "scheduled_start_source_fields": [
+        "gamepackage.gmStrp.dt",
+        "gamepackage.gmInfo.dtTm"
+      ],
+      "start_semantics": "Published game date/time; treated as scheduled/listed start, NOT verified actual tipoff",
+      "actual_start": null,
+      "participants": [
+        {
+          "id": "7",
+          "name": "Denver Nuggets",
+          "abbreviation": "DEN",
+          "home": false
+        },
+        {
+          "id": "11",
+          "name": "Indiana Pacers",
+          "abbreviation": "IND",
+          "home": true
+        }
+      ],
+      "participants_field_path": "gamepackage.gmStrp.tms",
+      "neutral_site": true,
+      "players": [
+        {
+          "id": "3112335",
+          "name": "Nikola Jokic",
+          "team_id": "7",
+          "team_name": "Denver Nuggets",
+          "evidence_field_path": "gamepackage.bxscr[0].stats[0].athlts[2].athlt",
+          "association_field_path": "gamepackage.bxscr[0].tm",
+          "player_url": "https://www.espn.com/nba/player/_/id/3112335/nikola-jokic"
+        },
+        {
+          "id": "3149673",
+          "name": "Pascal Siakam",
+          "team_id": "11",
+          "team_name": "Indiana Pacers",
+          "evidence_field_path": "gamepackage.bxscr[1].stats[0].athlts[0].athlt",
+          "association_field_path": "gamepackage.bxscr[1].tm",
+          "player_url": "https://www.espn.com/nba/player/_/id/3149673/pascal-siakam"
+        }
+      ],
+      "provenance": [
+        {
+          "name": "espn-401909938",
+          "url": "https://www.espn.com/nba/game/_/gameId/401909938",
+          "fetched_CT": "2026-11-08T10:57:11.748159-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "aa3d3a91f521a6be7750964edeef0dbe53fe9a9000bf6cc658fc457c61a908dd",
+          "bytes": 852722
+        },
+        {
+          "name": "espn-box-401909938",
+          "url": "https://www.espn.com/nba/boxscore/_/gameId/401909938",
+          "fetched_CT": "2026-11-08T10:57:30.381803-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "2cc50be1c89dc441943807c762ed4c58bcb523e472327ac2cf8ab0f641d618c5",
+          "bytes": 561159
+        }
+      ]
+    },
+    "independent_provider": {
+      "provider": "Polymarket US",
+      "event": {
+        "id": "185087",
+        "slug": "nba-den-ind-2026-11-07",
+        "title": "DEN Nuggets vs. IND Pacers",
+        "scheduled_or_listed_start_CT": "2026-11-07T16:00:00-06:00",
+        "start_field": "startTime",
+        "actual_start": null,
+        "league_evidence": "teams[].league = nba",
+        "participants": [
+          {
+            "id": 40,
+            "name": "Denver Nuggets",
+            "abbreviation": "den",
+            "league": "nba"
+          },
+          {
+            "id": 19,
+            "name": "Indiana Pacers",
+            "abbreviation": "ind",
+            "league": "nba"
+          }
+        ],
+        "home_away_ordering_note": "ordering absent in returned teams; no home/away inference from list order",
+        "market": {
+          "id": "2257469",
+          "slug": "astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+          "question": "Will Nikola Jokic record at least 3 steals in DEN Nuggets vs. IND Pacers?",
+          "sportsMarketType": "basketball_player_steals",
+          "line": 3,
+          "status": "MARKET_STATUS_RESOLVED",
+          "marketSides": [
+            {
+              "id": "4514374",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+              "description": "Yes",
+              "long": true,
+              "tradable": true
+            },
+            {
+              "id": "4514375",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+              "description": "No",
+              "long": false,
+              "tradable": true
+            }
+          ],
+          "token_ids": null,
+          "token_availability_explanation": "No token ID field supplied. Returned sides are MARKET_SIDE_TYPE_INSTRUMENT; identifier is the market slug, NOT an ERC1155 token ID.",
+          "subject": null,
+          "gameStartTime_CT": "2026-11-07T16:00:00-06:00"
+        }
+      },
+      "provenance": {
+        "url": "https://gateway.polymarket.us/v1/events?slug=nba-den-ind-2026-11-07&slug=nba-bkn-atl-2026-11-07&limit=2",
+        "fetched_CT": "2026-11-08T11:03:05.600280-06:00",
+        "http_status": "200",
+        "curl_exit": 0,
+        "response_sha256": "b3d8e41b4a5a6b0e555048757c7b69fa888465a9b7d642b9f56dd237739cf41d",
+        "bytes": 5884473
+      },
+      "event_field_path": "events[0]",
+      "market_field_path": "events[0].markets[367]",
+      "original_event_canonical_json_sha256": "8bfb73c1eeea490613ffeb1f5da0ecb9074d495333f0beb9e9013fc101a32976",
+      "original_market_canonical_json_sha256": "4444bffd1bbc02c2bcedfec741bb11966ec0d25cdc9e96c64abe111b97456fc8"
+    },
+    "comparison": {
+      "participants_exact_display_names_match": true,
+      "league_match": true,
+      "scheduled_start_delta_seconds": 0.0,
+      "exact_observed_market_slug_member_of_provider_event": true,
+      "player_and_prop_question": "Explicitly present in provider question; independently corroborated player-team association in ESPN boxscore",
+      "outcome_mapping": "long=True / Yes",
+      "assessment": "MATCH_CURRENT_RECONSTRUCTION; suitable to test observed identity reconstruction, not exact at-fill payload parity",
+      "gaps": [
+        "Actual tipoff instant on either side not established",
+        "Original at-fill payloads unavailable",
+        "Provider structured player subject ID absent",
+        "Provider team home/away ordering absent",
+        "No token ID provided; instrument side identifiers only"
+      ]
+    }
+  },
+  {
+    "classification": "OBSERVED_RUNTIME_FILL_PLUS_CURRENT_PUBLIC_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+    "synthetic_row_id": "synthetic-fill-02",
+    "observed_fill": {
+      "ts": "2026-11-07T17:32:08.225291-06:00",
+      "key": "nbalive:401909938:pascal siakam:AST:4:short",
+      "pick": "Pascal Siakam NOT 4+ AST",
+      "slug": "astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+      "side": "short",
+      "contracts": 337.0,
+      "price": 0.14,
+      "fee": 2.8199,
+      "cost": 49.9999,
+      "lane": "nba_prop_live"
+    },
+    "tracker_stake": 50.0,
+    "independent_source": {
+      "classification": "PUBLIC_CURRENT_HISTORICAL_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+      "canonical_event_id": "401909938",
+      "sport": "basketball",
+      "league": "nba",
+      "league_id": "46",
+      "scheduled_start_CT": "2026-11-07T16:00:00-06:00",
+      "timezone_label": "CST",
+      "scheduled_start_source_fields": [
+        "gamepackage.gmStrp.dt",
+        "gamepackage.gmInfo.dtTm"
+      ],
+      "start_semantics": "Published game date/time; treated as scheduled/listed start, NOT verified actual tipoff",
+      "actual_start": null,
+      "participants": [
+        {
+          "id": "7",
+          "name": "Denver Nuggets",
+          "abbreviation": "DEN",
+          "home": false
+        },
+        {
+          "id": "11",
+          "name": "Indiana Pacers",
+          "abbreviation": "IND",
+          "home": true
+        }
+      ],
+      "participants_field_path": "gamepackage.gmStrp.tms",
+      "neutral_site": true,
+      "players": [
+        {
+          "id": "3112335",
+          "name": "Nikola Jokic",
+          "team_id": "7",
+          "team_name": "Denver Nuggets",
+          "evidence_field_path": "gamepackage.bxscr[0].stats[0].athlts[2].athlt",
+          "association_field_path": "gamepackage.bxscr[0].tm",
+          "player_url": "https://www.espn.com/nba/player/_/id/3112335/nikola-jokic"
+        },
+        {
+          "id": "3149673",
+          "name": "Pascal Siakam",
+          "team_id": "11",
+          "team_name": "Indiana Pacers",
+          "evidence_field_path": "gamepackage.bxscr[1].stats[0].athlts[0].athlt",
+          "association_field_path": "gamepackage.bxscr[1].tm",
+          "player_url": "https://www.espn.com/nba/player/_/id/3149673/pascal-siakam"
+        }
+      ],
+      "provenance": [
+        {
+          "name": "espn-401909938",
+          "url": "https://www.espn.com/nba/game/_/gameId/401909938",
+          "fetched_CT": "2026-11-08T10:57:11.748159-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "aa3d3a91f521a6be7750964edeef0dbe53fe9a9000bf6cc658fc457c61a908dd",
+          "bytes": 852722
+        },
+        {
+          "name": "espn-box-401909938",
+          "url": "https://www.espn.com/nba/boxscore/_/gameId/401909938",
+          "fetched_CT": "2026-11-08T10:57:30.381803-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "2cc50be1c89dc441943807c762ed4c58bcb523e472327ac2cf8ab0f641d618c5",
+          "bytes": 561159
+        }
+      ]
+    },
+    "independent_provider": {
+      "provider": "Polymarket US",
+      "event": {
+        "id": "185087",
+        "slug": "nba-den-ind-2026-11-07",
+        "title": "DEN Nuggets vs. IND Pacers",
+        "scheduled_or_listed_start_CT": "2026-11-07T16:00:00-06:00",
+        "start_field": "startTime",
+        "actual_start": null,
+        "league_evidence": "teams[].league = nba",
+        "participants": [
+          {
+            "id": 40,
+            "name": "Denver Nuggets",
+            "abbreviation": "den",
+            "league": "nba"
+          },
+          {
+            "id": 19,
+            "name": "Indiana Pacers",
+            "abbreviation": "ind",
+            "league": "nba"
+          }
+        ],
+        "home_away_ordering_note": "ordering absent in returned teams; no home/away inference from list order",
+        "market": {
+          "id": "2258052",
+          "slug": "astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+          "question": "Will Pascal Siakam record at least 4 assists in DEN Nuggets vs. IND Pacers?",
+          "sportsMarketType": "basketball_player_assists",
+          "line": 4,
+          "status": "MARKET_STATUS_RESOLVED",
+          "marketSides": [
+            {
+              "id": "4515540",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+              "description": "Yes",
+              "long": true,
+              "tradable": true
+            },
+            {
+              "id": "4515541",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+              "description": "No",
+              "long": false,
+              "tradable": true
+            }
+          ],
+          "token_ids": null,
+          "token_availability_explanation": "No token ID field supplied. Returned sides are MARKET_SIDE_TYPE_INSTRUMENT; identifier is the market slug, NOT an ERC1155 token ID.",
+          "subject": null,
+          "gameStartTime_CT": "2026-11-07T16:00:00-06:00"
+        }
+      },
+      "provenance": {
+        "url": "https://gateway.polymarket.us/v1/events?slug=nba-den-ind-2026-11-07&slug=nba-bkn-atl-2026-11-07&limit=2",
+        "fetched_CT": "2026-11-08T11:03:05.600280-06:00",
+        "http_status": "200",
+        "curl_exit": 0,
+        "response_sha256": "b3d8e41b4a5a6b0e555048757c7b69fa888465a9b7d642b9f56dd237739cf41d",
+        "bytes": 5884473
+      },
+      "event_field_path": "events[0]",
+      "market_field_path": "events[0].markets[195]",
+      "original_event_canonical_json_sha256": "8bfb73c1eeea490613ffeb1f5da0ecb9074d495333f0beb9e9013fc101a32976",
+      "original_market_canonical_json_sha256": "929bbd80b79a9d7cfe5ccd0809f16a886667d62378d11bed0cb7db631adc5c2a"
+    },
+    "comparison": {
+      "participants_exact_display_names_match": true,
+      "league_match": true,
+      "scheduled_start_delta_seconds": 0.0,
+      "exact_observed_market_slug_member_of_provider_event": true,
+      "player_and_prop_question": "Explicitly present in provider question; independently corroborated player-team association in ESPN boxscore",
+      "outcome_mapping": "long=False / No",
+      "assessment": "MATCH_CURRENT_RECONSTRUCTION; suitable to test observed identity reconstruction, not exact at-fill payload parity",
+      "gaps": [
+        "Actual tipoff instant on either side not established",
+        "Original at-fill payloads unavailable",
+        "Provider structured player subject ID absent",
+        "Provider team home/away ordering absent",
+        "No token ID provided; instrument side identifiers only"
+      ]
+    }
+  },
+  {
+    "classification": "OBSERVED_RUNTIME_FILL_PLUS_CURRENT_PUBLIC_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+    "synthetic_row_id": "synthetic-fill-03",
+    "observed_fill": {
+      "ts": "2026-11-07T19:00:11.503846-06:00",
+      "key": "nbalive:401909939:cj mccollum:PRA:20:long",
+      "pick": "CJ McCollum 20+ PRA",
+      "slug": "astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+      "side": "long",
+      "contracts": 122.0,
+      "price": 0.39,
+      "fee": 2.0172,
+      "cost": 49.5972,
+      "lane": "nba_prop_live"
+    },
+    "tracker_stake": 50.0,
+    "independent_source": {
+      "classification": "PUBLIC_CURRENT_HISTORICAL_RECONSTRUCTION_NOT_AT_FILL_PAYLOAD",
+      "canonical_event_id": "401909939",
+      "sport": "basketball",
+      "league": "nba",
+      "league_id": "46",
+      "scheduled_start_CT": "2026-11-07T18:30:00-06:00",
+      "timezone_label": "CST",
+      "scheduled_start_source_fields": [
+        "gamepackage.gmStrp.dt",
+        "gamepackage.gmInfo.dtTm"
+      ],
+      "start_semantics": "Published game date/time; treated as scheduled/listed start, NOT verified actual tipoff",
+      "actual_start": null,
+      "participants": [
+        {
+          "id": "17",
+          "name": "Brooklyn Nets",
+          "abbreviation": "BKN",
+          "home": false
+        },
+        {
+          "id": "1",
+          "name": "Atlanta Hawks",
+          "abbreviation": "ATL",
+          "home": true
+        }
+      ],
+      "participants_field_path": "gamepackage.gmStrp.tms",
+      "neutral_site": null,
+      "players": [
+        {
+          "id": "2490149",
+          "name": "CJ McCollum",
+          "team_id": "1",
+          "team_name": "Atlanta Hawks",
+          "evidence_field_path": "gamepackage.bxscr[1].stats[1].athlts[1].athlt",
+          "association_field_path": "gamepackage.bxscr[1].tm",
+          "player_url": "https://www.espn.com/nba/player/_/id/2490149/cj-mccollum"
+        }
+      ],
+      "provenance": [
+        {
+          "name": "espn-401909939",
+          "url": "https://www.espn.com/nba/game/_/gameId/401909939",
+          "fetched_CT": "2026-11-08T10:57:11.826717-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "222c709ded7aa65928ee9565a2940bdbb5301b33ccf4981ead4e33c7fad39669",
+          "bytes": 908306
+        },
+        {
+          "name": "espn-box-401909939",
+          "url": "https://www.espn.com/nba/boxscore/_/gameId/401909939",
+          "fetched_CT": "2026-11-08T10:57:30.630170-06:00",
+          "http_status": "200",
+          "curl_exit": 0,
+          "original_response_sha256": "c5314988e7c63e3ec1a01efcca0bc79840462590ac1e9f20a43c6fea742650cc",
+          "bytes": 564661
+        }
+      ]
+    },
+    "independent_provider": {
+      "provider": "Polymarket US",
+      "event": {
+        "id": "185088",
+        "slug": "nba-bkn-atl-2026-11-07",
+        "title": "BKN Nets vs. ATL Hawks",
+        "scheduled_or_listed_start_CT": "2026-11-07T18:30:00-06:00",
+        "start_field": "startTime",
+        "actual_start": null,
+        "league_evidence": "teams[].league = nba",
+        "participants": [
+          {
+            "id": 22,
+            "name": "Brooklyn Nets",
+            "abbreviation": "bkn",
+            "league": "nba"
+          },
+          {
+            "id": 25,
+            "name": "Atlanta Hawks",
+            "abbreviation": "atl",
+            "league": "nba"
+          }
+        ],
+        "home_away_ordering_note": "ordering absent in returned teams; no home/away inference from list order",
+        "market": {
+          "id": "2268156",
+          "slug": "astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+          "question": "Will CJ McCollum record at least 20 combined points, rebounds and assists in BKN Nets vs. ATL Hawks?",
+          "sportsMarketType": "basketball_player_points_rebounds_assists",
+          "line": 20,
+          "status": "MARKET_STATUS_RESOLVED",
+          "marketSides": [
+            {
+              "id": "4535748",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+              "description": "Yes",
+              "long": true,
+              "tradable": true
+            },
+            {
+              "id": "4535749",
+              "marketSideType": "MARKET_SIDE_TYPE_INSTRUMENT",
+              "identifier": "astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+              "description": "No",
+              "long": false,
+              "tradable": true
+            }
+          ],
+          "token_ids": null,
+          "token_availability_explanation": "No token ID field supplied. Returned sides are MARKET_SIDE_TYPE_INSTRUMENT; identifier is the market slug, NOT an ERC1155 token ID.",
+          "subject": null,
+          "gameStartTime_CT": "2026-11-07T18:30:00-06:00"
+        }
+      },
+      "provenance": {
+        "url": "https://gateway.polymarket.us/v1/events?slug=nba-den-ind-2026-11-07&slug=nba-bkn-atl-2026-11-07&limit=2",
+        "fetched_CT": "2026-11-08T11:03:05.600280-06:00",
+        "http_status": "200",
+        "curl_exit": 0,
+        "response_sha256": "b3d8e41b4a5a6b0e555048757c7b69fa888465a9b7d642b9f56dd237739cf41d",
+        "bytes": 5884473
+      },
+      "event_field_path": "events[1]",
+      "market_field_path": "events[1].markets[227]",
+      "original_event_canonical_json_sha256": "b63367df2110ad6501fe20b7e6958c7158b73203053474864bf0bd4bf67f31d1",
+      "original_market_canonical_json_sha256": "719ac7b81d84898bfe311f24131ae0dc47f045d99a8b1c2ee4d7d82ca65bdda2"
+    },
+    "comparison": {
+      "participants_exact_display_names_match": true,
+      "league_match": true,
+      "scheduled_start_delta_seconds": 0.0,
+      "exact_observed_market_slug_member_of_provider_event": true,
+      "player_and_prop_question": "Explicitly present in provider question; independently corroborated player-team association in ESPN boxscore",
+      "outcome_mapping": "long=True / Yes",
+      "assessment": "MATCH_CURRENT_RECONSTRUCTION; suitable to test observed identity reconstruction, not exact at-fill payload parity",
+      "gaps": [
+        "Actual tipoff instant on either side not established",
+        "Original at-fill payloads unavailable",
+        "Provider structured player subject ID absent",
+        "Provider team home/away ordering absent",
+        "No token ID provided; instrument side identifiers only"
+      ]
+    }
+  }
+]

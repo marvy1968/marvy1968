@@ -132,26 +132,23 @@ file as a review schema.
   synthetic `size()` in `sys.modules` so the existing branch runs. That mock is not
   a verified calibration result. Without it, the writers' own exception keeps
   `max_stake_usd`.
-- **Live props are source-supported, not historically proven.** `pm_nba_live`
-  (lane `nba_prop_live`) can pass when the ESPN scoreboard it already downloads
-  has competitor display names and a scheduled `date`, the summary has the
-  player's display name on a team display name, and the Polymarket US event it
-  already fetches has an explicit league, full team names, and `startTime`.
-  Abbreviations and the chosen market slug are not that identity. A synthetic
-  US-schema fixture exercises that path. It is not an observed November 7 fill.
-  ESPN pages identify 401909938 as Denver at Indiana, listed 4:00 PM CST, with
-  Jokic on Denver and Siakam on Indiana, and 401909939 as Brooklyn at Atlanta,
-  listed 6:30 PM CST, with McCollum on Atlanta. Those times are scheduled starts,
-  not tipoff. Three Gamma slug reads returned HTTP 404. That does not show the
-  US market was the wrong game or that the fill was invalid: the runtime client
-  uses `gateway.polymarket.us`, not Gamma. No US event payload for those slugs
-  is in the export, so positive observed parity is blocked. The missing public
-  read, not performed here, is each slug's US event or market body. This review
-  is not ready for every historical NBA fill. See `ADAPTER_GAPS`.
+- **Three November 7 identities have a current US reconstruction.** One
+  unauthenticated `GET /v1/events` on `gateway.polymarket.us` returned both
+  events. Jokic steals and Siakam assists are US event 185087, ESPN 401909938,
+  Denver and Indiana, listed 4:00 PM CST. McCollum PRA is US event 185088,
+  ESPN 401909939, Brooklyn and Atlanta, listed 6:30 PM CST. Participants, NBA
+  league on `teams[].league`, the prop question, and the scheduled start agree.
+  The start delta is 0 seconds. Scheduled start is not tipoff. The payload has
+  Yes/No sides and no token id, no player id, and no home/away ordering. The
+  adapter uses that schema. It does not invent those fields. A missing token
+  stays unverified. These are current public reconstructions of the recorded
+  fills, not the original at-fill bodies, and not a claim about every other
+  historical NBA fill. Gamma HTTP 404 was a different surface and is not a
+  wrong-game finding.
 - **Scheduled-start window is 180 seconds.** One second apart matches. Four
   minutes apart does not. Two events inside the window abstain. The nearer clock
-  is not chosen by itself. The window was not measured from the November 7 rows,
-  because those rows have no provider start and no verified tipoff.
+  is not chosen by itself. The three reconstructions agree at 0 seconds. That is
+  the listed start, not a measured tipoff.
 - **In-process hold.** The hashed `runner.main` adds a slug to its in-memory held
   set even when the insert returns no row. That does not write a position or
   consume the daily cap. A later process does not inherit it.
