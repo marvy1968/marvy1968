@@ -31,36 +31,116 @@ class Budget:
         return self.used + estimate <= self.cap
 
 
-def _get(path: str, params: dict) -> requests.Response:
-    resp = requests.get(f"{BASE}{path}", params=params, timeout=30)
+def _get(path: str, params: dict, *, account: dict | None = None) -> requests.Response:
+    try:
+        resp = requests.get(f"{BASE}{path}", params=params, timeout=30)
+    except Exception as exc:
+        _note_props(path, params, account, transport_error=exc)
+        raise
+    _note_props(path, params, account, response=resp)
     resp.raise_for_status()
     return resp
 
 
-def events(api_key: str, sport: str) -> list[dict]:
+def _note_props(path, params, account, *, response=None, transport_error=None) -> None:
+    try:
+        from ..data.odds_observe import note_hops
+        fields = {}
+        if isinstance(account, dict):
+            for key in ("estimated_cost", "estimate_provenance", "historical", "sport", "markets",
+                        "bookmakers", "regions", "odds_format", "preflight", "strategy", "source_job"):
+                if key in account:
+                    fields[key] = account[key]
+        for key, value in _public_request_fields(params).items():
+            fields.setdefault(key, value)
+        job = fields.pop("source_job", None) or "unknown"
+        note_hops(
+            source_job=job,
+            endpoint_path=path,
+            response=response,
+            transport_error=transport_error,
+            **fields,
+        )
+    except Exception:
+        return
+
+
+def _public_request_fields(params) -> dict:
+    """Markets, books, and regions only. Query credentials and dates are not copied."""
+    if not isinstance(params, dict):
+        return {}
+    out = {}
+    for name in ("markets", "bookmakers", "regions"):
+        raw = params.get(name)
+        if isinstance(raw, str) and raw:
+            out[name] = [part for part in raw.split(",") if part]
+    odds_format = params.get("oddsFormat")
+    if isinstance(odds_format, str):
+        out["odds_format"] = odds_format
+    return out
+
+
+def _note_skip(path: str, sport: str, estimate: int, provenance: str, historical: bool = False,
+               source_job: str | None = None) -> None:
+    _note_props(path, {}, {
+        "sport": sport,
+        "source_job": source_job,
+        "estimated_cost": estimate,
+        "estimate_provenance": provenance,
+        "historical": historical,
+        "preflight": "budget",
+    })
+
+
+def events(api_key: str, sport: str, *, source_job: str | None = None) -> list[dict]:
     """Upcoming events (free call)."""
-    return _get(f"/sports/{sport}/events", {"apiKey": api_key}).json()
+    return _get(f"/sports/{sport}/events", {"apiKey": api_key}, account={
+        "sport": sport,
+        "source_job": source_job,
+        "estimated_cost": 0,
+        "estimate_provenance": "documented_free_events",
+        "historical": False,
+    }).json()
 
 
 def event_props(api_key: str, sport: str, event_id: str, markets: list[str], bookmakers: str,
-                budget: Budget | None = None) -> dict:
+                budget: Budget | None = None, *, source_job: str | None = None) -> dict:
     est = len(markets)
     if budget and not budget.allows(est):
+        _note_skip(f"/sports/{sport}/events/{event_id}/odds", sport, est, "marv_props_len_markets",
+                   source_job=source_job)
         raise RuntimeError("credit cap reached")
     resp = _get(f"/sports/{sport}/events/{event_id}/odds", {
-        "apiKey": api_key, "markets": ",".join(markets), "bookmakers": bookmakers, "oddsFormat": "american"})
+        "apiKey": api_key, "markets": ",".join(markets), "bookmakers": bookmakers, "oddsFormat": "american"},
+        account={
+            "sport": sport,
+            "source_job": source_job,
+            "estimated_cost": est,
+            "estimate_provenance": "marv_props_len_markets",
+            "historical": False,
+            "markets": list(markets),
+        })
     if budget:
         budget.charge(resp, est)
     return resp.json()
 
 
-def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budget: Budget) -> list[dict]:
+def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budget: Budget,
+                      *, source_job: str | None = None) -> list[dict]:
     path = cache / f"events_{sport}_{date_iso[:13]}.json"
     if path.exists():
         return json.loads(path.read_text())
     if not budget.allows(1):
+        _note_skip(f"/historical/sports/{sport}/events", sport, 1,
+                   "marv_props_historical_events_existing_estimate", historical=True, source_job=source_job)
         raise RuntimeError("credit cap reached")
-    resp = _get(f"/historical/sports/{sport}/events", {"apiKey": api_key, "date": date_iso})
+    resp = _get(f"/historical/sports/{sport}/events", {"apiKey": api_key, "date": date_iso}, account={
+        "sport": sport,
+        "source_job": source_job,
+        "estimated_cost": 1,
+        "estimate_provenance": "marv_props_historical_events_existing_estimate",
+        "historical": True,
+    })
     budget.charge(resp, 1)
     data = resp.json().get("data", [])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -69,16 +149,25 @@ def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budg
 
 
 def historical_event_props(api_key: str, sport: str, event_id: str, date_iso: str, markets: list[str],
-                           bookmakers: str, cache: Path, budget: Budget) -> dict:
+                           bookmakers: str, cache: Path, budget: Budget, *, source_job: str | None = None) -> dict:
     path = cache / f"props_{event_id}.json"
     if path.exists():
         return json.loads(path.read_text())
     est = 10 * len(markets)
     if not budget.allows(est):
+        _note_skip(f"/historical/sports/{sport}/events/{event_id}/odds", sport, est,
+                   "marv_props_historical_10x_markets", historical=True, source_job=source_job)
         raise RuntimeError("credit cap reached")
     resp = _get(f"/historical/sports/{sport}/events/{event_id}/odds", {
         "apiKey": api_key, "date": date_iso, "markets": ",".join(markets), "bookmakers": bookmakers,
-        "oddsFormat": "american"})
+        "oddsFormat": "american"},         account={
+            "sport": sport,
+            "source_job": source_job,
+            "estimated_cost": est,
+            "estimate_provenance": "marv_props_historical_10x_markets",
+            "historical": True,
+            "markets": list(markets),
+        })
     budget.charge(resp, est)
     data = resp.json().get("data", {})
     path.parent.mkdir(parents=True, exist_ok=True)

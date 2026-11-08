@@ -175,7 +175,7 @@ def run(now=None):
         return "no Marv CFB games in the next 18h"
     PC.mkdir(parents=True, exist_ok=True)
     budget = O.Budget(int(os.environ.get("CFB_PROPS_MAX_CREDITS", "200")))
-    evs = O.events(key, SPORT)  # free
+    evs = O.events(key, SPORT, source_job="marv-cfb-props-shadow")  # free
     pairs = []
     for e in evs:
         st = datetime.fromisoformat(e["commence_time"].replace("Z", "+00:00"))
@@ -191,7 +191,7 @@ def run(now=None):
         data = _load(f, {}) if f.exists() else {}
         if not fresh:
             try:
-                data = O.event_props(key, SPORT, e["id"], MKTS, "bovada", budget); f.write_text(json.dumps(data)); used += 1
+                data = O.event_props(key, SPORT, e["id"], MKTS, "bovada", budget, source_job="marv-cfb-props-shadow"); f.write_text(json.dumps(data)); used += 1
             except RuntimeError:
                 pass
             except Exception as exc:  # noqa: BLE001
@@ -226,7 +226,7 @@ def run(now=None):
         players = pd.concat([players[players["season"] != season], ep], ignore_index=True)
     mlines = {}
     try:
-        for ev in oddsapi.fetch(key, SPORT):  # same cached-in-run game odds Marv uses; 2 credits
+        for ev in oddsapi.fetch(key, SPORT, source_job="marv-cfb-props-shadow"):  # same cached-in-run game odds Marv uses; 2 credits
             mlines[ev["id"]] = oddsapi.consensus(ev, "bovada")
     except Exception as exc:  # noqa: BLE001
         log.warning("game lines: %s", exc)
