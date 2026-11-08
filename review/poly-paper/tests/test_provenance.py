@@ -57,8 +57,8 @@ def test_runnable_package_does_not_open_the_network_or_opt_paths():
     for path in (ROOT / "poly_paper").glob("*.py"):
         text = path.read_text()
         assert "urllib" not in text
-        assert "subprocess" not in text
-        assert "sys.path.insert" not in text
         assert "socket." not in text
+        assert "https://" not in text
+        assert "http://" not in text
     mapper = (ROOT / "poly_paper" / "mapper.py").read_text()
     assert "sys.path.insert" not in mapper

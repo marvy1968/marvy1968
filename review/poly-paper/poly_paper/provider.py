@@ -8,7 +8,7 @@ is not an identity source. Missing ids stay missing.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .canonical import ct_date, normalize_name, slug_date
 from .mapper import LEAGUE, _SHARED_NICKS, _STOP
@@ -74,6 +74,8 @@ class ParsedEvent:
     teams: list[ParsedTeam]
     roster_status: str
     markets: list[ParsedMarket]
+    start_instant: datetime | None = None
+    start_status: str = "missing"
     notes: list[str] = field(default_factory=list)
 
 
@@ -271,6 +273,53 @@ def _league(event: dict) -> tuple[str | None, str]:
     return None, "missing"
 
 
+def _aware_instant(value):
+    """Exact aware timestamp. A bare calendar date is not a start instant."""
+    if not isinstance(value, str) or not value.strip():
+        return None, "missing"
+    text = value.strip()
+    if len(text) == 10 and text[4] == "-" and text[7] == "-":
+        return None, "date_only"
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None, "malformed"
+    if parsed.tzinfo is None:
+        return None, "naive"
+    return parsed.astimezone(timezone.utc), "ok"
+
+
+def _start_instant(event: dict):
+    instants = []
+    saw_naive = False
+    saw_bad = False
+    saw_date_only = False
+    for key in ("startTime", "startDate", "gameStartTime"):
+        if key not in event or event[key] in (None, ""):
+            continue
+        instant, status = _aware_instant(event[key])
+        if status == "ok":
+            instants.append(instant)
+        elif status == "naive":
+            saw_naive = True
+        elif status == "date_only":
+            saw_date_only = True
+        else:
+            saw_bad = True
+    unique = set(instants)
+    if len(unique) > 1:
+        return None, "disagree"
+    if len(unique) == 1:
+        return next(iter(unique)), "ok"
+    if saw_naive:
+        return None, "naive"
+    if saw_bad:
+        return None, "malformed"
+    if saw_date_only:
+        return None, "date_only"
+    return None, "missing"
+
+
 def _event_date(event: dict) -> tuple[str | None, str]:
     dates = []
     saw_naive = False
@@ -367,6 +416,7 @@ def parse_event(event: dict) -> ParsedEvent | None:
             markets.append(parsed)
     league, league_status = _league(event)
     event_date, date_status = _event_date(event)
+    start_instant, start_status = _start_instant(event)
     teams, roster_status = _roster(event, markets)
     closed = _closed_flag(event.get("closed"))
     slug = event.get("slug") if isinstance(event.get("slug"), str) and event.get("slug").strip() else None
@@ -385,6 +435,8 @@ def parse_event(event: dict) -> ParsedEvent | None:
         teams=teams,
         roster_status=roster_status,
         markets=markets,
+        start_instant=start_instant,
+        start_status=start_status,
     )
 
 

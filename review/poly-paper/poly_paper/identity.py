@@ -1,9 +1,11 @@
 """Final event/outcome identity. A mapper proposal is not trusted.
 
 A fill is identified only when one open event matches both participants, the
-sport league, and the America/Chicago game date, and exactly one outcome side
-matches the requested team or total direction. Shared nicknames, titles, and
-provider ids do not select an event.
+sport league, and the entry's exact start instant, and exactly one outcome side
+matches the requested team or total direction. The calendar date alone is not
+enough, so two games between the same teams on the same day stay distinct.
+There is no invented clock tolerance. Shared nicknames, titles, and provider
+ids do not select an event. A missing token is not recorded as verified.
 """
 from __future__ import annotations
 
@@ -12,7 +14,9 @@ from dataclasses import dataclass, field
 
 from .canonical import ct_date, normalize_name
 from .mapper import LEAGUE
-from .provider import ParsedEvent, ParsedMarket, ParsedSide, ParsedTeam, distinctive, parse_snapshot
+from .provider import (
+    ParsedEvent, ParsedMarket, ParsedSide, ParsedTeam, _aware_instant, distinctive, parse_snapshot,
+)
 
 _ML = {"h2h", "ml", "moneyline"}
 _SPREAD = {"spread", "ats"}
@@ -34,6 +38,7 @@ class IdentityResult:
     token_id: str | None = None
     token_status: str | None = None
     side: str | None = None
+    start_instant: str | None = None
 
 
 def _fail(reasons, **kwargs) -> IdentityResult:
@@ -169,7 +174,10 @@ def _duplicate_events(events: list[ParsedEvent]) -> list[ParsedEvent]:
     out = []
     for event in events:
         roster = tuple(sorted(tuple(sorted(team.strong_tokens)) for team in event.teams))
-        key = (tuple(sorted(event.provider_ids)), event.slug, event.event_date, event.league, roster)
+        key = (
+            tuple(sorted(event.provider_ids)), event.slug, event.event_date, event.league, roster,
+            None if event.start_instant is None else event.start_instant.isoformat(),
+        )
         if key in seen:
             continue
         seen.add(key)
@@ -194,6 +202,9 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
     if not distinctive(normalize_name(home)) or not distinctive(normalize_name(away)):
         return _fail(["mascot_only"], sport=sport, league=league)
     game_date, date_state = _entry_game_date(entry)
+    entry_instant, instant_state = _aware_instant(entry.get("start"))
+    if entry_instant is None:
+        return _fail(["start_time_unproven"], sport=sport, league=league)
     if game_date is None:
         return _fail(["date_unknown" if date_state != "disagree" else "entry_date_disagree"], sport=sport, league=league)
 
@@ -213,6 +224,8 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
     closed_hit = False
     id_without_participants = False
     malformed_hit = False
+    start_unproven = False
+    start_mismatch = False
     for event in events:
         home_hits = _which_teams(home, event.teams)
         away_hits = _which_teams(away, event.teams)
@@ -247,6 +260,12 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
         if event.closed:
             closed_hit = True
             continue
+        if event.start_status != "ok":
+            start_unproven = True
+            continue
+        if event.start_instant != entry_instant:
+            start_mismatch = True
+            continue
         participant_hits.append((event, away_hits[0], home_hits[0]))
 
     base = dict(sport=sport, league=league, event_date=game_date)
@@ -262,13 +281,23 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
             reasons.append("provider_date_disagree")
         if closed_hit:
             reasons.append("event_closed")
+        if start_mismatch:
+            reasons.append("start_time_mismatch")
+        if start_unproven:
+            reasons.append("start_time_unproven")
         if malformed_hit:
             reasons.append("provider_identity_malformed")
         if claimed and _claimed_on_other(events, claimed, set()):
             reasons.append("cross_game")
         return _fail(reasons, **base)
     if len(participant_hits) > 1:
-        return _fail(["ambiguous_event"], **base)
+        canon = entry.get("canonical_event_id")
+        if canon not in (None, ""):
+            narrowed = [hit for hit in participant_hits if hit[0].primary_id == str(canon)]
+            if len(narrowed) == 1:
+                participant_hits = narrowed
+        if len(participant_hits) > 1:
+            return _fail(["ambiguous_event"], **base)
 
     event, away_team, home_team = participant_hits[0]
     if away_team.id_status == "disagree" or home_team.id_status == "disagree":
@@ -281,6 +310,7 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
         event_slug=event.slug,
         event_date=event.event_date,
         participants=participants,
+        start_instant=None if event.start_instant is None else event.start_instant.isoformat(),
     )
     if market_name in _ML:
         return _finish_side(
@@ -421,9 +451,12 @@ def _bind(entry, event, market, side, pick_team, claimed, claimed_side, claimed_
     ok_token, token_reasons, token_status, token_id = _token_gate(side, claimed_token)
     if not ok_token:
         return _fail(token_reasons, **located, side=side_name, token_id=token_id, token_status=token_status)
+    token_verified = token_status == "ok" and bool(token_id)
     notes = []
     if token_status == "omitted_by_provider":
         notes.append("token_omitted_by_provider")
+    if not token_verified:
+        notes.append("token_not_verified")
     outcome = {
         "kind": kind,
         "pick": entry.get("pick"),
@@ -434,6 +467,8 @@ def _bind(entry, event, market, side, pick_team, claimed, claimed_side, claimed_
         "team_provider_id": None if pick_team is None else pick_team.provider_id,
         "token_id": token_id,
         "token_status": token_status,
+        "token_verified": token_verified,
+        "start_instant": located.get("start_instant"),
     }
     event_id = located.get("event_id")
     return IdentityResult(

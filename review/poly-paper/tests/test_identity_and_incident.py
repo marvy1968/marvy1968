@@ -260,6 +260,63 @@ def test_provider_id_does_not_select_or_block_a_real_participant_match():
     assert result.event_id == "synthetic-samford-unlv-event"
 
 
+def test_exact_start_splits_a_doubleheader_and_does_not_use_a_tolerance():
+    early = samford_event(startTime="2030-11-07T18:00:00Z", slug="synthetic-cbb-samford-unlv-2030-11-07-early")
+    early["id"] = "synthetic-samford-unlv-early"
+    early["markets"][0]["slug"] = "synthetic-samford-unlv-winner-early"
+    late = samford_event(startTime="2030-11-07T23:00:00Z", slug="synthetic-cbb-samford-unlv-2030-11-07-late")
+    late["id"] = "synthetic-samford-unlv-late"
+    late["markets"][0]["slug"] = "synthetic-samford-unlv-winner-late"
+    entry = samford_entry(start="2030-11-07T23:00:00Z")
+    result = assess(entry, {"events": [early, late]}, claimed_slug="synthetic-samford-unlv-winner-late",
+                    claimed_side="long", claimed_token="synthetic-token-samford")
+    assert result.ok, result.reasons
+    assert result.event_id == "synthetic-samford-unlv-late"
+    wrong = assess(entry, {"events": [early, late]}, claimed_slug="synthetic-samford-unlv-winner-early",
+                   claimed_side="long", claimed_token="synthetic-token-samford")
+    assert "slug_disagrees" in wrong.reasons or "start_time_mismatch" in wrong.reasons
+    off_by_a_second = samford_entry(start="2030-11-07T23:00:01Z")
+    missed = assess(off_by_a_second, {"events": [late]}, claimed_slug="synthetic-samford-unlv-winner-late",
+                    claimed_side="long", claimed_token="synthetic-token-samford")
+    assert "start_time_mismatch" in missed.reasons
+    date_only = samford_event()
+    date_only.pop("startTime")
+    unproven = assess(samford_entry(), {"events": [date_only]}, claimed_slug="synthetic-samford-unlv-winner",
+                      claimed_side="long", claimed_token="synthetic-token-samford")
+    assert "start_time_unproven" in unproven.reasons
+
+
+def test_same_participants_and_start_are_ambiguous_unless_one_canonical_event():
+    one = samford_event()
+    other = samford_event()
+    other["id"] = "synthetic-samford-unlv-event-2"
+    other["slug"] = "synthetic-cbb-samford-unlv-2030-11-07-b"
+    other["markets"][0]["slug"] = "synthetic-samford-unlv-winner-b"
+    ambiguous = assess(samford_entry(), {"events": [one, other]},
+                       claimed_slug="synthetic-samford-unlv-winner", claimed_side="long",
+                       claimed_token="synthetic-token-samford")
+    assert ambiguous.reasons == ["ambiguous_event"]
+    chosen = assess(samford_entry(canonical_event_id="synthetic-samford-unlv-event"),
+                    {"events": [one, other]}, claimed_slug="synthetic-samford-unlv-winner",
+                    claimed_side="long", claimed_token="synthetic-token-samford")
+    assert chosen.ok, chosen.reasons
+    assert chosen.event_id == "synthetic-samford-unlv-event"
+
+
+def test_omitted_token_is_not_marked_verified():
+    event = samford_event(include_token=False)
+    result = assess(samford_entry(), {"events": [event]}, claimed_slug="synthetic-samford-unlv-winner",
+                    claimed_side="long", claimed_token=None)
+    assert result.ok, result.reasons
+    assert result.token_id is None
+    assert result.outcome["token_verified"] is False
+    assert "token_not_verified" in result.notes
+    assert "token_omitted_by_provider" in result.notes
+    verified = assess(samford_entry(), {"events": [samford_event()]}, claimed_slug="synthetic-samford-unlv-winner",
+                      claimed_side="long", claimed_token="synthetic-token-samford")
+    assert verified.outcome["token_verified"] is True
+
+
 def test_homoglyph_does_not_match():
     event = samford_event(away_team=team("synthetic-samford", "Samf\u043erd Bulldogs", "Bulldogs"))
     result = assess(samford_entry(), {"events": [event]}, claimed_slug="synthetic-samford-unlv-winner",

@@ -254,6 +254,30 @@ class GuardedConnection:
             return
 
 
+def read_legacy_fills(path: str):
+    """Read a pre-existing fills table without creating, altering, or migrating it.
+
+    This is not authorization to open the host ledger. Callers that only need to
+    inspect history use a read-only URI. Nothing is rewritten.
+    """
+    real = _check_path(path)
+    if not os.path.exists(real):
+        raise LedgerRefusal("legacy ledger does not exist")
+    before = open(real, "rb").read()
+    probe = sqlite3.connect(f"file:{real}?mode=ro", uri=True)
+    try:
+        probe.row_factory = sqlite3.Row
+        names = {row[0] for row in probe.execute("select name from sqlite_master where type='table'")}
+        if "fills" not in names:
+            raise LedgerRefusal("legacy ledger has no fills table")
+        rows = [dict(row) for row in probe.execute("select * from fills order by id")]
+    finally:
+        probe.close()
+    if open(real, "rb").read() != before:
+        raise LedgerRefusal("legacy read changed the file")
+    return rows
+
+
 def connect(path: str) -> GuardedConnection:
     real = _check_path(path)
     kind = _existing_kind(real)

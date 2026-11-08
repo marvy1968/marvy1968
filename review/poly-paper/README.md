@@ -1,8 +1,31 @@
 # Polymarket PAPER identity review
 
-Review-only source for simulated Polymarket paper fills. It is not wired into startup,
-timers, workflows, or the VM updater. It does not place orders, read feeds, or open a
-production ledger.
+Review-only source. It is not wired into startup, timers, workflows, or the VM updater.
+It does not place orders, read feeds, or open a production ledger. It is not
+deployment-ready. No host migration is authorized, and historical fills are not rewritten.
+
+Two different things live here. They are not the same fix.
+
+## Boundary library (`poly_paper.writers.insert`)
+
+A caller builds a request and the library decides. It does **not** run `runner.main`
+or `pm_fill.fill`. Stake, edge, daily cap, one-bet-per-slug, and the runner's NFL-dog
+and CFB card exceptions are not applied. Two different keys for one event can both be
+accepted. Use this only to test the identity and audit rules in isolation.
+
+## Integrated writers (`poly_paper.integrated`)
+
+This loads the exported `runner.py` and `pm_fill.py` unchanged (hash-checked copies)
+and guards the connection `runner.db()` actually returns. `runner.main`, `pm_fill.fill`,
+`pm_me_track.main`, `marv_cbb`, `pm_nba_live.main`, and `live_props.poly_fill` all reach
+that connection. Their allocation, dedupe, edge, daily cap, and card-exception code is
+the exported code. The only new reject is identity: the insert is dropped when the
+provider event does not uniquely match the entry, or when the caller never supplied an
+entry and snapshot.
+
+Known writer connections are listed in `poly_paper.integrated.WRITER_CONNECTIONS`.
+`grader.db()` updates settlement columns and is not an insert path. A separate
+`sqlite3.connect` opened outside these functions is not what those writers use.
 
 Incident shape this is built to reject: a Samford at UNLV moneyline (source game
 401924912) was simulated as long "Bulldogs" on the Boyce–Liberty event after exact
@@ -40,10 +63,11 @@ fill. Settlement may set result and pnl only when the settlement names the store
 participants, and token. It does not change the stored game, and it does not settle a
 row twice.
 
-## Policy precedence
+## Library policy precedence
 
-Encoded in `poly_paper/effective_policy.json` and `poly_paper/policy.py`. Comments in the
-old source are not treated as new authority. The executable order is:
+This order is what `writers.insert` applies. It is **not** what `runner.main` applies.
+The integrated path leaves the exported writer's own gate, caps, and card exceptions in
+place and only adds the identity reject. Comments in the old source are not new authority.
 
 1. Missing switch directory, missing or malformed policy, or an unapproved conflict
    (Nov 17 auto switch, NCAAB ban, identity optional, NBA moneyline hold turned off,
@@ -76,32 +100,43 @@ python3 -m pytest review/poly-paper/tests -q
 The tests use the synthetic fixture and an in-memory-style temporary sqlite file. They
 do not open a network socket, a real `pm_paper.db`, or `/opt`.
 
-## Limits and remaining decisions
+## Identity added on both paths
 
-- Token ids are not in the screened public client or the observed fill. When a payload
-  has no token field, a unique participant match can still paper-fill and the audit
-  records `token_omitted_by_provider`. A present token list that is not bound to a side
-  (`clobTokenIds`) is rejected instead of assigned by index. Empty-string tokens are
-  omitted; disagreeing token fields are rejected.
-- Abbreviations alone do not identify a school. `UNLV` matches when it is a full alias,
-  not when it exists only as a three-letter abbreviation.
-- Game dates use America/Chicago. A naive timestamp is unknown and does not fill.
-- Spread and total fills must be the identified event and the right team or over/under.
-  The line picked inside 0.5 points is left to the mapper. This package does not redo it.
-- Props fill only when the snapshot has both participants and explicit player, stat, and
-  line. A slug and a player name are not enough.
-- Edge, stake, calibration, daily cap, Bovada lookup, and one-bet-per-slug dedupe stay
-  outside this package. `insert()` will accept two different keys on one event if identity
-  and policy pass. The baseline runner still has those guards; this review does not run it.
-- With `PM_TRADE_ALL` off, the boundary follows the allowlist. It does not recreate the
-  runner's NFL-dog or CFB card exceptions. Under the default, trade-all on, those
-  exceptions are not what authorizes the fill.
-- `h2h_cfb` remains tradable while trade-all is on, because `allowed()` returns before
-  `never_trade`. Turning that into a hold would be a policy change and is not done here.
-- The guard covers this package's connection. A separate `sqlite3.connect` to the same
-  file, or code that clears the authorizer on the private connection object, is outside
-  it. Public `execute`, `executemany`, and `executescript` cannot insert.
-- A database that already has `fills` and is not this review schema is refused. It is
-  not migrated. Fill 619 is not rewritten.
-- This tree does not change stake, edge, fees, model selection, or NBA prop handling.
-  Fee math is checked, not replaced.
+`assess` is shared. A fill needs both participants by full alias (`Samford` matches
+`Samford Bulldogs`; `North Samford` and a shared nickname do not), the same UTC start
+instant, and one outcome side. The calendar date is not enough. A one-second difference
+does not match. Two events with the same teams and the same start are ambiguous unless
+the entry names exactly one canonical event id. An ESPN id is not that id.
+
+`token_verified` is true only when the provider sent a token and it is the matched
+side's token. An omitted token can still paper-fill, and the audit says
+`token_verified: false` and `token_omitted_by_provider`. That null is not a verified
+token. A later settlement that supplies a token for that fill is rejected.
+
+Settlement of a new integrated fill changes result and pnl only. It does not change
+pick, slug, key, side, contracts, price, fee, or cost. `read_legacy_fills` reads a
+pre-existing fills table and does not write it. `connect()` still refuses to open that
+file as a review schema.
+
+## Blockers and uncovered behavior
+
+- **BLOCKER — the library gate is not the writer gate.** `policy.evaluate` fails closed
+  on a missing type gate and, with trade-all off, would reject NFL dogs that
+  `runner.main` still fills. The integrated path does not call `policy.evaluate`.
+  Using it would change existing authorization. Pretending the library is the writer
+  would hide that change. Stake, caps, dedupe, and card exceptions stay in the
+  exported functions.
+- **Uncovered — calibration tiers.** The writers load `/opt/kalshi-demo/calib_size.py`.
+  That file is absent here, the existing exception keeps `max_stake_usd`, and this
+  review does not create the host path or reimplement the Kelly tiers. Parity tests
+  check that fallback cap. They do not claim the tier table ran.
+- **Identity gap — live props.** `pm_nba_live.main` and `live_props.poly_fill` do call
+  the real `pm_fill.fill`. They do not pass home, away, start, or a provider snapshot.
+  The insert is rejected as `identity_context_missing`. Participants are not invented
+  from the slug, so a legitimate live prop cannot pass until those callers carry that
+  evidence.
+- **Label limit.** Unchanged `pm_fill.fill` reports a zero rowcount as `dup key`. An
+  identity reject therefore comes back from `fill()` with that string. The audit row
+  has the identity reason. The source string was not edited.
+- **Not a host migration.** A pre-existing fills file with no audit table is refused by
+  `runner.db()`. Nothing here rewrites fill 619 or authorizes a production cutover.

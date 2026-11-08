@@ -1,9 +1,8 @@
-"""Entry points that correspond to the baseline fill writers.
+"""Boundary library only. This is not the runtime-equivalent writer fix.
 
-runner.py and pm_fill.py are the only modules in the screened tree that insert
-into fills. pm_nba_live, pm_me_track (including marv_cbb), and live_props call
-pm_fill.fill and do not insert themselves. Those callers are routed here. Their
-model and network code is not imported.
+`insert` checks a caller-supplied request. It does not run runner.main or
+pm_fill.fill, so it does not apply their stake, edge, daily cap, slug dedupe,
+or card exceptions. The integrated path is `poly_paper.integrated`.
 """
 from __future__ import annotations
 
