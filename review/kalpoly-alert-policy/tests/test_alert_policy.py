@@ -166,11 +166,11 @@ def test_summary_scope_receipt_crash_and_restart():
         raise RuntimeError("crash after the socket and before a receipt")
 
     crashed = publish_summary(con, now=FRI_2100, poly_rows=[], kalshi_rows=[], transport=boom)
-    assert crashed["status"] == "unknown" and crashed["delivery_proven"] is False
+    assert crashed["status"] == "ambiguous" and crashed["delivery_proven"] is False and crashed["receipt"] is None
     assert crashed["exactly_once_telegram"] is False and calls
     restarted = publish_summary(con, now=datetime(2026, 11, 6, 21, 30, tzinfo=CT), poly_rows=[], kalshi_rows=[],
                                 transport=lambda text: (_ for _ in ()).throw(AssertionError("second post")))
-    assert restarted["posted"] is False and restarted["status"] == "unknown"
+    assert restarted["posted"] is False and restarted["status"] == "ambiguous"
     fresh = sqlite3.connect(":memory:", isolation_level=None)
     posted = publish_summary(fresh, now=MON_2100, poly_rows=[], kalshi_rows=[], transport=lambda text: Receipt("http_200"))
     assert posted["delivery_proven"] is True and posted["exactly_once_telegram"] is False

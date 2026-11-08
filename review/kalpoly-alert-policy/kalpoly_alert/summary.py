@@ -96,8 +96,18 @@ def render(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: 
         f"Kalshi DEMO unknown finishes {kalshi['unknown_count']}",
         "starting baseline UNKNOWN. 10000 is a configured risk bankroll, not a baseline. 2500 is not a verified Kalshi baseline.",
     ])
-    con.execute("INSERT INTO summary_slot(ct_date, rendered_at, body) VALUES (?,?,?)", (slot, generated, body))
-    con.commit()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        prior = con.execute("SELECT body FROM summary_slot WHERE ct_date=?", (slot,)).fetchone()
+        if prior:
+            con.commit()
+            return {"slot": slot, "created": False, "body": prior[0]}
+        con.execute("INSERT INTO summary_slot(ct_date, rendered_at, body) VALUES (?,?,?)", (slot, generated, body))
+        con.commit()
+    except sqlite3.IntegrityError:
+        con.rollback()
+        body = con.execute("SELECT body FROM summary_slot WHERE ct_date=?", (slot,)).fetchone()[0]
+        return {"slot": slot, "created": False, "body": body}
     return {"slot": slot, "created": True, "body": body}
 
 
@@ -111,53 +121,60 @@ CREATE TABLE IF NOT EXISTS summary_receipt (
 
 
 def publish_summary(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: list[dict], transport) -> dict:
-    """Render first. A later crash, or two processes, cannot prove exactly one Telegram post."""
+    """One local claim per Central date. A lost Telegram response is not a receipt and is not retried."""
     from .delivery import Receipt
     rendered = render(con, now=now, poly_rows=poly_rows, kalshi_rows=kalshi_rows)
     if rendered is None:
         return {"status": "not_due", "posted": False, "delivery_proven": False, "exactly_once_telegram": False}
     con.execute(RECEIPT)
-    row = con.execute("SELECT state, receipt FROM summary_receipt WHERE ct_date=?", (rendered["slot"],)).fetchone()
-    if row is not None:
-        proven = row[0] == "delivered" and row[1] == "http_200"
-        return {"status": row[0], "posted": False, "delivery_proven": proven,
-                "exactly_once_telegram": False, "body": rendered["body"]}
-    con.execute(
-        "INSERT INTO summary_receipt(ct_date, state, receipt) VALUES (?,?,NULL)",
-        (rendered["slot"], "posting"),
-    )
-    con.commit()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        row = con.execute(
+            "SELECT state, receipt FROM summary_receipt WHERE ct_date=?",
+            (rendered["slot"],),
+        ).fetchone()
+        if row is not None:
+            con.commit()
+            proven = row[0] == "delivered" and row[1] == "http_200"
+            return {"status": row[0], "posted": False, "delivery_proven": proven,
+                    "exactly_once_telegram": False, "body": rendered["body"]}
+        con.execute(
+            "INSERT INTO summary_receipt(ct_date, state, receipt) VALUES (?,?,NULL)",
+            (rendered["slot"], "ambiguous"),
+        )
+        con.commit()
+    except sqlite3.IntegrityError:
+        con.rollback()
+        return {"status": "ambiguous", "posted": False, "delivery_proven": False, "exactly_once_telegram": False}
     try:
         receipt = transport(rendered["body"])
     except Exception:
-        con.execute(
-            "UPDATE summary_receipt SET state='unknown', receipt='exception_before_result' WHERE ct_date=?",
-            (rendered["slot"],),
-        )
-        con.commit()
-        return {"status": "unknown", "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
-    if not isinstance(receipt, Receipt):
-        receipt = Receipt("unknown")
+        return {"status": "ambiguous", "posted": True, "delivery_proven": False, "exactly_once_telegram": False,
+                "receipt": None}
+    if not isinstance(receipt, Receipt) or receipt.code == "unknown":
+        return {"status": "ambiguous", "posted": True, "delivery_proven": False, "exactly_once_telegram": False,
+                "receipt": None}
     if receipt.delivered:
         try:
-            con.execute("BEGIN")
+            con.execute("BEGIN IMMEDIATE")
             con.execute(
-                "UPDATE summary_receipt SET state='delivered', receipt=? WHERE ct_date=?",
+                "UPDATE summary_receipt SET state='delivered', receipt=? WHERE ct_date=? AND state='ambiguous'",
                 (receipt.code, rendered["slot"]),
             )
             con.commit()
         except sqlite3.Error:
             con.rollback()
-            return {"status": "unknown", "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
+            return {"status": "ambiguous", "posted": True, "delivery_proven": False, "exactly_once_telegram": False,
+                    "receipt": None}
         return {"status": "delivered", "posted": True, "delivery_proven": True, "exactly_once_telegram": False,
-                "body": rendered["body"]}
-    state = "unknown" if receipt.code == "unknown" else "failed"
+                "body": rendered["body"], "receipt": receipt.code}
     con.execute(
-        "UPDATE summary_receipt SET state=?, receipt=? WHERE ct_date=?",
-        (state, receipt.code, rendered["slot"]),
+        "UPDATE summary_receipt SET state='failed', receipt=? WHERE ct_date=?",
+        (receipt.code, rendered["slot"]),
     )
     con.commit()
-    return {"status": state, "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
+    return {"status": "failed", "posted": True, "delivery_proven": False, "exactly_once_telegram": False,
+            "receipt": receipt.code}
 
 
 def load_policy(path) -> dict:

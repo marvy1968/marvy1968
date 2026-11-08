@@ -24,13 +24,23 @@ Urgent notices are a separate table. They do not set `sent` and they do not ente
 
 `card_rules.py` is already in the VM archive at `source/marv-feed/card_rules.py` and is called from `me_alerts.py` line 197 for non-prop entries. This review does not run it.
 
-## Files still required
+## Fourteen gate files
 
-`EXPORT_REQUEST.json` lists the absolute paths. Each line was checked against the hashed provenance. Do not send configs, env, credentials, databases, or logs.
+Archive SHA256 `f876c61bf08051f4425e33393a61dc104afd5a1d43ae42498535d0e74ea5e2dd`. All fourteen delivered files have empty redaction lists, and each export hash equals the original hash. They are under `provenance/gate-source/`. The earlier 79-file provenance is unchanged.
+
+`cfb_track`, `nfl_live_rec_track`, `ncaaf_live_track`, `live_prop_ev50_track`, `me_gates`, `nba_props_tg`, `h2h_model.alert_append`, and `gamecast.hold_check` are the functions the tests call. `hold_check` is given a situation object, so it does not fetch ESPN. Env vars are absent in the test, which is the source default, not the VM EnvironmentFile.
+
+Under that explicit fixture, Monday and Saturday produce the same reasons: a CFB player prop is `cfb_track`, a total swing is `me_gates`, a second same-side moneyline is `double_dip`, a fixture verdict of `not` is `vetoed`, a dry run is `dry_run`, and a missing `league_allow` is `league_allow_unknown`. None of those write `sent=1` or become feed-eligible. A red-zone drive holds. An empty verdict is not treated as an overlay result.
+
+## Still blocked
+
+These names are in the static import inventory and are not in the fourteen files or the 79-file ajbet set: `markets`, `mybook`, `tgfmt`, `espn`, `injuries`, `models`, and `config`. `alerts.py` and `db.py` are already in the 79-file provenance. `card_rules.py` is already in that archive. They are not requested again. No configs, env, credentials, databases, or logs are requested.
+
+`live_guard` cannot be imported without `espn`. `strategies` and `friendly` cannot be imported without `markets`, `mybook`, and `tgfmt`. `enrich` cannot be imported without `injuries`. The Marv overlay is an HTTP call and is not made. A pregame prop that passes the track gates is still `missing_dependency` because that overlay did not run. It is not added to the feed on either day. Edge and stake code after `to_entry` is not run.
 
 ## Activation is blocked
 
-No cron, unit, or installer is changed. These tests do not replay `send()` and do not show that Monday and Saturday would-bet sets match.
+No cron, unit, or installer is changed. The local summary claim is one row per Central date, so two local processes do not both post. A lost response stays `ambiguous` with a null receipt and is not retried. That is not proof Telegram delivered exactly once.
 
 ## Test
 
@@ -38,4 +48,4 @@ No cron, unit, or installer is changed. These tests do not replay `send()` and d
 python3 -m pytest review/kalpoly-alert-policy/tests -q
 ```
 
-9 passed. The tests check source line text, the closed eligibility table, Central Friday through Monday and DST, receipt failure, and the two-venue summary. They are not live selection parity.
+13 passed. Nine cover the closed table, the clock, and the summary claim. Four call the exported gate functions on fixture rows. They are not a live replay of `send()` and not edge or stake parity.
