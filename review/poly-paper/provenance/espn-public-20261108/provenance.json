@@ -1,0 +1,75 @@
+{
+  "public_data_requests": [
+    {
+      "name": "espn-401909938",
+      "url": "https://www.espn.com/nba/game/_/gameId/401909938",
+      "fetched_CT": "2026-11-08T10:57:11.748159-06:00",
+      "http_status": "200",
+      "curl_exit": 0,
+      "original_response_sha256": "aa3d3a91f521a6be7750964edeef0dbe53fe9a9000bf6cc658fc457c61a908dd",
+      "bytes": 852722
+    },
+    {
+      "name": "espn-401909939",
+      "url": "https://www.espn.com/nba/game/_/gameId/401909939",
+      "fetched_CT": "2026-11-08T10:57:11.826717-06:00",
+      "http_status": "200",
+      "curl_exit": 0,
+      "original_response_sha256": "222c709ded7aa65928ee9565a2940bdbb5301b33ccf4981ead4e33c7fad39669",
+      "bytes": 908306
+    },
+    {
+      "name": "poly-jokic",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+      "fetched_CT": "2026-11-08T10:57:12.079527-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    {
+      "name": "poly-siakam",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+      "fetched_CT": "2026-11-08T10:57:12.212747-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    {
+      "name": "poly-mccollum",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+      "fetched_CT": "2026-11-08T10:57:12.344476-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    {
+      "name": "espn-box-401909938",
+      "url": "https://www.espn.com/nba/boxscore/_/gameId/401909938",
+      "fetched_CT": "2026-11-08T10:57:30.381803-06:00",
+      "http_status": "200",
+      "curl_exit": 0,
+      "original_response_sha256": "2cc50be1c89dc441943807c762ed4c58bcb523e472327ac2cf8ab0f641d618c5",
+      "bytes": 561159
+    },
+    {
+      "name": "espn-box-401909939",
+      "url": "https://www.espn.com/nba/boxscore/_/gameId/401909939",
+      "fetched_CT": "2026-11-08T10:57:30.630170-06:00",
+      "http_status": "200",
+      "curl_exit": 0,
+      "original_response_sha256": "c5314988e7c63e3ec1a01efcca0bc79840462590ac1e9f20a43c6fea742650cc",
+      "bytes": 564661
+    }
+  ],
+  "public_read_count": 8,
+  "read_count_definition": "7 curl data reads plus 1 official Polymarket documentation WebFetch; no retries/polling",
+  "documentation_url": "https://docs.polymarket.com/developers/gamma-markets-api/get-markets",
+  "documentation_method": "WebFetch; documented /markets/slug/{slug} used",
+  "connector_check": "SearchPlugins found no matching ESPN or Polymarket connector; none installed",
+  "input_partial_archive_sha256": "7f8f182dad5468e95d8a06249bf74c3988f6d021cdb4512e00ada33dc5f516b0",
+  "response_hash_semantics": "Exact HTTP body bytes returned by curl, including unsuccessful 404 JSON. Raw HTML is excluded from this bundle.",
+  "whitelist": "Game IDs, sport/league, listed start in CST, team identities/home designation, selected athlete IDs/name/team association, public source URLs, response hashes and fetch timestamps only; no page configs/tracking objects/raw HTML included."
+}

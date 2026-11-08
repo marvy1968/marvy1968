@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "trade": ["ml:cfb"],
+  "never_trade": ["h2h_cfb"],
+  "pin_track": ["ml:nfl"],
+  "force_track": ["prop:nfl:pre"]
+}

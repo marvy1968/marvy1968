@@ -1,0 +1,89 @@
+[
+  {
+    "synthetic_row_id": "synthetic-fill-01",
+    "observed_runtime_claim": {
+      "key": "nbalive:401909938:nikola jokic:STL:3:long",
+      "market_slug": "astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+      "pick": "Nikola Jokic 3+ STL",
+      "side": "long",
+      "fill_time_CT": "2026-11-07T16:18:07.949365-06:00"
+    },
+    "source_event_id_from_runtime_key": "401909938",
+    "independent_source_event_record": "public-source-events.json#401909938",
+    "source_identity_assessment": "Current ESPN page independently identifies keyed game and named player team; does not prove original at-fill payload or authorize a provider match.",
+    "mapped_provider_lookup": {
+      "name": "poly-jokic",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-den-ind-2026-11-07-stl-nikjok-gte3",
+      "fetched_CT": "2026-11-08T10:57:12.079527-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    "mapped_provider_event": null,
+    "mapped_provider_start": null,
+    "mapped_provider_participants": null,
+    "mapped_provider_prop_outcomes": null,
+    "token_availability": null,
+    "comparison": "UNVERIFIABLE_PROVIDER_SIDE; neither match nor mismatch established",
+    "valid_positive_parity_fixture": false
+  },
+  {
+    "synthetic_row_id": "synthetic-fill-02",
+    "observed_runtime_claim": {
+      "key": "nbalive:401909938:pascal siakam:AST:4:short",
+      "market_slug": "astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+      "pick": "Pascal Siakam NOT 4+ AST",
+      "side": "short",
+      "fill_time_CT": "2026-11-07T17:32:08.225291-06:00"
+    },
+    "source_event_id_from_runtime_key": "401909938",
+    "independent_source_event_record": "public-source-events.json#401909938",
+    "source_identity_assessment": "Current ESPN page independently identifies keyed game and named player team; does not prove original at-fill payload or authorize a provider match.",
+    "mapped_provider_lookup": {
+      "name": "poly-siakam",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-den-ind-2026-11-07-ast-passia-gte4",
+      "fetched_CT": "2026-11-08T10:57:12.212747-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    "mapped_provider_event": null,
+    "mapped_provider_start": null,
+    "mapped_provider_participants": null,
+    "mapped_provider_prop_outcomes": null,
+    "token_availability": null,
+    "comparison": "UNVERIFIABLE_PROVIDER_SIDE; neither match nor mismatch established",
+    "valid_positive_parity_fixture": false
+  },
+  {
+    "synthetic_row_id": "synthetic-fill-03",
+    "observed_runtime_claim": {
+      "key": "nbalive:401909939:cj mccollum:PRA:20:long",
+      "market_slug": "astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+      "pick": "CJ McCollum 20+ PRA",
+      "side": "long",
+      "fill_time_CT": "2026-11-07T19:00:11.503846-06:00"
+    },
+    "source_event_id_from_runtime_key": "401909939",
+    "independent_source_event_record": "public-source-events.json#401909939",
+    "source_identity_assessment": "Current ESPN page independently identifies keyed game and named player team; does not prove original at-fill payload or authorize a provider match.",
+    "mapped_provider_lookup": {
+      "name": "poly-mccollum",
+      "url": "https://gamma-api.polymarket.com/markets/slug/astatc-nba-bkn-atl-2026-11-07-pra-cjmcc-gte20",
+      "fetched_CT": "2026-11-08T10:57:12.344476-06:00",
+      "http_status": "404",
+      "curl_exit": 0,
+      "original_response_sha256": "fa8c7d156f1bbf62c6ac0cd41297f1cf597b54084eed8705a3ce644c48fc3676",
+      "bytes": 52
+    },
+    "mapped_provider_event": null,
+    "mapped_provider_start": null,
+    "mapped_provider_participants": null,
+    "mapped_provider_prop_outcomes": null,
+    "token_availability": null,
+    "comparison": "UNVERIFIABLE_PROVIDER_SIDE; neither match nor mismatch established",
+    "valid_positive_parity_fixture": false
+  }
+]

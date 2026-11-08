@@ -1,0 +1,10 @@
+[
+  {
+    "name": "fills",
+    "sql": "CREATE TABLE fills(id integer primary key, ts text, date text, key text, pick text,\n      slug text, side text, contracts real, price real, fee real, cost real, fair real, edge real, status text,\n      pnl real, result text, payout real, settle_px real, settled_ts text, settle_src text, me_type text, me_alert_id integer, lane text, bovada_price real, bovada_line real, bovada_ts text, unique(date,key))"
+  },
+  {
+    "name": "runs",
+    "sql": "CREATE TABLE runs(ts text, entries int, mapped int, filled int, note text)"
+  }
+]

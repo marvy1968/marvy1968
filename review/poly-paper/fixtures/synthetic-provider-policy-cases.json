@@ -1,0 +1,93 @@
+{
+  "synthetic": true,
+  "purpose": "Mock API/storage shapes for future offline tests; fabricated IDs explicitly prefixed synthetic. No real provider fetch or token.",
+  "input": {
+    "key": "ncaab:synthetic-samford-unlv:ml:away:None",
+    "sport": "ncaab",
+    "market": "ml",
+    "pick": "Samford Bulldogs ML",
+    "home": "UNLV Rebels",
+    "away": "Samford Bulldogs",
+    "game": "synthetic-samford-unlv",
+    "start": "2030-11-07T21:00:00Z",
+    "p": 0.1319,
+    "stake": 1
+  },
+  "league_event_response": {
+    "events": [
+      {
+        "id": "synthetic-boyce-liberty-event",
+        "slug": "synthetic-cbb-boyce-liberty-2030-11-07",
+        "closed": false,
+        "teams": [
+          {
+            "id": "synthetic-boyce",
+            "name": "Boyce",
+            "alias": "Bulldogs"
+          },
+          {
+            "id": "synthetic-liberty",
+            "name": "Liberty"
+          }
+        ],
+        "markets": [
+          {
+            "slug": "synthetic-boyce-liberty-winner",
+            "sportsMarketType": "basketball_full_game_winner",
+            "closed": false,
+            "question": "Synthetic Boyce vs Liberty winner",
+            "marketSides": [
+              {
+                "long": true,
+                "description": "Bulldogs",
+                "team": {
+                  "id": "synthetic-boyce",
+                  "name": "Boyce",
+                  "alias": "Bulldogs"
+                }
+              },
+              {
+                "long": false,
+                "description": "Liberty",
+                "team": {
+                  "id": "synthetic-liberty",
+                  "name": "Liberty"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "bbo_response": {
+    "marketData": {
+      "state": "MARKET_STATE_OPEN",
+      "bestAsk": {
+        "value": "0.02"
+      },
+      "bestBid": {
+        "value": "0.01"
+      },
+      "settlementPx": null
+    }
+  },
+  "policy_example": {
+    "enabled": true,
+    "trade": [
+      "ml:cfb"
+    ],
+    "force_track": [
+      "prop:nfl:pre"
+    ],
+    "test_override": "PM_TRADE_ALL=on"
+  },
+  "required_outcomes": [
+    "Never map Samford-UNLV into Boyce-Liberty from mascot overlap.",
+    "Unknown/ambiguous identity must produce no simulated fill, regardless of trade-all.",
+    "A verified NCAAB identity may PAPER-fill subject to unchanged stake/edge/budget rules and explicitly reviewed policy precedence.",
+    "Missing/malformed config must not silently authorize a fill.",
+    "Explicit force-hold must outrank broad paper override.",
+    "Persist observed records unchanged; do not repair619."
+  ]
+}

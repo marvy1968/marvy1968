@@ -1,0 +1,313 @@
+"""Reviewed PAPER authorization precedence.
+
+Observed VM behavior that this keeps when the reviewed policy file is valid:
+  * PM_TRADE_ALL defaults on and supersedes the narrow type_gate trade list.
+  * trade_all does not beat force_track or the NBA moneyline hold.
+  * trade_all still beats pin_track and never_trade, matching pm_type_gate.allowed.
+  * pm_fill lanes also require their PM_FILL_<LANE> switch and trade_all.
+
+Divergences, fail-closed on purpose:
+  * A missing or malformed policy or type gate authorizes nothing.
+  * The reviewed file must keep NCAAB eligible, must not ban NCAAB, must not
+    install a Nov 17 switch, and must not release the NBA moneyline hold.
+  * NBA moneyline is held from the sport and market as well as the type tag, so
+    a me_type label cannot relabel it.
+  * force_track is also applied to the sport/market type, so a me_type label
+    cannot hide prop:nfl:pre.
+  * Identity is not decided here. Callers must still reject an allow when
+    identity is not unique. trade_all cannot skip that step.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+_MK = {
+    "h2h": "ml", "ml": "ml", "moneyline": "ml", "total": "total", "spread": "spread", "ats": "spread",
+    "team_total": "team_total", "tt": "team_total", "prop": "prop",
+}
+_SPORTS = {"nfl", "cfb", "nba", "nhl", "mlb", "wnba", "soccer", "ncaab", "ncaaw", "cbb", "euroleague", "mls", "epl"}
+_OFF = {"off", "0", "false", "no"}
+_ML_MARKETS = {"h2h", "ml", "moneyline"}
+
+_REQUIRED = {
+    "policy_id",
+    "paper_only",
+    "preprod_enabled",
+    "live_orders",
+    "trade_all_default",
+    "identity_required",
+    "trade_all_cannot_bypass",
+    "ncaab_paper_eligible",
+    "ncaab_track_only_ban",
+    "nov17_auto_switch",
+    "nba_ml_hold",
+}
+_CANNOT_BYPASS = {"identity", "force_track", "nba_hold", "unknown_or_malformed_policy", "hard_kill"}
+_GATE_KEYS = {"enabled", "trade", "never_trade", "pin_track", "force_track"}
+
+
+def classify(key=None, me_type=None, market=None, sport=None):
+    """Same tag rules as baseline pm_type_gate.classify."""
+    if me_type and me_type not in ("marv",):
+        return str(me_type)
+    k = str(key or "").lower()
+    parts = k.split(":")
+    sp = str(sport or "").lower() or None
+    if k.startswith(("pmprop:", "prop:")) or str(market or "").lower() == "prop":
+        return f"prop:{sp or 'nfl'}"
+    if k.startswith("live:"):
+        return "legacy_prop"
+    if k.startswith("master:") and len(parts) >= 3:
+        return f"master_{_MK.get(parts[1], parts[1])}:{parts[2]}"
+    if parts and parts[0] in _MK and len(parts) >= 2:
+        return f"{_MK[parts[0]]}:{parts[1]}"
+    if parts and parts[0] in _SPORTS and len(parts) >= 3 and parts[2] in _MK:
+        return f"{_MK[parts[2]]}:{parts[0]}"
+    mk = _MK.get(str(market or "").lower(), str(market or "other").lower())
+    return f"{mk}:{sp or 'unknown'}"
+
+
+def _string_list(value, name, errors):
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        errors.append(f"{name}_malformed")
+        return []
+    return value
+
+
+def load_json(path: Path):
+    try:
+        return json.loads(path.read_text()), None
+    except FileNotFoundError:
+        return None, "missing"
+    except (OSError, json.JSONDecodeError, UnicodeError):
+        return None, "malformed"
+
+
+def validate_effective(document):
+    errors = []
+    if not isinstance(document, dict):
+        return ["policy_malformed"]
+    extra = set(document) - _REQUIRED
+    missing = _REQUIRED - set(document)
+    if extra or missing:
+        errors.append("policy_malformed")
+        return errors
+    if not isinstance(document.get("policy_id"), str) or not document["policy_id"].strip():
+        errors.append("policy_malformed")
+    if document.get("paper_only") is not True:
+        errors.append("paper_mode_violation")
+    if document.get("preprod_enabled") is not False or document.get("live_orders") is not False:
+        errors.append("paper_mode_violation")
+    if document.get("trade_all_default") not in ("on", "off"):
+        errors.append("policy_malformed")
+    if document.get("identity_required") is not True:
+        errors.append("unapproved_policy_conflict")
+    bypass = document.get("trade_all_cannot_bypass")
+    if not isinstance(bypass, list) or set(bypass) != _CANNOT_BYPASS:
+        errors.append("unapproved_policy_conflict")
+    if document.get("ncaab_paper_eligible") is not True or document.get("ncaab_track_only_ban") is not False:
+        errors.append("unapproved_policy_conflict")
+    if document.get("nov17_auto_switch") is not False:
+        errors.append("unapproved_policy_conflict")
+    if document.get("nba_ml_hold") is not True:
+        errors.append("unapproved_policy_conflict")
+    return errors
+
+
+def validate_type_gate(document):
+    if not isinstance(document, dict):
+        return ["policy_malformed"]
+    extra = {key for key in document if not str(key).startswith("_")} - _GATE_KEYS
+    if extra or not _GATE_KEYS <= set(document):
+        return ["policy_malformed"]
+    errors = []
+    if not isinstance(document.get("enabled"), bool):
+        errors.append("policy_malformed")
+    for name in ("trade", "never_trade", "pin_track", "force_track"):
+        _string_list(document.get(name), name, errors)
+    return errors
+
+
+def load_policy_dir(policy_dir):
+    policy_dir = Path(policy_dir)
+    effective, eff_err = load_json(policy_dir / "effective_policy.json")
+    gate, gate_err = load_json(policy_dir / "type_gate.json")
+    errors = []
+    if eff_err == "missing" or gate_err == "missing":
+        errors.append("policy_missing")
+    if eff_err == "malformed" or gate_err == "malformed":
+        errors.append("policy_malformed")
+    if effective is not None:
+        errors.extend(validate_effective(effective))
+    if gate is not None:
+        errors.extend(validate_type_gate(gate))
+    # De-dupe while keeping order.
+    ordered = []
+    for error in errors:
+        if error not in ordered:
+            ordered.append(error)
+    if ordered:
+        return None, None, ordered
+    return effective, gate, []
+
+
+def _flag_on(env, name, default_on: bool) -> bool:
+    if name not in env:
+        return default_on
+    return str(env.get(name)).lower() not in _OFF
+
+
+def force_track_match(type_tag, live, gate) -> bool:
+    listed = set(gate.get("force_track", []))
+    if type_tag in listed:
+        return True
+    if live is not None and f"{type_tag}:{'live' if live else 'pre'}" in listed:
+        return True
+    return False
+
+
+def nba_moneyline(type_tag, entry) -> bool:
+    if str(type_tag or "").lower().startswith("ml:nba"):
+        return True
+    sport = str((entry or {}).get("sport") or "").lower()
+    market = str((entry or {}).get("market") or "").lower()
+    return sport == "nba" and market in _ML_MARKETS
+
+
+def _switch_on(env, switch_dir: Path, name: str, default_on: bool, extra_dirs=()):
+    dirs = [Path(switch_dir), *[Path(d) for d in extra_dirs]]
+    if any((d / f"{name}_OFF").exists() for d in dirs if d.is_dir()):
+        return False
+    return _flag_on(env, name, default_on)
+
+
+def evaluate(entry, *, writer, lane_switch, policy_dir, switch_dir, env, live_order=False, price=None, extra_dirs=()):
+    """Writer authorization with the exported NFL/CFB/card exceptions.
+
+    Missing or malformed policy fails closed. That is the approved difference
+    from the writers' old fail-open config read. Identity is not decided here.
+    """
+    env = {} if env is None else env
+    if live_order:
+        return "fail_closed", ["live_order_refused"]
+    if switch_dir is None:
+        return "fail_closed", ["switch_dir_missing"]
+    switch_dir = Path(switch_dir)
+    if not switch_dir.is_dir():
+        return "fail_closed", ["switch_dir_missing"]
+    effective, gate, errors = load_policy_dir(policy_dir)
+    if errors:
+        return "fail_closed", errors
+    if (switch_dir / "KILL").exists() or any((Path(d) / "KILL").exists() for d in extra_dirs):
+        return "fail_closed", ["hard_kill"]
+    trade_all = _switch_on(env, switch_dir, "PM_TRADE_ALL", effective["trade_all_default"] == "on", extra_dirs)
+    force_on = _switch_on(env, switch_dir, "PM_FORCE_TRACK", True, extra_dirs)
+    pin_on = _switch_on(env, switch_dir, "PIN_TRACK", True, extra_dirs)
+    # Baseline pin file is PIN_TRACK_OFF in the repo dir, and env PIN_TRACK=off.
+    # _switch_on already maps PIN_TRACK_OFF and PIN_TRACK=off. Default is on, matching
+    # the baseline where the env must be explicitly off (empty env does not disable).
+    gate_active = _switch_on(env, switch_dir, "TYPE_GATE", True, extra_dirs) and bool(gate.get("enabled"))
+    # TYPE_GATE default in baseline is "not off", and enabled comes from the file.
+    # _switch_on default True plus enabled matches active() except the baseline env
+    # check is `TYPE_GATE` in off-list, defaulting to active when unset. Good.
+    classified = classify(entry.get("key"), entry.get("me_type"), entry.get("market"), entry.get("sport"))
+    derived = classify(entry.get("key"), None, entry.get("market"), entry.get("sport"))
+    live = entry.get("live")
+    if live is not None and not isinstance(live, bool):
+        return "fail_closed", ["request_malformed"]
+    reasons = []
+    if force_on and (
+        force_track_match(classified, live, gate) or force_track_match(derived, live, gate)
+    ):
+        reasons.append("force_track")
+    if effective["nba_ml_hold"] and (nba_moneyline(classified, entry) or nba_moneyline(derived, entry)):
+        reasons.append("nba_hold")
+    if writer == "pm_fill":
+        if not lane_switch or not isinstance(lane_switch, str):
+            return "fail_closed", ["lane_switch_missing"]
+        lane_on = _switch_on(env, switch_dir, "PM_FILL_" + lane_switch, True)
+        if not trade_all or not lane_on:
+            reasons.append("lane_off" if not lane_on else "trade_all_off")
+    if reasons:
+        return "track_reject", reasons
+    if trade_all:
+        return "allow", ["trade_all"]
+    market = str(entry.get("market") or "").lower()
+    ml = market in _ML_MARKETS
+    live_flag = bool(entry.get("live"))
+    px = None
+    if price is not None and not isinstance(price, bool):
+        try:
+            px = float(price)
+        except (TypeError, ValueError):
+            px = None
+    cfb_dog = ml and classified == "ml:cfb" and px is not None and px <= 0.50 and not live_flag and _switch_on(env, switch_dir, "PM_CFB_DOG_TRADE", True, extra_dirs)
+    nfl_dog = ml and classified == "ml:nfl" and px is not None and px <= 0.50 and not live_flag and _switch_on(env, switch_dir, "PM_NFL_DOG_TRADE", True, extra_dirs)
+    # Same order as runner.main: card rule, then CFB-favorite retag, then allow/pin/force.
+    if ml and px is not None and px <= 0.50 and not cfb_dog and not nfl_dog:
+        return "track_reject", ["card_rule"]
+    tt = classified
+    if ml and tt == "ml:cfb" and px is not None and px > 0.50 and _switch_on(env, switch_dir, "PM_CFB_FAV_TRACK", True, extra_dirs):
+        tt = "ml:cfb_fav"
+    if tt == "ml:cfb_fav":
+        return "track_reject", ["cfb_fav_track"]
+    if nfl_dog:
+        return "allow", ["nfl_dog"]
+    if tt in set(gate.get("never_trade", [])):
+        return "track_reject", ["never_trade"]
+    if pin_on and tt in set(gate.get("pin_track", [])):
+        return "track_reject", ["pin_track"]
+    if not gate_active:
+        return "allow", ["type_gate_off"]
+    if tt in set(gate.get("trade", [])):
+        reasons = ["allowlist"]
+        if cfb_dog:
+            reasons.append("cfb_dog")
+        return "allow", reasons
+    return "track_reject", ["not_on_allowlist"]
+
+
+def decide_fill(*, entry, snapshot, claimed_slug, claimed_side, claimed_token, price, writer, lane_switch, policy_dir, switch_dir, env, live_order=False, extra_dirs=()):
+    """The one authorization-plus-identity decision. Writers do not keep a second copy."""
+    from .identity import IdentityResult, assess
+
+    policy_action, policy_reasons = evaluate(
+        entry if isinstance(entry, dict) else {},
+        writer=writer,
+        lane_switch=lane_switch,
+        policy_dir=policy_dir,
+        switch_dir=switch_dir,
+        env=env,
+        live_order=live_order,
+        price=price,
+        extra_dirs=extra_dirs,
+    )
+    if not isinstance(entry, dict) or snapshot is None:
+        identity = IdentityResult(ok=False, reasons=["identity_context_missing"], notes=["token_not_verified"])
+    else:
+        identity = assess(entry, snapshot, claimed_slug=claimed_slug, claimed_side=claimed_side, claimed_token=claimed_token)
+    effective, gate, load_errors = load_policy_dir(policy_dir)
+    reasons = list(policy_reasons)
+    for code in load_errors:
+        if code not in reasons:
+            reasons.append(code)
+    if not identity.ok:
+        for code in identity.reasons:
+            if code not in reasons:
+                reasons.append(code)
+    if policy_action == "fail_closed" or load_errors:
+        action = "fail_closed"
+    elif not identity.ok or policy_action != "allow":
+        action = "track_reject"
+    else:
+        action = "accept"
+        reasons = list(policy_reasons) + list(identity.notes)
+    return {
+        "action": action,
+        "reasons": reasons,
+        "identity": identity,
+        "effective": effective,
+        "gate": gate,
+        "policy_action": policy_action,
+    }
