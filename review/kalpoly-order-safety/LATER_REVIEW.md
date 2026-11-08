@@ -1,6 +1,20 @@
 # Later review, not this change
 
-This package is the rank-1 order intent candidate only. Rank 2 identity, rank 3 liquidity, and rank 4 exposure stay separate. A missing-config fail-closed proposal belongs in later review code. This package does not change the current runtime's config behavior.
+This package is the rank-1 order intent candidate only. Rank 2 identity, rank 3 liquidity, and rank 4 exposure stay separate. A missing-config fail-closed proposal belongs in later review code. This package does not change the current runtime's config, stakes, bankroll, or eligibility.
+
+The DEMO client in this tree is a review candidate with an injected HTTP callable. Its tests do not replace the live POST path inside the running callers. Those callers are blocked in `caller_status.py`.
+
+## Coverage that still has to be qualified
+
+- The seven caller modules still execute the live POST. Connecting `DemoClient` to one of them is a separate review.
+- Orders already accepted under a client id this ledger did not create stay outside it. A ticker or size match is rejected as ambiguous.
+- Shard funding is fail-closed. This candidate does not record, retry, or protect a transfer, and it does not change a balance. A live shard snapshot is not fetched here. An explicit fact that says the shard is covered is only as good as the caller that supplies it.
+- `KALSHI_REST_PARTIAL` and `KALSHI_REST_S` are not observed. Resting behavior is whatever the caller passes.
+- The venue response is accepted only when `order_id` is a string and `fill_count` is an integer at the top level. A string or float fill stays unknown. Confirming the live response shape is still open.
+- Cancel of an order with no stored venue id sends no DELETE and stays `cancel_unknown`.
+- Polymarket paper persistence has no venue order to recover and no base URL.
+
+Passing the offline suite does not qualify a real order. No deployment recommendation follows from this candidate.
 
 ## PR 7 pause and health, read-only
 

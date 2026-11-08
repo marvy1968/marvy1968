@@ -1,26 +1,27 @@
-# Kalshi DEMO / Polymarket paper order-intent candidate
+# Kalshi DEMO order-intent candidate
 
-Review-only package for the first ranked order-safety gap: a crash between venue acceptance and the caller's log can orphan an accepted order, and a later retry builds a new client id.
+Review-only package for the rank-1 gap: `kalshi_demo.py` mints `uuid.uuid4()` inside `_place_ioc` and again for the resting remainder, then callers log after the HTTP call returns.
 
-This tree is not imported by a running service. It does not install a unit, open a socket, read a credential, or enable a live mode. The default objects persist to a path the caller supplies and call only the transport function the caller passes in.
+`order_safety.demo_client.DemoClient` is the source-backed review client. It builds the POST JSON from `kalshi_demo.py` lines 96-100 and 145-156, and the `client_order_id` in that JSON is the id already committed in the ledger. The HTTP callable is injected. Tests pass a fake. Nothing in this package opens a socket.
 
-## What the candidate does
+This is a review candidate. The running caller modules are not edited and are not imported. Their status is `blocked` in `caller_status.py`. Offline tests of this client are not an integrated fix and are not real-order qualification.
 
-`order_safety.OrderMachine` commits an intent and a stable `client_order_id` before it calls the transport. The id is UUID5 of a fixed namespace and `venue.mode.account.decision`. A second writer for the same decision finds that row and does not POST. A raised or unparseable response becomes `submit_unknown` and blocks that account. The block clears only when a later snapshot is explicit and consistent.
+## What the candidate covers
 
-A resting child is opened only after the parent fill count is known. Its count is the parent's remainder. A lost IOC response opens no child.
+- IOC and resting JSON: book side, `count` as `"N.00"`, four-decimal price, time in force, and `taker_at_cross`. The resting child id is a second persisted id. Its count is the parent's known remainder.
+- A lost or malformed response, a wrong client id, a wrong ticker or book side, or a non-integer `fill_count` stays `submit_unknown`. No resting child is opened. A new `DemoClient` on the same ledger does not POST that decision again.
+- Cancel sends `DELETE /portfolio/events/orders/{venue_order_id}` only when that id was stored from an explicit ack. The state stays `cancel_unknown`. A second sweep does not send another DELETE.
+- A `resting_orders.jsonl` row whose order id is not already in the ledger is ambiguous. The sweep sends nothing and does not create an intent.
+- Repeated identical snapshots keep the same fill counts. A snapshot that repeats one client id with two fill counts blocks and does not apply either. A missing non-terminal child blocks and does not become filled or cancelled.
+- Shard index 0 needs no transfer. An unknown shard, or a shard whose supplied balance is short of `limit_cents * count + 200`, raises `FundingUnsupported` before any intent or POST. This candidate does not move balances and does not claim transfer recovery.
 
-`request_cancel` records `cancel_requested` before the transport and always ends at `cancel_unknown`. A cancel body, including HTTP 200 or `reduced_by`, is not a cancelled order. Only a snapshot status `canceled` or `cancelled` with an explicit fill count can set `cancelled`.
+## What it does not cover
 
-An extra venue order, a missing non-terminal intent, a fill that disagrees, a non-explicit status, or a host that differs from the intent blocks further submits. The ledger does not rewrite those rows to filled or cancelled. Orders already `filled` or `cancelled` may be absent from a later open-order list; their state is left as it is.
+The seven caller sites in `caller_status.py` still call the live client, read environment or switch files, and log after acceptance. Importing them would be a service hook. They are blocked, not integrated.
 
-Kalshi is accepted only as `kalshi_demo` plus `mode=demo` plus one of the two demo hosts copied from `kalshi_demo.py`. `mode=live` and an account label of `unknown` are refused. Polymarket is a local paper ledger (`polymarket_paper` / `paper`) and rejects any base URL.
+`KALSHI_REST_PARTIAL` and `KALSHI_REST_S` are not read. `rest_enabled`, `now_s`, and `rest_seconds` have to be passed in. The 300-second default matches the source literal only when the caller passes it.
 
-Count, limit, and the caller's fee text are stored as given. This package does not recompute a fee and does not move shard funds.
-
-## How a call site would use it
-
-`order_safety.callers.place_demo` and `place_ioc_then_rest` are the seams for the sanitized Kalshi `place_order` sites listed in `CANDIDATE_PATCHES.md`. Tests call those functions with a fake transport. No production module imports them.
+Polymarket stays a local paper ledger and rejects a base URL. There is no live Polymarket order API here.
 
 ## Tests
 
@@ -28,4 +29,4 @@ Count, limit, and the caller's fee text are stored as given. This package does n
 PYTHONPATH=review/kalpoly-order-safety python3 -m unittest discover -s review/kalpoly-order-safety/tests -v
 ```
 
-The suite is offline. A passing run does not qualify a real order.
+21 tests, no network. Twelve exercise the ledger. Nine drive `DemoClient` and inspect the request JSON.

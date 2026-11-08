@@ -113,6 +113,7 @@ class OrderMachine:
                   limit_cents INTEGER,
                   fee_text TEXT,
                   host TEXT,
+                  expiration_ts INTEGER,
                   state TEXT NOT NULL,
                   venue_order_id TEXT,
                   filled_count INTEGER,
@@ -184,7 +185,8 @@ class OrderMachine:
     def submit(self, transport, *, venue: str, mode: str, account_label: str, decision_id: str,
                ticker: str, side: str, count: int, limit_cents: int, caller: str,
                base_url: str | None = None, fee_text: str | None = None,
-               role: str = "parent", parent_intent_id: str | None = None) -> dict:
+               role: str = "parent", parent_intent_id: str | None = None,
+               expiration_ts: int | None = None) -> dict:
         host = self._check_venue(venue, mode, base_url)
         account_label = _token(account_label, "account_label")
         decision_id = _token(decision_id, "decision_id")
@@ -197,6 +199,8 @@ class OrderMachine:
         limit_cents = _cents(limit_cents)
         if fee_text is not None and (not isinstance(fee_text, str) or len(fee_text) > 32 or any(ch not in "0123456789." for ch in fee_text)):
             raise ValueError("fee_text")
+        if expiration_ts is not None and (isinstance(expiration_ts, bool) or not isinstance(expiration_ts, int) or expiration_ts < 0):
+            raise ValueError("expiration_ts")
         intent_id = f"{venue}.{mode}.{account_label}.{decision_id}"
         client_order_id = client_order_id_for(intent_id)
         owned = False
@@ -228,12 +232,12 @@ class OrderMachine:
                     conn.execute(
                         """INSERT OR IGNORE INTO intents(
                             intent_id, client_order_id, venue, mode, account_label, decision_id, role,
-                            parent_intent_id, ticker, side, count, limit_cents, fee_text, host, state,
-                            caller, created_at, updated_at)
-                           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'recorded', ?, ?, ?)""",
+                            parent_intent_id, ticker, side, count, limit_cents, fee_text, host,
+                            expiration_ts, state, caller, created_at, updated_at)
+                           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'recorded', ?, ?, ?)""",
                         (intent_id, client_order_id, venue, mode, account_label, decision_id, role,
-                         parent_intent_id, ticker, side, count, limit_cents, fee_text, host, caller,
-                         _now(), _now()))
+                         parent_intent_id, ticker, side, count, limit_cents, fee_text, host,
+                         expiration_ts, caller, _now(), _now()))
                     row = conn.execute("SELECT * FROM intents WHERE intent_id=?", (intent_id,)).fetchone()
                     if row["count"] != count or row["limit_cents"] != limit_cents or row["ticker"] != ticker or row["side"] != side:
                         conn.execute("COMMIT")
@@ -323,7 +327,7 @@ class OrderMachine:
 
     def open_resting_child(self, transport, *, parent_intent_id: str, account_label: str,
                            venue: str = "kalshi_demo", mode: str = "demo", base_url: str,
-                           caller: str) -> dict:
+                           caller: str, expiration_ts: int | None = None) -> dict:
         """One resting remainder. Its count is the parent remainder, not a new size."""
         parent_intent_id = _token(parent_intent_id, "parent") if len(parent_intent_id) <= 96 else parent_intent_id
         if not isinstance(parent_intent_id, str) or not parent_intent_id or len(parent_intent_id) > 240:
@@ -341,7 +345,8 @@ class OrderMachine:
         return self.submit(
             transport, venue=venue, mode=mode, account_label=account_label, decision_id=child_id,
             ticker=parent["ticker"], side=parent["side"], count=remainder, limit_cents=parent["limit_cents"],
-            caller=caller, base_url=base_url, role="resting_child", parent_intent_id=parent["intent_id"])
+            caller=caller, base_url=base_url, role="resting_child", parent_intent_id=parent["intent_id"],
+            expiration_ts=expiration_ts)
 
     def request_cancel(self, transport, *, intent_id: str, account_label: str, venue: str, mode: str,
                        base_url: str | None = None) -> dict:
@@ -417,6 +422,20 @@ class OrderMachine:
                     problems.append("recovery host does not match the intent")
             updates = []
             seen = set()
+            seen_payload = {}
+            for cid, status, filled, order_id in parsed:
+                payload = (status, filled, order_id)
+                if cid in seen_payload and seen_payload[cid] != payload:
+                    problems.append("snapshot repeats a client id with different data")
+                seen_payload[cid] = payload
+            if any(item == "snapshot repeats a client id with different data" for item in problems):
+                reason = "snapshot repeats a client id with different data"
+                self._block(conn, venue, mode, account_label, reason)
+                conn.execute("COMMIT")
+                return {"ok": False, "blocked": True, "reason": reason}
+            parsed = []
+            for cid, payload in seen_payload.items():
+                parsed.append((cid, payload[0], payload[1], payload[2]))
             for cid, status, filled, order_id in parsed:
                 row = by_client.get(cid)
                 if row is None:
@@ -425,6 +444,9 @@ class OrderMachine:
                 seen.add(cid)
                 if row["host"] and venue == "kalshi_demo":
                     pass
+                if order_id and row["venue_order_id"] and order_id != row["venue_order_id"]:
+                    problems.append("snapshot order id does not match the intent")
+                    continue
                 if filled is not None and (filled < 0 or filled > row["count"]):
                     problems.append("snapshot fill outside order")
                     continue
@@ -483,6 +505,16 @@ class OrderMachine:
             return [dict(r) for r in conn.execute(
                 "SELECT * FROM intents WHERE venue=? AND mode=? AND account_label=? ORDER BY created_at",
                 (venue, mode, account_label))]
+
+    def block_for(self, *, venue: str, mode: str, account_label: str, base_url: str | None, reason: str) -> None:
+        self._check_venue(venue, mode, base_url)
+        account_label = _token(account_label, "account_label")
+        if not isinstance(reason, str) or not reason:
+            raise ValueError("reason")
+        with self._conn() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            self._block(conn, venue, mode, account_label, reason)
+            conn.execute("COMMIT")
 
     def is_blocked(self, *, venue: str, mode: str, account_label: str) -> bool:
         with self._conn() as conn:

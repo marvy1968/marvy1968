@@ -1,10 +1,8 @@
-"""Candidate replacements for the VM Kalshi DEMO submit sites.
+"""Ledger helpers for the rank-1 state machine.
 
-The running modules still call KalshiDemo.place_order and append a log after
-the HTTP call returns. These functions are the review integration: the intent
-is committed before the injected transport runs, and the transport is not
-called again for that decision. Count and price are the caller's. This module
-does not resize, recompute fees, or open a socket.
+These functions are not the DEMO POST path. They do not build the venue JSON
+and they do not replace _place_ioc. The source-backed client is demo_client.
+The running caller modules stay blocked; see caller_status.
 
 Source lines, export SHA256 in PROVENANCE.md:
   runner.py 162-167 and 211-216
@@ -22,6 +20,7 @@ from .machine import NoRealPolymarketOrderApi, OrderMachine
 
 DEMO_BASE = "https://demo-api.kalshi.co/trade-api/v2"
 
+# Ledger-test labels. Whether a caller is integrated is recorded in caller_status.
 CALL_SITES = {
     "runner": "kalshi-demo/runner.py:162-167",
     "runner_props": "kalshi-demo/runner.py:211-216",
