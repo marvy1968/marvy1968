@@ -36,14 +36,22 @@ _PAPER = _BASE / "polymarket-paper"
 _LIVE = _BASE / "marv-feed" / "live_props" / "live_props.py"
 _SUMS = Path(__file__).resolve().parents[1] / "provenance" / "SHA256SUMS"
 
-# pm_nba_live and live_props reach pm_fill.fill, but their in-scope objects do not
-# carry an independent start instant or a home/away pair. The provider event is
-# chosen by an ET date inside the slug plus team-abbreviation overlap. Copying
-# that event's clock onto the request would invent agreement, so those callers
-# stay identity rejections. That is an adapter gap, not a fully integrated accept path.
+# pm_nba_live and live_props reach pm_fill.fill. They can pass only when the
+# bodies those callers already fetch contain display names, a scheduled start,
+# and a Polymarket US event with an explicit league. The November 7
+# nba_prop_live rows do not include that US payload. A Gamma 404 is not a
+# wrong-game finding and is not an observed success.
 ADAPTER_GAPS = {
-    "pm_nba_live.main": "no independent start instant or home/away on the fill record or ESPN game dict; slug date is not a start",
-    "live_props.poly_fill": "no independent start instant or home/away; game name and team abbreviations are not a canonical event",
+    "pm_nba_live.main": (
+        "Accepts only from already-fetched ESPN display names, a scheduled date, "
+        "a player on a team display name, and a Polymarket US event with explicit "
+        "league, team names, and startTime. The November 7 rows lack that US "
+        "payload. Gamma HTTP 404 is not a wrong-game finding."
+    ),
+    "live_props.poly_fill": (
+        "Same evidence rule. A body that only has abbreviations and a slug date "
+        "stays an identity rejection."
+    ),
 }
 
 WRITER_CONNECTIONS = (
@@ -164,6 +172,8 @@ class _Gate:
         self.pending_writer = "runner"
         self.pending_lane = None
         self.failpoint = None
+        from .live_identity import LiveEvidence
+        self.live = LiveEvidence()
 
     def remember(self, entry, snapshot, mapped):
         self.captures.append({"entry": dict(entry), "snapshot": snapshot, "mapped": mapped})
@@ -190,6 +200,11 @@ class _Gate:
         from .policy import decide_fill
         entry = None if found is None else found["entry"]
         snapshot = None if found is None else found.get("snapshot")
+        if entry is None:
+            live_hit = self.live.build(key=key, pick=pick, side=side, slug=slug, lane_switch=self.pending_lane)
+            if live_hit is not None:
+                entry = live_hit["entry"]
+                snapshot = live_hit["snapshot"]
         decided = decide_fill(
             entry=entry,
             snapshot=snapshot,
@@ -489,6 +504,19 @@ def _legacy_writer_file(path: str) -> bool:
     return "fills" in names and "fill_audit" not in names and "review_meta" not in names
 
 
+def arm_http(session, module):
+    """Record ESPN bodies the caller's own get() already returns. Does not fetch."""
+    original = module.get
+
+    def wrapped(url):
+        payload = original(url)
+        session.gate.live.note_http(url, payload)
+        return payload
+
+    module.get = wrapped
+    return module
+
+
 def install_client(session, events, bbo):
     client = _Client(events, bbo)
 
@@ -497,13 +525,19 @@ def install_client(session, events, bbo):
             pass
 
         def league_events(self, league):
-            return client.league_events(league)
+            events = client.league_events(league)
+            for event in events or []:
+                session.gate.live.record_pm_event(event)
+            return events
 
         def bbo(self, slug):
             return client.bbo(slug)
 
         def event(self, slug):
-            return client.event(slug)
+            event = client.event(slug)
+            if event:
+                session.gate.live.record_pm_event(event)
+            return event
 
     _Public.snapshot = client.snapshot
     session.runner.PMPublic = _Public

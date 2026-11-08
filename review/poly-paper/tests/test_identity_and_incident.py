@@ -176,8 +176,9 @@ def test_wrong_side_sport_date_and_token():
     assert "wrong_sport" in assess(entry, {"events": [nfl]}, claimed_slug="synthetic-samford-unlv-winner",
                                    claimed_side="long").reasons
     later = samford_event(slug="synthetic-cbb-samford-unlv-2030-11-08", startTime="2030-11-08T21:00:00Z")
-    assert "wrong_date" in assess(entry, {"events": [later]}, claimed_slug="synthetic-samford-unlv-winner",
-                                  claimed_side="long").reasons
+    later_result = assess(entry, {"events": [later]}, claimed_slug="synthetic-samford-unlv-winner",
+                          claimed_side="long")
+    assert "start_time_mismatch" in later_result.reasons
 
 
 def test_schema_variations_and_abstentions():
@@ -276,9 +277,20 @@ def test_exact_start_splits_a_doubleheader_and_does_not_use_a_tolerance():
                    claimed_side="long", claimed_token="synthetic-token-samford")
     assert "slug_disagrees" in wrong.reasons or "start_time_mismatch" in wrong.reasons
     off_by_a_second = samford_entry(start="2030-11-07T23:00:01Z")
-    missed = assess(off_by_a_second, {"events": [late]}, claimed_slug="synthetic-samford-unlv-winner-late",
+    within = assess(off_by_a_second, {"events": [late]}, claimed_slug="synthetic-samford-unlv-winner-late",
+                    claimed_side="long", claimed_token="synthetic-token-samford")
+    assert within.ok, within.reasons
+    outside = samford_entry(start="2030-11-07T23:04:00Z")
+    missed = assess(outside, {"events": [late]}, claimed_slug="synthetic-samford-unlv-winner-late",
                     claimed_side="long", claimed_token="synthetic-token-samford")
     assert "start_time_mismatch" in missed.reasons
+    near = samford_event(startTime="2030-11-07T23:01:00Z", slug="synthetic-cbb-samford-unlv-2030-11-07-near")
+    near["id"] = "synthetic-samford-unlv-near"
+    near["markets"][0]["slug"] = "synthetic-samford-unlv-winner-near"
+    both = assess(samford_entry(start="2030-11-07T23:00:30Z"), {"events": [late, near]},
+                  claimed_slug="synthetic-samford-unlv-winner-late", claimed_side="long",
+                  claimed_token="synthetic-token-samford")
+    assert both.reasons == ["ambiguous_event"]
     date_only = samford_event()
     date_only.pop("startTime")
     unproven = assess(samford_entry(), {"events": [date_only]}, claimed_slug="synthetic-samford-unlv-winner",

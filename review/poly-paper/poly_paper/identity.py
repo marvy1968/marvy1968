@@ -1,11 +1,12 @@
 """Final event/outcome identity. A mapper proposal is not trusted.
 
 A fill is identified only when one open event matches both participants, the
-sport league, and the entry's exact start instant, and exactly one outcome side
-matches the requested team or total direction. The calendar date alone is not
-enough, so two games between the same teams on the same day stay distinct.
-There is no invented clock tolerance. Shared nicknames, titles, and provider
-ids do not select an event. A missing token is not recorded as verified.
+sport league, and the entry's scheduled start within 180 seconds, and exactly
+one outcome side matches the requested team or total direction. The calendar
+date alone is not enough, so two games between the same teams stay distinct
+when both fall inside the window. Shared nicknames, titles, and provider ids
+do not select an event. A missing token is not recorded as verified. Scheduled
+start is not tipoff.
 """
 from __future__ import annotations
 
@@ -17,6 +18,14 @@ from .mapper import LEAGUE
 from .provider import (
     ParsedEvent, ParsedMarket, ParsedSide, ParsedTeam, _aware_instant, distinctive, parse_snapshot,
 )
+
+# Provider clocks are not the same second. ESPN scoreboard `date` and a market
+# startTime are often minute-rounded or a few seconds apart. 180 seconds covers
+# that rounding and a small clock skew. Same-team doubleheaders are hours apart,
+# so this window cannot contain two real tips. Two events inside the window
+# still abstain; the nearer clock is never chosen by itself. It was not measured
+# from the November 7 rows: those rows have no provider start and no tipoff.
+START_TOLERANCE_SECONDS = 180
 
 _ML = {"h2h", "ml", "moneyline"}
 _SPREAD = {"spread", "ats"}
@@ -245,14 +254,10 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
             else:
                 wrong_sport = True
             continue
-        if event.date_status != "ok" or event.event_date != game_date:
+        if event.date_status in ("disagree", "naive", "malformed"):
             if event.date_status == "disagree":
                 wrong_date = True
-                malformed_hit = True
-            elif event.date_status in ("naive", "malformed", "missing"):
-                malformed_hit = True
-            else:
-                wrong_date = True
+            malformed_hit = True
             continue
         if event.closed is None:
             malformed_hit = True
@@ -260,10 +265,12 @@ def assess(entry: dict, snapshot, claimed_slug=None, claimed_side=None, claimed_
         if event.closed:
             closed_hit = True
             continue
-        if event.start_status != "ok":
+        if event.start_status != "ok" or event.start_instant is None:
             start_unproven = True
             continue
-        if event.start_instant != entry_instant:
+        # Instants are the clock. A calendar-date label must not reject a match
+        # that is inside the tolerance, including a midnight boundary.
+        if abs((event.start_instant - entry_instant).total_seconds()) > START_TOLERANCE_SECONDS:
             start_mismatch = True
             continue
         participant_hits.append((event, away_hits[0], home_hits[0]))
