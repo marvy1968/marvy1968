@@ -1,0 +1,160 @@
+{
+  "kind": "READ_ONLY_SOURCE_EXPORT_REQUEST",
+  "vm_access": false,
+  "include": "nonsecret Python source only",
+  "do_not_include": [
+    "configs",
+    "env",
+    "credentials",
+    "databases",
+    "raw logs",
+    "recipient ids"
+  ],
+  "reason": "Notifier.send cannot be executed. Import errors inside send() are swallowed by the exported source, so a missing gate is not a recorded rejection and must not become feed eligibility.",
+  "files": [
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/oddsmath.py",
+      "module": "ajbet.oddsmath",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 14,
+      "call": "from .oddsmath import fmt_american",
+      "effect": "import_time"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/strategies.py",
+      "module": "ajbet.strategies",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 15,
+      "call": "from .strategies import Signal",
+      "effect": "import_time"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/cfb_track.py",
+      "module": "ajbet.cfb_track",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 170,
+      "call": "_cft.blocked_alert",
+      "effect": "send_gate_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/nfl_live_rec_track.py",
+      "module": "ajbet.nfl_live_rec_track",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 178,
+      "call": "_nlr.blocked_alert",
+      "effect": "send_gate_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/ncaaf_live_track.py",
+      "module": "ajbet.ncaaf_live_track",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 185,
+      "call": "_nlt.blocked_alert",
+      "effect": "send_gate_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/live_prop_ev50_track.py",
+      "module": "ajbet.live_prop_ev50_track",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 193,
+      "call": "_lpe.blocked_alert",
+      "effect": "send_gate_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/me_gates.py",
+      "module": "ajbet.me_gates",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 200,
+      "call": "_mg.nosend_alert",
+      "effect": "send_gate_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/nba_props_tg.py",
+      "module": "ajbet.nba_props_tg",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 273,
+      "call": "nba_props_tg.enabled",
+      "effect": "send_gate"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/nba_props_tg.py",
+      "module": "ajbet.nba_props_tg",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 277,
+      "call": "nba_props_tg.gamelines_blocked",
+      "effect": "send_gate"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/enrich.py",
+      "module": "ajbet.enrich",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 213,
+      "call": "_enrich.enrich",
+      "effect": "send_text_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/h2h_model.py",
+      "module": "ajbet.h2h_model",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 218,
+      "call": "_h2h.alert_append",
+      "effect": "send_text_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/buy_edge.py",
+      "module": "ajbet.buy_edge",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 223,
+      "call": "_be.append",
+      "effect": "send_text_source_swallows_import_error"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/friendly.py",
+      "module": "ajbet.friendly",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 237,
+      "call": "from .friendly import plain",
+      "effect": "dry_run_and_post"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/friendly.py",
+      "module": "ajbet.friendly",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/alerts.py",
+      "needed_by_line": 568,
+      "call": "from .friendly import tg_safe",
+      "effect": "post"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/live_guard.py",
+      "module": "ajbet.live_guard",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/scanner.py",
+      "needed_by_line": 572,
+      "call": "live_guard.stale_check",
+      "effect": "returns_before_send"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/live_guard.py",
+      "module": "ajbet.live_guard",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/scanner.py",
+      "needed_by_line": 583,
+      "call": "live_guard.check",
+      "effect": "returns_before_send"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/gamecast.py",
+      "module": "ajbet.gamecast",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/scanner.py",
+      "needed_by_line": 614,
+      "call": "gamecast.hold_check",
+      "effect": "returns_before_send"
+    },
+    {
+      "absolute_path": "/home/moonrider1968/aj-bet-bot/ajbet/gamecast.py",
+      "module": "ajbet.gamecast",
+      "needed_by_file": "/home/moonrider1968/aj-bet-bot/ajbet/value_scan.py",
+      "needed_by_line": 1543,
+      "call": "gamecast.hold_check",
+      "effect": "returns_before_send"
+    }
+  ]
+}

@@ -1,32 +1,38 @@
-"""Separate a gate decision from a Telegram receipt.
+"""Receipts are not feed eligibility, and a caller flag is not a gate.
 
-sent=1 is written only after a transport receipt of http_200 is committed.
-A weekday skip does not write sent=1 and does not enter the outbox.
-A gate rejection is not feed-eligible.
+sent=1 stays the column the exported source writes only after send() returns
+true. This review cannot call send(), so it does not write sent=1. Rows that
+are held, demoted, vetoed, dry-run, or double-dipped are rejections. A missing
+gate module is a different status and is not eligible.
 """
 from __future__ import annotations
 
-import json
 import sqlite3
 from dataclasses import dataclass
 
-from .clock import as_ct, is_weekend
+from .clock import as_ct
 
 ELIGIBILITY = """
 CREATE TABLE IF NOT EXISTS feed_eligibility (
   alert_id INTEGER PRIMARY KEY,
   decided_at TEXT NOT NULL,
   status TEXT NOT NULL,
-  receipt TEXT
+  gate_proof TEXT NOT NULL,
+  receipt TEXT,
+  CHECK (gate_proof = 'not_executed'),
+  CHECK (status IN (
+    'held', 'demoted', 'vetoed', 'dry_run', 'double_dip', 'missing_dependency',
+    'failed', 'unknown', 'pending'
+  ))
 )
 """
+
+REJECTIONS = frozenset({"held", "demoted", "vetoed", "dry_run", "double_dip"})
 
 
 @dataclass(frozen=True)
 class Receipt:
-    """What the transport actually observed. unknown is not a delivery."""
-
-    code: str  # http_200, http_error, unknown
+    code: str
 
     @property
     def delivered(self) -> bool:
@@ -39,16 +45,10 @@ class Outcome:
     sent: bool
     status: str
     posted: bool
-    enqueued: bool
 
 
 def ensure(con: sqlite3.Connection) -> None:
     con.execute(ELIGIBILITY)
-
-
-def _status(con: sqlite3.Connection, alert_id: int) -> str | None:
-    row = con.execute("SELECT status FROM feed_eligibility WHERE alert_id=?", (alert_id,)).fetchone()
-    return None if row is None else row[0]
 
 
 def _sent(con: sqlite3.Connection, alert_id: int) -> int:
@@ -56,94 +56,44 @@ def _sent(con: sqlite3.Connection, alert_id: int) -> int:
     return 0 if row is None or row[0] is None else int(row[0])
 
 
-def deliver_ordinary(con: sqlite3.Connection, *, now, alert_id: int, gates_passed: bool, transport) -> Outcome:
-    """Post-gate tail of scanner.py and value_scan.py.
-
-    gates_passed is true only after the source send() gates (track-only, league,
-    veto, double-dip) have allowed a post. Holds, demotions, pauses, and dry runs
-    pass gates_passed false and stay out of the feed.
-    """
+def record_disposition(con: sqlite3.Connection, *, now, alert_id: int, status: str) -> Outcome:
+    """Record a source-visible non-eligibility. Cannot record a pass."""
+    if status not in REJECTIONS and status != "missing_dependency":
+        raise ValueError("only a rejection or missing_dependency can be recorded")
     ensure(con)
-    if not gates_passed:
-        return Outcome(False, _sent(con, alert_id) == 1, "not_eligible", False, False)
-    existing = _status(con, alert_id)
-    if existing in ("suppressed_weekday", "delivered", "failed", "unknown"):
-        return Outcome(True, _sent(con, alert_id) == 1, existing, False, False)
-    decided = as_ct(now).isoformat()
-    if existing is None:
-        con.execute("BEGIN")
+    current = con.execute("SELECT status FROM feed_eligibility WHERE alert_id=?", (alert_id,)).fetchone()
+    if current is None:
         con.execute(
-            "INSERT INTO feed_eligibility(alert_id, decided_at, status, receipt) VALUES (?,?,?,NULL)",
-            (alert_id, decided, "pending"),
+            "INSERT INTO feed_eligibility(alert_id, decided_at, status, gate_proof, receipt) VALUES (?,?,?,?,NULL)",
+            (alert_id, as_ct(now).isoformat(), status, "not_executed"),
         )
         con.commit()
-    if not is_weekend(now):
-        con.execute(
-            "UPDATE feed_eligibility SET status=?, receipt=NULL WHERE alert_id=? AND status='pending'",
-            ("suppressed_weekday", alert_id),
-        )
-        con.commit()
-        return Outcome(True, False, "suppressed_weekday", False, False)
-    receipt = transport(alert_id)
-    if not isinstance(receipt, Receipt):
-        receipt = Receipt("unknown")
-    if receipt.delivered:
-        try:
-            con.execute("BEGIN")
-            con.execute("UPDATE alerts SET sent=1 WHERE id=?", (alert_id,))
-            con.execute(
-                "UPDATE feed_eligibility SET status='delivered', receipt=? WHERE alert_id=?",
-                (receipt.code, alert_id),
-            )
-            con.commit()
-        except sqlite3.Error:
-            con.rollback()
-            return Outcome(True, False, "pending", True, False)
-        return Outcome(True, True, "delivered", True, False)
-    status = "unknown" if receipt.code == "unknown" else "failed"
-    con.execute("BEGIN")
+    return Outcome(False, _sent(con, alert_id) == 1, current[0] if current else status, False)
+
+
+def note_transport_without_send(con: sqlite3.Connection, *, now, alert_id: int, receipt: Receipt) -> Outcome:
+    """A transport result without send() does not become sent=1 or eligibility."""
+    record_disposition(con, now=now, alert_id=alert_id, status="missing_dependency")
+    observed = "http_200" if receipt.delivered else ("unknown" if receipt.code == "unknown" else "failed")
     con.execute(
-        "UPDATE feed_eligibility SET status=?, receipt=? WHERE alert_id=?",
-        (status, receipt.code, alert_id),
-    )
-    con.execute(
-        "INSERT INTO outbox(ts, chat_id, text, html, alert_ids, status) VALUES (?,?,?,?,?, 'pending')",
-        (decided, "primary", "", 0, json.dumps([alert_id])),
+        "UPDATE feed_eligibility SET receipt=? WHERE alert_id=? AND status='missing_dependency'",
+        (observed, alert_id),
     )
     con.commit()
-    return Outcome(True, False, status, True, True)
-
-
-def commit_retry_receipt(con: sqlite3.Connection, *, alert_id: int, receipt: Receipt) -> Outcome:
-    """Outbox retry. sent=1 only when this attempt's receipt is http_200."""
-    ensure(con)
-    if _status(con, alert_id) is None:
-        return Outcome(False, False, "not_eligible", False, False)
-    if not receipt.delivered:
-        status = "unknown" if receipt.code == "unknown" else "failed"
-        con.execute(
-            "UPDATE feed_eligibility SET status=?, receipt=? WHERE alert_id=? AND status!='delivered'",
-            (status, receipt.code, alert_id),
-        )
-        con.commit()
-        return Outcome(True, _sent(con, alert_id) == 1, status, True, False)
-    con.execute("BEGIN")
-    con.execute("UPDATE alerts SET sent=1 WHERE id=?", (alert_id,))
-    con.execute(
-        "UPDATE feed_eligibility SET status='delivered', receipt=? WHERE alert_id=?",
-        (receipt.code, alert_id),
-    )
-    con.commit()
-    return Outcome(True, True, "delivered", True, False)
+    return Outcome(False, _sent(con, alert_id) == 1, "missing_dependency", False)
 
 
 def backing_ids(con: sqlite3.Connection, event_id: str, except_ids: tuple[int, ...]) -> list[int]:
-    """Same-side protection sees a gate-passed alert, not only a delivered one."""
-    ensure(con)
-    marks = ",".join("?" * len(except_ids)) or "NULL"
-    rows = con.execute(
-        f"""SELECT id FROM alerts WHERE event_id=? AND id NOT IN ({marks})
-            AND (sent=1 OR id IN (SELECT alert_id FROM feed_eligibility))""",
-        (event_id, *except_ids),
-    ).fetchall()
+    """The exported double-dip query uses sent=1 only. Unproven rows do not count."""
+    if except_ids:
+        marks = ",".join("?" * len(except_ids))
+        rows = con.execute(
+            f"SELECT id FROM alerts WHERE event_id=? AND sent=1 AND id NOT IN ({marks})",
+            (event_id, *except_ids),
+        ).fetchall()
+    else:
+        rows = con.execute(
+            "SELECT id FROM alerts WHERE event_id=? AND sent=1",
+            (event_id,),
+        ).fetchall()
     return [row[0] for row in rows]

@@ -8,8 +8,11 @@ from __future__ import annotations
 import json
 import sqlite3
 
-# Provenance export_props.py line 35, plus feed_eligibility.
-ALERT_SQL = """
+# Provenance export_props.py keeps sent=1 and the NFL team-trend exception.
+# A feed_eligibility row is added only if a future executed gate proof says the
+# weekday skip replaced a post. The current table cannot store that proof.
+PRODUCTION_WHERE = "a.sent=1 OR (a.strategy='team_trend' AND a.league='nfl')"
+ALERT_SQL = f"""
 SELECT a.id, a.ts, a.event_id, a.league, a.strategy, a.market, a.selection, a.line, a.price, a.book,
        a.fair_p, a.edge, a.trigger, a.message, a.details_json,
        (SELECT player FROM paper_bets p WHERE p.alert_id=a.id LIMIT 1),
@@ -17,9 +20,11 @@ SELECT a.id, a.ts, a.event_id, a.league, a.strategy, a.market, a.selection, a.li
        a.sent
 FROM alerts a
 WHERE (
-    a.sent=1
-    OR (a.strategy='team_trend' AND a.league='nfl')
-    OR a.id IN (SELECT alert_id FROM feed_eligibility)
+    {PRODUCTION_WHERE}
+    OR a.id IN (
+        SELECT alert_id FROM feed_eligibility
+        WHERE gate_proof = 'executed' AND status = 'suppressed_weekday'
+    )
 ) AND a.ts >= ?
 ORDER BY a.id
 """

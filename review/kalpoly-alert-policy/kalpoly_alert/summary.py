@@ -70,7 +70,10 @@ def _record(rows: list[dict]) -> str:
     return f"{wins}-{losses}-{pushes}"
 
 
-def render(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: list[dict]) -> dict | None:
+def render(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: list[dict],
+           scope: tuple[str, ...] = ("kalshi_demo", "polymarket_paper")) -> dict | None:
+    if set(scope) != {"kalshi_demo", "polymarket_paper"}:
+        raise ValueError("the daily record is Kalshi DEMO and Polymarket PAPER only")
     slot = summary_slot(now)
     if slot is None:
         return None
@@ -96,6 +99,65 @@ def render(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: 
     con.execute("INSERT INTO summary_slot(ct_date, rendered_at, body) VALUES (?,?,?)", (slot, generated, body))
     con.commit()
     return {"slot": slot, "created": True, "body": body}
+
+
+RECEIPT = """
+CREATE TABLE IF NOT EXISTS summary_receipt (
+  ct_date TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  receipt TEXT
+)
+"""
+
+
+def publish_summary(con: sqlite3.Connection, *, now, poly_rows: list[dict], kalshi_rows: list[dict], transport) -> dict:
+    """Render first. A later crash, or two processes, cannot prove exactly one Telegram post."""
+    from .delivery import Receipt
+    rendered = render(con, now=now, poly_rows=poly_rows, kalshi_rows=kalshi_rows)
+    if rendered is None:
+        return {"status": "not_due", "posted": False, "delivery_proven": False, "exactly_once_telegram": False}
+    con.execute(RECEIPT)
+    row = con.execute("SELECT state, receipt FROM summary_receipt WHERE ct_date=?", (rendered["slot"],)).fetchone()
+    if row is not None:
+        proven = row[0] == "delivered" and row[1] == "http_200"
+        return {"status": row[0], "posted": False, "delivery_proven": proven,
+                "exactly_once_telegram": False, "body": rendered["body"]}
+    con.execute(
+        "INSERT INTO summary_receipt(ct_date, state, receipt) VALUES (?,?,NULL)",
+        (rendered["slot"], "posting"),
+    )
+    con.commit()
+    try:
+        receipt = transport(rendered["body"])
+    except Exception:
+        con.execute(
+            "UPDATE summary_receipt SET state='unknown', receipt='exception_before_result' WHERE ct_date=?",
+            (rendered["slot"],),
+        )
+        con.commit()
+        return {"status": "unknown", "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
+    if not isinstance(receipt, Receipt):
+        receipt = Receipt("unknown")
+    if receipt.delivered:
+        try:
+            con.execute("BEGIN")
+            con.execute(
+                "UPDATE summary_receipt SET state='delivered', receipt=? WHERE ct_date=?",
+                (receipt.code, rendered["slot"]),
+            )
+            con.commit()
+        except sqlite3.Error:
+            con.rollback()
+            return {"status": "unknown", "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
+        return {"status": "delivered", "posted": True, "delivery_proven": True, "exactly_once_telegram": False,
+                "body": rendered["body"]}
+    state = "unknown" if receipt.code == "unknown" else "failed"
+    con.execute(
+        "UPDATE summary_receipt SET state=?, receipt=? WHERE ct_date=?",
+        (state, receipt.code, rendered["slot"]),
+    )
+    con.commit()
+    return {"status": state, "posted": True, "delivery_proven": False, "exactly_once_telegram": False}
 
 
 def load_policy(path) -> dict:

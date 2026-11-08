@@ -29,7 +29,10 @@ def evaluate(con: sqlite3.Connection, *, now, policy: dict, venue: str, rows: li
     book = venue_day(rows, day)
     notices = []
     con.execute(NOTICE)
-    if day_opening in (None, "UNKNOWN"):
+    base = policy.get("baseline_bankroll", {}).get(venue, "UNKNOWN")
+    opening_known = day_opening not in (None, "UNKNOWN")
+    baseline_known = base not in (None, "UNKNOWN")
+    if not opening_known:
         notices.append(_once(con, day, venue, "day_opening_unknown", "day opening bankroll UNKNOWN"))
     else:
         step = float(policy.get("day_loss_fraction_of_opening", 0.05))
@@ -41,13 +44,17 @@ def evaluate(con: sqlite3.Connection, *, now, policy: dict, venue: str, rows: li
         for band in range(1, bands + 1):
             notices.append(_once(
                 con, day, venue, f"day_loss_{band}",
-                f"day loss crossed {band * step:.0%} of the verified day opening",
+                f"proposal only: day loss crossed {band * step:.0%} of the verified day opening",
             ))
-    base = policy.get("baseline_bankroll", {}).get(venue, "UNKNOWN")
-    if base in (None, "UNKNOWN") or day_opening in (None, "UNKNOWN"):
+    if not baseline_known or not opening_known:
         notices.append(_once(con, day, venue, "baseline_unknown", "baseline bankroll UNKNOWN"))
-    elif book["pnl"] + float(day_opening) < float(base):
-        notices.append(_once(con, day, venue, "baseline_red", "settled bankroll is below the verified baseline"))
+    else:
+        opening = float(day_opening)
+        settled_now = opening + book["pnl"]
+        if opening >= float(base) and settled_now < float(base):
+            notices.append(_once(con, day, venue, "baseline_red", "settled bankroll crossed below the verified baseline"))
+        elif opening < float(base):
+            notices.append(_once(con, day, venue, "already_below_at_open", "day opened already below baseline; not a new crossing"))
     con.commit()
     return [note for note in notices if note]
 def _once(con, day, venue, kind, detail):

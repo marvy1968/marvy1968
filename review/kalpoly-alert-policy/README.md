@@ -8,36 +8,34 @@ Source archive SHA256 `0081aefa3b8ac67cc51dada790e7839afdaf8f54f7858c35146e190e8
 
 ## What the exported source does
 
-`scanner.py` and `value_scan.py` call `notifier.send` and call `db.mark_sent` only when that returns true. `alerts.py` `flush_outbox` calls `mark_sent` only after `_send_one` succeeds. `db.mark_sent` is `sent=1`. That flag means the primary Telegram chat accepted the message. This review does not write `sent=1` for a skipped or failed post.
+`scanner.py` and `value_scan.py` call `notifier.send`, then `db.mark_sent`, only when `send` returns true. `flush_outbox` calls `mark_sent` only after `_send_one` succeeds. `sent=1` in that source means the primary chat accepted the message. This review does not call `send()` and does not write `sent=1`. An HTTP 200 observed without `send()` stays `missing_dependency` and leaves `sent` at 0.
 
-`export_props.py` puts `sent=1` rows, plus the existing NFL `team_trend` exception, into `alerts`. `me_alerts.load` is what `live_runner.py`, `me_kalshi.py`, `runner.py` `me_entries`, and `pm_me_track.py` read. `prop_feed.py` does not read `sent`. Holds, demotions, and pauses return before `send` and stay out of the feed. `h2h_cfb` is `NEVER_FEED`.
+`export_props.py` feeds `sent=1` rows plus the existing NFL `team_trend` exception. `me_alerts.load` is what `live_runner.py`, `me_kalshi.py`, paper `me_entries`, and `pm_me_track.py` read. `prop_feed.py` does not read `sent`. The exported `send()` swallows an import error in `cfb_track`, `nfl_live_rec_track`, `ncaaf_live_track`, `live_prop_ev50_track`, and `me_gates` and continues. That is not a recorded rejection. This review does not copy that swallow into eligibility.
 
-Saturday and Sunday America/Chicago keep that post path. Monday through Friday an ordinary per-pick or bet-card post is not attempted. The gate decision is stored in `feed_eligibility` instead. The review export includes that row without setting `sent`. A rejected, held, demoted, or dry-run row is not stored there.
+Hold, demote, veto, dry-run, and double-dip are rejections visible in the exported control flow: they return before the post. Missing modules are a different status. Neither is feed-eligible. The eligibility table cannot store `gate_proof = 'executed'` or `suppressed_weekday`. A weekday Telegram skip therefore does not add a trade. The export id list stays the production `sent=1` plus team-trend query. That is not live selection parity.
 
-A failed or unknown transport receipt leaves `sent` at 0. Unknown is not treated as delivered. A later retry can set `sent=1` only after `http_200`. The same alert is not posted twice. Double-dip protection sees an eligible row, so a weekday skip does not open a second side that a delivered weekend alert would have blocked.
+`main.py` writes `betcard_sent.json` and then calls `send_message`. The file is not a Telegram receipt. Weekend tests keep that order and set `delivery_proven` false. Weekdays do not post the card and do not write that file. The evening record names only Kalshi DEMO and Polymarket PAPER. It is not an AJ message dump.
 
-The weekday 21:00 America/Chicago summary is one rendered record per Central date. It uses settled `payout - cost` for that Central settle time. `cost` already includes the fee, which is the grader definition in both venue graders. Open rows stay open risk, not a mark to market. A settled row with no settle time stays unknown. The summary names Kalshi DEMO and Polymarket PAPER and includes its generation time. Tests only render it.
+The 21:00 America/Chicago summary is one rendered body per Central weekday date. Publishing it records a receipt separately. A crash after the post starts, and before a receipt is stored, leaves `unknown` and does not claim delivery. A restart does not post again in that state. Two processes can still both reach Telegram. `exactly_once_telegram` is false even after one in-process HTTP 200. Open rows stay cost at risk. A settle time that is missing stays unknown.
 
-Urgent crash, stall, and loss notices use a separate table and are eligible on weekdays. They are not alert `sent` flags. A process that is down cannot send its own notice. The existing health script runs every 30 minutes and does not watch these venues. An outside checker would still be required. None is installed here.
+Urgent notices are a separate table. They do not set `sent` and they do not enter the trade feed. A dead process cannot send one. `external.py` is a blocked proposal. `marv-health.sh` remains a 30-minute check and is not started.
 
-`loss_policy.json` is off. The 5 percent day-loss steps and a below-baseline notice are a Monitor proposal, not a user-approved threshold. The Kalshi figure 2500 is not a verified baseline. The configured 10000 is a risk bankroll, not a starting baseline. Both stay `UNKNOWN` until a verified snapshot is supplied. Turning the proposal on in a test does not change stake or a risk stop.
+`loss_policy.json` is off. Five percent steps and a below-baseline notice are a Monitor proposal. Unknown day-open or baseline produces `day_opening_unknown` or `baseline_unknown`, not a red alert. A red notice is only a transition from a verified open at or above a verified baseline to a settled value below it. 2500 is not a verified Kalshi baseline. 10000 is a risk bankroll, not a starting baseline.
 
-`schedule.json` describes the 21:00 Central weekday slot. `installed` and `cron_active` are false.
+`card_rules.py` is already in the VM archive at `source/marv-feed/card_rules.py` and is called from `me_alerts.py` line 197 for non-prop entries. This review does not run it.
 
-The Marv bet card on a weekend still records its sent file before the post, matching `main.py`. On a weekday it logs the card for grading, does not post, and does not write `betcard_sent.json`.
+## Files still required
+
+`EXPORT_REQUEST.json` lists the absolute paths. Each line was checked against the hashed provenance. Do not send configs, env, credentials, databases, or logs.
 
 ## Activation is blocked
 
-The send gates inside `alerts.py` import `cfb_track`, `nfl_live_rec_track`, `ncaaf_live_track`, `live_prop_ev50_track`, `me_gates`, `nba_props_tg`, `enrich`, `h2h_model`, and `buy_edge`. Those modules are not in this export, so this review does not execute them. `gates_passed` is the caller's statement that those gates already allowed a post. Do not treat that as a live replay of `send()`.
-
-`me_kalshi.py` and the paper runner still apply their own mapping, edge, and stake code after `me_alerts.to_entry`. Those formulas are not modified and are not re-executed here. The parity test is the shared feed: the same successful `to_entry` ids on a delivered Saturday and a suppressed Monday.
-
-`prop_feed.py` reads props from `paper_bets` and the export's pick lists, not from `sent`. It is unchanged. Environment-file overrides were not read. The known paused-track versus bet-card divergence is not reconciled, and paused rows are not added to this feed.
-
-No cron, unit, or installer is changed. A future activation needs a byte-exact backup of the config being edited, a named restore of that backup, and a separate decision to wire the hook. This tree does not do that.
+No cron, unit, or installer is changed. These tests do not replay `send()` and do not show that Monday and Saturday would-bet sets match.
 
 ## Test
 
 ```bash
 python3 -m pytest review/kalpoly-alert-policy/tests -q
 ```
+
+9 passed. The tests check source line text, the closed eligibility table, Central Friday through Monday and DST, receipt failure, and the two-venue summary. They are not live selection parity.

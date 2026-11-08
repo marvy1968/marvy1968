@@ -25,19 +25,24 @@ def deliver_card(state: Path, *, now, bets: list, transport) -> dict:
     if is_weekend(now):
         # Source marks the card, then posts, then logs. That order stays.
         if day in sent:
-            return {"posted": False, "claimed_sent": True, "logged": False, "status": "already_sent"}
-        sent[day] = {"sent_at": now.isoformat(), "games": len(bets)}
+            return {"posted": False, "claimed_sent": True, "delivery_proven": False,
+                    "logged": False, "status": "already_marked_before_post"}
+        # main.py writes betcard_sent.json before send_message. The file is not a receipt.
+        sent[day] = {"sent_at": now.isoformat(), "games": len(bets), "telegram_receipt": None}
         sent_path.write_text(json.dumps(sent))
         transport(bets)
         book = _load(log_path)
         book[day] = bets
         log_path.write_text(json.dumps(book))
-        return {"posted": True, "claimed_sent": True, "logged": True, "status": "weekend_posted"}
+        return {"posted": True, "claimed_sent": True, "delivery_proven": False,
+                "logged": True, "status": "weekend_marked_then_posted"}
     if day in hold:
-        return {"posted": False, "claimed_sent": False, "logged": False, "status": "already_held"}
+        return {"posted": False, "claimed_sent": False, "delivery_proven": False,
+                "logged": False, "status": "already_held"}
     hold[day] = {"held_at": now.isoformat(), "games": len(bets), "delivered": False}
     hold_path.write_text(json.dumps(hold))
     book = _load(log_path)
     book[day] = bets
     log_path.write_text(json.dumps(book))
-    return {"posted": False, "claimed_sent": day in _load(sent_path), "logged": True, "status": "weekday_suppressed"}
+    return {"posted": False, "claimed_sent": day in _load(sent_path), "delivery_proven": False,
+            "logged": True, "status": "weekday_suppressed"}
