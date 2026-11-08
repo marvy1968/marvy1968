@@ -571,11 +571,15 @@ def run_live_props_fill(session, rec, game, player, p_side, stats=None):
     """Call the exported live_props.poly_fill, which is the only Polymarket insert in that file."""
     argv = ["live_props.py", "nfl", "poly"]
     sys.argv[:] = argv
-    # Import uses /opt/polymarket-paper on sys.path; the guarded pm_fill is already loaded.
+    # Load a temp copy so the module's data directory is not the provenance tree.
+    # The guarded pm_fill module is already imported, so this still calls that fill.
+    dest = session.workspace / "live_props.py"
+    if not dest.exists():
+        shutil.copy(_LIVE, dest)
     if "live_props" in sys.modules:
         module = sys.modules["live_props"]
     else:
-        spec = importlib.util.spec_from_file_location("live_props", _LIVE)
+        spec = importlib.util.spec_from_file_location("live_props", dest)
         module = importlib.util.module_from_spec(spec)
         sys.modules["live_props"] = module
         spec.loader.exec_module(module)
