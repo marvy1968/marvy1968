@@ -1,3 +1,13 @@
 $ show fx_paper/journal-20261108.jsonl
-started 2026-11-08 17:09:58 EST
-RUNNING...
+started 2026-11-08 17:09:58 EST, took 0s, exit 0
+
+{"t": "2026-11-08T22:00:31+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-06T18:00:00+00:00", "close": 0.554565, "stop_dist": 0.004044269245793597, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:01:33+00:00", "kind": "signal", "strategy": "conf_d1", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 158.5085, "stop_dist": 0.963183123185619, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:01:34+00:00", "kind": "signal", "strategy": "conf_d1", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 1.413065, "stop_dist": 0.006741461207528311, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:04+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 1.11407, "stop_dist": 0.006640493734178134, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:05+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "GBP_USD", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 1.335255, "stop_dist": 0.007161897501676312, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:05+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 0.68666, "stop_dist": 0.005150794505563618, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:06+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "NZD_USD", "side": "short", "bar": "2026-11-05T22:00:00+00:00", "close": 0.554565, "stop_dist": 0.004882491163691708, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:06+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "USD_JPY", "side": "long", "bar": "2026-11-05T22:00:00+00:00", "close": 158.5085, "stop_dist": 0.963183123185619, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:06+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "USD_CAD", "side": "long", "bar": "2026-11-05T22:00:00+00:00", "close": 1.413065, "stop_dist": 0.006741461207528311, "result": "paused (signal logged)"}
+{"t": "2026-11-08T22:02:06+00:00", "kind": "signal", "strategy": "wvb_d1", "instrument": "USD_CHF", "side": "long", "bar": "2026-11-05T22:00:00+00:00", "close": 0.8205849999999999, "stop_dist": 0.005706297236140883, "result": "paused (signal logged)"}
