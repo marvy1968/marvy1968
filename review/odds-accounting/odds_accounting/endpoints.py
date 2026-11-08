@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 
 _RULES = (
+    (re.compile(r"^/(?:v4/)?historical/sports/([A-Za-z0-9_]{1,64})/odds$"),
+     "/v4/historical/sports/{sport}/odds", True),
     (re.compile(r"^/(?:v4/)?historical/sports/([A-Za-z0-9_]{1,64})/events/[^/]+/odds$"),
      "/v4/historical/sports/{sport}/events/{event}/odds", True),
     (re.compile(r"^/(?:v4/)?historical/sports/([A-Za-z0-9_]{1,64})/events$"),

@@ -27,9 +27,13 @@ These call the instrumented transport but this review does not attach a job tag.
 | Repo and VM `marv/live_prop_engine.py` | The two copies differ around send behavior. Both call `props/odds.py`. Neither is tagged. |
 | VM `alt70.py` | Not in this repository. It calls `marv.props.odds` on the VM. A future checkout of this props module would record `unknown` until that file passes a tag. |
 
+## Candidate adapters, not the running import
+
+`candidate_calls.py` repeats the Odds API request from the VM or repo source and tags it. The running module does not import that file. VM `live_monitor._live_odds`, `main.cmd_live_props_probe`, `live_prop_engine` `_event`/`_odds`, and `alt70.py` events/props calls have wrappers. The repo copies of the first three were not overwritten. Details and the remaining holes are in `GAPS.md`.
+
 ## THE ODDS API, not in the active Marv/AJ/shadow workflows
 
-Real `api.the-odds-api.com` calls. They are outside the exported service entrypoints. This review does not edit them and does not count them in the shared ledger:
+Real `api.the-odds-api.com` calls. The running files are unchanged. A candidate request function exists for each shape below and is not what those processes import:
 
 - `forex_bots/masterbot_oanda/app.py`
 - `forex_bots/masterbot_oanda/live_odds_engine.py`

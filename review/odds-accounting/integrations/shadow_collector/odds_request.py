@@ -3,6 +3,10 @@
 The reservation, reconcile, exception, and replay-environment behavior matches
 the VM collector. The only addition is an observe-only note that cannot change
 those outcomes. Replay children still receive no provider credential.
+
+urllib.request.urlopen follows redirects inside that one call and returns only
+the final response. This wrapper therefore cannot promise one ledger row per
+wire hop. A row here is one transport() return.
 """
 
 from __future__ import annotations

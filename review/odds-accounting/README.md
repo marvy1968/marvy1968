@@ -31,6 +31,13 @@ Shared caps, priorities, and cache or polling changes from the 2026-11-08 audit
 are disabled and unimplemented. See `odds_accounting/enforcement.py`. They need
 a separate approval before they can gate a call.
 
+This branch is not deployment-ready. `ODDS_ACCOUNTING_LEDGER` is unset unless a
+test or an operator sets it. No unit file and no `.env.example` entry turns the
+ledger on. `candidate_calls.py` is not imported by Marv, AJ, the shadow collector,
+or the forex scripts. Those running imports stay as they are. `GAPS.md` lists
+the source holes that a further export would have to fill, including the shadow
+`urlopen` path, which still cannot record one row per redirect hop.
+
 ## Run the synthetic tests
 
 From the repository root, with network unused:

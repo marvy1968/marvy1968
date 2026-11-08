@@ -46,10 +46,13 @@ def note_hops(*, response=None, transport_error=None, **fields):
         for ordinal, hop in enumerate(hops, start=1):
             if hop is not response and _seen(hop):
                 continue
+            status = getattr(hop, "status_code", None)
+            if status is None:
+                status = getattr(hop, "status", None)
             note_exchange(
                 logical_request_id=logical,
                 attempt_ordinal=ordinal,
-                http_status=getattr(hop, "status_code", None),
+                http_status=status,
                 headers=getattr(hop, "headers", None),
                 **fields,
             )
