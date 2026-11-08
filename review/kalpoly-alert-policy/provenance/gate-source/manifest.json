@@ -1,0 +1,307 @@
+{
+  "scope": "14 exact source files only; symlinks omitted; no other reads",
+  "files": [
+    {
+      "name": "oddsmath.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/oddsmath.py",
+      "read_time_CT": "2026-11-08T13:19:33.993375-06:00",
+      "symlink": false,
+      "original_size": 3734,
+      "mtime_CT": "2026-10-02T22:05:51-06:00",
+      "original_sha256": "f46eba08e1744ccd028ba6ff5f1bc3041a3f79c32fe5b350c566417a06d2251f",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "f46eba08e1744ccd028ba6ff5f1bc3041a3f79c32fe5b350c566417a06d2251f",
+      "export_size": 3734,
+      "static_imports": [
+        "__future__:annotations",
+        "math",
+        "typing:Iterable,List"
+      ]
+    },
+    {
+      "name": "strategies.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/strategies.py",
+      "read_time_CT": "2026-11-08T13:19:34.006994-06:00",
+      "symlink": false,
+      "original_size": 15897,
+      "mtime_CT": "2026-10-03T12:40:33-06:00",
+      "original_sha256": "ce401aa2ca2ef75738cb6664303873d6f4518d6a758d91bc653825f92ff054d5",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "ce401aa2ca2ef75738cb6664303873d6f4518d6a758d91bc653825f92ff054d5",
+      "export_size": 15897,
+      "static_imports": [
+        ".:gamecast",
+        ".:markets",
+        ".:mybook",
+        ".espn:Game,Lines,soccer_minute,time_left_frac",
+        ".models:implied_goal_rate,norm_cdf,soccer_under_prob,spread_from_win_prob,stern_win_prob,remaining_goal_rate",
+        ".oddsmath:american_to_prob,devig_american,ml_move_points,prob_to_american,stake_to_win",
+        "__future__:annotations",
+        "dataclasses:dataclass,field",
+        "math",
+        "typing:Any,Dict,List,Optional"
+      ]
+    },
+    {
+      "name": "cfb_track.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/cfb_track.py",
+      "read_time_CT": "2026-11-08T13:19:34.038945-06:00",
+      "symlink": false,
+      "original_size": 2505,
+      "mtime_CT": "2026-10-27T10:12:53.490831-06:00",
+      "original_sha256": "9acbf3868a5d0153335ec4799d5fc9850d6dea3b9514ef58a21a2c5c68160d6d",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "9acbf3868a5d0153335ec4799d5fc9850d6dea3b9514ef58a21a2c5c68160d6d",
+      "export_size": 2505,
+      "static_imports": [
+        "__future__:annotations",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "nfl_live_rec_track.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/nfl_live_rec_track.py",
+      "read_time_CT": "2026-11-08T13:19:34.046090-06:00",
+      "symlink": false,
+      "original_size": 2524,
+      "mtime_CT": "2026-11-04T07:31:59.707675-06:00",
+      "original_sha256": "61b114aeb7d8f48eca16dacf0ad644035b51e9e1231a553f2a8eddb593a43605",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "61b114aeb7d8f48eca16dacf0ad644035b51e9e1231a553f2a8eddb593a43605",
+      "export_size": 2524,
+      "static_imports": [
+        "__future__:annotations",
+        "json",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "ncaaf_live_track.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/ncaaf_live_track.py",
+      "read_time_CT": "2026-11-08T13:19:34.053116-06:00",
+      "symlink": false,
+      "original_size": 4950,
+      "mtime_CT": "2026-11-04T11:24:56.772931-06:00",
+      "original_sha256": "e6600a210ec31f1be1cc3dd587db418582a4a0a8febef6f974367edad99a2721",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "e6600a210ec31f1be1cc3dd587db418582a4a0a8febef6f974367edad99a2721",
+      "export_size": 4950,
+      "static_imports": [
+        "__future__:annotations",
+        "datetime:datetime,timezone",
+        "json",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "live_prop_ev50_track.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/live_prop_ev50_track.py",
+      "read_time_CT": "2026-11-08T13:19:34.063433-06:00",
+      "symlink": false,
+      "original_size": 3775,
+      "mtime_CT": "2026-11-04T11:35:22.134282-06:00",
+      "original_sha256": "32526e3d3692e2755817d63e9863aabb200f57296632ab99eb85c25ee467a12d",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "32526e3d3692e2755817d63e9863aabb200f57296632ab99eb85c25ee467a12d",
+      "export_size": 3775,
+      "static_imports": [
+        "__future__:annotations",
+        "datetime:datetime,timezone",
+        "json",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "me_gates.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/me_gates.py",
+      "read_time_CT": "2026-11-08T13:19:34.075643-06:00",
+      "symlink": false,
+      "original_size": 2825,
+      "mtime_CT": "2026-11-02T16:03:57.483910-06:00",
+      "original_sha256": "628ed7bc80a2bd8dd404154fff719c2ef7c1373c2682cede16652ee3632384ec",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "628ed7bc80a2bd8dd404154fff719c2ef7c1373c2682cede16652ee3632384ec",
+      "export_size": 2825,
+      "static_imports": [
+        "__future__:annotations",
+        "datetime:datetime,timezone",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "nba_props_tg.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/nba_props_tg.py",
+      "read_time_CT": "2026-11-08T13:19:34.081193-06:00",
+      "symlink": false,
+      "original_size": 1928,
+      "mtime_CT": "2026-10-24T18:05:49.021697-06:00",
+      "original_sha256": "bbecc499549e2c0fa93a02b793341f4e1d543574481e1db26a045332768c2fce",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "bbecc499549e2c0fa93a02b793341f4e1d543574481e1db26a045332768c2fce",
+      "export_size": 1928,
+      "static_imports": [
+        "__future__:annotations",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "enrich.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/enrich.py",
+      "read_time_CT": "2026-11-08T13:19:34.086899-06:00",
+      "symlink": false,
+      "original_size": 17213,
+      "mtime_CT": "2026-10-17T07:43:32.212497-06:00",
+      "original_sha256": "0ab0971edd62774aa5e9bb110fb6dea506e442716173b47883a7658c50728c33",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "0ab0971edd62774aa5e9bb110fb6dea506e442716173b47883a7658c50728c33",
+      "export_size": 17213,
+      "static_imports": [
+        ".injuries:InjuryFeed",
+        "datetime:datetime,timezone,timedelta",
+        "json",
+        "logging",
+        "os",
+        "pathlib:Path",
+        "re",
+        "requests",
+        "sqlite3",
+        "time"
+      ]
+    },
+    {
+      "name": "h2h_model.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/h2h_model.py",
+      "read_time_CT": "2026-11-08T13:19:34.248893-06:00",
+      "symlink": false,
+      "original_size": 18160,
+      "mtime_CT": "2026-10-24T02:40:57.679596-06:00",
+      "original_sha256": "72a527ef491bfbf4a18eecc3a507c54953d6437e72c5cbfe3f822418fdae99e9",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "72a527ef491bfbf4a18eecc3a507c54953d6437e72c5cbfe3f822418fdae99e9",
+      "export_size": 18160,
+      "static_imports": [
+        ".alerts:Notifier",
+        ".config:load_config,resolve_path",
+        ".db:DB",
+        ".oddsmath:american_to_decimal",
+        ".oddsmath:american_to_prob",
+        "__future__:annotations",
+        "datetime:datetime,timedelta,timezone",
+        "json",
+        "os",
+        "re",
+        "sqlite3",
+        "statistics:NormalDist",
+        "sys",
+        "time",
+        "typing:Any,Dict,Optional",
+        "zoneinfo:ZoneInfo"
+      ]
+    },
+    {
+      "name": "buy_edge.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/buy_edge.py",
+      "read_time_CT": "2026-11-08T13:19:34.291844-06:00",
+      "symlink": false,
+      "original_size": 4403,
+      "mtime_CT": "2026-10-25T13:20:29.852024-06:00",
+      "original_sha256": "e2c19b7f90c8eda5e52584a678b3c709347a802661d60c577b9f23b3a029e1a3",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "e2c19b7f90c8eda5e52584a678b3c709347a802661d60c577b9f23b3a029e1a3",
+      "export_size": 4403,
+      "static_imports": [
+        "json",
+        "math",
+        "os",
+        "pathlib:Path"
+      ]
+    },
+    {
+      "name": "friendly.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/friendly.py",
+      "read_time_CT": "2026-11-08T13:19:34.305488-06:00",
+      "symlink": false,
+      "original_size": 19002,
+      "mtime_CT": "2026-10-20T03:34:57.647761-06:00",
+      "original_sha256": "5b6f4687d9880c00d346452029d55e7f8b10f6fa18c17b01ce3408fba3b755db",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "5b6f4687d9880c00d346452029d55e7f8b10f6fa18c17b01ce3408fba3b755db",
+      "export_size": 19002,
+      "static_imports": [
+        ".:mybook",
+        ".:tgfmt",
+        ".oddsmath:american_to_decimal",
+        "__future__:annotations",
+        "datetime:datetime,timezone",
+        "html",
+        "math",
+        "re",
+        "typing:Any,Dict,List,Optional",
+        "zoneinfo:ZoneInfo"
+      ]
+    },
+    {
+      "name": "live_guard.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/live_guard.py",
+      "read_time_CT": "2026-11-08T13:19:34.346842-06:00",
+      "symlink": false,
+      "original_size": 9956,
+      "mtime_CT": "2026-10-01T23:20:27-06:00",
+      "original_sha256": "2533b962242fb24bbad3bfaf867f8a2f4e845c613bff9d548274324c0420f99d",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "2533b962242fb24bbad3bfaf867f8a2f4e845c613bff9d548274324c0420f99d",
+      "export_size": 9956,
+      "static_imports": [
+        ".espn:Game,time_left_frac",
+        "__future__:annotations",
+        "datetime:datetime",
+        "re",
+        "time",
+        "typing:Any,Dict,Optional,Tuple"
+      ]
+    },
+    {
+      "name": "gamecast.py",
+      "path": "/home/moonrider1968/aj-bet-bot/ajbet/gamecast.py",
+      "read_time_CT": "2026-11-08T13:19:34.498867-06:00",
+      "symlink": false,
+      "original_size": 20993,
+      "mtime_CT": "2026-10-03T12:40:19-06:00",
+      "original_sha256": "9e9fcc29574629c998cd26bc0654de1030160d8d51dc63907a656a860add0ccc",
+      "status": "exported",
+      "redactions": [],
+      "export_sha256": "9e9fcc29574629c998cd26bc0654de1030160d8d51dc63907a656a860add0ccc",
+      "export_size": 20993,
+      "static_imports": [
+        ".:friendly",
+        "__future__:annotations",
+        "dataclasses:dataclass,field",
+        "logging",
+        "re",
+        "time",
+        "typing:Any,Callable,Dict,List,Optional,Tuple"
+      ]
+    }
+  ],
+  "bundle_created_CT": "2026-11-08T13:19:52.846596-06:00",
+  "timezone_label": "CST"
+}

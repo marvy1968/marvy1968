@@ -1,0 +1,15 @@
+{
+  "installed": false,
+  "cron_active": false,
+  "service_changes": false,
+  "clock": "America/Chicago",
+  "weekend": "Saturday and Sunday ordinary Telegram behavior unchanged",
+  "weekday_ordinary_posts": "skipped",
+  "summary": {
+    "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    "time": "21:00",
+    "count": 1
+  },
+  "urgent": "eligible immediately, not limited to the 30 minute health timer",
+  "activation": "Manual only, after a byte-exact config backup and a named revert. No installer and no timer is applied by this review."
+}

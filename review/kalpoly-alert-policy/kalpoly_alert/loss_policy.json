@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "status": "PROPOSAL_NOT_USER_APPROVED",
+  "baseline_bankroll": {
+    "kalshi_demo": "UNKNOWN",
+    "polymarket_paper": "UNKNOWN"
+  },
+  "day_opening_bankroll": "UNKNOWN",
+  "day_loss_fraction_of_opening": 0.05,
+  "re_alert_each_additional_fraction": 0.05,
+  "notes": [
+    "2500 is not a verified Kalshi baseline",
+    "10000 in configuration is a risk bankroll, not a starting baseline",
+    "A notice does not change stake, bankroll, or a risk stop"
+  ]
+}
