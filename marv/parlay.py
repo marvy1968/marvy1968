@@ -118,11 +118,36 @@ def load_prices(settings, state_dir: Path, sports, now: datetime | None = None, 
 def _fetch_bovada(api_key: str, sport_key: str) -> list[dict]:
     import requests
     from .data.oddsapi import URL
-    resp = requests.get(URL.format(sport=sport_key), timeout=30, params={
-        "apiKey": api_key, "bookmakers": "bovada", "markets": "h2h,spreads,totals", "oddsFormat": "american"})
+    try:
+        resp = requests.get(URL.format(sport=sport_key), timeout=30, params={
+            "apiKey": api_key, "bookmakers": "bovada", "markets": "h2h,spreads,totals", "oddsFormat": "american"})
+    except Exception as exc:
+        _note_parlay(sport_key, transport_error=exc)
+        raise
+    _note_parlay(sport_key, response=resp)
     resp.raise_for_status()
     log.info("Odds API %s (bovada, parlay): %s credits left", sport_key, resp.headers.get("x-requests-remaining"))
     return resp.json()
+
+
+def _note_parlay(sport_key: str, response=None, transport_error=None) -> None:
+    try:
+        from .data.odds_observe import note_exchange
+        note_exchange(
+            source_job="marv-parlay",
+            endpoint_template="/v4/sports/{sport}/odds",
+            sport=sport_key,
+            markets=["h2h", "spreads", "totals"],
+            bookmakers=["bovada"],
+            estimated_cost=3,
+            estimate_provenance="bookmaker_group_times_markets",
+            odds_format="american",
+            http_status=None if response is None else getattr(response, "status_code", None),
+            headers=None if response is None else getattr(response, "headers", None),
+            transport_error=transport_error,
+        )
+    except Exception:
+        return
 
 
 def match(prices: list[dict], home: str, away: str) -> dict | None:

@@ -20,11 +20,38 @@ URL = "https://api.the-odds-api.com/v4/sports/{sport}/odds"
 
 
 def fetch(api_key: str, sport_key: str, regions: str = "us") -> list[dict]:
-    resp = requests.get(URL.format(sport=sport_key), timeout=30, params={
-        "apiKey": api_key, "regions": regions, "markets": "h2h,spreads,totals", "oddsFormat": "american"})
+    markets = ["h2h", "spreads", "totals"]
+    region_names = [part for part in str(regions).split(",") if part]
+    try:
+        resp = requests.get(URL.format(sport=sport_key), timeout=30, params={
+            "apiKey": api_key, "regions": regions, "markets": "h2h,spreads,totals", "oddsFormat": "american"})
+    except Exception as exc:
+        _note_feed(sport_key, region_names, markets, transport_error=exc)
+        raise
+    _note_feed(sport_key, region_names, markets, response=resp)
     resp.raise_for_status()
     log.info("Odds API %s: %s credits left", sport_key, resp.headers.get("x-requests-remaining"))
     return resp.json()
+
+
+def _note_feed(sport_key: str, region_names: list[str], markets: list[str], response=None, transport_error=None) -> None:
+    try:
+        from .odds_observe import note_exchange
+        note_exchange(
+            source_job="marv-feed",
+            endpoint_template="/v4/sports/{sport}/odds",
+            sport=sport_key,
+            markets=markets,
+            regions=region_names,
+            estimated_cost=len(markets) * max(len(region_names), 1),
+            estimate_provenance="markets_times_regions",
+            odds_format="american",
+            http_status=None if response is None else getattr(response, "status_code", None),
+            headers=None if response is None else getattr(response, "headers", None),
+            transport_error=transport_error,
+        )
+    except Exception:
+        return
 
 
 def _consensus_line(points: list[float]) -> float:

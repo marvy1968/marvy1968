@@ -29,11 +29,39 @@ LABEL = {("cfb", "total"): "LEAN · backtest 54.4% (2,340), +4.6% ROI",
 
 
 def fetch(api_key: str, sport: str) -> list[dict]:
-    resp = requests.get(URL.format(sport=SPORT_KEYS[sport]), timeout=30, params={
-        "apiKey": api_key, "bookmakers": "bovada,pinnacle", "markets": "spreads,totals", "oddsFormat": "american"})
+    url = URL.format(sport=SPORT_KEYS[sport])
+    try:
+        resp = requests.get(url, timeout=30, params={
+            "apiKey": api_key, "bookmakers": "bovada,pinnacle", "markets": "spreads,totals", "oddsFormat": "american"})
+    except Exception as exc:
+        _note_sharp(sport, transport_error=exc)
+        raise
+    _note_sharp(sport, response=resp)
     resp.raise_for_status()
     log.info("Odds API %s (bovada+pinnacle): %s credits left", sport, resp.headers.get("x-requests-remaining"))
     return resp.json()
+
+
+def _note_sharp(sport: str, response=None, transport_error=None) -> None:
+    try:
+        from .data.odds_observe import note_exchange
+        books = ["bovada", "pinnacle"]
+        markets = ["spreads", "totals"]
+        note_exchange(
+            source_job="marv-sharpgap",
+            endpoint_template="/v4/sports/{sport}/odds",
+            sport=SPORT_KEYS[sport],
+            markets=markets,
+            bookmakers=books,
+            estimated_cost=len(markets) * max(1, -(-len(books) // 10)),
+            estimate_provenance="bookmaker_group_times_markets",
+            odds_format="american",
+            http_status=None if response is None else getattr(response, "status_code", None),
+            headers=None if response is None else getattr(response, "headers", None),
+            transport_error=transport_error,
+        )
+    except Exception:
+        return
 
 
 def _markets(event: dict, book: str) -> dict:

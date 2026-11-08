@@ -1,0 +1,32 @@
+{
+  "synthetic": true,
+  "schema": "proposed-observe-only-design-example-not-implemented",
+  "fields": {
+    "at_utc": "RFC3339",
+    "service": "safe service identifier",
+    "strategy": "safe lane identifier",
+    "provider": "THE_ODDS_API",
+    "endpoint_template": "path template only; no URL/query",
+    "sport": "sport identifier",
+    "request_scope": {
+      "markets": [
+        "synthetic_market"
+      ],
+      "region_units": 1,
+      "bookmaker_count": 1
+    },
+    "http_status": 200,
+    "actual_header_cost": 0,
+    "estimated_cost": 3,
+    "cost_basis": "header|estimate_only|unknown|unparseable",
+    "shared_used": 100,
+    "shared_remaining": 99900,
+    "observation_error": null
+  },
+  "constraints": [
+    "No credentials or credential hashes.",
+    "Do not store raw query strings, request URLs, headers wholesale, raw response/error bodies or contact IDs.",
+    "Never infer job cost from shared counter deltas.",
+    "Observer failures must not alter provider behavior or existing credit policy."
+  ]
+}

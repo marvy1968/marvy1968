@@ -1,0 +1,246 @@
+{
+  "synthetic": true,
+  "contains_no_credentials_or_request_URLs": true,
+  "note": "Review design examples, not executed tests or production state. Existing behavior\u2014including shadow fail-closed\u2014must remain intact.",
+  "cases": [
+    {
+      "case": "actual_differs_from_estimate",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-last": "2",
+        "x-requests-used": "102",
+        "x-requests-remaining": "99898"
+      },
+      "expected_observation": {
+        "actual_header_cost": 2,
+        "estimate": 3,
+        "basis": "header"
+      },
+      "response_body": []
+    },
+    {
+      "case": "zero_header_is_not_missing",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-last": "0",
+        "x-requests-used": "102",
+        "x-requests-remaining": "99898"
+      },
+      "expected_observation": {
+        "actual_header_cost": 0,
+        "estimate": 3,
+        "basis": "header"
+      },
+      "response_body": []
+    },
+    {
+      "case": "missing_cost_header",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-used": "105"
+      },
+      "expected_observation": {
+        "actual_header_cost": null,
+        "estimate": 3,
+        "basis": "estimate_only_not_actual"
+      },
+      "response_body": []
+    },
+    {
+      "case": "malformed_cost_header",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-last": "not-a-number"
+      },
+      "expected_observation": {
+        "actual_header_cost": null,
+        "estimate": 3,
+        "basis": "unparseable"
+      },
+      "response_body": []
+    },
+    {
+      "case": "http_error_known_cost",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 502,
+      "headers": {
+        "x-requests-last": "1"
+      },
+      "expected_observation": {
+        "actual_header_cost": 1,
+        "estimate": 3,
+        "basis": "header"
+      },
+      "response_body": {
+        "message": "synthetic error"
+      }
+    },
+    {
+      "case": "http_error_unknown_cost",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": 502,
+      "headers": {},
+      "expected_observation": {
+        "actual_header_cost": null,
+        "estimate": 3,
+        "basis": "unknown_never_assert_zero"
+      },
+      "response_body": {
+        "message": "synthetic error"
+      }
+    },
+    {
+      "case": "transport_exception",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 3,
+        "region_units": 1,
+        "estimate_credits": 3
+      },
+      "status": null,
+      "headers": null,
+      "transport_exception": "SyntheticTimeout",
+      "expected_observation": {
+        "actual_header_cost": null,
+        "basis": "unknown",
+        "propagate_original_exception": true
+      }
+    },
+    {
+      "case": "multimarket_region_estimate",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/odds",
+        "sport": "synthetic_sport",
+        "market_count": 4,
+        "region_units": 2,
+        "estimate_credits": 8
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-last": "6"
+      },
+      "expected_observation": {
+        "actual_header_cost": 6,
+        "estimate": 8,
+        "basis": "header"
+      }
+    },
+    {
+      "case": "free_events_unknown_header_shadow_policy_unchanged",
+      "scope": {
+        "provider": "THE_ODDS_API",
+        "endpoint_template": "/v4/sports/{sport}/events",
+        "estimate_credits": 0
+      },
+      "status": 502,
+      "headers": {},
+      "expected_observation": {
+        "actual_header_cost": null,
+        "estimate": 0,
+        "basis": "unknown"
+      },
+      "policy_note": "Observer must not change existing shadow reservation/fail-closed behavior. No recovery action belongs in accounting instrumentation."
+    },
+    {
+      "case": "global_counter_not_job_delta",
+      "observations": [
+        {
+          "service": "synthetic_A",
+          "actual_header_cost": 3,
+          "shared_used": 100
+        },
+        {
+          "service": "synthetic_B",
+          "actual_header_cost": 1,
+          "shared_used": 104
+        }
+      ],
+      "expected_observation": {
+        "A_attributed_credits": 3,
+        "B_attributed_credits": 1,
+        "between_sample_global_delta": 4,
+        "never_attribute_global_delta_to_B": true
+      }
+    },
+    {
+      "case": "historical_market_multiplier",
+      "scope": {
+        "endpoint_template": "/v4/historical/sports/{sport}/events/{event}/odds",
+        "market_count": 4,
+        "region_units": 1,
+        "historical_multiplier": 10,
+        "estimate_credits": 40
+      },
+      "status": 200,
+      "headers": {
+        "x-requests-last": "30"
+      },
+      "expected_observation": {
+        "actual_header_cost": 30,
+        "estimate": 40,
+        "basis": "header"
+      },
+      "policy_note": "Coverage only; no assertion that historical jobs are running."
+    },
+    {
+      "case": "observer_storage_failure",
+      "observation_sink_error": "SyntheticSQLiteBusy",
+      "expected_observation": {
+        "same_request_count": true,
+        "same_response": true,
+        "same_original_transport_exception": true,
+        "no_retries_or_skips_added": true,
+        "no_budget_or_priority_changes": true
+      }
+    }
+  ]
+}
