@@ -12,7 +12,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-PROV = ROOT / "provenance" / "source"
+PROV = ROOT / "provenance"
 
 from kalpoly_alert.betcard import deliver_card
 from kalpoly_alert.delivery import Receipt, backing_ids, commit_retry_receipt, deliver_ordinary
