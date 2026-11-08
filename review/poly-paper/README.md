@@ -120,23 +120,27 @@ file as a review schema.
 
 ## Blockers and uncovered behavior
 
-- **BLOCKER — the library gate is not the writer gate.** `policy.evaluate` fails closed
-  on a missing type gate and, with trade-all off, would reject NFL dogs that
-  `runner.main` still fills. The integrated path does not call `policy.evaluate`.
-  Using it would change existing authorization. Pretending the library is the writer
-  would hide that change. Stake, caps, dedupe, and card exceptions stay in the
-  exported functions.
-- **Uncovered — calibration tiers.** The writers load `/opt/kalshi-demo/calib_size.py`.
-  That file is absent here, the existing exception keeps `max_stake_usd`, and this
-  review does not create the host path or reimplement the Kelly tiers. Parity tests
-  check that fallback cap. They do not claim the tier table ran.
-- **Identity gap — live props.** `pm_nba_live.main` and `live_props.poly_fill` do call
-  the real `pm_fill.fill`. They do not pass home, away, start, or a provider snapshot.
-  The insert is rejected as `identity_context_missing`. Participants are not invented
-  from the slug, so a legitimate live prop cannot pass until those callers carry that
-  evidence.
-- **Label limit.** Unchanged `pm_fill.fill` reports a zero rowcount as `dup key`. An
-  identity reject therefore comes back from `fill()` with that string. The audit row
-  has the identity reason. The source string was not edited.
+- **Reconciled.** `policy.decide_fill` is the only authorization-plus-identity
+  decision. With valid policy files it keeps the exported NFL-dog, CFB-dog,
+  CFB-favorite, and card-rule results, and NCAAB stays eligible while trade-all is
+  on. A missing or malformed policy fails closed. That is the approved difference
+  from the writers' old fail-open config read. `writers.insert` calls the same
+  decision and is quarantined: it does not run stake, edge, cap, or dedupe, so it
+  is not a supported fill path.
+- **Calibration is a labeled mock when exercised.** The writers still call
+  `/opt/kalshi-demo/calib_size.py`. That file is not created here. A test can put a
+  synthetic `size()` in `sys.modules` so the existing branch runs. That mock is not
+  a verified calibration result. Without it, the writers' own exception keeps
+  `max_stake_usd`.
+- **Not fully integrated — live props.** `pm_nba_live.main` and `live_props.poly_fill`
+  reach the gate and are rejected. Their source objects have no independent start
+  instant and no home/away pair. The event is chosen by a date in the slug and
+  team-abbreviation overlap. Those calls are not claimed as identity-complete
+  accepts. See `ADAPTER_GAPS`.
+- **Exact start is fail-closed.** Any difference, including one second, does not
+  match. No tolerance is added for provider rounding.
+- **In-process hold.** The hashed `runner.main` adds a slug to its in-memory held
+  set even when the insert returns no row. That does not write a position or
+  consume the daily cap. A later process does not inherit it.
 - **Not a host migration.** A pre-existing fills file with no audit table is refused by
   `runner.db()`. Nothing here rewrites fill 619 or authorizes a production cutover.

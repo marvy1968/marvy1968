@@ -1,8 +1,9 @@
-"""Boundary library only. This is not the runtime-equivalent writer fix.
+"""Quarantined library helper. Not a supported simulated-fill path.
 
-`insert` checks a caller-supplied request. It does not run runner.main or
-pm_fill.fill, so it does not apply their stake, edge, daily cap, slug dedupe,
-or card exceptions. The integrated path is `poly_paper.integrated`.
+`insert` persists only after `policy.decide_fill`, the same authorization and
+identity decision the integrated writers use. It still does not run the
+exported stake, edge, cap, or dedupe code. Supported fills go through
+`poly_paper.integrated`.
 """
 from __future__ import annotations
 

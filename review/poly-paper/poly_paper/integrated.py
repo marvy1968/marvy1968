@@ -36,6 +36,16 @@ _PAPER = _BASE / "polymarket-paper"
 _LIVE = _BASE / "marv-feed" / "live_props" / "live_props.py"
 _SUMS = Path(__file__).resolve().parents[1] / "provenance" / "SHA256SUMS"
 
+# pm_nba_live and live_props reach pm_fill.fill, but their in-scope objects do not
+# carry an independent start instant or a home/away pair. The provider event is
+# chosen by an ET date inside the slug plus team-abbreviation overlap. Copying
+# that event's clock onto the request would invent agreement, so those callers
+# stay identity rejections. That is an adapter gap, not a fully integrated accept path.
+ADAPTER_GAPS = {
+    "pm_nba_live.main": "no independent start instant or home/away on the fill record or ESPN game dict; slug date is not a start",
+    "live_props.poly_fill": "no independent start instant or home/away; game name and team abbreviations are not a canonical event",
+}
+
 WRITER_CONNECTIONS = (
     {
         "module": "runner.py",
@@ -146,10 +156,14 @@ class _Guarded:
 
 
 class _Gate:
-    def __init__(self, identity_gate: bool):
+    def __init__(self, identity_gate: bool, workspace: Path):
         self.identity_gate = identity_gate
+        self.workspace = workspace
         self.captures = []
         self.decisions = []
+        self.pending_writer = "runner"
+        self.pending_lane = None
+        self.failpoint = None
 
     def remember(self, entry, snapshot, mapped):
         self.captures.append({"entry": dict(entry), "snapshot": snapshot, "mapped": mapped})
@@ -171,38 +185,55 @@ class _Gate:
         found = self._match(key, slug)
         if not self.identity_gate:
             cur = raw.execute(sql, params)
-            self.decisions.append({"accepted": bool(cur.rowcount), "reasons": ["writer_insert"], "fill_id": cur.lastrowid})
+            self.decisions.append({"accepted": bool(cur.rowcount), "reasons": ["writer_insert"], "fill_id": cur.lastrowid, "public_reason": None})
             return cur
-        if found is None:
-            decision = assess_missing()
-        else:
-            mapped = found.get("mapped") or {}
-            decision = assess(
-                found["entry"],
-                found["snapshot"],
-                claimed_slug=slug,
-                claimed_side=side,
-                claimed_token=None,
-            )
-            if mapped and mapped.get("slug") and mapped.get("slug") != slug:
-                decision.ok = False
-                decision.reasons = list(decision.reasons) + ["slug_disagrees"]
-        self._audit(raw, decision, key, pick, slug, side, params, None if decision.ok else None)
-        if not decision.ok:
-            self.decisions.append({"accepted": False, "reasons": list(decision.reasons), "fill_id": None, "token_verified": False})
+        from .policy import decide_fill
+        entry = None if found is None else found["entry"]
+        snapshot = None if found is None else found.get("snapshot")
+        decided = decide_fill(
+            entry=entry,
+            snapshot=snapshot,
+            claimed_slug=slug,
+            claimed_side=side,
+            claimed_token=None,
+            price=params[7],
+            writer=self.pending_writer,
+            lane_switch=self.pending_lane,
+            policy_dir=self.workspace,
+            switch_dir=self.workspace / "data",
+            env=dict(os.environ),
+            extra_dirs=(self.workspace,),
+        )
+        identity = decided["identity"]
+        if found and found.get("mapped") and found["mapped"].get("slug") not in (None, slug):
+            if "slug_disagrees" not in decided["reasons"]:
+                decided["reasons"].append("slug_disagrees")
+            if decided["action"] == "accept":
+                decided["action"] = "track_reject"
+        if decided["action"] != "accept":
+            self._audit(raw, decided, key, pick, slug, side, params, None)
+            public = _public_reason(decided)
+            self.decisions.append({"accepted": False, "reasons": list(decided["reasons"]), "fill_id": None, "public_reason": public, "token_verified": False})
             return _Cursor(0, None)
         cur = raw.execute(sql, params)
+        if self.failpoint == "after_fill":
+            raise RuntimeError("injected writer failure")
         if cur.rowcount:
-            self._audit(raw, decision, key, pick, slug, side, params, cur.lastrowid, replace=True)
-        self.decisions.append({
-            "accepted": bool(cur.rowcount),
-            "reasons": list(decision.reasons) + list(decision.notes),
-            "fill_id": cur.lastrowid,
-            "token_verified": bool(decision.outcome and decision.outcome.get("token_verified")),
-        })
+            self._audit(raw, decided, key, pick, slug, side, params, cur.lastrowid)
+            self.decisions.append({
+                "accepted": True,
+                "reasons": list(decided["reasons"]),
+                "fill_id": cur.lastrowid,
+                "public_reason": None,
+                "token_verified": bool(identity.outcome and identity.outcome.get("token_verified")),
+            })
+        else:
+            duplicate = dict(decided, action="duplicate_key", reasons=["duplicate_key"])
+            self._audit(raw, duplicate, key, pick, slug, side, params, None)
+            self.decisions.append({"accepted": False, "reasons": ["duplicate_key"], "fill_id": None, "public_reason": None, "token_verified": False})
         return cur
 
-    def _audit(self, raw, decision, key, pick, slug, side, params, fill_id, replace=False):
+    def _audit(self, raw, decided, key, pick, slug, side, params, fill_id):
         raw.execute(
             """create table if not exists fill_audit (
                 id integer primary key,
@@ -216,24 +247,31 @@ class _Gate:
                 outcome_json text,
                 participants_json text,
                 token_verified integer,
-                input_json text
+                input_json text,
+                mapped_event_id text,
+                effective_policy_json text,
+                policy_sha256 text
             )"""
         )
-        outcome = None if not decision.ok else decision.outcome
-        participants = None if not decision.ok else decision.participants
+        identity = decided.get("identity")
+        outcome = None if identity is None or not getattr(identity, "outcome", None) else identity.outcome
+        participants = None if identity is None else identity.participants
+        effective = decided.get("effective")
         payload = {
             "key": key, "pick": pick, "slug": slug, "side": side,
             "contracts": params[6], "price": params[7], "fee": params[8], "cost": params[9],
+            "mapped_event_id": None if identity is None else identity.event_id,
+            "mapped_event_slug": None if identity is None else identity.event_slug,
         }
-        if replace and fill_id is not None:
-            raw.execute("delete from fill_audit where fill_key=? and fill_id is null", (key,))
+        from .canonical import sha256_obj
         raw.execute(
             """insert into fill_audit(action, reasons_json, fill_id, fill_key, pick, slug, side,
-               outcome_json, participants_json, token_verified, input_json)
-               values (?,?,?,?,?,?,?,?,?,?,?)""",
+               outcome_json, participants_json, token_verified, input_json, mapped_event_id,
+               effective_policy_json, policy_sha256)
+               values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
-                "accept" if decision.ok and fill_id is not None else "track_reject",
-                json.dumps(list(decision.reasons) + list(getattr(decision, "notes", []) or [])),
+                decided.get("action") or "track_reject",
+                json.dumps(list(decided.get("reasons") or [])),
                 fill_id,
                 key,
                 pick,
@@ -243,8 +281,22 @@ class _Gate:
                 None if participants is None else json.dumps(participants),
                 1 if outcome and outcome.get("token_verified") else 0,
                 json.dumps(payload, default=str),
+                None if identity is None else identity.event_id,
+                None if effective is None else json.dumps(effective, sort_keys=True),
+                None if effective is None else sha256_obj(effective),
             ),
         )
+
+
+def _public_reason(decided):
+    reasons = [code for code in decided.get("reasons") or [] if code not in {"trade_all", "allowlist", "nfl_dog", "cfb_dog"}]
+    code = (reasons or decided.get("reasons") or ["denied"])[0]
+    prefix = "policy" if decided.get("action") == "fail_closed" or code in {
+        "force_track", "nba_hold", "card_rule", "cfb_fav_track", "not_on_allowlist", "pin_track",
+        "never_trade", "lane_off", "trade_all_off", "hard_kill", "policy_missing", "policy_malformed",
+        "unapproved_policy_conflict", "paper_mode_violation",
+    } else "identity"
+    return f"{prefix}:{code}"
 
 
 def assess_missing():
@@ -255,7 +307,7 @@ def assess_missing():
 class Session:
     def __init__(self, workspace: Path, identity_gate: bool):
         self.workspace = workspace
-        self.gate = _Gate(identity_gate)
+        self.gate = _Gate(identity_gate, workspace)
         self.runner = None
         self.pm_fill = None
         self._cleanup = []
@@ -294,7 +346,7 @@ def _load(path: Path, name: str):
 
 
 @contextmanager
-def writer_session(tmp, *, config=None, type_gate=None, env=None, identity_gate=True, entries=None):
+def writer_session(tmp, *, config=None, type_gate=None, env=None, identity_gate=True, entries=None, calib_mock=None):
     """Load byte-identical baseline writer modules from a temp copy. Restores process state."""
     _sha_ok()
     workspace = Path(tmp) / "polymarket-paper"
@@ -332,13 +384,14 @@ def writer_session(tmp, *, config=None, type_gate=None, env=None, identity_gate=
     if type_gate:
         gate_doc.update(type_gate)
     (workspace / "type_gate.json").write_text(json.dumps(gate_doc))
+    shutil.copy(Path(__file__).resolve().parent / "effective_policy.json", workspace / "effective_policy.json")
 
     saved_path = list(sys.path)
     saved_env = os.environ.copy()
     saved_argv = list(sys.argv)
     saved_modules = {name: sys.modules.get(name) for name in (
         "runner", "pm_fill", "pm_type_gate", "mapper", "pm_client", "pick_feed", "bovada_px",
-        "pm_nba_live", "pm_me_track", "live_props",
+        "pm_nba_live", "pm_me_track", "live_props", "calib_size",
     )}
     popped = object()
     session = Session(workspace, identity_gate)
@@ -380,7 +433,29 @@ def writer_session(tmp, *, config=None, type_gate=None, env=None, identity_gate=
         session.map_holder = holder
         session.runner = runner
         session.pm_fill = _load(workspace / "pm_fill.py", "pm_fill")
+        real_fill = session.pm_fill.fill
+
+        def fill(name, rec, lane, *args, **kwargs):
+            session.gate.pending_writer = "pm_fill"
+            session.gate.pending_lane = name
+            start = len(session.gate.decisions)
+            try:
+                ok, why = real_fill(name, rec, lane, *args, **kwargs)
+            finally:
+                session.gate.pending_writer = "runner"
+                session.gate.pending_lane = None
+            fresh = session.gate.decisions[start:]
+            if fresh and not fresh[-1]["accepted"] and why == "dup key" and fresh[-1].get("public_reason"):
+                return False, fresh[-1]["public_reason"]
+            return ok, why
+
+        session.pm_fill.fill = fill
         session.pick_feed = pick
+        if calib_mock is not None:
+            mocked = types.ModuleType("calib_size")
+            mocked.MOCK = True
+            mocked.size = calib_mock
+            sys.modules["calib_size"] = mocked
         import subprocess
         real_popen = subprocess.Popen
 

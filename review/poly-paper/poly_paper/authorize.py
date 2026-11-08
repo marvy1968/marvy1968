@@ -13,8 +13,7 @@ from zoneinfo import ZoneInfo
 
 from .canonical import canonical_json, sha256_obj, sha256_text
 from .fee import economics_match
-from .identity import assess
-from .policy import classify, evaluate, load_policy_dir
+from .policy import classify, decide_fill
 from .storage import connect, locked, purpose, transaction
 
 CT = ZoneInfo("America/Chicago")
@@ -113,8 +112,13 @@ def _decide(request, *, policy_dir, switch_dir, env):
     actual = classify(entry.get("key"), entry.get("me_type"), entry.get("market"), entry.get("sport"))
     if supplied is not None and supplied != actual:
         return _pack("fail_closed", ["type_tag_disagrees"], None, "fail_closed", input_record, snapshot, None, None)
-    policy_action, policy_reasons = evaluate(
-        entry,
+    decided = decide_fill(
+        entry=entry,
+        snapshot=snapshot,
+        claimed_slug=request.get("claimed_slug"),
+        claimed_side=claimed_side,
+        claimed_token=request.get("claimed_token"),
+        price=request.get("price"),
         writer=writer,
         lane_switch=request.get("lane_switch"),
         policy_dir=policy_dir,
@@ -122,36 +126,13 @@ def _decide(request, *, policy_dir, switch_dir, env):
         env=env,
         live_order=bool(request.get("live_order")),
     )
-    identity = assess(
-        entry,
-        snapshot,
-        claimed_slug=request.get("claimed_slug"),
-        claimed_side=claimed_side,
-        claimed_token=request.get("claimed_token", None) if "claimed_token" in request else None,
-    )
-    effective, gate, load_errors = load_policy_dir(policy_dir)
-    action = "allow"
-    all_reasons = list(policy_reasons)
-    for code in load_errors:
-        if code not in all_reasons:
-            all_reasons.append(code)
-    if not identity.ok:
-        for code in identity.reasons:
-            if code not in all_reasons:
-                all_reasons.append(code)
-    if policy_action == "fail_closed" or load_errors:
+    action = decided["action"]
+    all_reasons = list(decided["reasons"])
+    identity = decided["identity"]
+    if action == "accept" and not economics_match(request.get("contracts"), request.get("price"), request.get("fee"), request.get("cost")):
         action = "fail_closed"
-    elif not identity.ok or policy_action == "track_reject":
-        action = "track_reject"
-    else:
-        if not economics_match(request.get("contracts"), request.get("price"), request.get("fee"), request.get("cost")):
-            action = "fail_closed"
-            all_reasons = ["fee_or_contract_mismatch"]
-        else:
-            action = "accept"
-            all_reasons = list(policy_reasons)
-            all_reasons.extend(identity.notes)
-    return _pack(action, all_reasons, identity, policy_action, input_record, snapshot, effective, gate)
+        all_reasons = ["fee_or_contract_mismatch"]
+    return _pack(action, all_reasons, identity, decided["policy_action"], input_record, snapshot, decided["effective"], decided["gate"])
 
 
 def _pack(action, reasons, identity, policy_action, input_record, snapshot, effective, gate):
@@ -310,4 +291,5 @@ def _public(accepted, decision, fill_id, audit_id):
         "reasons": list(decision["reasons"]),
         "fill_id": fill_id,
         "audit_id": audit_id,
+        "quarantined_library": True,
     }

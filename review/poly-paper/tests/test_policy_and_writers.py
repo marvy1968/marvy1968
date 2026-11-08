@@ -34,7 +34,7 @@ def test_ncaab_after_nov17_still_fills(db_path, policy_dir, switch_dir):
 
 def test_trade_all_off_allowlist_and_ncaab_not_silently_added(db_path, policy_dir, switch_dir):
     env = {"PM_TRADE_ALL": "off"}
-    ncaab = insert("runner", db_path, exact_request(), policy_dir=policy_dir, switch_dir=switch_dir, env=env)
+    ncaab = insert("runner", db_path, exact_request(price=0.55), policy_dir=policy_dir, switch_dir=switch_dir, env=env)
     assert not ncaab["accepted"]
     assert "not_on_allowlist" in ncaab["reasons"]
     cfb_entry = samford_entry(sport="cfb", key="cfb:synthetic:ml", market="ml")
@@ -90,13 +90,13 @@ def test_kill_pin_never_and_type_gate_off(db_path, policy_dir, switch_dir):
     on = insert("runner", db_path, exact_request(entry=nfl, event=nfl_event),
                 policy_dir=policy_dir, switch_dir=switch_dir, env={})
     assert on["accepted"], on
-    off = insert("runner", db_path, exact_request(entry=nfl, event=nfl_event, key=None),
+    off = insert("runner", db_path, exact_request(entry=nfl, event=nfl_event, price=0.55),
                  policy_dir=policy_dir, switch_dir=switch_dir, env={"PM_TRADE_ALL": "off"})
     # key collision: exact_request entry key is nfl:synthetic:ml and the previous fill used it.
     # This call builds a new request from overrides but entry is passed so key stays.
     assert "pin_track" in off["reasons"] or "duplicate_key" in off["reasons"]
     fresh = samford_entry(sport="nfl", key="nfl:synthetic:ml:2")
-    off = insert("runner", db_path, exact_request(entry=fresh, event=nfl_event),
+    off = insert("runner", db_path, exact_request(entry=fresh, event=nfl_event, price=0.55),
                  policy_dir=policy_dir, switch_dir=switch_dir, env={"PM_TRADE_ALL": "off"})
     assert "pin_track" in off["reasons"]
     never = samford_entry(sport="cfb", me_type="h2h_cfb", key="cfb:synthetic:h2h")
@@ -106,7 +106,7 @@ def test_kill_pin_never_and_type_gate_off(db_path, policy_dir, switch_dir):
     assert allowed["accepted"], allowed
     blocked = insert(
         "runner", db_path,
-        exact_request(entry=samford_entry(sport="cfb", me_type="h2h_cfb", key="cfb:synthetic:h2h:2"), event=cfb_event),
+        exact_request(entry=samford_entry(sport="cfb", me_type="h2h_cfb", key="cfb:synthetic:h2h:2"), event=cfb_event, price=0.55),
         policy_dir=policy_dir, switch_dir=switch_dir, env={"PM_TRADE_ALL": "off"},
     )
     assert "never_trade" in blocked["reasons"]

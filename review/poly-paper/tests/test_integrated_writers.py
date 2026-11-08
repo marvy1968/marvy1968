@@ -10,7 +10,7 @@ from importlib.machinery import SourceFileLoader
 import importlib.util
 
 from poly_paper.fee import contracts_from_dollars, cost, fee
-from poly_paper.integrated import run_live_props_fill, run_marv_cbb, run_me_track, run_runner, settle_linked, writer_session
+from poly_paper.integrated import run_live_props_fill, run_marv_cbb, run_me_track, run_pm_fill, run_runner, settle_linked, writer_session
 from poly_paper.storage import LedgerRefusal, connect, read_legacy_fills
 
 ROOT = __import__("pathlib").Path(__file__).resolve().parents[1]
@@ -334,3 +334,116 @@ def test_nba_live_reaches_pm_fill_and_does_not_invent_identity(tmp_path):
         assert session.fills() == []
         assert session.audits(), "pm_nba_live did not reach the fill insert"
         assert "identity_context_missing" in session.audits()[-1]["reasons_json"]
+
+
+def test_missing_policy_denies_every_supported_writer(tmp_path):
+    away, home = "Samford Bulldogs", "UNLV Rebels"
+    event = _event("ncaab", "cbb", away, home, "aec-cbb-samford-unlv-2030-11-07", "aec-samford-unlv-winner")
+    entry = _entry("ncaab", away, home, "ncaab:policy:ml")
+    for name in ("runner", "me", "cbb"):
+        with writer_session(tmp_path / name, identity_gate=True) as session:
+            (session.workspace / "type_gate.json").write_text("{")
+            if name == "runner":
+                run_runner(session, [entry], [event], _bbo(0.40))
+            elif name == "me":
+                run_me_track(session, [dict(entry, me_alert_id=7, key="ncaab:me-policy")], [event], _bbo(0.40))
+            else:
+                run_marv_cbb(session, [dict(entry, key="board-policy")], [event], _bbo(0.40))
+            assert session.fills() == []
+            assert "policy_malformed" in session.audits()[-1]["reasons_json"]
+    with writer_session(tmp_path / "pm", identity_gate=True) as session:
+        (session.workspace / "effective_policy.json").write_text("")
+        ok, why = run_pm_fill(
+            session, "ME_TRACK",
+            {"slug": "aec-samford-unlv-winner", "side": "long", "pick": f"{away} ML", "price": 0.40,
+             "fair": 0.55, "key": "ncaab:pm-policy", "sport": "ncaab", "market": "ml"},
+            "ml:ncaab", entry, [event], _bbo(0.40),
+        )
+        assert ok is False and why.startswith("policy:")
+        assert session.fills() == []
+
+
+def test_identity_reject_is_not_called_a_duplicate_and_does_not_reserve_stake(tmp_path):
+    away, home = "Samford Bulldogs", "UNLV Rebels"
+    good = _event("ncaab", "cbb", away, home, "aec-cbb-samford-unlv-2030-11-07", "aec-samford-unlv-winner")
+    boyce = _event("ncaab", "cbb", "Boyce", "Liberty", "synthetic-cbb-boyce-liberty-2030-11-07", "synthetic-boyce-liberty-winner")
+    boyce["teams"][0]["alias"] = "Bulldogs"
+    boyce["markets"][0]["marketSides"][0]["description"] = "Bulldogs"
+    boyce["markets"][0]["marketSides"][0]["team"]["alias"] = "Bulldogs"
+    loader = SourceFileLoader("backup_mapper_reason", str(ROOT / "provenance/baseline/polymarket-paper/mapper.py.baseline-20261107"))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    backup = importlib.util.module_from_spec(spec)
+    loader.exec_module(backup)
+    valid = _entry("ncaab", away, home, "ncaab:valid:ml")
+    bad = _entry("ncaab", away, home, "ncaab:bad:ml")
+    with writer_session(tmp_path / "reason", identity_gate=True) as session:
+        session.map_holder["fn"] = backup.map_entry
+        ok, why = run_pm_fill(
+            session, "ME_TRACK",
+            {"slug": "synthetic-boyce-liberty-winner", "side": "long", "pick": f"{away} ML", "price": 0.40,
+             "fair": 0.55, "key": "me:99", "sport": "ncaab", "market": "ml"},
+            "ml:ncaab", dict(bad, me_alert_id=99), [boyce], _bbo(0.40),
+        )
+        assert why != "dup key" and why.startswith("identity:")
+        assert ok is False and session.fills() == []
+    with writer_session(tmp_path / "next", identity_gate=True) as session:
+        run_runner(session, [valid], [good], _bbo(0.40))
+        rows = session.fills()
+        assert len(rows) == 1 and rows[0]["slug"] == "aec-samford-unlv-winner"
+        assert rows[0]["cost"] == cost(rows[0]["contracts"], rows[0]["price"], rows[0]["fee"])
+        spent = rows[0]["cost"]
+        assert spent < 50
+    with writer_session(tmp_path / "dedupe", identity_gate=True) as session:
+        run_pm_fill(
+            session, "ME_TRACK",
+            {"slug": "aec-samford-unlv-winner", "side": "long", "pick": f"{away} ML", "price": 0.40,
+             "fair": 0.55, "key": "ncaab:once", "sport": "ncaab", "market": "ml"},
+            "ml:ncaab", valid, [good], _bbo(0.40),
+        )
+        ok, why = run_pm_fill(
+            session, "ME_TRACK",
+            {"slug": "aec-samford-unlv-winner", "side": "long", "pick": f"{away} ML", "price": 0.40,
+             "fair": 0.55, "key": "ncaab:twice", "sport": "ncaab", "market": "ml"},
+            "ml:ncaab", dict(valid, key="ncaab:twice"), [good], _bbo(0.40),
+        )
+        assert why == "already hold this market"
+        assert len(session.fills()) == 1
+
+
+def test_mock_calibration_changes_stake_without_claiming_real_calib(tmp_path):
+    away, home = "Samford Bulldogs", "UNLV Rebels"
+    event = _event("ncaab", "cbb", away, home, "aec-cbb-samford-unlv-2030-11-07", "aec-samford-unlv-winner")
+    entry = _entry("ncaab", away, home, "ncaab:mock-calib")
+
+    def fake_size(venue, lane, fair, price, me_type=None, cap_usd=None, dry=False, extra=None):
+        assert cap_usd == 50
+        return 12.5, {"tier": "mock", "mock": True}
+
+    with writer_session(tmp_path / "mock", identity_gate=True, calib_mock=fake_size) as session:
+        run_runner(session, [entry], [event], _bbo(0.40))
+        row = session.fills()[0]
+    assert row["contracts"] == contracts_from_dollars(12.5, 0.40)
+    assert row["contracts"] != contracts_from_dollars(50, 0.40)
+
+
+def test_reject_audit_is_append_only_and_a_failed_insert_rolls_back(tmp_path):
+    away, home = "Samford Bulldogs", "UNLV Rebels"
+    event = _event("ncaab", "cbb", away, home, "aec-cbb-samford-unlv-2030-11-07", "aec-samford-unlv-winner")
+    entry = _entry("ncaab", away, home, "ncaab:rollback")
+    with writer_session(tmp_path / "boom", identity_gate=True) as session:
+        session.gate.failpoint = "after_fill"
+        try:
+            run_runner(session, [entry], [event], _bbo(0.40))
+        except RuntimeError as exc:
+            assert "injected" in str(exc)
+        assert session.fills() == []
+        assert session.audits() == []
+    with writer_session(tmp_path / "deny", identity_gate=True) as session:
+        (session.workspace / "type_gate.json").write_text("{")
+        run_runner(session, [entry], [event], _bbo(0.40))
+        run_runner(session, [dict(entry, key="ncaab:rollback-2")], [event], _bbo(0.40))
+        audits = session.audits()
+        assert len(audits) >= 2
+        assert all(row["action"] == "fail_closed" for row in audits)
+        assert all(row["effective_policy_json"] in (None, "") or "policy_malformed" in row["reasons_json"] for row in audits)
+        assert session.fills() == []
