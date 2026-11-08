@@ -1,0 +1,19 @@
+{
+  "policy_id": "reviewed-paper-20261108",
+  "paper_only": true,
+  "preprod_enabled": false,
+  "live_orders": false,
+  "trade_all_default": "on",
+  "identity_required": true,
+  "trade_all_cannot_bypass": [
+    "identity",
+    "force_track",
+    "nba_hold",
+    "unknown_or_malformed_policy",
+    "hard_kill"
+  ],
+  "ncaab_paper_eligible": true,
+  "ncaab_track_only_ban": false,
+  "nov17_auto_switch": false,
+  "nba_ml_hold": true
+}

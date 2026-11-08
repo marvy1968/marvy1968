@@ -1,0 +1,43 @@
+{
+  "kind": "minimal sanitized observed incident fields, not a full ledger export",
+  "id": 619,
+  "ts": "2026-11-07T13:15:00.787393-06:00",
+  "key": "ncaab:401924912:ml:away:None",
+  "pick": "Samford Bulldogs ML",
+  "slug": "aec-cbb-bc-librty-2026-11-07",
+  "side": "long",
+  "contracts": 2340,
+  "price": 0.02,
+  "fee": 3.1875,
+  "cost": 49.9875,
+  "fair": 0.1319,
+  "edge": 0.11053779999999999,
+  "lane": "runner:ml:ncaab:pre",
+  "status": "settled",
+  "result": "loss",
+  "pnl": -49.9875,
+  "payout": 0.0,
+  "settle_px": 0.0,
+  "settled_ts": "2026-11-07T15:20:01.400025-06:00",
+  "settle_src": "polymarket",
+  "incident_journal_mapping": {
+    "team_description": "Bulldogs",
+    "event": "cbb-bc-librty-2026-11-07",
+    "title": "Who will win in the upcoming basketball event Boyce vs Liberty scheduled for November 7, 2026 at 2:00PM ET?",
+    "paper_fill": true
+  },
+  "proven_source_game_metadata": {
+    "provider_game_id": "401924912",
+    "sport": "ncaab",
+    "home": "UNLV Rebels",
+    "away": "Samford Bulldogs",
+    "scheduled_start": "2026-11-07T21:00:00+00:00",
+    "provenance": "Cached predictions entry observed during incident read-only audit; not an immutable fill-time input snapshot."
+  },
+  "not_recorded": [
+    "provider outcome token ID",
+    "canonical Polymarket team IDs",
+    "immutable original input snapshot",
+    "historical effective config hash"
+  ]
+}
