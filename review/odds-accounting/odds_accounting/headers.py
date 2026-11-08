@@ -14,6 +14,11 @@ from __future__ import annotations
 import re
 
 USAGE_HEADER_NAMES = ("x-requests-last", "x-requests-used", "x-requests-remaining")
+# Odds API plans in this review are far below a billion credits. Longer digit
+# strings are rejected before int() so a malformed header cannot allocate a
+# huge integer. They are not stored and are not rewritten to zero.
+MAX_DIGITS = 9
+MAX_VALUE = 1_000_000_000
 
 
 def extract_usage_headers(headers) -> dict | None:
@@ -42,8 +47,12 @@ def parse_count(value) -> tuple[int | None, str]:
     if isinstance(value, int):
         if value < 0:
             return None, "negative_rejected"
+        if value >= MAX_VALUE:
+            return None, "out_of_range"
         return value, "header"
     if isinstance(value, bytes):
+        if len(value) > MAX_DIGITS + 1:
+            return None, "out_of_range"
         try:
             text = value.decode("ascii")
         except UnicodeDecodeError:
@@ -54,18 +63,26 @@ def parse_count(value) -> tuple[int | None, str]:
         return None, "missing"
     else:
         return None, "unparseable"
+    if len(text) > 64:
+        return None, "out_of_range"
     text = text.strip()
     if text == "":
         return None, "missing"
     if text.startswith("-"):
-        try:
-            float(text)
-        except ValueError:
-            return None, "unparseable"
-        return None, "negative_rejected"
+        rest = text[1:]
+        if len(rest) > MAX_DIGITS:
+            return None, "out_of_range"
+        if rest.isdigit():
+            return None, "negative_rejected"
+        return None, "unparseable"
     if re.fullmatch(r"\d+", text) is None:
         return None, "unparseable"
-    return int(text), "header"
+    if len(text) > MAX_DIGITS:
+        return None, "out_of_range"
+    number = int(text)
+    if number >= MAX_VALUE:
+        return None, "out_of_range"
+    return number, "header"
 
 
 def cost_basis(actual_status: str, estimated_cost: int | None, http_status: int | None,
@@ -73,10 +90,8 @@ def cost_basis(actual_status: str, estimated_cost: int | None, http_status: int 
     """Label how the row may be read. Header actual is the only actual cost."""
     if actual_status == "header":
         return "header"
-    if actual_status == "unparseable":
-        return "unparseable"
-    if actual_status == "negative_rejected":
-        return "negative_rejected"
+    if actual_status in ("unparseable", "out_of_range", "negative_rejected"):
+        return actual_status
     if actual_status == "legacy_unlabeled":
         return "legacy_unlabeled_not_actual"
     if transport_failed or http_status is None:

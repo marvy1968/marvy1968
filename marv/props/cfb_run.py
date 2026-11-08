@@ -58,7 +58,7 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
     top = _top_teams(games[games["season"] == season] if (games["season"] == season).any() else games)
     teams = sorted(set(players["team"]))
     evs = []
-    for e in O.events(settings.odds_api_key, SPORT):
+    for e in O.events(settings.odds_api_key, SPORT, source_job="marv-props-cfb"):
         start = pd.Timestamp(e["commence_time"]).to_pydatetime()
         home, away = _team(e["home_team"], teams), _team(e["away_team"], teams)
         if now <= start <= now + timedelta(hours=hours) and home and away and ({home, away} & top):
@@ -68,7 +68,7 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
     # Closing-style spread and total for the implied team totals (2 credits for the whole slate).
     lines = {}
     try:
-        for ev in oddsapi.fetch(settings.odds_api_key, SPORT):
+        for ev in oddsapi.fetch(settings.odds_api_key, SPORT, source_job="marv-props-cfb"):
             lines[ev["id"]] = oddsapi.consensus(ev, getattr(settings, "odds_book", "bovada") or "bovada")
     except Exception as exc:
         log.warning("ncaaf game lines: %s", exc)
@@ -90,7 +90,8 @@ def run_live(settings, hours: int = 48, dry_run: bool = False) -> str:
     got = []
     for e, _, _ in evs:
         try:
-            data = O.event_props(settings.odds_api_key, SPORT, e["id"], [m.key for m in C.MARKETS.values()], book, budget)
+            data = O.event_props(settings.odds_api_key, SPORT, e["id"], [m.key for m in C.MARKETS.values()], book, budget,
+                                 source_job="marv-props-cfb")
         except RuntimeError:
             break
         lr = O.prop_rows(data, book)
@@ -191,7 +192,8 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
                 if part.empty:
                     continue
                 snap = pd.Timestamp(day + " 11:00").tz_localize(ET).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
-                for ev in O.historical_events(settings.odds_api_key, SPORT, snap, pcache, budget):
+                for ev in O.historical_events(settings.odds_api_key, SPORT, snap, pcache, budget,
+                                              source_job="marv-props-cfb"):
                     home = _team(ev["home_team"], list(part["home"]))
                     if not home:
                         continue
@@ -199,7 +201,7 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
                     kick = pd.Timestamp(ev["commence_time"]) - pd.Timedelta(hours=1)
                     data = O.historical_event_props(settings.odds_api_key, SPORT, ev["id"], kick.strftime("%Y-%m-%dT%H:%M:%SZ"),
                                                     [m.key for m in C.MARKETS.values()], f"{book},draftkings,fanduel",
-                                                    pcache, budget)
+                                                    pcache, budget, source_job="marv-props-cfb")
                     lr = O.prop_rows(data, book)
                     if not lr.empty:
                         lines.append(lr.assign(game_id=gid))

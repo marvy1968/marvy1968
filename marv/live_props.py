@@ -86,11 +86,12 @@ def record_period(settings, game, ended: int, client, books: str = "bovada,draft
     Four credits per call; this builds the dataset live props need before any alert can be trusted."""
     from .props import nfl as P, odds as O
     sport = "americanfootball_nfl"
-    ev = _event_for(O.events(settings.odds_api_key, sport), game.home, game.away)
+    ev = _event_for(O.events(settings.odds_api_key, sport, source_job="marv-live-props"), game.home, game.away)
     if not ev:
         return 0
     box = box_stats(client.summary("football/nfl", str(game.id)))
-    data = O.event_props(settings.odds_api_key, sport, ev["id"], [m.key for m in P.MARKETS.values()], books)
+    data = O.event_props(settings.odds_api_key, sport, ev["id"], [m.key for m in P.MARKETS.values()], books,
+                         source_job="marv-live-props")
     rows = live_prop_snapshot(data, box)
     log_snapshot(Path(settings.state_dir), ev, f"end of period {ended}",
                  f"{game.info.get('live_away')}-{game.info.get('live_home')}", rows)

@@ -77,15 +77,15 @@ def _reconcile_label(attempts: list[dict], samples: list[dict]) -> dict:
         notes.append("insufficient_global_snapshots")
     else:
         ordered = sorted(numeric, key=lambda row: (row["observed_at_utc"], row["sample_id"]))
-        decreased = False
-        for previous, nxt in zip(ordered, ordered[1:]):
-            if nxt["shared_used"] < previous["shared_used"]:
-                decreased = True
-                if nxt["month_utc"] != previous["month_utc"]:
-                    notes.append("possible_utc_month_reset_unknown")
-                else:
-                    notes.append("stale_or_out_of_order_or_external_unknown")
-        if decreased:
+        crossed_month = any(nxt["month_utc"] != previous["month_utc"]
+                            for previous, nxt in zip(ordered, ordered[1:]))
+        decreased = any(nxt["shared_used"] < previous["shared_used"]
+                        for previous, nxt in zip(ordered, ordered[1:]))
+        if crossed_month:
+            notes.append("possible_utc_month_reset_unknown")
+            status = "unknown"
+        elif decreased:
+            notes.append("stale_or_out_of_order_or_external_unknown")
             status = "unknown"
         else:
             delta = ordered[-1]["shared_used"] - ordered[0]["shared_used"]

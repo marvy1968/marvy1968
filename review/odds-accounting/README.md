@@ -14,6 +14,19 @@ or a caller passes a ledger path. A locked, unwritable, or corrupt ledger is
 reported and then ignored. The provider call, its result, and its exception are
 unchanged. No scheduler or extra service is started.
 
+A write waits on SQLite's busy timeout of 75ms and tries at most 4 times. That
+is a 300ms ceiling. The observer does not call `sleep` and does not retry the
+provider request. `requests` on these clients keeps `max_retries` at 0. Redirect
+hops already attached to a response are separate physical attempts. A second
+note of the same response object is ignored.
+
+A caller that does not pass `source_job` is stored as `unknown`. Featured-odds
+tags exist only on the entrypoints whose files match the VM export (`marv-sources`,
+`marv-board`, `marv-betcard`, `marv-cfb-props-shadow`, and the props runners).
+`marv/live_monitor.py`, `marv/main.py`, and `marv/live_prop_engine.py` differ from
+the VM copies, so this review does not tag them and does not treat the repo file
+as the running VM file.
+
 Shared caps, priorities, and cache or polling changes from the 2026-11-08 audit
 are disabled and unimplemented. See `odds_accounting/enforcement.py`. They need
 a separate approval before they can gate a call.

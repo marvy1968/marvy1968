@@ -85,6 +85,10 @@ CREATE INDEX IF NOT EXISTS idx_attempts_job ON request_attempts (source_job, day
 CREATE INDEX IF NOT EXISTS idx_attempts_logical ON request_attempts (logical_request_id);
 """
 
+# SQLite waits inside busy_timeout. There is no sleep() between attempts.
+# Worst observer wait is WRITE_ATTEMPTS * BUSY_SECONDS (300ms), then the
+# provider call continues with the observation dropped.
+WRITE_ATTEMPTS = 4
 _BUSY_SECONDS = 0.075
 _ATTRIBUTION = "global_snapshot_not_consumer_cost"
 _UPGRADABLE = frozenset({"missing", "unparseable"})
@@ -140,7 +144,7 @@ def insert_attempt(path: Path, row: dict) -> dict:
                 "duplicate": False}
     last = {"ok": False, "stored": False, "reason": "locked", "attempt_id": row.get("attempt_id"),
             "duplicate": False}
-    for _ in range(4):
+    for _ in range(WRITE_ATTEMPTS):
         last = _insert_once(path, row)
         if last["ok"] or last["reason"] != "locked":
             return last

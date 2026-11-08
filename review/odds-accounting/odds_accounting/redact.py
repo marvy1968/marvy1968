@@ -86,7 +86,8 @@ def exception_types(exc: BaseException | None) -> tuple[str | None, str | None]:
             break
         seen.add(marker)
         name = type(current).__name__
-        names.append(name if name.isidentifier() and len(name) <= 80 else "Exception")
+        safe_name = name if name.isidentifier() and len(name) <= 80 and SENSITIVE_WORD.search(name) is None else "Exception"
+        names.append(safe_name)
         current = current.__cause__ if current.__cause__ is not None else current.__context__
     primary = names[0] if names else None
     cause = names[1] if len(names) > 1 else None

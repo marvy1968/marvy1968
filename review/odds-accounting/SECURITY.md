@@ -2,7 +2,7 @@
 
 The ledger stores a template path, sport key, market and region and bookmaker
 names, an explicit account label such as `paid` or `free`, status, the parsed
-usage integers, and exception class names. It does not store a request URL, a
+usage integers of at most 9 digits, and exception class names. Values past that bound, and any header text, are dropped before `int()` or `str()`. The observer waits at most 300ms on a locked ledger and does not sleep or retry the provider. It does not store a request URL, a
 query string, an API key, a key hash, a response body, or the text of an
 exception.
 

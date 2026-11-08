@@ -420,7 +420,7 @@ class BoundaryTests(unittest.TestCase):
         self.assertEqual(params["markets"], "h2h,spreads,totals")
         self.assertNotIn(secret.encode(), self.path.read_bytes())
         row = _physical(self.path)[0]
-        self.assertEqual(row["source_job"], "marv-feed")
+        self.assertEqual(row["source_job"], "unknown")
         self.assertEqual(row["estimated_cost"], 6)
         self.assertEqual(row["actual_header_cost"], 2)
         self.assertEqual(row["cost_basis"], "header")
@@ -471,7 +471,8 @@ class BoundaryTests(unittest.TestCase):
         # The string "0" is present, so the existing charge uses 0. A missing header
         # still falls back to the estimate. That line is intentionally unchanged.
         self.assertEqual(budget.used, 0)
-        props_row = next(row for row in _physical(self.path) if row["source_job"] == "marv-props"
+        props_row = next(row for row in _physical(self.path)
+                         if row["endpoint_template"] == "/v4/sports/{sport}/events/{event}/odds"
                          and row["outcome"] == "success")
         self.assertEqual(props_row["actual_header_cost"], 0)
         self.assertEqual(props_row["estimated_cost"], 4)

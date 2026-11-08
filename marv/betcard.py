@@ -342,7 +342,7 @@ def update_close(state: Path, settings, now: datetime | None = None) -> int:
         events = []
         for key in SPORTS[sport].odds_api_keys:
             try:
-                events += oddsapi.fetch(settings.odds_api_key, key)
+                events += oddsapi.fetch(settings.odds_api_key, key, source_job="marv-betcard")
             except Exception:
                 continue
         for b in [x for x in open_ if x["sport"] == sport]:

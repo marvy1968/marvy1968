@@ -5,6 +5,7 @@ runtime and is scrubbed from every log line / exception message.
 """
 from __future__ import annotations
 
+import contextvars
 import logging
 import os
 import uuid
@@ -93,15 +94,36 @@ class BudgetGuard:
         return True, "ok"
 
 
+# Hops from the real Session only. A test double that returns a tuple does not
+# set this. requests follows redirects inside one get; urllib3 status retries
+# stay at the Session default of 0. No sleep is added here.
+_HOPS: contextvars.ContextVar = contextvars.ContextVar("aj_odds_hops", default=None)
+
+
+def _remember_hops(response) -> None:
+    hops = []
+    for hop in list(getattr(response, "history", None) or ()) + [response]:
+        hops.append((getattr(hop, "status_code", None), getattr(hop, "headers", None)))
+    _HOPS.set(hops)
+
+
+def _take_hops():
+    hops = _HOPS.get()
+    _HOPS.set(None)
+    return hops
+
+
 def requests_transport(timeout: float = 20.0) -> Transport:
     s = requests.Session()
 
     def _t(url: str, params: Dict[str, Any]):
+        _HOPS.set(None)
         r = s.get(url, params=params, timeout=timeout)
         try:
             body = r.json()
         except ValueError:
             body = None
+        _remember_hops(r)
         return r.status_code, dict(r.headers), body
     return _t
 
@@ -264,16 +286,16 @@ class OddsAPI:
                         logical_request_id=logical_request_id, **scope)
                     raise BudgetExceeded(why)
             q = dict(params, apiKey=k["key"])
-            ordinal += 1
-            attempt_id = uuid.uuid4().hex
             try:
                 status, headers, body = self.transport(f"{self.base}{path}", q)
             except Exception as e:  # never leak a key through exception text
                 msg = self._scrub(str(e))
+                _HOPS.set(None)
+                ordinal += 1
                 _accounting_note(
                     endpoint_path=path, estimated_cost=cost, estimate_provenance=provenance,
                     strategy=strategy, account_label=k["label"], transport_error=e,
-                    logical_request_id=logical_request_id, attempt_id=attempt_id,
+                    logical_request_id=logical_request_id, attempt_id=uuid.uuid4().hex,
                     attempt_ordinal=ordinal, **scope)
                 log.error("Odds API %s %s error: %s", label, sport, msg)
                 self.db.log_usage(label, sport, -1, None, None, None, "ERROR " + msg[:200], strategy, k["label"])
@@ -283,11 +305,14 @@ class OddsAPI:
                                _hnum(headers, "x-requests-last"))
             self.db.log_usage(label, sport, status, last if last is not None else (cost if status == 200 else 0),
                               rem, used, "" if status == 200 else self._scrub(str(body))[:200], strategy, k["label"])
-            _accounting_note(
-                endpoint_path=path, estimated_cost=cost, estimate_provenance=provenance,
-                strategy=strategy, account_label=k["label"], http_status=status, headers=headers,
-                logical_request_id=logical_request_id, attempt_id=attempt_id,
-                attempt_ordinal=ordinal, **scope)
+            hops = _take_hops() or [(status, headers)]
+            for hop_status, hop_headers in hops:
+                ordinal += 1
+                _accounting_note(
+                    endpoint_path=path, estimated_cost=cost, estimate_provenance=provenance,
+                    strategy=strategy, account_label=k["label"], http_status=hop_status, headers=hop_headers,
+                    logical_request_id=logical_request_id, attempt_id=uuid.uuid4().hex,
+                    attempt_ordinal=ordinal, **scope)
             log.info("Odds API %s %s [%s/%s] -> %s | est=%s last=%s remaining=%s used=%s",
                      label, sport, strategy, k["label"], status, cost, last, rem, used)
             if status in (401, 429) and k is not self._keys[-1]:

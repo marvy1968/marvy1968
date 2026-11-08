@@ -184,7 +184,7 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
     now = datetime.now(timezone.utc)
     season = now.year if now.month >= 3 else now.year - 1
     players, games = _data(cache, season)
-    evs = [e for e in O.events(settings.odds_api_key, SPORT)
+    evs = [e for e in O.events(settings.odds_api_key, SPORT, source_job="marv-props-nfl")
            if now <= pd.Timestamp(e["commence_time"]).to_pydatetime() <= now + timedelta(hours=hours)]
     match = _match_games(games, evs)
     if not match:
@@ -195,7 +195,8 @@ def run_live(settings, hours: int = 36, dry_run: bool = False) -> str:
         if ev["id"] not in match:
             continue
         data = O.event_props(settings.odds_api_key, SPORT, ev["id"], [m.key for m in P.MARKETS.values()],
-                             getattr(settings, "odds_book", "bovada") or "bovada", budget)
+                             getattr(settings, "odds_book", "bovada") or "bovada", budget,
+                             source_job="marv-props-nfl")
         lr = O.prop_rows(data, getattr(settings, "odds_book", "bovada") or "bovada")
         if not lr.empty:
             lines.append(lr.assign(game_id=match[ev["id"]]))
@@ -297,7 +298,8 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
         try:
             for day, part in sched.groupby("gameday"):
                 snap = (pd.Timestamp(day + " 12:00").tz_localize(ET).tz_convert("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
-                evs = O.historical_events(settings.odds_api_key, SPORT, snap, pcache, budget)
+                evs = O.historical_events(settings.odds_api_key, SPORT, snap, pcache, budget,
+                                          source_job="marv-props-nfl")
                 match = _match_games(part, evs)
                 for ev in evs:
                     if ev["id"] not in match:
@@ -306,7 +308,7 @@ def backtest_real(settings, seasons: list[int], max_credits: int) -> str:
                     data = O.historical_event_props(settings.odds_api_key, SPORT, ev["id"],
                                                     kick.strftime("%Y-%m-%dT%H:%M:%SZ"),
                                                     [m.key for m in P.MARKETS.values()], f"{book},draftkings,fanduel",
-                                                    pcache, budget)
+                                                    pcache, budget, source_job="marv-props-nfl")
                     lr = O.prop_rows(data, book)
                     if not lr.empty:
                         lines.append(lr.assign(game_id=match[ev["id"]]))

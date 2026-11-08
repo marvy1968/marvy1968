@@ -132,8 +132,8 @@ def _fetch_bovada(api_key: str, sport_key: str) -> list[dict]:
 
 def _note_parlay(sport_key: str, response=None, transport_error=None) -> None:
     try:
-        from .data.odds_observe import note_exchange
-        note_exchange(
+        from .data.odds_observe import note_hops
+        note_hops(
             source_job="marv-parlay",
             endpoint_template="/v4/sports/{sport}/odds",
             sport=sport_key,
@@ -142,8 +142,7 @@ def _note_parlay(sport_key: str, response=None, transport_error=None) -> None:
             estimated_cost=3,
             estimate_provenance="bookmaker_group_times_markets",
             odds_format="american",
-            http_status=None if response is None else getattr(response, "status_code", None),
-            headers=None if response is None else getattr(response, "headers", None),
+            response=response,
             transport_error=transport_error,
         )
     except Exception:

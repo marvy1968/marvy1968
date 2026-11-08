@@ -44,20 +44,20 @@ def _get(path: str, params: dict, *, account: dict | None = None) -> requests.Re
 
 def _note_props(path, params, account, *, response=None, transport_error=None) -> None:
     try:
-        from ..data.odds_observe import note_exchange
+        from ..data.odds_observe import note_hops
         fields = {}
         if isinstance(account, dict):
             for key in ("estimated_cost", "estimate_provenance", "historical", "sport", "markets",
-                        "bookmakers", "regions", "odds_format", "preflight", "strategy"):
+                        "bookmakers", "regions", "odds_format", "preflight", "strategy", "source_job"):
                 if key in account:
                     fields[key] = account[key]
         for key, value in _public_request_fields(params).items():
             fields.setdefault(key, value)
-        note_exchange(
-            source_job="marv-props",
+        job = fields.pop("source_job", None) or "unknown"
+        note_hops(
+            source_job=job,
             endpoint_path=path,
-            http_status=None if response is None else getattr(response, "status_code", None),
-            headers=None if response is None else getattr(response, "headers", None),
+            response=response,
             transport_error=transport_error,
             **fields,
         )
@@ -80,9 +80,11 @@ def _public_request_fields(params) -> dict:
     return out
 
 
-def _note_skip(path: str, sport: str, estimate: int, provenance: str, historical: bool = False) -> None:
+def _note_skip(path: str, sport: str, estimate: int, provenance: str, historical: bool = False,
+               source_job: str | None = None) -> None:
     _note_props(path, {}, {
         "sport": sport,
+        "source_job": source_job,
         "estimated_cost": estimate,
         "estimate_provenance": provenance,
         "historical": historical,
@@ -90,10 +92,11 @@ def _note_skip(path: str, sport: str, estimate: int, provenance: str, historical
     })
 
 
-def events(api_key: str, sport: str) -> list[dict]:
+def events(api_key: str, sport: str, *, source_job: str | None = None) -> list[dict]:
     """Upcoming events (free call)."""
     return _get(f"/sports/{sport}/events", {"apiKey": api_key}, account={
         "sport": sport,
+        "source_job": source_job,
         "estimated_cost": 0,
         "estimate_provenance": "documented_free_events",
         "historical": False,
@@ -101,15 +104,17 @@ def events(api_key: str, sport: str) -> list[dict]:
 
 
 def event_props(api_key: str, sport: str, event_id: str, markets: list[str], bookmakers: str,
-                budget: Budget | None = None) -> dict:
+                budget: Budget | None = None, *, source_job: str | None = None) -> dict:
     est = len(markets)
     if budget and not budget.allows(est):
-        _note_skip(f"/sports/{sport}/events/{event_id}/odds", sport, est, "marv_props_len_markets")
+        _note_skip(f"/sports/{sport}/events/{event_id}/odds", sport, est, "marv_props_len_markets",
+                   source_job=source_job)
         raise RuntimeError("credit cap reached")
     resp = _get(f"/sports/{sport}/events/{event_id}/odds", {
         "apiKey": api_key, "markets": ",".join(markets), "bookmakers": bookmakers, "oddsFormat": "american"},
         account={
             "sport": sport,
+            "source_job": source_job,
             "estimated_cost": est,
             "estimate_provenance": "marv_props_len_markets",
             "historical": False,
@@ -120,16 +125,18 @@ def event_props(api_key: str, sport: str, event_id: str, markets: list[str], boo
     return resp.json()
 
 
-def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budget: Budget) -> list[dict]:
+def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budget: Budget,
+                      *, source_job: str | None = None) -> list[dict]:
     path = cache / f"events_{sport}_{date_iso[:13]}.json"
     if path.exists():
         return json.loads(path.read_text())
     if not budget.allows(1):
         _note_skip(f"/historical/sports/{sport}/events", sport, 1,
-                   "marv_props_historical_events_existing_estimate", historical=True)
+                   "marv_props_historical_events_existing_estimate", historical=True, source_job=source_job)
         raise RuntimeError("credit cap reached")
     resp = _get(f"/historical/sports/{sport}/events", {"apiKey": api_key, "date": date_iso}, account={
         "sport": sport,
+        "source_job": source_job,
         "estimated_cost": 1,
         "estimate_provenance": "marv_props_historical_events_existing_estimate",
         "historical": True,
@@ -142,19 +149,20 @@ def historical_events(api_key: str, sport: str, date_iso: str, cache: Path, budg
 
 
 def historical_event_props(api_key: str, sport: str, event_id: str, date_iso: str, markets: list[str],
-                           bookmakers: str, cache: Path, budget: Budget) -> dict:
+                           bookmakers: str, cache: Path, budget: Budget, *, source_job: str | None = None) -> dict:
     path = cache / f"props_{event_id}.json"
     if path.exists():
         return json.loads(path.read_text())
     est = 10 * len(markets)
     if not budget.allows(est):
         _note_skip(f"/historical/sports/{sport}/events/{event_id}/odds", sport, est,
-                   "marv_props_historical_10x_markets", historical=True)
+                   "marv_props_historical_10x_markets", historical=True, source_job=source_job)
         raise RuntimeError("credit cap reached")
     resp = _get(f"/historical/sports/{sport}/events/{event_id}/odds", {
         "apiKey": api_key, "date": date_iso, "markets": ",".join(markets), "bookmakers": bookmakers,
-        "oddsFormat": "american"}, account={
+        "oddsFormat": "american"},         account={
             "sport": sport,
+            "source_job": source_job,
             "estimated_cost": est,
             "estimate_provenance": "marv_props_historical_10x_markets",
             "historical": True,

@@ -161,7 +161,7 @@ def build(settings, sports: list[str], hours: int = 36) -> list[dict]:
         events = []
         for key in SPORTS[sport].odds_api_keys:
             try:
-                events += oddsapi.fetch(settings.odds_api_key, key)
+                events += oddsapi.fetch(settings.odds_api_key, key, source_job="marv-board")
             except Exception as exc:
                 log.warning("board odds %s: %s", key, exc)
         if events:  # /parlay reads Bovada's real prices from here (no extra credits)

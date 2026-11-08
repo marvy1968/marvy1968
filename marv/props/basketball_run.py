@@ -74,7 +74,7 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
     cache = Path(settings.state_dir) / "cache"
     now = datetime.now(timezone.utc)
     season = season_of(now, sport)
-    evs = [e for e in O.events(settings.odds_api_key, ODDS_KEYS[sport])
+    evs = [e for e in O.events(settings.odds_api_key, ODDS_KEYS[sport], source_job="marv-props-basketball")
            if now <= pd.Timestamp(e["commence_time"]).to_pydatetime() <= now + timedelta(hours=hours)]
     if not evs:
         return f"No {sport.upper()} games in the window."
@@ -83,7 +83,8 @@ def run_live(settings, hours: int = 30, dry_run: bool = False, sport: str = "nca
     lines = []
     for ev in evs:
         try:
-            data = O.event_props(settings.odds_api_key, ODDS_KEYS[sport], ev["id"], [m.key for m in B.MARKETS.values()], book, budget)
+            data = O.event_props(settings.odds_api_key, ODDS_KEYS[sport], ev["id"], [m.key for m in B.MARKETS.values()], book, budget,
+                                 source_job="marv-props-basketball")
         except RuntimeError:
             break
         lr = O.prop_rows(data, book)
@@ -196,7 +197,8 @@ def backtest_real(settings, seasons: list[int], max_credits: int, top: int = 50,
                 if not good or part[part["team"].isin(good)].empty:
                     continue
                 snap = pd.Timestamp(day + " 11:00").tz_localize(ET).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
-                evs = O.historical_events(settings.odds_api_key, ODDS_KEYS[sport], snap, pcache, budget)
+                evs = O.historical_events(settings.odds_api_key, ODDS_KEYS[sport], snap, pcache, budget,
+                                          source_job="marv-props-basketball")
                 for ev in evs:
                     home, away = _team(ev["home_team"], list(part["team"])), _team(ev["away_team"], list(part["team"]))
                     if not home or not away or not ({home, away} & good):
@@ -206,7 +208,8 @@ def backtest_real(settings, seasons: list[int], max_credits: int, top: int = 50,
                     data = O.historical_event_props(settings.odds_api_key, ODDS_KEYS[sport], ev["id"],
                                                     kick.strftime("%Y-%m-%dT%H:%M:%SZ"),
                                                     [m.key for m in B.MARKETS.values()],
-                                                    f"{book},draftkings,fanduel", pcache, budget)
+                                                    f"{book},draftkings,fanduel", pcache, budget,
+                                                    source_job="marv-props-basketball")
                     lr = O.prop_rows(data, book)
                     if not lr.empty:
                         lines.append(lr.assign(game_id=gid))

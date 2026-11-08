@@ -83,7 +83,7 @@ def load_for_run(sport: Sport, s: Settings, now: datetime, hours_ahead: int) -> 
         events = []
         for key in sport.odds_api_keys:
             try:
-                events += oddsapi.fetch(s.odds_api_key, key)
+                events += oddsapi.fetch(s.odds_api_key, key, source_job="marv-sources")
             except Exception as exc:
                 log.warning("Odds API %s failed: %s", key, exc)
         matched = oddsapi.attach(slate, events, book=s.odds_book)
