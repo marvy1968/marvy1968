@@ -1,3 +1,19 @@
 $ show fx_paper/journal-20261109.jsonl
-started 2026-11-09 01:13:47 EST
-RUNNING...
+started 2026-11-09 01:13:47 EST, took 0s, exit 0
+
+{"t": "2026-11-09T00:01:14+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "USD_CHF", "side": "short", "bar": "2026-11-08T23:00:00+00:00", "close": 0.819635, "stop_dist": 0.0019816943651083246, "result": "paused (signal logged)"}
+{"t": "2026-11-09T00:01:14+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-08T23:00:00+00:00", "close": 1.411925, "stop_dist": 0.001434999999999853, "result": "paused (signal logged)"}
+{"t": "2026-11-09T01:01:00+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-09T00:00:00+00:00", "close": 0.688565, "stop_dist": 0.0029249999999999554, "result": "paused (signal logged)"}
+{"t": "2026-11-09T01:01:00+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-09T00:00:00+00:00", "close": 0.55697, "stop_dist": 0.001514999999999933, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:00:28+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-08T22:00:00+00:00", "close": 0.688985, "stop_dist": 0.005328958133820727, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:01:04+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-09T01:00:00+00:00", "close": 0.688985, "stop_dist": 0.0033449999999999314, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:01:04+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-09T01:00:00+00:00", "close": 0.55741, "stop_dist": 0.001954999999999929, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:01:26+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-09T01:00:00+00:00", "close": 1.11557, "stop_dist": 0.001374999999999904, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:02:04+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-08T22:00:00+00:00", "close": 1.11557, "stop_dist": 0.002228622026717765, "result": "paused (signal logged)"}
+{"t": "2026-11-09T02:02:06+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-08T22:00:00+00:00", "close": 1.4111500000000001, "stop_dist": 0.0028995484626546213, "result": "paused (signal logged)"}
+{"t": "2026-11-09T03:00:29+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-09T02:00:00+00:00", "close": 0.68962, "stop_dist": 0.003010000000000068, "result": "paused (signal logged)"}
+{"t": "2026-11-09T03:00:29+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-09T02:00:00+00:00", "close": 0.55831, "stop_dist": 0.00264999999999993, "result": "paused (signal logged)"}
+{"t": "2026-11-09T05:00:40+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-09T04:00:00+00:00", "close": 1.115845, "stop_dist": 0.001031979413705389, "result": "paused (signal logged)"}
+{"t": "2026-11-09T05:00:41+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-11-09T04:00:00+00:00", "close": 1.33778, "stop_dist": 0.0012542618698761468, "result": "paused (signal logged)"}
+{"t": "2026-11-09T05:00:53+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-09T04:00:00+00:00", "close": 1.115845, "stop_dist": 0.0006399999999999739, "result": "paused (signal logged)"}
+{"t": "2026-11-09T06:01:22+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "GBP_USD", "side": "long", "bar": "2026-11-09T05:00:00+00:00", "close": 1.33808, "stop_dist": 0.0011964574505992814, "result": "paused (signal logged)"}
