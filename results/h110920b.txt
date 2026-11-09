@@ -1,3 +1,7 @@
 $ show fx_paper/journal-20261109.jsonl
-started 2026-11-08 20:09:23 EST
-RUNNING...
+started 2026-11-08 20:09:23 EST, took 0s, exit 0
+
+{"t": "2026-11-09T00:01:14+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "USD_CHF", "side": "short", "bar": "2026-11-08T23:00:00+00:00", "close": 0.819635, "stop_dist": 0.0019816943651083246, "result": "paused (signal logged)"}
+{"t": "2026-11-09T00:01:14+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-08T23:00:00+00:00", "close": 1.411925, "stop_dist": 0.001434999999999853, "result": "paused (signal logged)"}
+{"t": "2026-11-09T01:01:00+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "AUD_USD", "side": "long", "bar": "2026-11-09T00:00:00+00:00", "close": 0.688565, "stop_dist": 0.0029249999999999554, "result": "paused (signal logged)"}
+{"t": "2026-11-09T01:01:00+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "NZD_USD", "side": "long", "bar": "2026-11-09T00:00:00+00:00", "close": 0.55697, "stop_dist": 0.001514999999999933, "result": "paused (signal logged)"}
