@@ -43,6 +43,18 @@ MARKETS = {
               "player_rebounds_assists", "player_points_rebounds_assists"],
 }
 
+# Team-total market keys — NOT wired to fetch/evaluate yet. The projection
+# (engine.project_team_total) and gate (engine.evaluate_team_pick) exist and
+# are tested, but extract_bovada_lines is player-centric (it requires a
+# `description` player name on outcomes) and the PropLine team-lines payload
+# shape is unverified — no key on file. Do NOT add these to MARKETS until a
+# real PropLine team-lines response has been inspected; guessing the shape
+# would silently drop or misread lines.
+TEAM_MARKETS = {
+    "ncaab": ["team_points", "team_rebounds", "team_assists", "team_threes"],
+    "ncaaw": ["team_points", "team_rebounds", "team_assists", "team_threes"],
+}
+
 def _api_key(api_key: str | None = None) -> str:
     key = api_key or os.environ.get("PROPLINE_API_KEY")
     if not key:

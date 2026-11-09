@@ -1,12 +1,45 @@
-# Top 30 NCAAF — template, refreshed weekly from AP / ESPN rankings.
+# Top 30 NCAAF — refreshed 2026-11-08 from the AP Top 25 poll released
+# Nov 8, 2026 (Week 11) + next 5 by "Others Receiving Votes".
+# Source: AP Top 25, Nov 8, 2026 (Ball Exclusives full poll, verified
+# 2026-11-08; cross-checked vs On3 / Saturday Down South: Georgia 1,
+# Utah 2, Notre Dame 3, UCLA 4, Miami 5, SMU 25).
 # A game qualifies if EITHER team is in this list that week.
-# Do NOT hard-code rankings from memory. Refresh via ESPN rankings endpoint
-# or AP poll each Monday, and log the refresh date + source in the file.
-# Format: list of team names exactly as ESPN / PropLine spell them.
-updated: null
-source: null
-teams: []
-# Example (NOT current — replace on first refresh):
-# - Ohio State
-# - Georgia
-# - Texas
+# NOTE: the next AP poll comes out Sun Nov 15 — re-refresh then
+# before next week's games. Team spellings are AP spellings; Grok to
+# confirm they match ESPN / PropLine spellings on the live-shape check.
+# Changes vs Nov 1 list: OUT Florida, Northwestern, UTSA, Virginia Tech;
+# IN Duke, Oklahoma State, Liberty, Louisville. Missouri falls from
+# 19 to first among Others Receiving Votes but stays in the Top 30.
+updated: 2026-11-08
+source: AP Top 25 poll, Nov 8 2026 (Week 11) + Others Receiving Votes
+teams:
+  - Georgia
+  - Utah
+  - Notre Dame
+  - UCLA
+  - Miami
+  - Indiana
+  - Alabama
+  - Texas
+  - Tennessee
+  - Texas Tech
+  - Wake Forest
+  - BYU
+  - Kentucky
+  - Houston
+  - USC
+  - Iowa
+  - Boise State
+  - Oregon
+  - Ole Miss
+  - South Carolina
+  - Ohio State
+  - Arizona
+  - New Mexico
+  - LSU
+  - SMU
+  - Missouri
+  - Duke
+  - Oklahoma State
+  - Liberty
+  - Louisville

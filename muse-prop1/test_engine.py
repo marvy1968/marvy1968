@@ -1,6 +1,7 @@
 """Unit tests for engine.py — run: python3 -m pytest test_engine.py -v  (or python3 test_engine.py)"""
 from engine import (
-    PaceInput, BasketballPaceInput, project_final, project_basketball_final,
+    PaceInput, BasketballPaceInput, TeamPaceInput, project_final, project_basketball_final,
+    project_team_total, team_possessions, evaluate_team_pick,
     prob_over_yards, prob_over_td,
     american_to_implied, remove_vig, evaluate_pick, passes_gates, SPORTS,
 )
@@ -58,10 +59,127 @@ def test_basketball_foul_trouble_shrinks():
         pregame_sd=5, pregame_per_min=0.6, pregame_minutes=30, fouls=3))
     assert foul < base
 
+def test_basketball_use_live_rate_false_forces_pregame_rate():
+    # pace-vs-avg decomposition test (pace-vs-avg-test-spec-2026-11-08):
+    # use_live_rate=False must use the pregame per-minute rate exactly,
+    # regardless of the player's live stat/minutes. Same pace input in both
+    # calls, so the only difference is the rate source. And the default
+    # (True) must be unchanged behaviour.
+    common = dict(minutes_played=18, elapsed_min=20, pregame_mean=18.5,
+                  pregame_sd=5.0, pregame_per_min=0.62, pregame_minutes=30,
+                  fouls=1, poss_so_far=70, season_poss_per_min=1.75)
+    hot, _ = project_basketball_final(BasketballPaceInput(
+        current=20, use_live_rate=False, **common))
+    cold, _ = project_basketball_final(BasketballPaceInput(
+        current=2, use_live_rate=False, **common))
+    # The remaining projection (projected - current) must be identical: the
+    # rate used is the pregame rate in both cases, whatever the live stat.
+    assert abs((hot - 20) - (cold - 2)) < 1e-9, (hot, cold)
+    # With the live rate on, a hot start must project higher than a cold one.
+    hot_live, _ = project_basketball_final(BasketballPaceInput(
+        current=20, **common))
+    cold_live, _ = project_basketball_final(BasketballPaceInput(
+        current=2, **common))
+    assert hot_live > cold_live, (hot_live, cold_live)
+    # And the live-rate projection must differ from the forced-pregame one
+    # (the parameter actually does something).
+    assert abs(hot_live - hot) > 1e-9, (hot_live, hot)
+
+def test_team_use_live_pace_false_uses_season_pace():
+    # Rate-only rework (pace-off-test-spec-2026-11-09): use_live_pace=False
+    # must project remaining possessions at season pace exactly, whatever
+    # the live game pace is. Same live rate in both calls, so the only
+    # difference is the pace source. And the flag must actually do
+    # something (differ from the fast-pace projection).
+    base = dict(current=40, elapsed_min=20, pregame_mean=78, pregame_sd=10,
+                poss_so_far=42, season_poss_per_min=1.75)
+    off_fast, _ = project_team_total(TeamPaceInput(
+        game_poss_per_min_live=2.2, use_live_pace=False, **base))
+    on_season, _ = project_team_total(TeamPaceInput(
+        game_poss_per_min_live=1.75, **base))
+    assert abs(off_fast - on_season) < 1e-9, (off_fast, on_season)
+    on_fast, _ = project_team_total(TeamPaceInput(
+        game_poss_per_min_live=2.2, **base))
+    assert abs(on_fast - off_fast) > 1e-9, (on_fast, off_fast)
+    assert on_fast > off_fast, (on_fast, off_fast)
+
+
+def test_basketball_use_live_pace_false_skips_pace_ratio():
+    # Rate-only rework (pace-off-test-spec-2026-11-09): use_live_pace=False
+    # must equal the projection with the pace ratio at exactly 1.0
+    # (poss_so_far = elapsed x season pace). Same live rate in both calls.
+    common = dict(minutes_played=18, elapsed_min=20, pregame_mean=18.5,
+                  pregame_sd=5.0, pregame_per_min=0.62, pregame_minutes=30,
+                  fouls=1, season_poss_per_min=1.75)
+    off_fast, _ = project_basketball_final(BasketballPaceInput(
+        current=14, poss_so_far=90, use_live_pace=False, **common))
+    on_neutral, _ = project_basketball_final(BasketballPaceInput(
+        current=14, poss_so_far=35, **common))  # 35 = 20 min x 1.75
+    assert abs(off_fast - on_neutral) < 1e-9, (off_fast, on_neutral)
+    on_fast, _ = project_basketball_final(BasketballPaceInput(
+        current=14, poss_so_far=90, **common))
+    assert abs(on_fast - off_fast) > 1e-9, (on_fast, off_fast)
+    assert on_fast > off_fast, (on_fast, off_fast)
+
+
 def test_sport_registry_has_all_four():
-    assert set(SPORTS) == {"nfl", "ncaaf", "ncaab", "ncaaw"}
+    assert set(SPORTS) == {"nfl", "ncaaf", "ncaab", "ncaaw", "nba"}
     assert SPORTS["ncaaf"]["sd_inflation"] > SPORTS["nfl"]["sd_inflation"]
     assert SPORTS["ncaab"]["total_min"] == 40
+
+
+def test_sport_registry_nba():
+    # NBA added 2026-11-08 (pace-props-nba-test-spec-2026-11-08): 48-min game.
+    assert SPORTS["nba"]["total_min"] == 48
+    assert SPORTS["nba"]["sd_inflation"] == 1.25
+    assert SPORTS["nba"]["espn_path"] == "basketball/nba"
+
+def test_team_possessions_formula():
+    # Boxscore line: FGA 67, OREB 16, TOV 17, FTA 26
+    # poss = 67 - 16 + 17 + 0.44*26 = 79.44
+    assert abs(team_possessions(67, 16, 17, 26) - 79.44) < 1e-9
+    assert team_possessions(0, 0, 0, 0) == 0.0
+
+def test_project_team_total_normal():
+    # Team has 40 pts at 20 min elapsed, pregame 78 pts (sd 10).
+    # Season pace 1.75; live game pace 2.0 poss/min (fast game).
+    # Team's own possessions so far: 42 -> live per-poss 40/42 = 0.952,
+    # pregame per-poss 78/70 = 1.114. Projection must be above current
+    # and below a no-cap extrapolation.
+    mean, sd = project_team_total(TeamPaceInput(
+        current=40, elapsed_min=20, pregame_mean=78, pregame_sd=10,
+        poss_so_far=42, game_poss_per_min_live=2.0, season_poss_per_min=1.75))
+    assert 40 < mean < 100, mean
+    assert 0 < sd < 15, sd
+
+def test_project_team_total_fast_pace_beats_season_pace():
+    # Same team state; only the live pace differs. Faster pace must project
+    # higher (more remaining possessions).
+    base = dict(current=40, elapsed_min=20, pregame_mean=78, pregame_sd=10,
+                poss_so_far=40, season_poss_per_min=1.75)
+    slow, _ = project_team_total(TeamPaceInput(game_poss_per_min_live=1.75, **base))
+    fast, _ = project_team_total(TeamPaceInput(game_poss_per_min_live=2.2, **base))
+    assert fast > slow, (slow, fast)
+
+def test_project_team_total_pace_cap():
+    # Absurd live pace (3.0 poss/min) must be capped at 1.15x season pace:
+    # identical projection to pace exactly at the cap (1.75*1.15 = 2.0125).
+    base = dict(current=40, elapsed_min=20, pregame_mean=78, pregame_sd=10,
+                poss_so_far=40, season_poss_per_min=1.75)
+    capped, _ = project_team_total(TeamPaceInput(game_poss_per_min_live=3.0, **base))
+    at_cap, _ = project_team_total(TeamPaceInput(game_poss_per_min_live=1.75 * 1.15, **base))
+    assert abs(capped - at_cap) < 1e-9, (capped, at_cap)
+
+def test_evaluate_team_pick_gates():
+    # Projection 85, sd 8, line 75.5, -110/-110: model ~89% over -> fires.
+    pick = evaluate_team_pick(85, 8, 75.5, -110, -110)
+    assert pick["side"] == "over" and pick["ok"], pick
+    # Projection right on the line: ~50/50, no edge -> no pick.
+    pick2 = evaluate_team_pick(75.5, 8, 75.5, -110, -110)
+    assert not pick2["ok"], pick2
+    # Threes (low count): projection 9 threes vs line 5.5 -> over fires.
+    pick3 = evaluate_team_pick(9, 2, 5.5, -110, -110, low_count=True)
+    assert pick3["side"] == "over" and pick3["ok"], pick3
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):

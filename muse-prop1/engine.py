@@ -85,11 +85,105 @@ def project_final(p: PaceInput) -> tuple[float, float]:
     return projected_final, sd_live
 
 
+def team_possessions(fga: float, oreb: float, tov: float, fta: float) -> float:
+    """Dean Oliver possession estimate for one team.
+    poss = FGA - OREB + TOV + 0.44 * FTA.
+    OREB here is the boxscore-consistent count (player + team offensive
+    rebounds, dead-ball rebounds excluded) — validated 2026-11-08: this rule
+    gives the closest cross-team possession agreement on college games
+    (mean |poss_home - poss_away| 1.70 NCAAB / 1.52 NCAAW over 40 games
+    each, vs 2.63 / 2.27 for player-only OREB)."""
+    return fga - oreb + tov + 0.44 * fta
+
+
+@dataclass
+class TeamPaceInput:
+    current: float          # team total so far (points, rebounds, assists, threes)
+    elapsed_min: float      # game clock elapsed (40 min college, 48 min NBA)
+    total_min: float = 40.0
+    pregame_mean: float = 0.0   # expected final team total (season average)
+    pregame_sd: float = 0.0     # SD of the team's final totals
+    poss_so_far: float = 0.0    # THIS team's possessions so far
+    game_poss_per_min_live: float = 0.0  # live game pace (poss/min, mean of both teams)
+    season_poss_per_min: float = 1.75
+    sd_inflation: float = 1.25  # 1.25 NCAAB / 1.35 NCAAW (SPORTS registry)
+    use_live_pace: bool = True  # False = season pace only (rate-only rework,
+    # pace-off-test-spec-2026-11-09). Default True: all existing callers unchanged.
+
+
+def project_team_total(p: TeamPaceInput) -> tuple[float, float]:
+    """Return (projected_final_mean, live_sd) for a TEAM total (points,
+    rebounds, assists, threes). Same shrinkage and caps as the player
+    projection: w from elapsed fraction, live pace capped 0.85-1.15x season,
+    live per-possession rate capped 0.5-1.5x pregame. No foul/blowout
+    adjustments — team totals don't sit. See pace-props-test-spec-2026-11-08.
+    """
+    if p.elapsed_min <= 0:
+        return p.pregame_mean, p.pregame_sd * p.sd_inflation
+    w = min(0.85, max(0.10, p.elapsed_min / p.total_min))
+    if not p.use_live_pace:
+        # Rate-only rework: remaining possessions at season pace exactly.
+        blended_pace = p.season_poss_per_min
+    else:
+        live_pace = min(max(p.game_poss_per_min_live, p.season_poss_per_min * 0.85),
+                        p.season_poss_per_min * 1.15)
+        blended_pace = w * live_pace + (1 - w) * p.season_poss_per_min
+    remaining_min = max(0.0, p.total_min - p.elapsed_min)
+    remaining_poss = blended_pace * remaining_min
+    pregame_per_poss = p.pregame_mean / (p.total_min * p.season_poss_per_min) \
+        if p.total_min * p.season_poss_per_min > 0 else 0.0
+    if p.poss_so_far > 0 and pregame_per_poss > 0:
+        live_per_poss_raw = p.current / p.poss_so_far
+        live_per_poss = min(max(live_per_poss_raw, pregame_per_poss * 0.5),
+                            pregame_per_poss * 1.5)
+    elif p.poss_so_far > 0:
+        live_per_poss = p.current / p.poss_so_far
+    else:
+        live_per_poss = pregame_per_poss
+    per_poss = w * live_per_poss + (1 - w) * pregame_per_poss
+    projected_final = p.current + remaining_poss * per_poss
+    remaining_frac = remaining_min / p.total_min if p.total_min else 0
+    sd_live = p.pregame_sd * math.sqrt(max(0.05, remaining_frac)) * p.sd_inflation
+    sd_live = max(sd_live, p.pregame_sd * 0.35)
+    return projected_final, sd_live
+
+
+def evaluate_team_pick(projected: float, sd: float, line: float,
+                       over_price: int, under_price: int,
+                       low_count: bool = False,
+                       min_edge_pp: float = 0.07,
+                       min_ev: float = 0.05) -> dict:
+    """Gate a team-total line through the same edge/EV bars as player picks.
+    Normal(mean=proj, sd=sd) for points/rebounds/assists; Poisson(lambda=proj)
+    for threes (low_count=True, same as the runner does for player_threes).
+    Returns the better side's model_p/fair_p/ev/ok/why. Pure evaluation —
+    no network, no odds fetch. Live wiring waits on a verified PropLine
+    team-lines payload shape (see bovada.TEAM_MARKETS)."""
+    if low_count:
+        lam = max(0.0, projected)
+        k = int(line)  # line 1.5 -> need >= 2; line 0.5 -> need >= 1
+        p_over = 1.0 - sum(poisson_pmf(i, lam) for i in range(k + 1))
+    else:
+        p_over = prob_over_yards(projected, sd, line)
+    imp_over = american_to_implied(over_price)
+    imp_under = american_to_implied(under_price)
+    fair_over, fair_under = remove_vig(imp_over, imp_under)
+    candidates = []
+    for side, price, model_p, fair in (
+            ("over", over_price, p_over, fair_over),
+            ("under", under_price, 1 - p_over, fair_under)):
+        ev = evaluate_pick(model_p, price, side)["ev"]
+        ok, why = passes_gates(model_p, fair, ev, min_edge_pp, min_ev)
+        candidates.append({"side": side, "price": price, "model_p": model_p,
+                           "fair_p": fair, "ev": ev, "ok": ok, "why": why})
+    return max(candidates, key=lambda c: c["model_p"] - c["fair_p"])
+
+
 @dataclass
 class BasketballPaceInput:
     current: float          # stat so far (points, rebounds, etc.)
     minutes_played: float   # player minutes so far
-    elapsed_min: float      # game clock elapsed, 40 min total
+    elapsed_min: float      # game clock elapsed (40 min college, 48 min NBA)
     total_min: float = 40.0
     pregame_mean: float = 0.0
     pregame_sd: float = 0.0
@@ -100,6 +194,12 @@ class BasketballPaceInput:
     season_poss_per_min: float = 1.75
     poss_so_far: int = 0
     sd_inflation: float = 1.25
+    use_live_rate: bool = True  # False = force the pregame per-minute rate
+    # (pace-vs-avg decomposition test, pace-vs-avg-test-spec-2026-11-08).
+    # Default True: all existing callers unchanged.
+    use_live_pace: bool = True  # False = no pace-ratio multiplication
+    # (rate-only rework, pace-off-test-spec-2026-11-09). Default True:
+    # all existing callers unchanged.
 
 
 def foul_minutes_factor(fouls: int, elapsed_min: float) -> float:
@@ -114,7 +214,7 @@ def foul_minutes_factor(fouls: int, elapsed_min: float) -> float:
 
 
 def project_basketball_final(p: BasketballPaceInput) -> tuple[float, float]:
-    """Return (projected_final_mean, live_sd) for NCAAB / NCAAW.
+    """Return (projected_final_mean, live_sd) for NCAAB / NCAAW / NBA.
     Projects minutes the player will actually play, not just game pace.
     """
     if p.elapsed_min <= 0 or p.minutes_played <= 0:
@@ -131,15 +231,21 @@ def project_basketball_final(p: BasketballPaceInput) -> tuple[float, float]:
     if abs(p.lead) > 20 and remaining_min < 10:
         projected_minutes *= 0.70
     # Per-minute rate, capped like football per-play
-    if p.pregame_per_min > 0:
+    if not p.use_live_rate:
+        # Decomposition arm (pace-vs-avg test): force the pregame rate, so
+        # per_min below equals pregame_per_min exactly. The pace multiplier
+        # still applies afterwards (arm (b): pregame rate x live pace).
+        live_per_min = p.pregame_per_min
+    elif p.pregame_per_min > 0:
         live_per_min_raw = p.current / p.minutes_played if p.minutes_played > 0 else p.pregame_per_min
         live_per_min = min(max(live_per_min_raw, p.pregame_per_min * 0.5),
                            p.pregame_per_min * 1.5)
     else:
         live_per_min = p.current / p.minutes_played if p.minutes_played > 0 else 0
     per_min = w * live_per_min + (1 - w) * p.pregame_per_min
-    # Pace adjustment: faster game = more possessions = more chances
-    if p.elapsed_min > 0 and p.poss_so_far > 0:
+    # Pace adjustment: faster game = more possessions = more chances.
+    # Skipped when use_live_pace is False (rate-only rework: pace ratio 1.0).
+    if p.use_live_pace and p.elapsed_min > 0 and p.poss_so_far > 0:
         live_poss = p.poss_so_far / p.elapsed_min
         pace_ratio = min(max(live_poss / p.season_poss_per_min, 0.85), 1.15)
         per_min *= pace_ratio
@@ -157,6 +263,12 @@ SPORTS = {
     "ncaab": {"total_min": 40, "min_elapsed": 8,  "sd_inflation": 1.25, "propline_key": "basketball_ncaab", "espn_path": "basketball/mens-college-basketball"},
     # NCAAW: PropLine key NOT confirmed — verify via /v1/sports before use
     "ncaaw": {"total_min": 40, "min_elapsed": 8,  "sd_inflation": 1.35, "propline_key": "basketball_ncaaw", "espn_path": "basketball/womens-college-basketball"},
+    # NBA: added 2026-11-08 for the pace test (pace-props-nba-test-spec-2026-11-08).
+    # PropLine key NOT confirmed — verify via /v1/sports before use. The runner
+    # does not poll NBA (config.yaml does not list it) until config adds it.
+    # sd_inflation 1.25 = the NCAAB/basketball default (see the NBA spec — it only
+    # scales sd_live, which the MAE test does not score).
+    "nba": {"total_min": 48, "min_elapsed": 8,  "sd_inflation": 1.25, "propline_key": "basketball_nba", "espn_path": "basketball/nba"},
 }
 
 

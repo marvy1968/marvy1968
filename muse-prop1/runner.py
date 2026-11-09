@@ -160,15 +160,24 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
             log_skip("no_minutes", {"sport": sport, "player": player}, state_dir)
             return None
         lead = game["home_score"] - game["away_score"]
+        # Real live pace: game possessions from the ESPN boxscore team block
+        # (live_feed.parse_summary). NEVER the elapsed*season-pace estimate —
+        # that made the pace ratio exactly 1.0 (a no-op). Fail-closed if the
+        # summary had no parseable team totals.
+        poss = (game.get("possessions") or {}).get("game")
+        if poss is None:
+            log_skip("no_team_possessions", {"sport": sport, "game": game["game_id"]}, state_dir)
+            return None
         proj, sd = project_basketball_final(BasketballPaceInput(
             current=cur, minutes_played=minutes, elapsed_min=elapsed, total_min=total_min,
             pregame_mean=prior["mean"], pregame_sd=prior["sd"],
             pregame_per_min=prior["rate"], pregame_minutes=prior["pregame_minutes"] or 30,
             fouls=int(prow.get("fouls", 0)), lead=lead,
             season_poss_per_min=scfg.get("season_poss_per_min", 1.75),
-            poss_so_far=int(elapsed * scfg.get("season_poss_per_min", 1.75)),
+            poss_so_far=int(round(poss)),
             sd_inflation=sd_inf))
-        pace_note = f"{minutes:.0f} min played, {proj:.1f} projected, {int(prow.get('fouls',0))} fouls"
+        pace_note = (f"{minutes:.0f} min played, {proj:.1f} projected, "
+                     f"{int(prow.get('fouls',0))} fouls, {poss:.0f} poss")
     # Probability — low-count markets (TDs / threes) use Poisson(lambda=proj),
     # everything else uses Normal(mean=proj, sd=sd).
     if market in ("player_anytime_td", "player_pass_tds", "player_threes"):
@@ -221,6 +230,11 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
     picks: list[dict] = []
     picks_this_slate: dict[str, int] = {}
     for sport in sports:
+        # "ncaaf_top30" is the config label for Top-30 NCAAF; the engine
+        # key is "ncaaf" (the Top-30 filter applies via top30_ncaaf.yaml).
+        # Without this, the fetch raises ValueError and the sport is
+        # silently skipped — a default run would poll only three sports.
+        sport = "ncaaf" if sport == "ncaaf_top30" else sport
         if sport == "ncaaw":
             # Verify key first — if list_sports fails / no ncaaw, skip with a log
             pass
@@ -240,10 +254,17 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
                     summaries[games_live[0]["game_id"]] = parse_summary(
                         _json.loads(sum_path.read_text()), sport) if games_live else None
             else:
-                odds_payload = fetch_bovada_props(sport)
-                lines = extract_bovada_lines(odds_payload, sport)
+                # FREE-TIER GATE: ESPN is free/keyless — check live games
+                # FIRST and skip the PropLine odds call entirely when this
+                # sport has nothing live. The odds call is one bulk call
+                # per sport, so a wasted call is a whole poll's quota.
                 sb_payload = fetch_live_games(sport)
                 games_live = parse_scoreboard(sb_payload, sport)
+                if not games_live:
+                    print(f"[{sport}] no live games — skipping PropLine odds")
+                    continue
+                odds_payload = fetch_bovada_props(sport)
+                lines = extract_bovada_lines(odds_payload, sport)
                 summaries = {}
         except Exception as e:
             print(f"[{sport}] fetch failed, skipping cycle: {e}")
@@ -331,11 +352,23 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
                         print(f"Telegram failed for {pick['log_id']}: {e} (pick is logged)")
     return picks
 
+def _poll_interval_seconds(sport: str, cfg: dict) -> int:
+    """Live PropLine poll interval for one sport (seconds).
+    Football uses poll_seconds, basketball uses basketball_poll_seconds.
+    A sport is only polled while it has live games (see run_once)."""
+    if sport in ("ncaab", "ncaaw"):
+        return int(cfg.get("basketball_poll_seconds", 180))
+    return int(cfg.get("poll_seconds", 150))
+
+
 def main():
     ap = argparse.ArgumentParser(prog="muse-prop1")
     ap.add_argument("--once", action="store_true", help="run one cycle and exit")
     ap.add_argument("--loop", action="store_true", help="repeat until stopped")
-    ap.add_argument("--interval", type=int, default=30)
+    ap.add_argument("--interval", type=int, default=30,
+                    help="loop tick seconds (default 30); per-sport PropLine "
+                         "pace comes from config.yaml poll_seconds / "
+                         "basketball_poll_seconds")
     ap.add_argument("--sport", default=None, help="nfl | ncaaf | ncaab | ncaaw")
     ap.add_argument("--mode", default=None, help="log_only | alert (overrides config)")
     ap.add_argument("--dry-run", action="store_true", help="use fixtures/, no network, no Telegram")
@@ -353,12 +386,24 @@ def main():
     lock.write_text(str(time.time()))
     try:
         if args.loop:
+            # Per-sport pacing: each sport is polled on its own clock
+            # (config poll_seconds / basketball_poll_seconds) and only
+            # while it has live games. The tick just wakes the loop to
+            # check which sports are due — it is not the poll pace.
+            tick = max(5, args.interval)
+            next_poll = {s: 0.0 for s in sports}
             while True:
-                picks = run_once(cfg, sports, mode, dry_run=args.dry_run)
-                print(f"{time.strftime('%H:%M:%S')} cycle done: {len(picks)} pick(s) logged, mode={mode}")
-                for p in picks:
-                    print(f"  {p['sport']} {p['player']} {p['side']} {p['line']} {p['market_label']} @{p['odds']} model {p['model_p']:.0%} EV {p['ev']:.1%}")
-                time.sleep(args.interval)
+                now = time.time()
+                due = [s for s in sports if now >= next_poll[s]]
+                if due:
+                    picks = run_once(cfg, due, mode, dry_run=args.dry_run)
+                    print(f"{time.strftime('%H:%M:%S')} cycle done: {len(picks)} pick(s) logged, mode={mode}")
+                    for p in picks:
+                        print(f"  {p['sport']} {p['player']} {p['side']} {p['line']} {p['market_label']} @{p['odds']} model {p['model_p']:.0%} EV {p['ev']:.1%}")
+                    polled_at = time.time()
+                    for s in due:
+                        next_poll[s] = polled_at + _poll_interval_seconds(s, cfg)
+                time.sleep(tick)
         else:
             picks = run_once(cfg, sports, mode, dry_run=args.dry_run)
             print(f"cycle done: {len(picks)} pick(s) logged, mode={mode}")
