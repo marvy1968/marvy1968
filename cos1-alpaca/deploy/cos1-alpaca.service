@@ -1,0 +1,18 @@
+[Unit]
+Description=COS1 Alpaca paper regime bot (dry-run)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=cos1
+Group=cos1
+WorkingDirectory=/opt/cos1-alpaca
+Environment=COS1_ENV_FILE=/opt/cos1-alpaca/.env
+Environment=TZ=America/New_York
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/cos1-alpaca/.venv/bin/python -m cos1_alpaca run --dry-run
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

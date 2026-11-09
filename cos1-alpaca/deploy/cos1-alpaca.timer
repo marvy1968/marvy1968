@@ -1,0 +1,13 @@
+[Unit]
+Description=COS1 Alpaca dry-run every 5 minutes, 09:30-15:55 America/New_York, weekdays
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 09:30,35,40,45,50,55:00 America/New_York
+OnCalendar=Mon..Fri *-*-* 10..14:00/5 America/New_York
+OnCalendar=Mon..Fri *-*-* 15:00,05,10,15,20,25,30,35,40,45,50,55:00 America/New_York
+AccuracySec=15s
+Persistent=false
+Unit=cos1-alpaca.service
+
+[Install]
+WantedBy=timers.target
