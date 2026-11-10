@@ -44,6 +44,15 @@ def in_rollover(now):
     n = now.astimezone(NY); m = n.hour * 60 + n.minute
     return 16 * 60 + 55 <= m < 17 * 60 + 15
 
+EOD_DEFER_UNTIL = (18, 30)   # NY time after which end-of-day management runs whatever the spread
+
+def eod_spread_wide(pair, prices, n_ny):
+    """True while the post-rollover spread is still too wide to send end-of-day closes."""
+    if (n_ny.hour, n_ny.minute) >= EOD_DEFER_UNTIL or n_ny.hour < 17: return False
+    p = prices.get(pair)
+    if not p: return False
+    return (p[1] - p[0]) > MAX_SPREAD_MULT * typ_spread(pair)
+
 def fmt_px(pair, x): return f"{rnd(pair, x):.{precision(pair)}f}"
 
 # ---------------------------------------------------------------- order math (pure)
@@ -169,6 +178,13 @@ class Runner:
             self.sync_closed(sid, strat, cli, pair, ps, ptrades, td)
             for t in ptrades: self.register(ps, t, td)
             # --- once per trading day, after the rollover settles
+            if ps["day"] != str(td) and not in_rollover(self.now) and ptrades and eod_spread_wide(pair, prices, n):
+                # 2026-11-10: the OANDA export (Nov 2-9) showed the 17:15 NY end-of-day closes filling at
+                # 4-8x the typical spread (11 fills, ~$122 extra, ~1.4R in one week). Hold the daily
+                # management of a pair with open trades until its spread is back under MAX_SPREAD_MULT x
+                # typical, at the latest 18:30 NY. Broker stops protect the trades meanwhile.
+                # Undo: delete this branch.
+                self.log(f"[{sid}] {pair} end-of-day management deferred: spread too wide"); continue
             if ps["day"] != str(td) and not in_rollover(self.now):
                 hist = self.daily(cli, pair, td)
                 for t in ptrades: self.eod_manage(sid, strat, cli, pair, ps, t, hist)

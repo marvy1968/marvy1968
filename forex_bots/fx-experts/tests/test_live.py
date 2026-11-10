@@ -147,3 +147,25 @@ def test_switch_on_off(tmp_path):
     switch.main(["on", "faith-turtle"], str(p)); assert json.load(open(p))["systems"] == ["lien-fader", "faith-turtle"]
     switch.main(["off", "lien-fader"], str(p)); assert json.load(open(p))["systems"] == ["faith-turtle"]
     with pytest.raises(SystemExit): switch.main(["on", "nope"], str(p))
+
+def _turtle_cli(prices=None):
+    cli = FakeCli(flat(80), prices=prices)
+    cli.trades = [{"id": "5", "instrument": "EUR_USD", "currentUnits": "100", "price": "1.1", "openTime": "2026-09-20T01:00:00Z",
+                   "clientExtensions": {"id": "t-x", "comment": "faith-turtle"}, "stopLossOrder": {"price": "1.0800"}}]
+    return cli
+
+def test_runner_defers_eod_management_while_spread_wide(tmp_path):
+    wide = {"EUR_USD": (1.0990, 1.1010, True)}       # 20 pips, far above 2.5x typical
+    path = str(tmp_path / "s.json")
+    cli = _turtle_cli(wide)
+    Runner(cfg(systems=["faith-turtle"]), {"faith-turtle": cli}, path, now=ny(2026, 10, 4, 17, 20), log=lambda m: None).run()
+    assert not [w for w in cli.writes if w[0] in ("stop", "close")]
+    assert json.load(open(path))["faith-turtle"]["EUR_USD"]["day"] is None
+    cli2 = _turtle_cli()                              # spread back to normal -> management runs
+    Runner(cfg(systems=["faith-turtle"]), {"faith-turtle": cli2}, path, now=ny(2026, 10, 4, 17, 40), log=lambda m: None).run()
+    assert [w for w in cli2.writes if w[0] == "stop"]
+
+def test_runner_eod_defer_has_a_time_limit(tmp_path):
+    cli = _turtle_cli({"EUR_USD": (1.0990, 1.1010, True)})
+    Runner(cfg(systems=["faith-turtle"]), {"faith-turtle": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 18, 35), log=lambda m: None).run()
+    assert [w for w in cli.writes if w[0] == "stop"]
