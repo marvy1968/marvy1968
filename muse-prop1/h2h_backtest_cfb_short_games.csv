@@ -1,0 +1,42 @@
+id,date,home,away,home_score,away_score,neutral,h_votes,a_votes,pick,pick_won
+401856738,2026-11-07,Auburn Tigers,Arkansas Razorbacks,26,23,False,10,4,home,True
+401856743,2026-11-07,Missouri Tigers,Texas Longhorns,20,34,False,9,5,home,False
+401856849,2026-11-07,Utah Utes,BYU Cougars,28,20,False,11,3,home,True
+401856850,2026-11-07,Kansas Jayhawks,UCF Knights,32,33,False,13,1,home,False
+401856853,2026-11-07,Baylor Bears,Iowa State Cyclones,42,31,False,6,8,away,False
+401856854,2026-11-07,Kansas State Wildcats,Oklahoma State Cowboys,28,66,False,5,9,away,True
+401856855,2026-11-07,Arizona Wildcats,TCU Horned Frogs,29,28,False,9,6,home,True
+401858285,2026-11-07,Syracuse Orange,Clemson Tigers,13,18,False,6,8,away,True
+401858286,2026-11-07,NC State Wolfpack,Duke Blue Devils,3,41,False,3,11,away,True
+401858289,2026-11-07,Boston College Eagles,Florida State Seminoles,24,31,False,7,8,away,True
+401858292,2026-11-07,UConn Huskies,North Carolina Tar Heels,21,38,False,6,8,away,True
+401858510,2026-11-07,Illinois Fighting Illini,Nebraska Cornhuskers,24,13,False,9,5,home,True
+401858512,2026-11-07,Minnesota Golden Gophers,UCLA Bruins,20,34,False,1,14,away,True
+401858514,2026-11-07,Ohio State Buckeyes,Oregon Ducks,28,41,False,9,5,home,False
+401858515,2026-11-07,Purdue Boilermakers,Maryland Terrapins,29,34,False,1,12,away,True
+401858516,2026-11-07,Washington Huskies,Penn State Nittany Lions,25,28,False,5,9,away,True
+401858517,2026-11-07,Wisconsin Badgers,Rutgers Scarlet Knights,31,10,False,6,8,away,False
+401860911,2026-11-07,Colorado State Rams,Boise State Broncos,38,64,False,4,10,away,True
+401862818,2026-11-07,East Carolina Pirates,South Florida Bulls,20,17,False,10,5,home,True
+401862819,2026-11-07,UAB Blazers,Charlotte 49ers,23,12,False,4,11,away,False
+401862820,2026-11-07,Navy Midshipmen,Temple Owls,42,35,False,6,8,away,False
+401864533,2026-11-07,Nevada Wolf Pack,New Mexico Lobos,3,31,False,3,11,away,True
+401864534,2026-11-07,San José State Spartans,Northern Illinois Huskies,30,19,False,6,9,away,False
+401869927,2026-11-07,App State Mountaineers,Georgia State Panthers,23,39,False,5,10,away,True
+401869945,2026-11-07,Coastal Carolina Chanticleers,Old Dominion Monarchs,8,21,False,8,6,home,False
+401869951,2026-11-07,Georgia Southern Eagles,Marshall Thundering Herd,49,13,False,10,5,home,True
+401871073,2026-11-07,Kennesaw State Owls,Delaware Blue Hens,42,40,False,5,9,away,False
+401871074,2026-11-07,Florida International Panthers,Missouri State Bears,23,20,False,1,13,away,False
+401871076,2026-11-07,Middle Tennessee Blue Raiders,Western Kentucky Hilltoppers,51,42,False,6,8,away,False
+401871098,2026-11-07,Troy Trojans,Louisiana Tech Bulldogs,17,41,False,8,7,home,False
+401856739,2026-11-08,Florida Gators,Oklahoma Sooners,7,23,False,5,10,away,True
+401856741,2026-11-08,Ole Miss Rebels,Georgia Bulldogs,7,42,False,9,5,home,False
+401856852,2026-11-08,Arizona State Sun Devils,Colorado Buffaloes,20,10,False,5,9,away,False
+401858287,2026-11-08,Georgia Tech Yellow Jackets,Louisville Cardinals,17,44,False,3,12,away,True
+401858291,2026-11-08,Notre Dame Fighting Irish,Miami Hurricanes,31,24,False,7,6,home,True
+401858513,2026-11-08,Northwestern Wildcats,Iowa Hawkeyes,10,24,False,7,8,away,True
+401860912,2026-11-08,Oregon State Beavers,Texas State Bobcats,21,42,False,8,7,home,False
+401860913,2026-11-08,Utah State Aggies,Fresno State Bulldogs,17,10,False,11,3,home,True
+401862823,2026-11-08,Army Black Knights,Air Force Falcons,21,24,False,6,9,away,True
+401870795,2026-11-08,New Mexico State Aggies,Liberty Flames,14,30,False,5,9,away,True
+401871075,2026-11-08,Jacksonville State Gamecocks,Sam Houston Bearkats,47,14,False,12,3,home,True

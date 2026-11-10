@@ -1,0 +1,84 @@
+{
+ "spec": "h2h-backtest-cfb-spec-2026-11-10.md",
+ "arm": "C",
+ "games_fetched": 901,
+ "games_evaluated": 756,
+ "skipped_no_data": 145,
+ "picks_made": 745,
+ "wins": 515,
+ "losses": 230,
+ "win_rate": 0.6912751677852349,
+ "baseline_home_win_rate": 0.5992063492063492,
+ "per_metric": {
+  "points": {
+   "decisive": 751,
+   "meet_won": 506,
+   "rate": 0.6737683089214381
+  },
+  "total_yards": {
+   "decisive": 756,
+   "meet_won": 488,
+   "rate": 0.6455026455026455
+  },
+  "pass_yards": {
+   "decisive": 756,
+   "meet_won": 446,
+   "rate": 0.58994708994709
+  },
+  "rush_yards": {
+   "decisive": 755,
+   "meet_won": 481,
+   "rate": 0.6370860927152318
+  },
+  "first_downs": {
+   "decisive": 743,
+   "meet_won": 463,
+   "rate": 0.6231493943472409
+  },
+  "third_down": {
+   "decisive": 755,
+   "meet_won": 466,
+   "rate": 0.6172185430463576
+  },
+  "yards_per_pass": {
+   "decisive": 756,
+   "meet_won": 480,
+   "rate": 0.6349206349206349
+  },
+  "yards_per_rush": {
+   "decisive": 756,
+   "meet_won": 468,
+   "rate": 0.6190476190476191
+  },
+  "turnovers": {
+   "decisive": 679,
+   "meet_won": 389,
+   "rate": 0.572901325478645
+  },
+  "takeaways": {
+   "decisive": 673,
+   "meet_won": 392,
+   "rate": 0.5824665676077266
+  },
+  "points_allowed": {
+   "decisive": 750,
+   "meet_won": 484,
+   "rate": 0.6453333333333333
+  },
+  "yards_allowed": {
+   "decisive": 754,
+   "meet_won": 475,
+   "rate": 0.629973474801061
+  },
+  "penalty_yards": {
+   "decisive": 752,
+   "meet_won": 363,
+   "rate": 0.48271276595744683
+  },
+  "possession": {
+   "decisive": 756,
+   "meet_won": 432,
+   "rate": 0.5714285714285714
+  }
+ }
+}

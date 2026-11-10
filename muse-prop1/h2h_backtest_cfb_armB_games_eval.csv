@@ -1,0 +1,47 @@
+id,date,home,away,home_score,away_score,neutral,h_votes,a_votes,pick,pick_won,h_champ_votes,a_champ_votes,champ_pick,champ_pick_won,with_pick,with_pick_won,h_power,a_power,power_pick,power_pick_won
+401778302,2025-12-14,Washington Huskies,Boise State Broncos,38,10,True,9,5,home,True,3,4,away,False,home,True,-0.2185,-0.279,home,True
+401778303,2025-12-17,Jacksonville State Gamecocks,Troy Trojans,17,13,True,9,5,home,True,3,0,home,True,home,True,-0.2738,-0.4147,home,True
+401778304,2025-12-17,South Florida Bulls,Old Dominion Monarchs,10,24,True,8,6,home,False,8,4,home,False,home,False,-0.1931,-0.2615,home,False
+401778305,2025-12-18,Delaware Blue Hens,Louisiana Ragin' Cajuns,20,13,True,8,6,home,True,2,1,home,True,home,True,-0.4222,-0.4108,away,False
+401778306,2025-12-19,Western Michigan Broncos,Kennesaw State Owls,41,6,True,8,6,home,True,1,1,,,home,True,-0.2593,-0.3762,home,True
+401778307,2025-12-19,NC State Wolfpack,Memphis Tigers,31,7,True,1,13,away,False,1,2,away,False,away,False,-0.3587,-0.1992,away,False
+401838053,2025-12-19,Arkansas State Red Wolves,Missouri State Bears,34,28,True,5,9,away,False,2,1,home,True,away,False,-0.4674,-0.4152,away,False
+401779840,2025-12-20,Oklahoma Sooners,Alabama Crimson Tide,24,34,False,2,12,away,True,0,3,away,True,away,True,-0.3175,-0.1667,away,True
+401779841,2025-12-20,Texas A&M Aggies,Miami Hurricanes,3,10,False,4,10,away,True,5,3,home,False,away,True,-0.2851,-0.1537,away,True
+401779842,2025-12-20,Ole Miss Rebels,Tulane Green Wave,41,10,False,11,3,home,True,3,1,home,True,home,True,-0.1951,-0.3059,home,True
+401779843,2025-12-21,Oregon Ducks,James Madison Dukes,51,34,False,11,3,home,True,6,6,,,home,True,-0.0652,-0.1747,home,True
+401778308,2025-12-22,Utah State Aggies,Washington State Cougars,21,34,True,9,5,home,False,1,1,,,home,False,-0.3329,-0.4151,home,False
+401778309,2025-12-23,Louisville Cardinals,Toledo Rockets,27,22,True,3,11,away,False,1,0,home,True,away,False,-0.3171,-0.2038,away,False
+401778310,2025-12-23,Southern Miss Golden Eagles,Western Kentucky Hilltoppers,16,27,True,7,6,home,False,2,1,home,False,home,False,-0.33,-0.3779,home,False
+401778311,2025-12-24,Ohio Bobcats,UNLV Rebels,17,10,True,5,9,away,False,3,6,away,False,away,False,-0.2879,-0.2753,away,False
+401778312,2025-12-25,Hawai'i Rainbow Warriors,California Golden Bears,35,31,False,12,2,home,True,2,1,home,True,home,True,-0.3943,-0.4464,home,True
+401778313,2025-12-26,Northwestern Wildcats,Central Michigan Chippewas,34,7,True,9,5,home,True,1,2,away,False,home,True,-0.3278,-0.3095,away,False
+401778314,2025-12-26,Minnesota Golden Gophers,New Mexico Lobos,20,17,True,3,11,away,False,2,0,home,True,away,False,-0.3002,-0.378,home,True
+401778315,2025-12-27,UTSA Roadrunners,Florida International Panthers,57,20,True,9,5,home,True,1,2,away,False,home,True,-0.3368,-0.3767,home,True
+401778316,2025-12-27,East Carolina Pirates,Pittsburgh Panthers,23,17,True,11,3,home,True,4,1,home,True,home,True,-0.227,-0.3908,home,True
+401778317,2025-12-27,Clemson Tigers,Penn State Nittany Lions,10,22,True,6,8,away,True,1,0,home,False,away,True,-0.2829,-0.2391,away,True
+401778318,2025-12-27,Army Black Knights,UConn Huskies,41,16,True,5,9,away,False,3,4,away,False,away,False,-0.2272,-0.1701,away,False
+401778319,2025-12-27,BYU Cougars,Georgia Tech Yellow Jackets,25,21,True,7,7,,,3,5,away,False,away,False,-0.1527,-0.254,home,True
+401778320,2025-12-27,Fresno State Bulldogs,Miami (OH) RedHawks,18,3,True,9,5,home,True,1,0,home,True,home,True,-0.3485,-0.2975,away,False
+401778321,2025-12-27,San Diego State Aztecs,North Texas Mean Green,47,49,True,4,9,away,True,0,7,away,True,away,True,-0.2531,-0.1012,away,True
+401778322,2025-12-28,Missouri Tigers,Virginia Cavaliers,7,13,True,6,8,away,True,4,2,home,False,,,-0.2353,-0.1749,away,True
+401778323,2025-12-28,Houston Cougars,LSU Tigers,38,35,True,9,5,home,True,0,1,away,False,home,True,-0.2684,-0.3261,home,True
+401778324,2025-12-29,App State Mountaineers,Georgia Southern Eagles,10,29,True,4,10,away,True,1,1,,,away,True,-0.4694,-0.3937,away,True
+401778325,2025-12-30,Louisiana Tech Bulldogs,Coastal Carolina Chanticleers,23,14,True,13,1,home,True,2,0,home,True,home,True,-0.3406,-0.5346,home,True
+401778326,2025-12-30,Illinois Fighting Illini,Tennessee Volunteers,30,28,True,5,9,away,False,0,4,away,False,away,False,-0.2716,-0.2609,away,False
+401778327,2025-12-31,TCU Horned Frogs,USC Trojans,30,27,True,1,13,away,False,1,5,away,False,away,False,-0.3504,-0.2003,away,False
+401778328,2025-12-31,Vanderbilt Commodores,Iowa Hawkeyes,27,34,True,9,3,home,False,6,1,home,False,home,False,-0.1902,-0.2118,home,False
+401778329,2025-12-31,Duke Blue Devils,Arizona State Sun Devils,42,39,True,8,6,home,True,2,1,home,True,home,True,-0.3365,-0.3689,home,True
+401778330,2025-12-31,Texas Longhorns,Michigan Wolverines,41,27,True,5,9,away,False,2,2,,,away,False,-0.2742,-0.196,away,False
+401778331,2025-12-31,Utah Utes,Nebraska Cornhuskers,44,22,True,9,5,home,True,6,0,home,True,home,True,-0.1243,-0.2554,home,True
+401769070,2026-01-01,Ohio State Buckeyes,Miami Hurricanes,14,24,True,12,2,home,False,8,3,home,False,home,False,-0.0007,-0.1537,home,False
+401769071,2026-01-01,Texas Tech Red Raiders,Oregon Ducks,0,23,True,7,7,,,8,6,home,False,home,False,-0.0631,-0.0652,home,False
+401769072,2026-01-01,Indiana Hoosiers,Alabama Crimson Tide,38,3,True,13,1,home,True,12,3,home,True,home,True,0.103,-0.1667,home,True
+401769073,2026-01-02,Georgia Bulldogs,Ole Miss Rebels,34,39,True,7,6,home,False,3,3,,,home,False,-0.1699,-0.1951,home,False
+401778332,2026-01-02,Texas State Bobcats,Rice Owls,41,10,True,11,3,home,True,6,3,home,True,home,True,-0.3171,-0.4362,home,True
+401778333,2026-01-02,Cincinnati Bearcats,Navy Midshipmen,13,35,True,2,11,away,True,1,5,away,True,away,True,-0.3364,-0.2489,away,True
+401778334,2026-01-03,Mississippi State Bulldogs,Wake Forest Demon Deacons,29,43,True,10,4,home,False,0,0,,,home,False,-0.3844,-0.3938,home,False
+401831583,2026-01-03,SMU Mustangs,Arizona Wildcats,24,19,True,6,8,away,False,2,2,,,away,False,-0.311,-0.1881,away,False
+401769075,2026-01-09,Ole Miss Rebels,Miami Hurricanes,27,31,True,8,6,home,False,3,3,,,home,False,-0.1951,-0.1537,away,True
+401769074,2026-01-10,Indiana Hoosiers,Oregon Ducks,56,22,True,12,2,home,True,12,6,home,True,home,True,0.103,-0.0652,home,True
+401769076,2026-01-20,Indiana Hoosiers,Miami Hurricanes,27,21,False,12,2,home,True,12,3,home,True,home,True,0.103,-0.1537,home,True
