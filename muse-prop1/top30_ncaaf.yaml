@@ -1,0 +1,88 @@
+# Top 30 NCAAF — refreshed 2026-11-08 from the AP Top 25 poll released
+# Nov 8, 2026 (Week 11) + next 5 by "Others Receiving Votes".
+# Source: AP Top 25, Nov 8, 2026 (Ball Exclusives full poll, verified
+# 2026-11-08; cross-checked vs On3 / Saturday Down South: Georgia 1,
+# Utah 2, Notre Dame 3, UCLA 4, Miami 5, SMU 25).
+# A game qualifies if EITHER team is in this list that week.
+# NOTE: the next AP poll comes out Sun Nov 15 — re-refresh then
+# before next week's games. Team spellings are AP spellings; Grok to
+# confirm they match ESPN / PropLine spellings on the live-shape check.
+# Changes vs Nov 1 list: OUT Florida, Northwestern, UTSA, Virginia Tech;
+# IN Duke, Oklahoma State, Liberty, Louisville. Missouri falls from
+# 19 to first among Others Receiving Votes but stays in the Top 30.
+#
+# ESPN displayName mapping (Grok flaw 4, 2026-11-10): the runner matches
+# against ESPN's displayName (what the scoreboard returns), NOT the AP
+# spelling — "Georgia" does not equal "Georgia Bulldogs", and a bare
+# prefix match is ambiguous (Georgia/Georgia Southern/Georgia Tech,
+# Texas/Texas Tech, Arizona/Arizona State, Iowa/Iowa State, Oregon/
+# Oregon State, Indiana/Indiana State, Miami/Miami (OH)). Every AP name
+# below maps to exactly one ESPN displayName, verified 2026-11-10 against
+# the live ESPN teams endpoint (763 teams) — see
+# fixtures/espn_ncaaf_teams.json. The test in test_muse_prop1.py asserts
+# the mapping is complete (all 30) and every mapped name exists in that
+# fixture. Re-verify the mapping whenever this list is refreshed.
+updated: 2026-11-08
+source: AP Top 25 poll, Nov 8 2026 (Week 11) + Others Receiving Votes
+teams:
+  - Georgia
+  - Utah
+  - Notre Dame
+  - UCLA
+  - Miami
+  - Indiana
+  - Alabama
+  - Texas
+  - Tennessee
+  - Texas Tech
+  - Wake Forest
+  - BYU
+  - Kentucky
+  - Houston
+  - USC
+  - Iowa
+  - Boise State
+  - Oregon
+  - Ole Miss
+  - South Carolina
+  - Ohio State
+  - Arizona
+  - New Mexico
+  - LSU
+  - SMU
+  - Missouri
+  - Duke
+  - Oklahoma State
+  - Liberty
+  - Louisville
+espn_display_names:
+  Georgia: Georgia Bulldogs
+  Utah: Utah Utes
+  Notre Dame: Notre Dame Fighting Irish
+  UCLA: UCLA Bruins
+  Miami: Miami Hurricanes
+  Indiana: Indiana Hoosiers
+  Alabama: Alabama Crimson Tide
+  Texas: Texas Longhorns
+  Tennessee: Tennessee Volunteers
+  Texas Tech: Texas Tech Red Raiders
+  Wake Forest: Wake Forest Demon Deacons
+  BYU: BYU Cougars
+  Kentucky: Kentucky Wildcats
+  Houston: Houston Cougars
+  USC: USC Trojans
+  Iowa: Iowa Hawkeyes
+  Boise State: Boise State Broncos
+  Oregon: Oregon Ducks
+  Ole Miss: Ole Miss Rebels
+  South Carolina: South Carolina Gamecocks
+  Ohio State: Ohio State Buckeyes
+  Arizona: Arizona Wildcats
+  New Mexico: New Mexico Lobos
+  LSU: LSU Tigers
+  SMU: SMU Mustangs
+  Missouri: Missouri Tigers
+  Duke: Duke Blue Devils
+  Oklahoma State: Oklahoma State Cowboys
+  Liberty: Liberty Flames
+  Louisville: Louisville Cardinals

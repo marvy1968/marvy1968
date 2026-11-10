@@ -1,0 +1,390 @@
+{
+ "spec": "h2h-backtest-spec-2026-11-08.md",
+ "generated": "2026-11-08",
+ "metrics": [
+  "points",
+  "rebounds",
+  "off_reb",
+  "def_reb",
+  "assists",
+  "steals",
+  "blocks",
+  "turnovers",
+  "fouls",
+  "threes",
+  "fg_pct",
+  "tp_pct",
+  "ft_pct",
+  "ast_to"
+ ],
+ "champion_benchmarks": {
+  "A": {
+   "champions": [
+    "UConn Huskies 2024",
+    "Florida Gators 2025",
+    "Michigan Wolverines 2026"
+   ],
+   "benchmark": {
+    "points": 84.569,
+    "rebounds": 40.157,
+    "off_reb": 12.147,
+    "def_reb": 28.01,
+    "assists": 17.618,
+    "steals": 6.559,
+    "blocks": 5.314,
+    "turnovers": 10.824,
+    "fouls": 16.373,
+    "threes": 9.255,
+    "fg_pct": 49.134,
+    "tp_pct": 36.074,
+    "ft_pct": 73.582,
+    "ast_to": 1.638
+   }
+  },
+  "B": {
+   "champions": [
+    "UConn Huskies 2023",
+    "UConn Huskies 2024",
+    "Florida Gators 2025"
+   ],
+   "benchmark": {
+    "points": 81.779,
+    "rebounds": 39.823,
+    "off_reb": 12.945,
+    "def_reb": 26.878,
+    "assists": 17.218,
+    "steals": 6.839,
+    "blocks": 4.979,
+    "turnovers": 11.146,
+    "fouls": 17.207,
+    "threes": 9.235,
+    "fg_pct": 47.618,
+    "tp_pct": 35.965,
+    "ft_pct": 73.827,
+    "ast_to": 1.568
+   }
+  },
+  "C": {
+   "champions": [
+    "Boston Celtics 2024",
+    "Oklahoma City Thunder 2025",
+    "New York Knicks 2026"
+   ],
+   "benchmark": {
+    "points": 119.175,
+    "rebounds": 45.573,
+    "off_reb": 11.329,
+    "def_reb": 34.244,
+    "assists": 27.069,
+    "steals": 8.415,
+    "blocks": 5.386,
+    "turnovers": 11.711,
+    "fouls": 18.679,
+    "threes": 15.085,
+    "fg_pct": 48.203,
+    "tp_pct": 37.839,
+    "ft_pct": 80.587,
+    "ast_to": 2.32
+   }
+  }
+ },
+ "arms": {
+  "A": {
+   "games_evaluated": 170,
+   "picks_made": 168,
+   "wins": 111,
+   "losses": 57,
+   "win_rate": 0.6607,
+   "picks_no_champ": 165,
+   "wins_no_champ": 110,
+   "win_rate_no_champ": 0.6667,
+   "tied_totals": 2,
+   "baseline_n": 170,
+   "baseline_wins": 135,
+   "baseline_rate": 0.7941,
+   "per_metric": {
+    "points": {
+     "decisive": 167,
+     "metric_winner_won": 103,
+     "rate": 0.6168
+    },
+    "rebounds": {
+     "decisive": 164,
+     "metric_winner_won": 92,
+     "rate": 0.561
+    },
+    "off_reb": {
+     "decisive": 156,
+     "metric_winner_won": 91,
+     "rate": 0.5833
+    },
+    "def_reb": {
+     "decisive": 165,
+     "metric_winner_won": 97,
+     "rate": 0.5879
+    },
+    "assists": {
+     "decisive": 164,
+     "metric_winner_won": 109,
+     "rate": 0.6646
+    },
+    "steals": {
+     "decisive": 160,
+     "metric_winner_won": 98,
+     "rate": 0.6125
+    },
+    "blocks": {
+     "decisive": 153,
+     "metric_winner_won": 93,
+     "rate": 0.6078
+    },
+    "turnovers": {
+     "decisive": 156,
+     "metric_winner_won": 98,
+     "rate": 0.6282
+    },
+    "fouls": {
+     "decisive": 159,
+     "metric_winner_won": 88,
+     "rate": 0.5535
+    },
+    "threes": {
+     "decisive": 152,
+     "metric_winner_won": 81,
+     "rate": 0.5329
+    },
+    "fg_pct": {
+     "decisive": 168,
+     "metric_winner_won": 108,
+     "rate": 0.6429
+    },
+    "tp_pct": {
+     "decisive": 163,
+     "metric_winner_won": 90,
+     "rate": 0.5521
+    },
+    "ft_pct": {
+     "decisive": 165,
+     "metric_winner_won": 100,
+     "rate": 0.6061
+    },
+    "ast_to": {
+     "decisive": 169,
+     "metric_winner_won": 115,
+     "rate": 0.6805
+    }
+   },
+   "champ_votes_total": {
+    "home": 954,
+    "away": 708
+   },
+   "champ_votes_avg_per_game": {
+    "home": 5.61,
+    "away": 4.16
+   },
+   "h2h_votes_total": {
+    "home": 1333,
+    "away": 928
+   },
+   "home_points_total": 161
+  },
+  "B": {
+   "games_evaluated": 67,
+   "picks_made": 66,
+   "wins": 44,
+   "losses": 22,
+   "win_rate": 0.6667,
+   "picks_no_champ": 56,
+   "wins_no_champ": 37,
+   "win_rate_no_champ": 0.6607,
+   "tied_totals": 1,
+   "baseline_n": 62,
+   "baseline_wins": 46,
+   "baseline_rate": 0.7419,
+   "per_metric": {
+    "points": {
+     "decisive": 67,
+     "metric_winner_won": 36,
+     "rate": 0.5373
+    },
+    "rebounds": {
+     "decisive": 67,
+     "metric_winner_won": 36,
+     "rate": 0.5373
+    },
+    "off_reb": {
+     "decisive": 67,
+     "metric_winner_won": 36,
+     "rate": 0.5373
+    },
+    "def_reb": {
+     "decisive": 67,
+     "metric_winner_won": 37,
+     "rate": 0.5522
+    },
+    "assists": {
+     "decisive": 67,
+     "metric_winner_won": 49,
+     "rate": 0.7313
+    },
+    "steals": {
+     "decisive": 65,
+     "metric_winner_won": 30,
+     "rate": 0.4615
+    },
+    "blocks": {
+     "decisive": 67,
+     "metric_winner_won": 41,
+     "rate": 0.6119
+    },
+    "turnovers": {
+     "decisive": 67,
+     "metric_winner_won": 35,
+     "rate": 0.5224
+    },
+    "fouls": {
+     "decisive": 67,
+     "metric_winner_won": 37,
+     "rate": 0.5522
+    },
+    "threes": {
+     "decisive": 67,
+     "metric_winner_won": 35,
+     "rate": 0.5224
+    },
+    "fg_pct": {
+     "decisive": 67,
+     "metric_winner_won": 47,
+     "rate": 0.7015
+    },
+    "tp_pct": {
+     "decisive": 67,
+     "metric_winner_won": 34,
+     "rate": 0.5075
+    },
+    "ft_pct": {
+     "decisive": 67,
+     "metric_winner_won": 39,
+     "rate": 0.5821
+    },
+    "ast_to": {
+     "decisive": 67,
+     "metric_winner_won": 43,
+     "rate": 0.6418
+    }
+   },
+   "champ_votes_total": {
+    "home": 430,
+    "away": 325
+   },
+   "champ_votes_avg_per_game": {
+    "home": 6.42,
+    "away": 4.85
+   },
+   "h2h_votes_total": {
+    "home": 557,
+    "away": 379
+   },
+   "home_points_total": 0
+  },
+  "C": {
+   "games_evaluated": 123,
+   "picks_made": 117,
+   "wins": 80,
+   "losses": 37,
+   "win_rate": 0.6838,
+   "picks_no_champ": 120,
+   "wins_no_champ": 84,
+   "win_rate_no_champ": 0.7,
+   "tied_totals": 6,
+   "baseline_n": 123,
+   "baseline_wins": 62,
+   "baseline_rate": 0.5041,
+   "per_metric": {
+    "points": {
+     "decisive": 123,
+     "metric_winner_won": 72,
+     "rate": 0.5854
+    },
+    "rebounds": {
+     "decisive": 120,
+     "metric_winner_won": 61,
+     "rate": 0.5083
+    },
+    "off_reb": {
+     "decisive": 116,
+     "metric_winner_won": 56,
+     "rate": 0.4828
+    },
+    "def_reb": {
+     "decisive": 122,
+     "metric_winner_won": 63,
+     "rate": 0.5164
+    },
+    "assists": {
+     "decisive": 120,
+     "metric_winner_won": 66,
+     "rate": 0.55
+    },
+    "steals": {
+     "decisive": 117,
+     "metric_winner_won": 74,
+     "rate": 0.6325
+    },
+    "blocks": {
+     "decisive": 112,
+     "metric_winner_won": 60,
+     "rate": 0.5357
+    },
+    "turnovers": {
+     "decisive": 119,
+     "metric_winner_won": 73,
+     "rate": 0.6134
+    },
+    "fouls": {
+     "decisive": 119,
+     "metric_winner_won": 64,
+     "rate": 0.5378
+    },
+    "threes": {
+     "decisive": 121,
+     "metric_winner_won": 70,
+     "rate": 0.5785
+    },
+    "fg_pct": {
+     "decisive": 122,
+     "metric_winner_won": 69,
+     "rate": 0.5656
+    },
+    "tp_pct": {
+     "decisive": 121,
+     "metric_winner_won": 72,
+     "rate": 0.595
+    },
+    "ft_pct": {
+     "decisive": 122,
+     "metric_winner_won": 65,
+     "rate": 0.5328
+    },
+    "ast_to": {
+     "decisive": 123,
+     "metric_winner_won": 72,
+     "rate": 0.5854
+    }
+   },
+   "champ_votes_total": {
+    "home": 464,
+    "away": 442
+   },
+   "champ_votes_avg_per_game": {
+    "home": 3.77,
+    "away": 3.59
+   },
+   "h2h_votes_total": {
+    "home": 848,
+    "away": 829
+   },
+   "home_points_total": 122
+  }
+ }
+}

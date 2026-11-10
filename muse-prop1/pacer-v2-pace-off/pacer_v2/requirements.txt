@@ -1,0 +1,4 @@
+# pacer_v2 dependencies (Grok flaw 6 — scipy was imported but never declared).
+# model.py imports scipy (optimize, special) and sklearn (IsotonicRegression).
+scipy>=1.11
+scikit-learn>=1.3

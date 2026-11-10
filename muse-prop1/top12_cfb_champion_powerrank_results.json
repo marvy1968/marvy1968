@@ -1,0 +1,618 @@
+{
+ "spec": "top12-cfb-champion-powerrank-spec-2026-11-08.md",
+ "generated": "2026-11-08",
+ "ap_poll": {
+  "source": "AP Top 25, Week 11, released Nov 8 2026",
+  "cross_check": "top30_ncaaf.yaml (same poll, refreshed 2026-11-08)"
+ },
+ "champions": [
+  {
+   "team": "Michigan",
+   "season": 2023,
+   "team_id": 130,
+   "determined_by": "CFP National Championship, Jan 8 2024: Michigan 34, Washington 13",
+   "metrics": {
+    "points_per_game": 36.692,
+    "total_yards_per_game": 380.538,
+    "rushing_yards_per_game": 161.769,
+    "passing_yards_per_game": 218.769,
+    "turnovers_per_game": 0.5384615384615384,
+    "takeaways_per_game": 1.8461538461538463,
+    "third_down_pct": 46.711,
+    "sacks_per_game": 2.5384615384615383,
+    "games_played": 13
+   }
+  },
+  {
+   "team": "Ohio State",
+   "season": 2024,
+   "team_id": 194,
+   "determined_by": "CFP National Championship, Jan 20 2025: Ohio State 34, Notre Dame 23",
+   "metrics": {
+    "points_per_game": 35.5,
+    "total_yards_per_game": 423.5,
+    "rushing_yards_per_game": 169.167,
+    "passing_yards_per_game": 254.333,
+    "turnovers_per_game": 1.0,
+    "takeaways_per_game": 1.4166666666666667,
+    "third_down_pct": 42.361,
+    "sacks_per_game": 2.9166666666666665,
+    "games_played": 12
+   }
+  },
+  {
+   "team": "Indiana",
+   "season": 2025,
+   "team_id": 84,
+   "determined_by": "CFP National Championship, Jan 19 2026: Indiana 27, Miami 21",
+   "metrics": {
+    "points_per_game": 41.923,
+    "total_yards_per_game": 472.769,
+    "rushing_yards_per_game": 221.154,
+    "passing_yards_per_game": 251.615,
+    "turnovers_per_game": 0.6153846153846154,
+    "takeaways_per_game": 1.9230769230769231,
+    "third_down_pct": 55.769,
+    "sacks_per_game": 3.0,
+    "games_played": 13
+   }
+  }
+ ],
+ "benchmark": {
+  "points_per_game": 38.0383,
+  "total_yards_per_game": 425.6023,
+  "rushing_yards_per_game": 184.03,
+  "passing_yards_per_game": 241.5723,
+  "turnovers_per_game": 0.7179,
+  "takeaways_per_game": 1.7286,
+  "third_down_pct": 48.2803,
+  "sacks_per_game": 2.8184
+ },
+ "metrics": [
+  {
+   "metric": "points_per_game",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "total_yards_per_game",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "rushing_yards_per_game",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "passing_yards_per_game",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "turnovers_per_game",
+   "direction": "lower_better"
+  },
+  {
+   "metric": "takeaways_per_game",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "third_down_pct",
+   "direction": "higher_better"
+  },
+  {
+   "metric": "sacks_per_game",
+   "direction": "higher_better"
+  }
+ ],
+ "dropped_metrics": [
+  {
+   "metric": "points_allowed_per_game",
+   "reason": "ESPN core API defensive.pointsAllowed = 0.0 for every team/season checked (not populated)"
+  },
+  {
+   "metric": "yards_allowed_per_game",
+   "reason": "ESPN core API defensive.yardsAllowed = 0.0 for every team/season checked (not populated)"
+  },
+  {
+   "metric": "redzone_touchdown_pct",
+   "reason": "ESPN core API miscellaneous.redzoneTouchdownPct = 0.0 for every team/season checked (not populated)"
+  }
+ ],
+ "season_type": "types/2 regular season including conference championship game",
+ "data_source": "ESPN core API team statistics",
+ "teams": [
+  {
+   "team": "Miami",
+   "ap_rank": 5,
+   "record": "8-1",
+   "team_id": 2390,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 45.0,
+    "total_yards_per_game": 517.3,
+    "rushing_yards_per_game": 191.2,
+    "passing_yards_per_game": 326.1,
+    "turnovers_per_game": 0.5556,
+    "takeaways_per_game": 1.0,
+    "third_down_pct": 52.9412,
+    "sacks_per_game": 2.6667
+   },
+   "power_score": 0.0793,
+   "champion_votes": 6,
+   "metric_diffs": {
+    "points_per_game": 0.183,
+    "total_yards_per_game": 0.2155,
+    "rushing_yards_per_game": 0.039,
+    "passing_yards_per_game": 0.3499,
+    "turnovers_per_game": 0.2262,
+    "takeaways_per_game": -0.4215,
+    "third_down_pct": 0.0965,
+    "sacks_per_game": -0.0538
+   },
+   "metrics_met": {
+    "points_per_game": 1,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 1,
+    "takeaways_per_game": 0,
+    "third_down_pct": 1,
+    "sacks_per_game": 0
+   },
+   "rank": 1
+  },
+  {
+   "team": "Wake Forest",
+   "ap_rank": 11,
+   "record": "8-1",
+   "team_id": 154,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 43.33,
+    "total_yards_per_game": 487.7,
+    "rushing_yards_per_game": 175.8,
+    "passing_yards_per_game": 311.9,
+    "turnovers_per_game": 0.3333,
+    "takeaways_per_game": 0.5556,
+    "third_down_pct": 51.3761,
+    "sacks_per_game": 2.3333
+   },
+   "power_score": 0.0351,
+   "champion_votes": 5,
+   "metric_diffs": {
+    "points_per_game": 0.1391,
+    "total_yards_per_game": 0.1459,
+    "rushing_yards_per_game": -0.0447,
+    "passing_yards_per_game": 0.2911,
+    "turnovers_per_game": 0.5357,
+    "takeaways_per_game": -0.6786,
+    "third_down_pct": 0.0641,
+    "sacks_per_game": -0.1721
+   },
+   "metrics_met": {
+    "points_per_game": 1,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 0,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 1,
+    "takeaways_per_game": 0,
+    "third_down_pct": 1,
+    "sacks_per_game": 0
+   },
+   "rank": 2
+  },
+  {
+   "team": "Georgia",
+   "ap_rank": 1,
+   "record": "8-1",
+   "team_id": 61,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 41.11,
+    "total_yards_per_game": 454.2,
+    "rushing_yards_per_game": 210.7,
+    "passing_yards_per_game": 243.6,
+    "turnovers_per_game": 1.0,
+    "takeaways_per_game": 1.7778,
+    "third_down_pct": 52.4272,
+    "sacks_per_game": 3.4444
+   },
+   "power_score": 0.0306,
+   "champion_votes": 7,
+   "metric_diffs": {
+    "points_per_game": 0.0808,
+    "total_yards_per_game": 0.0672,
+    "rushing_yards_per_game": 0.1449,
+    "passing_yards_per_game": 0.0084,
+    "turnovers_per_game": -0.3929,
+    "takeaways_per_game": 0.0284,
+    "third_down_pct": 0.0859,
+    "sacks_per_game": 0.2221
+   },
+   "metrics_met": {
+    "points_per_game": 1,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 1,
+    "third_down_pct": 1,
+    "sacks_per_game": 1
+   },
+   "rank": 3
+  },
+  {
+   "team": "Notre Dame",
+   "ap_rank": 3,
+   "record": "8-1",
+   "team_id": 87,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 39.33,
+    "total_yards_per_game": 439.3,
+    "rushing_yards_per_game": 175.7,
+    "passing_yards_per_game": 263.7,
+    "turnovers_per_game": 0.2222,
+    "takeaways_per_game": 1.2222,
+    "third_down_pct": 42.0561,
+    "sacks_per_game": 1.8889
+   },
+   "power_score": 0.0064,
+   "champion_votes": 4,
+   "metric_diffs": {
+    "points_per_game": 0.034,
+    "total_yards_per_game": 0.0322,
+    "rushing_yards_per_game": -0.0453,
+    "passing_yards_per_game": 0.0916,
+    "turnovers_per_game": 0.6905,
+    "takeaways_per_game": -0.293,
+    "third_down_pct": -0.1289,
+    "sacks_per_game": -0.3298
+   },
+   "metrics_met": {
+    "points_per_game": 1,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 0,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 1,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 0
+   },
+   "rank": 4
+  },
+  {
+   "team": "Indiana",
+   "ap_rank": 6,
+   "record": "8-1",
+   "team_id": 84,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 32.44,
+    "total_yards_per_game": 419.6,
+    "rushing_yards_per_game": 186.2,
+    "passing_yards_per_game": 233.3,
+    "turnovers_per_game": 0.6667,
+    "takeaways_per_game": 0.8889,
+    "third_down_pct": 40.1869,
+    "sacks_per_game": 3.5556
+   },
+   "power_score": -0.063,
+   "champion_votes": 3,
+   "metric_diffs": {
+    "points_per_game": -0.1472,
+    "total_yards_per_game": -0.0141,
+    "rushing_yards_per_game": 0.0118,
+    "passing_yards_per_game": -0.0342,
+    "turnovers_per_game": 0.0714,
+    "takeaways_per_game": -0.4858,
+    "third_down_pct": -0.1676,
+    "sacks_per_game": 0.2616
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 0,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 1,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 1
+   },
+   "rank": 5
+  },
+  {
+   "team": "Tennessee",
+   "ap_rank": 9,
+   "record": "7-2",
+   "team_id": 2633,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 32.44,
+    "total_yards_per_game": 393.9,
+    "rushing_yards_per_game": 216.0,
+    "passing_yards_per_game": 177.9,
+    "turnovers_per_game": 1.2222,
+    "takeaways_per_game": 1.6667,
+    "third_down_pct": 36.8852,
+    "sacks_per_game": 4.3333
+   },
+   "power_score": -0.0935,
+   "champion_votes": 2,
+   "metric_diffs": {
+    "points_per_game": -0.1472,
+    "total_yards_per_game": -0.0745,
+    "rushing_yards_per_game": 0.1737,
+    "passing_yards_per_game": -0.2636,
+    "turnovers_per_game": -0.7024,
+    "takeaways_per_game": -0.0358,
+    "third_down_pct": -0.236,
+    "sacks_per_game": 0.5375
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 0,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 1
+   },
+   "rank": 6
+  },
+  {
+   "team": "Utah",
+   "ap_rank": 2,
+   "record": "9-0",
+   "team_id": 254,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 37.67,
+    "total_yards_per_game": 467.9,
+    "rushing_yards_per_game": 215.2,
+    "passing_yards_per_game": 252.7,
+    "turnovers_per_game": 1.3333,
+    "takeaways_per_game": 1.2222,
+    "third_down_pct": 52.6316,
+    "sacks_per_game": 1.8889
+   },
+   "power_score": -0.1356,
+   "champion_votes": 4,
+   "metric_diffs": {
+    "points_per_game": -0.0097,
+    "total_yards_per_game": 0.0994,
+    "rushing_yards_per_game": 0.1694,
+    "passing_yards_per_game": 0.0461,
+    "turnovers_per_game": -0.8571,
+    "takeaways_per_game": -0.293,
+    "third_down_pct": 0.0901,
+    "sacks_per_game": -0.3298
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 1,
+    "sacks_per_game": 0
+   },
+   "rank": 7
+  },
+  {
+   "team": "Texas Tech",
+   "ap_rank": 10,
+   "record": "8-1",
+   "team_id": 2641,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 37.56,
+    "total_yards_per_game": 449.3,
+    "rushing_yards_per_game": 214.7,
+    "passing_yards_per_game": 234.7,
+    "turnovers_per_game": 1.4444,
+    "takeaways_per_game": 1.2222,
+    "third_down_pct": 39.8305,
+    "sacks_per_game": 3.2222
+   },
+   "power_score": -0.1444,
+   "champion_votes": 3,
+   "metric_diffs": {
+    "points_per_game": -0.0126,
+    "total_yards_per_game": 0.0557,
+    "rushing_yards_per_game": 0.1667,
+    "passing_yards_per_game": -0.0284,
+    "turnovers_per_game": -1.0119,
+    "takeaways_per_game": -0.293,
+    "third_down_pct": -0.175,
+    "sacks_per_game": 0.1433
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 1
+   },
+   "rank": 8
+  },
+  {
+   "team": "UCLA",
+   "ap_rank": 4,
+   "record": "9-0",
+   "team_id": 26,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 33.56,
+    "total_yards_per_game": 431.9,
+    "rushing_yards_per_game": 213.2,
+    "passing_yards_per_game": 218.7,
+    "turnovers_per_game": 1.4444,
+    "takeaways_per_game": 1.8889,
+    "third_down_pct": 45.6,
+    "sacks_per_game": 2.2222
+   },
+   "power_score": -0.1532,
+   "champion_votes": 3,
+   "metric_diffs": {
+    "points_per_game": -0.1177,
+    "total_yards_per_game": 0.0148,
+    "rushing_yards_per_game": 0.1585,
+    "passing_yards_per_game": -0.0947,
+    "turnovers_per_game": -1.0119,
+    "takeaways_per_game": 0.0927,
+    "third_down_pct": -0.0555,
+    "sacks_per_game": -0.2115
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 1,
+    "rushing_yards_per_game": 1,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 1,
+    "third_down_pct": 0,
+    "sacks_per_game": 0
+   },
+   "rank": 9
+  },
+  {
+   "team": "Alabama",
+   "ap_rank": 7,
+   "record": "7-2",
+   "team_id": 333,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 37.44,
+    "total_yards_per_game": 397.8,
+    "rushing_yards_per_game": 143.8,
+    "passing_yards_per_game": 254.0,
+    "turnovers_per_game": 1.3333,
+    "takeaways_per_game": 1.4444,
+    "third_down_pct": 41.5094,
+    "sacks_per_game": 2.6667
+   },
+   "power_score": -0.183,
+   "champion_votes": 1,
+   "metric_diffs": {
+    "points_per_game": -0.0157,
+    "total_yards_per_game": -0.0653,
+    "rushing_yards_per_game": -0.2186,
+    "passing_yards_per_game": 0.0514,
+    "turnovers_per_game": -0.8571,
+    "takeaways_per_game": -0.1644,
+    "third_down_pct": -0.1402,
+    "sacks_per_game": -0.0538
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 0,
+    "rushing_yards_per_game": 0,
+    "passing_yards_per_game": 1,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 0
+   },
+   "rank": 10
+  },
+  {
+   "team": "BYU",
+   "ap_rank": 12,
+   "record": "7-2",
+   "team_id": 252,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 31.0,
+    "total_yards_per_game": 397.1,
+    "rushing_yards_per_game": 169.1,
+    "passing_yards_per_game": 228.0,
+    "turnovers_per_game": 1.3333,
+    "takeaways_per_game": 1.5556,
+    "third_down_pct": 50.8772,
+    "sacks_per_game": 2.3333
+   },
+   "power_score": -0.1831,
+   "champion_votes": 1,
+   "metric_diffs": {
+    "points_per_game": -0.185,
+    "total_yards_per_game": -0.067,
+    "rushing_yards_per_game": -0.0811,
+    "passing_yards_per_game": -0.0562,
+    "turnovers_per_game": -0.8571,
+    "takeaways_per_game": -0.1001,
+    "third_down_pct": 0.0538,
+    "sacks_per_game": -0.1721
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 0,
+    "rushing_yards_per_game": 0,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 1,
+    "sacks_per_game": 0
+   },
+   "rank": 11
+  },
+  {
+   "team": "Texas",
+   "ap_rank": 8,
+   "record": "7-2",
+   "team_id": 251,
+   "season": 2026,
+   "games_played": 9,
+   "metrics": {
+    "points_per_game": 31.11,
+    "total_yards_per_game": 360.7,
+    "rushing_yards_per_game": 128.8,
+    "passing_yards_per_game": 231.9,
+    "turnovers_per_game": 1.5556,
+    "takeaways_per_game": 1.5556,
+    "third_down_pct": 39.5161,
+    "sacks_per_game": 3.0
+   },
+   "power_score": -0.2573,
+   "champion_votes": 1,
+   "metric_diffs": {
+    "points_per_game": -0.1821,
+    "total_yards_per_game": -0.1525,
+    "rushing_yards_per_game": -0.3001,
+    "passing_yards_per_game": -0.04,
+    "turnovers_per_game": -1.1667,
+    "takeaways_per_game": -0.1001,
+    "third_down_pct": -0.1815,
+    "sacks_per_game": 0.0644
+   },
+   "metrics_met": {
+    "points_per_game": 0,
+    "total_yards_per_game": 0,
+    "rushing_yards_per_game": 0,
+    "passing_yards_per_game": 0,
+    "turnovers_per_game": 0,
+    "takeaways_per_game": 0,
+    "third_down_pct": 0,
+    "sacks_per_game": 1
+   },
+   "rank": 12
+  }
+ ],
+ "missing_data": [],
+ "above_champion_standard": 4,
+ "teams_ranked": 12
+}

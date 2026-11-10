@@ -1,0 +1,1274 @@
+{
+ "spec": "h2h-backtest-cfb-spec-2026-11-10.md",
+ "metrics": [
+  "points",
+  "total_yards",
+  "pass_yards",
+  "rush_yards",
+  "first_downs",
+  "third_down",
+  "yards_per_pass",
+  "yards_per_rush",
+  "turnovers",
+  "takeaways",
+  "points_allowed",
+  "yards_allowed",
+  "penalty_yards",
+  "possession"
+ ],
+ "champion_benchmarks": {
+  "armA": {
+   "champions": [
+    "Michigan 2023",
+    "Ohio State 2024",
+    "Indiana 2025"
+   ],
+   "benchmark": {
+    "points": 39.13888888888889,
+    "total_yards": 433.9444444444444,
+    "pass_yards": 244.3888888888889,
+    "rush_yards": 189.55555555555554,
+    "first_downs": 22.361111111111114,
+    "third_down": 0.49121462234444446,
+    "yards_per_pass": 9.40847222222222,
+    "yards_per_rush": 4.974972222222222,
+    "turnovers": 0.7222222222222223,
+    "takeaways": 1.7222222222222223,
+    "points_allowed": 10.694444444444443,
+    "yards_allowed": 246.80555555555554,
+    "penalty_yards": 31.083333333333332,
+    "possession": 1920.9722222222224
+   }
+  },
+  "armB": {
+   "champions": [
+    "Michigan 2023",
+    "Ohio State 2024",
+    "Indiana 2025"
+   ],
+   "benchmark": {
+    "points": 39.13888888888889,
+    "total_yards": 433.9444444444444,
+    "pass_yards": 244.3888888888889,
+    "rush_yards": 189.55555555555554,
+    "first_downs": 22.361111111111114,
+    "third_down": 0.49121462234444446,
+    "yards_per_pass": 9.40847222222222,
+    "yards_per_rush": 4.974972222222222,
+    "turnovers": 0.7222222222222223,
+    "takeaways": 1.7222222222222223,
+    "points_allowed": 10.694444444444443,
+    "yards_allowed": 246.80555555555554,
+    "penalty_yards": 31.083333333333332,
+    "possession": 1920.9722222222224
+   },
+   "note": "Per the spec's explicit Arm B instruction all 3 champions form the benchmark. FLAG: Indiana was not decided champion until the Jan 20, 2026 championship game, so Dec/early-Jan Arm B games benchmark against a champion not yet decided \u2014 the spec's parenthetical justifying this is wrong on the date; the instruction itself was followed, not silently changed."
+  },
+  "armC": {
+   "champions": [
+    "Michigan 2023",
+    "Ohio State 2024",
+    "Indiana 2025"
+   ],
+   "benchmark": {
+    "points": 39.13888888888889,
+    "total_yards": 433.9444444444444,
+    "pass_yards": 244.3888888888889,
+    "rush_yards": 189.55555555555554,
+    "first_downs": 22.361111111111114,
+    "third_down": 0.49121462234444446,
+    "yards_per_pass": 9.40847222222222,
+    "yards_per_rush": 4.974972222222222,
+    "turnovers": 0.7222222222222223,
+    "takeaways": 1.7222222222222223,
+    "points_allowed": 10.694444444444443,
+    "yards_allowed": 246.80555555555554,
+    "penalty_yards": 31.083333333333332,
+    "possession": 1920.9722222222224
+   }
+  }
+ },
+ "champion_season_averages": {
+  "Michigan 2023": {
+   "team_id": "130",
+   "games": 12,
+   "averages": {
+    "points": 37.583333333333336,
+    "total_yards": 394.5,
+    "pass_yards": 224.75,
+    "rush_yards": 169.75,
+    "first_downs": 21.166666666666668,
+    "third_down": 0.4845959596,
+    "yards_per_pass": 9.387583333333334,
+    "yards_per_rush": 4.451583333333333,
+    "turnovers": 0.5833333333333334,
+    "takeaways": 1.75,
+    "points_allowed": 10.25,
+    "yards_allowed": 246.75,
+    "penalty_yards": 26.416666666666668,
+    "possession": 1949.4166666666667
+   }
+  },
+  "Ohio State 2024": {
+   "team_id": "194",
+   "games": 12,
+   "averages": {
+    "points": 35.5,
+    "total_yards": 423.5,
+    "pass_yards": 254.33333333333334,
+    "rush_yards": 169.16666666666666,
+    "first_downs": 20.666666666666668,
+    "third_down": 0.41666531997500006,
+    "yards_per_pass": 9.11,
+    "yards_per_rush": 4.949666666666666,
+    "turnovers": 1.0,
+    "takeaways": 1.4166666666666667,
+    "points_allowed": 10.916666666666666,
+    "yards_allowed": 241.91666666666666,
+    "penalty_yards": 40.083333333333336,
+    "possession": 1793.9166666666667
+   }
+  },
+  "Indiana 2025": {
+   "team_id": "84",
+   "games": 12,
+   "averages": {
+    "points": 44.333333333333336,
+    "total_yards": 483.8333333333333,
+    "pass_yards": 254.08333333333334,
+    "rush_yards": 229.75,
+    "first_downs": 25.25,
+    "third_down": 0.5723825874583334,
+    "yards_per_pass": 9.727833333333331,
+    "yards_per_rush": 5.523666666666667,
+    "turnovers": 0.5833333333333334,
+    "takeaways": 2.0,
+    "points_allowed": 10.916666666666666,
+    "yards_allowed": 251.75,
+    "penalty_yards": 26.75,
+    "possession": 2019.5833333333333
+   }
+  }
+ },
+ "self_check_without_champion_mismatches": {
+  "armA": 0,
+  "armB": 0,
+  "armC": 0
+ },
+ "part1": {
+  "armA": {
+   "games_evaluated": 538,
+   "with_champion": {
+    "picks": 526,
+    "wins": 332,
+    "losses": 194,
+    "win_rate": 0.6311787072243346,
+    "tied": 12
+   },
+   "without_champion": {
+    "picks": 527,
+    "wins": 336,
+    "losses": 191,
+    "win_rate": 0.6375711574952562,
+    "tied": 11
+   },
+   "champion_standalone": {
+    "picks": 463,
+    "wins": 288,
+    "losses": 175,
+    "win_rate": 0.6220302375809935,
+    "tied": 75
+   },
+   "power_rank": {
+    "picks": 537,
+    "wins": 329,
+    "losses": 208,
+    "win_rate": 0.6126629422718808,
+    "tied": 1
+   },
+   "baseline": {
+    "n": 538,
+    "wins": 324,
+    "rate": 0.6022304832713755,
+    "kind": "home team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 127,
+     "meet_won": 87,
+     "rate": 0.6850393700787402
+    },
+    "total_yards": {
+     "decisive": 209,
+     "meet_won": 134,
+     "rate": 0.6411483253588517
+    },
+    "pass_yards": {
+     "decisive": 243,
+     "meet_won": 147,
+     "rate": 0.6049382716049383
+    },
+    "rush_yards": {
+     "decisive": 217,
+     "meet_won": 129,
+     "rate": 0.5944700460829493
+    },
+    "first_downs": {
+     "decisive": 218,
+     "meet_won": 143,
+     "rate": 0.6559633027522935
+    },
+    "third_down": {
+     "decisive": 172,
+     "meet_won": 113,
+     "rate": 0.6569767441860465
+    },
+    "yards_per_pass": {
+     "decisive": 134,
+     "meet_won": 91,
+     "rate": 0.6791044776119403
+    },
+    "yards_per_rush": {
+     "decisive": 199,
+     "meet_won": 121,
+     "rate": 0.6080402010050251
+    },
+    "turnovers": {
+     "decisive": 192,
+     "meet_won": 120,
+     "rate": 0.625
+    },
+    "takeaways": {
+     "decisive": 174,
+     "meet_won": 90,
+     "rate": 0.5172413793103449
+    },
+    "points_allowed": {
+     "decisive": 59,
+     "meet_won": 38,
+     "rate": 0.6440677966101694
+    },
+    "yards_allowed": {
+     "decisive": 71,
+     "meet_won": 43,
+     "rate": 0.6056338028169014
+    },
+    "penalty_yards": {
+     "decisive": 63,
+     "meet_won": 28,
+     "rate": 0.4444444444444444
+    },
+    "possession": {
+     "decisive": 217,
+     "meet_won": 125,
+     "rate": 0.576036866359447
+    }
+   },
+   "champ_votes_total": {
+    "home": 1703,
+    "away": 1702
+   },
+   "champ_votes_avg_per_game": {
+    "home": 3.1654275092936803,
+    "away": 3.163568773234201
+   },
+   "h2h_votes_total": {
+    "home": 4318,
+    "away": 3600
+   },
+   "home_points_total": 532,
+   "overlap": {
+    "both_picked": 453,
+    "agree": 404,
+    "agreement_rate": 0.891832229580574,
+    "disagree": 49,
+    "disagree_champ_won": 19,
+    "disagree_h2h_won": 30,
+    "corr_champ_diff_vs_h2h_diff": 0.7930043739011657
+   },
+   "power_score_distribution": {
+    "n_teams": 1076,
+    "above_zero": 80,
+    "above_zero_rate": 0.07434944237918216,
+    "mean": -0.30922880189047686,
+    "median": -0.30958513466197096,
+    "min": -1.2329576356783296,
+    "max": 0.4292739946033963
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0016000068856820149,
+     "margin_max": 0.06992285511985319,
+     "picks": 134,
+     "wins": 75,
+     "win_rate": 0.5597014925373134
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.07110797807108996,
+     "margin_max": 0.15890485656619918,
+     "picks": 134,
+     "wins": 70,
+     "win_rate": 0.5223880597014925
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.16232589630651478,
+     "margin_max": 0.2788889796161989,
+     "picks": 134,
+     "wins": 87,
+     "win_rate": 0.6492537313432836
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.27932391359277997,
+     "margin_max": 1.0966065936332765,
+     "picks": 135,
+     "wins": 97,
+     "win_rate": 0.7185185185185186
+    }
+   ]
+  },
+  "armB": {
+   "games_evaluated": 46,
+   "with_champion": {
+    "picks": 45,
+    "wins": 25,
+    "losses": 20,
+    "win_rate": 0.5555555555555556,
+    "tied": 1
+   },
+   "without_champion": {
+    "picks": 44,
+    "wins": 26,
+    "losses": 18,
+    "win_rate": 0.5909090909090909,
+    "tied": 2
+   },
+   "champion_standalone": {
+    "picks": 37,
+    "wins": 19,
+    "losses": 18,
+    "win_rate": 0.5135135135135135,
+    "tied": 9
+   },
+   "power_rank": {
+    "picks": 46,
+    "wins": 26,
+    "losses": 20,
+    "win_rate": 0.5652173913043478,
+    "tied": 0
+   },
+   "baseline": {
+    "n": 14,
+    "wins": 8,
+    "rate": 0.5714285714285714,
+    "unranked_games": 32,
+    "kind": "higher AP-ranked team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 9,
+     "meet_won": 5,
+     "rate": 0.5555555555555556
+    },
+    "total_yards": {
+     "decisive": 18,
+     "meet_won": 9,
+     "rate": 0.5
+    },
+    "pass_yards": {
+     "decisive": 20,
+     "meet_won": 11,
+     "rate": 0.55
+    },
+    "rush_yards": {
+     "decisive": 14,
+     "meet_won": 7,
+     "rate": 0.5
+    },
+    "first_downs": {
+     "decisive": 16,
+     "meet_won": 9,
+     "rate": 0.5625
+    },
+    "third_down": {
+     "decisive": 8,
+     "meet_won": 5,
+     "rate": 0.625
+    },
+    "yards_per_pass": {
+     "decisive": 8,
+     "meet_won": 6,
+     "rate": 0.75
+    },
+    "yards_per_rush": {
+     "decisive": 16,
+     "meet_won": 8,
+     "rate": 0.5
+    },
+    "turnovers": {
+     "decisive": 8,
+     "meet_won": 5,
+     "rate": 0.625
+    },
+    "takeaways": {
+     "decisive": 15,
+     "meet_won": 8,
+     "rate": 0.5333333333333333
+    },
+    "points_allowed": {
+     "decisive": 1,
+     "meet_won": 0,
+     "rate": 0.0
+    },
+    "yards_allowed": {
+     "decisive": 1,
+     "meet_won": 0,
+     "rate": 0.0
+    },
+    "penalty_yards": {
+     "decisive": 6,
+     "meet_won": 6,
+     "rate": 1.0
+    },
+    "possession": {
+     "decisive": 14,
+     "meet_won": 10,
+     "rate": 0.7142857142857143
+    }
+   },
+   "champ_votes_total": {
+    "home": 150,
+    "away": 110
+   },
+   "champ_votes_avg_per_game": {
+    "home": 3.260869565217391,
+    "away": 2.391304347826087
+   },
+   "h2h_votes_total": {
+    "home": 344,
+    "away": 294
+   },
+   "home_points_total": 0,
+   "overlap": {
+    "both_picked": 35,
+    "agree": 25,
+    "agreement_rate": 0.7142857142857143,
+    "disagree": 10,
+    "disagree_champ_won": 3,
+    "disagree_h2h_won": 7,
+    "corr_champ_diff_vs_h2h_diff": 0.6244233014526603
+   },
+   "power_score_distribution": {
+    "n_teams": 92,
+    "above_zero": 3,
+    "above_zero_rate": 0.03260869565217391,
+    "mean": -0.2613099154141649,
+    "median": -0.27158578705973924,
+    "min": -0.5346194175864728,
+    "max": 0.10297100878166708
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0020933226747285733,
+     "margin_max": 0.04132752350287067,
+     "picks": 11,
+     "wins": 3,
+     "win_rate": 0.2727272727272727
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.04381662494432059,
+     "margin_max": 0.07573288693820418,
+     "picks": 11,
+     "wins": 6,
+     "win_rate": 0.5454545454545454
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.07780351493179155,
+     "margin_max": 0.12281640086497236,
+     "picks": 11,
+     "wins": 7,
+     "win_rate": 0.6363636363636364
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.13108011256237012,
+     "margin_max": 0.26967575854649556,
+     "picks": 13,
+     "wins": 10,
+     "win_rate": 0.7692307692307693
+    }
+   ]
+  },
+  "armC": {
+   "games_evaluated": 756,
+   "with_champion": {
+    "picks": 729,
+    "wins": 502,
+    "losses": 227,
+    "win_rate": 0.6886145404663924,
+    "tied": 27
+   },
+   "without_champion": {
+    "picks": 745,
+    "wins": 515,
+    "losses": 230,
+    "win_rate": 0.6912751677852349,
+    "tied": 11
+   },
+   "champion_standalone": {
+    "picks": 631,
+    "wins": 423,
+    "losses": 208,
+    "win_rate": 0.6703645007923931,
+    "tied": 125
+   },
+   "power_rank": {
+    "picks": 755,
+    "wins": 520,
+    "losses": 235,
+    "win_rate": 0.6887417218543046,
+    "tied": 1
+   },
+   "baseline": {
+    "n": 756,
+    "wins": 453,
+    "rate": 0.5992063492063492,
+    "kind": "home team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 173,
+     "meet_won": 130,
+     "rate": 0.7514450867052023
+    },
+    "total_yards": {
+     "decisive": 288,
+     "meet_won": 205,
+     "rate": 0.7118055555555556
+    },
+    "pass_yards": {
+     "decisive": 339,
+     "meet_won": 213,
+     "rate": 0.6283185840707964
+    },
+    "rush_yards": {
+     "decisive": 311,
+     "meet_won": 207,
+     "rate": 0.6655948553054662
+    },
+    "first_downs": {
+     "decisive": 320,
+     "meet_won": 217,
+     "rate": 0.678125
+    },
+    "third_down": {
+     "decisive": 213,
+     "meet_won": 141,
+     "rate": 0.6619718309859155
+    },
+    "yards_per_pass": {
+     "decisive": 143,
+     "meet_won": 100,
+     "rate": 0.6993006993006993
+    },
+    "yards_per_rush": {
+     "decisive": 291,
+     "meet_won": 202,
+     "rate": 0.6941580756013745
+    },
+    "turnovers": {
+     "decisive": 189,
+     "meet_won": 112,
+     "rate": 0.5925925925925926
+    },
+    "takeaways": {
+     "decisive": 245,
+     "meet_won": 147,
+     "rate": 0.6
+    },
+    "points_allowed": {
+     "decisive": 85,
+     "meet_won": 57,
+     "rate": 0.6705882352941176
+    },
+    "yards_allowed": {
+     "decisive": 111,
+     "meet_won": 85,
+     "rate": 0.7657657657657657
+    },
+    "penalty_yards": {
+     "decisive": 98,
+     "meet_won": 49,
+     "rate": 0.5
+    },
+    "possession": {
+     "decisive": 248,
+     "meet_won": 159,
+     "rate": 0.6411290322580645
+    }
+   },
+   "champ_votes_total": {
+    "home": 2131,
+    "away": 2117
+   },
+   "champ_votes_avg_per_game": {
+    "home": 2.818783068783069,
+    "away": 2.8002645502645502
+   },
+   "h2h_votes_total": {
+    "home": 5975,
+    "away": 5169
+   },
+   "home_points_total": 752,
+   "overlap": {
+    "both_picked": 623,
+    "agree": 544,
+    "agreement_rate": 0.8731942215088283,
+    "disagree": 79,
+    "disagree_champ_won": 28,
+    "disagree_h2h_won": 51,
+    "corr_champ_diff_vs_h2h_diff": 0.7768681214744615
+   },
+   "power_score_distribution": {
+    "n_teams": 1512,
+    "above_zero": 91,
+    "above_zero_rate": 0.06018518518518518,
+    "mean": -0.32372004228910356,
+    "median": -0.32406709347871177,
+    "min": -1.2673468324902415,
+    "max": 0.32591783005417024
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.001267012360032238,
+     "margin_max": 0.05995462608603985,
+     "picks": 188,
+     "wins": 111,
+     "win_rate": 0.5904255319148937
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.06017938715137511,
+     "margin_max": 0.1532471191305202,
+     "picks": 188,
+     "wins": 123,
+     "win_rate": 0.6542553191489362
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.15451199619079942,
+     "margin_max": 0.2572512736309991,
+     "picks": 188,
+     "wins": 128,
+     "win_rate": 0.6808510638297872
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.25827932270033727,
+     "margin_max": 1.0805623628268082,
+     "picks": 191,
+     "wins": 158,
+     "win_rate": 0.8272251308900523
+    }
+   ]
+  },
+  "pooled_standalone": {
+   "picks": 1131,
+   "wins": 730,
+   "losses": 401,
+   "win_rate": 0.6454465075154731,
+   "tied": 209
+  },
+  "pooled_overlap": {
+   "both_picked": 1111,
+   "agree": 973,
+   "agreement_rate": 0.8757875787578758,
+   "disagree": 138,
+   "disagree_champ_won": 50,
+   "disagree_h2h_won": 88,
+   "corr_champ_diff_vs_h2h_diff": 0.7784206217308277
+  }
+ },
+ "part3": {
+  "armA": {
+   "games_evaluated": 538,
+   "with_champion": {
+    "picks": 526,
+    "wins": 332,
+    "losses": 194,
+    "win_rate": 0.6311787072243346,
+    "tied": 12
+   },
+   "without_champion": {
+    "picks": 527,
+    "wins": 336,
+    "losses": 191,
+    "win_rate": 0.6375711574952562,
+    "tied": 11
+   },
+   "champion_standalone": {
+    "picks": 463,
+    "wins": 288,
+    "losses": 175,
+    "win_rate": 0.6220302375809935,
+    "tied": 75
+   },
+   "power_rank": {
+    "picks": 537,
+    "wins": 329,
+    "losses": 208,
+    "win_rate": 0.6126629422718808,
+    "tied": 1
+   },
+   "baseline": {
+    "n": 538,
+    "wins": 324,
+    "rate": 0.6022304832713755,
+    "kind": "home team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 127,
+     "meet_won": 87,
+     "rate": 0.6850393700787402
+    },
+    "total_yards": {
+     "decisive": 209,
+     "meet_won": 134,
+     "rate": 0.6411483253588517
+    },
+    "pass_yards": {
+     "decisive": 243,
+     "meet_won": 147,
+     "rate": 0.6049382716049383
+    },
+    "rush_yards": {
+     "decisive": 217,
+     "meet_won": 129,
+     "rate": 0.5944700460829493
+    },
+    "first_downs": {
+     "decisive": 218,
+     "meet_won": 143,
+     "rate": 0.6559633027522935
+    },
+    "third_down": {
+     "decisive": 172,
+     "meet_won": 113,
+     "rate": 0.6569767441860465
+    },
+    "yards_per_pass": {
+     "decisive": 134,
+     "meet_won": 91,
+     "rate": 0.6791044776119403
+    },
+    "yards_per_rush": {
+     "decisive": 199,
+     "meet_won": 121,
+     "rate": 0.6080402010050251
+    },
+    "turnovers": {
+     "decisive": 192,
+     "meet_won": 120,
+     "rate": 0.625
+    },
+    "takeaways": {
+     "decisive": 174,
+     "meet_won": 90,
+     "rate": 0.5172413793103449
+    },
+    "points_allowed": {
+     "decisive": 59,
+     "meet_won": 38,
+     "rate": 0.6440677966101694
+    },
+    "yards_allowed": {
+     "decisive": 71,
+     "meet_won": 43,
+     "rate": 0.6056338028169014
+    },
+    "penalty_yards": {
+     "decisive": 63,
+     "meet_won": 28,
+     "rate": 0.4444444444444444
+    },
+    "possession": {
+     "decisive": 217,
+     "meet_won": 125,
+     "rate": 0.576036866359447
+    }
+   },
+   "champ_votes_total": {
+    "home": 1703,
+    "away": 1702
+   },
+   "champ_votes_avg_per_game": {
+    "home": 3.1654275092936803,
+    "away": 3.163568773234201
+   },
+   "h2h_votes_total": {
+    "home": 4318,
+    "away": 3600
+   },
+   "home_points_total": 532,
+   "overlap": {
+    "both_picked": 453,
+    "agree": 404,
+    "agreement_rate": 0.891832229580574,
+    "disagree": 49,
+    "disagree_champ_won": 19,
+    "disagree_h2h_won": 30,
+    "corr_champ_diff_vs_h2h_diff": 0.7930043739011657
+   },
+   "power_score_distribution": {
+    "n_teams": 1076,
+    "above_zero": 80,
+    "above_zero_rate": 0.07434944237918216,
+    "mean": -0.30922880189047686,
+    "median": -0.30958513466197096,
+    "min": -1.2329576356783296,
+    "max": 0.4292739946033963
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0016000068856820149,
+     "margin_max": 0.06992285511985319,
+     "picks": 134,
+     "wins": 75,
+     "win_rate": 0.5597014925373134
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.07110797807108996,
+     "margin_max": 0.15890485656619918,
+     "picks": 134,
+     "wins": 70,
+     "win_rate": 0.5223880597014925
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.16232589630651478,
+     "margin_max": 0.2788889796161989,
+     "picks": 134,
+     "wins": 87,
+     "win_rate": 0.6492537313432836
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.27932391359277997,
+     "margin_max": 1.0966065936332765,
+     "picks": 135,
+     "wins": 97,
+     "win_rate": 0.7185185185185186
+    }
+   ]
+  },
+  "armB": {
+   "games_evaluated": 46,
+   "with_champion": {
+    "picks": 45,
+    "wins": 25,
+    "losses": 20,
+    "win_rate": 0.5555555555555556,
+    "tied": 1
+   },
+   "without_champion": {
+    "picks": 44,
+    "wins": 26,
+    "losses": 18,
+    "win_rate": 0.5909090909090909,
+    "tied": 2
+   },
+   "champion_standalone": {
+    "picks": 37,
+    "wins": 19,
+    "losses": 18,
+    "win_rate": 0.5135135135135135,
+    "tied": 9
+   },
+   "power_rank": {
+    "picks": 46,
+    "wins": 26,
+    "losses": 20,
+    "win_rate": 0.5652173913043478,
+    "tied": 0
+   },
+   "baseline": {
+    "n": 14,
+    "wins": 8,
+    "rate": 0.5714285714285714,
+    "unranked_games": 32,
+    "kind": "higher AP-ranked team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 9,
+     "meet_won": 5,
+     "rate": 0.5555555555555556
+    },
+    "total_yards": {
+     "decisive": 18,
+     "meet_won": 9,
+     "rate": 0.5
+    },
+    "pass_yards": {
+     "decisive": 20,
+     "meet_won": 11,
+     "rate": 0.55
+    },
+    "rush_yards": {
+     "decisive": 14,
+     "meet_won": 7,
+     "rate": 0.5
+    },
+    "first_downs": {
+     "decisive": 16,
+     "meet_won": 9,
+     "rate": 0.5625
+    },
+    "third_down": {
+     "decisive": 8,
+     "meet_won": 5,
+     "rate": 0.625
+    },
+    "yards_per_pass": {
+     "decisive": 8,
+     "meet_won": 6,
+     "rate": 0.75
+    },
+    "yards_per_rush": {
+     "decisive": 16,
+     "meet_won": 8,
+     "rate": 0.5
+    },
+    "turnovers": {
+     "decisive": 8,
+     "meet_won": 5,
+     "rate": 0.625
+    },
+    "takeaways": {
+     "decisive": 15,
+     "meet_won": 8,
+     "rate": 0.5333333333333333
+    },
+    "points_allowed": {
+     "decisive": 1,
+     "meet_won": 0,
+     "rate": 0.0
+    },
+    "yards_allowed": {
+     "decisive": 1,
+     "meet_won": 0,
+     "rate": 0.0
+    },
+    "penalty_yards": {
+     "decisive": 6,
+     "meet_won": 6,
+     "rate": 1.0
+    },
+    "possession": {
+     "decisive": 14,
+     "meet_won": 10,
+     "rate": 0.7142857142857143
+    }
+   },
+   "champ_votes_total": {
+    "home": 150,
+    "away": 110
+   },
+   "champ_votes_avg_per_game": {
+    "home": 3.260869565217391,
+    "away": 2.391304347826087
+   },
+   "h2h_votes_total": {
+    "home": 344,
+    "away": 294
+   },
+   "home_points_total": 0,
+   "overlap": {
+    "both_picked": 35,
+    "agree": 25,
+    "agreement_rate": 0.7142857142857143,
+    "disagree": 10,
+    "disagree_champ_won": 3,
+    "disagree_h2h_won": 7,
+    "corr_champ_diff_vs_h2h_diff": 0.6244233014526603
+   },
+   "power_score_distribution": {
+    "n_teams": 92,
+    "above_zero": 3,
+    "above_zero_rate": 0.03260869565217391,
+    "mean": -0.2613099154141649,
+    "median": -0.27158578705973924,
+    "min": -0.5346194175864728,
+    "max": 0.10297100878166708
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0020933226747285733,
+     "margin_max": 0.04132752350287067,
+     "picks": 11,
+     "wins": 3,
+     "win_rate": 0.2727272727272727
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.04381662494432059,
+     "margin_max": 0.07573288693820418,
+     "picks": 11,
+     "wins": 6,
+     "win_rate": 0.5454545454545454
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.07780351493179155,
+     "margin_max": 0.12281640086497236,
+     "picks": 11,
+     "wins": 7,
+     "win_rate": 0.6363636363636364
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.13108011256237012,
+     "margin_max": 0.26967575854649556,
+     "picks": 13,
+     "wins": 10,
+     "win_rate": 0.7692307692307693
+    }
+   ]
+  },
+  "armC": {
+   "games_evaluated": 756,
+   "with_champion": {
+    "picks": 729,
+    "wins": 502,
+    "losses": 227,
+    "win_rate": 0.6886145404663924,
+    "tied": 27
+   },
+   "without_champion": {
+    "picks": 745,
+    "wins": 515,
+    "losses": 230,
+    "win_rate": 0.6912751677852349,
+    "tied": 11
+   },
+   "champion_standalone": {
+    "picks": 631,
+    "wins": 423,
+    "losses": 208,
+    "win_rate": 0.6703645007923931,
+    "tied": 125
+   },
+   "power_rank": {
+    "picks": 755,
+    "wins": 520,
+    "losses": 235,
+    "win_rate": 0.6887417218543046,
+    "tied": 1
+   },
+   "baseline": {
+    "n": 756,
+    "wins": 453,
+    "rate": 0.5992063492063492,
+    "kind": "home team"
+   },
+   "champ_metric_win_rates": {
+    "points": {
+     "decisive": 173,
+     "meet_won": 130,
+     "rate": 0.7514450867052023
+    },
+    "total_yards": {
+     "decisive": 288,
+     "meet_won": 205,
+     "rate": 0.7118055555555556
+    },
+    "pass_yards": {
+     "decisive": 339,
+     "meet_won": 213,
+     "rate": 0.6283185840707964
+    },
+    "rush_yards": {
+     "decisive": 311,
+     "meet_won": 207,
+     "rate": 0.6655948553054662
+    },
+    "first_downs": {
+     "decisive": 320,
+     "meet_won": 217,
+     "rate": 0.678125
+    },
+    "third_down": {
+     "decisive": 213,
+     "meet_won": 141,
+     "rate": 0.6619718309859155
+    },
+    "yards_per_pass": {
+     "decisive": 143,
+     "meet_won": 100,
+     "rate": 0.6993006993006993
+    },
+    "yards_per_rush": {
+     "decisive": 291,
+     "meet_won": 202,
+     "rate": 0.6941580756013745
+    },
+    "turnovers": {
+     "decisive": 189,
+     "meet_won": 112,
+     "rate": 0.5925925925925926
+    },
+    "takeaways": {
+     "decisive": 245,
+     "meet_won": 147,
+     "rate": 0.6
+    },
+    "points_allowed": {
+     "decisive": 85,
+     "meet_won": 57,
+     "rate": 0.6705882352941176
+    },
+    "yards_allowed": {
+     "decisive": 111,
+     "meet_won": 85,
+     "rate": 0.7657657657657657
+    },
+    "penalty_yards": {
+     "decisive": 98,
+     "meet_won": 49,
+     "rate": 0.5
+    },
+    "possession": {
+     "decisive": 248,
+     "meet_won": 159,
+     "rate": 0.6411290322580645
+    }
+   },
+   "champ_votes_total": {
+    "home": 2131,
+    "away": 2117
+   },
+   "champ_votes_avg_per_game": {
+    "home": 2.818783068783069,
+    "away": 2.8002645502645502
+   },
+   "h2h_votes_total": {
+    "home": 5975,
+    "away": 5169
+   },
+   "home_points_total": 752,
+   "overlap": {
+    "both_picked": 623,
+    "agree": 544,
+    "agreement_rate": 0.8731942215088283,
+    "disagree": 79,
+    "disagree_champ_won": 28,
+    "disagree_h2h_won": 51,
+    "corr_champ_diff_vs_h2h_diff": 0.7768681214744615
+   },
+   "power_score_distribution": {
+    "n_teams": 1512,
+    "above_zero": 91,
+    "above_zero_rate": 0.06018518518518518,
+    "mean": -0.32372004228910356,
+    "median": -0.32406709347871177,
+    "min": -1.2673468324902415,
+    "max": 0.32591783005417024
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.001267012360032238,
+     "margin_max": 0.05995462608603985,
+     "picks": 188,
+     "wins": 111,
+     "win_rate": 0.5904255319148937
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.06017938715137511,
+     "margin_max": 0.1532471191305202,
+     "picks": 188,
+     "wins": 123,
+     "win_rate": 0.6542553191489362
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.15451199619079942,
+     "margin_max": 0.2572512736309991,
+     "picks": 188,
+     "wins": 128,
+     "win_rate": 0.6808510638297872
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.25827932270033727,
+     "margin_max": 1.0805623628268082,
+     "picks": 191,
+     "wins": 158,
+     "win_rate": 0.8272251308900523
+    }
+   ]
+  },
+  "pooled_power_rank": {
+   "picks": 1338,
+   "wins": 875,
+   "losses": 463,
+   "win_rate": 0.6539611360239163,
+   "tied": 2
+  },
+  "pooled_power_score_distribution": {
+   "n_teams": 2680,
+   "above_zero": 174,
+   "above_zero_rate": 0.06492537313432836,
+   "mean": -0.31575948022141076,
+   "median": -0.31670744439370196,
+   "min": -1.2673468324902415,
+   "max": 0.4292739946033963
+  },
+  "pooled_margin_quartiles": [
+   {
+    "quartile": 1,
+    "margin_min": 0.001267012360032238,
+    "margin_max": 0.06384970953924252,
+    "picks": 334,
+    "wins": 193,
+    "win_rate": 0.5778443113772455
+   },
+   {
+    "quartile": 2,
+    "margin_min": 0.06405512028906757,
+    "margin_max": 0.1515851997444433,
+    "picks": 334,
+    "wins": 197,
+    "win_rate": 0.5898203592814372
+   },
+   {
+    "quartile": 3,
+    "margin_min": 0.15174197240059245,
+    "margin_max": 0.26017405412671424,
+    "picks": 334,
+    "wins": 223,
+    "win_rate": 0.6676646706586826
+   },
+   {
+    "quartile": 4,
+    "margin_min": 0.26027114333865864,
+    "margin_max": 1.0966065936332765,
+    "picks": 336,
+    "wins": 262,
+    "win_rate": 0.7797619047619048
+   }
+  ]
+ }
+}

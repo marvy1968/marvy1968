@@ -1,0 +1,361 @@
+arm,date,event_id,home,away,home_score,away_score,home_seed,away_seed,neutral,winner,h2h_home,h2h_away,champ_home,champ_away,home_point,total_home,total_away,total_home_no_champ,total_away_no_champ,pick,pick_no_champ,pick_won,pick_no_champ_won
+A,20261104,401902276,Butler Bulldogs,Fairleigh Dickinson Knights,99,65,99,99,False,home,13,1,10,1,1,24,2,14,1,home,home,True,True
+A,20261104,401917512,Saint Mary's Gaels,North Dakota State Bison,105,64,99,99,False,home,5,7,6,8,1,12,15,6,7,away,away,False,False
+A,20261104,401917513,Santa Clara Broncos,Milwaukee Panthers,95,72,99,99,False,home,12,2,7,1,1,20,3,13,2,home,home,True,True
+A,20261104,401918052,California Golden Bears,Radford Highlanders,84,70,99,99,False,home,12,0,10,0,1,23,0,13,0,home,home,True,True
+A,20261104,401928811,South Dakota Coyotes,Northern Kentucky Norse,94,102,99,99,False,away,12,2,7,3,1,20,5,13,2,home,home,False,False
+A,20261104,401928853,Morgan State Bears,Virginia Lynchburg Dragons,95,58,99,99,False,home,12,2,11,2,1,24,4,13,2,home,home,True,True
+A,20261104,401929450,Old Dominion Monarchs,Regent Regent Royals,91,47,99,99,False,home,10,4,3,3,1,14,7,11,4,home,home,True,True
+A,20261105,401906770,Florida Gators,Jacksonville Dolphins,88,57,1,99,False,home,3,10,5,9,1,9,19,4,10,away,away,False,False
+A,20261105,401906792,Mississippi State Bulldogs,Northwestern State Demons,82,44,99,99,False,home,13,0,7,1,1,21,1,14,0,home,home,True,True
+A,20261105,401906864,Texas Longhorns,Gardner-Webb Runnin' Bulldogs,98,50,7,99,False,home,14,0,11,0,1,26,0,15,0,home,home,True,True
+A,20261105,401909491,Creighton Bluejays,Le Moyne Dolphins,83,55,99,99,False,home,11,3,3,2,1,15,5,12,3,home,home,True,True
+A,20261105,401909501,DePaul Blue Demons,South Florida Bulls,82,80,99,99,False,home,5,9,4,9,1,10,18,6,9,away,away,False,False
+A,20261105,401909563,Duke Blue Devils,Coastal Carolina Chanticleers,113,52,2,99,False,home,7,5,5,2,1,13,7,8,5,home,home,True,True
+A,20261105,401909706,Pittsburgh Panthers,Buffalo Bulls,80,61,99,99,False,home,11,1,10,3,1,22,4,12,1,home,home,True,True
+A,20261105,401909717,Syracuse Orange,Central Connecticut Blue Devils,102,49,99,99,False,home,11,1,6,3,1,18,4,12,1,home,home,True,True
+A,20261105,401909726,Vanderbilt Commodores,Wake Forest Demon Deacons,74,51,24,99,False,home,9,3,6,2,1,16,5,10,3,home,home,True,True
+A,20261105,401909739,Arizona Wildcats,Cal Poly Mustangs,104,84,5,99,False,home,5,9,4,7,1,10,16,6,9,away,away,False,False
+A,20261105,401911195,Fordham Rams,Stonehill Skyhawks,83,63,99,99,False,home,5,7,4,5,1,10,12,6,7,away,away,False,False
+A,20261105,401911229,Loyola Chicago Ramblers,West Georgia Wolves,76,53,99,99,False,home,11,3,6,1,1,18,4,12,3,home,home,True,True
+A,20261105,401911273,Saint Peter's Peacocks,Binghamton Bearcats,55,58,99,99,False,away,7,7,0,1,1,8,8,8,7,,home,,False
+A,20261105,401916287,Indiana Hoosiers,Bellarmine Knights,92,69,99,99,False,home,14,0,7,0,1,22,0,15,0,home,home,True,True
+A,20261105,401917177,Penn State Nittany Lions,Chattanooga Mocs,97,93,99,99,False,home,12,2,9,3,1,22,5,13,2,home,home,True,True
+A,20261105,401918968,SMU Mustangs,VMI Keydets,95,70,99,99,False,home,3,9,8,10,1,12,19,4,9,away,away,False,False
+A,20261105,401919002,Tulane Green Wave,Jackson State Tigers,85,87,99,99,False,away,12,0,5,0,1,18,0,13,0,home,home,False,False
+A,20261105,401919732,Incarnate Word Cardinals,Chicago State Cougars,54,66,99,99,False,away,8,5,2,0,1,11,5,9,5,home,home,False,False
+A,20261105,401919804,Seton Hall Pirates,Long Island University Sharks,67,60,99,99,False,home,10,3,3,2,1,14,5,11,3,home,home,True,True
+A,20261105,401920377,Virginia Tech Hokies,Mercer Bears,96,67,99,99,False,home,7,7,7,7,1,15,14,8,7,home,home,True,True
+A,20261105,401920864,Iona Gaels,NJIT Highlanders,72,49,99,99,False,home,8,4,3,1,1,12,5,9,4,home,home,True,True
+A,20261105,401920913,Tulsa Golden Hurricane,Northern Illinois Huskies,94,75,99,99,False,home,11,3,11,7,1,23,10,12,3,home,home,True,True
+A,20261105,401920960,Morehead State Eagles,Virginia Lynchburg Dragons,114,60,99,99,False,home,6,8,2,3,1,9,11,7,8,away,away,False,False
+A,20261105,401921084,Marist Red Foxes,UMBC Retrievers,88,80,99,99,False,home,5,7,2,2,1,8,9,6,7,away,away,False,False
+A,20261105,401921094,Rice Owls,East Texas A&M Lions,71,72,99,99,False,away,13,1,10,4,1,24,5,14,1,home,home,False,False
+A,20261105,401921133,Texas Tech Red Raiders,Bethune-Cookman Wildcats,76,58,19,99,False,home,9,4,2,4,1,12,8,10,4,home,home,True,True
+A,20261105,401921219,Navy Midshipmen,Delaware State Hornets,66,60,99,99,False,home,3,11,0,9,1,4,20,4,11,away,away,False,False
+A,20261105,401921678,Manhattan Jaspers,UAlbany Great Danes,68,72,99,99,False,away,2,10,2,4,1,5,14,3,10,away,away,True,True
+A,20261105,401921679,Merrimack Warriors,UMass Lowell River Hawks,61,71,99,99,False,away,0,13,4,13,1,5,26,1,13,away,away,True,True
+A,20261105,401921680,Quinnipiac Bobcats,Bryant Bulldogs,66,56,99,99,False,home,2,10,0,4,1,3,14,3,10,away,away,False,False
+A,20261105,401921681,Rider Broncs,New Hampshire Wildcats,55,66,99,99,False,away,5,7,0,1,1,6,8,6,7,away,away,True,True
+A,20261105,401921682,Sacred Heart Pioneers,Maine Black Bears,72,74,99,99,False,away,14,0,8,0,1,23,0,15,0,home,home,False,False
+A,20261105,401921698,Utah Utes,Towson Tigers,67,57,99,99,False,home,8,6,4,2,1,13,8,9,6,home,home,True,True
+A,20261105,401921747,Cincinnati Bearcats,Green Bay Phoenix,81,64,99,99,False,home,4,8,5,10,1,10,18,5,8,away,away,False,False
+A,20261105,401924703,Columbia Lions,SUNY Old Westbury Panthers,120,58,99,99,False,home,10,3,4,0,1,15,3,11,3,home,home,True,True
+A,20261105,401924718,Lehigh Mountain Hawks,Cornell Big Red,71,64,99,99,False,home,3,7,2,6,1,6,13,4,7,away,away,False,False
+A,20261105,401924733,Princeton Tigers,Hofstra Pride,60,58,99,99,False,home,6,7,7,8,1,14,15,7,7,away,,False,
+A,20261105,401925031,North Texas Mean Green,McNeese Cowboys,77,67,99,99,False,home,8,6,9,10,1,18,16,9,6,home,home,True,True
+A,20261105,401925684,Alcorn State Braves,Howard Bison,83,94,99,99,False,away,5,9,3,4,1,9,13,6,9,away,away,True,True
+A,20261105,401925754,Michigan State Spartans,Toledo Rockets,91,61,6,99,False,home,9,5,10,6,1,20,11,10,5,home,home,True,True
+A,20261105,401925819,Charlotte 49ers,Georgia State Panthers,77,67,99,99,False,home,9,5,5,3,1,15,8,10,5,home,home,True,True
+A,20261105,401925922,Southern Utah Thunderbirds,Grace University Lancers,97,53,99,99,False,home,14,0,12,0,1,27,0,15,0,home,home,True,True
+A,20261105,401926780,South Alabama Jaguars,Jacksonville State Gamecocks,83,80,99,99,False,home,1,13,4,12,1,6,25,2,13,away,away,False,False
+A,20261106,401906758,Alabama Crimson Tide,Arkansas State Red Wolves,101,86,20,99,False,home,9,4,11,6,1,21,10,10,4,home,home,True,True
+A,20261106,401906780,Georgia Bulldogs,Presbyterian Blue Hose,91,77,99,99,False,home,6,7,3,1,1,10,8,7,7,home,,True,
+A,20261106,401909542,Xavier Musketeers,Eastern Michigan Eagles,76,53,99,99,False,home,9,5,9,4,1,19,9,10,5,home,home,True,True
+A,20261106,401909552,Boston College Eagles,Massachusetts Minutemen,71,55,99,99,True,home,6,7,4,5,0,10,12,6,7,away,away,False,False
+A,20261106,401909695,Florida State Seminoles,Troy Trojans,91,68,99,99,False,home,13,0,10,2,1,24,2,14,0,home,home,True,True
+A,20261106,401909751,Baylor Bears,Arkansas-Pine Bluff Golden Lions,109,53,99,99,False,home,13,1,5,0,1,19,1,14,1,home,home,True,True
+A,20261106,401909772,Iowa State Cyclones,Southern Miss Golden Eagles,83,57,18,99,False,home,4,10,1,5,1,6,15,5,10,away,away,False,False
+A,20261106,401909785,Kansas Jayhawks,Middle Tennessee Blue Raiders,89,45,17,99,False,home,5,9,8,12,1,14,21,6,9,away,away,False,False
+A,20261106,401909797,Kansas State Wildcats,Cal State Northridge Matadors,95,78,99,99,False,home,8,6,2,3,1,11,9,9,6,home,home,True,True
+A,20261106,401911005,Ball State Cardinals,Indiana State Sycamores,66,69,99,99,False,away,3,11,4,5,1,8,16,4,11,away,away,True,True
+A,20261106,401911249,Missouri Tigers,Saint Louis Billikens,84,90,99,99,True,away,13,1,11,6,0,24,7,13,1,home,home,False,False
+A,20261106,401911305,Brown Bears,Boston University Terriers,67,72,99,99,False,away,3,9,1,3,1,5,12,4,9,away,away,True,True
+A,20261106,401912208,Clemson Tigers,American University Eagles,82,73,99,99,False,home,11,2,7,1,1,19,3,12,2,home,home,True,True
+A,20261106,401913100,North Carolina Tar Heels,Wofford Terriers,109,70,99,99,False,home,10,3,1,1,1,12,4,11,3,home,home,True,True
+A,20261106,401916304,Minnesota Golden Gophers,St. Thomas Tommies,76,62,99,99,False,home,8,5,10,5,1,19,10,9,5,home,home,True,True
+A,20261106,401916314,Ohio State Buckeyes,Youngstown State Penguins,89,65,99,99,False,home,7,7,2,5,1,10,12,8,7,away,home,False,True
+A,20261106,401917515,San Diego Toreros,Tarleton State Texans,96,90,99,99,False,home,1,12,5,7,1,7,19,2,12,away,away,False,False
+A,20261106,401917914,Ole Miss Rebels,Central Arkansas Bears,92,60,99,99,False,home,9,4,6,6,1,16,10,10,4,home,home,True,True
+A,20261106,401917949,Kennesaw State Owls,Austin Peay Governors,71,69,99,99,False,home,8,5,10,10,1,19,15,9,5,home,home,True,True
+A,20261106,401918956,NC State Wolfpack,East Tennessee State Buccaneers,77,63,99,99,False,home,10,2,6,2,1,17,4,11,2,home,home,True,True
+A,20261106,401919015,UAB Blazers,Nicholls Colonels,70,63,99,99,False,home,1,12,3,11,1,5,23,2,12,away,away,False,False
+A,20261106,401919040,Oklahoma State Cowboys,Queens University Royals,118,68,99,99,False,home,8,6,9,6,1,18,12,9,6,home,home,True,True
+A,20261106,401919048,TCU Horned Frogs,Southern Jaguars,106,54,99,99,False,home,12,2,8,3,1,21,5,13,2,home,home,True,True
+A,20261106,401920072,George Mason Patriots,Coppin State Eagles,68,51,99,99,False,home,13,1,6,1,1,20,2,14,1,home,home,True,True
+A,20261106,401920305,Georgia Tech Yellow Jackets,Georgia Southern Eagles,95,83,99,99,False,home,7,7,4,3,1,12,10,8,7,home,home,True,True
+A,20261106,401920344,Oregon State Beavers,California Baptist Lancers,96,68,99,99,False,home,13,1,7,3,1,21,4,14,1,home,home,True,True
+A,20261106,401920423,Virginia Cavaliers,Northeastern Huskies,97,72,9,99,False,home,11,3,8,3,1,20,6,12,3,home,home,True,True
+A,20261106,401920685,Michigan Wolverines,UConn Huskies,77,85,16,4,True,away,3,9,7,9,0,10,18,3,9,away,away,True,True
+A,20261106,401920717,Oregon Ducks,Eastern Washington Eagles,98,71,99,99,False,home,11,3,8,2,1,20,5,12,3,home,home,True,True
+A,20261106,401920726,Iowa Hawkeyes,Eastern Illinois Panthers,91,47,99,99,False,home,12,2,5,1,1,18,3,13,2,home,home,True,True
+A,20261106,401920733,Northwestern Wildcats,Stony Brook Seawolves,78,65,99,99,False,home,6,5,7,10,1,14,15,7,5,away,home,False,True
+A,20261106,401920807,Texas A&M Aggies,Northern Kentucky Norse,104,67,99,99,False,home,10,4,6,4,1,17,8,11,4,home,home,True,True
+A,20261106,401920894,Wisconsin Badgers,Delaware Blue Hens,73,64,99,99,False,home,2,12,6,11,1,9,23,3,12,away,away,False,False
+A,20261106,401920920,Mount St. Mary's Mountaineers,Loyola Maryland Greyhounds,68,57,99,99,False,home,3,10,1,1,1,5,11,4,10,away,away,False,False
+A,20261106,401920952,Kansas City Roos,Southern Illinois Salukis,100,93,99,99,False,home,2,12,0,10,1,3,22,3,12,away,away,False,False
+A,20261106,401921061,San Francisco Dons,North Dakota State Bison,79,70,99,99,False,home,7,6,4,3,1,12,9,8,6,home,home,True,True
+A,20261106,401921140,Elon Phoenix,UNC Greensboro Spartans,74,65,99,99,False,home,5,8,7,8,1,13,16,6,8,away,away,False,False
+A,20261106,401921719,Miami Hurricanes,Wagner Seahawks,83,57,14,99,False,home,10,3,1,2,1,12,5,11,3,home,home,True,True
+A,20261106,401921727,Stanford Cardinal,Oakland Golden Grizzlies,81,63,99,99,False,home,10,4,4,2,1,15,6,11,4,home,home,True,True
+A,20261106,401921732,Arizona State Sun Devils,Northern Colorado Bears,90,63,99,99,False,home,3,11,4,11,1,8,22,4,11,away,away,False,False
+A,20261106,401921739,BYU Cougars,Omaha Mavericks,108,67,25,99,False,home,7,5,6,2,1,14,7,8,5,home,home,True,True
+A,20261106,401921754,UCF Knights,Yale Bulldogs,87,75,99,99,False,home,9,5,5,4,1,15,9,10,5,home,home,True,True
+A,20261106,401921767,West Virginia Mountaineers,Stetson Hatters,91,53,99,99,False,home,12,2,8,0,1,21,2,13,2,home,home,True,True
+A,20261106,401921802,Kentucky Wildcats,James Madison Dukes,89,80,23,99,False,home,9,4,8,3,1,18,7,10,4,home,home,True,True
+A,20261106,401921809,LSU Tigers,Texas Southern Tigers,92,51,99,99,False,home,13,0,10,1,1,24,1,14,0,home,home,True,True
+A,20261106,401922021,Wyoming Cowboys,Idaho State Bengals,93,62,99,99,False,home,13,1,11,1,1,25,2,14,1,home,home,True,True
+A,20261106,401922059,South Carolina Upstate Spartans,South Carolina State Bulldogs,70,78,99,99,False,away,4,8,1,5,1,6,13,5,8,away,away,True,True
+A,20261106,401922210,Florida Gulf Coast Eagles,New College Mighty Banyans,89,67,99,99,False,home,8,6,3,3,1,12,9,9,6,home,home,True,True
+A,20261106,401922219,UCLA Bruins,North Florida Ospreys,114,63,22,99,False,home,10,4,8,2,1,19,6,11,4,home,home,True,True
+A,20261106,401922248,Florida International Panthers,West Florida Argonauts,85,75,99,99,False,home,5,9,11,11,1,17,20,6,9,away,away,False,False
+A,20261106,401922261,Colorado State Rams,Idaho Vandals,78,67,99,99,False,home,5,9,6,9,1,12,18,6,9,away,away,False,False
+A,20261106,401923260,Wright State Raiders,Florida Atlantic Owls,97,71,99,99,False,home,9,5,11,5,1,21,10,10,5,home,home,True,True
+A,20261106,401925097,Louisiana Ragin' Cajuns,Texas A&M-Corpus Christi Islanders,60,67,99,99,False,away,12,2,3,0,1,16,2,13,2,home,home,False,False
+A,20261106,401926131,Purdue Boilermakers,Valparaiso Beacons,80,83,99,99,False,away,4,10,2,2,1,7,12,5,10,away,away,True,True
+A,20261106,401926161,The Citadel Bulldogs,Erskine Flying Fleet,100,57,99,99,False,home,5,8,1,1,1,7,9,6,8,away,away,False,False
+A,20261106,401928823,UIC Flames,Robert Morris Colonials,79,56,99,99,False,home,13,1,7,1,1,21,2,14,1,home,home,True,True
+A,20261106,401929001,Hawai'i Rainbow Warriors,Bethesda Flames,116,44,99,99,False,home,10,2,1,0,1,12,2,11,2,home,home,True,True
+A,20261106,401929356,Portland Pilots,UT Arlington Mavericks,85,89,99,99,True,away,7,7,8,8,0,15,15,7,7,,,,
+A,20261106,401929385,Eastern Kentucky Colonels,Midway Eagles,106,68,99,99,False,home,14,0,11,0,1,26,0,15,0,home,home,True,True
+A,20261107,401909513,Georgetown Hoyas,Maryland Terrapins,86,74,99,99,False,home,7,6,6,5,1,14,11,8,6,home,home,True,True
+A,20261107,401909532,Nebraska Cornhuskers,Providence Friars,67,58,99,99,True,home,9,3,12,7,0,21,10,9,3,home,home,True,True
+A,20261107,401909760,Colorado Buffaloes,San Diego State Aztecs,66,77,99,99,True,away,7,7,8,7,0,15,14,7,7,home,,False,
+A,20261107,401911007,Miami (OH) RedHawks,Bellarmine Knights,80,73,99,99,False,home,14,0,7,0,1,22,0,15,0,home,home,True,True
+A,20261107,401911186,Dayton Flyers,Northern Illinois Huskies,76,81,99,99,False,away,9,4,7,5,1,17,9,10,4,home,home,False,False
+A,20261107,401911262,Canisius Golden Griffins,St. Bonaventure Bonnies,49,88,99,99,False,away,1,13,0,3,1,2,16,2,13,away,away,True,True
+A,20261107,401911345,Grand Canyon Lopes,Bethune-Cookman Wildcats,99,81,99,99,False,home,9,4,7,1,1,17,5,10,4,home,home,True,True
+A,20261107,401911470,UC Irvine Anteaters,San José State Spartans,91,79,99,99,False,home,5,9,8,11,1,14,20,6,9,away,away,False,False
+A,20261107,401917517,Seattle U Redhawks,Portland State Vikings,79,60,99,99,False,home,3,11,3,10,1,7,21,4,11,away,away,False,False
+A,20261107,401917518,Bradley Braves,Pacific Tigers,52,63,99,99,False,away,4,8,10,11,1,15,19,5,8,away,away,True,True
+A,20261107,401917519,Santa Clara Broncos,Sacramento State Hornets,83,77,99,99,False,home,10,4,8,5,1,19,9,11,4,home,home,True,True
+A,20261107,401917962,Abilene Christian Wildcats,Lamar Cardinals,83,81,99,99,False,home,1,11,1,10,1,3,21,2,11,away,away,False,False
+A,20261107,401918948,Louisville Cardinals,Morehead State Eagles,107,57,11,99,False,home,3,10,6,7,1,10,17,4,10,away,away,False,False
+A,20261107,401918977,East Carolina Pirates,UNC Wilmington Seahawks,75,78,99,99,False,away,6,8,4,6,1,11,14,7,8,away,away,True,True
+A,20261107,401918986,Memphis Tigers,VCU Rams,89,88,99,99,False,home,7,4,3,1,1,11,5,8,4,home,home,True,True
+A,20261107,401919805,La Salle Explorers,Long Island University Sharks,88,80,99,99,False,home,3,10,2,2,1,6,12,4,10,away,away,False,False
+A,20261107,401920062,Rhode Island Rams,Monmouth Hawks,84,66,99,99,True,home,11,2,11,1,0,22,3,11,2,home,home,True,True
+A,20261107,401920156,South Dakota Coyotes,Cal State Fullerton Titans,85,87,99,99,False,away,10,4,4,1,1,15,5,11,4,home,home,False,False
+A,20261107,401920192,Saint Joseph's Hawks,Lafayette Leopards,67,57,99,99,False,home,7,4,6,3,1,14,7,8,4,home,home,True,True
+A,20261107,401920371,UC San Diego Tritons,Fresno State Bulldogs,81,65,99,99,False,home,10,4,7,3,1,18,7,11,4,home,home,True,True
+A,20261107,401920411,High Point Panthers,Washington State Cougars,83,71,99,99,False,home,9,5,2,4,1,12,9,10,5,home,home,True,True
+A,20261107,401920435,Weber State Wildcats,Utah Valley Wolverines,93,101,99,99,False,away,2,10,3,4,1,6,14,3,10,away,away,True,True
+A,20261107,401920703,Lipscomb Bisons,SIU Edwardsville Cougars,78,77,99,99,False,home,1,13,1,9,1,3,22,2,13,away,away,False,False
+A,20261107,401920770,Drexel Dragons,Colgate Raiders,77,74,99,99,False,home,6,7,2,1,1,9,8,7,7,home,,True,
+A,20261107,401920816,Little Rock Trojans,SE Louisiana Lions,79,83,99,99,False,away,7,7,3,2,1,11,9,8,7,home,home,False,False
+A,20261107,401920856,Marshall Thundering Herd,Toledo Rockets,76,81,99,99,False,away,10,4,6,1,1,17,5,11,4,home,home,False,False
+A,20261107,401921174,IU Indianapolis Jaguars,UT Martin Skyhawks,75,74,99,99,False,home,11,2,10,6,1,22,8,12,2,home,home,True,True
+A,20261107,401922044,Longwood Lancers,North Carolina Central Eagles,80,75,99,99,False,home,11,3,8,3,1,20,6,12,3,home,home,True,True
+A,20261107,401922291,UNC Asheville Bulldogs,Western Carolina Catamounts,75,83,99,99,False,away,4,9,4,7,1,9,16,5,9,away,away,True,True
+A,20261107,401923392,Evansville Purple Aces,Southern Indiana Screaming Eagles,78,76,99,99,False,home,7,7,5,5,1,13,12,8,7,home,home,True,True
+A,20261107,401924264,Montana State Bobcats,Long Beach State Beach,83,70,99,99,False,home,5,7,2,5,1,8,12,6,7,away,away,False,False
+A,20261107,401924843,Niagara Purple Eagles,Morgan State Bears,67,73,99,99,False,away,2,12,2,10,1,5,22,3,12,away,away,True,True
+A,20261107,401924895,New Mexico Lobos,Northern Arizona Lumberjacks,94,65,99,99,False,home,10,1,10,3,1,21,4,11,1,home,home,True,True
+A,20261107,401924912,UNLV Rebels,Samford Bulldogs,88,79,99,99,False,home,6,8,5,8,1,12,16,7,8,away,away,False,False
+A,20261107,401924940,Bucknell Bison,Old Dominion Monarchs,62,82,99,99,False,away,3,10,2,6,1,6,16,4,10,away,away,True,True
+A,20261107,401924951,Western Illinois Leathernecks,Houston Christian Huskies,67,74,99,99,True,away,0,13,0,10,0,0,23,0,13,away,away,True,True
+A,20261107,401925077,Murray State Racers,Northwestern State Demons,93,71,99,99,False,home,10,4,4,0,1,15,4,11,4,home,home,True,True
+A,20261107,401925106,UT Rio Grande Valley Vaqueros,Prairie View A&M Panthers,68,63,99,99,False,home,6,8,5,5,1,12,13,7,8,away,away,False,False
+A,20261107,401925707,Winthrop Eagles,North Dakota Fighting Hawks,90,93,99,99,False,away,9,2,6,0,1,16,2,10,2,home,home,False,False
+A,20261107,401925772,Davidson Wildcats,Mercer Bears,88,76,99,99,False,home,9,4,7,3,1,17,7,10,4,home,home,True,True
+A,20261107,401925780,Duquesne Dukes,Central State Marauders,68,58,99,99,False,home,12,1,6,0,1,19,1,13,1,home,home,True,True
+A,20261107,401925839,Maryland Eastern Shore Hawks,Cheyney (PA) Wolves,81,55,99,99,False,home,10,4,1,2,1,12,6,11,4,home,home,True,True
+A,20261107,401926112,Furman Paladins,Northern Iowa Panthers,98,83,99,99,False,home,8,5,11,7,1,20,12,9,5,home,home,True,True
+A,20261107,401926201,UTSA Roadrunners,VMI Keydets,70,68,99,99,False,home,4,10,2,8,1,7,18,5,10,away,away,False,False
+A,20261107,401926227,UC Riverside Highlanders,Denver Pioneers,64,60,99,99,False,home,13,1,13,2,1,27,3,14,1,home,home,True,True
+A,20261107,401926825,George Washington Revolutionaries,Hampton Pirates,75,61,99,99,False,home,12,2,10,1,1,23,3,13,2,home,home,True,True
+A,20261107,401928352,UC Santa Barbara Gauchos,Oakland Golden Grizzlies,90,67,99,99,False,home,13,1,8,1,1,22,2,14,1,home,home,True,True
+A,20261107,401928788,Gonzaga Bulldogs,New Mexico State Aggies,109,68,15,99,False,home,5,7,3,4,1,9,11,6,7,away,away,False,False
+A,20261107,401928793,Sam Houston Bearkats,Howard Payne Yellow Jackets,102,59,99,99,False,home,11,2,8,2,1,20,4,12,2,home,home,True,True
+A,20261107,401929039,Lindenwood Lions,East West Phantoms,115,44,99,99,False,home,13,1,10,1,1,24,2,14,1,home,home,True,True
+A,20261107,401929293,Utah State Aggies,Omaha Mavericks,90,56,99,99,False,home,9,5,9,0,1,19,5,10,5,home,home,True,True
+A,20261107,401931055,Southern Utah Thunderbirds,Bethesda Flames,143,49,99,99,False,home,13,1,9,1,1,23,2,14,1,home,home,True,True
+A,20261107,401931195,Pepperdine Waves,Bethesda Flames,116,43,99,99,False,home,13,1,6,1,1,20,2,14,1,home,home,True,True
+A,20261108,401920424,Virginia Cavaliers,Arkansas Razorbacks,91,72,9,12,True,home,6,8,8,8,0,14,16,6,8,away,away,False,False
+A,20261108,401921683,Bryant Bulldogs,Fairfield Stags,59,68,99,99,False,away,7,6,0,4,1,8,10,8,6,away,home,True,False
+A,20261108,401921684,Maine Black Bears,Manhattan Jaspers,62,68,99,99,False,away,9,5,3,0,1,13,5,10,5,home,home,False,False
+A,20261108,401921685,New Hampshire Wildcats,Sacred Heart Pioneers,76,81,99,99,False,away,0,14,0,8,1,1,22,1,14,away,away,True,True
+A,20261108,401921687,UMass Lowell River Hawks,Marist Red Foxes,63,61,99,99,False,home,11,2,11,3,1,23,5,12,2,home,home,True,True
+A,20261108,401921820,South Carolina Gamecocks,Southeast Missouri State Redhawks,78,68,99,99,False,home,6,8,6,7,1,13,15,7,8,away,away,False,False
+A,20261108,401924646,St. John's Red Storm,Iona Gaels,104,65,13,99,False,home,8,5,3,3,1,12,8,9,5,home,home,True,True
+A,20261108,401924734,Siena Saints,Princeton Tigers,82,68,99,99,False,home,3,9,3,5,1,7,14,4,9,away,away,False,False
+B,20260317,401856434,NC State Wolfpack,Texas Longhorns,66,68,11,11,True,away,9,5,7,4,0,16,9,9,5,home,home,False,False
+B,20260317,401856435,Howard Bison,UMBC Retrievers,86,83,16,16,True,home,6,8,1,5,0,7,13,6,8,away,away,False,False
+B,20260318,401856436,SMU Mustangs,Miami (OH) RedHawks,79,89,11,11,True,away,4,10,6,9,0,10,19,4,10,away,away,True,True
+B,20260318,401856437,Lehigh Mountain Hawks,Prairie View A&M Panthers,55,67,16,16,True,away,7,7,1,2,0,8,9,7,7,away,,True,
+B,20260319,401856478,Duke Blue Devils,Siena Saints,71,65,1,16,True,home,11,3,8,3,0,19,6,11,3,home,home,True,True
+B,20260319,401856479,Ohio State Buckeyes,TCU Horned Frogs,64,66,8,9,True,away,7,7,4,3,0,11,10,7,7,home,,False,
+B,20260319,401856480,Wisconsin Badgers,High Point Panthers,82,83,5,12,True,away,7,7,7,6,0,14,13,7,7,home,,False,
+B,20260319,401856481,Arkansas Razorbacks,Hawai'i Rainbow Warriors,97,78,4,13,True,home,11,3,9,2,0,20,5,11,3,home,home,True,True
+B,20260319,401856482,Louisville Cardinals,South Florida Bulls,83,79,6,11,True,home,5,9,5,7,0,10,16,5,9,away,away,False,False
+B,20260319,401856483,Michigan State Spartans,North Dakota State Bison,92,67,3,14,True,home,8,6,6,5,0,14,11,8,6,home,home,True,True
+B,20260319,401856484,BYU Cougars,Texas Longhorns,71,79,6,11,True,away,11,3,6,4,0,17,7,11,3,home,home,False,False
+B,20260319,401856485,Gonzaga Bulldogs,Kennesaw State Owls,73,64,3,14,True,home,9,5,9,6,0,18,11,9,5,home,home,True,True
+B,20260319,401856486,Michigan Wolverines,Howard Bison,101,80,1,16,True,home,12,2,9,1,0,21,3,12,2,home,home,True,True
+B,20260319,401856487,Georgia Bulldogs,Saint Louis Billikens,77,102,8,9,True,away,7,7,8,9,0,15,16,7,7,away,,True,
+B,20260319,401856488,Vanderbilt Commodores,McNeese Cowboys,78,68,5,12,True,home,11,3,6,3,0,17,6,11,3,home,home,True,True
+B,20260319,401856489,Nebraska Cornhuskers,Troy Trojans,76,47,4,13,True,home,9,5,7,3,0,16,8,9,5,home,home,True,True
+B,20260319,401856490,North Carolina Tar Heels,VCU Rams,78,82,6,11,True,away,7,7,4,5,0,11,12,7,7,away,,True,
+B,20260319,401856491,Illinois Fighting Illini,Pennsylvania Quakers,105,70,3,14,True,home,12,2,9,3,0,21,5,12,2,home,home,True,True
+B,20260319,401856492,Saint Mary's Gaels,Texas A&M Aggies,50,63,7,10,True,away,9,5,6,7,0,15,12,9,5,home,home,False,False
+B,20260319,401856493,Houston Cougars,Idaho Vandals,78,47,2,15,True,home,9,5,4,2,0,13,7,9,5,home,home,True,True
+B,20260320,401856494,St. John's Red Storm,Northern Iowa Panthers,79,53,5,12,True,home,8,6,3,4,0,11,10,8,6,home,home,True,True
+B,20260320,401856495,Kansas Jayhawks,California Baptist Lancers,68,60,4,13,True,home,11,2,5,2,0,16,4,11,2,home,home,True,True
+B,20260320,401856496,UCLA Bruins,UCF Knights,75,71,7,10,True,home,9,5,4,2,0,13,7,9,5,home,home,True,True
+B,20260320,401856497,UConn Huskies,Furman Paladins,82,71,2,15,True,home,10,4,5,2,0,15,6,10,4,home,home,True,True
+B,20260320,401856518,Miami Hurricanes,Missouri Tigers,80,66,7,10,True,home,10,4,4,1,0,14,5,10,4,home,home,True,True
+B,20260320,401856519,Purdue Boilermakers,Queens University Royals,104,71,2,15,True,home,10,4,8,6,0,18,10,10,4,home,home,True,True
+B,20260320,401856520,Texas Tech Red Raiders,Akron Zips,91,71,5,12,True,home,5,9,4,10,0,9,19,5,9,away,away,False,False
+B,20260320,401856521,Alabama Crimson Tide,Hofstra Pride,90,70,4,13,True,home,11,3,8,5,0,19,8,11,3,home,home,True,True
+B,20260320,401856522,Clemson Tigers,Iowa Hawkeyes,61,67,8,9,True,away,7,7,2,5,0,9,12,7,7,away,,True,
+B,20260320,401856523,Florida Gators,Prairie View A&M Panthers,114,55,1,16,True,home,10,4,6,2,0,16,6,10,4,home,home,True,True
+B,20260320,401856524,Iowa State Cyclones,Tennessee State Tigers,108,74,2,15,True,home,8,6,8,3,0,16,9,8,6,home,home,True,True
+B,20260320,401856525,Kentucky Wildcats,Santa Clara Broncos,89,84,7,10,True,home,5,9,2,5,0,7,14,5,9,away,away,False,False
+B,20260320,401856526,Virginia Cavaliers,Wright State Raiders,82,73,3,14,True,home,8,6,6,3,0,14,9,8,6,home,home,True,True
+B,20260320,401856527,Tennessee Volunteers,Miami (OH) RedHawks,78,56,6,11,True,home,5,9,3,9,0,8,18,5,9,away,away,False,False
+B,20260320,401856528,Villanova Wildcats,Utah State Aggies,76,86,8,9,True,away,4,10,4,6,0,8,16,4,10,away,away,True,True
+B,20260320,401856529,Arizona Wildcats,Long Island University Sharks,92,58,1,16,True,home,10,3,8,4,0,18,7,10,3,home,home,True,True
+B,20260321,401856530,Duke Blue Devils,TCU Horned Frogs,81,58,1,9,True,home,13,1,8,3,0,21,4,13,1,home,home,True,True
+B,20260321,401856531,Michigan State Spartans,Louisville Cardinals,77,69,3,6,True,home,10,4,6,5,0,16,9,10,4,home,home,True,True
+B,20260321,401856532,Michigan Wolverines,Saint Louis Billikens,95,72,1,9,True,home,8,6,9,9,0,17,15,8,6,home,home,True,True
+B,20260321,401856533,Illinois Fighting Illini,VCU Rams,76,55,3,11,True,home,12,2,9,5,0,21,7,12,2,home,home,True,True
+B,20260321,401856534,Nebraska Cornhuskers,Vanderbilt Commodores,74,72,4,5,True,home,5,9,7,6,0,12,15,5,9,away,away,False,False
+B,20260321,401856535,Houston Cougars,Texas A&M Aggies,88,57,2,10,True,home,6,8,4,7,0,10,15,6,8,away,away,False,False
+B,20260321,401856536,Arkansas Razorbacks,High Point Panthers,94,88,4,12,True,home,9,5,9,6,0,18,11,9,5,home,home,True,True
+B,20260321,401856537,Gonzaga Bulldogs,Texas Longhorns,68,74,3,11,True,away,10,4,9,4,0,19,8,10,4,home,home,False,False
+B,20260322,401856558,Kansas Jayhawks,St. John's Red Storm,65,67,4,5,True,away,7,7,5,3,0,12,10,7,7,home,,False,
+B,20260322,401856559,UConn Huskies,UCLA Bruins,73,57,2,7,True,home,8,6,5,4,0,13,10,8,6,home,home,True,True
+B,20260322,401856560,Alabama Crimson Tide,Texas Tech Red Raiders,90,65,4,5,True,home,11,3,8,4,0,19,7,11,3,home,home,True,True
+B,20260322,401856561,Iowa State Cyclones,Kentucky Wildcats,82,63,2,7,True,home,9,5,8,2,0,17,7,9,5,home,home,True,True
+B,20260322,401856562,Virginia Cavaliers,Tennessee Volunteers,72,79,3,6,True,away,10,4,6,3,0,16,7,10,4,home,home,False,False
+B,20260322,401856563,Florida Gators,Iowa Hawkeyes,72,73,1,9,True,away,6,8,6,5,0,12,13,6,8,away,away,True,True
+B,20260322,401856564,Purdue Boilermakers,Miami Hurricanes,79,69,2,7,True,home,7,7,8,4,0,15,11,7,7,home,,True,
+B,20260322,401856565,Arizona Wildcats,Utah State Aggies,78,66,1,9,True,home,9,5,8,6,0,17,11,9,5,home,home,True,True
+B,20260326,401856566,Houston Cougars,Illinois Fighting Illini,55,65,2,3,True,away,4,10,4,9,0,8,19,4,10,away,away,True,True
+B,20260326,401856567,Nebraska Cornhuskers,Iowa Hawkeyes,71,77,4,9,True,away,9,5,7,5,0,16,10,9,5,home,home,False,False
+B,20260326,401856568,Purdue Boilermakers,Texas Longhorns,79,77,2,11,True,home,7,7,8,4,0,15,11,7,7,home,,True,
+B,20260326,401856569,Arizona Wildcats,Arkansas Razorbacks,109,88,1,4,True,home,6,8,8,9,0,14,17,6,8,away,away,False,False
+B,20260327,401856570,Duke Blue Devils,St. John's Red Storm,80,75,1,5,True,home,9,5,8,3,0,17,8,9,5,home,home,True,True
+B,20260327,401856571,UConn Huskies,Michigan State Spartans,67,63,2,3,True,home,6,8,5,6,0,11,14,6,8,away,away,False,False
+B,20260327,401856572,Michigan Wolverines,Alabama Crimson Tide,90,77,1,4,True,home,6,8,9,8,0,15,16,6,8,away,away,False,False
+B,20260327,401856573,Iowa State Cyclones,Tennessee Volunteers,62,76,2,6,True,away,9,5,8,3,0,17,8,9,5,home,home,False,False
+B,20260328,401856574,Illinois Fighting Illini,Iowa Hawkeyes,71,59,3,9,True,home,10,4,9,5,0,19,9,10,4,home,home,True,True
+B,20260328,401856575,Arizona Wildcats,Purdue Boilermakers,79,64,1,2,True,home,7,7,8,8,0,15,15,7,7,,,,
+B,20260329,401856576,Michigan Wolverines,Tennessee Volunteers,95,62,1,6,True,home,10,4,9,3,0,19,7,10,4,home,home,True,True
+B,20260329,401856577,Duke Blue Devils,UConn Huskies,72,73,1,2,True,away,10,4,8,5,0,18,9,10,4,home,home,False,False
+B,20260404,401856598,UConn Huskies,Illinois Fighting Illini,71,62,2,3,True,home,5,9,5,9,0,10,18,5,9,away,away,False,False
+B,20260404,401856599,Arizona Wildcats,Michigan Wolverines,73,91,1,1,True,away,7,7,8,9,0,15,16,7,7,away,,True,
+B,20260406,401856600,Michigan Wolverines,UConn Huskies,69,63,1,2,True,home,10,4,9,5,0,19,9,10,4,home,home,True,True
+C,20261023,401909095,Boston Celtics,New York Knicks,107,103,,,False,home,8,5,5,4,1,14,9,9,5,home,home,True,True
+C,20261023,401909096,San Antonio Spurs,Houston Rockets,110,114,,,False,away,5,9,3,7,1,9,16,6,9,away,away,True,True
+C,20261023,401909843,Charlotte Hornets,Atlanta Hawks,81,128,,,False,away,6,7,3,6,1,10,13,7,7,away,,True,
+C,20261023,401909844,Indiana Pacers,Dallas Mavericks,105,121,,,False,away,10,3,4,2,1,15,5,11,3,home,home,False,False
+C,20261023,401909845,Orlando Magic,Minnesota Timberwolves,93,115,,,False,away,5,9,3,7,1,9,16,6,9,away,away,True,True
+C,20261023,401909846,Washington Wizards,Toronto Raptors,102,112,,,False,away,3,11,8,9,1,12,20,4,11,away,away,True,True
+C,20261023,401909847,Miami Heat,Detroit Pistons,111,128,,,False,away,1,10,0,6,1,2,16,2,10,away,away,True,True
+C,20261023,401909848,Milwaukee Bucks,Chicago Bulls,125,132,,,False,away,9,5,3,3,1,13,8,10,5,home,home,False,False
+C,20261023,401909849,Utah Jazz,New Orleans Pelicans,120,119,,,False,home,6,8,2,7,1,9,15,7,8,away,away,False,False
+C,20261023,401909850,Golden State Warriors,Memphis Grizzlies,108,111,,,False,away,3,10,2,6,1,6,16,4,10,away,away,True,True
+C,20261023,401909851,Los Angeles Lakers,LA Clippers,125,117,,,False,home,3,10,6,7,1,10,17,4,10,away,away,False,False
+C,20261023,401909852,Sacramento Kings,Portland Trail Blazers,120,128,,,False,away,0,13,1,10,1,2,23,1,13,away,away,True,True
+C,20261024,401909853,Charlotte Hornets,Miami Heat,115,110,,,False,home,7,6,4,0,1,12,6,8,6,home,home,True,True
+C,20261024,401909854,Cleveland Cavaliers,Brooklyn Nets,125,121,,,False,home,7,6,4,1,1,12,7,8,6,home,home,True,True
+C,20261024,401909855,Philadelphia 76ers,Milwaukee Bucks,127,116,,,False,home,8,6,3,5,1,12,11,9,6,home,home,True,True
+C,20261024,401909856,Atlanta Hawks,Houston Rockets,114,121,,,False,away,8,5,7,7,1,16,12,9,5,home,home,False,False
+C,20261024,401909857,Chicago Bulls,Washington Wizards,120,124,,,False,away,4,10,4,3,1,9,13,5,10,away,away,True,True
+C,20261024,401909858,Dallas Mavericks,San Antonio Spurs,106,122,,,False,away,7,5,3,1,1,11,6,8,5,home,home,False,False
+C,20261024,401909859,Denver Nuggets,New Orleans Pelicans,141,135,,,False,home,4,10,2,5,1,7,15,5,10,away,away,False,False
+C,20261024,401909860,Phoenix Suns,Golden State Warriors,131,122,,,False,home,5,9,4,3,1,10,12,6,9,away,away,False,False
+C,20261025,401909861,Utah Jazz,Los Angeles Lakers,123,132,,,False,away,5,8,2,7,1,8,15,6,8,away,away,True,True
+C,20261025,401909862,Brooklyn Nets,Indiana Pacers,109,136,,,False,away,6,8,4,1,1,11,9,7,8,home,away,False,True
+C,20261025,401909863,New York Knicks,Orlando Magic,102,111,,,False,away,10,4,3,1,1,14,5,11,4,home,home,False,False
+C,20261025,401909864,Minnesota Timberwolves,Toronto Raptors,117,94,,,False,home,7,6,7,7,1,15,13,8,6,home,home,True,True
+C,20261025,401909865,Oklahoma City Thunder,LA Clippers,108,101,,,False,home,8,6,6,3,1,15,9,9,6,home,home,True,True
+C,20261025,401909866,Philadelphia 76ers,Detroit Pistons,93,106,,,False,away,3,10,2,10,1,6,20,4,10,away,away,True,True
+C,20261025,401909867,Sacramento Kings,Memphis Grizzlies,112,123,,,False,away,3,10,0,5,1,4,15,4,10,away,away,True,True
+C,20261026,401909868,Charlotte Hornets,Washington Wizards,110,103,,,False,home,6,8,3,4,1,10,12,7,8,away,away,False,False
+C,20261026,401909869,Cleveland Cavaliers,Minnesota Timberwolves,127,125,,,False,home,2,12,3,8,1,6,20,3,12,away,away,False,False
+C,20261026,401909870,Boston Celtics,Chicago Bulls,134,99,,,False,home,8,6,3,4,1,12,10,9,6,home,home,True,True
+C,20261026,401909871,Miami Heat,Dallas Mavericks,109,113,,,False,away,4,9,0,3,1,5,12,5,9,away,away,True,True
+C,20261026,401909872,Milwaukee Bucks,Indiana Pacers,110,102,,,False,home,5,9,3,3,1,9,12,6,9,away,away,False,False
+C,20261026,401909873,Oklahoma City Thunder,Phoenix Suns,125,114,,,False,home,10,4,5,2,1,16,6,11,4,home,home,True,True
+C,20261026,401909874,Houston Rockets,Atlanta Hawks,120,110,,,False,home,5,9,7,6,1,13,15,6,9,away,away,False,False
+C,20261026,401909875,Utah Jazz,Memphis Grizzlies,105,110,,,False,away,3,10,3,4,1,7,14,4,10,away,away,True,True
+C,20261026,401909876,Denver Nuggets,Golden State Warriors,114,134,,,False,away,5,8,3,2,1,9,10,6,8,away,away,True,True
+C,20261027,401909877,Boston Celtics,Brooklyn Nets,125,124,,,False,home,12,1,4,2,1,17,3,13,1,home,home,True,True
+C,20261027,401909878,New York Knicks,Detroit Pistons,111,97,,,False,home,2,12,3,7,1,6,19,3,12,away,away,False,False
+C,20261027,401909879,San Antonio Spurs,Sacramento Kings,130,103,,,False,home,11,2,3,1,1,15,3,12,2,home,home,True,True
+C,20261027,401909880,Los Angeles Lakers,Portland Trail Blazers,129,136,,,False,away,6,8,6,8,1,13,16,7,8,away,away,True,True
+C,20261028,401909881,Atlanta Hawks,Miami Heat,117,129,,,False,away,10,3,4,0,1,15,3,11,3,home,home,False,False
+C,20261028,401909882,Cleveland Cavaliers,Washington Wizards,121,111,,,False,home,10,4,5,2,1,16,6,11,4,home,home,True,True
+C,20261028,401909883,Detroit Pistons,Charlotte Hornets,97,89,,,False,home,10,3,5,3,1,16,6,11,3,home,home,True,True
+C,20261028,401909884,Indiana Pacers,Philadelphia 76ers,109,114,,,False,away,9,5,3,2,1,13,7,10,5,home,home,False,False
+C,20261028,401909885,Toronto Raptors,Orlando Magic,129,99,,,False,home,8,6,4,2,1,13,8,9,6,home,home,True,True
+C,20261028,401909886,Chicago Bulls,New York Knicks,127,133,,,False,away,4,9,4,2,1,9,11,5,9,away,away,True,True
+C,20261028,401909887,Milwaukee Bucks,Houston Rockets,100,132,,,False,away,4,10,3,7,1,8,17,5,10,away,away,True,True
+C,20261028,401909888,Minnesota Timberwolves,Golden State Warriors,114,119,,,False,away,11,2,8,4,1,20,6,12,2,home,home,False,False
+C,20261028,401909889,New Orleans Pelicans,Denver Nuggets,91,104,,,False,away,6,5,5,2,1,12,7,7,5,home,home,False,False
+C,20261028,401909890,Utah Jazz,San Antonio Spurs,111,117,,,False,away,2,12,3,3,1,6,15,3,12,away,away,True,True
+C,20261028,401909891,Dallas Mavericks,Oklahoma City Thunder,120,96,,,False,home,5,8,3,5,1,9,13,6,8,away,away,False,False
+C,20261028,401909892,LA Clippers,Los Angeles Lakers,87,103,,,False,away,6,8,4,6,1,11,14,7,8,away,away,True,True
+C,20261029,401909893,Atlanta Hawks,Cleveland Cavaliers,114,111,,,False,home,8,6,4,6,1,13,12,9,6,home,home,True,True
+C,20261029,401909894,New Orleans Pelicans,Sacramento Kings,132,120,,,False,home,8,6,2,1,1,11,7,9,6,home,home,True,True
+C,20261029,401909895,Portland Trail Blazers,Memphis Grizzlies,103,124,,,False,away,9,5,8,6,1,18,11,10,5,home,home,False,False
+C,20261030,401909277,Washington Wizards,Charlotte Hornets,95,79,,,False,home,7,7,2,3,1,10,10,8,7,,home,,True
+C,20261030,401909278,Boston Celtics,Chicago Bulls,125,111,,,False,home,7,4,6,2,1,14,6,8,4,home,home,True,True
+C,20261030,401909279,Brooklyn Nets,Detroit Pistons,94,110,,,False,away,5,9,3,3,1,9,12,6,9,away,away,True,True
+C,20261030,401909280,Philadelphia 76ers,New York Knicks,98,93,,,False,home,7,7,2,2,1,10,9,8,7,home,home,True,True
+C,20261030,401909281,Toronto Raptors,Orlando Magic,114,121,,,False,away,10,4,5,0,1,16,4,11,4,home,home,False,False
+C,20261030,401909282,Miami Heat,Indiana Pacers,145,125,,,False,home,7,7,1,1,1,9,8,8,7,home,home,True,True
+C,20261030,401909283,Dallas Mavericks,Houston Rockets,116,111,,,False,home,3,11,4,8,1,8,19,4,11,away,away,False,False
+C,20261030,401909284,Minnesota Timberwolves,LA Clippers,127,101,,,False,home,10,4,7,2,1,18,6,11,4,home,home,True,True
+C,20261030,401909285,Golden State Warriors,Los Angeles Lakers,112,95,,,False,home,7,7,3,5,1,11,12,8,7,away,home,False,True
+C,20261030,401909286,Phoenix Suns,Denver Nuggets,120,127,,,False,away,6,7,2,3,1,9,10,7,7,away,,True,
+C,20261031,401909896,Utah Jazz,Portland Trail Blazers,90,112,,,False,away,5,9,3,6,1,9,15,6,9,away,away,True,True
+C,20261031,401909897,Charlotte Hornets,Philadelphia 76ers,104,109,,,False,away,6,8,2,1,1,9,9,7,8,,away,,True
+C,20261031,401909898,New Orleans Pelicans,Atlanta Hawks,121,99,,,False,home,7,7,3,4,1,11,11,8,7,,home,,True
+C,20261031,401909899,Memphis Grizzlies,Sacramento Kings,136,105,,,False,home,11,3,6,1,1,18,4,12,3,home,home,True,True
+C,20261031,401909900,Milwaukee Bucks,Cleveland Cavaliers,111,136,,,False,away,3,10,3,3,1,7,13,4,10,away,away,True,True
+C,20261031,401909901,San Antonio Spurs,Minnesota Timberwolves,121,111,,,False,home,7,7,4,9,1,12,16,8,7,away,home,False,True
+C,20261031,401909902,Houston Rockets,Oklahoma City Thunder,119,98,,,False,home,7,7,7,4,1,15,11,8,7,home,home,True,True
+C,20261101,401909903,Orlando Magic,Boston Celtics,97,108,,,False,away,3,11,0,4,1,4,15,4,11,away,away,True,True
+C,20261101,401909904,Indiana Pacers,Brooklyn Nets,90,98,,,False,away,6,8,1,2,1,8,10,7,8,away,away,True,True
+C,20261101,401909905,Golden State Warriors,LA Clippers,124,112,,,False,home,9,5,5,3,1,15,8,10,5,home,home,True,True
+C,20261101,401909906,Los Angeles Lakers,Toronto Raptors,131,125,,,False,home,7,7,3,3,1,11,10,8,7,home,home,True,True
+C,20261102,401909907,Cleveland Cavaliers,Oklahoma City Thunder,112,117,,,False,away,9,5,6,3,1,16,8,10,5,home,home,False,False
+C,20261102,401909908,Charlotte Hornets,Detroit Pistons,91,124,,,False,away,4,10,3,4,1,8,14,5,10,away,away,True,True
+C,20261102,401909909,Indiana Pacers,Atlanta Hawks,104,108,,,False,away,5,9,1,3,1,7,12,6,9,away,away,True,True
+C,20261102,401909910,New York Knicks,Brooklyn Nets,103,90,,,False,home,6,8,2,1,1,9,9,7,8,,away,,False
+C,20261102,401909911,Orlando Magic,Washington Wizards,94,103,,,False,away,4,10,0,1,1,5,11,5,10,away,away,True,True
+C,20261102,401909912,Philadelphia 76ers,Chicago Bulls,126,107,,,False,home,8,5,1,3,1,10,8,9,5,home,home,True,True
+C,20261102,401909913,Dallas Mavericks,Sacramento Kings,100,115,,,False,away,13,0,3,0,1,17,0,14,0,home,home,False,False
+C,20261102,401909914,Memphis Grizzlies,New Orleans Pelicans,134,135,,,False,away,11,3,7,3,1,19,6,12,3,home,home,False,False
+C,20261102,401909915,Minnesota Timberwolves,Milwaukee Bucks,112,100,,,False,home,10,4,6,3,1,17,7,11,4,home,home,True,True
+C,20261102,401909916,Houston Rockets,Boston Celtics,109,93,,,False,home,12,1,8,3,1,21,4,13,1,home,home,True,True
+C,20261102,401909917,San Antonio Spurs,Utah Jazz,119,97,,,False,home,13,1,5,2,1,19,3,14,1,home,home,True,True
+C,20261102,401909918,Denver Nuggets,Portland Trail Blazers,110,118,,,False,away,6,7,2,6,1,9,13,7,7,away,,True,
+C,20261102,401909919,Golden State Warriors,Phoenix Suns,116,113,,,False,home,8,6,6,3,1,15,9,9,6,home,home,True,True
+C,20261102,401909920,LA Clippers,Toronto Raptors,118,125,,,False,away,5,8,3,3,1,9,11,6,8,away,away,True,True
+C,20261102,401909921,Los Angeles Lakers,Miami Heat,138,117,,,False,home,7,7,5,1,1,13,8,8,7,home,home,True,True
+C,20261104,401909922,Detroit Pistons,Philadelphia 76ers,106,112,,,False,away,12,2,4,1,1,17,3,13,2,home,home,False,False
+C,20261104,401909923,Washington Wizards,Atlanta Hawks,105,120,,,False,away,6,8,1,3,1,8,11,7,8,away,away,True,True
+C,20261104,401909924,Boston Celtics,Milwaukee Bucks,109,102,,,False,home,8,6,2,3,1,11,9,9,6,home,home,True,True
+C,20261104,401909925,Brooklyn Nets,Charlotte Hornets,114,104,,,False,home,9,5,1,2,1,11,7,10,5,home,home,True,True
+C,20261104,401909926,New York Knicks,Chicago Bulls,135,105,,,False,home,10,3,2,2,1,13,5,11,3,home,home,True,True
+C,20261104,401909927,Memphis Grizzlies,Indiana Pacers,103,107,,,False,away,10,4,9,1,1,20,5,11,4,home,home,False,False
+C,20261104,401909928,New Orleans Pelicans,Utah Jazz,120,113,,,False,home,8,6,3,3,1,12,9,9,6,home,home,True,True
+C,20261104,401909929,Oklahoma City Thunder,Cleveland Cavaliers,124,116,,,False,home,5,8,4,7,1,10,15,6,8,away,away,False,False
+C,20261104,401909930,Houston Rockets,Minnesota Timberwolves,107,117,,,False,away,10,4,8,5,1,19,9,11,4,home,home,False,False
+C,20261104,401909931,Denver Nuggets,Toronto Raptors,128,109,,,False,home,6,8,3,3,1,10,11,7,8,away,away,False,False
+C,20261104,401909932,Phoenix Suns,Portland Trail Blazers,119,132,,,False,away,6,8,3,5,1,10,13,7,8,away,away,True,True
+C,20261104,401909933,San Antonio Spurs,Dallas Mavericks,112,111,,,False,home,12,2,6,3,1,19,5,13,2,home,home,True,True
+C,20261104,401909934,Sacramento Kings,Los Angeles Lakers,103,116,,,False,away,5,9,0,5,1,6,14,6,9,away,away,True,True
+C,20261104,401909935,LA Clippers,Miami Heat,116,117,,,False,away,4,9,3,1,1,8,10,5,9,away,away,True,True
+C,20261105,401909936,Phoenix Suns,Orlando Magic,117,104,,,False,home,10,4,4,0,1,15,4,11,4,home,home,True,True
+C,20261105,401909937,Golden State Warriors,Miami Heat,120,100,,,False,home,6,8,5,1,1,12,9,7,8,home,away,True,False
+C,20261106,401909287,Atlanta Hawks,Washington Wizards,139,132,,,False,home,8,6,4,2,1,13,8,9,6,home,home,True,True
+C,20261106,401909288,Charlotte Hornets,Boston Celtics,80,119,,,False,away,6,8,3,2,1,10,10,7,8,,away,,True
+C,20261106,401909289,Cleveland Cavaliers,Philadelphia 76ers,119,95,,,False,home,11,3,7,1,1,19,4,12,3,home,home,True,True
+C,20261106,401909290,Dallas Mavericks,Utah Jazz,112,100,,,False,home,9,5,3,3,1,13,8,10,5,home,home,True,True
+C,20261106,401909291,Memphis Grizzlies,Oklahoma City Thunder,97,128,,,False,away,9,4,9,5,1,19,9,10,4,home,home,False,False
+C,20261106,401909292,Milwaukee Bucks,Toronto Raptors,107,121,,,False,away,6,8,4,3,1,11,11,7,8,,away,,True
+C,20261106,401909293,New Orleans Pelicans,Minnesota Timberwolves,109,115,,,False,away,4,10,4,6,1,9,16,5,10,away,away,True,True
+C,20261106,401909294,Los Angeles Lakers,Portland Trail Blazers,124,118,,,False,home,5,9,5,5,1,11,14,6,9,away,away,False,False
+C,20261106,401909295,Sacramento Kings,San Antonio Spurs,109,124,,,False,away,1,13,0,4,1,2,17,2,13,away,away,True,True
+C,20261107,401909938,Indiana Pacers,Denver Nuggets,102,114,,,True,away,5,9,0,4,0,5,13,5,9,away,away,True,True
+C,20261107,401909939,Atlanta Hawks,Brooklyn Nets,124,121,,,False,home,11,3,4,1,1,16,4,12,3,home,home,True,True
+C,20261107,401909940,Cleveland Cavaliers,New York Knicks,97,109,,,False,away,11,3,7,2,1,19,5,12,3,home,home,False,False
+C,20261107,401909941,Oklahoma City Thunder,Washington Wizards,114,75,,,False,home,11,3,5,2,1,17,5,12,3,home,home,True,True
+C,20261107,401909942,Golden State Warriors,Orlando Magic,126,119,,,False,home,14,0,6,0,1,21,0,15,0,home,home,True,True
+C,20261107,401909943,Phoenix Suns,Houston Rockets,102,99,,,False,home,4,10,3,7,1,8,17,5,10,away,away,False,False
+C,20261107,401909944,Portland Trail Blazers,San Antonio Spurs,103,125,,,False,away,5,9,6,4,1,12,13,6,9,away,away,True,True

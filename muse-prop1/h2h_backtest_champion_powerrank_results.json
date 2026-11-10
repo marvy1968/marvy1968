@@ -1,0 +1,616 @@
+{
+ "spec": "h2h-backtest-champion-spec-2026-11-08.md",
+ "generated": "2026-11-08",
+ "metrics": [
+  "points",
+  "rebounds",
+  "off_reb",
+  "def_reb",
+  "assists",
+  "steals",
+  "blocks",
+  "turnovers",
+  "fouls",
+  "threes",
+  "fg_pct",
+  "tp_pct",
+  "ft_pct",
+  "ast_to"
+ ],
+ "tie_eps": 0.001,
+ "champion_benchmarks": {
+  "men_A": {
+   "champions": [
+    "UConn Huskies 2024",
+    "Florida Gators 2025",
+    "Michigan Wolverines 2026"
+   ],
+   "benchmark": {
+    "points": 84.569,
+    "rebounds": 40.157,
+    "off_reb": 12.147,
+    "def_reb": 28.01,
+    "assists": 17.618,
+    "steals": 6.559,
+    "blocks": 5.314,
+    "turnovers": 10.824,
+    "fouls": 16.373,
+    "threes": 9.255,
+    "fg_pct": 49.134,
+    "tp_pct": 36.074,
+    "ft_pct": 73.582,
+    "ast_to": 1.638
+   }
+  },
+  "men_B": {
+   "champions": [
+    "UConn Huskies 2023",
+    "UConn Huskies 2024",
+    "Florida Gators 2025"
+   ],
+   "benchmark": {
+    "points": 81.779,
+    "rebounds": 39.823,
+    "off_reb": 12.945,
+    "def_reb": 26.878,
+    "assists": 17.218,
+    "steals": 6.839,
+    "blocks": 4.979,
+    "turnovers": 11.146,
+    "fouls": 17.207,
+    "threes": 9.235,
+    "fg_pct": 47.618,
+    "tp_pct": 35.965,
+    "ft_pct": 73.827,
+    "ast_to": 1.568
+   }
+  },
+  "nba_C": {
+   "champions": [
+    "Boston Celtics 2024",
+    "Oklahoma City Thunder 2025",
+    "New York Knicks 2026"
+   ],
+   "benchmark": {
+    "points": 119.175,
+    "rebounds": 45.573,
+    "off_reb": 11.329,
+    "def_reb": 34.244,
+    "assists": 27.069,
+    "steals": 8.415,
+    "blocks": 5.386,
+    "turnovers": 11.711,
+    "fouls": 18.679,
+    "threes": 15.085,
+    "fg_pct": 48.203,
+    "tp_pct": 37.839,
+    "ft_pct": 80.587,
+    "ast_to": 2.32
+   }
+  },
+  "wcaab_A": {
+   "champions": [
+    "South Carolina Gamecocks 2024",
+    "UConn Huskies 2025",
+    "UCLA Bruins 2026"
+   ],
+   "benchmark": {
+    "points": 84.004,
+    "rebounds": 41.827,
+    "off_reb": 12.771,
+    "def_reb": 29.055,
+    "assists": 20.7,
+    "steals": 9.516,
+    "blocks": 5.398,
+    "turnovers": 12.275,
+    "fouls": 13.654,
+    "threes": 7.53,
+    "fg_pct": 50.621,
+    "tp_pct": 38.29,
+    "ft_pct": 74.44,
+    "ast_to": 1.703
+   }
+  },
+  "wcaab_B": {
+   "champions": [
+    "LSU Tigers 2023",
+    "South Carolina Gamecocks 2024",
+    "UConn Huskies 2025"
+   ],
+   "benchmark": {
+    "points": 83.064,
+    "rebounds": 43.074,
+    "off_reb": 13.782,
+    "def_reb": 29.292,
+    "assists": 18.244,
+    "steals": 9.838,
+    "blocks": 5.665,
+    "turnovers": 12.611,
+    "fouls": 14.208,
+    "threes": 6.731,
+    "fg_pct": 48.974,
+    "tp_pct": 37.329,
+    "ft_pct": 71.554,
+    "ast_to": 1.481
+   }
+  },
+  "nba_val": {
+   "champions": [
+    "Denver Nuggets 2023",
+    "Boston Celtics 2024",
+    "Oklahoma City Thunder 2025"
+   ],
+   "benchmark": {
+    "points": 118.955,
+    "rebounds": 44.707,
+    "off_reb": 10.467,
+    "def_reb": 34.24,
+    "assists": 27.549,
+    "steals": 8.22,
+    "blocks": 5.573,
+    "turnovers": 12.041,
+    "fouls": 18.22,
+    "threes": 14.276,
+    "fg_pct": 49.09,
+    "tp_pct": 38.034,
+    "ft_pct": 79.222,
+    "ast_to": 2.304
+   }
+  }
+ },
+ "arms": {
+  "men_A": {
+   "games_evaluated": 170,
+   "power_rank": {
+    "picks": 168,
+    "wins": 108,
+    "losses": 60,
+    "win_rate": 0.6429,
+    "tied": 2
+   },
+   "binary_champion": {
+    "picks": 153,
+    "wins": 97,
+    "losses": 56,
+    "win_rate": 0.634,
+    "tied": 17
+   },
+   "baseline": {
+    "n": 170,
+    "wins": 135,
+    "rate": 0.7941
+   },
+   "power_score_distribution": {
+    "n_teams": 340,
+    "above_zero": 119,
+    "above_zero_rate": 0.35,
+    "mean": -0.0841,
+    "median": -0.0925,
+    "min": -0.4962,
+    "max": 0.4547
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0027,
+     "margin_max": 0.0849,
+     "picks": 42,
+     "wins": 20,
+     "win_rate": 0.4762
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.0882,
+     "margin_max": 0.2078,
+     "picks": 42,
+     "wins": 28,
+     "win_rate": 0.6667
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.2091,
+     "margin_max": 0.3343,
+     "picks": 42,
+     "wins": 31,
+     "win_rate": 0.7381
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.3401,
+     "margin_max": 0.8769,
+     "picks": 42,
+     "wins": 29,
+     "win_rate": 0.6905
+    }
+   ]
+  },
+  "men_B": {
+   "games_evaluated": 67,
+   "power_rank": {
+    "picks": 67,
+    "wins": 44,
+    "losses": 23,
+    "win_rate": 0.6567,
+    "tied": 0
+   },
+   "binary_champion": {
+    "picks": 65,
+    "wins": 44,
+    "losses": 21,
+    "win_rate": 0.6769,
+    "tied": 2
+   },
+   "baseline": {
+    "n": 62,
+    "wins": 46,
+    "rate": 0.7419
+   },
+   "power_score_distribution": {
+    "n_teams": 134,
+    "above_zero": 30,
+    "above_zero_rate": 0.2239,
+    "mean": -0.0351,
+    "median": -0.0236,
+    "min": -0.1596,
+    "max": 0.0349
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0014,
+     "margin_max": 0.0203,
+     "picks": 16,
+     "wins": 8,
+     "win_rate": 0.5
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.0215,
+     "margin_max": 0.0352,
+     "picks": 17,
+     "wins": 10,
+     "win_rate": 0.5882
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.038,
+     "margin_max": 0.0736,
+     "picks": 17,
+     "wins": 13,
+     "win_rate": 0.7647
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.0837,
+     "margin_max": 0.1315,
+     "picks": 17,
+     "wins": 13,
+     "win_rate": 0.7647
+    }
+   ]
+  },
+  "nba_C": {
+   "games_evaluated": 123,
+   "power_rank": {
+    "picks": 123,
+    "wins": 82,
+    "losses": 41,
+    "win_rate": 0.6667,
+    "tied": 0
+   },
+   "binary_champion": {
+    "picks": 107,
+    "wins": 61,
+    "losses": 46,
+    "win_rate": 0.5701,
+    "tied": 16
+   },
+   "baseline": {
+    "n": 123,
+    "wins": 62,
+    "rate": 0.5041
+   },
+   "power_score_distribution": {
+    "n_teams": 246,
+    "above_zero": 6,
+    "above_zero_rate": 0.0244,
+    "mean": -0.0922,
+    "median": -0.0852,
+    "min": -0.3284,
+    "max": 0.078
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.002,
+     "margin_max": 0.0289,
+     "picks": 30,
+     "wins": 19,
+     "win_rate": 0.6333
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.0295,
+     "margin_max": 0.0544,
+     "picks": 31,
+     "wins": 15,
+     "win_rate": 0.4839
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.0553,
+     "margin_max": 0.0832,
+     "picks": 31,
+     "wins": 27,
+     "win_rate": 0.871
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.0844,
+     "margin_max": 0.2877,
+     "picks": 31,
+     "wins": 21,
+     "win_rate": 0.6774
+    }
+   ]
+  },
+  "wcaab_A": {
+   "games_evaluated": 180,
+   "power_rank": {
+    "picks": 179,
+    "wins": 114,
+    "losses": 65,
+    "win_rate": 0.6369,
+    "tied": 1
+   },
+   "binary_champion": {
+    "picks": 159,
+    "wins": 104,
+    "losses": 55,
+    "win_rate": 0.6541,
+    "tied": 21
+   },
+   "baseline": {
+    "n": 180,
+    "wins": 135,
+    "rate": 0.75
+   },
+   "power_score_distribution": {
+    "n_teams": 360,
+    "above_zero": 62,
+    "above_zero_rate": 0.1722,
+    "mean": -0.1638,
+    "median": -0.1794,
+    "min": -0.6752,
+    "max": 0.4491
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0042,
+     "margin_max": 0.0636,
+     "picks": 44,
+     "wins": 21,
+     "win_rate": 0.4773
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.064,
+     "margin_max": 0.1557,
+     "picks": 45,
+     "wins": 27,
+     "win_rate": 0.6
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.1563,
+     "margin_max": 0.276,
+     "picks": 45,
+     "wins": 31,
+     "win_rate": 0.6889
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.2771,
+     "margin_max": 0.8719,
+     "picks": 45,
+     "wins": 35,
+     "win_rate": 0.7778
+    }
+   ]
+  },
+  "wcaab_B": {
+   "games_evaluated": 67,
+   "power_rank": {
+    "picks": 67,
+    "wins": 52,
+    "losses": 15,
+    "win_rate": 0.7761,
+    "tied": 0
+   },
+   "binary_champion": {
+    "picks": 60,
+    "wins": 41,
+    "losses": 19,
+    "win_rate": 0.6833,
+    "tied": 7
+   },
+   "baseline": {
+    "n": 60,
+    "wins": 52,
+    "rate": 0.8667
+   },
+   "power_score_distribution": {
+    "n_teams": 134,
+    "above_zero": 14,
+    "above_zero_rate": 0.1045,
+    "mean": -0.0855,
+    "median": -0.0908,
+    "min": -0.2457,
+    "max": 0.0936
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.0018,
+     "margin_max": 0.0238,
+     "picks": 16,
+     "wins": 9,
+     "win_rate": 0.5625
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.0246,
+     "margin_max": 0.0608,
+     "picks": 17,
+     "wins": 13,
+     "win_rate": 0.7647
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.0648,
+     "margin_max": 0.0969,
+     "picks": 17,
+     "wins": 14,
+     "win_rate": 0.8235
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.1002,
+     "margin_max": 0.3252,
+     "picks": 17,
+     "wins": 16,
+     "win_rate": 0.9412
+    }
+   ]
+  },
+  "nba_val": {
+   "games_evaluated": 1215,
+   "power_rank": {
+    "picks": 1203,
+    "wins": 760,
+    "losses": 443,
+    "win_rate": 0.6318,
+    "tied": 12
+   },
+   "binary_champion": {
+    "picks": 1039,
+    "wins": 640,
+    "losses": 399,
+    "win_rate": 0.616,
+    "tied": 176
+   },
+   "baseline": {
+    "n": 1215,
+    "wins": 673,
+    "rate": 0.5539
+   },
+   "power_score_distribution": {
+    "n_teams": 2430,
+    "above_zero": 25,
+    "above_zero_rate": 0.0103,
+    "mean": -0.0579,
+    "median": -0.0536,
+    "min": -0.2614,
+    "max": 0.1203
+   },
+   "margin_quartiles": [
+    {
+     "quartile": 1,
+     "margin_min": 0.001,
+     "margin_max": 0.0171,
+     "picks": 300,
+     "wins": 163,
+     "win_rate": 0.5433
+    },
+    {
+     "quartile": 2,
+     "margin_min": 0.0174,
+     "margin_max": 0.0341,
+     "picks": 301,
+     "wins": 176,
+     "win_rate": 0.5847
+    },
+    {
+     "quartile": 3,
+     "margin_min": 0.0342,
+     "margin_max": 0.0565,
+     "picks": 301,
+     "wins": 210,
+     "win_rate": 0.6977
+    },
+    {
+     "quartile": 4,
+     "margin_min": 0.0567,
+     "margin_max": 0.22,
+     "picks": 301,
+     "wins": 211,
+     "win_rate": 0.701
+    }
+   ]
+  }
+ },
+ "pooled": {
+  "games_evaluated": 1822,
+  "power_rank": {
+   "picks": 1807,
+   "wins": 1160,
+   "losses": 647,
+   "win_rate": 0.6419
+  },
+  "binary_champion": {
+   "picks": 1583,
+   "wins": 987,
+   "losses": 596,
+   "win_rate": 0.6235
+  },
+  "baseline": {
+   "n": 1810,
+   "wins": 1103,
+   "rate": 0.6094
+  },
+  "margin_quartiles": [
+   {
+    "quartile": 1,
+    "margin_min": 0.001,
+    "margin_max": 0.0217,
+    "picks": 451,
+    "wins": 249,
+    "win_rate": 0.5521
+   },
+   {
+    "quartile": 2,
+    "margin_min": 0.0217,
+    "margin_max": 0.0435,
+    "picks": 452,
+    "wins": 273,
+    "win_rate": 0.604
+   },
+   {
+    "quartile": 3,
+    "margin_min": 0.0437,
+    "margin_max": 0.0774,
+    "picks": 452,
+    "wins": 311,
+    "win_rate": 0.6881
+   },
+   {
+    "quartile": 4,
+    "margin_min": 0.0775,
+    "margin_max": 0.8769,
+    "picks": 452,
+    "wins": 327,
+    "win_rate": 0.7235
+   }
+  ],
+  "power_score_distribution": {
+   "n_teams": 3644,
+   "above_zero": 256,
+   "above_zero_rate": 0.0703,
+   "mean": -0.0733,
+   "median": -0.0588,
+   "min": -0.6752,
+   "max": 0.4546
+  }
+ }
+}
