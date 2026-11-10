@@ -628,6 +628,15 @@ def run_all(a) -> int:
                 lines += _rf.session_lien(h1, today)
                 print("\n".join(lines[first:]), flush=True)
                 continue
+            if fam == "fx_entry":                  # owner 2026-11-10 "run the test": fx-experts stop entries vs market/limit (fxbot.fxexp_entry)
+                import datetime as _dt
+                from fxbot import fxexp_entry as _fe
+                from fxbot.data import load as fx_load
+                today = _dt.date.today()
+                h1 = {i: fx_load(i, "H1", today - _dt.timedelta(days=3 * 365 + 10), today, Path("state/fx/cache")) for i in _fe.PAIRS}
+                lines += _fe.report(h1, today)
+                print("\n".join(lines[first:]), flush=True)
+                continue
             if fam == "fx_news":                   # owner 2026-10-28: news filter on the live forex setups (fxbot.newsfilter, pre-declared)
                 import datetime as _dt
                 import requests as _rq
