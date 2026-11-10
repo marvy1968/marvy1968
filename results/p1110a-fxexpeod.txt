@@ -1,3 +1,9 @@
 $ pack fxexp_eod
-started 2026-11-09 23:03:04 EST
-RUNNING...
+started 2026-11-09 23:03:04 EST, took 0s, exit 0
+
+total 48
+drwxr-xr-x  2 marvbot marvbot  4096 Nov  9 23:03 .
+drwxr-xr-x 31 marvbot marvbot  4096 Nov  9 23:03 ..
+-rw-r--r--  1 marvbot marvbot  2040 Nov  9 23:03 install_fix.py
+-rw-r--r--  1 marvbot marvbot 21830 Nov  9 23:03 live.py
+-rw-r--r--  1 marvbot marvbot 11172 Nov  9 23:03 test_live.py
