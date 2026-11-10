@@ -1,3 +1,17 @@
 $ show fx_paper/journal-20261110.jsonl
-started 2026-11-10 07:13:26 EST
-RUNNING...
+started 2026-11-10 07:13:26 EST, took 0s, exit 0
+
+{"t": "2026-11-10T01:00:38+00:00", "kind": "signal", "strategy": "hybrid_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-10T00:00:00+00:00", "close": 1.12207, "stop_dist": 0.0007811785536462335, "result": "paused (signal logged)"}
+{"t": "2026-11-10T01:01:09+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "USD_CAD", "side": "long", "bar": "2026-11-10T00:00:00+00:00", "close": 1.4123549999999998, "stop_dist": 0.0011195444195372802, "result": "paused (signal logged)"}
+{"t": "2026-11-10T01:01:12+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-11-10T00:00:00+00:00", "close": 158.0605, "stop_dist": 0.2505295065998273, "result": "paused (signal logged)"}
+{"t": "2026-11-10T01:01:25+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-10T00:00:00+00:00", "close": 0.69139, "stop_dist": 0.001715000000000133, "result": "paused (signal logged)"}
+{"t": "2026-11-10T03:00:52+00:00", "kind": "signal", "strategy": "hybrid_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-10T02:00:00+00:00", "close": 1.121975, "stop_dist": 0.0008637202835011237, "result": "paused (signal logged)"}
+{"t": "2026-11-10T05:01:08+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-10T04:00:00+00:00", "close": 1.122825, "stop_dist": 0.001140000000000141, "result": "paused (signal logged)"}
+{"t": "2026-11-10T06:00:44+00:00", "kind": "signal", "strategy": "hybrid_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-10T05:00:00+00:00", "close": 1.12244, "stop_dist": 0.00048081485526663137, "result": "paused (signal logged)"}
+{"t": "2026-11-10T07:00:45+00:00", "kind": "signal", "strategy": "macd200_h1", "instrument": "AUD_USD", "side": "short", "bar": "2026-11-10T06:00:00+00:00", "close": 0.692, "stop_dist": 0.0012982313873107117, "result": "paused (signal logged)"}
+{"t": "2026-11-10T10:00:52+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "NZD_USD", "side": "short", "bar": "2026-11-10T06:00:00+00:00", "close": 0.56308, "stop_dist": 0.0020177449259867132, "result": "paused (signal logged)"}
+{"t": "2026-11-10T10:00:53+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_CAD", "side": "short", "bar": "2026-11-10T06:00:00+00:00", "close": 1.41372, "stop_dist": 0.002663233094700707, "result": "paused (signal logged)"}
+{"t": "2026-11-10T10:00:53+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "GBP_USD", "side": "short", "bar": "2026-11-10T06:00:00+00:00", "close": 1.3425099999999999, "stop_dist": 0.0036983356397246713, "result": "paused (signal logged)"}
+{"t": "2026-11-10T10:01:06+00:00", "kind": "signal", "strategy": "holygrail_h1", "instrument": "GBP_USD", "side": "short", "bar": "2026-11-10T09:00:00+00:00", "close": 1.3425099999999999, "stop_dist": 0.0034250000000000114, "result": "paused (signal logged)"}
+{"t": "2026-11-10T11:00:32+00:00", "kind": "signal", "strategy": "hybrid_h1", "instrument": "EUR_USD", "side": "short", "bar": "2026-11-10T10:00:00+00:00", "close": 1.12239, "stop_dist": 0.000736596316929905, "result": "paused (signal logged)"}
+{"t": "2026-11-10T12:01:58+00:00", "kind": "signal", "strategy": "insidebar_h1", "instrument": "USD_JPY", "side": "long", "bar": "2026-11-10T11:00:00+00:00", "close": 158.192, "stop_dist": 0.24450000000001637, "result": "paused (signal logged)"}
