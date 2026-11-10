@@ -156,7 +156,7 @@ Paths below match a VM checkout at `/opt/marv-bot`. Change them to wherever the 
 */10 * * * * cd /opt/marv-bot && python -m pacer_v2 score --in /opt/marv-bot/state/pacer/live.jsonl --out /opt/marv-bot/state/pacer_v2/decisions.jsonl --model /opt/marv-bot/state/pacer_v2/model.json --team-stats /opt/marv-bot/state/pacer_v2/team_stats.json >> /opt/marv-bot/state/pacer_v2/score.log 2>&1
 
 # Weekly isotonic refit. 13:15 UTC is 08:15 Eastern Standard Time (09:15 during daylight time).
-15 13 * * 1 cd /opt/marv-bot && python -m pacer_v2 recalib --in /opt/marv-bot/state/pacer/graded.jsonl --model /opt/marv-bot/state/pacer_v2/model.json --days 28 --team-stats /opt/marv-bot/state/pacer_v2/team_stats.json >> /opt/marv-bot/state/pacer_v2/recalib.log 2>&1
+15 13 * * 1 cd /opt/marv-bot && python -m pacer_v2 recalib --in /opt/marv-feed/reports/pacer_v2/graded_nfl.jsonl --model /opt/marv-bot/state/pacer_v2/model.json --days 28 --team-stats /opt/marv-bot/state/pacer_v2/team_stats.json >> /opt/marv-bot/state/pacer_v2/recalib.log 2>&1
 ```
 
 Fit the first model with `backtest` (or leave the defaults in place) before the timer depends on it. Nothing in this folder is a proven betting record. The report prints the counts in the file it was given.

@@ -12,6 +12,7 @@ This script proves that with NFL rows instead of assuming it.
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -54,14 +55,17 @@ for g in range(10):
         r["price"] = 0.45
         r["result"] = (i % 3 != 0)
         rows.append(r)
-Path("/tmp/pacer-nfl-check.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
-Path("/tmp/pacer-nfl-stats.json").write_text(json.dumps({"games": {f"nfl{g}": {"pace": 1.20} for g in range(10)}}))
-for label, extra in (("pace ON ", []), ("pace OFF", ["--no-pace"])):
-    out = subprocess.run(
-        [sys.executable, "-m", "pacer_v2", "backtest",
-         "--in", "/tmp/pacer-nfl-check.jsonl", "--team-stats", "/tmp/pacer-nfl-stats.json"] + extra,
-        cwd=str(HERE), capture_output=True, text=True)
-    print(f"--- backtest {label} (NFL) ---")
-    print(out.stdout.strip())
-    assert out.returncode == 0, out.stderr
+with tempfile.TemporaryDirectory() as td:
+    check_path = Path(td) / "pacer-nfl-check.jsonl"
+    stats_path = Path(td) / "pacer-nfl-stats.json"
+    check_path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    stats_path.write_text(json.dumps({"games": {f"nfl{g}": {"pace": 1.20} for g in range(10)}}))
+    for label, extra in (("pace ON ", []), ("pace OFF", ["--no-pace"])):
+        out = subprocess.run(
+            [sys.executable, "-m", "pacer_v2", "backtest",
+             "--in", str(check_path), "--team-stats", str(stats_path)] + extra,
+            cwd=str(HERE), capture_output=True, text=True)
+        print(f"--- backtest {label} (NFL) ---")
+        print(out.stdout.strip())
+        assert out.returncode == 0, out.stderr
 print("\nBACKTEST HARNESS (NFL): PASS — both arms run end-to-end on synthetic NFL rows.")

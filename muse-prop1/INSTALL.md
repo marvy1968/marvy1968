@@ -1,13 +1,14 @@
 # Muse Prop1 — Install (for Grok / any installer)
 
 ## 1. What this is
-Muse Prop1 is a log-only in-game player-prop engine for Bovada.
+Muse Prop1 is a log-only in-game player-prop engine. Odds come from
+PropLine (Odds API) only — no Bovada, no sportsbook.
 NFL + Top 30 NCAAF + NCAAB + NCAAW. It sends recommendations only.
-It NEVER places a bet, never logs in to Bovada, never auto-bets.
+It NEVER places a bet, never logs in to any sportsbook, never auto-bets.
 
 ## 2. Prerequisites
 - Python 3.12+
-- A PropLine API key (free 1,000/day at prop-line.com — do NOT paste it in chat, put it in `.env`)
+- A PropLine API key (free tier at prop-line.com — do NOT paste it in chat, put it in `.env`). Note: Grok's review says the free tier is 1,000 calls/MONTH, not per day — see config.yaml for the quota budgets and the polling math.
 - No other keys needed for log-only mode. Telegram keys only if/when alerts turn on.
 
 ## 3. Install
@@ -22,8 +23,8 @@ cp .env.example .env
 
 ## 4. Check (do this before any live run)
 ```bash
-python3 test_engine.py        # expect 9/9
-python3 test_muse_prop1.py    # expect 4/4, no network
+python3 test_engine.py        # expect 21/21
+python3 test_muse_prop1.py    # expect 18/18, no network
 python3 runner.py --once --sport nfl --dry-run
 # expect: 2 demo picks logged, second run: 0 picks (dedupe)
 # check state/picks.jsonl — no real money, no Telegram, no network
@@ -61,11 +62,14 @@ Do NOT run a loop + cron at the same time.
 - Do NOT place bets from the picks, and do NOT add auto-betting code.
 - Do NOT lower the edge/EV gates (7pp / 5%) to get more picks.
 - Do NOT commit `.env`, `state/`, or `__pycache__` to git.
-- Do NOT paste any API key, Telegram token, or Bovada credential in chat.
+- Do NOT paste any API key, Telegram token, or sportsbook credential in chat.
+- Before the slate, freeze pregame priors: `python3 runner.py --freeze-priors`
+  (fetches PropLine odds and freezes lines for games that have not started yet).
+  The live runner rejects any prior that was not frozen pregame.
 
 ## 8. Files
 - `DESIGN.md` — full design + pre-registered test
-- `engine.py`, `bovada.py`, `live_feed.py`, `priors.py`, `runner.py`, `backtest.py`, `notifier.py`
+- `engine.py`, `propline.py`, `quota.py`, `live_feed.py`, `priors.py`, `runner.py`, `backtest.py`, `notifier.py`
 - `config.yaml`, `top30_ncaaf.yaml` (refresh weekly from AP/ESPN rankings)
 - `fixtures/` — mocked PropLine/ESPN NFL data for dry-run
 - `GROK_NOTE.md` — the check list for Grok, in forwardable form

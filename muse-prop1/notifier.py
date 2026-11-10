@@ -23,7 +23,7 @@ def format_pick(pick: dict) -> str:
     label = SPORT_LABEL.get(pick.get("sport", "nfl"), pick.get("sport", "").upper())
     return (
         f"{emoji} LIVE PROP — {label} | Muse Prop1\n"
-        f"{pick['player']} — {pick['side'].title()} {pick['line']} {pick['market_label']} @ {pick['odds']} (Bovada)\n"
+        f"{pick['player']} — {pick['side'].title()} {pick['line']} {pick['market_label']} @ {pick['odds']} (PropLine)\n"
         f"Model: {pick['model_p']:.0%} | Fair (no-vig): {pick['fair_p']:.0%} | Edge +{pick['edge_pp']:.0%} | EV +{pick['ev']:.1%}\n"
         f"Pace: {pick['pace_note']}\n"
         f"Stake: {pick['stake_units']}u — check line now, expires ~90s\n"

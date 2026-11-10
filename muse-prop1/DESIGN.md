@@ -1,25 +1,54 @@
 # Muse Prop1 — In-Game Prop Engine — Design v1.1
-**For Bovada | NFL + Top 30 NCAAF + NCAAB + NCAAW | Recommendations only — never auto-bets**
+**PropLine odds only — NO Bovada, no sportsbook | NFL + Top 30 NCAAF + NCAAB + NCAAW | Recommendations only — never auto-bets**
 
 Date: 2026-11-06 (v1.1: 4-sport scope; v1.2: full engine written)
-Status: FULL ENGINE WRITTEN v1.2, 13/13 tests pass (9 engine + 4 integration), dry-run verified. Log-only / shadow mode only. NOT validated on live data. Do not bet real money on this until it passes the pre-registered test in §7, per sport. Grok check still required: one real PropLine + ESPN response per sport, NCAAW key verification.
+Status: FULL ENGINE WRITTEN v1.2, 39/39 tests pass (21 engine + 18 integration), dry-run verified. Log-only / shadow mode only. NOT validated on live data. Do not bet real money on this until it passes the pre-registered test in §7, per sport. Grok check still required: one real PropLine + ESPN response per sport, NCAAW key verification.
+
+## Changelog 2026-11-10 (Grok review of PR #5 @ 348cab78 — six flaws + Bovada)
+- **Bovada REMOVED.** `bovada.py` deleted; `propline.py` is the PropLine
+  client (Odds API). No code fetches from, logs into, or places bets with
+  Bovada or any sportsbook. Prices are the MEDIAN across the bookmakers
+  PropLine returns, explicitly excluding "bovada" (config `odds_bookmakers`
+  allowlist can restrict to Kalshi/Polymarket once their PropLine keys are
+  verified — NOT verified as of 2026-11-10).
+- **(1) Line anchor:** the projection is shrunk toward the CURRENT posted
+  line before any edge is computed (`engine.anchor_projection`,
+  config `line_anchor_weight: 0.5`).
+- **(2) Pregame prior:** the prior is frozen BEFORE the game starts
+  (`runner.py --freeze-priors`, cron before the slate). `first_lines.json`
+  records frozen_at + commence_time; the runner rejects any prior not
+  frozen pregame (unless a priors.yaml override exists).
+- **(3) Quota:** polling is 300s per sport, only while that sport has live
+  games. Every PropLine fetch is reserved against config budgets
+  (500/day, 1,000/month — the free tier is MONTHLY per Grok, not
+  1,000/day as this doc originally claimed). Over budget, calls stop.
+- **(4) Top-30 mapping:** `top30_ncaaf.yaml` maps each AP name to ESPN's
+  displayName (`espn_display_names`), verified against the live ESPN
+  teams endpoint; the runner matches ESPN names, not AP spellings.
+- **(5) Rework wired in:** the live runner now calls the rate-only rework
+  (live rate, season pace — `use_live_pace: false` in config) for football,
+  basketball, and team projections.
+- **(6) Paths fixed:** the pacer graded file is
+  `/opt/marv-feed/reports/pacer_v2/graded_nfl.jsonl` (was
+  `/opt/marv-bot/state/pacer/graded.jsonl`); verify scripts are portable
+  (no hardcoded /tmp paths); scipy + scikit-learn are declared in
+  `pacer_v2/requirements.txt`.
 
 ## 0. My reading of your prompt — correct me if I'm wrong
-- "pods" = **odds** (Bovada live odds)
-- "brovado" = **Bovada**
+- "pods" = **odds** (PropLine live odds)
 - "pace of the game" = live game pace: football = plays/min, basketball = possessions/min, plus time remaining, game script, fouls/minutes
 - "props" = **player props**, full-game
 - Scope, confirmed 2026-11-06 19:42 ET: **NFL, Top 30 NCAAF, NCAAB, and women's college basketball (NCAAW)**
   - "Top 30 NCAAF" = games where at least one team is in the Top 30 (AP Top 25 + next 5, refreshed weekly from ESPN rankings — see §10). Not all 134 FBS teams.
   - "Nccab" = **NCAAB** (men's college basketball)
   - NCAAW = women's college basketball, same basketball adapter, thinner props — see §10 warning
-- "accurately" = calibrated, not guaranteed. No engine picks winners accurately in the absolute sense. The honest target is: **model probability > Bovada's no-vig implied probability by enough to beat the vig, repeatedly, on unseen games, per sport.** A pass in NFL does NOT pass NCAAF/NCAAB/NCAAW — each sport is tested separately.
+- "accurately" = calibrated, not guaranteed. No engine picks winners accurately in the absolute sense. The honest target is: **model probability > the market's no-vig implied probability by enough to beat the vig, repeatedly, on unseen games, per sport.** A pass in NFL does NOT pass NCAAF/NCAAB/NCAAW — each sport is tested separately.
 
 ## 1. What the engine does, in one loop (every 30 seconds, live games only)
 ```
 Live stats (ESPN)  ─┐
 Pregame projection ─┼─> Pace projection (sport adapter) ─> Projected final stat ─> Fair P(Over/Under)
-Bovada live line   ─┘                                                              ─> Edge vs no-vig price
+PropLine live line ─┘                                                              ─> Edge vs no-vig price
                                                                                         │
                                                                                   Gate / filter
                                                                                         │
@@ -27,22 +56,22 @@ Bovada live line   ─┘                                                       
                                                                                         └─> Log everything, grade after game
 ```
 
-It does NOT place bets. Bovada has no official API and no auto-bet endpoint in this design. The alert gives you: sport, player, prop, Over/Under, line, Bovada price, model %, fair %, EV %, stake (units), and "check this line now — expires in 90s". You place it manually.
+It does NOT place bets. There is no sportsbook login and no auto-bet endpoint in this design. The alert gives you: sport, player, prop, Over/Under, line, PropLine price, model %, fair %, EV %, stake (units), and "check this line now — expires in 90s". You place it manually.
 
 ## 2. Data sources — checked 2026-11-06
 | Need | Source v1 | Why / cost / catch |
 |---|---|---|
-| Bovada live player-prop odds | **PropLine API** — `api.prop-line.com/v1/sports/{sport_key}/odds?bookmakers=bovada` | Free tier 1,000 req/day, no card. Bovada listed for all sports + full player props. Refresh 60s, 30s in-progress. This is a third-party aggregator, NOT Bovada official. |
+| PropLine live player-prop odds | **PropLine API** — `api.prop-line.com/v1/sports/{sport_key}/odds` (NO bookmaker filter; extraction uses the median price across the bookmakers PropLine returns, explicitly excluding "bovada") | Free tier 1,000 req/MONTH per Grok's review (the old "1,000/day" claim was wrong). Poll 300s per sport, only while that sport has live games; every fetch is quota-checked (config propline_daily_budget 500 / propline_monthly_budget 1000). |
 | — NFL | `football_nfl` — `player_pass_yds, player_pass_tds, player_rush_yds, player_reception_yds, player_receptions, player_anytime_td` | Full coverage. |
 | — NCAAF | `football_ncaaf` — same football markets | Props concentrated on Power Five + marquee Group of Five games; that is exactly why the Top 30 filter fits. |
-| — NCAAB | `basketball_ncaab` — `player_points, player_rebounds, player_assists, player_threes, player_steals, player_blocks, player_turnovers, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists, player_double_double` | Bovada posts 90–110+ markets on big NCAAB games. |
-| — NCAAW | PropLine sport key to verify on first live call (`/v1/sports` — likely `basketball_ncaaw`, NOT confirmed in docs search) | **Thinnest coverage. Do not assume it exists.** If PropLine returns no NCAAW props, that sport stays game-lines-only / log-only until a source is verified. Bovada posts far fewer women's college props, limits are lower, lines move faster. |
-| Fallback odds | The Odds API / odds-api.io | Paid. Only if PropLine Bovada coverage drops. Do not scrape Bovada directly in v1 — fragile, ToS risk, bot-wall. |
+| — NCAAB | `basketball_ncaab` — `player_points, player_rebounds, player_assists, player_threes, player_steals, player_blocks, player_turnovers, player_points_rebounds, player_points_assists, player_rebounds_assists, player_points_rebounds_assists, player_double_double` | Books post 90–110+ markets on big NCAAB games. |
+| — NCAAW | PropLine sport key to verify on first live call (`/v1/sports` — likely `basketball_ncaaw`, NOT confirmed in docs search) | **Thinnest coverage. Do not assume it exists.** If PropLine returns no NCAAW props, that sport stays game-lines-only / log-only until a source is verified. Books post far fewer women's college props, limits are lower, lines move faster. |
+| Fallback odds | The Odds API / odds-api.io | Paid. Only if PropLine coverage drops. Do not scrape any sportsbook directly in v1 — fragile, ToS risk, bot-wall. |
 | Live in-game stats | **ESPN site API** (`site.api.espn.com`, unofficial, no key) — scoreboard + summary | Free, ~30s lag. Unofficial, can break. Poll every 30s, never faster. Paths: `football/nfl`, `football/college-football`, `basketball/mens-college-basketball`, `basketball/womens-college-basketball`. |
 | Pregame projection + history | NFL: nflverse via `nflreadpy`. NCAAF: CollegeFootballData.com (free, key) + cfbfastR. Basketball: SportsDataverse / Bart Torvik (prior, not live) + ESPN season stats | For the pregame mean, per-play / per-minute rates, variance, opponent adjustment. NOT live — use only as the prior. |
 | Delivery | Telegram — your existing `MarvsT_bot` | Token already stored locally in `~/.credentials/telegram.env` (chmod 600). Engine reads it from env, never prints it. |
 
-**Keys needed from you (do NOT paste in chat):** PropLine API key only, in `~/workspace/muse-prop1/.env` as `PROPLINE_API_KEY=...`. No Bovada login is needed or used. CollegeFootballData key is optional, only if you want NCAAF priors from there instead of ESPN season stats.
+**Keys needed from you (do NOT paste in chat):** PropLine API key only, in `~/workspace/muse-prop1/.env` as `PROPLINE_API_KEY=...`. No sportsbook login is needed or used. CollegeFootballData key is optional, only if you want NCAAF priors from there instead of ESPN season stats.
 
 ## 3. Pace projection — the core
 This is where the old pacer was weak. Pace is not "yards so far ÷ minutes × 60". It is opportunity projection with shrinkage. Football and basketball use different adapters — same edge math, different projection.
@@ -103,7 +132,7 @@ projected_final = current + projected_minutes_remaining * per_min_rate
 - `P(Over line) = 1 - CDF(line + 0.5)` (continuity correction), `P(Under) = 1 - P(Over)`.
 - Calibrate `sd` per sport first: if the model says 65% and it only hits 55% over 100+ bets, the SD is too small. Calibration is part of the test, not an afterthought — and it is per sport.
 
-## 4. Edge vs Bovada — the only decision that matters (same for all 4 sports)
+## 4. Edge vs the market — the only decision that matters (same for all 4 sports)
 ```
 implied_over = 1 / decimal(over_price) ; implied_under likewise
 vig = implied_over + implied_under - 1
@@ -119,16 +148,16 @@ EV = model_P * (decimal_payout - 1) - (1 - model_P)
 4. Football: player not injured / snap share not collapsed (>30% drop = skip). Basketball: foul gate in §3.2, minutes share not collapsed.
 5. NCAAF only: at least one team in Top 30 list (`top30_ncaaf.yaml`, refreshed weekly). NCAAB/NCAAW: no Top-30 filter to start — props themselves are the filter — but priority is ranked / Power-conference games.
 6. Dedupe: no prior pick for same `(sport, game, player, market, side)` today; max 3 picks per game, max 6 per slate **per sport** (not 6 total across 4 sports — a Saturday college slate is bigger than an NFL Sunday)
-7. Line re-check: at send time, re-fetch Bovada once. If line or price moved against you by >5 cents, DROP it and log "stale — dropped".
+7. Line re-check: at send time, re-fetch PropLine once. If line or price moved against you by >5 cents, DROP it and log "stale — dropped".
 
 **Stake:** flat 0.5u, or 0.25 Kelly capped at 1.0u. Never more.
 
-Why 7pp / 5%? Bovada vig on props is typically 4.5–5.5%. A 2–3pp "edge" is noise + vig. The old replay (+6u, Nov 1–2) had 83% of profit from 8 passing bets — concentration, not a stable edge.
+Why 7pp / 5%? Market vig on props is typically 4.5–5.5%. A 2–3pp "edge" is noise + vig. The old replay (+6u, Nov 1–2) had 83% of profit from 8 passing bets — concentration, not a stable edge.
 
 ## 5. What an alert looks like
 ```
 🏈 LIVE PROP — NFL
-Josh Allen — Over 245.5 Pass Yds @ -110 (Bovada)
+Josh Allen — Over 245.5 Pass Yds @ -110 (PropLine)
 Model: 64% | Fair (no-vig): 52% | Edge +12pp | EV +9.1%
 Pace: 68 plays projected (season 64, live 71) | Allen 142 yds, 28 min left
 Stake: 0.5u — check line now, expires ~90s
@@ -136,7 +165,7 @@ Log ID: 2026-11-06_BUF_MIA_allen_pass_yds_over_245.5
 ```
 ```
 🏀 LIVE PROP — NCAAB
-Cooper Flagg — Over 18.5 Points @ -115 (Bovada)
+Cooper Flagg — Over 18.5 Points @ -115 (PropLine)
 Model: 62% | Fair: 53% | Edge +9pp | EV +6.4%
 Pace: 71 poss projected | 14 pts, 22 min played, 1 foul, 16 min left
 Stake: 0.5u — check line now, expires ~90s
@@ -148,7 +177,7 @@ No alert without sport, log ID, model %, and EV. No "lock", no "guaranteed".
 | File | Job |
 |---|---|
 | `engine.py` | Pure math: football pace, basketball pace, Normal/Poisson fair prob, vig removal, edge, gates. No network. Unit-testable. |
-| `bovada.py` | PropLine client: Bovada-only, bulk odds per sport (`football_nfl`, `football_ncaaf`, `basketball_ncaab`, `basketball_ncaaw` to verify), exact `(player, market, line)` matching. Returns timestamped snapshots. |
+| `propline.py` | PropLine client (Odds API): bulk odds per sport (`football_nfl`, `football_ncaaf`, `basketball_ncaab`, `basketball_ncaaw` to verify), no bookmaker filter, median price across returned bookmakers excluding "bovada". Exact `(player, market, line)` matching. Returns timestamped snapshots. Quota-enforced via `quota.py`. |
 | `live_feed.py` | ESPN poller: scoreboard + summary for all 4 leagues → per-player current stats + clock + score + fouls/minutes (basketball). |
 | `notifier.py` | Telegram sender via env token. One message per pick, rate-limited. |
 | `runner.py` | 30s loop per sport: fetch → project (sport adapter) → edge → gate → dedupe → re-check → alert → log. Log-only mode = alert suppressed, log only. |
@@ -168,16 +197,16 @@ This follows your own rule: backtest is a screen only, a variant has to earn it 
 4. **Dedupe:** old code could double-count. Fix: dedupe key `(sport, game_id, player_id, market, side)`. One pick per key per game, ever.
 
 **Frozen test, per sport:**
-- Data: replay 4 weeks per sport — timestamped PropLine Bovada snapshots + ESPN snapshots, stored before the run. NCAAF: 4 weeks of Top-30 games only. Basketball: 4 weeks of games with a Bovada prop posted.
+- Data: replay 4 weeks per sport — timestamped PropLine snapshots + ESPN snapshots, stored before the run. NCAAF: 4 weeks of Top-30 games only. Basketball: 4 weeks of games with a PropLine-listed prop posted.
 - Split: first 2 weeks train (tune SD inflation + thresholds only), last 2 weeks test (frozen). No tuning on test.
-- Costs: Bovada vig as quoted, plus 2-cent slippage on every pick.
+- Costs: market vig as quoted, plus 2-cent slippage on every pick.
 - Pass bar (ALL, per sport): test ROI > 0% AND yield > 3% AND n >= 50 picks AND win rate within ±8pp of mean model probability (calibration) AND profit not concentrated: top 10 picks < 50% of winning profit. If it fails any, that sport stays log-only — a pass in NFL does not unlock NCAAW.
 - Then: 2 weeks forward shadow (log-only, live, no money) — same bar, on fresh games. Only then discuss real stakes, and only flat 0.5u.
 
 **What the Nov 1–2 replay does NOT prove:** 29-21, +6u, ~+12% ROI on ~50 bets, 83% from 8 bets, no live pick graded yet. That is a hypothesis, not validation. The new engine must re-run that period with the lookahead fix and report whether the +6u survives.
 
 ## 8. Risks / honest limits
-- Bovada live props move in seconds and limit quickly. A 30s poll + re-check will miss some lines and drop picks. That is by design — a dropped pick beats a stale pick.
+- Live props move in seconds and limit quickly. A 300s poll + re-check will miss some lines and drop picks. That is by design — a dropped pick beats a stale pick.
 - ESPN unofficial API can break or lag. If live stats are >90s stale, skip the check, do not project from old data.
 - PropLine free tier: 1,000 req/day. At 30s polling, 4 sports × bulk call = 4 calls per check = ~8,000/day if you poll all day — **over the free tier.** Budget it: poll only live games, poll each sport only while it has live games, and stagger (football 30s, basketball 45s). Hobby $9/mo (5,000/day) is the likely need for 4 sports. Do not poll per-game.
 - College variance is real: blowouts, backups, foul trouble, and thin women's-college lines will kill more picks than NFL. The blowout/foul gates are mitigations, not cures.
@@ -194,5 +223,5 @@ This follows your own rule: backtest is a screen only, a variant has to earn it 
 - **Testing order:** NFL first (most data, prior pacer), then NCAAF Top 30, then NCAAB, then NCAAW last. Do not test all four at once and blend the results.
 - **Top 30 NCAAF:** `top30_ncaaf.yaml` is a template. Refresh weekly from ESPN `rankings` endpoint / AP poll. A game qualifies if either team is in the list that week. Do not hard-code a ranking from memory — rankings change weekly.
 - **NCAAF props** are concentrated on Power Five + marquee G5 games. That matches the Top 30 filter — the filter is not cutting much prop volume, it is cutting noise.
-- **NCAAB:** no Top-30 filter, but the engine will naturally only pick games where Bovada posts a prop. Expect most picks from ranked / Power-conference games.
+- **NCAAB:** no Top-30 filter, but the engine will naturally only pick games where PropLine lists a prop. Expect most picks from ranked / Power-conference games.
 - **NCAAW:** verify PropLine sport key first. If no key / no props, report that plainly and keep NCAAW log-only on game lines only — do not invent a feed.

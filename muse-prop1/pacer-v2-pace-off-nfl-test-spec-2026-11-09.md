@@ -57,7 +57,9 @@ same timing filter. Implemented as the existing `--no-pace` flag.
 
 ## Data (BLOCKER — not in hand)
 
-The pacer's own graded rows: `/opt/marv-bot/state/pacer/graded.jsonl` on Claude's VM.
+The pacer's own graded rows: `/opt/marv-feed/reports/pacer_v2/graded_nfl.jsonl`
+on the VM (path corrected 2026-11-10 per Grok — was
+`/opt/marv-bot/state/pacer/graded.jsonl`, which does not exist).
 Not in the repo, not accessible to Muse. No synthetic rows and no Prop1 replay data
 may stand in for the verdict — Prop1's replay has no market prices, no
 `p_model_raw`, and no graded outcomes per prop line, so it cannot drive the pacer

@@ -1,7 +1,11 @@
 """In-game prop engine — pure math, no network.
-Pace projection + fair probability + edge vs Bovada.
+Pace projection + fair probability + edge vs the market price.
 Fixes vs old NFL pacer: shrinkage, exact-line only (enforced by caller),
 no lookahead (caller must pass as-of snapshots only).
+Line anchor (Grok review 2026-11-09, flaw 1): the raw projection is shrunk
+toward the CURRENT posted line before any edge is computed, so the model
+cannot claim a huge edge from a projection that has drifted far from what
+the market prices in. See anchor_projection.
 """
 from __future__ import annotations
 import math
@@ -35,6 +39,21 @@ def poisson_pmf(k: int, lam: float) -> float:
     return math.exp(-lam + k * math.log(lam) - math.lgamma(k + 1))
 
 
+def anchor_projection(projected: float, line: float, weight: float = 0.5) -> float:
+    """Shrink a raw projection toward the CURRENT posted line (Grok flaw 1).
+    The posted line is the market's own estimate of the final; a projection
+    that has drifted far from it is usually the model being wrong, not the
+    market. weight=0.5 blends the model and the market equally; weight=0
+    returns the raw projection (anchor off), weight=1 returns the line.
+    The caller applies this AFTER project_* and BEFORE any probability or
+    edge is computed, and records both the raw and anchored values so the
+    anchoring is auditable in the log. The SD is left unchanged — the anchor
+    moves the mean, it does not claim the model is more certain."""
+    if not 0.0 <= weight <= 1.0:
+        raise ValueError("line anchor weight must be in [0, 1]")
+    return (1.0 - weight) * projected + weight * line
+
+
 @dataclass
 class PaceInput:
     current: float          # stat so far
@@ -47,6 +66,9 @@ class PaceInput:
     season_plays_per_min: float = 1.05  # ~63 plays / 60 min
     script_adj: float = 0.0  # e.g. +0.12 trailing pass boost, -0.15 leading rush
     sd_inflation: float = 1.15
+    use_live_pace: bool = True  # False = rate-only rework (pace-off-test-spec-
+    # 2026-11-09): remaining plays at SEASON pace exactly; the live per-play
+    # rate stays. Default True: all existing callers unchanged.
 
 
 def project_final(p: PaceInput) -> tuple[float, float]:
@@ -59,10 +81,14 @@ def project_final(p: PaceInput) -> tuple[float, float]:
     if p.elapsed_min <= 0:
         return p.pregame_mean, p.pregame_sd * p.sd_inflation
     w = min(0.85, max(0.10, p.elapsed_min / p.total_min))
-    live_pace_raw = p.plays_so_far / p.elapsed_min if p.elapsed_min > 0 else p.season_plays_per_min
-    live_pace = min(max(live_pace_raw, p.season_plays_per_min * 0.7),
-                    p.season_plays_per_min * 1.3)
-    blended_pace = w * live_pace + (1 - w) * p.season_plays_per_min
+    if not p.use_live_pace:
+        # Rate-only rework: remaining plays at season pace exactly.
+        blended_pace = p.season_plays_per_min
+    else:
+        live_pace_raw = p.plays_so_far / p.elapsed_min if p.elapsed_min > 0 else p.season_plays_per_min
+        live_pace = min(max(live_pace_raw, p.season_plays_per_min * 0.7),
+                        p.season_plays_per_min * 1.3)
+        blended_pace = w * live_pace + (1 - w) * p.season_plays_per_min
     remaining_min = max(0.0, p.total_min - p.elapsed_min)
     projected_plays = blended_pace * remaining_min
 
@@ -152,13 +178,18 @@ def evaluate_team_pick(projected: float, sd: float, line: float,
                        over_price: int, under_price: int,
                        low_count: bool = False,
                        min_edge_pp: float = 0.07,
-                       min_ev: float = 0.05) -> dict:
+                       min_ev: float = 0.05,
+                       line_anchor_weight: float = 0.5) -> dict:
     """Gate a team-total line through the same edge/EV bars as player picks.
     Normal(mean=proj, sd=sd) for points/rebounds/assists; Poisson(lambda=proj)
     for threes (low_count=True, same as the runner does for player_threes).
     Returns the better side's model_p/fair_p/ev/ok/why. Pure evaluation —
     no network, no odds fetch. Live wiring waits on a verified PropLine
-    team-lines payload shape (see bovada.TEAM_MARKETS)."""
+    team-lines payload shape (see propline.TEAM_MARKETS).
+    The projection is anchored to the posted line first (Grok flaw 1):
+    line_anchor_weight=0.5 blends model and market equally. Pass 0.0 to
+    evaluate the raw projection."""
+    projected = anchor_projection(projected, line, line_anchor_weight)
     if low_count:
         lam = max(0.0, projected)
         k = int(line)  # line 1.5 -> need >= 2; line 0.5 -> need >= 1
@@ -289,9 +320,9 @@ def prob_over_td(projected_tds: float, line: float = 0.5) -> float:
     raise ValueError("only 0.5 / 1.5 TD lines supported in v1")
 
 
-def evaluate_pick(model_p: float, bovada_odds: int, side: str = "over") -> dict:
-    """EV at Bovada's actual price. Caller must supply the no-vig fair prob separately for edge."""
-    dec = american_to_decimal(bovada_odds)
+def evaluate_pick(model_p: float, odds: int, side: str = "over") -> dict:
+    """EV at the market price. Caller must supply the no-vig fair prob separately for edge."""
+    dec = american_to_decimal(odds)
     ev = model_p * (dec - 1) - (1 - model_p)
     return {"model_p": model_p, "decimal": dec, "ev": ev, "side": side}
 

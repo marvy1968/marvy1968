@@ -1,15 +1,24 @@
 """Verify the --no-pace change: unit tests, flag effect, backtest harness end-to-end.
 
 Synthetic rows only — this proves the machinery, NOT profitability.
-The real verdict needs the VM's graded.jsonl.
+The real verdict needs the VM's graded file
+(/opt/marv-feed/reports/pacer_v2/graded_nfl.jsonl for NFL rows).
+
+Portable: resolves the pacer_v2 package from this file's own directory and
+runs the backtest with the current interpreter (sys.executable). No hardcoded
+machine paths — the earlier version pointed at /tmp/pacer-v2 and
+/tmp/pacer-venv, which only exist on the author's machine (Grok flaw 6).
+Synthetic check files go in a TemporaryDirectory, not a fixed /tmp path.
 """
 
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
-sys.path.insert(0, "/tmp/pacer-v2")
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 
 from pacer_v2.model import decide, default_model
 from pacer_v2.parse import parse_row
@@ -46,14 +55,17 @@ for g in range(10):
         r["price"] = 0.45
         r["result"] = (i % 3 != 0)
         rows.append(r)
-Path("/tmp/pacer-check.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
-Path("/tmp/pacer-stats.json").write_text(json.dumps({"games": {f"g{g}": {"pace": 1.20} for g in range(10)}}))
-for label, extra in (("pace ON ", []), ("pace OFF", ["--no-pace"])):
-    out = subprocess.run(
-        ["/tmp/pacer-venv/bin/python", "-m", "pacer_v2", "backtest",
-         "--in", "/tmp/pacer-check.jsonl", "--team-stats", "/tmp/pacer-stats.json"] + extra,
-        cwd="/tmp/pacer-v2", capture_output=True, text=True)
-    print(f"--- backtest {label} ---")
-    print(out.stdout.strip())
-    assert out.returncode == 0, out.stderr
+with tempfile.TemporaryDirectory() as td:
+    check_path = Path(td) / "pacer-check.jsonl"
+    stats_path = Path(td) / "pacer-stats.json"
+    check_path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    stats_path.write_text(json.dumps({"games": {f"g{g}": {"pace": 1.20} for g in range(10)}}))
+    for label, extra in (("pace ON ", []), ("pace OFF", ["--no-pace"])):
+        out = subprocess.run(
+            [sys.executable, "-m", "pacer_v2", "backtest",
+             "--in", str(check_path), "--team-stats", str(stats_path)] + extra,
+            cwd=str(HERE), capture_output=True, text=True)
+        print(f"--- backtest {label} ---")
+        print(out.stdout.strip())
+        assert out.returncode == 0, out.stderr
 print("\nBACKTEST HARNESS: PASS — both arms run end-to-end on synthetic rows.")

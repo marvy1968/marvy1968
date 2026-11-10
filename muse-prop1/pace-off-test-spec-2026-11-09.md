@@ -87,6 +87,17 @@ decomposition's rate-only numbers to 4 decimal places (team points pooled
 8.31, player points pooled 2.85), proving the flag implements exactly the
 decomposition's (c) arm. If any cell differs, the run is INVALID.
 
+> Amendment 2026-11-10 (does not change the pass bar or the fresh window):
+> the cached summaries grew after Nov 8 (527 games in the Nov 4–8 window
+> vs 510 when the decomposition ran), so the frozen self-check numbers are
+> stale. The self-check now compares against the decomposition re-run on the
+> current cache: team points 8.2407, player points 2.8373
+> (pace_off_test.py SELFCHECK_EXPECTED). Verified 2026-11-10: the
+> decomposition re-run reproduces these exactly, and the decomposition's
+> own self-check fails on college but passes on NBA (unchanged data) —
+> confirming data drift, not a code change. The flag implements the (c)
+> arm exactly.
+
 ## Pass bar (pre-registered, fresh window only)
 
 College (NCAAB + NCAAW pooled, as in the college test), team points AND

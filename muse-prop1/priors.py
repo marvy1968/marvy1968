@@ -1,8 +1,23 @@
 """Muse Prop1 — pregame priors.
-v1 rule: the prior mean is the FIRST-SEEN Bovada line for that player/market,
+v1 rule: the prior mean is the FIRST-SEEN PropLine line for that player/market,
 frozen in state/first_lines.json at the first poll (before/at kickoff).
 That is a real market prior, not a guess, and it avoids needing nflverse /
 CollegeFootballData / Torvik wired up before the first run.
+
+PREGAME RULE (Grok review 2026-11-09, flaw 2): the prior MUST be frozen
+BEFORE the game starts. The runner used to freeze the first-seen line at the
+first LIVE poll — i.e. after tip-off — so in-game information leaked into
+what was supposed to be the baseline. Now:
+- `runner.py --freeze-priors` fetches PropLine odds for every configured
+  sport and freezes lines ONLY for games whose commence_time is still in
+  the future. Run it on a cron before the slate (morning / pregame).
+- Each frozen entry records frozen_at (epoch) and commence_time (epoch).
+  `is_pregame_frozen(entry)` is True only when frozen_at < commence_time.
+- The runner's evaluate_line REJECTS a prior that was not frozen pregame
+  (skip "prior_not_pregame") unless a priors.yaml override exists for that
+  player/market — a priors.yaml mean is a real pregame prior by construction.
+- Legacy entries (plain numbers, no frozen_at) have unknown provenance and
+  are treated as NOT pregame. Re-freeze with --freeze-priors to fix them.
 
 SD and per-play / per-minute rates come from the tables below (season-typical),
 overridable per player in priors.yaml (optional file, same folder):
@@ -14,7 +29,8 @@ SD is the honest part — if calibration fails in backtest, SD is the first
 thing to re-fit, not the edge threshold.
 """
 from __future__ import annotations
-import json
+import json, time
+from datetime import datetime, timezone
 from pathlib import Path
 
 # (sd, per_play_or_per_min, pregame_minutes_or_None)
@@ -51,7 +67,7 @@ def load_priors_yaml(path: Path) -> dict:
 def get_prior(sport: str, player: str, market: str, first_line: float | None,
               priors_yaml: dict | None = None) -> dict:
     """Return {mean, sd, per_play/per_min, pregame_minutes}.
-    Mean = priors.yaml override, else first-seen Bovada line, else None (skip)."""
+    Mean = priors.yaml override, else first-seen PropLine line, else None (skip)."""
     table = FOOTBALL_SD if sport in ("nfl", "ncaaf") else BASKETBALL_SD
     sd, rate, mins = table.get(market, (5.0, 0.5, 30.0))
     mean = None
@@ -65,24 +81,79 @@ def get_prior(sport: str, player: str, market: str, first_line: float | None,
         mean = first_line
     return {"mean": mean, "sd": sd, "rate": rate, "pregame_minutes": mins}
 
+def parse_commence_time(value) -> float | None:
+    """Parse a PropLine commence_time (ISO string or epoch) to epoch seconds.
+    Returns None when missing or unparseable — unknown start time means the
+    pregame check cannot pass (fail-closed)."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        s = str(value).strip()
+        if s.endswith("Z"):
+            s = s[:-1] + "+00:00"
+        return datetime.fromisoformat(s).timestamp()
+    except (ValueError, TypeError):
+        return None
+
+def _normalize_entry(value) -> dict:
+    """Normalize one first_lines.json entry to
+    {"line": float, "frozen_at": float|None, "commence_time": float|None}.
+    Legacy plain-number entries have unknown provenance (frozen_at None)."""
+    if isinstance(value, dict):
+        return {"line": value.get("line"),
+                "frozen_at": value.get("frozen_at"),
+                "commence_time": value.get("commence_time")}
+    return {"line": value, "frozen_at": None, "commence_time": None}
+
 def load_first_lines(state_dir: Path) -> dict:
     p = state_dir / "first_lines.json"
     if not p.exists():
         return {}
     try:
-        return json.loads(p.read_text())
+        raw = json.loads(p.read_text())
     except Exception:
         return {}
+    if not isinstance(raw, dict):
+        return {}
+    return {k: _normalize_entry(v) for k, v in raw.items()}
+
+def frozen_prior(state_dir: Path, sport: str, game_id: str,
+                 player: str, market: str) -> dict | None:
+    """Return the normalized frozen entry for (sport, game, player, market),
+    or None if nothing was ever frozen."""
+    key = f"{sport}|{game_id}|{player}|{market}"
+    return load_first_lines(state_dir).get(key)
+
+def is_pregame_frozen(entry: dict | None) -> bool:
+    """True only when the entry was frozen strictly BEFORE the game's
+    commence_time. Missing entry, missing frozen_at (legacy), or missing
+    commence_time all fail — unknown provenance is not pregame."""
+    if not entry:
+        return False
+    frozen_at = entry.get("frozen_at")
+    commence = entry.get("commence_time")
+    if frozen_at is None or commence is None:
+        return False
+    try:
+        return float(frozen_at) < float(commence)
+    except (TypeError, ValueError):
+        return False
 
 def freeze_first_line(state_dir: Path, sport: str, game_id: str,
-                      player: str, market: str, line: float) -> float:
+                      player: str, market: str, line: float,
+                      commence_time=None) -> float:
     """Store the first-seen line for (sport, game, player, market), return it.
-    Never overwrites — the prior is frozen at first sight."""
+    Never overwrites — the prior is frozen at first sight. Records frozen_at
+    (now) and commence_time so the pregame check can verify the freeze
+    happened before the start."""
     state_dir.mkdir(parents=True, exist_ok=True)
     p = state_dir / "first_lines.json"
     data = load_first_lines(state_dir)
     key = f"{sport}|{game_id}|{player}|{market}"
     if key not in data:
-        data[key] = line
+        data[key] = {"line": line, "frozen_at": time.time(),
+                     "commence_time": parse_commence_time(commence_time)}
         p.write_text(json.dumps(data))
-    return data[key]
+    return data[key]["line"]

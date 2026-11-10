@@ -30,7 +30,11 @@ as `pace_enabled=False`. The decision records the gap `pace_disabled`.
 
 ## Data (BLOCKER — not in hand)
 
-The pacer's own graded rows: `/opt/marv-bot/state/pacer/graded.jsonl` on Claude's VM.
+The pacer's own graded rows: `/opt/marv-feed/reports/pacer_v2/graded.jsonl`
+on the VM (directory corrected 2026-11-10 per Grok — was
+`/opt/marv-bot/state/pacer/graded.jsonl`, which does not exist; the NFL
+graded file in that directory is `graded_nfl.jsonl`, confirm the NBA
+filename on the VM before running).
 Not in the repo, not accessible to Muse. No synthetic rows and no Prop1 replay data
 may stand in for the verdict — Prop1's NBA replay has no market prices, no
 `p_model_raw`, and no graded outcomes per prop line, so it cannot drive the pacer

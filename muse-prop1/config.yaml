@@ -1,4 +1,4 @@
-# Muse Prop1 — config v1.1 (4-sport)
+# Muse Prop1 — config v1.2 (4-sport)
 name: muse-prop1
 # Change any threshold = new test. Do not silently tweak mid-test.
 sports:
@@ -6,22 +6,53 @@ sports:
   - ncaaf_top30
   - ncaab
   - ncaaw
-book: bovada
-odds_provider: propline  # propline | theoddsapi | oddsapi_io
+odds_source: propline  # PropLine (Odds API) only — NO Bovada, no sportsbook.
+# Bookmaker allowlist for PropLine prices. Empty = median price across all
+# non-Bovada bookmakers PropLine returns. Set to ["kalshi", "polymarket"] to
+# restrict to Kalshi/Polymarket ONLY once PropLine's keys for them are
+# verified against a real response (NOT verified as of 2026-11-10 — do not
+# assume the keys). "bovada" can never be admitted (propline.py enforces it).
+odds_bookmakers: []
 
-# Live PropLine pace — FREE TIER (2026-11-08 rework).
+# Live PropLine pace — FREE TIER (2026-11-10 rework, Grok flaw 3).
 # One bulk call per sport per poll (whole slate + player props in one call),
 # and a sport is polled ONLY while it has live games (ESPN scoreboard is
 # checked first — ESPN is free/keyless, so the gate costs no quota).
-# Measured live windows (ESPN, Nov 7-8 2026): NFL Sun ~14.3h, NCAAF Sat
-# ~14h, NCAAB up to ~13h (weekend) / ~5.5h (weekday), NCAAW ~9h.
-# At this pace the worst day (Sunday) is ~807 PropLine calls incl. a full
-# 24-call re-check allowance — under the 1,000/day free tier with margin.
-# See the quota check doc for the full math. Do NOT raise the pace without
-# redoing that math; the old 30s/45s all-day pace was ~9,600/day.
-poll_seconds: 150
-basketball_poll_seconds: 180  # stagger to save PropLine quota (see DESIGN §8)
+# Polling is 300s per sport (was 150s football / 180s basketball). The old
+# config comment claimed a 1,000/day free tier; Grok's review says PropLine's
+# free tier is MONTHLY (1,000 calls/month). At 300s, a worst-case Sunday
+# (NFL ~14h + NCAAB ~13h + NCAAW ~9h live) is ~430 calls — a busy weekend
+# can exhaust a 1,000/month tier on its own. The quota check below is the
+# guardrail: when a budget is hit, PropLine calls STOP (fail-closed, logged)
+# instead of silently overrunning. Full-season live operation needs the
+# Hobby tier or a slower poll — do NOT raise the pace without redoing this
+# math and confirming the tier.
+poll_seconds: 300
+basketball_poll_seconds: 300  # stagger to save PropLine quota (see DESIGN §8)
 max_stale_stats_seconds: 90
+
+# PropLine quota budgets (quota.py). Both are hard stops: when either is hit,
+# fetch_propline_props raises QuotaExceeded and the sport is skipped.
+propline_daily_budget: 500
+propline_monthly_budget: 1000
+
+# Line anchor (Grok flaw 1): shrink the raw projection toward the CURRENT
+# posted line before any edge is computed. 0.5 = model and market blended
+# equally. 0.0 = anchor off (raw projection). See engine.anchor_projection.
+line_anchor_weight: 0.5
+
+# Rate-only rework (Grok flaw 5, pace-off-test-spec-2026-11-09): the live
+# projection uses the live RATE at SEASON pace (pace ratio 1.0). false =
+# rate-only (the rework, which beat season-average on fresh college data);
+# true = the old live-pace projection. Set per the frozen test verdict.
+use_live_pace: false
+
+# Pregame prior (Grok flaw 2): the prior must be frozen BEFORE the game
+# starts (runner.py --freeze-priors, run on a cron before the slate).
+# true = reject any prior that was not frozen pregame (unless a priors.yaml
+# override exists). Dry-run fixtures bypass this (they are pregame
+# snapshots by construction).
+require_pregame_prior: true
 
 # Edge gates — ALL must pass, all sports to start
 min_edge_pp: 0.07

@@ -2,7 +2,7 @@
 from engine import (
     PaceInput, BasketballPaceInput, TeamPaceInput, project_final, project_basketball_final,
     project_team_total, team_possessions, evaluate_team_pick,
-    prob_over_yards, prob_over_td,
+    prob_over_yards, prob_over_td, anchor_projection,
     american_to_implied, remove_vig, evaluate_pick, passes_gates, SPORTS,
 )
 
@@ -29,7 +29,7 @@ def test_vig_removal():
     assert abs(o - 0.5) < 0.001 and abs(u - 0.5) < 0.001
 
 def test_ev_and_gates():
-    # Model 64%, fair 50%, Bovada -110 => EV ~ +22%
+    # Model 64%, fair 50%, market -110 => EV ~ +22%
     ev = evaluate_pick(0.64, -110)["ev"]
     assert ev > 0.15
     ok, _ = passes_gates(0.64, 0.50, ev)
@@ -121,6 +121,54 @@ def test_basketball_use_live_pace_false_skips_pace_ratio():
     assert abs(on_fast - off_fast) > 1e-9, (on_fast, off_fast)
     assert on_fast > off_fast, (on_fast, off_fast)
 
+
+def test_anchor_projection():
+    # Grok flaw 1: the projection is shrunk toward the CURRENT posted line.
+    # weight 0 = raw projection, weight 1 = the line, 0.5 = the midpoint.
+    assert anchor_projection(300.0, 245.5, 0.0) == 300.0
+    assert anchor_projection(300.0, 245.5, 1.0) == 245.5
+    assert abs(anchor_projection(300.0, 245.5, 0.5) - 272.75) < 1e-9
+    # A projection already on the line does not move, whatever the weight.
+    assert anchor_projection(245.5, 245.5, 0.5) == 245.5
+    # Out-of-range weights are rejected, not silently clamped.
+    for bad in (-0.1, 1.1):
+        try:
+            anchor_projection(300.0, 245.5, bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"weight {bad} should raise")
+
+def test_football_use_live_pace_false_uses_season_pace():
+    # Rate-only rework (pace-off-test-spec-2026-11-09), football arm:
+    # use_live_pace=False must project remaining plays at season pace
+    # exactly, whatever the live plays/min is. Same live rate in both calls.
+    # current=250 pins the live per-play rate at its cap (1.5x pregame) in
+    # every call, so the ONLY difference between the calls is the pace.
+    base = dict(current=250, elapsed_min=20, pregame_mean=245.5,
+                pregame_sd=55, pregame_per_play=3.8,
+                season_plays_per_min=1.05)
+    # Fast live pace (40 plays / 20 min = 2.0/min) with pace off == season
+    # pace (21 plays / 20 min = 1.05/min) with pace on.
+    off_fast, _ = project_final(PaceInput(plays_so_far=40, use_live_pace=False, **base))
+    on_season, _ = project_final(PaceInput(plays_so_far=21, **base))
+    assert abs(off_fast - on_season) < 1e-9, (off_fast, on_season)
+    on_fast, _ = project_final(PaceInput(plays_so_far=40, **base))
+    assert abs(on_fast - off_fast) > 1e-9, (on_fast, off_fast)
+    assert on_fast > off_fast, (on_fast, off_fast)
+
+def test_evaluate_team_pick_anchor():
+    # Grok flaw 1, team picks: the projection is anchored to the line before
+    # the gate. A projection far above the line still fires (edge survives
+    # the anchor), and the anchor weight is honored (weight 0 = raw).
+    pick = evaluate_team_pick(85, 8, 75.5, -110, -110)
+    assert pick["side"] == "over" and pick["ok"], pick
+    # With the anchor off, the same projection fires with a bigger edge.
+    raw = evaluate_team_pick(85, 8, 75.5, -110, -110, line_anchor_weight=0.0)
+    assert raw["ok"] and raw["model_p"] > pick["model_p"], (raw, pick)
+    # Anchoring a projection already on the line changes nothing.
+    on_line = evaluate_team_pick(75.5, 8, 75.5, -110, -110)
+    assert not on_line["ok"], on_line
 
 def test_sport_registry_has_all_four():
     assert set(SPORTS) == {"nfl", "ncaaf", "ncaab", "ncaaw", "nba"}

@@ -2,13 +2,30 @@
 Order matters (fixes old pacer bugs):
 1. Fetch stats + odds with as_of timestamps. Drop if stats >90s stale.
 2. Project (engine.py, sport adapter) — shrinkage + elapsed gate.
+   Rate-only (pace-off rework, pace-off-test-spec-2026-11-09): the live
+   projection uses the live RATE at SEASON pace (config use_live_pace=false);
+   the pace ratio is 1.0. The projection is then ANCHORED to the current
+   posted line (Grok flaw 1) before any edge is computed.
 3. Edge vs no-vig — gates in config.yaml.
 4. Dedupe (sport, game, player, market, side) — one ever.
-5. RE-CHECK Bovada once at send time — drop if line/price moved against you.
+5. RE-CHECK PropLine once at send time — drop if line/price moved against you.
 6. Log pick + snapshot to state/picks.jsonl BEFORE any alert.
 7. Alert only if mode == 'alert' (Telegram). mode == 'log_only' logs only.
 Never auto-bets. Never uses final box score at decision time. Never places
-an order on Bovada — there is no code path that does.
+an order on any sportsbook — there is no code path that does. No code in
+Prop1 fetches from, logs into, or places bets with Bovada or any sportsbook;
+odds come from PropLine (Odds API) only.
+
+Prior rule (Grok flaw 2): the prior mean is the FIRST-SEEN PropLine line
+frozen BEFORE the game starts. Run `runner.py --freeze-priors` on a cron
+before the slate to freeze pregame lines. evaluate_line REJECTS a prior
+that was not frozen pregame (skip "prior_not_pregame") unless a
+priors.yaml override exists for that player/market.
+
+Quota (Grok flaw 3): every PropLine fetch is reserved against the budgets
+in config.yaml (propline_daily_budget / propline_monthly_budget) before the
+request is sent. Over budget -> QuotaExceeded, the sport is skipped and the
+run logs it. Polling is 300s per sport, only while that sport has live games.
 
 Usage:
   python3 runner.py --once                       # one cycle, all sports in config
@@ -16,6 +33,7 @@ Usage:
   python3 runner.py --once --dry-run            # fixtures/, no network, no Telegram
   python3 runner.py --once --mode alert         # overrides config mode (still log-first)
   python3 runner.py --loop --interval 30        # repeat until stopped (use cron instead in prod)
+  python3 runner.py --freeze-priors             # freeze pregame lines, then exit
 """
 from __future__ import annotations
 import argparse, json, sys, time
@@ -26,10 +44,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 import yaml
 from engine import (PaceInput, BasketballPaceInput, project_final,
                     project_basketball_final, prob_over_yards, prob_over_td,
-                    american_to_implied, remove_vig, evaluate_pick, passes_gates, SPORTS)
-from bovada import fetch_bovada_props, extract_bovada_lines, find_line
+                    american_to_implied, remove_vig, evaluate_pick, passes_gates,
+                    anchor_projection, SPORTS)
+from propline import (fetch_propline_props, extract_propline_lines, find_line,
+                      configure_bookmakers, configure_quota)
+from quota import QuotaExceeded, QuotaTracker
 from live_feed import fetch_live_games, fetch_game_summary, parse_scoreboard, parse_summary
-from priors import load_priors_yaml, get_prior, freeze_first_line
+from priors import (load_priors_yaml, get_prior, freeze_first_line,
+                    frozen_prior, is_pregame_frozen, parse_commence_time)
 from notifier import send_telegram, format_pick
 
 ROOT = Path(__file__).parent
@@ -67,11 +89,31 @@ def load_config(path: Path = ROOT / "config.yaml") -> dict:
     return yaml.safe_load(path.read_text())
 
 def load_top30(path: Path = ROOT / "top30_ncaaf.yaml") -> set[str]:
+    """Return the set of ESPN displayNames for the Top-30 NCAAF teams.
+    The yaml lists AP poll spellings (teams:) and maps each to ESPN's
+    displayName (espn_display_names:). The runner matches against ESPN
+    displayNames because that is what the scoreboard returns — matching AP
+    spellings against ESPN names silently dropped every game (Grok flaw 4).
+    If a team has no mapping entry, its AP spelling is used as-is and the
+    caller logs a warning (see load_top30_with_warnings)."""
     try:
         data = yaml.safe_load(path.read_text()) or {}
-        return set(data.get("teams") or [])
     except Exception:
         return set()
+    teams = data.get("teams") or []
+    mapping = data.get("espn_display_names") or {}
+    return {mapping.get(t, t) for t in teams}
+
+def load_top30_with_warnings(path: Path = ROOT / "top30_ncaaf.yaml") -> tuple[set[str], list[str]]:
+    """Like load_top30, plus the list of AP names with no ESPN mapping."""
+    try:
+        data = yaml.safe_load(path.read_text()) or {}
+    except Exception:
+        return set(), []
+    teams = data.get("teams") or []
+    mapping = data.get("espn_display_names") or {}
+    missing = [t for t in teams if t not in mapping]
+    return {mapping.get(t, t) for t in teams}, missing
 
 def dedupe_key(sport, game_id, player, market, side) -> str:
     return f"{sport}|{game_id}|{player}|{market}|{side}"
@@ -102,12 +144,28 @@ def log_skip(reason: str, ctx: dict, state_dir: Path = STATE):
     with open(state_dir / "skips.jsonl", "a") as f:
         f.write(json.dumps({"reason": reason, "ctx": ctx, "at": time.time()}) + "\n")
 
+def configure_odds(cfg: dict, state_dir: Path = STATE) -> None:
+    """Wire config.yaml into the PropLine client: the bookmaker allowlist
+    and the quota tracker. Called once per run_once / freeze cycle."""
+    configure_bookmakers(cfg.get("odds_bookmakers") or None)
+    try:
+        configure_quota(QuotaTracker(
+            state_dir,
+            daily_budget=int(cfg.get("propline_daily_budget", 500)),
+            monthly_budget=int(cfg.get("propline_monthly_budget", 1000))))
+    except Exception as e:
+        print(f"quota tracker unavailable ({e}) — PropLine calls unenforced")
+        configure_quota(None)
+
 def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
-                  priors_yaml: dict, state_dir: Path = STATE) -> dict | None:
-    """Evaluate one Bovada line against one game state. Returns a pick dict
-    or None (with a skip logged). Pure evaluation — no network, no alert."""
+                  priors_yaml: dict, state_dir: Path = STATE,
+                  require_pregame_prior: bool = True) -> dict | None:
+    """Evaluate one PropLine line against one game state. Returns a pick dict
+    or None (with a skip logged). Pure evaluation — no network, no alert.
+    require_pregame_prior=False is for dry-run/fixtures only (the fixture
+    line is a pregame snapshot by construction); production always requires
+    a pregame-frozen prior."""
     scfg = cfg.get(sport, {}) if sport != "ncaaf" else cfg.get("ncaaf", {})
-    # ncaaf config key in config.yaml is "ncaaf"; nfl is "nfl", etc.
     if sport == "ncaaf":
         scfg = cfg.get("ncaaf", {})
     else:
@@ -129,12 +187,31 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
         log_skip("no_player_stats", {"sport": sport, "game": game["game_id"], "player": player}, state_dir)
         return None
     cur = current_stat(prow, market)
-    # Prior: first-seen line frozen (never the live line)
-    first = freeze_first_line(state_dir, sport, game["game_id"], player, market, line_row["line"])
+    # Prior: first-seen line frozen (never the live line). The freeze records
+    # frozen_at + commence_time; the gate below verifies it was pregame.
+    first = freeze_first_line(state_dir, sport, game["game_id"], player, market,
+                              line_row["line"],
+                              commence_time=line_row.get("commence_time"))
+    has_override = bool(priors_yaml and player in priors_yaml
+                        and market in priors_yaml[player])
+    if require_pregame_prior and not has_override:
+        entry = frozen_prior(state_dir, sport, game["game_id"], player, market)
+        if not is_pregame_frozen(entry):
+            log_skip("prior_not_pregame",
+                     {"sport": sport, "game": game["game_id"], "player": player,
+                      "market": market, "frozen_at": (entry or {}).get("frozen_at"),
+                      "commence_time": (entry or {}).get("commence_time")},
+                     state_dir)
+            return None
     prior = get_prior(sport, player, market, first, priors_yaml)
     if prior["mean"] is None:
         return None
-    # Project
+    # Rate-only rework (Grok flaw 5): the live projection uses the live rate
+    # at SEASON pace. config use_live_pace=false is the live default.
+    use_live_pace = bool(cfg.get("use_live_pace", False))
+    anchor_w = float(cfg.get("line_anchor_weight", 0.5))
+    # Project, then anchor the projection to the CURRENT posted line (Grok
+    # flaw 1) before any probability or edge is computed.
     if sport in ("nfl", "ncaaf"):
         plays = game.get("team_plays")
         if plays is None:
@@ -144,13 +221,14 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
         if sport == "ncaaf" and elapsed > 30 and lead >= scfg.get("blowout_lead_skip", 28):
             log_skip("blowout", {"sport": sport, "game": game["game_id"], "lead": lead}, state_dir)
             return None
-        proj, sd = project_final(PaceInput(
+        proj_raw, sd = project_final(PaceInput(
             current=cur, elapsed_min=elapsed, total_min=total_min,
             pregame_mean=prior["mean"], pregame_sd=prior["sd"],
             pregame_per_play=prior["rate"], plays_so_far=plays,
             season_plays_per_min=scfg.get("season_plays_per_min", 1.05),
-            sd_inflation=sd_inf))
-        pace_note = f"{plays} plays, {proj:.0f} projected"
+            sd_inflation=sd_inf, use_live_pace=use_live_pace))
+        proj = anchor_projection(proj_raw, line_row["line"], anchor_w)
+        pace_note = f"{plays} plays, {proj:.0f} projected (raw {proj_raw:.0f})"
     else:
         if prow.get("fouls", 0) >= 4:
             log_skip("foul_trouble_4", {"sport": sport, "player": player}, state_dir)
@@ -161,25 +239,33 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
             return None
         lead = game["home_score"] - game["away_score"]
         # Real live pace: game possessions from the ESPN boxscore team block
-        # (live_feed.parse_summary). NEVER the elapsed*season-pace estimate —
-        # that made the pace ratio exactly 1.0 (a no-op). Fail-closed if the
-        # summary had no parseable team totals.
+        # (live_feed.parse_summary). Only needed when live pace is actually
+        # used (use_live_pace=True); the rate-only default (pace ratio 1.0)
+        # does not need possessions, so a missing team block is not a skip
+        # there. NEVER the elapsed*season-pace estimate — that made the pace
+        # ratio exactly 1.0 (a no-op). Fail-closed if the summary had no
+        # parseable team totals AND live pace is on.
         poss = (game.get("possessions") or {}).get("game")
-        if poss is None:
+        if use_live_pace and poss is None:
             log_skip("no_team_possessions", {"sport": sport, "game": game["game_id"]}, state_dir)
             return None
-        proj, sd = project_basketball_final(BasketballPaceInput(
+        proj_raw, sd = project_basketball_final(BasketballPaceInput(
             current=cur, minutes_played=minutes, elapsed_min=elapsed, total_min=total_min,
             pregame_mean=prior["mean"], pregame_sd=prior["sd"],
             pregame_per_min=prior["rate"], pregame_minutes=prior["pregame_minutes"] or 30,
             fouls=int(prow.get("fouls", 0)), lead=lead,
             season_poss_per_min=scfg.get("season_poss_per_min", 1.75),
-            poss_so_far=int(round(poss)),
-            sd_inflation=sd_inf))
-        pace_note = (f"{minutes:.0f} min played, {proj:.1f} projected, "
-                     f"{int(prow.get('fouls',0))} fouls, {poss:.0f} poss")
+            poss_so_far=int(round(poss)) if poss is not None else 0,
+            sd_inflation=sd_inf, use_live_pace=use_live_pace))
+        proj = anchor_projection(proj_raw, line_row["line"], anchor_w)
+        pace_note = (f"{minutes:.0f} min played, {proj:.1f} projected "
+                     f"(raw {proj_raw:.1f}), {int(prow.get('fouls',0))} fouls, "
+                     f"{poss:.0f} poss" if poss is not None else
+                     f"{minutes:.0f} min played, {proj:.1f} projected "
+                     f"(raw {proj_raw:.1f}), {int(prow.get('fouls',0))} fouls")
     # Probability — low-count markets (TDs / threes) use Poisson(lambda=proj),
-    # everything else uses Normal(mean=proj, sd=sd).
+    # everything else uses Normal(mean=proj, sd=sd). The projection here is
+    # already line-anchored, so the probability is vs the anchored mean.
     if market in ("player_anytime_td", "player_pass_tds", "player_threes"):
         from engine import poisson_pmf
         lam = max(0.0, proj)
@@ -212,9 +298,13 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
         "home_team": line_row.get("home_team"), "away_team": line_row.get("away_team"),
         "player": player, "market": market, "market_label": MARKET_LABEL.get(market, market),
         "side": best["side"], "line": line_row["line"], "odds": best["price"],
+        "odds_source": "propline",
+        "bookmakers": line_row.get("bookmakers"),
         "model_p": round(best["model_p"], 4), "fair_p": round(best["fair_p"], 4),
         "edge_pp": round(best["model_p"] - best["fair_p"], 4), "ev": round(best["ev"], 4),
-        "projected_final": round(proj, 2), "current": cur,
+        "projected_final": round(proj, 2), "projected_raw": round(proj_raw, 2),
+        "line_anchor_weight": anchor_w, "use_live_pace": use_live_pace,
+        "current": cur,
         "elapsed_min": round(elapsed, 1), "pace_note": pace_note,
         "stake_units": cfg.get("flat_units", 0.5),
         "log_id": f"{sport}_{game['game_id']}_{player}_{market}_{best['side']}_{line_row['line']}",
@@ -222,11 +312,58 @@ def evaluate_line(sport: str, line_row: dict, game: dict, cfg: dict,
     }
     return pick
 
+def freeze_priors(cfg: dict, sports: list[str], state_dir: Path = STATE) -> dict:
+    """Pregame freeze (Grok flaw 2): fetch PropLine odds for every configured
+    sport and freeze the line for each (sport, game, player, market) whose
+    commence_time is still in the future. Never overwrites an existing
+    frozen line. Run on a cron BEFORE the slate (morning / pregame).
+    Returns {"frozen": n_new, "already": n_existing, "started": n_skipped,
+    "errors": [...]}. Each sport costs one PropLine call (quota applies)."""
+    configure_odds(cfg, state_dir)
+    now = time.time()
+    counts = {"frozen": 0, "already": 0, "started": 0, "errors": []}
+    for sport in sports:
+        sport = "ncaaf" if sport == "ncaaf_top30" else sport
+        try:
+            odds_payload = fetch_propline_props(sport)
+        except QuotaExceeded as e:
+            counts["errors"].append(f"{sport}: quota exceeded ({e})")
+            print(f"[{sport}] freeze skipped: quota exceeded ({e})")
+            continue
+        except Exception as e:
+            counts["errors"].append(f"{sport}: {e}")
+            print(f"[{sport}] freeze failed: {e}")
+            continue
+        for row in extract_propline_lines(odds_payload, sport):
+            commence = parse_commence_time(row.get("commence_time"))
+            if commence is None:
+                counts["started"] += 1
+                continue
+            if commence <= now:
+                counts["started"] += 1
+                continue
+            key = f"{sport}|{row['game_id']}|{row['player']}|{row['market']}"
+            if frozen_prior(state_dir, sport, row["game_id"], row["player"],
+                            row["market"]) is not None:
+                counts["already"] += 1
+                continue
+            freeze_first_line(state_dir, sport, row["game_id"], row["player"],
+                              row["market"], row["line"],
+                              commence_time=row.get("commence_time"))
+            counts["frozen"] += 1
+    print(f"freeze-priors done: {counts}")
+    return counts
+
 def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
              state_dir: Path = STATE) -> list[dict]:
     """One cycle. Returns picks logged (before any alert)."""
+    configure_odds(cfg, state_dir)
     priors_yaml = load_priors_yaml(ROOT / "priors.yaml")
-    top30 = load_top30()
+    top30, top30_missing = load_top30_with_warnings()
+    if top30_missing:
+        print(f"[ncaaf] WARNING: {len(top30_missing)} Top-30 teams have no "
+              f"ESPN displayName mapping and fall back to AP spelling: "
+              f"{', '.join(top30_missing)}")
     picks: list[dict] = []
     picks_this_slate: dict[str, int] = {}
     for sport in sports:
@@ -246,7 +383,7 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
                 sb_payload = _json.loads((ROOT / "fixtures" / f"espn_{sport}_scoreboard.json").read_text())
                 sb_payload["as_of"] = time.time()
                 games_live = parse_scoreboard(sb_payload, sport)
-                lines = extract_bovada_lines(odds_payload, sport)
+                lines = extract_propline_lines(odds_payload, sport)
                 # Dry-run: use the fixture summary for the one game in the fixture
                 summaries = {}
                 sum_path = ROOT / "fixtures" / f"espn_{sport}_summary.json"
@@ -263,16 +400,21 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
                 if not games_live:
                     print(f"[{sport}] no live games — skipping PropLine odds")
                     continue
-                odds_payload = fetch_bovada_props(sport)
-                lines = extract_bovada_lines(odds_payload, sport)
+                odds_payload = fetch_propline_props(sport)
+                lines = extract_propline_lines(odds_payload, sport)
                 summaries = {}
+        except QuotaExceeded as e:
+            print(f"[{sport}] PropLine quota exceeded — skipping cycle: {e}")
+            log_skip("propline_quota", {"sport": sport, "error": str(e)}, state_dir)
+            continue
         except Exception as e:
             print(f"[{sport}] fetch failed, skipping cycle: {e}")
             continue
         if not games_live:
             continue
         for gl in games_live:
-            # NCAAF Top-30 filter
+            # NCAAF Top-30 filter — gl home/away are ESPN displayNames,
+            # top30 is the mapped ESPN displayName set (Grok flaw 4).
             if sport == "ncaaf" and top30:
                 if gl.get("home") not in top30 and gl.get("away") not in top30:
                     continue
@@ -302,20 +444,24 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
             for row in lines:
                 if str(row["game_id"]) != str(gl["game_id"]):
                     continue
-                pick = evaluate_line(sport, row, game, cfg, priors_yaml, state_dir)
+                # Dry-run fixtures are pregame snapshots by construction, so
+                # the pregame-prior gate is bypassed there. Production always
+                # requires a pregame-frozen prior.
+                pick = evaluate_line(sport, row, game, cfg, priors_yaml, state_dir,
+                                     require_pregame_prior=not dry_run)
                 if not pick:
                     continue
                 # Dedupe
                 key = dedupe_key(sport, pick["game_id"], pick["player"], pick["market"], pick["side"])
                 if already_picked(key, state_dir):
                     continue
-                # Re-check Bovada once
+                # Re-check PropLine once
                 try:
                     if dry_run:
                         recheck = row
                     else:
-                        recheck_payload = fetch_bovada_props(sport)
-                        recheck_lines = extract_bovada_lines(recheck_payload, sport)
+                        recheck_payload = fetch_propline_props(sport)
+                        recheck_lines = extract_propline_lines(recheck_payload, sport)
                         recheck = find_line(recheck_lines, pick["game_id"], pick["player"],
                                             pick["market"], pick["line"])
                     if recheck is None:
@@ -333,6 +479,10 @@ def run_once(cfg: dict, sports: list[str], mode: str, dry_run: bool = False,
                             log_skip("recheck_price_moved", {"pick": pick["log_id"], "old": pick["odds"], "new": new_price}, state_dir)
                             continue
                     pick["odds"] = new_price
+                except QuotaExceeded as e:
+                    print(f"[{sport}] re-check skipped (quota): {e}")
+                    log_skip("recheck_quota", {"pick": pick["log_id"]}, state_dir)
+                    continue
                 except Exception as e:
                     print(f"[{sport}] re-check failed, dropping pick {pick['log_id']}: {e}")
                     continue
@@ -357,8 +507,8 @@ def _poll_interval_seconds(sport: str, cfg: dict) -> int:
     Football uses poll_seconds, basketball uses basketball_poll_seconds.
     A sport is only polled while it has live games (see run_once)."""
     if sport in ("ncaab", "ncaaw"):
-        return int(cfg.get("basketball_poll_seconds", 180))
-    return int(cfg.get("poll_seconds", 150))
+        return int(cfg.get("basketball_poll_seconds", 300))
+    return int(cfg.get("poll_seconds", 300))
 
 
 def main():
@@ -372,6 +522,9 @@ def main():
     ap.add_argument("--sport", default=None, help="nfl | ncaaf | ncaab | ncaaw")
     ap.add_argument("--mode", default=None, help="log_only | alert (overrides config)")
     ap.add_argument("--dry-run", action="store_true", help="use fixtures/, no network, no Telegram")
+    ap.add_argument("--freeze-priors", action="store_true",
+                    help="freeze pregame PropLine lines for all sports, then exit. "
+                         "Run on a cron BEFORE the slate (morning / pregame).")
     ap.add_argument("--config", default=str(ROOT / "config.yaml"))
     args = ap.parse_args()
     cfg = load_config(Path(args.config))
@@ -385,6 +538,9 @@ def main():
         print("runner.lock exists — another run is active, exiting"); return 0
     lock.write_text(str(time.time()))
     try:
+        if args.freeze_priors:
+            freeze_priors(cfg, sports)
+            return 0
         if args.loop:
             # Per-sport pacing: each sport is polled on its own clock
             # (config poll_seconds / basketball_poll_seconds) and only
