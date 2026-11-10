@@ -1,0 +1,3 @@
+$ show fx_paper/journal-20261110.jsonl
+started 2026-11-10 17:14:17 EST
+RUNNING...
