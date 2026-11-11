@@ -169,3 +169,80 @@ def test_runner_eod_defer_has_a_time_limit(tmp_path):
     cli = _turtle_cli({"EUR_USD": (1.0990, 1.1010, True)})
     Runner(cfg(systems=["faith-turtle"]), {"faith-turtle": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 18, 35), log=lambda m: None).run()
     assert [w for w in cli.writes if w[0] == "stop"]
+
+
+# ---- 2026-11-11: entries_off (losing systems) and the news pause
+from fxexp import news as fxnews
+
+def test_entries_off_system_plans_and_places_nothing(tmp_path):
+    cli = FakeCli(flat(), intraday=(1.1, 1.0950, 1.1010))
+    c = cfg(entries_off=["lien-fader"])
+    Runner(c, {"lien-fader": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 18), log=lambda m: None).run()
+    Runner(c, {"lien-fader": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 23), log=lambda m: None).run()
+    assert not [w for w in cli.writes if w[0] == "create"]
+    assert json.load(open(tmp_path / "s.json"))["lien-fader"]["EUR_USD"]["orders"] == []
+
+def test_entries_off_still_manages_open_trades(tmp_path):
+    cli = _turtle_cli()
+    Runner(cfg(systems=["faith-turtle"], entries_off=["faith-turtle"]), {"faith-turtle": cli}, str(tmp_path / "s.json"),
+           now=ny(2026, 10, 4, 18), log=lambda m: None).run()
+    assert [w for w in cli.writes if w[0] == "stop"]          # trailing stop still moved
+    assert not [w for w in cli.writes if w[0] == "create"]
+
+def test_entries_off_cancels_waiting_orders(tmp_path):
+    cli = FakeCli(flat(), intraday=(1.1, 1.0950, 1.1010))
+    Runner(cfg(), {"lien-fader": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 18), log=lambda m: None).run()
+    Runner(cfg(), {"lien-fader": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 23), log=lambda m: None).run()
+    assert cli.orders                                        # an entry order is waiting at the broker
+    Runner(cfg(entries_off=["lien-fader"]), {"lien-fader": cli}, str(tmp_path / "s.json"), now=ny(2026, 10, 4, 23, 30), log=lambda m: None).run()
+    assert not cli.orders and [w for w in cli.writes if w[0] == "cancel"]
+
+def _news_runner(tmp_path, cli, when, events):
+    r = Runner(cfg(), {"lien-fader": cli}, str(tmp_path / "s.json"), now=when, log=lambda m: None)
+    r._news = events
+    return r
+
+def test_news_window_blocks_new_orders_then_allows_after(tmp_path):
+    rel = ny(2026, 10, 5, 8, 30)
+    ev = [{"t": rel.isoformat(), "ccy": "EUR", "title": "German Prelim CPI"}]   # non-US: 30 min before, 60 after
+    cli = FakeCli(flat(), intraday=(1.1, 1.0990, 1.1010))                       # not armed yet
+    _news_runner(tmp_path, cli, ny(2026, 10, 4, 18), ev).run()                  # plan (no news yet)
+    assert not [w for w in cli.writes if w[0] == "create"]
+    cli.ix = (1.1, 1.0950, 1.1010)                                              # broke below PDL-15 -> long armed
+    _news_runner(tmp_path, cli, ny(2026, 10, 5, 8, 10), ev).run()               # 20 min before -> blocked
+    assert not [w for w in cli.writes if w[0] == "create"]
+    _news_runner(tmp_path, cli, ny(2026, 10, 5, 9, 45), ev).run()               # 75 min after -> allowed
+    assert [w for w in cli.writes if w[0] == "create"]
+
+def test_news_window_cancels_waiting_entry_and_rearms(tmp_path):
+    cli = FakeCli(flat(), intraday=(1.1, 1.0950, 1.1010))
+    _news_runner(tmp_path, cli, ny(2026, 10, 4, 18), []).run()
+    _news_runner(tmp_path, cli, ny(2026, 10, 5, 3), []).run()
+    assert cli.orders
+    rel = ny(2026, 10, 5, 10)
+    ev = [{"t": rel.isoformat(), "ccy": "USD", "title": "Non-Farm Employment Change"}]   # big three: 120 min before
+    _news_runner(tmp_path, cli, ny(2026, 10, 5, 8, 15), ev).run()
+    assert not cli.orders
+    st = json.load(open(tmp_path / "s.json"))["lien-fader"]["EUR_USD"]["orders"]
+    assert any(r["status"] == "armed" for r in st)
+
+def test_news_blocked_rules():
+    t = ny(2026, 11, 10, 8, 30)
+    ev = [{"t": t.isoformat(), "ccy": "USD", "title": "Core CPI m/m"}, {"t": t.isoformat(), "ccy": "JPY", "title": "BOJ Policy Rate"}]
+    assert fxnews.blocked("EUR_USD", t - timedelta(minutes=110), ev)            # US CPI: 120 min before
+    assert not fxnews.blocked("EUR_USD", t + timedelta(minutes=61), ev)
+    assert fxnews.blocked("CAD_JPY", t - timedelta(minutes=20), ev)             # JPY event, other currency of the pair
+    assert not fxnews.blocked("CAD_JPY", t - timedelta(minutes=40), ev)         # normal event: only 30 min before
+    assert not fxnews.blocked("EUR_GBP", t, ev)
+
+def test_news_calendar_cache_and_fallback(tmp_path):
+    now = datetime(2026, 11, 11, 12, tzinfo=timezone.utc)
+    rows = [{"title": "Core CPI m/m", "country": "USD", "date": "2026-11-12T08:30:00-05:00", "impact": "High"},
+            {"title": "Minor", "country": "USD", "date": "2026-11-12T10:00:00-05:00", "impact": "Low"}]
+    ev, src = fxnews.load_events(tmp_path / "c.json", now, fetch=lambda: rows, log=lambda m: None)
+    assert src == "forexfactory" and sum(e["title"] == "Core CPI m/m" for e in ev) == 1 and not any(e["title"] == "Minor" for e in ev)
+    def boom(): raise OSError("down")
+    ev2, src2 = fxnews.load_events(tmp_path / "c.json", now + timedelta(hours=7), fetch=boom, log=lambda m: None)
+    assert any(e["title"] == "Core CPI m/m" for e in ev2)                       # stale cache still used
+    ev3, src3 = fxnews.load_events(tmp_path / "none.json", now, fetch=boom, log=lambda m: None)
+    assert src3.startswith("fallback") and all(e["title"] == "FOMC decision" for e in ev3)

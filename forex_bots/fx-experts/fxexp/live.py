@@ -19,6 +19,7 @@ from .strategies.base import Order, Position
 from .instruments import PAIRS, ALL_PAIRS, pip, precision, rnd, spread as typ_spread, MAX_SPREAD_MULT
 from .sizing import units_for_risk
 from .oanda import Oanda, OandaError
+from . import news
 
 NY = ZoneInfo("America/New_York")
 TAG = "fxexp"
@@ -140,6 +141,19 @@ class Runner:
     def pairs_for(self, sid, strat):
         return self.cfg.get("system_pairs", {}).get(sid) or strat.pairs or self.cfg["pairs"]
 
+    # 2026-11-11 owner: "turn off the losers": systems listed in cfg["entries_off"] take no new entries, but their
+    # open trades keep being managed (trailing stops, time exits, Crabel's 16:50 close). Undo: empty the list.
+    def entries_ok(self, sid):
+        return not self.cfg.get("no_new_entries") and sid not in self.cfg.get("entries_off", [])
+
+    # 2026-11-11 owner: "add news pause" (fxexp/news.py). Off with cfg["news_pause"] = false.
+    def news_reason(self, pair):
+        if not self.cfg.get("news_pause", True): return ""
+        if not hasattr(self, "_news"):
+            cache = os.path.join(os.path.dirname(self.state_path) or ".", "news_calendar.json")
+            self._news, src = news.load_events(cache, self.now, fetch=getattr(self, "news_fetch", news.fetch_ff), log=self.log)
+        return news.blocked(pair, self.now, self._news)
+
     def prices(self, cli):
         if not self._prices:
             names = list(dict.fromkeys(list(PAIRS) + [p for sid in self.cfg["systems"] for p in self.pairs_for(sid, BY_SID[sid]())]))
@@ -193,7 +207,8 @@ class Runner:
                 carry = [r for r in ps["orders"] if r["exp"] >= str(td) and r["status"] in ("planned", "armed", "placed")]
                 for r in carry: r["status"] = "planned"
                 ps["orders"] = carry
-                if not ptrades and not self.cfg.get("no_new_entries"):
+                if not self.entries_ok(sid): ps["orders"] = []
+                if not ptrades and self.entries_ok(sid):
                     for i, o in enumerate(strat.plan(hist, pair, ps["sstate"])):
                         ps["orders"].append({"o": o2d(o), "status": "planned", "cid": f"{sid[:6]}-{pair}-{td:%Y%m%d}-{i}", "exp": str(td + timedelta(days=o.expires_days))})
                 ps["day"] = str(td)
@@ -206,12 +221,23 @@ class Runner:
                 for o in ppend: cli.cancel_order(o["id"])
                 continue
             if in_rollover(self.now): continue
+            if not self.entries_ok(sid) and not ptrades:
+                for o in ppend: cli.cancel_order(o["id"]); self.log(f"[{sid}] {pair} cancel {o['id']}: entries off for this system")
+                for r in ps["orders"]:
+                    if r["status"] in ("planned", "armed", "placed"): r["status"] = "cancelled"
+                continue
+            why = self.news_reason(pair)
+            if why and not ptrades:
+                for o in ppend: cli.cancel_order(o["id"]); self.log(f"[{sid}] {pair} cancel {o['id']}: {why}")
+                for r in ps["orders"]:
+                    if r["status"] == "placed": r["status"] = "armed"
+                continue
             if pair in busy and not ptrades:
                 for o in ppend: cli.cancel_order(o["id"]); self.log(f"[{sid}] {pair} cancel {o['id']}: pair held by another system/bot")
                 for r in ps["orders"]:
                     if r["status"] == "placed": r["status"] = "armed"
                 continue
-            if strat.intraday and not ptrades and not self.cfg.get("no_new_entries"):
+            if strat.intraday and not ptrades and self.entries_ok(sid):
                 self.intraday_signal(sid, strat, cli, pair, ps, td)
             self.intraday_orders(sid, cli, pair, ps, ptrades, ppend, td, nav, mids, prices)
 
@@ -227,7 +253,7 @@ class Runner:
             day_k = len(pd.bdate_range(meta["entry_day"], str(td)))  # trading days incl. entry day
             if stopped:
                 pos = Position(meta["side"], float(tr["price"]), 0, None, 0, 0, None, meta=meta.get("meta", {}))
-                ro = strat.after_stop(pos, day_k, pair, ps["sstate"])
+                ro = strat.after_stop(pos, day_k, pair, ps["sstate"]) if self.entries_ok(sid) else None
                 if ro is not None:
                     ps["orders"] = [{"o": o2d(ro), "status": "planned", "cid": f"{sid[:6]}-{pair}-{td:%Y%m%d}-r",
                                      "exp": str(td + timedelta(days=ro.expires_days))}]
