@@ -1,0 +1,2 @@
+# timeout 300
+alpaca paper-pause on --state state/fx_paper --reason owner-2026-11-11-flatten-and-pause-claude-forex-runner
