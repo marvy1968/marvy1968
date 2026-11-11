@@ -1,3 +1,4 @@
 $ alpaca paper-flatten --state state/fx_paper
-started 2026-11-11 09:02:31 EST
-RUNNING...
+started 2026-11-11 09:02:31 EST, took 6s, exit 0
+
+intraday bot will close its own positions within 15 s (swing positions are not touched)
