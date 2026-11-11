@@ -1,0 +1,3 @@
+$ alpaca paper-pause on --state state/fx_paper --reason owner-2026-11-11-flatten-and-pause-claude-forex-runner
+started 2026-11-11 09:02:44 EST
+RUNNING...
