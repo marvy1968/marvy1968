@@ -1,3 +1,6 @@
 $ show fx_paper/journal-20261112.jsonl
-started 2026-11-11 21:08:33 EST
-RUNNING...
+started 2026-11-11 21:08:33 EST, took 0s, exit 0
+
+{"t": "2026-11-12T02:00:28+00:00", "kind": "signal", "strategy": "f0_h4", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-11T22:00:00+00:00", "close": 1.109645, "stop_dist": 0.0048475098943048245, "result": "paused (signal logged)"}
+{"t": "2026-11-12T02:01:41+00:00", "kind": "signal", "strategy": "conf_h4", "instrument": "USD_JPY", "side": "short", "bar": "2026-11-11T22:00:00+00:00", "close": 159.666, "stop_dist": 0.3453870685257758, "result": "paused (signal logged)"}
+{"t": "2026-11-12T02:01:41+00:00", "kind": "signal", "strategy": "cog_h4", "instrument": "EUR_USD", "side": "long", "bar": "2026-11-11T22:00:00+00:00", "close": 1.109645, "stop_dist": 0.001262273217355273, "result": "paused (signal logged)"}
