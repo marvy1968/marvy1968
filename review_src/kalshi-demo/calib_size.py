@@ -6,7 +6,14 @@ Per lane, from that lane's prior SETTLED bets (cached, recomputed when ledger ch
   new           (n<30):                              stake = bal * 0.5%
 Existing hard caps (max_stake_usd, KALSHI_TT_CAP, ...) are applied by callers as an upper bound.
 Off switch: CALIB_SIZING=off env, or data/CALIB_SIZING_OFF in either repo -> size() returns None (callers use old sizing).
-Every decision is appended to <repo>/data/calib_decisions.jsonl."""
+Every decision is appended to <repo>/data/calib_decisions.jsonl.
+
+Lane autopause (opt-in, default off): LANE_AUTOPAUSE_ALLOW is empty unless an operator
+lists venue:lane pairs. The intended candidate is kalshi:nba_prop_live_pacer. The same
+overconfident rule as size() (n>=30 and act < pred-0.03 on prior settled fills only)
+latches that lane to track-only until an operator clears it. pm:nba_prop_live is not
+eligible: a 3c trip on 2026-10-27 would have sat out a profitable paper book.
+force_track on nba_prop_live_pacer is a separate switch and is not modified here."""
 import csv, json, os, sqlite3, time
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -117,6 +124,184 @@ def size(venue, lane, p, price, me_type=None, cap_usd=None, dry=False, extra=Non
         return stake, info
     except Exception as ex:
         return None, {"tier": "error", "err": str(ex)[:120]}
+
+# Intended opt-in only. Not paused unless an operator puts this pair in LANE_AUTOPAUSE_ALLOW.
+# pm:nba_prop_live is excluded outright (see autopause_allowlisted).
+AUTOPAUSE_INTENDED = ("kalshi", "nba_prop_live_pacer")
+AUTOPAUSE_EXCLUDED = {("pm", "nba_prop_live")}
+
+def _norm_venue(venue):
+    v = str(venue or "").strip().lower()
+    if v in ("kalshi", "kalshi_demo"): return "kalshi"
+    if v in ("pm", "polymarket", "polymarket_paper"): return "pm"
+    return v
+
+def overconfident(n, pred, act):
+    """Same tier rule as lane_stats / size(): n>=30 and act < pred-0.03.
+    act == pred-0.03 stays calibrated (the size() comparison is act >= pred-TOL)."""
+    try:
+        n = int(n)
+        pred = float(pred)
+        act = float(act)
+    except (TypeError, ValueError):
+        return False
+    if n < MIN_N or pred == 0.0:
+        return False
+    return act < pred - TOL
+
+def _autopause_pairs(text):
+    out = []
+    for part in str(text or "").replace("\n", ",").split(","):
+        part = part.strip()
+        if not part or part.startswith("#") or ":" not in part:
+            continue
+        venue, lane = part.split(":", 1)
+        out.append((_norm_venue(venue), lane.strip()))
+    return out
+
+def autopause_allowlist():
+    """Opt-in venue:lane pairs. Default empty. Env LANE_AUTOPAUSE_ALLOW and/or
+    data/LANE_AUTOPAUSE_ALLOW (one pair per line or comma-separated).
+    Intended value when an operator wants the backstop: kalshi:nba_prop_live_pacer.
+    pm:nba_prop_live is dropped even if listed."""
+    chunks = [os.environ.get("LANE_AUTOPAUSE_ALLOW", "")]
+    for d in (KD, PD):
+        path = os.path.join(d, "LANE_AUTOPAUSE_ALLOW")
+        try:
+            chunks.append(open(path).read())
+        except OSError:
+            pass
+    allow = set()
+    for venue, lane in _autopause_pairs(",".join(chunks)):
+        if (venue, lane) in AUTOPAUSE_EXCLUDED:
+            continue
+        allow.add((venue, lane))
+    return allow
+
+def autopause_allowlisted(venue, lane):
+    venue = _norm_venue(venue)
+    if (venue, lane) in AUTOPAUSE_EXCLUDED:
+        return False
+    return (venue, lane) in autopause_allowlist()
+
+def autopause_state_path(venue="kalshi"):
+    base = KD if _norm_venue(venue) == "kalshi" else PD
+    return os.path.join(base, "lane_autopause.json")
+
+def _load_json(path):
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+def _save_json(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f, indent=1)
+    os.replace(tmp, path)
+
+def _operator_cleared(venue, lane, state_dir):
+    keys = set(_autopause_pairs(os.environ.get("LANE_AUTOPAUSE_CLEAR", "")))
+    path = os.path.join(state_dir or "", "LANE_AUTOPAUSE_CLEAR")
+    try:
+        keys.update(_autopause_pairs(open(path).read()))
+    except OSError:
+        pass
+    return (_norm_venue(venue), lane) in keys
+
+def clear_autopause(venue, lane, state_path=None):
+    """Operator lift. Stays lifted (does not immediately re-latch) until rearm_autopause."""
+    venue = _norm_venue(venue)
+    path = state_path or autopause_state_path(venue)
+    state = _load_json(path)
+    key = f"{venue}:{lane}"
+    rec = dict(state.get(key) or {})
+    rec.update(paused=False, cleared=True, cleared_at=datetime.now(CT).isoformat())
+    state[key] = rec
+    _save_json(path, state)
+    return rec
+
+def rearm_autopause(venue, lane, state_path=None):
+    """Drop the latch so a later overconfident check can pause the lane again."""
+    venue = _norm_venue(venue)
+    path = state_path or autopause_state_path(venue)
+    state = _load_json(path)
+    state.pop(f"{venue}:{lane}", None)
+    _save_json(path, state)
+    return state
+
+def autopause_status(venue, lane, stats=None, state_path=None):
+    """Return whether this lane must stay track-only. No-op unless allowlisted.
+    A trip latches until clear_autopause / LANE_AUTOPAUSE_CLEAR. Stats, when
+    passed in, must already be prior-settled only (the live ledger is settled
+    rows; replay_autopause filters settled_CT < filled_CT)."""
+    venue = _norm_venue(venue)
+    if not autopause_allowlisted(venue, lane):
+        return {"paused": False, "allowlisted": False, "venue": venue, "lane": lane}
+    path = state_path or autopause_state_path(venue)
+    state = _load_json(path)
+    key = f"{venue}:{lane}"
+    if _operator_cleared(venue, lane, os.path.dirname(path)):
+        rec = clear_autopause(venue, lane, path)
+        return {"paused": False, "allowlisted": True, "cleared": True, "venue": venue, "lane": lane, "n": rec.get("n"),
+                "pred": rec.get("pred"), "act": rec.get("act")}
+    rec = state.get(key) or {}
+    if rec.get("cleared") and not rec.get("paused"):
+        return {"paused": False, "allowlisted": True, "cleared": True, "venue": venue, "lane": lane}
+    if rec.get("paused"):
+        return {"paused": True, "allowlisted": True, "sticky": True, "venue": venue, "lane": lane,
+                "n": rec.get("n"), "pred": rec.get("pred"), "act": rec.get("act"), "tripped_at": rec.get("tripped_at"),
+                "reason": "track-only: %s (lane autopause)" % lane}
+    if stats is None:
+        stats = lane_stats(venue).get(lane_key(venue, lane)) or {"n": 0, "pred": None, "act": None}
+    n, pred, act = stats.get("n"), stats.get("pred"), stats.get("act")
+    if overconfident(n, pred, act):
+        rec = {"paused": True, "cleared": False, "n": n, "pred": pred, "act": act,
+               "tripped_at": datetime.now(CT).isoformat(), "rule": "n>=30 and act < pred-0.03"}
+        state[key] = rec
+        _save_json(path, state)
+        return {"paused": True, "allowlisted": True, "tripped": True, "venue": venue, "lane": lane,
+                "n": n, "pred": pred, "act": act, "tripped_at": rec["tripped_at"],
+                "reason": "track-only: %s (lane autopause)" % lane}
+    return {"paused": False, "allowlisted": True, "venue": venue, "lane": lane, "n": n, "pred": pred, "act": act}
+
+def prior_settled(fills, filled_ct):
+    """Fills whose settled_CT is strictly before this fill's filled_CT. No lookahead."""
+    asof = datetime.fromisoformat(filled_ct)
+    out = []
+    for row in fills:
+        if datetime.fromisoformat(row["settled_CT"]) < asof:
+            out.append(row)
+    return out
+
+def stats_from_fills(rows):
+    n = len(rows)
+    ps = [float(r["p_side"]) for r in rows if r.get("p_side") is not None]
+    pred = (sum(ps) / len(ps)) if ps else None
+    wins = sum(1 for r in rows if r.get("won"))
+    act = (wins / n) if n else None
+    return {"n": n, "pred": pred, "act": act, "wins": wins}
+
+def replay_autopause(fills, allowlisted):
+    """Walk fills in filled_CT order. Pause latches on the first overconfident
+    decision and stays latched. allowlisted False never pauses (default)."""
+    ordered = sorted(fills, key=lambda r: r["filled_CT"])
+    paused = False
+    first = None
+    decisions = []
+    for row in ordered:
+        st = stats_from_fills(prior_settled(ordered, row["filled_CT"]))
+        tripped_here = False
+        if allowlisted and not paused and overconfident(st["n"], st["pred"], st["act"]):
+            paused = True
+            tripped_here = True
+            first = {"filled_CT": row["filled_CT"], "n": st["n"], "pred": st["pred"], "act": st["act"], "wins": st["wins"]}
+        decisions.append({"filled_CT": row["filled_CT"], "paused": bool(allowlisted and paused),
+                          "n_prior": st["n"], "pred": st["pred"], "act": st["act"], "tripped_here": tripped_here})
+    return {"first": first, "decisions": decisions, "paused": bool(allowlisted and paused)}
 
 if __name__ == "__main__":
     for v in ("kalshi", "pm"):

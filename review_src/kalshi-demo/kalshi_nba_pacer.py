@@ -86,6 +86,36 @@ def fav_track_on():
     """2026-11-03 Marvin: NBA live favorites (ask > 50c) track-only. Off: KALSHI_NBA_LIVE_FAV_TRACK=off | data/KALSHI_NBA_LIVE_FAV_TRACK_OFF"""
     return os.environ.get("KALSHI_NBA_LIVE_FAV_TRACK", "on").lower() not in ("off", "0", "false", "no") and not os.path.exists(os.path.join(DATA, "KALSHI_NBA_LIVE_FAV_TRACK_OFF"))
 
+def compose_order_reason(*, kill, stake, calib_skip, placed, max_orders, demo_auto, has_key, ask, edge,
+                         fav_on, min10_on, force_tracked, autopause_paused):
+    """Track-only / skip reasons for one pacer candidate.
+    force_track is unchanged and is applied before lane autopause, so an
+    already force-tracked lane keeps the force_track reason. Autopause only
+    adds a track-only shadow when the lane is allowlisted and latched; the
+    default allowlist is empty, so autopause_paused stays false unless opted in."""
+    reason = None
+    if kill:
+        reason = f"kill: {kill}"
+    elif stake <= 0:
+        reason = calib_skip or "kelly stake 0"
+    elif placed >= max_orders:
+        reason = "max orders this run"
+    elif not (demo_auto and has_key):
+        reason = "DEMO_AUTO off / no key"
+    fav_track = reason is None and ask > 50 and fav_on
+    if fav_track:
+        reason = "track-only: nba_prop_live_pacer_fav"
+    min10 = reason is None and edge < 0.10 and min10_on
+    if min10:
+        reason = "track-only: nba_prop_live_pacer_lt10"
+    ftrack = reason is None and force_tracked
+    if ftrack:
+        reason = "track-only: nba_prop_live_pacer (force_track)"
+    ap_track = reason is None and autopause_paused
+    if ap_track:
+        reason = "track-only: nba_prop_live_pacer (lane autopause)"
+    return {"reason": reason, "fav_track": fav_track, "min10": min10, "ftrack": ftrack, "ap_track": ap_track}
+
 def main():
     if lane_off(): print("kalshi nba pacer lane OFF"); return
     if os.path.exists(os.path.join(HERE, "KILL")): print("KILL file"); return
@@ -170,28 +200,33 @@ def main():
         stake = PF.kelly_usd(pk, ask, gcfg["bankroll"], gcfg["staking"]["after_kelly_frac"], gcfg["staking"]["after_cap_pct"], cfg["max_stake_usd"], 1.0)
         _cs, _cal = CS.size("kalshi", "nba_prop_live_pacer", pk, ask / 100, cap_usd=cfg["max_stake_usd"], dry=DRY, extra={"ticker": m["ticker"]})
         if _cs is not None: stake = _cs   # 2026-11-01 calibration-tier sizing (off: CALIB_SIZING=off | data/CALIB_SIZING_OFF)
-        reason = None
-        if kill: reason = f"kill: {kill}"
-        elif stake <= 0: reason = (_cal or {}).get("calib_skip") or "kelly stake 0"
-        elif placed >= cfg["max_orders_per_run"]: reason = "max orders this run"
-        elif not (cfg.get("DEMO_AUTO") and c.has_key): reason = "DEMO_AUTO off / no key"
         # 2026-11-03 Marvin: NBA live favorites (ask > 50c; lane_roi "nba:live:ml:fav" 19-11 -4.4%) TRACK-ONLY: no order,
         # logged to data/track_only.jsonl as nba_prop_live_pacer_fav + graded. Off: KALSHI_NBA_LIVE_FAV_TRACK=off | data/KALSHI_NBA_LIVE_FAV_TRACK_OFF
-        fav_track = reason is None and ask > 50 and fav_track_on()
-        if fav_track: reason = "track-only: nba_prop_live_pacer_fav"
         # 2026-11-03 8:30 PM ET Marvin: NBA live orders need edge >= 10c; below -> track-only (nba_prop_live_pacer_lt10, graded).
         # Off: KALSHI_NBA_LIVE_MIN10=off | data/KALSHI_NBA_LIVE_MIN10_OFF
-        min10 = reason is None and edge < 0.10 and os.environ.get("KALSHI_NBA_LIVE_MIN10", "on").lower() not in ("off", "0", "false", "no") \
+        min10_on = os.environ.get("KALSHI_NBA_LIVE_MIN10", "on").lower() not in ("off", "0", "false", "no") \
             and not os.path.exists(os.path.join(DATA, "KALSHI_NBA_LIVE_MIN10_OFF"))
-        if min10: reason = "track-only: nba_prop_live_pacer_lt10"
         # 2026-11-09 Marvin: whole NBA pacer lane TRACK-ONLY via type_gate.json force_track "nba_prop_live_pacer" (graded in track_only.jsonl).
         # Off: remove it from force_track | env KALSHI_FORCE_TRACK=off | data/KALSHI_FORCE_TRACK_OFF
+        # This check is unchanged. Lane autopause (below) does not edit force_track and only runs when the lane is allowlisted.
         try:
             import type_gate as _TG
-            ftrack = reason is None and _TG.force_track("nba_prop_live_pacer", live=True)
+            force_tracked = _TG.force_track("nba_prop_live_pacer", live=True)
         except Exception as ex:
-            print("force_track check error -> track-only", str(ex)[:120]); ftrack = reason is None
-        if ftrack: reason = "track-only: nba_prop_live_pacer (force_track)"
+            print("force_track check error -> track-only", str(ex)[:120]); force_tracked = True
+        # Opt-in overconfident autopause. Default allowlist empty, so this stays false.
+        # Intended candidate: kalshi:nba_prop_live_pacer. pm:nba_prop_live is not allowlisted and is not consulted here.
+        autopause_paused = False
+        if CS.autopause_allowlisted("kalshi", "nba_prop_live_pacer"):
+            try:
+                autopause_paused = bool(CS.autopause_status("kalshi", "nba_prop_live_pacer").get("paused"))
+            except Exception as ex:
+                print("autopause check error -> track-only", str(ex)[:120]); autopause_paused = True
+        dec = compose_order_reason(kill=kill, stake=stake, calib_skip=(_cal or {}).get("calib_skip"), placed=placed,
+                                   max_orders=cfg["max_orders_per_run"], demo_auto=bool(cfg.get("DEMO_AUTO")), has_key=bool(c.has_key),
+                                   ask=ask, edge=edge, fav_on=fav_track_on(), min10_on=min10_on, force_tracked=force_tracked,
+                                   autopause_paused=autopause_paused)
+        reason, fav_track, min10, ftrack, ap_track = dec["reason"], dec["fav_track"], dec["min10"], dec["ftrack"], dec["ap_track"]
         go = reason is None and not DRY
         n = max(1, int(stake * 100 // ask))
         rec = {"ts": datetime.now(ag.CT).isoformat(), "date": today, "key": f"nbapacer:{g['id']}:{PM.norm(p['name'])}:{stt}:{x['T']}:{x['side']}",
@@ -210,10 +245,10 @@ def main():
             st["would"] += 1; done_games.add(gk)
         try: KP.log({"bot": "kalshi", "ex": "kalshi", "sport": "nba", "key": rec["key"], "pick": rec["pick"], "used": x["src"], "p_side": rec["p_side"], "why_old": x["why"], "dry": DRY})
         except Exception: pass
-        if (fav_track or min10 or ftrack) and not DRY:
+        if (fav_track or min10 or ftrack or ap_track) and not DRY:
             try:
                 import type_gate as TG
-                TG.track(os.path.join(DATA, "track_only.jsonl"), dict(rec, type="nba_prop_live_pacer_fav" if fav_track else ("nba_prop_live_pacer_lt10" if min10 else "nba_prop_live_pacer"), contracts=n, mode="track"))
+                TG.track(os.path.join(DATA, "track_only.jsonl"), dict(rec, type="nba_prop_live_pacer_fav" if fav_track else ("nba_prop_live_pacer_lt10" if min10 else ("nba_prop_live_pacer" if ftrack else "nba_prop_live_pacer_autopause")), contracts=n, mode="track"))
             except Exception as ex: print("fav track error", str(ex)[:120])
         if not DRY:
             with open(LOG, "a") as f: f.write(json.dumps(rec) + "\n")
