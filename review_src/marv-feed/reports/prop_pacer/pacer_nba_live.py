@@ -19,9 +19,26 @@ def _get(u): return json.loads(urllib.request.urlopen(urllib.request.Request(u, 
 def _n(v):
     try: return float(str(v).split("-")[0].replace(",", ""))
     except Exception: return 0.0
-def clk(c):
-    try: m, x = (str(c).split(":") + ["0"])[:2]; return float(m) + float(x) / 60
-    except Exception: return 12.0
+def _gc():
+    import importlib.util
+    mod = getattr(_gc, "mod", None)
+    if mod is not None:
+        return mod
+    here = os.path.dirname(os.path.abspath(__file__)); up = here; cands = []
+    for _ in range(5):
+        cands.append(os.path.join(up, "game_clock.py")); up = os.path.dirname(up)
+    cands.append("/opt/marv-feed/game_clock.py")
+    for c in cands:
+        if os.path.isfile(c):
+            spec = importlib.util.spec_from_file_location("game_clock_pacer_nba", c)
+            mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); _gc.mod = mod; return mod
+    raise ImportError("game_clock.py")
+def clk(c, period_minutes=12.0):
+    """Minutes left in the period. Ambiguous or unparseable clocks raise so the bet is not priced."""
+    left = _gc().parse_period_clock(c, period_minutes)
+    if left is None:
+        raise ValueError("ambiguous or unparseable clock: %r" % (c,))
+    return left
 def state(eid):
     s = _get(f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={eid}")
     comp = s["header"]["competitions"][0]; st = comp.get("status") or {}

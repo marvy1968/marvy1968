@@ -12,8 +12,6 @@ import json, os, re, sys, math, time, unicodedata, urllib.request
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-from pm_client import PMPublic
-import pm_type_gate as G
 CT = ZoneInfo("America/Chicago"); DATA = os.path.join(HERE, "data")
 TRACK = os.path.join(DATA, "track_only.jsonl"); STATE = os.path.join(DATA, "nba_live_state.json")
 RATES = os.path.join(DATA, "nba_rates_cache.json"); LOG = os.path.join(DATA, "nba_live.log")
@@ -90,11 +88,23 @@ def tail(mu, need, disp):
         cdf += math.exp(math.lgamma(k + rr) - math.lgamma(rr) - math.lgamma(k + 1) + rr * math.log(q) + k * math.log(1 - q))
     return max(0.0, 1 - cdf)
 
+def _gc():
+    import importlib.util
+    mod = getattr(_gc, "mod", None)
+    if mod is not None:
+        return mod
+    here = os.path.dirname(os.path.abspath(__file__)); up = here; cands = []
+    for _ in range(5):
+        cands.append(os.path.join(up, "game_clock.py")); up = os.path.dirname(up)
+    cands.append("/opt/marv-feed/game_clock.py")
+    for c in cands:
+        if os.path.isfile(c):
+            spec = importlib.util.spec_from_file_location("game_clock_pm_nba", c)
+            mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); _gc.mod = mod; return mod
+    raise ImportError("game_clock.py")
 def remaining(period, clock):
-    try: m, s = (clock.split(":") + ["0"])[:2] if ":" in clock else (0, clock); left_q = float(m) + float(s) / 60
-    except Exception: left_q = 0.0
-    if period > 4: return left_q
-    return max(0.0, (4 - period) * 12 + left_q)
+    """Total NBA minutes left. None = ambiguous or unparseable clock; callers skip the bet."""
+    return _gc().game_minutes_left(period, clock, period_minutes=12.0, n_periods=4, ot_minutes=5.0)
 
 def boxes():
     out = []
@@ -122,7 +132,10 @@ def boxes():
     return out
 
 def proj(p, g, r):
-    rem_game = remaining(g["period"], g["clock"]); played = p["cur"]["MIN"]
+    rem_game = remaining(g["period"], g["clock"])
+    if rem_game is None:
+        return None
+    played = p["cur"]["MIN"]
     if g["half"].lower().startswith(("half", "end")) and g["period"] in (2,): pass
     exp_left = max(0.0, r["min"] * 1.0 - played) if rem_game > 0 else 0.0
     share = r["min"] / 48.0; exp_left = min(exp_left * 0.5 + share * rem_game * 0.5, rem_game)
@@ -133,6 +146,8 @@ def proj(p, g, r):
     return min(exp_left, rem_game)
 
 def main():
+    from pm_client import PMPublic
+    import pm_type_gate as G
     if os.environ.get("NBA_LIVE", "").lower() in ("off", "0", "false") or os.path.exists(os.path.join(HERE, "NBA_LIVE_OFF")):
         print("NBA live props OFF (switch)"); return
     # 2026-10-26: old "never trades" warning removed; paper fills now go through pm_fill (PM_FILL_NBA_LIVE)
@@ -170,7 +185,9 @@ def main():
             stats["matched"] += 1
             thr = int(q.group(2)); need = thr - p["cur"][stt]
             if need <= 0: sk("already hit"); continue
-            left = proj(p, g, r); mu = r[stt] * left
+            left = proj(p, g, r)
+            if left is None: sk("bad clock"); continue
+            mu = r[stt] * left
             pm = tail(mu, need, DISP[stt])
             b0, a0 = f(m.get("bestBidQuote")), f(m.get("bestAskQuote"))
             if b0 is None or a0 is None: sk("no quote"); continue

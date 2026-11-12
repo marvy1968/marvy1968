@@ -4,8 +4,6 @@ Never places/changes bets, stakes or gates. Off: touch PACER_SHADOW_OFF in this 
 import json, os, sys, re, math, unicodedata, urllib.request, pickle, traceback
 from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-import numpy as np, pandas as pd
-from pacer import Pacer, FEAT  # noqa
 OUT = os.path.join(HERE, "nba_pacer_shadow.jsonl")
 SRC = {"poly": "/opt/polymarket-paper/data/track_only.jsonl", "kalshi": "/opt/kalshi-demo/data/track_only.jsonl"}
 RATES = "/opt/polymarket-paper/data/nba_rates_cache.json"
@@ -23,10 +21,29 @@ def box(gid):
             except Exception: mn, pf = 0.0, 0
             o[norm(a["athlete"]["displayName"])] = dict(id=a["athlete"]["id"], starter=int(bool(a.get("starter"))), MIN=mn, PF=pf)
     return o
-def clk(c):
-    try: return float(c.split(":")[0]) + float(c.split(":")[1]) / 60 if ":" in str(c) else float(c) / 60
-    except Exception: return 0.0
+def _gc():
+    import importlib.util
+    mod = getattr(_gc, "mod", None)
+    if mod is not None:
+        return mod
+    here = os.path.dirname(os.path.abspath(__file__)); up = here; cands = []
+    for _ in range(5):
+        cands.append(os.path.join(up, "game_clock.py")); up = os.path.dirname(up)
+    cands.append("/opt/marv-feed/game_clock.py")
+    for c in cands:
+        if os.path.isfile(c):
+            spec = importlib.util.spec_from_file_location("game_clock_shadow", c)
+            mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); _gc.mod = mod; return mod
+    raise ImportError("game_clock.py")
+def clk(c, period_minutes=12.0):
+    """Same parser as the live lanes. Ambiguous clocks raise; the row is skipped."""
+    left = _gc().parse_period_clock(c, period_minutes)
+    if left is None:
+        raise ValueError("ambiguous or unparseable clock: %r" % (c,))
+    return left
 def main():
+    import pandas as pd
+    from pacer import Pacer, FEAT  # noqa
     if os.path.exists(os.path.join(HERE, "PACER_SHADOW_OFF")): print("off"); return
     done = set()
     if os.path.exists(OUT):

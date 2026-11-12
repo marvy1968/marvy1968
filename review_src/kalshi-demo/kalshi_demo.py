@@ -10,6 +10,27 @@ ALLOWED_HOSTS = {"demo-api.kalshi.co", "external-api.demo.kalshi.co"}
 
 class ProductionRefused(RuntimeError): pass
 
+class OverfillRefused(RuntimeError):
+    """Optional guard, default off (KALSHI_REFUSE_OVERFILL=on or data/KALSHI_REFUSE_OVERFILL).
+
+    Flags a fill whose contract count is above the intended count and refuses to treat it as a
+    normal order (no remainder is rested; the caller records the error). This does not unwind an
+    exchange fill. It would not have caught the Nov 8 MIA@SAC cluster: those IOC fills were at
+    the intended size, not over it. Depth is not stored, so a full fill of a thin book is invisible
+    to this check.
+    """
+    def __init__(self, filled, intended, result):
+        super().__init__("fill %s exceeds intended %s" % (filled, intended))
+        self.filled = filled
+        self.intended = intended
+        self.result = result
+
+def refuse_overfill_on(data_dir):
+    flag = str(os.environ.get("KALSHI_REFUSE_OVERFILL", "off")).lower()
+    if flag in ("on", "1", "true", "yes"):
+        return True
+    return os.path.exists(os.path.join(data_dir, "KALSHI_REFUSE_OVERFILL"))
+
 def _dollars_to_cents(val):
     if val is None or val == "":
         return None
@@ -88,8 +109,12 @@ class KalshiDemo:
         except (TypeError, ValueError):
             filled = 0.0
         r["intended_count"] = int(count); r["filled_ioc"] = filled
-        rem = int(count) - int(filled)
         d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        if refuse_overfill_on(d) and filled > float(count) + 1e-9:
+            r["overfill_flag"] = True
+            r["overfill_refused"] = True
+            raise OverfillRefused(filled, int(count), r)
+        rem = int(count) - int(filled)
         on = os.environ.get("KALSHI_REST_PARTIAL", "on").lower() not in ("off", "0", "false", "no") and not os.path.exists(os.path.join(d, "KALSHI_REST_PARTIAL_OFF"))
         if rem <= 0 or not on:
             return r

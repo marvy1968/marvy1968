@@ -114,16 +114,30 @@ def rates(aid, cache):
     if SP == "nhl" and "PTS" not in r: r["PTS"] = r.get("G", 0) + r.get("A", 0)
     cache[aid] = r; return r
 
-def remaining(period, clock):
-    c = SPORTS[SP]
-    if SP == "epl":   # ESPN soccer displayClock is elapsed minutes e.g. "67'" / "45'+2'"
-        try: mins = float(re.match(r"(\d+)", clock).group(1))
-        except Exception: mins = 0.0
-        return max(0.0, c["len"] - mins)
-    try: m, s = (clock.split(":") + ["0"])[:2]; left = float(m) + float(s) / 60
-    except Exception: left = 0.0
-    if period > c["nper"]: return left
-    return max(0.0, (c["nper"] - period) * c["per"] + left)
+def _gc():
+    import importlib.util
+    mod = getattr(_gc, "mod", None)
+    if mod is not None:
+        return mod
+    here = os.path.dirname(os.path.abspath(__file__)); up = here; cands = []
+    for _ in range(5):
+        cands.append(os.path.join(up, "game_clock.py")); up = os.path.dirname(up)
+    cands.append("/opt/marv-feed/game_clock.py")
+    for c in cands:
+        if os.path.isfile(c):
+            spec = importlib.util.spec_from_file_location("game_clock_live_props", c)
+            mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod); _gc.mod = mod; return mod
+    raise ImportError("game_clock.py")
+def remaining(period, clock, sport=None):
+    """Minutes left. None = ambiguous or unparseable clock; callers skip the bet.
+    Colon-less floats are not minutes and not seconds."""
+    sp = sport or SP
+    c = SPORTS.get(sp)
+    if not c:
+        return None
+    if sp == "epl":
+        return _gc().epl_minutes_left(clock, length=c["len"])
+    return _gc().game_minutes_left(period, clock, period_minutes=c["per"], n_periods=c["nper"])
 
 def box_players(s):
     pl = {}
@@ -180,7 +194,13 @@ def evaluate(g, p, stt, thr, b0, a0, cache, stats, sk):
     cur = p["cur"].get(stt, 0); need = int(math.ceil(thr - cur - 1e-9))
     if need <= 0: sk("already hit"); return []
     left = remaining(g["period"], g["clock"])
-    mu = r[stt] * _NB().proj(p, g, r) if SP == "nba" else r[stt] * left / SPORTS[SP]["len"]
+    if left is None: sk("bad clock"); return []
+    if SP == "nba":
+        proj_left = _NB().proj(p, g, r)
+        if proj_left is None: sk("bad clock"); return []
+        mu = r[stt] * proj_left
+    else:
+        mu = r[stt] * left / SPORTS[SP]["len"]
     pm = tail(mu, need, SPORTS[SP]["disp"][stt]); mid = (b0 + a0) / 2; pc = (1 - SHRINK) * pm + SHRINK * mid
     src = "old"; wk = (g["id"], norm(p["name"]), stt, thr)
     WHY[wk] = "no calibrated pacer for " + SP if SP in ("nhl", "epl") else "pacer off (PACER_KP_%s_OFF)" % SP.upper()

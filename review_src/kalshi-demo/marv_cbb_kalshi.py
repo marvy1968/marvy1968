@@ -55,7 +55,7 @@ def trade(c, e, m, rec, DRY):
     o = dict(rec, ts=datetime.now(ag.CT).isoformat(), key=f"marvcbb:{e.get('key')}", ask=int(ask), fair_c=fair_c, edge_c=edge_c, stake=stake,
              mode="demo", src="marv_cbb", bet_type=rec["type"], me_game_key=f"{e.get('event_id')}:{e.get('market')}::", reason=None)
     try:
-        o["order"] = c.place_order(m["ticker"], side, n, int(ask)); g["placed"] += 1; g["skip"].add(m["ticker"])
+        o["order"] = c.place_order(m["ticker"], side, n, int(ask), meta=o); g["placed"] += 1; g["skip"].add(m["ticker"])
         if sk: g["sides"].add(sk)
     except Exception as ex: o["error"] = str(ex)[:200]
     with open(g["LOG"], "a") as fh: fh.write(json.dumps(o) + "\n")
