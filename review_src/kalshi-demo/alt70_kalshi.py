@@ -131,7 +131,7 @@ def main():
                "me_type": "alt70", "src": "alt70", "prop_player": x["who"] if x["kind"] == "player" else None,
                "prop_market": STAT_MK.get(x["stat"]), "kalshi_line": m["kalshi_line"], "mode": "demo"}
         try:
-            rec["order"] = c.place_order(m["ticker"], m["side"], max(1, int(stake * 100 // ask)), ask)
+            rec["order"] = c.place_order(m["ticker"], m["side"], max(1, int(stake * 100 // ask)), ask, meta=rec)
             placed += 1; skip.add(m["ticker"]); sides.add(sk)
         except Exception as ex:
             rec["error"] = str(ex)[:200]

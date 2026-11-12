@@ -160,7 +160,7 @@ def main():
             rec.update(BPX.lookup(e.get("sport"), e.get("market"), e.get("pick"), e.get("home"), e.get("away")))
             cnt = max(1, int(stake * 100 // ask))
             try:
-                rec["order"] = c.place_order(m["ticker"], "yes", cnt, ask)
+                rec["order"] = c.place_order(m["ticker"], "yes", cnt, ask, meta=rec)
                 placed += 1; sides.add(sk) if sk else None
             except Exception as ex:
                 rec["error"] = str(ex)

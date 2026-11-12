@@ -142,7 +142,9 @@ def main():
             if po is None:
                 r = PM.rates(p["id"], cache)
                 if not r: sk("old: no rates"); continue
-                mu = r[stt] * PM.proj(p, g, r); pm = PM.tail(mu, T - p["cur"][stt], PM.DISP[stt])
+                left_min = PM.proj(p, g, r)
+                if left_min is None: sk("bad clock"); continue
+                mu = r[stt] * left_min; pm = PM.tail(mu, T - p["cur"][stt], PM.DISP[stt])
                 po = (1 - SHRINK) * pm + SHRINK * ((ya + yb) / 200)
             st["priced"][src] += 1
             for side, ps in (("yes", po), ("no", 1 - po)):
