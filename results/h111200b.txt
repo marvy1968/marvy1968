@@ -1,3 +1,6 @@
 $ show fx_paper/journal-20261112.jsonl
-started 2026-11-11 19:10:49 EST
-RUNNING...
+started 2026-11-11 19:10:49 EST, took 0s, exit 1
+
+
+--- stderr ---
+head: cannot open '/opt/marv-bot/state/fx_paper/journal-20261112.jsonl' for reading: No such file or directory
