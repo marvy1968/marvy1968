@@ -1,0 +1,39 @@
+{
+ "enabled": true,
+ "_note": "2026-10-23 Marvin: only trade the most profitable bet types. 'trade' = types with settled P&L > 0 AND ROI > 0 on the Kalshi DEMO ledger (as of 2026-10-23 5 PM CT). Any type not listed (losers + types with no settled bets, incl. new sports) is TRACK-ONLY: evaluated + logged to data/track_only.jsonl, graded by track_grade.py, no order. Revert: touch TYPE_GATE_OFF (or env TYPE_GATE=off, or enabled=false).",
+ "trade": [
+  "value_live",
+  "ml:nfl",
+  "team_trend",
+  "prop:nfl"
+ ],
+ "_small_n": {
+  "team_trend": 1,
+  "prop:nfl": 1
+ },
+ "_track_only_record": {
+  "ml:nhl": "0-2 -$90",
+  "legacy_prop": "0-1 -$53",
+  "master_total:nfl": "1-1 -$5",
+  "ml:cfb": "0-1 -$0.4",
+  "alt70": "no settled",
+  "prop_live_unsent": "no settled",
+  "ml:nba": "no settled (6 open)",
+  "value / prop / other alert types": "no settled"
+ },
+ "never_trade": [
+  "h2h_cfb",
+  "line_swing",
+  "total_swing"
+ ],
+ "_never_trade_note": "2026-10-23 Marvin: swings track-only; honored even when the gate is off. Revert: touch NEVER_TRADE_OFF or env NEVER_TRADE=off. 2026-10-24: + h2h_cfb (CFB H2H model test, Marvin-only Telegram) never trades.",
+ "pin_trade": [
+  "ml:cfb"
+ ],
+ "_pin_note": "2026-10-24 Marvin: CFB ML trades (manual pin, survives allowlist rebuilds). NBA ML stays track-only (review Oct 27). Off: touch PIN_TRADE_OFF or env PIN_TRADE=off.",
+ "force_track": [
+  "pre_ml_fav",
+  "nba_prop_live_pacer"
+ ],
+ "_force_track_note": "2026-11-02 Marvin: Kalshi NFL in-game props (nfl_prop_live) + pregame ML favorites (pre_ml_fav, ask>50c) TRACK-ONLY even with KALSHI_TRADE_ALL on; still tracked+graded. Off: env KALSHI_FORCE_TRACK=off | data/KALSHI_FORCE_TRACK_OFF. 2026-11-08 Marvin: nfl_prop_live approved for DEMO trading; removed only that forced-track entry. pre_ml_fav unchanged. 2026-11-09 Marvin: nba_prop_live_pacer (Kalshi NBA pacer props, -19.1% over 265) TRACK-ONLY; read in kalshi_nba_pacer.py."
+}
