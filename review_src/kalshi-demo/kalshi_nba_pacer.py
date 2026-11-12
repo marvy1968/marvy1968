@@ -20,6 +20,21 @@ DRY = "--dry" in sys.argv
 fee = lambda q: 0.07 * q * (1 - q)
 def gate_ok(p, edge): return edge >= MIN_EDGE or (min(p, CAP) >= P_GATE and edge > 0)
 
+def isotonic_skip(ps, ask, prior=None):
+    """Opt-in walk-forward isotonic on this lane only. Default off (KALSHI_PACER_ISOTONIC).
+    Not used for Polymarket nba_prop_live. A skip does not reprice and does not resize a kept stake.
+    No per-game exposure cap is applied here."""
+    import walkforward_isotonic as ISO
+    if not ISO.enabled("kalshi", "nba_prop_live_pacer"):
+        return None
+    try:
+        if prior is None:
+            prior = ISO.load_prior_kalshi(os.path.join(DATA, "results_ledger.csv"), LOG)
+        return ISO.maybe_skip(ps, ask / 100.0, prior, venue="kalshi", lane="nba_prop_live_pacer")
+    except Exception as ex:
+        print("isotonic error -> skip", str(ex)[:120])
+        return "isotonic error"
+
 # 2026-11-05 kpfix (bug fix only, no strategy change): transient SSL/connection errors (ESPN handshake timeouts) crashed
 # runs, and slow calls ran past the unit's TimeoutStartSec=110 (SIGTERM). Retry idempotent GETs with backoff, use
 # shorter per-request timeouts, and keep a run deadline so the run always finishes (and logs) inside the unit timeout.
@@ -150,6 +165,8 @@ def main():
                 if not ask or not 0 < ask < 100: continue
                 q = ask / 100; edge = min(ps, CAP) - q - fee(q)
                 if not gate_ok(ps, edge): continue
+                iso_why = isotonic_skip(ps, ask)
+                if iso_why: sk(iso_why); continue
                 st["pass_gate"] += 1
                 cands.append((edge, dict(m=m, g=g, p=p, stt=stt, T=T, side=side, ps=ps, src=src, why=why, ask=ask, edge=edge)))
     cands.sort(key=lambda x: -x[0]); placed = 0
@@ -165,6 +182,8 @@ def main():
         if mk.get("status") not in ("active", "open") or not ask: sk("not open"); continue
         q = ask / 100; edge = min(x["ps"], CAP) - q - fee(q)
         if not gate_ok(x["ps"], edge): sk("edge gone at refetch"); continue
+        iso_why = isotonic_skip(x["ps"], ask)
+        if iso_why: sk(iso_why); continue
         if not LO <= ask <= HI: sk("price outside 10-90c"); continue
         pk = min(x["ps"], CAP)
         stake = PF.kelly_usd(pk, ask, gcfg["bankroll"], gcfg["staking"]["after_kelly_frac"], gcfg["staking"]["after_cap_pct"], cfg["max_stake_usd"], 1.0)
