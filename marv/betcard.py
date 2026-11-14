@@ -119,7 +119,9 @@ def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
                 out.append(Bet(**base, market="spread", side=team, line=line, price=price or -110, tier="SIGNAL",
                                score=SIGNAL_RANK["MARV4"], units=0.5,
                                why=f"Marv {abs(pred.model_margin + o.spread):.1f} pts off the spread (MARV4, 54.4% ATS backtest)"))
-    return out
+    from .lane_pause import partition
+    return partition(out, "model")
+candidates._lane_pause = True
 
 
 def tag_candidates(sport: str, slate, tags: dict) -> list[Bet]:
@@ -134,7 +136,9 @@ def tag_candidates(sport: str, slate, tags: dict) -> list[Bet]:
             out.append(Bet(sport=sport, game=f"{g.away} @ {g.home}", start=g.start.isoformat(), home=g.home, away=g.away,
                            market="total", side=side, line=o.total, price=price or -110, tier="SIGNAL",
                            score=SIGNAL_RANK.get(tag, 52.5), units=0.5, why=_tag_why(sport, tag)))
-    return out
+    from .lane_pause import partition
+    return partition(out, "tag")
+tag_candidates._lane_pause = True
 
 
 def gap_candidates(gaps: list[dict]) -> list[Bet]:
@@ -150,7 +154,9 @@ def gap_candidates(gaps: list[dict]) -> list[Bet]:
                        why=f"Bovado {e['line']:g} vs sharp Pinnacle {e['pinnacle_line']:g}"
                            + ((f" ({proven.pct(e['sport'], 'total', signal='GAP')})" if proven.gated(e["sport"])
                                else " (54.4%, +4.6% ROI backtest)") if tested else " (untested in NFL)")))
-    return out
+    from .lane_pause import partition
+    return partition(out, "gap")
+gap_candidates._lane_pause = True
 
 
 def _bt_roi(b: Bet) -> float | None:
@@ -189,6 +195,8 @@ def one_side(bets: list[Bet]) -> list[Bet]:
 
 def select(cands: list[Bet], n_max: int = MAX_BETS) -> list[Bet]:
     """Rank (HIGH, then SIGNAL, then MODEL), merge duplicates of the same bet, max PER_GAME per game."""
+    from .lane_pause import partition
+    cands = partition(list(cands), "select")
     order = {"HIGH": 0, "SIGNAL": 1, "MODEL": 2}
     merged: dict[tuple, Bet] = {}
     for b in sorted(cands, key=lambda b: (order[b.tier], -b.score)):
@@ -212,6 +220,7 @@ def select(cands: list[Bet], n_max: int = MAX_BETS) -> list[Bet]:
         if len(out) >= n_max:
             break
     return out
+select._lane_pause = True
 
 
 def text(bets: list[Bet], when: datetime) -> str:
@@ -244,15 +253,21 @@ def already_sent(state: Path, when: datetime) -> dict | None:
     return sent.get(when.date().isoformat())
 
 
-def mark_sent(state: Path, bets: list[Bet], when: datetime) -> None:
-    """Remember that today's card went out (date, sports and game set), so retries and reruns don't resend it."""
+def mark_sent(state: Path, bets: list[Bet], when: datetime, status: str = "unknown",
+              delivery_proof: bool = False, intent_id: str | None = None) -> None:
+    """Resend lock for this ET date. Not a provider receipt unless delivery_proof is set from one.
+
+    The historical file name is betcard_sent.json. Rows written here record the attempt status.
+    delivery_proof stays false unless the caller actually holds a receipt.
+    """
     path = state / "betcard_sent.json"
     try:
         sent = json.loads(path.read_text()) if path.exists() else {}
     except ValueError:
         sent = {}
     day = when.date().isoformat()
-    sent[day] = {"sent_at": when.isoformat(), "sports": sorted({b.sport for b in bets}),
+    sent[day] = {"locked_at": when.isoformat(), "status": status, "delivery_proof": bool(delivery_proof),
+                 "intent_id": intent_id, "sports": sorted({b.sport for b in bets}),
                  "games": sorted({f"{b.sport}|{b.game}" for b in bets})}
     keep = sorted(sent)[-30:]
     path.write_text(json.dumps({k: sent[k] for k in keep}, indent=1))

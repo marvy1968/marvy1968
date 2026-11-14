@@ -1,7 +1,9 @@
+import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
 from marv import betcard
 from marv.models import Game, Odds, Pick, Prediction
@@ -114,10 +116,11 @@ class TagOnlyTests(unittest.TestCase):
         g = Game("77", "cfb", datetime.now(timezone.utc) + timedelta(hours=6), "Ball State", "Bowling Green",
                  odds=Odds(total=58.5, under_price=-112, over_price=-108))
         none = Game("78", "cfb", datetime.now(timezone.utc) + timedelta(hours=6), "No Total U", "Other U")
-        bets = betcard.tag_candidates("cfb", [g, none], {"77": [("OVER-FADE", "Under"), ("OVER-FADE+INFLATED", "Under")],
-                                                         "78": [("OVER-FADE", "Under")]})
-        self.assertEqual(len(bets), 2)  # the game without a total is skipped
-        chosen = betcard.select(bets)
+        with mock.patch.dict(os.environ, {"MARV_LANE_PAUSE": "off"}):
+            bets = betcard.tag_candidates("cfb", [g, none], {"77": [("OVER-FADE", "Under"), ("OVER-FADE+INFLATED", "Under")],
+                                                             "78": [("OVER-FADE", "Under")]})
+            self.assertEqual(len(bets), 2)  # the game without a total is skipped
+            chosen = betcard.select(bets)
         self.assertEqual(len(chosen), 1)  # both tags are one bet
         self.assertEqual((chosen[0].label, chosen[0].tier), ("UNDER 58.5 (-112)", "SIGNAL"))
         self.assertIn("OVER-FADE", chosen[0].why)

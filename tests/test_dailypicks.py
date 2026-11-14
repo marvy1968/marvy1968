@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -20,6 +21,17 @@ class G:
 
 
 class DailyPicksTest(unittest.TestCase):
+    def setUp(self):
+        # These tests cover parlay ranking and the card text. Lane pause is exercised separately.
+        self._pause = os.environ.get("MARV_LANE_PAUSE")
+        os.environ["MARV_LANE_PAUSE"] = "off"
+
+    def tearDown(self):
+        if self._pause is None:
+            os.environ.pop("MARV_LANE_PAUSE", None)
+        else:
+            os.environ["MARV_LANE_PAUSE"] = self._pause
+
     def test_combined_price(self):
         self.assertEqual(D.combined([-110, -110]), 264)
         self.assertEqual(D.dec_to_american(2.38), 138)
