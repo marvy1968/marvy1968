@@ -186,7 +186,7 @@ def candidates(d: pd.DataFrame) -> list[tuple[str, dict]]:
         for s in (3, 5, 7):
             c.append((f"spread <= {s}", {"max_spread": s}))
     if "sharp_p" in d and d["sharp_p"].notna().any():
-        c.append(("sharp books agree", {"sharp": True}))
+        c.append(("saved book price agrees (sharp_p; Bovada on the VM export)", {"sharp": True}))
     if "open_p" in d and d["open_p"].notna().any():
         c.append(("line moved toward dog", {"move": "toward"}))
         c.append(("line moved away from dog", {"move": "away"}))
