@@ -22,3 +22,4 @@ Rules for every item (fixed before any result is seen):
 | 5 | both | Skip entries when the spread is > 10% of the stop distance | built (fxbot.refine.spread_both, family fx_refine_5); waiting for a deploy |
 | 6 | both | Cap open trades sharing one currency (e.g. at most 2 USD-side trades) | built (fxbot.refine.cap_both, family fx_refine_6); waiting for a deploy |
 | 7 | both | Skip entries 60 min either side of high-impact news for that currency (all pairs) | already live: the runner's news pause (forexfactory, 60 min either side; tested Oct 28, family fx_news). Nothing to add |
+| 8 | fx-experts weak systems | Pre-registered 2026-11-17: A cost filter (cost <= 10% of stop) on Crabel and Soup; B session 07-17 UTC on Crabel, Soup, Fader; C Turtle on USD/JPY only; D Fader without AUD/USD and NZD/USD | built (fxbot.fxexp_refine, family fx_expt_refine, 7 sub-tests); waiting for a deploy. A PASS is a lead only: changing the bot needs the owner's install |
