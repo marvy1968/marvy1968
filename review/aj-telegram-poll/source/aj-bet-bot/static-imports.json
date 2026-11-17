@@ -1,0 +1,158 @@
+{
+ "__init__.py": {
+  "top_level": [],
+  "lazy_in_function": []
+ },
+ "db.py": {
+  "top_level": [
+   "__future__:annotations",
+   "datetime:date,datetime,timezone",
+   "json",
+   "os",
+   "pathlib:Path",
+   "sqlite3",
+   "typing:Any,Dict,List,Optional",
+   "zoneinfo:ZoneInfo"
+  ],
+  "lazy_in_function": [
+   ".:live_prop_ev50_track",
+   ".:me_gates",
+   ".:ncaaf_live_track",
+   ".:nfl_live_rec_track",
+   ".:sat_priority"
+  ]
+ },
+ "oddsapi.py": {
+  "top_level": [
+   ".db:DB,alloc_daily,is_weekend_local,month_utc,now,today_local",
+   "__future__:annotations",
+   "datetime:datetime,timedelta",
+   "logging",
+   "os",
+   "requests",
+   "typing:Any,Callable,Dict,Optional,Tuple"
+  ],
+  "lazy_in_function": [
+   ".:sat_priority"
+  ]
+ },
+ "telegram_bot.py": {
+  "top_level": [
+   ".:friendly",
+   ".:valuefinder",
+   ".db:local_day,today_local",
+   ".markets:match_event,name_sim",
+   ".oddsapi:BudgetExceeded",
+   ".oddsmath:american_to_decimal",
+   "__future__:annotations",
+   "datetime:datetime,timedelta,timezone",
+   "difflib",
+   "json",
+   "logging",
+   "queue",
+   "re",
+   "requests",
+   "threading",
+   "time",
+   "typing:Any,Callable,Dict,List,Optional,Tuple",
+   "zoneinfo:ZoneInfo"
+  ],
+  "lazy_in_function": [
+   ".:enrich",
+   ".:h2h_model",
+   ".:lane_top",
+   ".:live_quality",
+   ".:marv_live",
+   ".:mybook",
+   ".:pace_cmd",
+   ".:policy",
+   ".:recap_split",
+   ".:sweetspot",
+   ".budget:budget_report",
+   ".espn:parse_scoreboard",
+   ".espn:time_left_frac",
+   ".friendly:plain",
+   ".grader:report_card",
+   ".line_swing:DEFAULTS,swings_text",
+   ".markets:outcome_name_for",
+   ".paper:report,report_summary",
+   ".recalibrate:paper_key",
+   ".results_fmt:ids_from,results_text",
+   ".scanner:settle_open",
+   ".total_swing:tswings_text",
+   ".trends:trends_text",
+   "datetime:date",
+   "datetime:timedelta",
+   "os",
+   "parlay_pause",
+   "subprocess",
+   "sys"
+  ]
+ },
+ "test_telegram_bot.py": {
+  "top_level": [
+   "ajbet.alerts:Notifier",
+   "ajbet.db:DB",
+   "ajbet.espn:Game,Team",
+   "ajbet.oddsapi:OddsAPI",
+   "ajbet.telegram_bot:TelegramBot,authorized,chunks,parse_command,prop_markets_in,strip_prop_words",
+   "ajbet.value_scan:ValueScanner",
+   "datetime:datetime,timezone",
+   "pytest"
+  ],
+  "lazy_in_function": [
+   "ajbet.alerts",
+   "ajbet:friendly",
+   "ajbet:mybook",
+   "json",
+   "time"
+  ]
+ },
+ "valuefinder.py": {
+  "top_level": [
+   ".:mybook",
+   ".models:norm_cdf,norm_ppf,poisson_cdf,poisson_lambda_for,poisson_pmf",
+   ".oddsmath:american_to_decimal,american_to_prob,devig_american,prob_to_american",
+   "__future__:annotations",
+   "collections:defaultdict",
+   "dataclasses:dataclass,field",
+   "math",
+   "statistics",
+   "threading",
+   "typing:Any,Dict,Iterable,List,Optional,Tuple"
+  ],
+  "lazy_in_function": [
+   ".:calib",
+   ".registry:Registry,BUILTIN_MARKETS,MarketHandler"
+  ]
+ },
+ "_telegram_bot_local_modules": {
+  "budget": "NOT exported (lazy, inside command handlers)",
+  "db": "this bundle",
+  "enrich": "earlier bundle",
+  "espn": "earlier bundle",
+  "friendly": "earlier bundle",
+  "grader": "NOT exported (lazy, inside command handlers)",
+  "h2h_model": "earlier bundle",
+  "lane_top": "NOT exported (lazy, inside command handlers)",
+  "line_swing": "NOT exported (lazy, inside command handlers)",
+  "live_quality": "NOT exported (lazy, inside command handlers)",
+  "markets": "earlier bundle",
+  "marv_live": "NOT exported (lazy, inside command handlers)",
+  "mybook": "earlier bundle",
+  "oddsapi": "this bundle",
+  "oddsmath": "earlier bundle",
+  "pace_cmd": "NOT exported (lazy, inside command handlers)",
+  "paper": "NOT exported (lazy, inside command handlers)",
+  "policy": "NOT exported (lazy, inside command handlers)",
+  "recalibrate": "NOT exported (lazy, inside command handlers)",
+  "recap_split": "NOT exported (lazy, inside command handlers)",
+  "results_fmt": "NOT exported (lazy, inside command handlers)",
+  "scanner": "NOT exported (lazy, inside command handlers)",
+  "sweetspot": "NOT exported (lazy, inside command handlers)",
+  "total_swing": "NOT exported (lazy, inside command handlers)",
+  "trends": "NOT exported (lazy, inside command handlers)",
+  "valuefinder": "this bundle",
+  "parlay_pause (external /opt/marv-feed, lazy)": "NOT exported"
+ }
+}
