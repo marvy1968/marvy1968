@@ -14,6 +14,7 @@ state/betcard_log.json and graded from final scores, so its real record shows up
 """
 
 import json
+import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -22,6 +23,8 @@ from zoneinfo import ZoneInfo
 from . import edges as E
 from . import proven
 from .data.teams import similarity
+
+logger = logging.getLogger(__name__)
 
 MIN_BETS, MAX_BETS, PER_GAME, MAX_UNTESTED = 2, 10, 2, 2
 HARD = ("backup QB", "key injury", "starters out", "snaps", "elimination", "wind", "no current injury",
@@ -73,6 +76,19 @@ def _tag_why(sport: str, tag: str) -> str:
     return f"{head} ({SIGNAL_RANK.get(tag, 52.5):.1f}% in backtests)"
 
 
+def _bad_ml_price(price) -> bool:
+    """American moneylines never sit strictly between -100 and +100.
+
+    -100 and +100 are real even-money prices. A point spread copied into the price
+    field (for example -19) lands in the gap and must not be paid out.
+    """
+    try:
+        p = float(price)
+    except (TypeError, ValueError):
+        return False
+    return -100.0 < p < 100.0
+
+
 def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
     out = []
     for pred in preds:
@@ -83,6 +99,10 @@ def candidates(sport: str, preds, projections: dict | None = None) -> list[Bet]:
         blocked = _game_blocked(pred)
         for pk in pred.picks:
             if pk.market not in ("ml", "spread", "total"):
+                continue
+            if pk.market == "ml" and _bad_ml_price(pk.price):
+                logger.warning("betcard: skip %s %s ML price %s (American odds cannot be between -100 and 100)",
+                               sport, name, pk.price)
                 continue
             if proven.gated(sport) and (pk.active or (not blocked and not _hard(pk.vetoes) and pk.edge >= 0.03)):
                 # Marv's own game picks in a gated sport have no proven backtest: lean only, no %, no Kelly stake.
@@ -276,6 +296,13 @@ def grade(state: Path, sport: str, finished) -> None:
     done = [g for g in finished if g.completed and g.home_score is not None and g.away_score is not None]
     for b in book:
         if b["sport"] != sport or b["result"] is not None:
+            continue
+        if b["market"] == "ml" and _bad_ml_price(b.get("price")):
+            # Already on the card from before the guard: void it, do not pay a spread as a price.
+            logger.warning("betcard: void %s %s ML price %s (American odds cannot be between -100 and 100)",
+                           b.get("sport"), b.get("game"), b.get("price"))
+            b["result"] = "void"
+            b["profit"] = 0.0
             continue
         start = datetime.fromisoformat(b["start"].replace("Z", "+00:00"))
         g = next((x for x in done if abs(x.start - start) < timedelta(hours=12)
