@@ -141,8 +141,6 @@ class Runner:
     def pairs_for(self, sid, strat):
         return self.cfg.get("system_pairs", {}).get(sid) or strat.pairs or self.cfg["pairs"]
 
-    # 2026-11-11 owner: "turn off the losers": systems listed in cfg["entries_off"] take no new entries, but their
-    # open trades keep being managed (trailing stops, time exits, Crabel's 16:50 close). Undo: empty the list.
     def risk_for(self, sid):
         """owner 2026-11-17: optional per-system risk (% of NAV) in cfg["risk_by_system"]; every other system uses cfg["risk_pct"]."""
         return self.cfg.get("risk_by_system", {}).get(sid, self.cfg["risk_pct"])
@@ -168,6 +166,8 @@ class Runner:
             pass   # an unreadable row must never stop the bot; it simply is not counted
         return 100.0 * usd / nav
 
+    # 2026-11-11 owner: "turn off the losers": systems listed in cfg["entries_off"] take no new entries, but their
+    # open trades keep being managed (trailing stops, time exits, Crabel's 16:50 close). Undo: empty the list.
     def entries_ok(self, sid):
         return not self.cfg.get("no_new_entries") and sid not in self.cfg.get("entries_off", [])
 
