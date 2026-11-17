@@ -1,3 +1,11 @@
 $ pack fxexp_v3
-started 2026-11-16 23:24:03 EST
-RUNNING...
+started 2026-11-16 23:24:03 EST, took 0s, exit 0
+
+total 72
+drwxr-xr-x  2 marvbot marvbot  4096 Nov 16 23:24 .
+drwxr-xr-x 34 marvbot marvbot  4096 Nov 16 23:24 ..
+-rw-r--r--  1 marvbot marvbot   412 Nov 16 23:24 conftest.py
+-rw-r--r--  1 marvbot marvbot  4994 Nov 16 23:24 install_v3.py
+-rw-r--r--  1 marvbot marvbot 23695 Nov 16 23:24 live.py
+-rw-r--r--  1 marvbot marvbot  4487 Nov 16 23:24 news.py
+-rw-r--r--  1 marvbot marvbot 17400 Nov 16 23:24 test_live.py
