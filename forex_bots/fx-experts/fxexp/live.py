@@ -143,6 +143,10 @@ class Runner:
 
     # 2026-11-11 owner: "turn off the losers": systems listed in cfg["entries_off"] take no new entries, but their
     # open trades keep being managed (trailing stops, time exits, Crabel's 16:50 close). Undo: empty the list.
+    def risk_for(self, sid):
+        """owner 2026-11-17: optional per-system risk (% of NAV) in cfg["risk_by_system"]; every other system uses cfg["risk_pct"]."""
+        return self.cfg.get("risk_by_system", {}).get(sid, self.cfg["risk_pct"])
+
     def entries_ok(self, sid):
         return not self.cfg.get("no_new_entries") and sid not in self.cfg.get("entries_off", [])
 
@@ -345,7 +349,7 @@ class Runner:
             if o.kind == "limit" and (level - (prices[pair][1] if o.side == 1 else prices[pair][0])) * o.side > 0:
                 self.log(f"[{sid}] {pair} limit {fmt_px(pair, level)} already through the market; skip"); r["status"] = "missed"; continue
             if (level - sl) * o.side <= 0: r["status"] = "missed"; continue
-            units = units_for_risk(pair, level, sl, nav, self.cfg["risk_pct"], mids)
+            units = units_for_risk(pair, level, sl, nav, self.risk_for(sid), mids)
             if units < 1: r["status"] = "missed"; continue
             exp_day = date.fromisoformat(r["exp"])
             gtd = day_bounds(exp_day)[1] - timedelta(minutes=1)

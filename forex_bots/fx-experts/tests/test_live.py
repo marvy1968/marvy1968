@@ -246,3 +246,20 @@ def test_news_calendar_cache_and_fallback(tmp_path):
     assert any(e["title"] == "Core CPI m/m" for e in ev2)                       # stale cache still used
     ev3, src3 = fxnews.load_events(tmp_path / "none.json", now, fetch=boom, log=lambda m: None)
     assert src3.startswith("fallback") and all(e["title"] == "FOMC decision" for e in ev3)
+
+
+def test_runner_per_system_risk_override(tmp_path):
+    """cfg["risk_by_system"] sizes that system on its own risk; with no entry the global risk_pct is used (owner 2026-11-17)."""
+    runs = []
+    def units(**kw):
+        runs.append(1); name = "s%d.json" % len(runs)
+        cli = FakeCli(flat(), intraday=(1.1, 1.0990, 1.1010))     # evening plan: nothing armed yet
+        Runner(cfg(**kw), {"lien-fader": cli}, str(tmp_path / name), now=ny(2026, 10, 4, 18), log=lambda m: None).run()
+        cli2 = FakeCli(flat(), intraday=(1.1, 1.0950, 1.1010))
+        Runner(cfg(**kw), {"lien-fader": cli2}, str(tmp_path / name), now=ny(2026, 10, 4, 23), log=lambda m: None).run()
+        return [abs(int(w[1]["units"])) for w in cli2.writes if w[0] == "create"]
+    base = units()
+    small = units(risk_by_system={"lien-fader": 0.05})            # 0.05% vs the 0.5% global in these tests: one tenth
+    other = units(risk_by_system={"raschke-soup": 0.05})          # another system's override must not touch lien-fader
+    assert base and small and other == base
+    assert abs(base[0] - 10 * small[0]) < 10
