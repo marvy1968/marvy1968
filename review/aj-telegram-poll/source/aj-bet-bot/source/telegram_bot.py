@@ -333,6 +333,9 @@ class TelegramBot:
         self._games: Tuple[float, Dict[str, List[Any]]] = (0.0, {})
         self.ignored = 0
         self.last_poll = 0.0           # time.time() of the last successful getUpdates
+        self.last_attempt = 0.0        # time.time() just before each getUpdates, including failures
+        self._poll_stop = threading.Event()
+        self._logged_409 = False
         self.handled = 0
 
     # --- transport ---
@@ -458,16 +461,29 @@ class TelegramBot:
                 pass
         return n
 
-    def _loop(self) -> None:
+    def _loop(self, stop) -> None:
+        """One getUpdates loop. `stop` retires this thread; `self._stop` stops the bot."""
         backoff = 1.0
-        while not self._stop.is_set():
+        while not stop.is_set() and not self._stop.is_set():
             try:
+                self.last_attempt = time.time()
                 self.poll_once()
                 backoff = 1.0
             except Exception as e:  # noqa: BLE001 - never kill the service
-                log.warning("telegram poll error (retry in %.0fs): %s", backoff, self._scrub(str(e))[:200])
-                self._stop.wait(backoff)
-                backoff = min(backoff * 2, 300.0)
+                msg = self._scrub(str(e))[:200]
+                conflict = "409" in msg
+                if conflict:
+                    # Two getUpdates on one token 409 each other. Log once and don't sit in a 300s backoff.
+                    backoff = min(backoff, 30.0)
+                    if not self._logged_409:
+                        log.warning("telegram poll 409 Conflict (retry capped at 30s): %s", msg)
+                        self._logged_409 = True
+                else:
+                    self._logged_409 = False
+                    log.warning("telegram poll error (retry in %.0fs): %s", backoff, msg)
+                if stop.wait(backoff):
+                    return
+                backoff = min(backoff * 2, 30.0 if conflict else 300.0)
 
     def start(self) -> bool:
         if not self.enabled:
@@ -484,22 +500,49 @@ class TelegramBot:
                     log.info("telegram: answering %d recent command(s) sent while restarting", n)
             except Exception as e:  # noqa: BLE001
                 log.warning("getUpdates backlog: %s", self._scrub(str(e))[:120])
-        self._thread = threading.Thread(target=self._loop, name="telegram-poll", daemon=True)
-        self._thread.start()
+        self._spawn_poll()
         log.info("telegram bot polling started (commands answered for the configured chat only)")
         return True
 
-    def ensure_polling(self, max_silence_s: float = 180.0) -> bool:
-        """Watchdog (main loop): restart the poll thread if it died or has not polled for a while."""
-        alive = self._thread is not None and self._thread.is_alive()
-        stale = self.last_poll and time.time() - self.last_poll > max_silence_s
-        if alive and not stale:
-            return False
-        log.warning("telegram poll thread %s; restarting it", "stale" if alive else "not running")
-        self.poll_http = requests.Session() if isinstance(self.poll_http, requests.Session) else self.poll_http
-        self._thread = threading.Thread(target=self._loop, name="telegram-poll", daemon=True)
+    def _spawn_poll(self) -> bool:
+        """Start one poll thread on a fresh stop event. Never called while another poller is alive."""
+        self._poll_stop = threading.Event()
+        self._thread = threading.Thread(target=self._loop, args=(self._poll_stop,), name="telegram-poll", daemon=True)
         self._thread.start()
         return True
+
+    def ensure_polling(self, max_silence_s: float = 180.0) -> bool:
+        """Watchdog (main loop): restart the poll thread if it died or is hung.
+
+        A live thread waiting out a 502/timeout backoff still owns getUpdates. Starting a
+        second loop in this process makes Telegram answer both with 409 Conflict. Treat the
+        thread as hung only when neither a success nor an attempt has happened for
+        max_silence_s plus the longest backoff and one long-poll (345s).
+        """
+        thread = self._thread
+        alive = thread is not None and thread.is_alive()
+        if not alive:
+            log.warning("telegram poll thread not running; restarting it")
+            return self._spawn_poll()
+        now = time.time()
+        last = max(self.last_poll, self.last_attempt)
+        if now - last <= max_silence_s + 345:
+            return False
+        log.warning("telegram poll thread hung (no attempt for %.0fs); restarting it", now - last)
+        self._poll_stop.set()
+        old_http = self.poll_http
+        self.poll_http = requests.Session()
+        close = getattr(old_http, "close", None)
+        if callable(close):
+            try:
+                close()
+            except Exception:  # noqa: BLE001
+                log.debug("closing hung poll session failed", exc_info=True)
+        thread.join(timeout=5)
+        if thread.is_alive():
+            log.warning("telegram poll thread still alive after restart; not starting a second poller")
+            return False
+        return self._spawn_poll()
 
     def stop(self) -> None:
         self._stop.set()
