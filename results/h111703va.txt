@@ -1,3 +1,7 @@
 $ pack oanda_vault
-started 2026-11-16 22:41:24 EST
-RUNNING...
+started 2026-11-16 22:41:24 EST, took 0s, exit 0
+
+total 12
+drwxr-xr-x  2 marvbot marvbot 4096 Nov 16 22:41 .
+drwxr-xr-x 33 marvbot marvbot 4096 Nov 16 22:41 ..
+-rw-r--r--  1 marvbot marvbot 3568 Nov 16 22:41 set_oanda_secrets.py
