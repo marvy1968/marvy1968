@@ -263,3 +263,19 @@ def test_runner_per_system_risk_override(tmp_path):
     other = units(risk_by_system={"raschke-soup": 0.05})          # another system's override must not touch lien-fader
     assert base and small and other == base
     assert abs(base[0] - 10 * small[0]) < 10
+
+
+def test_runner_open_risk_cap_defers_new_entries(tmp_path):
+    """cfg["max_open_risk_pct"]: a new entry is deferred when open trades + resting orders + the new trade would pass the cap."""
+    def creates(**kw):
+        cli = FakeCli(flat(), intraday=(1.1, 1.0990, 1.1010))
+        Runner(cfg(**kw), {"lien-fader": cli}, str(tmp_path / ("c%d.json" % len(list(tmp_path.iterdir())))), now=ny(2026, 10, 4, 18), log=lambda m: None).run()
+        cli2 = FakeCli(flat(), intraday=(1.1, 1.0950, 1.1010))
+        # another system already holds GBP/USD risking 1,000,000 units x 0.01 = $10,000 = 10% of the $100,000 NAV
+        cli2.trades = [{"id": "5", "instrument": "GBP_USD", "currentUnits": "1000000", "price": "1.30", "stopLossOrder": {"price": "1.29"},
+                        "clientExtensions": {"id": "t-o", "comment": "crabel-idnr4"}}]
+        Runner(cfg(**kw), {"lien-fader": cli2}, str(tmp_path / ("c%d.json" % len(list(tmp_path.iterdir())))), now=ny(2026, 10, 4, 23), log=lambda m: None).run()
+        return [w for w in cli2.writes if w[0] == "create"]
+    assert creates()                                           # no cap set: places as before
+    assert creates(max_open_risk_pct=50.0)                     # 10% open + 0.5% new is under 50%
+    assert not creates(max_open_risk_pct=5.0)                  # 10% already open is over a 5% cap: deferred

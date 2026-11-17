@@ -17,7 +17,7 @@ import pandas as pd
 from .strategies import BY_SID
 from .strategies.base import Order, Position
 from .instruments import PAIRS, ALL_PAIRS, pip, precision, rnd, spread as typ_spread, MAX_SPREAD_MULT
-from .sizing import units_for_risk
+from .sizing import units_for_risk, quote_to_usd
 from .oanda import Oanda, OandaError
 from . import news
 
@@ -146,6 +146,27 @@ class Runner:
     def risk_for(self, sid):
         """owner 2026-11-17: optional per-system risk (% of NAV) in cfg["risk_by_system"]; every other system uses cfg["risk_pct"]."""
         return self.cfg.get("risk_by_system", {}).get(sid, self.cfg["risk_pct"])
+
+    def open_risk_pct(self, cli, mids, nav):
+        """% of NAV currently at risk: every open trade down to its stop plus every resting entry order down to its
+        stop (a resting order can fill at any time). Trades with no stop and orders with no stop are skipped.
+        Conservative: a trailed stop is still measured from the entry price, so locked-in profit is not credited."""
+        if nav <= 0: return 0.0
+        usd = 0.0
+        try:
+            for t in cli.open_trades():
+                sl = (t.get("stopLossOrder") or {}).get("price")
+                if sl is None: continue
+                usd += abs(float(t["price"]) - float(sl)) * abs(float(t["currentUnits"])) * quote_to_usd(t["instrument"], mids)
+            for o in cli.pending_orders():
+                if o.get("type") not in ("STOP", "LIMIT") or "price" not in o: continue
+                sl = o.get("stopLossOnFill") or {}
+                dist = float(sl["distance"]) if "distance" in sl else (abs(float(o["price"]) - float(sl["price"])) if "price" in sl else None)
+                if dist is None: continue
+                usd += dist * abs(float(o["units"])) * quote_to_usd(o["instrument"], mids)
+        except (KeyError, ValueError):
+            pass   # an unreadable row must never stop the bot; it simply is not counted
+        return 100.0 * usd / nav
 
     def entries_ok(self, sid):
         return not self.cfg.get("no_new_entries") and sid not in self.cfg.get("entries_off", [])
@@ -349,6 +370,9 @@ class Runner:
             if o.kind == "limit" and (level - (prices[pair][1] if o.side == 1 else prices[pair][0])) * o.side > 0:
                 self.log(f"[{sid}] {pair} limit {fmt_px(pair, level)} already through the market; skip"); r["status"] = "missed"; continue
             if (level - sl) * o.side <= 0: r["status"] = "missed"; continue
+            cap = self.cfg.get("max_open_risk_pct")      # owner 2026-11-17: optional ceiling on total open + resting risk; absent = no ceiling
+            if cap and self.open_risk_pct(cli, mids, nav) + self.risk_for(sid) > float(cap):
+                self.log(f"[{sid}] {pair} total open risk would pass {cap}% of NAV; defer"); continue
             units = units_for_risk(pair, level, sl, nav, self.risk_for(sid), mids)
             if units < 1: r["status"] = "missed"; continue
             exp_day = date.fromisoformat(r["exp"])
