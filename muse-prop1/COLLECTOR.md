@@ -186,7 +186,7 @@ keeps the reservation, writes the day block, and does not make another call.
 A larger header is added to `used` before that block. A smaller header does
 not refund.
 
-The cap is 100 credits per UTC day in `{state}/usage.json`, not 100 requests.
+The cap is 5000 credits per UTC day in `{state}/usage.json`, not 100 requests.
 `used` never decreases. A held reservation left by a crash fails the next run
 closed before any request. Default bounds are 4 games and 4 billable calls
 per one-shot. Replay children do not inherit the collector environment. They
