@@ -303,8 +303,18 @@ def _safe_odds_error(status: int) -> str:
     if status == 401:
         return "odds auth rejected"
     if status == 429:
-        return "odds quota rejected"
+        return "odds rate-limited (http 429); run skipped"
+    if 500 <= status <= 599:
+        return f"odds http {status}; run skipped"
     return f"odds http {status}"
+
+
+def _is_transient_odds_error(status: int, body: bytes | None) -> bool:
+    """429 rate limit or 5xx: skip this run only. A quota-exhausted body still latches."""
+    if not (status == 429 or 500 <= status <= 599):
+        return False
+    text = (body or b"")[:2000].decode("utf-8", "replace").lower()
+    return "out_of_usage_credits" not in text and "usage quota" not in text
 
 
 def _odds_request(ledger: Ledger, transport, api_key: str, path: str, params: dict,
@@ -320,8 +330,11 @@ def _odds_request(ledger: Ledger, transport, api_key: str, path: str, params: di
         ledger.reconcile(reservation, None, error="odds transport failed")
         raise CollectorError("odds transport failed") from exc
     if status != 200:
-        ledger.reconcile(reservation, headers, error=_safe_odds_error(status))
-        raise CollectorError(_safe_odds_error(status))
+        transient = _is_transient_odds_error(status, body)
+        retryable = status == 429 or 500 <= status <= 599
+        error = "odds quota exhausted" if retryable and not transient else _safe_odds_error(status)
+        ledger.reconcile(reservation, headers, error=error, transient=transient)
+        raise CollectorError(error)
     ledger.reconcile(reservation, headers)
     try:
         return json.loads(body.decode("utf-8"))

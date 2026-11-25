@@ -26,6 +26,8 @@ EVENT_ODDS_CREDITS_PER_MARKET_PER_REGION = 1
 # Upcoming events list: documented free call in marv/props/odds.py.
 EVENTS_LIST_CREDITS = 0
 DEFAULT_DAILY_CAP = 100
+# x-requests-remaining at or below this means the account quota is used up.
+QUOTA_EXHAUSTED_REMAINING = 20
 
 
 class CreditError(RuntimeError):
@@ -141,8 +143,13 @@ class Ledger:
             self._write(data)
             return rid
 
-    def reconcile(self, reservation_id: str, headers: dict | None, error: str | None = None) -> dict:
-        """Apply response headers. Never lowers the counted cost. No retry is started here."""
+    def reconcile(self, reservation_id: str, headers: dict | None, error: str | None = None,
+                  transient: bool = False) -> dict:
+        """Apply response headers. Never lowers the counted cost. No retry is started here.
+
+        transient=True (HTTP 429 rate limit or 5xx) records the call and keeps its
+        worst-case credits counted, but does not latch the day; the caller ends the run.
+        """
         with self:
             data = self._read()
             row = next((item for item in data["reservations"] if item["id"] == reservation_id), None)
@@ -153,6 +160,8 @@ class Ledger:
                 raise CreditError(data["fail_reason"])
             parsed = _header_cost(headers)
             expected = int(row["worst_case"])
+            if error and transient:
+                return self._skip_transient(data, row, parsed, error)
             if error or parsed is None:
                 self._block(data, row, "unknown", error or "odds usage header missing or unparseable")
             actual, remaining = parsed
@@ -176,6 +185,35 @@ class Ledger:
             row["status"] = "reconciled"
             self._write(data)
             return data
+
+    def _skip_transient(self, data: dict, row: dict, parsed, reason: str) -> dict:
+        """One refused call (429 or 5xx): keep the hold counted, record it, no day latch.
+
+        Headers that show the account quota is exhausted, or a bill above the
+        worst case, still block the day.
+        """
+        expected = int(row["worst_case"])
+        row["error"] = reason
+        if parsed is not None:
+            actual, remaining = parsed
+            if actual < 0:
+                self._block(data, row, "unknown", "negative usage header")
+            row["header_last"] = actual
+            row["header_remaining"] = remaining
+            if remaining is not None:
+                data["last_remaining"] = remaining
+                if remaining <= QUOTA_EXHAUSTED_REMAINING:
+                    self._block(data, row, "unknown", "odds quota exhausted")
+            if actual > expected:
+                data["used"] += actual - expected
+                row["counted"] = actual
+                self._block(
+                    data, row, "discrepancy",
+                    f"billing discrepancy expected {expected} reported {actual}")
+        row["counted"] = expected
+        row["status"] = "skipped_transient"
+        self._write(data)
+        return data
 
     def _block(self, data: dict, row: dict, status: str, reason: str) -> None:
         """Persist the day block, then raise. Callers must not continue to the network."""
