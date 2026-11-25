@@ -25,7 +25,7 @@ LEDGER_NAME = "usage.json"
 EVENT_ODDS_CREDITS_PER_MARKET_PER_REGION = 1
 # Upcoming events list: documented free call in marv/props/odds.py.
 EVENTS_LIST_CREDITS = 0
-DEFAULT_DAILY_CAP = 100
+DEFAULT_DAILY_CAP = 5000
 # x-requests-remaining at or below this means the account quota is used up.
 QUOTA_EXHAUSTED_REMAINING = 20
 
